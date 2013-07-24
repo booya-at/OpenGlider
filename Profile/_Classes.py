@@ -1,7 +1,7 @@
 import numpy ##array spec
 import math
 import os ##for xfoil execution
-import glob ##filename checks
+#import glob ##filename checks
 from . import _Functions
 from . import _XFoilCalc
 

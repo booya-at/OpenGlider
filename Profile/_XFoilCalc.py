@@ -1,5 +1,5 @@
 import tempfile
-import os
+#import os
 
 def XValues(list1,list2):
     """Get a list of Values to compare against another one and delete values if not necessary to calculate again"""
@@ -44,11 +44,13 @@ def Impresults(resfile):
     xfile=open(resfile,"r")
     init=0
     erg={}
-
+    index=temp=[]##due to pydev-error
+    
     for line in xfile:
         line=line.strip()
         if len(line)>0:
             line=line.split(" ")
+            ##remove leading zero-elements
             while "" in line:
                 line.remove("")
             print(line)

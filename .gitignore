@@ -1,3 +1,9 @@
+###ignores for: eclipse, pycharm
+.idea/*
+.profect
+.pydevproject
+
+
 *.py[cod]
 
 # C extensions
