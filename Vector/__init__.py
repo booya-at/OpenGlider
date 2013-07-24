@@ -1,30 +1,30 @@
 import numpy as np
 
 
-def Depth(object):
-    if isinstance(object, list) or isinstance(object, np.ndarray):
-        return max([Depth(i) for i in object]) + 1
+def Depth(list):
+    if isinstance(list, list) or isinstance(list, np.ndarray):
+        return max([Depth(i) for i in list]) + 1
     else:
         return 1
 
 
-def Type(object):
+def Type(list):
     """return type of a vector list: 2d-point (1), list of 2d-points (2), 3d-point (3), list of 3d-points (4)"""
     ##2d-point//listof2d-points//3d-point//listof3d-points
     ##2d-p: depth 1
 
-    if Depth(object) == 2:
-        if len(object) == 2:
+    if Depth(list) == 2:
+        if len(list) == 2:
             return 1
-        elif len(object) == 3:
+        elif len(list) == 3:
             return 3
         else:
             return 0
-    elif Depth(object) == 3:
-        if [Depth(i) for i in object] == [2 for i in object]:
-            if [len(i) for i in object] == [2 for i in object]:
+    elif Depth(list) == 3:
+        if [Depth(i) for i in list] == [2 for i in list]:
+            if [len(i) for i in list] == [2 for i in list]:
                 return 2
-            elif [len(i) for i in object] == [3 for i in object]:
+            elif [len(i) for i in list] == [3 for i in list]:
                 return 4
             else:
                 return 0
@@ -51,7 +51,7 @@ def Rotation_3D(angle, axis=[1, 0, 0]):
                      [2*(b*c + a*d),        a**2+c**2-b**2-d**2,    2*(c*d - a*b)],
                      [2*(b*d-a*c),          2*(c*d + a*b),          a**2 + d**2 - b**2 - c**2]])
 
-def Rotation_3D_Wiki(angle,axis=[1,0,0]):
+#def Rotation_3D_Wiki(angle,axis=[1,0,0]):
 
     #see http://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle for reference.
-    (x,y,z)=Normalize(axis)
+#    (x,y,z)=Normalize(axis)

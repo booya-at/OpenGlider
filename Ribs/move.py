@@ -1,12 +1,6 @@
-import math
-import numpy as np
-from ..Vector import Rotation_3D
-
+from Vector import Rotation_3D
 
 ###########entweder klasse oder funktion die funktion erzeugt
-
-
-def mapfunc():
 
 
 def rotation(aoa, arc, zrot):
@@ -18,11 +12,12 @@ def rotation(aoa, arc, zrot):
     :param zrot:
     :return:
     """
-    rot_aoa = lambda x: (math.cos(aoa) * x[0] - math.sin(aoa) * x[1], math.sin(aoa) * x[0] + math.cos(aoa) * x[1])
+    ##aoa:
+    rot=Rotation_3D(aoa,[0,0,1])
 
     ##arc-wide rotation matrix
-    rot_arc = ((math.cos(arc), 0, math.sin(arc)), (0, 1, 0), (-math.sin(arc), 0, math.cos(arc)))
-
-    rot_zrot = 9
-
-    return lambda x: rot_zrot.dot(rot_arc.dot(rot_aoa(x)))
+    rot=rot.dot(Rotation_3D(arc,[1,0,0]))
+    
+    ##rotation relative to profile z-axis
+    axis=rot.dot([0,1,0])
+    return lambda x: rot.dot(Rotation_3D(zrot,axis)).dot(x)
