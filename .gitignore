@@ -1,9 +1,8 @@
-###ignores for: eclipse, pycharm
-.idea/*
-.profect
-.pydevproject
+#ignore dot files:
+.*
+!.gitignore
 
-
+#python compiled
 *.py[cod]
 
 # C extensions
