@@ -1,30 +1,32 @@
 import numpy as np
 
 
-def Depth(list):
-    if isinstance(list, list) or isinstance(list, np.ndarray):
-        return max([Depth(i) for i in list]) + 1
+def Depth(arg):
+    if isinstance(arg, list) or isinstance(arg, np.ndarray):
+        return max([Depth(i) for i in arg]) + 1
     else:
         return 1
 
 
-def Type(list):
+def Type(arg):
     """return type of a vector list: 2d-point (1), list of 2d-points (2), 3d-point (3), list of 3d-points (4)"""
-    ##2d-point//listof2d-points//3d-point//listof3d-points
+    ##2d-point//argof2d-points//3d-point//argof3d-points
     ##2d-p: depth 1
+    
+    ######Room for improvement here!
 
-    if Depth(list) == 2:
-        if len(list) == 2:
+    if Depth(arg) == 2:
+        if len(arg) == 2:
             return 1
-        elif len(list) == 3:
+        elif len(arg) == 3:
             return 3
         else:
             return 0
-    elif Depth(list) == 3:
-        if [Depth(i) for i in list] == [2 for i in list]:
-            if [len(i) for i in list] == [2 for i in list]:
+    elif Depth(arg) == 3:
+        if [Depth(i) for i in arg] == [2 for i in arg]:
+            if [len(i) for i in arg] == [2 for i in arg]:
                 return 2
-            elif [len(i) for i in list] == [3 for i in list]:
+            elif [len(i) for i in arg] == [3 for i in arg]:
                 return 4
             else:
                 return 0
