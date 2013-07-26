@@ -1,4 +1,5 @@
 import numpy as np
+from Utils import *
 
 
 def Depth(arg):
@@ -57,3 +58,38 @@ def Rotation_3D(angle, axis=[1, 0, 0]):
 
     #see http://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle for reference.
 #    (x,y,z)=Normalize(axis)
+
+class List(object):
+    def __init__(self,data):
+        self.data=np.array(data)
+    
+    def __repr__(self):
+        return self.data
+    
+    def __str__(self):
+        return str(self.data)
+    
+    def Point(self,_ik,_k=0):
+        try: (i,k)=_ik
+        except: (i,k)=(_ik,_k)
+        if i>len(self.data) or i < 1 or not isinstance(i, int):
+            raise("invalid integer for Listpoint")
+        return self.data[i-1]+k*(self.data[i]-self.data[i-1])
+    
+    def Extend(self,(i,k),length):
+        _dir=sign(length)
+        _len=abs(length)
+        (inew,knew)=(i,0)
+        if sign(i)==-1:
+            inew=len(self.data)-i
+        diff=0
+        
+        while diff<_len and inew<len(self.data) and inew >= 0:
+            inew=inew+_dir
+            diff+=np.linalg.norm(self.data[inew]-self.data[inew-_dir])
+        
+        
+        return (inew,knew)
+        
+        
+        

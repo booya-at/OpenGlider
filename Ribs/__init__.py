@@ -1,7 +1,6 @@
 from .move import rotation#, alignment
 from Profile import Profile2D, XFoil
 import numpy
-from numbers import Real
 
 
 class rib(object):
@@ -13,11 +12,12 @@ class rib(object):
             self.profile2D = Profile2D(profile, name=name)
 
         self._aoa=(aoa,aoaabs)
+        self.aoa=[]
         self.glide=glide
         self.arcang=arcang
         self.zrot=zrot
         
-        self.ReCalc()
+        #self.ReCalc()
 
 
     def Align(self, points):
@@ -33,15 +33,17 @@ class rib(object):
     
     
     def ReCalc(self):
-        #recalc aoa_abs/rel
-        #Formula for aoa rel/abs: ArcTan[Cos[alpha]/gleitzahl]-aoa[rad];
+        ##recalc aoa_abs/rel
+        ##Formula for aoa rel/abs: ArcTan[Cos[alpha]/gleitzahl]-aoa[rad];
         diff=numpy.arctan(numpy.cos(self.arcang)/self.glide)
-        #aoa->(rel,abs)
+        ##aoa->(rel,abs)
+        
+        #########checkdas!!!!!
         self.aoa[self._aoa[1]]=self._aoa[0]
-        self.aoa[1-self._aoa[1]]=diff-self._aoa[0]
+        self.aoa[1-self._aoa[1]]=diff+self._aoa[0]
         
         self._rot=rotation(self.aoa[1],self.arcang, self.zrot)
         self.profile3D=self.Align(self.profile2D.Profile)
     
-    AOA=property(GetAOA(),SetAOA())
+    AOA=property(GetAOA,SetAOA)
         
