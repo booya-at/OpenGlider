@@ -1,5 +1,6 @@
 import numpy as np
 from Utils import *
+from test.test_support import temp_cwd
 
 
 def Depth(arg):
@@ -61,7 +62,8 @@ def Rotation_3D(angle, axis=[1, 0, 0]):
 
 class List(object):
     def __init__(self,data):
-        self.data=np.array(data)
+        if type(data) == 2 or type(data)==4:
+            self.data=np.array(data)
     
     def __repr__(self):
         return self.data
@@ -79,17 +81,42 @@ class List(object):
     def Extend(self,(i,k),length):
         _dir=sign(length)
         _len=abs(length)
-        (inew,knew)=(i,0)
-        if sign(i)==-1:
+        knew=float(0)
+        
+        if sign(i) is -1:
             inew=len(self.data)-i
+        else:
+            inew=i
         diff=0
+        p2=self.Point(i,k)
         
         while diff<_len and inew<len(self.data) and inew >= 0:
             inew=inew+_dir
-            diff+=np.linalg.norm(self.data[inew]-self.data[inew-_dir])
-        
+            p1=p2
+            p2=self.data[inew]
+            temp=np.linalg.norm(p2-p1)
+            diff+=temp
+        #we are now one further or at the end//beginning of the list
+        knew=1+(_len-diff)/temp
         
         return (inew,knew)
+    
+    def GetLength(self,(i1,k1)=(0,0),(i2,k2)=(-2,1)):
+        length=0
+        if sign(i2) is -1:
+            i2=len(self.data)-i2+1
+        
+        p1=p2=self.Point(i1,k1)
+        
+        while i1<i2:
+            i1+=1
+            p1=p2
+            p2=self.data[i1]
+            length+=np.linalg.norm(p2-p1)
+        
+        p2=self.Point(i2,k2)
+        length+=np.linalg.norm(p2-p1)
+        return length
         
         
         
