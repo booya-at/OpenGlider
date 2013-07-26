@@ -1,1 +1,2 @@
-from Utils import *
+def sign(val):
+    return cmp(val,0)
