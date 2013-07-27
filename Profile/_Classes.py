@@ -2,8 +2,9 @@ import numpy ##array spec
 import math
 import os ##for xfoil execution
 #import glob ##filename checks
-from . import _Functions
-from . import _XFoilCalc
+import _Functions
+import _XFoilCalc
+import Vector
 
 
 class BasicProfile2D(object):
@@ -14,7 +15,12 @@ class BasicProfile2D(object):
         
     def Point(self, xval, h=-1):
         """Get Profile Point for x-value (<0:upper side) optional: height (-1:lower,1:upper), possibly mapped"""
-        return _Functions.Point(self._profile,xval,h)
+        if isinstance(xval,(list,tuple,numpy.ndarray)):
+            ##if so, treat as a common list instead...
+            (i,k)=xval
+            return Vector.Point(self._profile, i, k)
+        else:
+            return _Functions.Point(self._profile,xval,h)
         
     def Points(self, xvalues):
         """Map a list of XValues onto the Profile"""
@@ -22,6 +28,22 @@ class BasicProfile2D(object):
         ##xvalues fuer xvalues alle groesser 0 aufloesen
         ####mit point zusammenhaengen
         return numpy.array([self.Point(x) for x in xvalues])
+    
+    def Normalize(self):
+        p1=self._profile[0]
+        dmax=0.
+        for i in self._profile:
+            temp=Vector.Norm(i-p1)
+            if temp>dmax:
+                dmax=temp
+                nose=i
+        #to normalize do: put nose to (0,0), rotate to fit (1,0), normalize to (1,0)
+        #use: a.b=|a|*|b|*cos(alpha)->
+        diff=p1-nose
+        sin=(diff/dmax).dot([0,-1])##equal to cross product of (x1,y1,0),(x2,y2,0)
+        cos=numpy.sqrt(1-sin**2)
+        matrix=numpy.array([[cos,-sin],[sin,cos]])/dmax
+        self._profile=[matrix.dot(i-nose) for i in self._profile]
         
     def _SetProfile(self, profile):
         ####kontrolle: tiefe, laenge jeweils
@@ -56,9 +78,10 @@ class Profile2D(BasicProfile2D):
             i=1
         else:
             i=0
-        self._profile=numpy.array(profile[i:])
-        ###
+
         self._rootprof=BasicProfile2D(profile[i:])
+        self._rootprof.Normalize()
+        self._profile=self._rootprof.Profile
         #############Initialisation end################
         
     def Import(self,pfad):
@@ -169,3 +192,13 @@ class XFoil(Profile2D):
             print("soso")
             ##self._calcvalues=[1,2]
         return erg
+
+
+
+#debug
+#ab=Profile2D()
+#ab.Import("/home/simon/Dropbox/para-lorenz/paragleiter/profile/test.dat")
+#neu=ab.Point(0.1)
+#print(neu)
+#print(ab.Point(neu[0]))
+#print("schas")

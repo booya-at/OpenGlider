@@ -1,6 +1,5 @@
 import numpy as np
 from Utils import *
-from test.test_support import temp_cwd
 
 
 def Depth(arg):
@@ -60,11 +59,17 @@ def Rotation_3D(angle, axis=[1, 0, 0]):
     #see http://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle for reference.
 #    (x,y,z)=Normalize(axis)
 
+def Point(data,i,k):
+    if i>len(data) or i < 0 or not isinstance(i, int):
+        print("invalid integer for Listpoint")
+    return data[i]+k*(data[i+1]-data[i])
+
+
 class List(object):
-    def __init__(self,data):
-        if type(data) == 2 or type(data)==4:
+    def __init__(self,data=""):
+        if Type(data) == 2 or Type(data)==4:
             self.data=np.array(data)
-    
+        
     def __repr__(self):
         return self.data
     
@@ -74,9 +79,7 @@ class List(object):
     def Point(self,_ik,_k=0):
         try: (i,k)=_ik
         except: (i,k)=(_ik,_k)
-        if i>len(self.data) or i < 1 or not isinstance(i, int):
-            raise("invalid integer for Listpoint")
-        return self.data[i-1]+k*(self.data[i]-self.data[i-1])
+        return Point(self.data, i, k)
     
     def Extend(self,(i,k),length):
         _dir=sign(length)
@@ -89,7 +92,6 @@ class List(object):
             inew=i
         diff=0
         p2=self.Point(i,k)
-        
         while diff<_len and inew<len(self.data) and inew >= 0:
             inew=inew+_dir
             p1=p2
@@ -97,6 +99,8 @@ class List(object):
             temp=np.linalg.norm(p2-p1)
             diff+=temp
         #we are now one further or at the end//beginning of the list
+        #exception: no point in between
+       
         knew=1+(_len-diff)/temp
         
         return (inew,knew)
@@ -104,9 +108,11 @@ class List(object):
     def GetLength(self,(i1,k1)=(0,0),(i2,k2)=(-2,1)):
         length=0
         if sign(i2) is -1:
-            i2=len(self.data)-i2+1
+            i2=len(self.data)+i2
+        print(i2)
         
-        p1=p2=self.Point(i1,k1)
+        p1=self.Point(i1,k1)
+        p2=p1
         
         while i1<i2:
             i1+=1
@@ -118,5 +124,10 @@ class List(object):
         length+=np.linalg.norm(p2-p1)
         return length
         
-        
+####debug sec
+cd=List([[0,0],[1,0],[2,0]])
+neu=cd.Extend((1, 0.5), 0.2)
+abc=cd.GetLength()
+print(abc)
+####
         
