@@ -1,6 +1,7 @@
 import Profile
 #import Vector
 import Ribs
+import Graphics
 
 ##simon debug
 p1=Profile.Profile2D()
@@ -13,8 +14,8 @@ rib.zrot=0
 print(rib.AOA)
 rib.ReCalc()
 
-print(rib.profile3D)
-rib.profile3D.Flatten()
+
+
 #from .Ribs import Rib
 ##import .Profile
 

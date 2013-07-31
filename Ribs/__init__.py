@@ -29,10 +29,10 @@ class rib(object):
         ptype=Type(points)
         if ptype==1:
             return self._pos+self._rot.dot([points[0],points[1],0])
-        if ptype==3 or ptype==4:
+        if ptype==2 or ptype==4:
             return [self.Align(i) for i in points]
-        if ptype==2:
-            return self._pos+self._rot.dot(points)
+        if ptype==3:
+            return self._rot.dot(points)
     
     def SetAOA(self,aoa):
         try:
@@ -54,8 +54,8 @@ class rib(object):
         self.aoa[1-self._aoa[1]]=diff+self._aoa[0]
         
         self._rot=rotation(self.aoa[1],self.arcang, self.zrot)
-        commit
+        #self.profile3D=Profile3D(self.Align(self.profile2D.Profile))
         self.profile3D=Profile3D(self.Align(self.profile2D.Profile))
-    
+        
     AOA=property(GetAOA,SetAOA)
         
