@@ -45,6 +45,7 @@ def Normalize(vector):
     return vector / Norm(vector)
 
 
+
 def Rotation_3D(angle, axis=[1, 0, 0]):
     """3D-Rotation Matrix for (angle[rad],[axis(x,y,z)])
     see http://en.wikipedia.org/wiki/SO%284%29#The_Euler.E2.80.93Rodrigues_formula_for_3D_rotations"""
@@ -82,27 +83,34 @@ class List(object):
         return Point(self.data, i, k)
     
     def Extend(self,(i,k),length):
+        """Extend the List at a given Point (i,k) by the given Length and return NEW (i,k)"""
         _dir=sign(length)
         _len=abs(length)
-        knew=float(0)
         
-        if sign(i) is -1:
-            inew=len(self.data)-i
+        p1=self.Point(i,k)
+        
+        if _dir==1:
+            (inew,knew)=(i+1,0)
         else:
-            inew=i
-        diff=0
-        p2=self.Point(i,k)
-        while diff<_len and inew<len(self.data) and inew >= 0:
+            (inew,knew)=(i,0)
+        p2=self.data[inew]
+        diff=np.linalg.norm(p2-p1)
+        while diff<_len and inew<len(self.data)-1 and inew > 0:
             inew=inew+_dir
             p1=p2
             p2=self.data[inew]
             temp=np.linalg.norm(p2-p1)
             diff+=temp
-        #we are now one further or at the end//beginning of the list
-        #exception: no point in between
+        #we are now one too far or at the end//beginning of the list
        
-        knew=1+(_len-diff)/temp
-        
+        inew-=(_dir+1)/2 ##only for positive direction
+        if inew==i:##New Point is in the same 'cell'
+            d1=np.linalg.norm(p1-self.data[i])
+            knew=k/d1*(d1+length)
+        else:
+            knew=(diff-_len)/temp##
+            if _dir==1: knew=1-knew
+       
         return (inew,knew)
     
     def GetLength(self,(i1,k1)=(0,0),(i2,k2)=(-2,1)):
@@ -123,11 +131,17 @@ class List(object):
         p2=self.Point(i2,k2)
         length+=np.linalg.norm(p2-p1)
         return length
-        
+
+"""       
 ####debug sec
 cd=List([[0,0],[1,0],[2,0]])
-neu=cd.Extend((1, 0.5), 0.2)
+neu=[cd.Extend((1, 0.5), i) for i in [-3.2,-1,-0.2,0,0.2,1,3]]##all possible cases to be tested
 abc=cd.GetLength()
+<<<<<<< HEAD
 #print(abc)
+=======
+neu2=[cd.Point(i) for i in neu]
+print(abc)
+>>>>>>> master
 ####
-        
+      """  

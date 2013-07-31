@@ -43,7 +43,7 @@ class BasicProfile2D(object):
         sin=(diff/dmax).dot([0,-1])##equal to cross product of (x1,y1,0),(x2,y2,0)
         cos=numpy.sqrt(1-sin**2)
         matrix=numpy.array([[cos,-sin],[sin,cos]])/dmax
-        self._profile=[matrix.dot(i-nose) for i in self._profile]
+        self._profile=numpy.array([matrix.dot(i-nose) for i in self._profile])
         
     def _SetProfile(self, profile):
         ####kontrolle: tiefe, laenge jeweils
@@ -202,3 +202,31 @@ class XFoil(Profile2D):
 #print(neu)
 #print(ab.Point(neu[0]))
 #print("schas")
+class Profile3D(Vector.List):
+    def __init__(self,profile=""):
+        self.SetProfile(profile)
+    
+    def SetProfile(self,profile):
+        if not isinstance(profile, str):
+            self.data=profile
+    
+    def Flatten(self):
+        ##local func:
+        ##front vector
+        p1=self.data[0]
+        
+        nose=max(self.data,lambda x: numpy.linalg.norm(x-p1))
+        diff=[nose-i for i in self.data]
+        
+        xvekt=Vector.Normalize(nose-p1)
+        yvekt=numpy.array([0,0,0])
+        
+        for i in diff:
+            temp=i-xvekt*xvekt.dot(i)
+            yvekt=max([yvekt+temp,yvekt-temp],lambda x: numpy.linalg.norm(x))
+        
+        yvekt=Vector.Normalize(yvekt)
+            
+        return Profile2D([[xvekt.dot(i),yvekt.dot(i)] for i in diff])
+        ###find x-y projection-layer first
+        
