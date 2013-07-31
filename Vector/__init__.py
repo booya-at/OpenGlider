@@ -109,7 +109,7 @@ class List(object):
         length=0
         if sign(i2) is -1:
             i2=len(self.data)+i2
-        print(i2)
+        #print(i2)
         
         p1=self.Point(i1,k1)
         p2=p1
@@ -128,6 +128,6 @@ class List(object):
 cd=List([[0,0],[1,0],[2,0]])
 neu=cd.Extend((1, 0.5), 0.2)
 abc=cd.GetLength()
-print(abc)
+#print(abc)
 ####
         
