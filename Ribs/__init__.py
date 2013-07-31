@@ -1,6 +1,8 @@
-from .move import rotation#, alignment
-from Profile import Profile2D, XFoil
+from move import rotation#, alignment
+from Profile import Profile2D, XFoil, Profile3D
 import numpy
+from Vector import Type
+from IPython.utils._sysinfo import commit
 
 
 class rib(object):
@@ -10,18 +12,27 @@ class rib(object):
         self.name = name
         if isinstance(profile, list):
             self.profile2D = Profile2D(profile, name=name)
+        elif not isinstance(profile,str):
+            self.profile2D=profile
 
         self._aoa=(aoa,aoaabs)
-        self.aoa=[]
+        self.aoa=[0,0]
         self.glide=glide
         self.arcang=arcang
         self.zrot=zrot
+        self._pos=startpoint
         
         #self.ReCalc()
 
 
     def Align(self, points):
-        return self._pos(self._rot(points))
+        ptype=Type(points)
+        if ptype==1:
+            return self._pos+self._rot.dot([points[0],points[1],0])
+        if ptype==3 or ptype==4:
+            return [self.Align(i) for i in points]
+        if ptype==2:
+            return self._pos+self._rot.dot(points)
     
     def SetAOA(self,aoa):
         try:
@@ -43,7 +54,8 @@ class rib(object):
         self.aoa[1-self._aoa[1]]=diff+self._aoa[0]
         
         self._rot=rotation(self.aoa[1],self.arcang, self.zrot)
-        self.profile3D=self.Align(self.profile2D.Profile)
+        commit
+        self.profile3D=Profile3D(self.Align(self.profile2D.Profile))
     
     AOA=property(GetAOA,SetAOA)
         

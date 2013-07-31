@@ -12,4 +12,4 @@ def rotation(aoa, arc, zrot):
     ##rotation relative to profile z-axis
     axis=rot.dot([0,1,0])
     
-    return lambda x: rot.dot(Rotation_3D(zrot,axis)).dot(x)
+    return rot.dot(Rotation_3D(zrot,axis))

@@ -45,6 +45,7 @@ def Normalize(vector):
     return vector / Norm(vector)
 
 
+
 def Rotation_3D(angle, axis=[1, 0, 0]):
     """3D-Rotation Matrix for (angle[rad],[axis(x,y,z)])
     see http://en.wikipedia.org/wiki/SO%284%29#The_Euler.E2.80.93Rodrigues_formula_for_3D_rotations"""
@@ -130,7 +131,8 @@ class List(object):
         p2=self.Point(i2,k2)
         length+=np.linalg.norm(p2-p1)
         return length
-        
+
+"""       
 ####debug sec
 cd=List([[0,0],[1,0],[2,0]])
 neu=[cd.Extend((1, 0.5), i) for i in [-3.2,-1,-0.2,0,0.2,1,3]]##all possible cases to be tested
@@ -138,4 +140,4 @@ abc=cd.GetLength()
 neu2=[cd.Point(i) for i in neu]
 print(abc)
 ####
-        
+      """  
