@@ -18,9 +18,9 @@ class BasicProfile2D(object):
         if isinstance(xval,(list,tuple,numpy.ndarray)):
             ##if so, treat as a common list instead...
             (i,k)=xval
-            return Vector.Point(self._profile, i, k)
+            return Vector.Point(self.data, i, k)
         else:
-            return _Functions.Point(self._profile,xval,h)
+            return _Functions.Point(self.data,xval,h)
         
     def Points(self, xvalues):
         """Map a list of XValues onto the Profile"""
@@ -30,9 +30,9 @@ class BasicProfile2D(object):
         return numpy.array([self.Point(x) for x in xvalues])
     
     def Normalize(self):
-        p1=self._profile[0]
+        p1=self.data[0]
         dmax=0.
-        for i in self._profile:
+        for i in self.data:
             temp=Vector.Norm(i-p1)
             if temp>dmax:
                 dmax=temp
@@ -43,14 +43,14 @@ class BasicProfile2D(object):
         sin=(diff/dmax).dot([0,-1])##equal to cross product of (x1,y1,0),(x2,y2,0)
         cos=numpy.sqrt(1-sin**2)
         matrix=numpy.array([[cos,-sin],[sin,cos]])/dmax
-        self._profile=numpy.array([matrix.dot(i-nose) for i in self._profile])
+        self.data=numpy.array([matrix.dot(i-nose) for i in self.data])
         
     def _SetProfile(self, profile):
         ####kontrolle: tiefe, laenge jeweils
-        self._profile=numpy.array(profile)
+        self.data=numpy.array(profile)
 
     def _GetProfile(self):
-        return self._profile
+        return self.data
     
     Profile=property(_GetProfile, _SetProfile)
 
@@ -66,7 +66,7 @@ class Profile2D(BasicProfile2D):
         if isinstance(profile,list):
             self._SetProfile(profile)
         else:
-            self._profile="nix"
+            self.data="nix"
         ##
 
 
@@ -81,7 +81,7 @@ class Profile2D(BasicProfile2D):
 
         self._rootprof=BasicProfile2D(profile[i:])
         self._rootprof.Normalize()
-        self._profile=self._rootprof.Profile
+        self.data=self._rootprof.Profile
         #############Initialisation end################
         
     def Import(self,pfad):
@@ -125,13 +125,10 @@ class Profile2D(BasicProfile2D):
 
 
     def _GetLen(self):
-        return len(self._profile)
+        return len(self.data)
 
     def _GetXValues(self):
-        if isinstance(self._profile,str):
-            return []
-        else:
-            return self._profile[:,0]
+        return self.data[:,0]
     def _SetXValues(self,xval):
         """Set X-Values of profile to defined points."""
         ###standard-value: root-prof xvalues
@@ -147,6 +144,7 @@ class Profile2D(BasicProfile2D):
                 return 1-math.sin(math.pi*x)
 
         self.XValues=[xtemp(j/i) for j in range(i+1)]
+        return self.XValues
 
     Numpoints=property(_GetLen,_SetLen)
     XValues=property(_GetXValues, _SetXValues)
@@ -204,8 +202,8 @@ class XFoil(Profile2D):
 #print("schas")
 class Profile3D(Vector.List):
     def __init__(self,profile=""):
-        self.SetProfile(profile)
-    
+        #Vector.List.__init__(profile)
+        self.data=numpy.array(profile)
     def SetProfile(self,profile):
         if not isinstance(profile, str):
             self.data=profile
@@ -215,15 +213,15 @@ class Profile3D(Vector.List):
         ##front vector
         p1=self.data[0]
         
-        nose=max(self.data,lambda x: numpy.linalg.norm(x-p1))
+        nose=max(self.data,key=lambda x: numpy.linalg.norm(x-p1))
         diff=[nose-i for i in self.data]
-        
+        vek=nose-p1
         xvekt=Vector.Normalize(nose-p1)
         yvekt=numpy.array([0,0,0])
         
         for i in diff:
             temp=i-xvekt*xvekt.dot(i)
-            yvekt=max([yvekt+temp,yvekt-temp],lambda x: numpy.linalg.norm(x))
+            yvekt=max([yvekt+temp,yvekt-temp],key=lambda x: numpy.linalg.norm(x))
         
         yvekt=Vector.Normalize(yvekt)
             

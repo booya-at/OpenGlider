@@ -5,7 +5,7 @@ from Vector import Type
 from IPython.utils._sysinfo import commit
 
 
-class rib(object):
+class Rib(object):
     """docstring for rib"""
 
     def __init__(self, profile="", startpoint=numpy.array([0, 0, 0]), arcang="", aoa="", zrot="", glide="", name="unnamed rib",aoaabs=False,startpos=0.):
@@ -54,7 +54,6 @@ class rib(object):
         self.aoa[1-self._aoa[1]]=diff+self._aoa[0]
         
         self._rot=rotation(self.aoa[1],self.arcang, self.zrot)
-        #self.profile3D=Profile3D(self.Align(self.profile2D.Profile))
         self.profile3D=Profile3D(self.Align(self.profile2D.Profile))
         
     AOA=property(GetAOA,SetAOA)
