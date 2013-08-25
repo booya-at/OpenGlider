@@ -1,40 +1,100 @@
 import vtk
+import numpy as np
 from Vector import Depth,Type
 
+def __isintlist(arg):
+    if Depth(arg)>1:
+        return max([__isintlist(i) for i in arg])
+    else:
+        if isinstance(arg,int):
+            return 0
+        else:
+            return 1
+
+def _isintlist(arg):
+    if __isintlist(arg)==0:
+        return(True)
+    else:
+        return(False)
 
 class GraphicObject(object):
-    def __init__(self, pointnumbers,gtype):
+    def __init__(self, pointnumbers,ttype):
         self.pointnumbers=pointnumbers
-        self.type=gtype
+        self.type=ttype
+        
+    def gtype(self):
+        if _isintlist(self.pointnumbers):
+            self.gtype='direct'
+        else:
+            self.gtype='indirect'
+
+    
+    #evaluating when self.gtype is 'indirect'
+    #coordinates= list of points (can be nested)
+    #koordinaten muessen geflattet ans koordinatenarray angehaengt werden (rueckgabewert)
+    #ein neues 'direct' grafikobjekt erstellt werden
+    
+    def addcoordinates(self,coordinates,add="",start=""):
+        if isinstance(start,str):
+            startval=len(coordinates)-1
+            additionalcoordinates=self.pointnumbers
+        else:
+            startval=start
+            additionalcoordinates=add
+            
+        for i in range(len(additionalcoordinates)):
+            if Depth(additionalcoordinates[i])>2:
+                self.addcoordinates(coordinates,add=additionalcoordinates[i],start=startval)
+            else:
+                startval=startval+1
+                coordinates.append(additionalcoordinates[i])
+                additionalcoordinates[i]=startval
+                
+        if isinstance(start,str):
+            self.pointnumbers=additionalcoordinates
+            return(coordinates)
+        else:
+            return(additionalcoordinates)
+                
+         
         
 class Point(GraphicObject):
     def __init__(self,pointnumbers):
         self.pointnumbers=pointnumbers
         self.type='Point'
+        self.gtype()
         
 class Line(GraphicObject):
     def __init__(self,pointnumbers):
         self.pointnumbers=pointnumbers
         self.type='Line'
+        self.gtype()
         
 class Polygon(GraphicObject):
     def __init__(self,pointnumbers):
         self.pointnumbers=pointnumbers
         self.type='Polygon'
+        self.gtype()
 
-def Graphics3D(coordinates, graphicsobject):
-    Graphics(coordinates, graphicsobject,rotation=True)
+def Graphics3D(graphicsobject,coordinates=[]):
+    Graphics(graphicsobject,coordinates,rotation=True)
     
-def Graphics2D(coordinates, graphicsobject):
-    Graphics(coordinates, graphicsobject,rotation=False)
+def Graphics2D(graphicsobject,coordinates=[]):
+    Graphics(graphicsobject,coordinates,rotation=False)
     
 class Graphics(object):
     """Creates a GraphicsObject"""
-    def __init__(self,coordinates, graphicobjects,rotation=True):
+    def __init__(self, graphicobjects,coordinates=[],rotation=True):
+        
+        
         self.rotation=rotation
         self.coordinates=coordinates
         self.graphicobjects=graphicobjects
-        
+        for graphicobject in self.graphicobjects:
+            if graphicobject.gtype=='indirect':
+                self.coordinates=graphicobject.addcoordinates(self.coordinates)
+        coordinates=np.array(coordinates)
+        coordinates=[self._2dtest(i) for i in coordinates]
         self.points=vtk.vtkPoints()
         for coor in coordinates:
             self.points.InsertNextPoint(coor)
@@ -64,7 +124,13 @@ class Graphics(object):
         self.actor = vtk.vtkActor()
         self.actor.SetMapper(self.mapper)
         self._createwindow()
-     
+        
+    def _2dtest(self,arg):
+        if len(arg)==2:
+            return([arg[0],arg[1],0])
+        else:
+            return(arg)
+           
     def _createpoint(self, pointnumbers):
         if Depth(pointnumbers)>=3:
             for p in pointnumbers:
@@ -115,3 +181,7 @@ class Graphics(object):
         iren.SetRenderWindow(renWin)
         iren.Initialize()
         iren.Start()
+        
+if __name__ == "__main__":
+    a=Graphics([Line([1,2])],[[0.,0.],[1.,2.]])
+    print(a.graphicobjects)
