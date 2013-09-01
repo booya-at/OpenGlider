@@ -1,16 +1,27 @@
 import Graphics as G
 import Profile
 import Ribs
+import Utils.Bezier as bezier
 
 #ab=P.Profile2D()
 #ab.Import("/home/lo/Dropbox/production/paragleiter/profile/nichtaufgeblasen.dat")
 #prof=[[i[0],i[1],0.] for i in ab.Profile]
 #G.Graphics3D(prof,[G.Line(range(len(prof)))])
-
-##simon debug
+#simon debug
 p1=Profile.Profile2D()
 p1.Import("/home/simon/Dropbox/para-lorenz/paragleiter/profile/nichtaufgeblasen.dat")
+prof=[[i[0],i[1],0.] for i in p1.Profile]
+G.Graphics2D([G.Line(p1.Profile)])
 
+print("ende")
+
+def testfunction(*mehrere):
+    for i in mehrere:
+        print(i)
+
+testfunction('1')
+testfunction('2','2','5')
+"""
 rib=Ribs.Rib(profile=p1,glide=7)
 rib.AOA=4*3.141/180
 rib.arcang=20*3.141/180
@@ -29,7 +40,7 @@ print(neu)
 ##import .Profile
 
 ####Nothing here yet :(
-"""
+
 import Graphics as G
 gobj = G.Line([[0,0,1],[0,0,2]])
 print(gobj.coordinates)

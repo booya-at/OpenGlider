@@ -31,8 +31,6 @@ class GraphicObject(object):
     
     #evaluating when self.gtype is 'indirect'
     #coordinates= list of points (can be nested)
-    #koordinaten muessen geflattet ans koordinatenarray angehaengt werden (rueckgabewert)
-    #ein neues 'direct' grafikobjekt erstellt werden
     
     def addcoordinates(self,coordinates,add="",start=""):
         if isinstance(start,str):
