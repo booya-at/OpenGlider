@@ -1,5 +1,5 @@
 from move import rotation#, alignment
-from Profile import Profile2D, XFoil, Profile3D
+from Profile import Profile2D, Profile3D
 import numpy
 from Vector import Type
 from IPython.utils._sysinfo import commit

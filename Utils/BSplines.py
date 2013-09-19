@@ -69,4 +69,4 @@ if __name__ == "__main__":
     b2=a2.getpoint(xneu)
     a2=np.array(inp2)
     
-    a=G.Graphics([G.Point(tolist(np.transpose(b2))),G.Line(tolist(np.transpose(b1))),G.Line(inp1),G.Line(inp2)])
+    a=G.Graphics([G.Point(np.transpose(b2)),G.Line(np.transpose(b1)),G.Line(inp1),G.Line(inp2)])
