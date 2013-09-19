@@ -156,6 +156,8 @@ class XFoil(Profile2D):
         Profile2D.__init__(self,profile)
         self._xvalues=self.XValues
         self._calcvalues=[]
+
+
     
     def _Change(self):
         """Check if something changed in coordinates"""
@@ -179,7 +181,7 @@ class XFoil(Profile2D):
             os.system("rm "+resfile)
         os.system("rm "+pfile+" "+cfile)
     
-    def _Get(self, angle):
+    def _Get(self, angle,exact=1):
         if self._Change():
             self._calcvalues={}
             self._xvalues=self.XValues[:]
