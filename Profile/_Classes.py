@@ -12,7 +12,10 @@ class BasicProfile2D(object):
     ####rootprof gleich mitspeichern!!
     def __init__(self, profile):
         self._SetProfile(profile)
-        
+    
+    def __repr__(self):
+        return self.data
+    
     def Point(self, xval, h=-1):
         """Get Profile Point for x-value (<0:upper side) optional: height (-1:lower,1:upper), possibly mapped"""
         if isinstance(xval,(list,tuple,numpy.ndarray)):
@@ -48,11 +51,8 @@ class BasicProfile2D(object):
     def _SetProfile(self, profile):
         ####kontrolle: tiefe, laenge jeweils
         self.data=numpy.array(profile)
-
-    def _GetProfile(self):
-        return self.data
     
-    Profile=property(_GetProfile, _SetProfile)
+    Profile=property(__repr__, _SetProfile)
 
 class Profile2D(BasicProfile2D):
     """2 Dimensional Standard Profile representative in OpenGlider"""
@@ -69,7 +69,8 @@ class Profile2D(BasicProfile2D):
             self.data="nix"
         ##
 
-
+    def __str__(self):
+        return self.Name
 
     def _SetProfile(self,profile):
         ##namen filtern
@@ -201,22 +202,23 @@ class XFoil(Profile2D):
 #print(ab.Point(neu[0]))
 #print("schas")
 class Profile3D(Vector.List):
-    def __init__(self,profile=""):
+    def __init__(self,profile="",name="Profile3d"):
         #Vector.List.__init__(profile)
-        self.data=numpy.array(profile)
+        self.SetProfile(profile)
+        self.Name=name
+        
     def SetProfile(self,profile):
         if not isinstance(profile, str):
-            self.data=profile
+            self.data=numpy.array(profile)
     
     def Flatten(self):
         ##local func:
         ##front vector
         p1=self.data[0]
-        
         nose=max(self.data,key=lambda x: numpy.linalg.norm(x-p1))
         diff=[nose-i for i in self.data]
-        vek=nose-p1
-        xvekt=Vector.Normalize(nose-p1)
+        
+        xvekt=Vector.Normalize(diff[0])
         yvekt=numpy.array([0,0,0])
         
         for i in diff:
@@ -225,6 +227,6 @@ class Profile3D(Vector.List):
         
         yvekt=Vector.Normalize(yvekt)
             
-        return Profile2D([[xvekt.dot(i),yvekt.dot(i)] for i in diff])
+        return Profile2D([[xvekt.dot(i),yvekt.dot(i)] for i in diff],name=self.Name+"flattened")
         ###find x-y projection-layer first
         

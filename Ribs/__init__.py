@@ -2,7 +2,6 @@ from move import rotation#, alignment
 from Profile import Profile2D, Profile3D
 import numpy
 from Vector import Type
-from IPython.utils._sysinfo import commit
 
 
 class Rib(object):
@@ -34,12 +33,12 @@ class Rib(object):
         if ptype==3:
             return self._rot.dot(points)
     
-    def SetAOA(self,aoa):
+    def _SetAOA(self,aoa):
         try:
             self._aoa=(aoa[0],bool(aoa[1]))
         except:
             self._aoa=(float(aoa),False)#default: relative aoa
-    def GetAOA(self):
+    def _GetAOA(self):
         return dict(zip(["rel","abs"],self.aoa))###return in form: ("rel":aoarel,"abs":aoa)
     
     
@@ -48,7 +47,6 @@ class Rib(object):
         ##Formula for aoa rel/abs: ArcTan[Cos[alpha]/gleitzahl]-aoa[rad];
         diff=numpy.arctan(numpy.cos(self.arcang)/self.glide)
         ##aoa->(rel,abs)
-        
         #########checkdas!!!!!
         self.aoa[self._aoa[1]]=self._aoa[0]
         self.aoa[1-self._aoa[1]]=diff+self._aoa[0]
@@ -56,5 +54,5 @@ class Rib(object):
         self._rot=rotation(self.aoa[1],self.arcang, self.zrot)
         self.profile3D=Profile3D(self.Align(self.profile2D.Profile))
         
-    AOA=property(GetAOA,SetAOA)
+    AOA=property(_GetAOA,_SetAOA)
         
