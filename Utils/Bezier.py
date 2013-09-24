@@ -8,18 +8,21 @@ def BernsteinBase(d):
     return [BSF(n)  for n in range(d)]
 
 def BezierFunction(points):
+    """"""
     base=BernsteinBase(len(points))
-    def temp(x):
+    def func(x):
         val=np.array([0,0])
         for i in range(len(points)):
             fakt=base[i](x)
             v=np.array(points[i])*fakt
             val=val+v
         return val
-    return temp
+    return func
+
 
 
 def FitBezier(points,splines=3):
+    """Fit to a given set of points with a certain number of spline-points (default=3)"""
     base=BernsteinBase(splines)
     matrix=np.matrix([[base[spalte](zeile*1./len(points)) for spalte in range(splines)] for zeile in range(len(points))])
     matrix=np.linalg.pinv(matrix)
@@ -38,6 +41,7 @@ if __name__ == "__main__":
     fitp=FitBezier(pp,4)
     fitp=np.round(np.array(fitp),3)
     print(fitp)
+    G.Graphics([G.Line(pp),G.Line([])])
     G.Graphics([G.Line(np.array([[ 1. ,   -0.   ],
  [ 0.145,  0.088],
  [-0.024,  0.025],

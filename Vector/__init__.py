@@ -1,5 +1,5 @@
 import numpy as np
-from Utils import *
+from Utils import sign
 
 
 def Depth(arg):

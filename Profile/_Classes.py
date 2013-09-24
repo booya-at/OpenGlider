@@ -72,6 +72,14 @@ class Profile2D(BasicProfile2D):
     def __str__(self):
         return self.Name
 
+    def __mul__(self, other):
+        fakt=numpy.array([1,float(other)])
+        return Profile2D([self.Profile*fakt])
+
+    def __add__(self, other):
+
+
+
     def _SetProfile(self,profile):
         ##namen filtern
         if isinstance(profile[0][0],str):
@@ -144,7 +152,7 @@ class Profile2D(BasicProfile2D):
             else:
                 return 1-math.sin(math.pi*x)
 
-        self.XValues=[xtemp(j/i) for j in range(i+1)]
+        self.XValues=[xtemp(j*1./i) for j in range(i+1)]
         return self.XValues
 
     Numpoints=property(_GetLen,_SetLen)
