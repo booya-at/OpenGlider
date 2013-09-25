@@ -2,7 +2,7 @@
 from Graphics import *
 import vtk
 
-ListLinePlot([0,1,2,3,1,2,3,5,2,3,4])
+#ListLinePlot([0,1,2,3,1,2,3,5,2,3,4])
 import Graphics as G
 import Profile
 import Ribs
@@ -15,8 +15,8 @@ import Utils.Bezier as bezier
 #simon debug
 p1=Profile.Profile2D()
 p1.Import("/home/simon/Dropbox/para-lorenz/paragleiter/profile/nichtaufgeblasen.dat")
-prof=[[i[0],i[1],0.] for i in p1.Profile]
-G.Graphics([G.Line(p1.Profile)])
+#prof=[[i[0],i[1],0.] for i in p1.Profile]
+#G.Graphics([G.Line(p1.Profile)])
 
 print("ende")
 

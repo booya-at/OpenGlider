@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 
 import sys
 import os
@@ -35,7 +35,7 @@ print(
 try:
 	import readline
 except ImportError:
-	print "Module readline not available."
+	print("Module readline not available.")
 else:
 	import rlcompleter
 readline.parse_and_bind("tab: complete")
