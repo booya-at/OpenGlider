@@ -7,6 +7,7 @@ import Graphics as G
 import Profile
 import Ribs
 import Utils.Bezier as bezier
+from Import.Excel import Import as excelimport
 
 #ab=P.Profile2D()
 #ab.Import("/home/lo/Dropbox/production/paragleiter/profile/nichtaufgeblasen.dat")
@@ -16,16 +17,15 @@ import Utils.Bezier as bezier
 p1=Profile.Profile2D()
 p1.Import("/home/simon/Dropbox/para-lorenz/paragleiter/profile/nichtaufgeblasen.dat")
 #prof=[[i[0],i[1],0.] for i in p1.Profile]
-#G.Graphics([G.Line(p1.Profile)])
+#G.Graphics([G.Line(p1.Profst.ile)])
 
+b=excelimport("/home/simon/test.xls")
 print("ende")
 
 def testfunction(*mehrere):
     for i in mehrere:
         print(i)
 
-testfunction('1')
-testfunction('2','2','5')
 """
 rib=Ribs.Rib(profile=p1,glide=7)
 rib.AOA=4*3.141/180

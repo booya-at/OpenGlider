@@ -75,7 +75,6 @@ class Profile2D(BasicProfile2D):
         ##x-y tabelle, 1tes evtl name
         ##aaa
         self.Name = name
-        print(name)
         if isinstance(profile, (list, tuple, numpy.ndarray)):
             self._SetProfile(profile)
         else:
@@ -122,19 +121,13 @@ class Profile2D(BasicProfile2D):
                     neu.remove("")
                 if len(neu) == 2:
                     neu = [float(i) for i in neu]
+                elif len(neu) == 1:
+                    self.Name=neu
                 tempfile += [neu]
             self._SetProfile(tempfile)
             pfile.close()
         else:
             raise Exception("Profilfile gibs nicht!")
-
-    def RootPoint(self, xval, h=-1):
-        """Get Profile Point for x-value (<0:upper side) optional: height (-1:lower,1:upper); use root-profile (highest res)"""
-        return self._rootprof.Point(xval, h)
-
-    def Reset(self):
-        """Reset Profile To Root-Values"""
-        self.Profile = self._rootprof.Profile
 
     def Export(self, pfad):
         """Export Profile in .dat Format"""
@@ -144,6 +137,14 @@ class Profile2D(BasicProfile2D):
             #print(i)
             out.write("\n" + str(i[0]) + "     " + str(i[1]))
         return pfad
+
+    def RootPoint(self, xval, h=-1):
+        """Get Profile Point for x-value (<0:upper side) optional: height (-1:lower,1:upper); use root-profile (highest res)"""
+        return self._rootprof.Point(xval, h)
+
+    def Reset(self):
+        """Reset Profile To Root-Values"""
+        self.Profile = self._rootprof.Profile
 
     def _GetXValues(self):
         """Get XValues of Profile. upper side neg, lower positive"""
@@ -163,20 +164,14 @@ class Profile2D(BasicProfile2D):
         return len(self.data)
 
     def _SetLen(self, num):
-        """Set Profile to Cosinus-Distributed XValues"""
+        """Set Profile to cosinus-Distributed XValues"""
         i = num - num % 2
-
-        def xtemp(x):
-            if x < 1. / 2:
-                return math.sin(math.pi * x) - 1
-            else:
-                return 1 - math.sin(math.pi * x)
+        xtemp=lambda x: cmp(x,0.5)*(1-math.sin(math.pi*x))
         self.XValues = [xtemp(j * 1. / i) for j in range(i + 1)]
         return i
 
     Numpoints = property(_GetLen, _SetLen)
     XValues = property(_GetXValues, _SetXValues)
-
 
 class XFoil(Profile2D):
     """XFoil Calculation Profile based on Profile2D"""
