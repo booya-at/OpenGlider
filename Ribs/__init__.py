@@ -5,7 +5,9 @@ from Vector import Type
 
 
 class Rib(object):
-    """docstring for rib"""
+    """Openglider Rib Class: contains a profile, needs a startpoint, angle (arcwide), angle of attack,
+        glide-wide rotation and glider ratio.
+        optional: name, absolute aoa (bool), startposition"""
 
     def __init__(self, profile="", startpoint=numpy.array([0, 0, 0]), arcang="", aoa="", zrot="", glide="", name="unnamed rib",aoaabs=False,startpos=0.):
         self.name = name
@@ -53,6 +55,15 @@ class Rib(object):
         
         self._rot=rotation(self.aoa[1],self.arcang, self.zrot)
         self.profile3D=Profile3D(self.Align(self.profile2D.Profile))
+
+    def mirror(self):
+        self.arcang=-self.arcang
+        self.zrot=-self.zrot
+        self._pos=-self._pos
+        self.ReCalc()
+
+    def copy(self):
+        return self.__class__(self.profile2D.copy(),self._pos,self.arcang,self.aoa,self.zrot,self.glide,self.name+"_copy",self.aoa[1])
         
     AOA=property(_GetAOA,_SetAOA)
         
