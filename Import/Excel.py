@@ -12,7 +12,10 @@ def excelimport(filename):
     profiles=profileimp(imp.sheet_by_index(3))
 
     for i in range(1,len(ribs)):
-        print("jo")
+        print("jo hier kommt die Aufbauarbeit")
+        ###bp=int(fak) fak=fak-int(fak)
+        ###if fak>0 -> bneu=b[bp]*(1-fak)+bneu[bp+1]*fak else b[bp]
+        ###
     return ribs
 
 def sheettolist(sheet):

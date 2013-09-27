@@ -13,9 +13,6 @@ class Rib(object):
         self.name = name
         if isinstance(profile, list):
             self.profile_2d = Profile2D(profile, name=name)
-        elif not isinstance(profile,str):
-            self.profile_2d=profile
-
         self._aoa=(aoa,aoaabs)
         self.aoa=[0,0]
         self.glide=glide
