@@ -12,9 +12,9 @@ class Rib(object):
     def __init__(self, profile="", startpoint=numpy.array([0, 0, 0]), arcang="", aoa="", zrot="", glide="", name="unnamed rib",aoaabs=False,startpos=0.):
         self.name = name
         if isinstance(profile, list):
-            self.profile2D = Profile2D(profile, name=name)
+            self.profile_2d = Profile2D(profile, name=name)
         elif not isinstance(profile,str):
-            self.profile2D=profile
+            self.profile_2d=profile
 
         self._aoa=(aoa,aoaabs)
         self.aoa=[0,0]
@@ -54,7 +54,7 @@ class Rib(object):
         self.aoa[1-self._aoa[1]]=diff+self._aoa[0]
         
         self._rot=rotation(self.aoa[1],self.arcang, self.zrot)
-        self.profile3D=Profile3D(self.Align(self.profile2D.Profile))
+        self.profile3D=Profile3D(self.Align(self.profile_2d.Profile))
 
     def mirror(self):
         self.arcang=-self.arcang
@@ -63,7 +63,7 @@ class Rib(object):
         self.ReCalc()
 
     def copy(self):
-        return self.__class__(self.profile2D.copy(),self._pos,self.arcang,self.aoa,self.zrot,self.glide,self.name+"_copy",self.aoa[1])
+        return self.__class__(self.profile_2d.copy(),self._pos,self.arcang,self.aoa,self.zrot,self.glide,self.name+"_copy",self.aoa[1])
         
     AOA=property(_GetAOA,_SetAOA)
         

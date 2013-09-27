@@ -34,6 +34,9 @@ class GraphicObject(object):
         self.pointnumbers = np.array(pointnumbers)
         self.type=ttype
 
+
+
+####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!??????????????????
     def gtype(self):
         if _isintlist(self.pointnumbers):
             self.gtype = 'direct'

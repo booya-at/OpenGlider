@@ -26,7 +26,6 @@ def FitBezier(points,splines=3):
     base=BernsteinBase(splines)
     matrix=np.matrix([[base[spalte](zeile*1./len(points)) for spalte in range(splines)] for zeile in range(len(points))])
     matrix=np.linalg.pinv(matrix)
-    
     return matrix*points
 
 

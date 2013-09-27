@@ -3,7 +3,7 @@ __author__ = 'simon'
 from xlrd import open_workbook
 from Profile import Profile2D
 
-def Import(filename):
+def excelimport(filename):
     imp = open_workbook(filename)
     ribs = sheettolist(imp.sheet_by_index(0)) ### cellnr/chord/xval/yval/arcangle/aoa/z-rot/arcrot-offset/merge/baloon
     cells= sheettolist(imp.sheet_by_index(1))
@@ -12,15 +12,11 @@ def Import(filename):
     profiles=profileimp(imp.sheet_by_index(3))
 
     for i in range(1,len(ribs)):
-
-
-
-
+        print("jo")
     return ribs
 
 def sheettolist(sheet):
     thadict=[i.value for i in sheet.row(0)]
-
     return [[sheet.cell(j,i).value for i in range(len(thadict))] for j in range(sheet.nrows)]
 
 

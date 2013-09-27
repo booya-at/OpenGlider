@@ -1,7 +1,7 @@
 import numpy
 
 def Point(profile,xval,h):
-	if(h==-1):
+	if h==-1:
 		return SinglePoint(profile,xval)
 	else:
 		p1=SinglePoint(profile,xval)[1]
