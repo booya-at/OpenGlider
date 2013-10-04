@@ -2,21 +2,79 @@ __author__ = 'simon'
 
 from xlrd import open_workbook
 from Profile import Profile2D
+from Ribs import Rib
+from Graphics import Graphics
 
 def excelimport(filename):
     imp = open_workbook(filename)
-    ribs = sheettolist(imp.sheet_by_index(0)) ### cellnr/chord/xval/yval/arcangle/aoa/z-rot/arcrot-offset/merge/baloon
-    cells= sheettolist(imp.sheet_by_index(1))
+    ribsheet = sheettolist(imp.sheet_by_index(0)) ### cellnr/chord/xval/yval/arcangle/aoa/z-rot/arcrot-offset/merge/baloon
+    cellsheet= sheettolist(imp.sheet_by_index(1))
 
     ######import profiles
     profiles=profileimp(imp.sheet_by_index(3))
 
-    for i in range(1,len(ribs)):
+    def merge(factor):
+        num=int(factor)
+        val=factor-num
+        if val > 0 and num<len(profiles):
+            prof=profiles[num]*(1-val)+prof[num+1]*val
+        else:
+            prof=profiles[num]
+        return prof
+
+    rippen=[]
+    arcang=0.
+    front=[0.,0.,0.]
+    for i in range(1,len(ribsheet)):
         print("jo hier kommt die Aufbauarbeit")
+        """
+        old mathematica code:
+        	aoaabs={};
+            alpha2=0;
+            z=0;
+            x=0;
+            {
+            Table[
+                spw=excel[[i,3]];
+                y=excel[[i,4]];
+                chord=excel[[i,2]];
+                alpha1=alpha2;
+                alpha2+=excel[[i,5]]*Pi/180;
+                If[x==0,alpha=0,alpha=(alpha1+alpha2)/2];
+                If[i>1,z=z-Sin[alpha1]*(spw-excel[[i-1,3]])];
+                x=x+Cos[alpha1]*(spw-If[i>1,excel[[i-1,3]],0]);
+
+                beta=ArcTan[Cos[alpha]/gleitzahl]-excel[[i,6]]*Pi/180;(*Anstellwinkel*)
+                AppendTo[aoaabs,{spw,-beta*180/Pi}];
+                gamma=ArcTan[Sin[alpha]/gleitzahl]*excel[[i,7]];(*faktor 0-1; winkel um profilz-achse*)
+                rot1=RotationMatrix[alpha+excel[[i,8]]/180.*Pi,{0,1,0}];(*um profilxachse, +offset*)
+                rot2=RotationMatrix[beta,rot1.{1,0,0}].rot1;
+                rot3=RotationMatrix[gamma,rot2.{0,0,1}].rot2;
+                rot=chord*rot3;
+                trans={x,y,z};
+                {trans,rot},{i,Length[excel]}]
+        """
+        ab=Rib()
+
+        ab.profile_2d=merge(ribsheet[i,8])
+        ab.AOA=[ribsheet[i,6],False]
+        ab.arcang=
+        ab.name="rib"+str(i+1)
+        ab.glide
+        ab.zrot
+        ab.pos
+        ab.ReCalc()
+
+        rippen.append(ab)
         ###bp=int(fak) fak=fak-int(fak)
         ###if fak>0 -> bneu=b[bp]*(1-fak)+bneu[bp+1]*fak else b[bp]
         ###
-    return ribs
+
+        Graphics[[i.profile3D for i in rippen]]
+
+    return rippen
+
+
 
 def sheettolist(sheet):
     thadict=[i.value for i in sheet.row(0)]

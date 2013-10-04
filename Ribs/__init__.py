@@ -18,7 +18,7 @@ class Rib(object):
         self.glide=glide
         self.arcang=arcang
         self.zrot=zrot
-        self._pos=startpoint
+        self.pos=startpoint
         
         #self.ReCalc()
 
@@ -26,7 +26,7 @@ class Rib(object):
     def Align(self, points):
         ptype=Type(points)
         if ptype==1:
-            return self._pos+self._rot.dot([points[0],points[1],0])
+            return self.pos+self._rot.dot([points[0],points[1],0])
         if ptype==2 or ptype==4:
             return [self.Align(i) for i in points]
         if ptype==3:
@@ -56,11 +56,11 @@ class Rib(object):
     def mirror(self):
         self.arcang=-self.arcang
         self.zrot=-self.zrot
-        self._pos=-self._pos
+        self.pos=-self.pos
         self.ReCalc()
 
     def copy(self):
-        return self.__class__(self.profile_2d.copy(),self._pos,self.arcang,self.aoa,self.zrot,self.glide,self.name+"_copy",self.aoa[1])
+        return self.__class__(self.profile_2d.copy(),self.pos,self.arcang,self.aoa,self.zrot,self.glide,self.name+"_copy",self.aoa[1])
         
     AOA=property(_GetAOA,_SetAOA)
         

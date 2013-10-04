@@ -70,32 +70,37 @@ class BasicProfile2D(object):
 class Profile2D(BasicProfile2D):
     """Profile2D: 2 Dimensional Standard Profile representative in OpenGlider"""
     #############Initialisation###################
-    def __init__(self, profile="", name="profile"):
+    def __init__(self, profile=[], name="profile"):
         ##profiltiefe->2
         ##x-y tabelle, 1tes evtl name
         ##aaa
         self.Name = name
-        if isinstance(profile, (list, tuple, numpy.ndarray)):
-            self._SetProfile(profile)
-        else:
-            self.data = "nix"
-            ##
+        self._SetProfile(profile)
+
 
     def __str__(self):
         return self.Name
 
     def __add__(self, other):
         if other.__class__ == self.__class__:
-            neu = other.copy()
-            if len(neu.XValues) != len(self.XValues) or not (neu.XValues == self.XValues).all():
-                neu.XValues = self.XValues
-            neu.Profile = neu.Profile + self.Profile * numpy.array([0, 1])
-            return neu
+            #use the one with more points
+            if self.Numpoints > other.Numpoints:
+                first = other.copy()
+                second = self
+            else:
+                first = self.copy()
+                second = other
+            if len(first.XValues) != len(second.XValues) or not (first.XValues == second.XValues).all():
+                first.XValues = second.XValues
+            first.Profile = first.Profile + second.Profile * numpy.array([0, 1])
+            return first
 
 
     def _SetProfile(self, profile):
-        ##namen filtern
-        if isinstance(profile[0][0], str):
+        ##filter empty profile and name on top
+        if len(profile)==0:
+            return
+        elif isinstance(profile[0][0], str):
             self.Name = profile[0][0]
             i = 1
         else:
