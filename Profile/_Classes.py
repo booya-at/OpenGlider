@@ -107,7 +107,7 @@ class Profile2D(BasicProfile2D):
             i = 0
 
         self._rootprof = BasicProfile2D(profile[i:])
-        self._rootprof.Normalize()
+        #self._rootprof.Normalize()
         self.data = self._rootprof.Profile
         #############Initialisation end################
 
