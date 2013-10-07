@@ -13,8 +13,12 @@ gui.showMainWindow()
 gui.activateWorkbench("gliderWorkbench")
 l=gui.listWorkbenches().keys()
 l.pop(l.index('gliderWorkbench'))
+l.pop(l.index('DraftWorkbench'))
 map(gui.removeWorkbench,l)
 
+FreeCAD.newDocument()
+
+"""
 #class ViewObserver:
 #    def logPosition(self, info):
 #        down = (info["State"] == "DOWN")
@@ -36,7 +40,6 @@ map(gui.removeWorkbench,l)
 #        FreeCAD.Console.PrintMessage("on position: ("+str(pos3d)+")\n")
 #
 #
-FreeCAD.newDocument()
 #
 #
 #v=gui.activeDocument().activeView()
@@ -44,11 +47,10 @@ FreeCAD.newDocument()
 #u= MoveObserver()
 #c = v.addEventCallback("SoButtonEvent",o.logPosition)
 #d = v.addEventCallback("SoLocation2Event",u.logPosition)
+"""
 
-from profiles import Profile
-a=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Line")
-Profile(a,'/home/lo/.ogtestschirm/profile/nase1.dat')
-a.ViewObject.Proxy=0 # just set it to something different from None (this assignment is needed to run an internal notification)
-FreeCAD.ActiveDocument.recompute()
+
+
+
 
 gui.exec_loop()
