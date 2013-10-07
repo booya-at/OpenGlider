@@ -4,6 +4,7 @@ import sys
 import os
 from Graphics import *
 from Profile import *
+from Utils.Bezier import *
 import numpy as np
 
 #clear the terminal

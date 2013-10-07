@@ -9,10 +9,14 @@ def tofloat(lst):
         return float(lst)
 
 def ListLinePlot(points):
+    if isinstance(points,np.ndarray):
+        points=points.tolist()
     if Depth(points)==2:
         Graphics2D([Line(np.transpose(np.array([map(float,range(len(points))), points])))])
-    if Depth(points)==3:
+    if Depth(points)==3 and len(points[1])==2:
         Graphics2D([Line(tofloat(points))])
+    if Depth(points)==3 and len(points[1])==3:
+        Graphics3D([Line(tofloat(points))])
 
 def __isintlist(arg):
     if Depth(arg) > 1:
@@ -33,8 +37,6 @@ class GraphicObject(object):
     def __init__(self, pointnumbers,ttype):
         self.pointnumbers = np.array(pointnumbers)
         self.type=ttype
-
-
 
 ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!??????????????????
     def gtype(self):

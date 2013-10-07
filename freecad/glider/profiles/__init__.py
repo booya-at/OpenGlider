@@ -37,9 +37,6 @@ class ChangeProfile:
 
 
 
-
-
-
 class Profile(Profile2D):
     def __init__(self, obj,path,numpoints=100):
         Profile2D.__init__(self,path)

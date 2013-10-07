@@ -66,7 +66,6 @@ class BasicProfile2D(object):
 
     Profile = property(_GetProfile, _SetProfile)
 
-
 class Profile2D(BasicProfile2D):
     """Profile2D: 2 Dimensional Standard Profile representative in OpenGlider"""
     #############Initialisation###################
