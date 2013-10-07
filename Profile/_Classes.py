@@ -2,8 +2,6 @@ import math
 import os ##for xfoil execution
 
 import numpy ##array spec
-
-#import glob ##filename checks
 import _Functions
 import _XFoilCalc
 import Vector
@@ -70,13 +68,9 @@ class BasicProfile2D(object):
 class Profile2D(BasicProfile2D):
     """Profile2D: 2 Dimensional Standard Profile representative in OpenGlider"""
     #############Initialisation###################
-    def __init__(self, profile=[], name="profile"):
-        ##profiltiefe->2
-        ##x-y tabelle, 1tes evtl name
-        ##aaa
+    def __init__(self,profile=[],name="profile"):
         self.Name = name
         self._SetProfile(profile)
-
 
     def __str__(self):
         return self.Name
@@ -107,7 +101,7 @@ class Profile2D(BasicProfile2D):
             i = 0
 
         self._rootprof = BasicProfile2D(profile[i:])
-        #self._rootprof.Normalize()
+        self._rootprof.Normalize()
         self.data = self._rootprof.Profile
         #############Initialisation end################
 
@@ -118,29 +112,26 @@ class Profile2D(BasicProfile2D):
             for line in pfile:
                 line = line.strip()
                 ###tab-seperated values except first line->name
-                if "\t" in line:
-                    neu = line.split("\t")
-                else:
-                    neu = line.split(" ")
-                while "" in neu:
-                    neu.remove("")
-                if len(neu) == 2:
-                    neu = [float(i) for i in neu]
-                elif len(neu) == 1:
-                    self.Name=neu
+                line = line.split("\t")
+                line = line.split(" ")
+                while "" in line:
+                    line.remove("")
+                if len(line) == 2:
+                    line = [float(i) for i in line]
+                elif len(line) == 1:
+                    self.Name=line
                 tempfile += [neu]
             self._SetProfile(tempfile)
             pfile.close()
         else:
-            raise Exception("Profilfile gibs nicht!")
+            raise Exception("Profile not found in"+pfad+"!")
 
     def Export(self, pfad):
         """Export Profile in .dat Format"""
         out = open(pfad, "w")
         out.write(self.Name)
         for i in self.Profile:
-            #print(i)
-            out.write("\n" + str(i[0]) + "     " + str(i[1]))
+            out.write("\n" + str(i[0]) + "\t" + str(i[1]))
         return pfad
 
     def RootPoint(self, xval, h=-1):
