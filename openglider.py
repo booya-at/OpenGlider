@@ -2,12 +2,40 @@ from Profile import Profile2D
 from Utils.Bezier import BezierCurve
 from Graphics import Line, Point, Graphics
 import numpy as np
-
+import scipy.interpolate as int
+"""
 a=Profile2D()
 a.Import('freecad/glider/profiles/nase1.dat')
-c=np.array([[1.,0.],[2.,1.],[5,1],[1,-1]])
-b=BezierCurve()
-b.Points=a.Profile[0:a.Numpoints/2]
-print(b.Points)
+a.Normalize()
+a.Numpoints=40
 
-Graphics([Line(b.Points),Line(b.BezierPoints),Line(a.Profile)])
+inter=int.splprep(a.Profile.transpose(),ub=100.,ue=100.,k=3)
+bpoints=np.array(inter[0][1:2][0]).transpose()
+print(bpoints)
+
+bsp=np.array(int.splev(np.linspace(0,1,100),inter[0]))
+
+Graphics([Line(a.Profile),Line(bsp.transpose()),Line(bpoints)])
+
+print(inter[0])
+"""
+
+
+
+a=Profile2D()
+
+a.Import('freecad/glider/profiles/nase1.dat')
+
+a.Numpoints=15
+oben=a.getUpperProfile()
+unten=a.getLowerProfile()
+b=BezierCurve()
+b._numofbezierpoints=6
+b.NumPoints=30
+b.Points=unten
+c=BezierCurve()
+c._numofbezierpoints=5
+c.NumPoints=30
+c.Points=oben
+
+Graphics([Line(unten),Line(b.Points),Line(b.BezierPoints)])

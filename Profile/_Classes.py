@@ -64,6 +64,8 @@ class BasicProfile2D(object):
     def _GetProfile(self):
         return self.data
 
+
+
     Profile = property(_GetProfile, _SetProfile)
 
 class Profile2D(BasicProfile2D):
@@ -173,6 +175,7 @@ class Profile2D(BasicProfile2D):
         xtemp=lambda x: cmp(x,0.5)*(1-math.sin(math.pi*x))
         self.XValues = [xtemp(j * 1. / i) for j in range(i + 1)]
         return i
+
 
     Numpoints = property(_GetLen, _SetLen)
     XValues = property(_GetXValues, _SetXValues)
