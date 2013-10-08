@@ -7,13 +7,13 @@ class LoadGlider:
         return {'Pixmap': 'glider_import.svg', 'MenuText': 'creates a glider!!!', 'ToolTip': 'creates a glider'}
 
     def IsActive(self):
-        if FreeCAD.ActiveDocument == None:
+        if FreeCAD.ActiveDocument is None:
             return False
         else:
             return True
 
     def Activated(self):
-    	print('hello')
+        print('hello')
         pol=np.loadtxt('/usr/lib/freecad/Mod/glider/examples/p.dat',dtype=int)
         nod=np.loadtxt('/usr/lib/freecad/Mod/glider/examples/n.dat',dtype=float)
         planarMesh = []

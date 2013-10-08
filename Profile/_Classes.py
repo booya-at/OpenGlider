@@ -1,7 +1,7 @@
 import math
-import os ##for xfoil execution
+import os  # for xfoil execution
 
-import numpy ##array spec
+import numpy  # array spec
 import _Functions
 import _XFoilCalc
 import Vector
@@ -42,6 +42,7 @@ class BasicProfile2D(object):
     def Normalize(self):
         p1 = self.data[0]
         dmax = 0.
+        nose = 0
         for i in self.data:
             temp = Vector.Norm(i - p1)
             if temp > dmax:
@@ -58,6 +59,10 @@ class BasicProfile2D(object):
     def _SetProfile(self, profile):
         ####kontrolle: tiefe, laenge jeweils
         self.data = numpy.array(profile)
+        i=0
+        while profile[i+1][0] < profile[i][0] and i < len(profile):
+            i += 1
+        self.noseindex = i
 
     def _GetProfile(self):
         return self.data
@@ -68,9 +73,20 @@ class BasicProfile2D(object):
 class Profile2D(BasicProfile2D):
     """Profile2D: 2 Dimensional Standard Profile representative in OpenGlider"""
     #############Initialisation###################
-    def __init__(self,profile=[],name="profile"):
+    def __init__(self, profile=None, name="Profile"):
+        if not profile: profile = []
         self.Name = name
-        self._SetProfile(profile)
+        if len(profile)==0:
+            return
+        elif isinstance(profile[0][0], str):
+            self.Name = profile[0][0]
+            i = 1
+        else:
+            i = 0
+
+        self._rootprof = BasicProfile2D(profile[i:])
+        self._rootprof.Normalize()
+        BasicProfile2D._SetProfile(self, self._rootprof.Profile)
 
     def __str__(self):
         return self.Name
@@ -89,22 +105,6 @@ class Profile2D(BasicProfile2D):
             first.Profile = first.Profile + second.Profile * numpy.array([0, 1])
             return first
 
-
-    def _SetProfile(self, profile):
-        ##filter empty profile and name on top
-        if len(profile)==0:
-            return
-        elif isinstance(profile[0][0], str):
-            self.Name = profile[0][0]
-            i = 1
-        else:
-            i = 0
-
-        self._rootprof = BasicProfile2D(profile[i:])
-        self._rootprof.Normalize()
-        self.data = self._rootprof.Profile
-        #############Initialisation end################
-
     def Import(self, pfad):
         if os.path.isfile(pfad):
             tempfile = []
@@ -112,16 +112,18 @@ class Profile2D(BasicProfile2D):
             for line in pfile:
                 line = line.strip()
                 ###tab-seperated values except first line->name
-                line = line.split("\t")
-                line = line.split(" ")
+                if "\t" in line:
+                    line = line.split("\t")
+                else:
+                    line = line.split(" ")
                 while "" in line:
                     line.remove("")
                 if len(line) == 2:
                     line = [float(i) for i in line]
                 elif len(line) == 1:
-                    self.Name=line
-                tempfile += [neu]
-            self._SetProfile(tempfile)
+                    self.Name = line
+                tempfile += [line]
+            self.__init__(tempfile)
             pfile.close()
         else:
             raise Exception("Profile not found in"+pfad+"!")
@@ -144,12 +146,13 @@ class Profile2D(BasicProfile2D):
 
     def _GetXValues(self):
         """Get XValues of Profile. upper side neg, lower positive"""
-        xval=self.data[:,0].copy()
-        i=0
-        while xval[i+1]<xval[i] and i<len(xval):
-            xval[i]=-xval[i]
-            i=i+1
-        return xval
+        #xval=self.data[:,0].copy()
+        #i=0
+        #while xval[i+1]<xval[i] and i<len(xval):
+        #    xval[i]=-xval[i]
+        #    i=i+1
+        i = self.noseindex
+        return numpy.concatenate((self.data[:i-1]*[-1, 0],self.data[i:]))
 
     def _SetXValues(self, xval):
         """Set X-Values of profile to defined points."""
@@ -162,9 +165,8 @@ class Profile2D(BasicProfile2D):
     def _SetLen(self, num):
         """Set Profile to cosinus-Distributed XValues"""
         i = num - num % 2
-        xtemp=lambda x: cmp(x,0.5)*(1-math.sin(math.pi*x))
+        xtemp = lambda x: cmp(x, 0.5)*(1-math.sin(math.pi*x))
         self.XValues = [xtemp(j * 1. / i) for j in range(i + 1)]
-        return i
 
     Numpoints = property(_GetLen, _SetLen)
     XValues = property(_GetXValues, _SetXValues)
@@ -199,6 +201,7 @@ class XFoil(Profile2D):
                 self._calcvalues[i] = result[i]
             os.system("rm " + resfile)
         os.system("rm " + pfile + " " + cfile)
+        return status
 
     def _Get(self, angle, exact=1):
         if self._Change():
@@ -252,7 +255,7 @@ class Profile3D(Vector.List):
 
 
 if __name__ == "__main__":
-    p1 = Profile2D()
-    p1.Import("/home/simon/test.dat")
+    p1e = Profile2D()
+    p1e.Import("/home/simon/test.dat")
     p2 = p1 * 0.2
     print("hoho")

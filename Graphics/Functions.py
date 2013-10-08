@@ -2,17 +2,20 @@ import vtk
 import numpy as np
 from Vector import Depth
 
+
 def tofloat(lst):
     if isinstance(lst, list):
         return map(tofloat, lst)
     else:
         return float(lst)
 
+
 def ListLinePlot(points):
-    if Depth(points)==2:
-        Graphics2D([Line(np.transpose(np.array([map(float,range(len(points))), points])))])
-    if Depth(points)==3:
+    if Depth(points) == 2:
+        Graphics2D([Line(np.transpose(np.array([map(float, range(len(points))), points])))])
+    if Depth(points) == 3:
         Graphics2D([Line(tofloat(points))])
+
 
 def __isintlist(arg):
     if Depth(arg) > 1:
@@ -23,30 +26,32 @@ def __isintlist(arg):
         else:
             return 1
 
+
 def _isintlist(arg):
     if __isintlist(arg) == 0:
         return True
     else:
         return False
 
+
 class GraphicObject(object):
-    def __init__(self, pointnumbers,ttype):
+    def __init__(self, pointnumbers, ttype):
         self.pointnumbers = np.array(pointnumbers)
-        self.type=ttype
+        self.type = ttype
 
 
-
-####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!??????????????????
+    ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!??????????????????
     def gtype(self):
         if _isintlist(self.pointnumbers):
             self.gtype = 'direct'
         else:
             self.gtype = 'indirect'
+
     #evaluating when self.gtype is 'indirect'
     #coordinates= list of points (can be nested)
     def addcoordinates(self, coordinates, add="", start=""):
         if isinstance(start, str):
-            startval = len(coordinates)-1
+            startval = len(coordinates) - 1
             additionalcoordinates = self.pointnumbers
         else:
             startval = start
@@ -58,28 +63,31 @@ class GraphicObject(object):
             else:
                 startval += 1
                 if len(coordinates) == 0:
-                    coordinates = [additionalcoordinates[i]*1]
+                    coordinates = [additionalcoordinates[i] * 1]
                 else:
-                    coordinates = np.append(coordinates, [additionalcoordinates[i]], axis = 0)
-                additionalcoordinates[i,0] = startval
+                    coordinates = np.append(coordinates, [additionalcoordinates[i]], axis=0)
+                additionalcoordinates[i, 0] = startval
 
-        if isinstance(start,str):
+        if isinstance(start, str):
             self.pointnumbers = additionalcoordinates.transpose()[0,]
             return coordinates
         else:
             return additionalcoordinates
 
+
 class Point(GraphicObject):
     def __init__(self, pointnumbers):
         self.pointnumbers = np.array(pointnumbers)
-        self.type='Point'
+        self.type = 'Point'
         self.gtype()
+
 
 class Line(GraphicObject):
     def __init__(self, pointnumbers):
         self.pointnumbers = np.array(pointnumbers)
-        self.type='Line'
+        self.type = 'Line'
         self.gtype()
+
 
 class Polygon(GraphicObject):
     def __init__(self, pointnumbers):
@@ -87,14 +95,18 @@ class Polygon(GraphicObject):
         self.type = 'Polygon'
         self.gtype()
 
+
 def Graphics3D(graphicsobject, coordinates=[]):
     Graphics(graphicsobject, coordinates, rotation=True)
+
 
 def Graphics2D(graphicsobject, coordinates=[]):
     Graphics(graphicsobject, coordinates, rotation=False)
 
+
 class Graphics(object):
     """Creates a GraphicsObject"""
+
     def __init__(self, graphicobjects, coordinates=[], rotation=True):
         self.rotation = rotation
         self.coordinates = coordinates
@@ -127,7 +139,7 @@ class Graphics(object):
         self.polydata.SetVerts(self.verts)
         self.polydata.SetPolys(self.polygons)
 
-        self.mapper=vtk.vtkPolyDataMapper()
+        self.mapper = vtk.vtkPolyDataMapper()
         self.mapper.SetInput(self.polydata)
         self.actor = vtk.vtkActor()
         self.actor.SetMapper(self.mapper)
@@ -153,12 +165,12 @@ class Graphics(object):
             for p in pointnumbers:
                 self._createline(p)
         else:
-            for i in range(len(pointnumbers)-1):
+            for i in range(len(pointnumbers) - 1):
                 line = vtk.vtkLine()
                 line.GetPointIds().SetId(0, pointnumbers[i])
-                line.GetPointIds().SetId(1, pointnumbers[i+1])
+                line.GetPointIds().SetId(1, pointnumbers[i + 1])
                 self.lines.InsertNextCell(line)
-                i=i+1
+                i += 1
 
     def _createpolygon(self, pointnumbers):
         if Depth(pointnumbers) >= 3:
@@ -167,7 +179,7 @@ class Graphics(object):
         else:
             polygon = vtk.vtkPolygon()
             polygon.GetPointIds().SetNumberOfIds(len(pointnumbers))
-            i=0
+            i = 0
             for p in pointnumbers:
                 polygon.GetPointIds().SetId(i, p)
                 i += 1

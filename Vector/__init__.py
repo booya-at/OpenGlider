@@ -95,7 +95,7 @@ class List(object):
             (inew,knew)=(i,0)
         p2=self.data[inew]
         diff=np.linalg.norm(p2-p1)
-        while diff<_len and inew<len(self.data)-1 and inew > 0:
+        while diff<_len and len(self.data) - 1 > inew > 0:
             inew=inew+_dir
             p1=p2
             p2=self.data[inew]
@@ -116,7 +116,7 @@ class List(object):
     def GetLength(self,(i1,k1)=(0,0),(i2,k2)=(-2,1)):
         length=0
         if sign(i2) is -1:
-            i2=len(self.data)+i2
+            i2 += len(self.data)
         #print(i2)
         
         p1=self.Point(i1,k1)

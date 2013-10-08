@@ -4,7 +4,7 @@ import gliderGui
 
 
 class gliderWorkbench(Workbench):
-    "probe workbench object"
+    """probe workbench object"""
     MenuText = "glider"
     ToolTip = "glider workbench"
     Icon = "glider_workbench.svg"

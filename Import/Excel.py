@@ -58,19 +58,19 @@ def excelimport(filename):
 
         ab.profile_2d=merge(ribsheet[i,8])
         ab.AOA=[ribsheet[i,6],False]
-        ab.arcang=
+        #ab.arcang=
         ab.name="rib"+str(i+1)
-        ab.glide
-        ab.zrot
-        ab.pos
-        ab.ReCalc()
+        #ab.glide
+        #ab.zrot
+        #ab.pos
+        #ab.ReCalc()
 
         rippen.append(ab)
         ###bp=int(fak) fak=fak-int(fak)
         ###if fak>0 -> bneu=b[bp]*(1-fak)+bneu[bp+1]*fak else b[bp]
         ###
 
-        Graphics[[i.profile3D for i in rippen]]
+        Graphics[[Line(i.profile3D) for i in rippen]]
 
     return rippen
 

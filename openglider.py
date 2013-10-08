@@ -7,7 +7,7 @@ import Graphics as G
 import Profile
 import Ribs
 import Utils.Bezier as bezier
-from Import.Excel import Import as excelimport
+#from Import.Excel import Import as excelimport
 
 #ab=P.Profile2D()
 #ab.Import("/home/lo/Dropbox/production/paragleiter/profile/nichtaufgeblasen.dat")
@@ -19,7 +19,7 @@ p1.Import("/home/simon/Dropbox/para-lorenz/paragleiter/profile/nichtaufgeblasen.
 #prof=[[i[0],i[1],0.] for i in p1.Profile]
 #G.Graphics([G.Line(p1.Profst.ile)])
 
-b=excelimport("/home/simon/test.xls")
+#b=excelimport("/home/simon/test.xls")
 print("ende")
 
 def testfunction(*mehrere):

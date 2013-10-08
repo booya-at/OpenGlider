@@ -4,7 +4,7 @@ class LoadProfile:
     def GetResources(self):
         return {'Pixmap': 'glider_import_profile.svg', 'MenuText': 'load profile', 'ToolTip': 'load profile'}
     def IsActive(self):
-        if FreeCAD.ActiveDocument == None:
+        if FreeCAD.ActiveDocument is None:
             return False
         else:
             return True
@@ -15,7 +15,7 @@ class ChangeProfile:
     def GetResources(self):
         return {'Pixmap': 'glider_change_profile.svg', 'MenuText': 'change profiles', 'ToolTip': 'change profiles'}
     def IsActive(self):
-        if FreeCAD.ActiveDocument == None:
+        if FreeCAD.ActiveDocument is None:
             return False
         else:
             return True
