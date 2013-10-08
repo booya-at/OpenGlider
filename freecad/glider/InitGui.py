@@ -21,10 +21,10 @@ class gliderWorkbench(Workbench):
         self.appendMenu("Profile", ["LoadProfile", "ChangeProfile"])
 
     def Activated(self):
-        FreeCAD.Console.PrintMessage('hello')
+        pass
 
     def Deactivated(self):
-        FreeCAD.Console.PrintMessage('hello')
+        pass
 
     def GetClassName(self):
         return "Gui::PythonWorkbench"
