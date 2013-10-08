@@ -1,5 +1,7 @@
 from Profile import Profile2D
 from Utils.Bezier import BezierCurve
+from Vector import cut
+import numpy
 from Graphics import Line, Point, Graphics
 import numpy as np
 import scipy.interpolate as int
@@ -26,16 +28,23 @@ a=Profile2D()
 
 a.Import('freecad/glider/profiles/nase1.dat')
 
+
 a.Numpoints=15
-oben=a.getUpperProfile()
-unten=a.getLowerProfile()
 b=BezierCurve()
 b._numofbezierpoints=6
 b.NumPoints=30
-b.Points=unten
 c=BezierCurve()
 c._numofbezierpoints=5
 c.NumPoints=30
-c.Points=oben
 
-Graphics([Line(unten),Line(b.Points),Line(b.BezierPoints)])
+#Graphics([Line(unten),Line(b.Points),Line(b.BezierPoints)])
+
+
+
+####simon-test
+p1=numpy.array([1.,0.])
+p2=numpy.array([1.,1.])
+p3=numpy.array([0.,0.])
+p4=numpy.array([0.,3.])
+
+print(cut((p1,p2),(p3,p4)))

@@ -74,20 +74,19 @@ class BasicProfile2D(object):
 class Profile2D(BasicProfile2D):
     """Profile2D: 2 Dimensional Standard Profile representative in OpenGlider"""
     #############Initialisation###################
-    def __init__(self, profile=None, name="Profile"):
-        if not profile: profile = []
+    def __init__(self, profile=[], name="Profile"):
         self.Name = name
-        if len(profile)==0:
-            return
-        elif isinstance(profile[0][0], str):
-            self.Name = profile[0][0]
-            i = 1
-        else:
-            i = 0
-
-        self._rootprof = BasicProfile2D(profile[i:])
-        self._rootprof.Normalize()
-        BasicProfile2D._SetProfile(self, self._rootprof.Profile)
+        if not profile == []:
+            if len(profile)==0:
+                return
+            elif isinstance(profile[0][0], str):
+                self.Name = profile[0][0]
+                i = 1
+            else:
+                i = 0
+            self._rootprof = BasicProfile2D(profile[i:])
+            self._rootprof.Normalize()
+            BasicProfile2D._SetProfile(self, self._rootprof.Profile)
 
     def __str__(self):
         return self.Name
@@ -259,5 +258,5 @@ class Profile3D(Vector.List):
 if __name__ == "__main__":
     p1e = Profile2D()
     p1e.Import("/home/simon/test.dat")
-    p2 = p1 * 0.2
+    p2 = p1e * 0.2
     print("hoho")
