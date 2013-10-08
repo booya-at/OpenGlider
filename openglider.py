@@ -45,6 +45,6 @@ c.NumPoints=30
 p1=numpy.array([1.,0.])
 p2=numpy.array([1.,1.])
 p3=numpy.array([0.,0.])
-p4=numpy.array([0.,3.])
+p4=numpy.array([0.1,3.1])
 
 print(cut((p1,p2),(p3,p4)))

@@ -46,8 +46,8 @@ def Normalize(vector):
 
 
 def Rotation_3D(angle, axis=[1, 0, 0]):
-    """3D-Rotation Matrix for (angle[rad],[axis(x,y,z)])
-    see http://en.wikipedia.org/wiki/SO%284%29#The_Euler.E2.80.93Rodrigues_formula_for_3D_rotations"""
+    """3D-Rotation Matrix for (angle[rad],[axis(x,y,z)])"""
+    # see http://en.wikipedia.org/wiki/SO%284%29#The_Euler.E2.80.93Rodrigues_formula_for_3D_rotations"""
     a = np.cos(angle / 2)
     (b, c, d) = -Normalize(axis) * np.sin(angle / 2)
     return np.array([[a ** 2 + b ** 2 - c ** 2 - d ** 2, 2 * (b * c - a * d), 2 * (b * d + a * c)],
@@ -55,12 +55,11 @@ def Rotation_3D(angle, axis=[1, 0, 0]):
                      [2 * (b * d - a * c), 2 * (c * d + a * b), a ** 2 + d ** 2 - b ** 2 - c ** 2]])
 
 #def Rotation_3D_Wiki(angle,axis=[1,0,0]):
-
 #see http://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle for reference.
 #    (x,y,z)=Normalize(axis)
 
 def cut((p1, p2), (p3, p4)):
-    """2D-Linear Cut; Solve the system p1+k*(p2-p1)==p3+l*(p4-p3)"""
+    """2D-Linear Cut; Returns (pointxy, k, l); Solves the linear system: p1+k*(p2-p1)==p3+l*(p4-p3)"""
     """ |p2x-p1x -(p4x-p3x)|*|k|==|p3x-p1x|"""
     """ |p2y-p1y -(p4y-p3y)|*|l|==|p3y-p1y|"""
     matrix = [[p2[0]-p1[0], p3[0]-p4[0]],
