@@ -1,55 +1,41 @@
-#!/bin/python2
-from Graphics import *
-import vtk
-
-#ListLinePlot([0,1,2,3,1,2,3,5,2,3,4])
-import Graphics as G
-import Profile
-import Ribs
-import Utils.Bezier as bezier
-#from Import.Excel import Import as excelimport
-
-#ab=P.Profile2D()
-#ab.Import("/home/lo/Dropbox/production/paragleiter/profile/nichtaufgeblasen.dat")
-#prof=[[i[0],i[1],0.] for i in ab.Profile]
-#G.Graphics3D(prof,[G.Line(range(len(prof)))])
-#simon debug
-p1=Profile.Profile2D()
-p1.Import("/home/simon/Dropbox/para-lorenz/paragleiter/profile/nichtaufgeblasen.dat")
-#prof=[[i[0],i[1],0.] for i in p1.Profile]
-#G.Graphics([G.Line(p1.Profst.ile)])
-
-#b=excelimport("/home/simon/test.xls")
-print("ende")
-
-def testfunction(*mehrere):
-    for i in mehrere:
-        print(i)
-
+from Profile import Profile2D
+from Utils.Bezier import BezierCurve
+from Graphics import Line, Point, Graphics
+import numpy as np
+import scipy.interpolate as int
 """
-rib=Ribs.Rib(profile=p1,glide=7)
-rib.AOA=4*3.141/180
-rib.arcang=20*3.141/180
-rib.zrot=0
-print(rib.AOA)
-rib.ReCalc()
+a=Profile2D()
+a.Import('freecad/glider/profiles/nase1.dat')
+a.Normalize()
+a.Numpoints=40
 
-prof=rib.profile3D.data
-rib.AOA=3
-rib.ReCalc()
-prof2=rib.profile3D.data
-G.Graphics3D(prof+prof2,[G.Line(range(len(prof))),G.Line(range(len(prof),len(prof)+len(prof2)))])
-neu=rib.profile3D.Flatten()
-print(neu)
-#from .Ribs import Rib
-##import .Profile
+inter=int.splprep(a.Profile.transpose(),ub=100.,ue=100.,k=3)
+bpoints=np.array(inter[0][1:2][0]).transpose()
+print(bpoints)
 
-####Nothing here yet :(
+bsp=np.array(int.splev(np.linspace(0,1,100),inter[0]))
 
-import Graphics as G
-gobj = G.Line([[0,0,1],[0,0,2]])
-print(gobj.coordinates)
-gobj._SetColour('green')
-print(gobj.colour)
->>>>>>> lo:__init__.py
+Graphics([Line(a.Profile),Line(bsp.transpose()),Line(bpoints)])
+
+print(inter[0])
 """
+
+
+
+a=Profile2D()
+
+a.Import('freecad/glider/profiles/nase1.dat')
+
+a.Numpoints=15
+oben=a.getUpperProfile()
+unten=a.getLowerProfile()
+b=BezierCurve()
+b._numofbezierpoints=6
+b.NumPoints=30
+b.Points=unten
+c=BezierCurve()
+c._numofbezierpoints=5
+c.NumPoints=30
+c.Points=oben
+
+Graphics([Line(unten),Line(b.Points),Line(b.BezierPoints)])

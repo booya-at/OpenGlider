@@ -2,8 +2,9 @@
 
 import sys
 import os
-from Graphics import *
-from Profile import *
+import Graphics as G
+from Profile import Profile2D
+from Utils.Bezier import BezierCurve
 import numpy as np
 
 #clear the terminal
@@ -39,3 +40,8 @@ except ImportError:
 else:
 	import rlcompleter
 readline.parse_and_bind("tab: complete")
+
+print('imported: numpy:np, Graphics:G, Profile:Profile2D ProfilIndt:b Utils:BezierCurve')
+
+p=Profile2D()
+p.Import('/home/lo/OpenGlider/freecad/glider/profiles/nase1.dat')
