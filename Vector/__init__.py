@@ -139,17 +139,31 @@ class List(object):
         length += np.linalg.norm(p2 - p1)
         return length
 
+    def cut(self, p1, p2):
+        i = 0
+        for i in range(len(self.data)-2):
+            try: # in case we have parallell lines we dont get a result here, so we continue with i raised...
+                thacut = cut((self.data[i], self.data[i+1]), (p1, p2))
+            except np.linalg.linalg.LinAlgError:
+                continue
+            if 0 < thacut[1] <= 1.:
+                return (thacut[0], (i, thacut[1]))
+        # Nothing found yet? check start and end of line
+        thacut = []
+        for i in [1, -1]:
+            #####change the sorting to fit absolute length, not diff-parameter
+            try:
+                temp = [cut((self.data[i-1], self.data[i]), (p1, p2))]
+                if sign(temp[1]) == sign(i):
+                    thacut += temp
+            except np.linalg.linalg.LinAlgError:
+                continue
+        thacut.sort(key=lambda x: abs(x[1]))
+        return thacut[0]
 
-"""
-####debug sec
-cd=List([[0,0],[1,0],[2,0]])
-neu=[cd.Extend((1, 0.5), i) for i in [-3.2,-1,-0.2,0,0.2,1,3]]##all possible cases to be tested
-abc=cd.GetLength()
-<<<<<<< HEAD
-#print(abc)
-=======
-neu2=[cd.Point(i) for i in neu]
-print(abc)
->>>>>>> master
-####
-      """  
+    def check(self):
+        """Check for mistakes in the array, such as for the moment: self-cuttings,"""
+        return "nix"
+
+
+

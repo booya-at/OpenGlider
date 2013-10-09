@@ -26,9 +26,9 @@ print(inter[0])
 
 a=Profile2D()
 
-a.Import('freecad/glider/profiles/nase1.dat')
+#a.Import('freecad/glider/profiles/nase1.dat')
 
-
+"""
 a.Numpoints=15
 b=BezierCurve()
 b._numofbezierpoints=6
@@ -36,7 +36,7 @@ b.NumPoints=30
 c=BezierCurve()
 c._numofbezierpoints=5
 c.NumPoints=30
-
+"""
 #Graphics([Line(unten),Line(b.Points),Line(b.BezierPoints)])
 
 
@@ -45,6 +45,11 @@ c.NumPoints=30
 p1=numpy.array([1.,0.])
 p2=numpy.array([1.,1.])
 p3=numpy.array([0.,0.])
-p4=numpy.array([0.1,3.1])
+p4=numpy.array([0.,3.1])
 
-print(cut((p1,p2),(p3,p4)))
+
+
+try:
+    ab=cut((p1,p2),(p3,p4))
+except numpy.linalg.linalg.LinAlgError:
+    print("jojo")
