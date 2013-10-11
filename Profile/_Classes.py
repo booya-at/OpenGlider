@@ -176,7 +176,22 @@ class Profile2D(BasicProfile2D):
         xtemp = lambda x: cmp(x, 0.5)*(1-math.sin(math.pi*x))
         self.XValues = [xtemp(j * 1. / i) for j in range(i + 1)]
 
+    def _GetThick(self,*args):
+        """with no arg the max thick is returned"""
+        yvals = self.Profile[:,1]
+        return max(yvals)-min(yvals)
 
+
+    def _SetThick(self,thick):
+        temp = self._GetThick()
+        prof = self.Profile
+        if thick > 0:
+            prof[:,1] *= (float(thick)/temp)
+            self.Profile = prof
+        else:
+            print("no negative thickness!!!")
+
+    Thickness = property(_GetThick,_SetThick)
     Numpoints = property(_GetLen, _SetLen)
     XValues = property(_GetXValues, _SetXValues)
 
