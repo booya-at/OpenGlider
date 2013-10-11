@@ -1,13 +1,5 @@
 import FreeCAD
-try:
-    from Profile import Profile2D
-except:
-    import sys
-    sys.path.append('/home/lo/Openglider/')
-    from Profile import Profile2D
-import Draft
-import numpy as np
-import Part
+from _Classes import Airfoil, ViewProviderAirfoil
 
 
 class LoadProfile:
@@ -19,9 +11,9 @@ class LoadProfile:
         else:
             return True
     def Activated(self):
-        obj=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Line")
-        Profile(obj,'glider/profiles/nase1.dat')
-        obj.ViewObject.Proxy=0 # just set it to something different from None (this assignment is needed to run an internal notification)
+        a=FreeCAD.ActiveDocument.addObject("App::FeaturePython","Profile")
+        Airfoil(a)
+        ViewProviderAirfoil(a.ViewObject)
         FreeCAD.ActiveDocument.recompute()
 
 class ChangeProfile:
@@ -35,27 +27,38 @@ class ChangeProfile:
     def Activated(self):
         pass
 
+class RunXfoil:
+    def GetResources(self):
+        return {'Pixmap': 'glider_profile_xfoil.svg', 'MenuText': 'run xfoil', 'ToolTip': 'run xfoil'}
+    def IsActive(self):
+        if FreeCAD.ActiveDocument is None:
+            return False
+        else:
+            return True
+    def Activated(self):
+        pass
+
+class CompareProfile:
+    def GetResources(self):
+        return {'Pixmap': 'glider_profile_compare.svg', 'MenuText': 'compare profile', 'ToolTip': 'compare profile'}
+    def IsActive(self):
+        if FreeCAD.ActiveDocument is None:
+            return False
+        else:
+            return True
+    def Activated(self):
+        pass
 
 
-class Profile(Profile2D):
-    def __init__(self, obj,path,numpoints=100):
-        Profile2D.__init__(self,path)
-        self.Import(path)
-        self.Numpoints=numpoints
+class MergeProfile:
+    def GetResources(self):
+        return {'Pixmap': 'glider_profile_merge.svg', 'MenuText': 'merge profile', 'ToolTip': 'merge profile'}
+    def IsActive(self):
+        if FreeCAD.ActiveDocument is None:
+            return False
+        else:
+            return True
+    def Activated(self):
+        pass
 
-        obj.addProperty("App::PropertyInteger","Numpoints","Line","End point").Numpoints=numpoints
-        obj.Proxy = self
-
-    def execute(self, fp):
-        self.Numpoints=fp.Numpoints
-        pro=self.Profile
-        pro=map(lambda x: FreeCAD.Vector(x[0],x[1],0.),pro)
-        edges = []
-        pts = pro[1:]
-        lp = pro[0]
-        for p in pts:
-            edges.append(Part.Line(lp,p).toShape())
-            lp = p
-        shape = Part.Wire(edges)
-        fp.Shape = shape
 

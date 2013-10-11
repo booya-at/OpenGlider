@@ -7,6 +7,7 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="64px"
@@ -14,7 +15,7 @@
    id="svg3799"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="glider_import_profil.svg">
+   sodipodi:docname="glider_import_profile.svg">
   <defs
      id="defs3801">
     <inkscape:path-effect
@@ -37,6 +38,18 @@
        effect="spiro"
        id="path-effect9384"
        is_visible="true" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient9347">
+      <stop
+         style="stop-color:#0079ff;stop-opacity:1;"
+         offset="0"
+         id="stop9349" />
+      <stop
+         style="stop-color:#0079ff;stop-opacity:0"
+         offset="1"
+         id="stop9351" />
+    </linearGradient>
     <marker
        inkscape:stockid="Arrow2Mstart"
        orient="auto"
@@ -244,6 +257,15 @@
          d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
          transform="scale(-0.6,-0.6)" />
     </marker>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient9347"
+       id="linearGradient9353"
+       x1="-21.345743"
+       y1="40.800289"
+       x2="1.8271284"
+       y2="47.081963"
+       gradientUnits="userSpaceOnUse" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -262,9 +284,9 @@
      inkscape:snap-center="true"
      showguides="true"
      inkscape:guide-bbox="true"
-     inkscape:window-width="1366"
+     inkscape:window-width="1301"
      inkscape:window-height="744"
-     inkscape:window-x="0"
+     inkscape:window-x="65"
      inkscape:window-y="24"
      inkscape:window-maximized="1">
     <sodipodi:guide
