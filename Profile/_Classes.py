@@ -2,8 +2,9 @@ import math
 import os  # for xfoil execution
 
 import numpy  # array spec
-import _Functions
-import _XFoilCalc
+from ._XFoilCalc import XValues, Calcfile, Impresults
+from ._Functions import Point
+#import _XFoilCalc
 import Vector
 
 
@@ -30,7 +31,7 @@ class BasicProfile2D(object):
             (i, k) = xval
             return Vector.Point(self.data, i, k)
         else:
-            return _Functions.Point(self.data, xval, h)
+            return Point(self.data, xval, h)
 
     def Points(self, xvalues):
         """Map a list of XValues onto the Profile"""
@@ -181,7 +182,7 @@ class Profile2D(BasicProfile2D):
 
     def _GetThick(self,*args):
         """with no arg the max thick is returned"""
-        yvals = self.Profile[:,1]
+        yvals = self.Profile[:, 1]
         return max(yvals)-min(yvals)
 
 
@@ -194,7 +195,7 @@ class Profile2D(BasicProfile2D):
         else:
             print("no negative thickness!!!")
 
-    Thickness = property(_GetThick,_SetThick)
+    Thickness = property(_GetThick, _SetThick)
     Numpoints = property(_GetLen, _SetLen)
     XValues = property(_GetXValues, _SetXValues)
 
@@ -218,24 +219,23 @@ class XFoil(Profile2D):
 
         resfile = "/tmp/result.dat"
         pfile = "/tmp/calc_pfile.dat"
-        cfile = _XFoilCalc.Calcfile(angles, resfile)
+        cfile = Calcfile(angles, resfile)
 
         self.Export(pfile)
         status = os.system("xfoil " + pfile + " <" + cfile + " > /tmp/log.dat")
         if status == 0:
-            result = _XFoilCalc.Impresults(resfile)
+            result = Impresults(resfile)
             for i in result:
                 self._calcvalues[i] = result[i]
             os.system("rm " + resfile)
         os.system("rm " + pfile + " " + cfile)
-        return status
 
     def _Get(self, angle, exact=1):
         if self._Change():
             self._calcvalues = {}
             self._xvalues = self.XValues[:]
         print(self._calcvalues)
-        calcangles = _XFoilCalc.XValues(angle, self._calcvalues)
+        calcangles = XValues(angle, self._calcvalues)
         print("ho!" + str(calcangles))
         if len(calcangles) > 0:
             erg = self._Calc(calcangles)

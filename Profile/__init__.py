@@ -1,5 +1,5 @@
-from _Classes import Profile2D, Profile3D
-from _Classes import XFoil
+from ._Classes import Profile2D, Profile3D
+from ._Classes import XFoil
 
 if __name__ == "__main__":
     from PyQt4 import QtGui

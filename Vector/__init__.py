@@ -70,7 +70,7 @@ def rotation_3d(angle, axis=[1, 0, 0]):
 #    (x,y,z)=normalize(axis)
 
 
-def cut((p1, p2), (p3, p4)):
+def cut(p1, p2, p3, p4):
     """2D-Linear Cut; Returns (pointxy, k, l); Solves the linear system: p1+k*(p2-p1)==p3+l*(p4-p3)"""
     """ |p2x-p1x -(p4x-p3x)|*|k|==|p3x-p1x|"""
     """ |p2y-p1y -(p4y-p3y)|*|l|==|p3y-p1y|"""
@@ -101,8 +101,9 @@ class List(object):
             raise "invalid data for listpoint"
         return self.data[i] + k * (self.data[i + 1] - self.data[i])
 
-    def extend(self, (i, k), length):
+    def extend(self, ding, length):
         """Extend the List at a given Point (i,k) by the given Length and return NEW (i,k)"""
+        (i,k)=ding
         _dir = sign(length)
         _len = abs(length)
 
@@ -132,7 +133,9 @@ class List(object):
 
         return (inew, knew)
 
-    def get_length(self, (i1, k1)=(0, 0), (i2, k2)=(-2, 1)):
+    def get_length(self, p1=(0, 0), p2=(-2, 1)):
+        (i1, k1) = p1
+        (i2, k2) = p2
         length = 0
         if sign(i2) is -1:
             i2 += len(self.data)
@@ -155,7 +158,7 @@ class List(object):
         i = 0
         for i in rangefrom(len(self.data)-2, startpoint):
             try:  # in case we have parallell lines we dont get a result here, so we continue with i raised...
-                thacut = cut((self.data[i], self.data[i+1]), (p1, p2))
+                thacut = cut(self.data[i], self.data[i+1], p1, p2)
             except np.linalg.linalg.LinAlgError:
                 continue
             if 0 < thacut[1] <= 1.:
@@ -165,7 +168,7 @@ class List(object):
         for i in [1, -1]:
             #####change the sorting to fit absolute length, not diff-parameter
             try:
-                temp = [cut((self.data[i-1], self.data[i]), (p1, p2))]
+                temp = [cut(self.data[i-1], self.data[i], p1, p2)]
                 if sign(temp[1]) == sign(i):
                     thacut += temp
             except np.linalg.linalg.LinAlgError:

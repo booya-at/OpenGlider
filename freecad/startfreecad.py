@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 
 import FreeCAD
 import FreeCADGui as gui
@@ -10,7 +10,7 @@ l.pop(l.index('gliderWorkbench'))
 l.pop(l.index('DraftWorkbench'))
 map(gui.removeWorkbench,l)
 
-FreeCAD.newDocument()
+#FreeCAD.newDocument()
 
 
 
