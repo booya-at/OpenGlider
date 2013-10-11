@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.misc import comb
-from Vector import Depth
+from Vector import depth
 import Graphics as G
 
 
@@ -18,8 +18,8 @@ class BezierCurve(object):
         if len(points)==0:
             print('no points!')
             return
-        elif Depth(points) != 3:
-            print('depth of points is '+ str(Depth(points))+', but should be 3')
+        elif depth(points) != 3:
+            print('depth of points is '+ str(depth(points))+', but should be 3')
         else:
             self._BezierPoints = np.array(points)
             self._BezierFunction = BezierFunction(self.BezierPoints)

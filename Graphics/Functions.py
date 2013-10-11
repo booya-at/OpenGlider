@@ -1,6 +1,6 @@
 import vtk
 import numpy as np
-from Vector import Depth
+from Vector import depth
 
 
 def tofloat(lst):
@@ -13,16 +13,16 @@ def tofloat(lst):
 def ListLinePlot(points):
     if isinstance(points, np.ndarray):
         points = points.tolist()
-    if Depth(points) == 2:
+    if depth(points) == 2:
         Graphics2D([Line(np.transpose(np.array([map(float, range(len(points))), points])))])
-    if Depth(points) == 3 and len(points[1]) == 2:
+    if depth(points) == 3 and len(points[1]) == 2:
         Graphics2D([Line(tofloat(points))])
-    if Depth(points) == 3 and len(points[1]) == 3:
+    if depth(points) == 3 and len(points[1]) == 3:
         Graphics3D([Line(tofloat(points))])
 
 
 def __isintlist(arg):
-    if Depth(arg) > 1:
+    if depth(arg) > 1:
         return max([__isintlist(i) for i in arg])
     else:
         if isinstance(arg, int):
@@ -61,7 +61,7 @@ class GraphicObject(object):
             additionalcoordinates = add
 
         for i in range(len(additionalcoordinates)):
-            if Depth(additionalcoordinates[i]) > 2:
+            if depth(additionalcoordinates[i]) > 2:
                 self.addcoordinates(coordinates, add=additionalcoordinates[i], start=startval)
             else:
                 startval += 1
@@ -155,7 +155,7 @@ class Graphics(object):
             return arg
 
     def _createpoint(self, pointnumbers):
-        if Depth(pointnumbers) >= 3:
+        if depth(pointnumbers) >= 3:
             for p in pointnumbers:
                 self._createpoint(p)
         else:
@@ -164,7 +164,7 @@ class Graphics(object):
                 self.verts.InsertCellPoint(p)
 
     def _createline(self, pointnumbers):
-        if Depth(pointnumbers) >= 3:
+        if depth(pointnumbers) >= 3:
             for p in pointnumbers:
                 self._createline(p)
         else:
@@ -176,7 +176,7 @@ class Graphics(object):
                 i = i + 1
 
     def _createpolygon(self, pointnumbers):
-        if Depth(pointnumbers) >= 3:
+        if depth(pointnumbers) >= 3:
             for p in pointnumbers:
                 self._createpolygon(p)
         else:

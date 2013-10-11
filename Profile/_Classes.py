@@ -44,14 +44,14 @@ class BasicProfile2D(object):
         dmax = 0.
         nose = 0
         for i in self.data:
-            temp = Vector.Norm(i - p1)
+            temp = Vector.norm(i - p1)
             if temp > dmax:
                 dmax = temp
                 nose = i
             #to normalize do: put nose to (0,0), rotate to fit (1,0), normalize to (1,0)
         #use: a.b=|a|*|b|*cos(alpha)->
         diff = p1 - nose
-        sin = (diff / dmax).dot([0, -1])##equal to cross product of (x1,y1,0),(x2,y2,0)
+        sin = (diff / dmax).dot([0, -1])  # equal to cross product of (x1,y1,0),(x2,y2,0)
         cos = numpy.sqrt(1 - sin ** 2)
         matrix = numpy.array([[cos, -sin], [sin, cos]]) / dmax
         self.data = numpy.array([matrix.dot(i - nose) for i in self.data])
@@ -67,9 +67,8 @@ class BasicProfile2D(object):
     def _GetProfile(self):
         return self.data
 
-
-
     Profile = property(_GetProfile, _SetProfile)
+
 
 class Profile2D(BasicProfile2D):
     """Profile2D: 2 Dimensional Standard Profile representative in OpenGlider"""
@@ -85,7 +84,7 @@ class Profile2D(BasicProfile2D):
                  name="Profile"):
         self.Name = name
         if not profile == []:
-            if len(profile)==0:
+            if len(profile) == 0:
                 return
             elif isinstance(profile[0][0], str):
                 self.Name = profile[0][0]
@@ -108,10 +107,13 @@ class Profile2D(BasicProfile2D):
             else:
                 first = self.copy()
                 second = other
-            if len(first.XValues) != len(second.XValues) or not (first.XValues == second.XValues).all():
+            if not numpy.array_equal(first.XValues, second.XValues):
                 first.XValues = second.XValues
             first.Profile = first.Profile + second.Profile * numpy.array([0, 1])
             return first
+
+    def __eq__(self, other):
+        return numpy.array_equal(self.Profile, other.Profile)
 
     def Import(self, pfad):
         if os.path.isfile(pfad):
@@ -145,7 +147,8 @@ class Profile2D(BasicProfile2D):
         return pfad
 
     def RootPoint(self, xval, h=-1):
-        """Get Profile Point for x-value (<0:upper side) optional: height (-1:lower,1:upper); use root-profile (highest res)"""
+        """Get Profile Point for x-value (<0:upper side) optional: height (-1:lower,1:upper);
+        use root-profile (highest res)"""
         return self._rootprof.Point(xval, h)
 
     def Reset(self):
@@ -265,14 +268,14 @@ class Profile3D(Vector.List):
         nose = max(self.data, key=lambda x: numpy.linalg.norm(x - p1))
         diff = [nose - i for i in self.data]
 
-        xvekt = Vector.Normalize(diff[0])
+        xvekt = Vector.normalize(diff[0])
         yvekt = numpy.array([0, 0, 0])
 
         for i in diff:
             temp = i - xvekt * xvekt.dot(i)
             yvekt = max([yvekt + temp, yvekt - temp], key=lambda x: numpy.linalg.norm(x))
 
-        yvekt = Vector.Normalize(yvekt)
+        yvekt = Vector.normalize(yvekt)
 
         return Profile2D([[xvekt.dot(i), yvekt.dot(i)] for i in diff], name=self.Name + "flattened")
         ###find x-y projection-layer first
