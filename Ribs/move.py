@@ -1,4 +1,4 @@
-from Vector import Rotation_3D
+from Vector import rotation_3d
 
 ###########entweder klasse oder funktion die funktion erzeugt
 
@@ -6,10 +6,10 @@ from Vector import Rotation_3D
 def rotation(aoa, arc, zrot):
     ##rotation-matrix
     ##aoa:
-    rot=Rotation_3D(aoa,[0,0,1])
+    rot=rotation_3d(aoa,[0,0,1])
     ##arc-wide rotation matrix
-    rot=rot.dot(Rotation_3D(arc,[1,0,0]))
+    rot=rot.dot(rotation_3d(arc,[1,0,0]))
     ##rotation relative to profile z-axis
     axis=rot.dot([0,1,0])
     
-    return rot.dot(Rotation_3D(zrot,axis))
+    return rot.dot(rotation_3d(zrot,axis))

@@ -1,7 +1,7 @@
 from move import rotation#, alignment
 from Profile import Profile2D, Profile3D
 import numpy
-from Vector import Type
+from Vector import arrtype
 
 
 class Rib(object):
@@ -24,7 +24,7 @@ class Rib(object):
 
 
     def Align(self, points):
-        ptype=Type(points)
+        ptype=arrtype(points)
         if ptype==1:
             return self.pos+self._rot.dot([points[0],points[1],0])
         if ptype==2 or ptype==4:

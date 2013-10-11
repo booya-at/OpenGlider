@@ -8,7 +8,7 @@ import scipy.interpolate as int
 """
 a=Profile2D()
 a.Import('freecad/glider/profiles/nase1.dat')
-a.Normalize()
+a.normalize()
 a.Numpoints=40
 
 inter=int.splprep(a.Profile.transpose(),ub=100.,ue=100.,k=3)
