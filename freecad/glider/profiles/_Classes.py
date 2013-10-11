@@ -1,27 +1,18 @@
 import FreeCAD
-
-#--------------------------------------------
-try:
-    from Profile import Profile2D
-except:
-    import sys
-    sys.path.append('/home/lo/OpenGlider/')
-    from Profile import Profile2D
-#--------------------------------------------
-
-
+from Profile import Profile2D
 from pivy import coin
+
 
 class Airfoil():
     """FreeCAD Airfoil"""
     def __init__(self, obj):
         self.prof = Profile2D()
 
-        obj.addProperty("App::PropertyInteger","Numpoints","profile","Number of points").Numpoints = self.prof.Numpoints
-        obj.addProperty("App::PropertyFloat","Thickness","profile","Thickness of Profile").Thickness = self.prof.Thickness * 100
-        obj.addProperty("App::PropertyString","Name","profile","Name of profile").Name=self.prof.Name
-        obj.addProperty("App::PropertyVectorList","coords","profile","profilcoords")
-        obj.addProperty("App::PropertyPath","FilePath","profile","Name of profile").FilePath=""
+        obj.addProperty("App::PropertyInteger", "Numpoints", "profile", "Number of points").Numpoints = self.prof.Numpoints
+        obj.addProperty("App::PropertyFloat", "Thickness", "profile", "Thickness of Profile").Thickness = self.prof.Thickness * 100
+        obj.addProperty("App::PropertyString", "Name", "profile", "Name of profile").Name = self.prof.Name
+        obj.addProperty("App::PropertyVectorList", "coords", "profile", "profilcoords")
+        obj.addProperty("App::PropertyPath", "FilePath", "profile", "Name of profile").FilePath = ""
         obj.Proxy = self
 
     def execute(self, fp):
@@ -81,23 +72,16 @@ class BezierCurve(BezierCurve):
         """a bspline object that can be used to change shapes like airfoils"""
         if not coords: coords = [[0., 0.], [1., 1.], [2., 0.], [2., 1.]]
         BezierCurve.__init__(self,coords)
-        obj.addProperty("App::PropertyInteger","beziernumpoints","bezier","number of bezierpoints").beziernumpoints=self.numofbezierpoints
-        obj.addProperty("App::PropertyVectorList","bezierpoints","bezier","bezierpoints").bezierpoints=self.BezierPoints
-        obj.addProperty("App::PropertyInteger","numlinepoints","line","number of points").numpoints=self.numpoints
-        obj.addProperty("App::PropertyVectorList","linepoints","line","store")
+        obj.addProperty("App::PropertyInteger", "beziernumpoints", "bezier", "number of bezierpoints").beziernumpoints = self.numofbezierpoints
+        obj.addProperty("App::PropertyVectorList", "bezierpoints", "bezier", "bezierpoints").bezierpoints = self.BezierPoints
+        obj.addProperty("App::PropertyInteger", "numlinepoints", "line", "number of points").numpoints = self.numpoints
+        obj.addProperty("App::PropertyVectorList", "linepoints", "line", "store")
         obj.Proxy = self
 
     def execute(self, fp):
-        self.numofbezierpoints=fp.beziernumpoints
+        self.numofbezierpoints = fp.beziernumpoints
         fp.linepoints = self.getPoints()
 
     def onChanged(self, fp, prop):
-        #-----------------------------------------------------------------------------------------
-        #   was soll passieren waehrend etwas geaendert wurde
-        #   fp beinhaltet die uebergebenen properties
-        #   prop beinhaltet den namen der gerade eben bearbeiteten property
-        #Bsp:  if prop in ["propertyname1","propertyname2"]:
-        #          dann mach etwas
-        #-----------------------------------------------------------------------------------------
         pass
 

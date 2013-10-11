@@ -1,15 +1,5 @@
-#!/usr/bin/python2
-
-import sys
-import os
-try:
-	import FreeCAD
-	import FreeCADGui as gui
-except:
-	sys.path.append('/usr/lib/freecad/lib/')
-	import FreeCAD
-	import FreeCADGui as gui
-import numpy as np
+import FreeCAD
+import FreeCADGui as gui
 
 #clear the terminal
 os.system('clear')

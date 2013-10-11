@@ -43,5 +43,3 @@ readline.parse_and_bind("tab: complete")
 
 print('imported: numpy:np, Graphics:G, Profile:Profile2D ProfilIndt:b Utils:BezierCurve')
 
-p=Profile2D()
-p.Import('/home/lo/OpenGlider/freecad/glider/profiles/nase1.dat')

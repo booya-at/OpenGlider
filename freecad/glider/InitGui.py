@@ -1,6 +1,4 @@
 import FreeCADGui as Gui
-import FreeCAD
-import gliderGui
 
 
 class gliderWorkbench(Workbench):
@@ -17,7 +15,7 @@ class gliderWorkbench(Workbench):
         self.appendToolbar("Glider", ["LoadGlider","ChangeShape"])
         self.appendMenu("Glider", ["LoadGlider","ChangeShape"])
 
-        profileitems=["LoadProfile", "ChangeProfile", "CompareProfile", "MergeProfile", "RunXfoil"]
+        profileitems = ["LoadProfile", "ChangeProfile", "CompareProfile", "MergeProfile", "RunXfoil"]
         self.appendToolbar("Profile", profileitems)
         self.appendMenu("Profile", profileitems)
 
@@ -26,9 +24,6 @@ class gliderWorkbench(Workbench):
 
     def Deactivated(self):
         pass
-
-    def GetClassName(self):
-        return "Gui::PythonWorkbench"
 
 Gui.addWorkbench(gliderWorkbench())
 
