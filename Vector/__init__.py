@@ -166,4 +166,13 @@ class List(object):
         return "nix"
 
 
-
+def rangefrom(maxl, startpoint=0):
+    j = 1
+    if 0 <= startpoint <= maxl:
+        yield startpoint
+    while startpoint-j >= 0 or startpoint+j <= maxl:
+        if startpoint+j <= maxl:
+            yield startpoint+j
+        if maxl >= startpoint-j >= 0:
+            yield startpoint-j
+        j += 1
