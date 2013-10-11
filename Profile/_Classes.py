@@ -29,7 +29,7 @@ class BasicProfile2D(object):
         if isinstance(xval, (list, tuple, numpy.ndarray)):
             ##if so, treat as a common list instead...
             (i, k) = xval
-            return Vector.Point(self.data, i, k)
+            return Point(self.data, i, k)
         else:
             return Point(self.data, xval, h)
 
