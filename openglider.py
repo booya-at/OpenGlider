@@ -20,3 +20,18 @@ try:
     ab=cut(p1,p2,p3,p4)
 except numpy.linalg.linalg.LinAlgError:
     print("jojo")
+
+
+def testfunktion(*args):
+    if not args:
+        print("nixda")
+    else:
+        print(len(args))
+        print(args.__class__)
+
+testfunktion()
+testfunktion("ab",[1,2,3])
+testfunktion([1,2,3])
+
+prof=Profile2D()
+prof.Import("/home/simon/test.dat")
