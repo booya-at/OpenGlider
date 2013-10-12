@@ -158,13 +158,8 @@ class Profile2D(BasicProfile2D):
 
     def _GetXValues(self):
         """Get XValues of Profile. upper side neg, lower positive"""
-        #xval=self.data[:,0].copy()
-        #i=0
-        #while xval[i+1]<xval[i] and i<len(xval):
-        #    xval[i]=-xval[i]
-        #    i=i+1
         i = self.noseindex
-        return numpy.concatenate((self.data[:i-1]*[-1, 0],self.data[i:]))
+        return numpy.concatenate((self.data[:i, 0]*-1., self.data[i:, 0]))
 
     def _SetXValues(self, xval):
         """Set X-Values of profile to defined points."""
@@ -180,24 +175,34 @@ class Profile2D(BasicProfile2D):
         xtemp = lambda x: cmp(x, 0.5)*(1-math.sin(math.pi*x))
         self.XValues = [xtemp(j * 1. / i) for j in range(i + 1)]
 
-    def _GetThick(self,*args):
+    def _GetThick(self, *xvals):
         """with no arg the max thick is returned"""
-        yvals = self.Profile[:, 1]
-        return max(yvals)-min(yvals)
+        if not xvals:
+            xvals = set(map(abs, self.XValues))
+        return [[i, self.Point(-i)[1][1]-self.Point(i)[1][1]] for i in xvals]
 
+    def _SetThick(self, newthick):
+        factor = float(newthick/max(self.Thickness[:1]))
+        new = self.Profile*[1., factor]
+        self.__init__(new, self.Name+ "_" + str(newthick*100)+"%")
 
-    def _SetThick(self,thick):
-        temp = self._GetThick()
-        prof = self.Profile
-        if thick > 0:
-            prof[:,1] *= (float(thick)/temp)
-            self.Profile = prof
-        else:
-            print("no negative thickness!!!")
+    def _getcamber(self, *xvals):
+        """return the camber of the profile for certain x-values or if nothing supplied, camber-line"""
+        if not xvals:
+            xvals = sorted(set(map(abs, self.XValues)))
+        return numpy.array([self.Point(i, 0.) for i in xvals])
+
+    def _setcamber(self, newcamber):
+        """Set maximal camber to the new value"""
+        now = self.Camber
+        factor = newcamber/max(now[:,1])-1
+        now = dict(now)
+        self.__init__([i+[0, now[i[0]]*factor] for i in self.Profile])
 
     Thickness = property(_GetThick, _SetThick)
     Numpoints = property(_GetLen, _SetLen)
     XValues = property(_GetXValues, _SetXValues)
+    Camber = property(_getcamber, _setcamber)
 
 class XFoil(Profile2D):
     """XFoil Calculation Profile based on Profile2D"""

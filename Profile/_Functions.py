@@ -12,7 +12,7 @@ def Point(profile, xval, h):
 
 def SinglePoint(profile, xvalt):
     xval = float(xvalt)
-    if abs(xval) > 1:
+    if round(abs(xval), 2) > 1:
         print("x zgros")
 
     #examine i-value
