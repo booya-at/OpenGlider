@@ -179,10 +179,10 @@ class Profile2D(BasicProfile2D):
         """with no arg the max thick is returned"""
         if not xvals:
             xvals = set(map(abs, self.XValues))
-        return [[i, self.Point(-i)[1][1]-self.Point(i)[1][1]] for i in xvals]
+        return numpy.array([[i, self.Point(-i)[1][1]-self.Point(i)[1][1]] for i in xvals])
 
     def _SetThick(self, newthick):
-        factor = float(newthick/max(self.Thickness[:1]))
+        factor = float(newthick/max(self.Thickness[:,1]))
         new = self.Profile*[1., factor]
         self.__init__(new, self.Name+ "_" + str(newthick*100)+"%")
 

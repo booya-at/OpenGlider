@@ -9,7 +9,8 @@ class Airfoil():
         self.prof = Profile2D()
 
         obj.addProperty("App::PropertyInteger", "Numpoints", "profile", "Number of points").Numpoints = self.prof.Numpoints
-        obj.addProperty("App::PropertyFloat", "Thickness", "profile", "Thickness of Profile").Thickness = self.prof.Thickness * 100
+        obj.addProperty("App::PropertyFloat", "Thickness", "profile", "Thickness of Profile").Thickness = max(self.prof.Thickness[:,1]) * 1000
+        obj.addProperty("App::PropertyFloat", "Camber", "profile", "Camber of Profile").Camber = max(self.prof.Camber[:,1]) * 1000
         obj.addProperty("App::PropertyString", "Name", "profile", "Name of profile").Name = self.prof.Name
         obj.addProperty("App::PropertyVectorList", "coords", "profile", "profilcoords")
         obj.addProperty("App::PropertyPath", "FilePath", "profile", "Name of profile").FilePath = ""
@@ -17,7 +18,8 @@ class Airfoil():
 
     def execute(self, fp):
         self.prof.Numpoints = fp.Numpoints
-        self.prof.Thickness = fp.Thickness / 100.
+        self.prof.Thickness = fp.Thickness / 1000.
+        self.prof.Camber = fp.Camber / 1000.
         self.prof.Name=fp.Name
         fp.coords = map(lambda x: FreeCAD.Vector(x[0],x[1],0.),self.prof.Profile)
 
@@ -27,19 +29,19 @@ class Airfoil():
             try:
                 self.prof.Import(fp.FilePath)
                 fp.Numpoints = self.prof.Numpoints
-                fp.Thickness = self.prof.Thickness *100.
+                fp.Thickness = self.prof.Thickness *1000.
+                fp.Camber = self.prof.Camber *1000.
                 fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
-                FreeCAD.Console.PrintWarning("1")
             except:
                 FreeCAD.Console.PrintError("not a good filename")
         elif prop == "Thickness":
-            FreeCAD.Console.PrintWarning("2")
-            self.prof.Numpoints = fp.Numpoints
-            self.prof.Thickness = fp.Thickness / 100.
+            self.prof.Thickness = fp.Thickness / 1000.
             fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
         elif prop == "Numpoints":
-            FreeCAD.Console.PrintWarning("3")
             self.prof.Numpoints = fp.Numpoints
+            fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
+        elif prop == "Camber":
+            self.prof.Camber = fp.Camber /1000.
             fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
 
 
