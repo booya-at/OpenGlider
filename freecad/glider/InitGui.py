@@ -1,4 +1,5 @@
 import FreeCADGui as Gui
+import gliderGui
 
 
 class gliderWorkbench(Workbench):
@@ -8,7 +9,7 @@ class gliderWorkbench(Workbench):
     Icon = "glider_workbench.svg"
 
     def GetClassName(self):
-        return "gliderGui::Workbench"
+        return "Gui::PythonWorkbench"
 
     def Initialize(self):
         #load the module

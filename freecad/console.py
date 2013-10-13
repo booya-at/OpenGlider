@@ -1,5 +1,7 @@
 import FreeCAD
 import FreeCADGui as gui
+import sys
+import os
 
 #clear the terminal
 os.system('clear')

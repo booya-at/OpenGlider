@@ -27,43 +27,82 @@ class Airfoil():
             try:
                 self.prof.Import(fp.FilePath)
                 fp.Numpoints = self.prof.Numpoints
-                fp.Thickness = self.prof.Thickness * 100.
+                fp.Thickness = self.prof.Thickness *100.
                 fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
+                FreeCAD.Console.PrintWarning("1")
             except:
                 FreeCAD.Console.PrintError("not a good filename")
-        elif prop in ["Thickness","Numpoints"]:
+        elif prop == "Thickness":
+            FreeCAD.Console.PrintWarning("2")
             self.prof.Numpoints = fp.Numpoints
             self.prof.Thickness = fp.Thickness / 100.
             fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
+        elif prop == "Numpoints":
+            FreeCAD.Console.PrintWarning("3")
+            self.prof.Numpoints = fp.Numpoints
+            fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
+
+
+
 
 class ViewProviderAirfoil():
     def __init__(self, obj):
+        obj.addProperty("App::PropertyLength","LineWidth","Base","Line width")
+        obj.addProperty("App::PropertyColor","LineColor","Base","Line color")
         obj.Proxy = self
 
-    def attach(self, obj):
-        self.shaded = coin.SoGroup()
+    def attach(self, vobj):
+
+        self.shaded = coin.SoSeparator()
+        #t = coin.SoType.fromName("SoBrepEdgeSet")
+        #print(t.canCreateInstance())
+        #self.panels = t.createInstance()
+
+        self.color = coin.SoBaseColor()
+        c=vobj.LineColor
+        self.color.rgb.setValue(c[0], c[1], c[2])
+        self.drawstyle = coin.SoDrawStyle()
+        self.drawstyle.lineWidth = 1
+        self.style = coin.SoDrawStyle()
         self.data = coin.SoCoordinate3()
-        self.data.setName("data")
         self.panels = coin.SoLineSet()
+        self.shaded.addChild(self.color)
+        self.shaded.addChild(self.drawstyle)
         self.shaded.addChild(self.data)
         self.shaded.addChild(self.panels)
-        obj.addDisplayMode(self.shaded, 'Shaded')
+        vobj.addDisplayMode(self.shaded, 'Shaded')
 
     def updateData(self, fp, prop):
         'jkhjkn'
-        if prop in ["coords"]:
+        if prop == "coords":
+            #s = fp.getPropertyByName("coords")
+            #pts = s
+            #self.data.point.setValues(0 , len(pts),pts)
+            #nums = []
+            #numPoints = len(pts)
+            #for i in range(numPoints):
+            #    nums.append(i)
+            #    nums.append((i+1)%numPoints)
+            #    nums.append(-1)
+            #self.panels.coordIndex.setValues(0,len(nums), nums)
             vals=fp.coords
             self.data.point.setValue(0,0,0)
             self.data.point.setValues(0,len(vals),vals)
 
     def onChanged(self, vp, prop):
-        pass
+        if prop == "LineWidth":
+            self.drawstyle.lineWidth = vp.LineWidth
+        if prop == "LineColor":
+            c = vp.LineColor
+            self.color.rgb.setValue(c[0], c[1], c[2])
+
 
     def getDisplayModes(self,obj):
         "Return a list of display modes."
         modes=[]
         modes.append("Shaded")
         return modes
+
 
 
 from Utils.Bezier import BezierCurve
