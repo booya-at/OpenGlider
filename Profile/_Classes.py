@@ -178,7 +178,7 @@ class Profile2D(BasicProfile2D):
     def _GetThick(self, *xvals):
         """with no arg the max thick is returned"""
         if not xvals:
-            xvals = set(map(abs, self.XValues))
+            xvals = sorted(set(map(abs, self.XValues)))
         return numpy.array([[i, self.Point(-i)[1][1]-self.Point(i)[1][1]] for i in xvals])
 
     def _SetThick(self, newthick):

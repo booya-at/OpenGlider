@@ -27,20 +27,28 @@ class Airfoil():
     def onChanged(self, fp, prop):
         if prop == "FilePath":
             try:
+                print("a")
                 self.prof.Import(fp.FilePath)
+                print("a1")
+                fp.Thickness = max(self.prof.Thickness[:,1]) *1000.
+                print("a2")
+                fp.Camber = max(self.prof.Camber[:,1]) *1000.
+                print("a3")
                 fp.Numpoints = self.prof.Numpoints
-                fp.Thickness = self.prof.Thickness *1000.
-                fp.Camber = self.prof.Camber *1000.
+                print("a4")
                 fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
             except:
                 FreeCAD.Console.PrintError("not a good filename")
         elif prop == "Thickness":
+            print("b")
             self.prof.Thickness = fp.Thickness / 1000.
             fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
         elif prop == "Numpoints":
+            print("c")
             self.prof.Numpoints = fp.Numpoints
             fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
         elif prop == "Camber":
+            print("d")
             self.prof.Camber = fp.Camber /1000.
             fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
 
