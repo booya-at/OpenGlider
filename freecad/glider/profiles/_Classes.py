@@ -1,6 +1,7 @@
 import FreeCAD
 from Profile import Profile2D
 from pivy import coin
+import PartGui
 
 
 class Airfoil():
@@ -26,21 +27,22 @@ class Airfoil():
 
     def onChanged(self, fp, prop):
         if prop == "FilePath":
-            try:
-                self.prof.Import(fp.FilePath)
-                fp.Numpoints = self.prof.Numpoints
-                fp.Thickness = self.prof.Thickness *1000.
-                fp.Camber = self.prof.Camber *1000.
-                fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
-            except:
-                FreeCAD.Console.PrintError("not a good filename")
+            FreeCAD.Console.PrintMessage("1")
+            self.prof.Import(fp.FilePath)
+            fp.Numpoints = self.prof.Numpoints
+            fp.Thickness = max(self.prof.Thickness[:,1]) *1000.
+            fp.Camber = max(self.prof.Camber[:,1]) *1000.
+            fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
         elif prop == "Thickness":
+            FreeCAD.Console.PrintMessage("2")
             self.prof.Thickness = fp.Thickness / 1000.
             fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
         elif prop == "Numpoints":
+            FreeCAD.Console.PrintMessage("3")
             self.prof.Numpoints = fp.Numpoints
             fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
         elif prop == "Camber":
+            FreeCAD.Console.PrintMessage("4")
             self.prof.Camber = fp.Camber /1000.
             fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
 
@@ -54,12 +56,9 @@ class ViewProviderAirfoil():
         obj.Proxy = self
 
     def attach(self, vobj):
-
         self.shaded = coin.SoSeparator()
-        #t = coin.SoType.fromName("SoBrepEdgeSet")
-        #print(t.canCreateInstance())
-        #self.panels = t.createInstance()
-
+        t = coin.SoType.fromName("SoBrepEdgeSet")
+        self.panels = t.createInstance()
         self.color = coin.SoBaseColor()
         c=vobj.LineColor
         self.color.rgb.setValue(c[0], c[1], c[2])
@@ -67,7 +66,6 @@ class ViewProviderAirfoil():
         self.drawstyle.lineWidth = 1
         self.style = coin.SoDrawStyle()
         self.data = coin.SoCoordinate3()
-        self.panels = coin.SoLineSet()
         self.shaded.addChild(self.color)
         self.shaded.addChild(self.drawstyle)
         self.shaded.addChild(self.data)
@@ -77,19 +75,18 @@ class ViewProviderAirfoil():
     def updateData(self, fp, prop):
         'jkhjkn'
         if prop == "coords":
-            #s = fp.getPropertyByName("coords")
-            #pts = s
-            #self.data.point.setValues(0 , len(pts),pts)
-            #nums = []
-            #numPoints = len(pts)
-            #for i in range(numPoints):
-            #    nums.append(i)
-            #    nums.append((i+1)%numPoints)
-            #    nums.append(-1)
-            #self.panels.coordIndex.setValues(0,len(nums), nums)
-            vals=fp.coords
+            s = fp.getPropertyByName("coords")
+            pts = s
             self.data.point.setValue(0,0,0)
-            self.data.point.setValues(0,len(vals),vals)
+            self.data.point.setValues(0 , len(pts),pts)
+            nums = []
+            numPoints = len(pts)
+            for i in range(numPoints):
+                nums.append(i)
+                nums.append((i+1)%numPoints)
+                nums.append(-1)
+            self.panels.coordIndex.setValue(0)
+            self.panels.coordIndex.setValues(0,len(nums), nums)
 
     def onChanged(self, vp, prop):
         if prop == "LineWidth":
@@ -125,4 +122,3 @@ class BezierCurve(BezierCurve):
 
     def onChanged(self, fp, prop):
         pass
-
