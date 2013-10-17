@@ -3,44 +3,50 @@ import os  # for xfoil execution
 
 import numpy  # array spec
 from ._XFoilCalc import XValues, Calcfile, Impresults
-from ._Functions import Point
-#import _XFoilCalc
 import Vector
 
 
-class BasicProfile2D(object):
-    """Basic Profile Class, not to do much, but just """
+class BasicProfile2D(Vector.Vectorlist2D):
+    """Basic Profile Class, not to do much, but just"""
     ####rootprof gleich mitspeichern!!
-    def __init__(self, profile):
-        self._SetProfile(profile)
-
-    def __repr__(self):
-        return self.data.__str__()
-
-    def copy(self):
-        return self.__class__(self.data.copy())
+    def __init__(self, profile, name="basicprofile"):
+        self._setprofile(profile)
+        self.name = name
 
     def __mul__(self, other):
         fakt = numpy.array([1, float(other)])
         return self.__class__(self.Profile * fakt)
 
-    def Point(self, xval, h=-1):
+    def profilepoint(self, xval, h=-1):
         """Get Profile Point for x-value (<0:upper side) optional: height (-1:lower,1:upper), possibly mapped"""
-        if isinstance(xval, (list, tuple, numpy.ndarray)):
-            ##if so, treat as a common list instead...
-            (i, k) = xval
-            return Point(self.data, i, k)
-        else:
-            return Point(self.data, xval, h)
+        if h == -1:  # Main Routine
+            xval = float(xval)
+            if xval < 0.:       # LOWER
+                i = 1
+                xval = -xval
+                while self.data[i][0] >= xval and i < len(self.data):
+                    i += 1
+                i -= 1
+            elif xval == 0:     # NOSE
+                i = self.noseindex-1
+            else:               # UPPER
+                i = len(self.data) - 2
+                while self.data[i][0] > xval and i > 1:
+                    i -= 1
+            # Determine k-value
+            k = -(self.data[i][0] - xval) / (self.data[i + 1][0] - self.data[i][0])
+            return (i, k), self.point(i, k)
 
-    def Points(self, xvalues):
+        else:   # middlepoint
+            p1 = self.profilepoint(xval)[0]
+            p2 = self.profilepoint(-xval)[0]
+            return p1 + h*(p2-p1)
+
+    def points(self, xvalues):
         """Map a list of XValues onto the Profile"""
-        ####kontrollstruktur einfuegen
-        ##xvalues fuer xvalues alle groesser 0 aufloesen
-        ####mit point zusammenhaengen
-        return numpy.array([self.Point(x) for x in xvalues])
+        return numpy.array([self.profilepoint(x) for x in xvalues])
 
-    def Normalize(self):
+    def normalize(self):
         p1 = self.data[0]
         dmax = 0.
         nose = 0
@@ -57,18 +63,18 @@ class BasicProfile2D(object):
         matrix = numpy.array([[cos, -sin], [sin, cos]]) / dmax
         self.data = numpy.array([matrix.dot(i - nose) for i in self.data])
 
-    def _SetProfile(self, profile):
+    def _setprofile(self, profile):
         ####kontrolle: tiefe, laenge jeweils
         self.data = numpy.array(profile)
-        i=0
+        i = 0
         while profile[i+1][0] < profile[i][0] and i < len(profile):
             i += 1
         self.noseindex = i
 
-    def _GetProfile(self):
+    def _getprofile(self):
         return self.data
 
-    Profile = property(_GetProfile, _SetProfile)
+    Profile = property(_getprofile, _setprofile)
 
 
 class Profile2D(BasicProfile2D):
@@ -83,21 +89,16 @@ class Profile2D(BasicProfile2D):
                           [5.00000000e-01,  -6.58261348e-02],
                           [1.00000000e+00,  -2.63677968e-16]],
                  name="Profile"):
-        self.Name = name
-        if not profile == []:
-            if len(profile) == 0:
-                return
-            elif isinstance(profile[0][0], str):
-                self.Name = profile[0][0]
+        self.name = name
+        if len(profile) > 2:
+            if isinstance(profile[0][0], str):
+                self.name = profile[0][0]
                 i = 1
             else:
                 i = 0
             self._rootprof = BasicProfile2D(profile[i:])
-            self._rootprof.Normalize()
-            BasicProfile2D._SetProfile(self, self._rootprof.Profile)
-
-    def __str__(self):
-        return self.Name
+            self._rootprof.normalize()
+            self._setprofile(self, self._rootprof.Profile)  # derived from basicprofile
 
     def __add__(self, other):
         if other.__class__ == self.__class__:
@@ -108,6 +109,7 @@ class Profile2D(BasicProfile2D):
             else:
                 first = self.copy()
                 second = other
+
             if not numpy.array_equal(first.XValues, second.XValues):
                 first.XValues = second.XValues
             first.Profile = first.Profile + second.Profile * numpy.array([0, 1])
@@ -116,7 +118,7 @@ class Profile2D(BasicProfile2D):
     def __eq__(self, other):
         return numpy.array_equal(self.Profile, other.Profile)
 
-    def Import(self, pfad):
+    def importdat(self, pfad):
         if os.path.isfile(pfad):
             tempfile = []
             pfile = open(pfad, "r")
@@ -132,65 +134,65 @@ class Profile2D(BasicProfile2D):
                 if len(line) == 2:
                     line = [float(i) for i in line]
                 elif len(line) == 1:
-                    self.Name = line
+                    self.name = line
                 tempfile += [line]
             self.__init__(tempfile)
             pfile.close()
         else:
             raise Exception("Profile not found in"+pfad+"!")
 
-    def Export(self, pfad):
+    def export(self, pfad):
         """Export Profile in .dat Format"""
         out = open(pfad, "w")
-        out.write(self.Name)
+        out.write(self.name)
         for i in self.Profile:
             out.write("\n" + str(i[0]) + "\t" + str(i[1]))
         return pfad
 
-    def RootPoint(self, xval, h=-1):
+    def rootpoint(self, xval, h=-1):
         """Get Profile Point for x-value (<0:upper side) optional: height (-1:lower,1:upper);
         use root-profile (highest res)"""
-        return self._rootprof.Point(xval, h)
+        return self._rootprof.profilepoint(xval, h)
 
-    def Reset(self):
+    def reset(self):
         """Reset Profile To Root-Values"""
         self.Profile = self._rootprof.Profile
 
-    def _GetXValues(self):
+    def _getxvalues(self):
         """Get XValues of Profile. upper side neg, lower positive"""
         i = self.noseindex
         return numpy.concatenate((self.data[:i, 0]*-1., self.data[i:, 0]))
 
-    def _SetXValues(self, xval):
+    def _setxvalues(self, xval):
         """Set X-Values of profile to defined points."""
         ###standard-value: root-prof xvalues
-        self.Profile = self._rootprof.Points(xval)[:, 1]
+        self.Profile = self._rootprof.points(xval)[:, 1]
 
-    def _GetLen(self):
+    def _getlen(self):
         return len(self.data)
 
-    def _SetLen(self, num):
+    def _setlen(self, num):
         """Set Profile to cosinus-Distributed XValues"""
         i = num - num % 2
         xtemp = lambda x: cmp(x, 0.5)*(1-math.sin(math.pi*x))
         self.XValues = [xtemp(j * 1. / i) for j in range(i + 1)]
 
-    def _GetThick(self, *xvals):
+    def _getthick(self, *xvals):
         """with no arg the max thick is returned"""
         if not xvals:
             xvals = sorted(set(map(abs, self.XValues)))
-        return numpy.array([[i, self.Point(-i)[1][1]-self.Point(i)[1][1]] for i in xvals])
+        return numpy.array([[i, self.profilepoint(-i)[1][1]-self.profilepoint(i)[1][1]] for i in xvals])
 
-    def _SetThick(self, newthick):
+    def _setthick(self, newthick):
         factor = float(newthick/max(self.Thickness[:,1]))
         new = self.Profile*[1., factor]
-        self.__init__(new, self.Name+ "_" + str(newthick*100)+"%")
+        self.__init__(new, self.name+ "_" + str(newthick*100)+"%")
 
     def _getcamber(self, *xvals):
         """return the camber of the profile for certain x-values or if nothing supplied, camber-line"""
         if not xvals:
             xvals = sorted(set(map(abs, self.XValues)))
-        return numpy.array([self.Point(i, 0.) for i in xvals])
+        return numpy.array([self.profilepoint(i, 0.) for i in xvals])
 
     def _setcamber(self, newcamber):
         """Set maximal camber to the new value"""
@@ -199,10 +201,11 @@ class Profile2D(BasicProfile2D):
         now = dict(now)
         self.__init__([i+[0, now[i[0]]*factor] for i in self.Profile])
 
-    Thickness = property(_GetThick, _SetThick)
-    Numpoints = property(_GetLen, _SetLen)
-    XValues = property(_GetXValues, _SetXValues)
+    Thickness = property(_getthick, _setthick)
+    Numpoints = property(_getlen, _setlen)
+    XValues = property(_getxvalues, _setxvalues)
     Camber = property(_getcamber, _setcamber)
+
 
 class XFoil(Profile2D):
     """XFoil Calculation Profile based on Profile2D"""
@@ -213,20 +216,20 @@ class XFoil(Profile2D):
         self._calcvalues = []
 
 
-    def _Change(self):
+    def _change(self):
         """Check if something changed in coordinates"""
         checkval = self._xvalues == self.XValues
         if not isinstance(checkval, bool):
             checkval = checkval.all()
         return checkval
 
-    def _Calc(self, angles):
+    def _calc(self, angles):
 
         resfile = "/tmp/result.dat"
         pfile = "/tmp/calc_pfile.dat"
         cfile = Calcfile(angles, resfile)
 
-        self.Export(pfile)
+        self.export(pfile)
         status = os.system("xfoil " + pfile + " <" + cfile + " > /tmp/log.dat")
         if status == 0:
             result = Impresults(resfile)
@@ -235,40 +238,28 @@ class XFoil(Profile2D):
             os.system("rm " + resfile)
         os.system("rm " + pfile + " " + cfile)
 
-    def _Get(self, angle, exact=1):
-        if self._Change():
+    def _get(self, angle, exact=1):
+        if self._change():
             self._calcvalues = {}
             self._xvalues = self.XValues[:]
         print(self._calcvalues)
         calcangles = XValues(angle, self._calcvalues)
         print("ho!" + str(calcangles))
         if len(calcangles) > 0:
-            erg = self._Calc(calcangles)
+            erg = self._calc(calcangles)
             print("soso")
             ##self._calcvalues=[1,2]
         return erg
 
 
-#debug
-#ab=Profile2D()
-#ab.Import("/home/simon/Dropbox/para-lorenz/paragleiter/profile/test.dat")
-#neu=ab.Point(0.1)
-#print(neu)
-#print(ab.Point(neu[0]))
-#print("schas")
-class Profile3D(Vector.List):
-    def __init__(self, profile="", name="Profile3d"):
+class Profile3D(Vector.Vectorlist):
+    def __init__(self, profile=[], name="Profile3d"):
         #Vector.List.__init__(profile)
-        self.SetProfile(profile)
-        self.Name = name
+        self.data = profile
+        self.name = name
 
-    def SetProfile(self, profile):
-        if not isinstance(profile, str):
-            self.data = numpy.array(profile)
-
-    def Flatten(self):
-        ##local func:
-        ##front vector
+    def flatten(self):
+        """Flatten the Profile and return a 2d-Representative"""
         p1 = self.data[0]
         nose = max(self.data, key=lambda x: numpy.linalg.norm(x - p1))
         diff = [nose - i for i in self.data]
@@ -286,8 +277,3 @@ class Profile3D(Vector.List):
         ###find x-y projection-layer first
 
 
-if __name__ == "__main__":
-    p1e = Profile2D()
-    p1e.Import("/home/simon/test.dat")
-    p2 = p1e * 0.2
-    print("hoho")

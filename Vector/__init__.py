@@ -70,6 +70,7 @@ def rotation_3d(angle, axis=[1, 0, 0]):
 #    (x,y,z)=normalize(axis)
 
 
+
 def cut(p1, p2, p3, p4):
     """2D-Linear Cut; Returns (pointxy, k, l); Solves the linear system: p1+k*(p2-p1)==p3+l*(p4-p3)"""
     """ |p2x-p1x -(p4x-p3x)|*|k|==|p3x-p1x|"""
@@ -81,29 +82,33 @@ def cut(p1, p2, p3, p4):
     return (p1 + k*(p2-p1), k, l)
 
 
-class List(object):
-    def __init__(self, data=""):
+class Vectorlist(object):
+    def __init__(self, data=[], name="Vector List object"):
         if arrtype(data) == 2 or arrtype(data) == 4:
             self.data = np.array(data)
+            self.name = name
 
     def __repr__(self):
-        return self.data
+        return self.data.__str__()
 
     def __str__(self):
-        return str(self.data)
+        return self.name
+
+    def copy(self):
+        return self.__class__(self.data.copy(), self.name+"_copy")
 
     def point(self, _ik, _k=0):
         try:
             (i, k) = _ik
-        finally:
+        except TypeError:
             (i, k) = (_ik, _k)
-        if i > len(data) or i < 0 or not isinstance(i, int):
+        if i > len(self.data) or i < 0 or not isinstance(i, int):
             raise "invalid data for listpoint"
         return self.data[i] + k * (self.data[i + 1] - self.data[i])
 
     def extend(self, ding, length):
         """Extend the List at a given Point (i,k) by the given Length and return NEW (i,k)"""
-        (i,k)=ding
+        (i, k) = ding
         _dir = sign(length)
         _len = abs(length)
 
@@ -128,10 +133,10 @@ class List(object):
             d1 = np.linalg.norm(p1 - self.data[i])
             knew = k / d1 * (d1 + length)
         else:
-            knew = (diff - _len) / temp##
+            knew = (diff - _len) / temp  #
             if _dir == 1: knew = 1 - knew
 
-        return (inew, knew)
+        return inew, knew
 
     def get_length(self, p1=(0, 0), p2=(-2, 1)):
         (i1, k1) = p1
@@ -154,15 +159,16 @@ class List(object):
         length += np.linalg.norm(p2 - p1)
         return length
 
+
+class Vectorlist2D(Vectorlist):
     def cut(self, p1, p2, startpoint=0):
-        i = 0
         for i in rangefrom(len(self.data)-2, startpoint):
             try:  # in case we have parallell lines we dont get a result here, so we continue with i raised...
                 thacut = cut(self.data[i], self.data[i+1], p1, p2)
             except np.linalg.linalg.LinAlgError:
                 continue
             if 0 < thacut[1] <= 1.:
-                return (thacut[0], (i, thacut[1]))
+                return thacut[0], (i, thacut[1])
         # Nothing found yet? check start and end of line
         thacut = []
         for i in [1, -1]:
@@ -178,8 +184,16 @@ class List(object):
 
     def check(self):
         """Check for mistakes in the array, such as for the moment: self-cuttings,"""
-        for i in range(len(len(self.data))-2):
+        for i in range(len(self.data)-2):
             for j in range(len(self.data)-2, i):
                 temp = cut(self.data[i], self.data[i+1], self.data[j], self.data[j+1])
                 if temp[1] <= 1. and temp[2] <= 1.:
                     self.data = np.   self.data[:i], temp[0], self.data[j+1:]
+
+    def normvectors(self):
+        rotate = lambda x: normalize(x).dot([[0, -1], [1, 0]])
+        vectors = np.array([rotate(self.data[1]-self.data[0])])
+        for j in range(1, len(self.data)-2):
+            vectors.append(rotate(normalize(self.data[j+1]-self.data[j])+normalize(self.data[j]-self.data[j-1])))
+        vectors.append(rotate(self.data[-1]-self.data[-2]))
+        return vectors

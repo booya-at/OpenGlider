@@ -9,7 +9,7 @@ if __name__ == "__main__":
     a = QtGui.QFileDialog()
     filename=a.getOpenFileName()
     p=Profile2D()
-    p.Import(filename)
+    p.importdat(filename)
     print(p.Profile)
     p.Numpoints=20
     a=G.Graphics([G.Line(p.Profile)])

@@ -34,4 +34,4 @@ testfunktion("ab",[1,2,3])
 testfunktion([1,2,3])
 
 prof=Profile2D()
-prof.Import("/home/simon/test.dat")
+prof.importdat("/home/simon/test.dat")

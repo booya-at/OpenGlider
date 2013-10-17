@@ -1,7 +1,7 @@
 from move import rotation#, alignment
 from Profile import Profile2D, Profile3D
 import numpy
-from Vector import arrtype
+from Vector import arrtype, normvectors
 
 
 class Rib(object):
@@ -50,8 +50,9 @@ class Rib(object):
         self.aoa[self._aoa[1]]=self._aoa[0]
         self.aoa[1-self._aoa[1]]=diff+self._aoa[0]
         
-        self._rot=rotation(self.aoa[1],self.arcang, self.zrot)
-        self.profile3D=Profile3D(self.Align(self.profile_2d.Profile))
+        self._rot = rotation(self.aoa[1],self.arcang, self.zrot)
+        self.profile_3d = Profile3D(self.Align(self.profile_2d.Profile))
+        self.normvektors = self.Align(self.profile_2d.Profile)
 
     def mirror(self):
         self.arcang=-self.arcang

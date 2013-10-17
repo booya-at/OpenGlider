@@ -90,7 +90,7 @@ def profileimp(sheet):
         j=0
 
         if isinstance(sheet.cell(0,2*i).value,str):
-            prof.Name=sheet.cell(0,2*i).value
+            prof.name=sheet.cell(0,2*i).value
             j=j+1
         temp=[]
         while j<sheet.nrows and isinstance(sheet.cell(j,2*i).value,float):
