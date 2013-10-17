@@ -58,7 +58,7 @@ class ViewProviderAirfoil():
     def attach(self, vobj):
         self.shaded = coin.SoSeparator()
         t = coin.SoType.fromName("SoBrepEdgeSet")
-        self.panels = t.createInstance()
+        self.lineset = t.createInstance()
         self.color = coin.SoBaseColor()
         c=vobj.LineColor
         self.color.rgb.setValue(c[0], c[1], c[2])
@@ -69,7 +69,7 @@ class ViewProviderAirfoil():
         self.shaded.addChild(self.color)
         self.shaded.addChild(self.drawstyle)
         self.shaded.addChild(self.data)
-        self.shaded.addChild(self.panels)
+        self.shaded.addChild(self.lineset)
         vobj.addDisplayMode(self.shaded, 'Shaded')
 
     def updateData(self, fp, prop):
@@ -85,8 +85,9 @@ class ViewProviderAirfoil():
                 nums.append(i)
                 nums.append((i+1)%numPoints)
                 nums.append(-1)
-            self.panels.coordIndex.setValue(0)
-            self.panels.coordIndex.setValues(0,len(nums), nums)
+            nums.append(-1)
+            self.lineset.coordIndex.setValue(0)
+            self.lineset.coordIndex.setValues(0,len(nums), nums)
 
     def onChanged(self, vp, prop):
         if prop == "LineWidth":
