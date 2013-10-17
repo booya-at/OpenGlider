@@ -1,5 +1,5 @@
 import numpy as np
-from Utils import sign
+from ..Utils import sign
 
 
 def depth(arg):
@@ -70,7 +70,6 @@ def rotation_3d(angle, axis=[1, 0, 0]):
 #    (x,y,z)=normalize(axis)
 
 
-
 def cut(p1, p2, p3, p4):
     """2D-Linear Cut; Returns (pointxy, k, l); Solves the linear system: p1+k*(p2-p1)==p3+l*(p4-p3)"""
     """ |p2x-p1x -(p4x-p3x)|*|k|==|p3x-p1x|"""
@@ -79,7 +78,7 @@ def cut(p1, p2, p3, p4):
               [p2[1]-p1[1], p3[1]-p4[1]]]
     rhs = [p3[0]-p1[0], p3[1]-p1[1]]
     (k, l) = np.linalg.solve(matrix, rhs)
-    return (p1 + k*(p2-p1), k, l)
+    return p1 + k*(p2-p1), k, l
 
 
 class Vectorlist(object):
@@ -134,7 +133,8 @@ class Vectorlist(object):
             knew = k / d1 * (d1 + length)
         else:
             knew = (diff - _len) / temp  #
-            if _dir == 1: knew = 1 - knew
+            if _dir == 1:
+                knew = 1 - knew
 
         return inew, knew
 
@@ -192,8 +192,8 @@ class Vectorlist2D(Vectorlist):
 
     def normvectors(self):
         rotate = lambda x: normalize(x).dot([[0, -1], [1, 0]])
-        vectors = np.array([rotate(self.data[1]-self.data[0])])
+        vectors = [rotate(self.data[1]-self.data[0])]
         for j in range(1, len(self.data)-2):
             vectors.append(rotate(normalize(self.data[j+1]-self.data[j])+normalize(self.data[j]-self.data[j-1])))
         vectors.append(rotate(self.data[-1]-self.data[-2]))
-        return vectors
+        return np.array(vectors)

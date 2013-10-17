@@ -3,10 +3,10 @@ import os  # for xfoil execution
 
 import numpy  # array spec
 from ._XFoilCalc import XValues, Calcfile, Impresults
-import Vector
+from ..Vector import normalize, norm, Vectorlist2D, Vectorlist
 
 
-class BasicProfile2D(Vector.Vectorlist2D):
+class BasicProfile2D(Vectorlist2D):
     """Basic Profile Class, not to do much, but just"""
     ####rootprof gleich mitspeichern!!
     def __init__(self, profile, name="basicprofile"):
@@ -51,7 +51,7 @@ class BasicProfile2D(Vector.Vectorlist2D):
         dmax = 0.
         nose = 0
         for i in self.data:
-            temp = Vector.norm(i - p1)
+            temp = norm(i - p1)
             if temp > dmax:
                 dmax = temp
                 nose = i
@@ -98,7 +98,7 @@ class Profile2D(BasicProfile2D):
                 i = 0
             self._rootprof = BasicProfile2D(profile[i:])
             self._rootprof.normalize()
-            self._setprofile(self, self._rootprof.Profile)  # derived from basicprofile
+            self.Profile=self._rootprof.Profile  # derived from basicprofile
 
     def __add__(self, other):
         if other.__class__ == self.__class__:
@@ -252,7 +252,7 @@ class XFoil(Profile2D):
         return erg
 
 
-class Profile3D(Vector.Vectorlist):
+class Profile3D(Vectorlist):
     def __init__(self, profile=[], name="Profile3d"):
         #Vector.List.__init__(profile)
         self.data = profile
@@ -264,14 +264,14 @@ class Profile3D(Vector.Vectorlist):
         nose = max(self.data, key=lambda x: numpy.linalg.norm(x - p1))
         diff = [nose - i for i in self.data]
 
-        xvekt = Vector.normalize(diff[0])
+        xvekt = normalize(diff[0])
         yvekt = numpy.array([0, 0, 0])
 
         for i in diff:
             temp = i - xvekt * xvekt.dot(i)
             yvekt = max([yvekt + temp, yvekt - temp], key=lambda x: numpy.linalg.norm(x))
 
-        yvekt = Vector.normalize(yvekt)
+        yvekt = normalize(yvekt)
 
         return Profile2D([[xvekt.dot(i), yvekt.dot(i)] for i in diff], name=self.Name + "flattened")
         ###find x-y projection-layer first

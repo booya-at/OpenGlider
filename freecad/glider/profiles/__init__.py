@@ -15,7 +15,7 @@ class LoadProfile:
         else:
             return True
     def Activated(self):
-        a=FreeCAD.ActiveDocument.addObject("App::FeaturePython","Profile")
+        a=FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Profile")
         Airfoil(a)
         ViewProviderAirfoil(a.ViewObject)
         FreeCAD.ActiveDocument.recompute()
