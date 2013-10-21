@@ -127,16 +127,14 @@ class Vectorlist(object):
             p2 = self.data[inew]
             temp = norm(p2 - p1)
             diff += temp
-            # so here we are, one too far or at the end//beginning of the list
+            # so here we are now, one too far or at the end//beginning of the list
 
         inew -= (_dir + 1) / 2  # only for positive direction
-        if inew == i:  # New Point is in the same 'cell'
+        if inew == i:                       # New Point is in the same 'cell'
             d1 = norm(p1 - self.data[i])
             knew = k * (d1 + length) / d1
-        elif diff < _len and _dir == 1:
-            knew = (_len - diff + temp) / temp
-        else:
-            knew = (diff - _len)/ temp  # if its further than the end..?
+        else:                               # something between or further than the beginning/end
+            knew = (diff - _len)/ temp
             if _dir == 1:
                 knew = 1 - knew
 
