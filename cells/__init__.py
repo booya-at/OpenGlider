@@ -1,5 +1,5 @@
 __author__ = 'simon'
-import Ribs
+import openglider.Ribs as Ribs
 import numpy
 from ..Vector import normalize
 from ..Profile import Profile3D
@@ -39,8 +39,8 @@ class BasicCell(object):
             self._checkxvals()
 
             midrib = []
-            prof1=self.rib1.profile_3d.data
-            prof2=self.rib2.profile_3d.data
+            prof1 = self.rib1.profile_3d.data
+            prof2 = self.rib2.profile_3d.data
             bal=[1,2,3]
             for i in range(self.rib1.profile_2d.Numpoints):  # Arc -> phi(bal) -> r
                 point = prof1[i]+x*(prof2[i]-prof1[i])+self.normvectors[i]*(numpy.cos(x-0.5))  # oder so...

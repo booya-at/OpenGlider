@@ -117,30 +117,34 @@ class Vectorlist(object):
             (inew, knew) = (i + 1, 0)
         else:
             (inew, knew) = (i, 0)
+
         p2 = self.data[inew]
-        diff = np.linalg.norm(p2 - p1)
+        diff = norm(p2 - p1)
+
         while diff < _len and len(self.data) - 1 > inew > 0:
-            inew = inew + _dir
+            inew +=  _dir
             p1 = p2
             p2 = self.data[inew]
-            temp = np.linalg.norm(p2 - p1)
+            temp = norm(p2 - p1)
             diff += temp
-            #we are now one too far or at the end//beginning of the list
+            # so here we are, one too far or at the end//beginning of the list
 
         inew -= (_dir + 1) / 2  # only for positive direction
         if inew == i:  # New Point is in the same 'cell'
-            d1 = np.linalg.norm(p1 - self.data[i])
-            knew = k / d1 * (d1 + length)
+            d1 = norm(p1 - self.data[i])
+            knew = k * (d1 + length) / d1
+        elif diff < _len and _dir == 1:
+            knew = (_len - diff + temp) / temp
         else:
-            knew = (diff - _len) / temp  #
+            knew = (diff - _len)/ temp  # if its further than the end..?
             if _dir == 1:
                 knew = 1 - knew
 
         return inew, knew
 
-    def get_length(self, p1=(0, 0), p2=(-2, 1)):
-        (i1, k1) = p1
-        (i2, k2) = p2
+    def get_length(self, p1a=(0, 0), p2a=(-2, 1)):
+        (i1, k1) = p1a
+        (i2, k2) = p2a
         length = 0
         if sign(i2) is -1:
             i2 += len(self.data)
@@ -153,10 +157,11 @@ class Vectorlist(object):
             i1 += 1
             p1 = p2
             p2 = self.data[i1]
-            length += np.linalg.norm(p2 - p1)
+            length += norm(p2 - p1)
 
+        p1 = p2
         p2 = self.point(i2, k2)
-        length += np.linalg.norm(p2 - p1)
+        length += norm(p2 - p1)
         return length
 
 

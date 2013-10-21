@@ -1,5 +1,5 @@
 from move import rotation#, alignment
-from Profile import Profile2D, Profile3D
+from openglider.Profile import Profile2D, Profile3D
 import numpy
 from ..Vector import arrtype
 

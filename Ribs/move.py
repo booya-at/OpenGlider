@@ -1,4 +1,4 @@
-from Vector import rotation_3d
+from openglider.Vector import rotation_3d
 
 ###########entweder klasse oder funktion die funktion erzeugt
 
