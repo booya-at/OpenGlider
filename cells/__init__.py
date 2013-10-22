@@ -13,10 +13,8 @@ class BasicCell(object):
 
     def point(self, x=0, y=0):
         ##round ballooning
-            return midrib(x).point(y)
-
-    def midrib(self, y):
-        self._checkxvals()
+        p=self.rib1.profile_2d.profilepoint(y)[0]
+        return self.midrib(x).point(p)
 
     def _checkxvals(self):
         if not numpy.allclose(self.rib1.profile_2d.XValues, self.rib2.profile_2d.XValues):
@@ -26,9 +24,9 @@ class BasicCell(object):
         else:
             redo = False
         if redo or not self.normvectors:
-            self.normvectors = [normalize(normalize(self.rib1.normvectors()[i]) +
-                                          normalize(self.rib2.normvectors()[i]))
+            self.normvectors = [normalize(self.rib1.normvectors[i]+self.rib2.normvectors[i])
                                 for i in range(self.rib1.profile_2d.Numpoints)]
+            #TODO: map balooning
 
     def midrib(self, x):
         if x == 0:

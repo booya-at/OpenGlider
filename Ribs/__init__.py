@@ -54,7 +54,7 @@ class Rib(object):
         
         self._rot = rotation(self.aoa[1],self.arcang, self.zrot)
         self.profile_3d = Profile3D(self.Align(self.profile_2d.Profile))
-        self.normvektors = self.Align(self.profile_2d.Profile)
+        self.normvectors = self._rot.dot(self.profile_2d.normvectors())
 
     def mirror(self):
         self.arcang = -self.arcang
@@ -65,8 +65,7 @@ class Rib(object):
     def copy(self):
         return self.__class__(self.profile_2d.copy(), self.pos, self.arcang, self.aoa, self.zrot, self.glide,
                               self.name + "_copy", self.aoa[1])
-    def normvectors(self):
-        return map(lambda x: self._rot.dot(x), self.profile_2d.normvectors())
 
     AOA = property(_GetAOA, _SetAOA)
+    Normvectors()
         
