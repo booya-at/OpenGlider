@@ -1,64 +1,65 @@
 import numpy as np
 from scipy.misc import comb
-from Vector import depth
-import Graphics as G
-
-
+from openglider.Vector import depth
+from scipy.optimize import bisect as findroot
 
 
 class BezierCurve(object):
-    def __init__(self,points=[]):
-        self._setBezierPoints(points)
-        self._numpoints=20
-        self._BezierPoints=None
-        self._BezierFunction=None
-        self._numofbezierpoints=4
+    def __init__(self,points=[[0,0],[1,10],[2,0]]):
+        """Bezier Curve represantative
+        http://en.wikipedia.org/wiki/Bezier_curve#Generalization"""
+        self.ControlPoints = points
 
-    def _setBezierPoints(self,points):
-        if len(points)==0:
-            print('no points!')
-            return
-        elif depth(points) != 3:
-            print('depth of points is '+ str(depth(points))+', but should be 3')
+    def __getitem__(self, value):
+        if 0 <= value <= 1.:
+            return self._BezierFunction(value)
         else:
-            self._BezierPoints = np.array(points)
-            self._BezierFunction = BezierFunction(self.BezierPoints)
-            self._numofbezierpoints=len(points)
+            ValueError("value must be in the range (0,1) for xvalues use xpoint-function")
 
-    def _getBezierPoints(self):
-        return(self._BezierPoints)
+    def _setnumpoints(self, num):
+        if not num == self.NumPoints:
+            self._BezierBase = bernsteinbase(num)
 
-    def _setNumpoints(self,num):
-        self._numpoints=num
+    def _getnumpoints(self):
+        try: leng=len(self._BezierBase)
+        except AttributeError:
+            leng = 0
+        return leng
 
-    def _getNumPoints(self):
-        return self._numpoints
+    def _setcontrolpoints(self, points):
+        self.NumPoints=len(points)
+        self._controlpoints = points
+        self._BezierFunction = bezierfunction(points, self._BezierBase)
 
-    def _getPoints(self):
-        lin=np.linspace(0,1,self._numpoints)
-        return np.array(map(self._BezierFunction,lin))
+    def _getcontrolpoints(self):
+        return self._controlpoints
 
-    def _setPoints(self,points):
-        fits = FitBezier(points,self._numofbezierpoints)
-        self._setBezierPoints(fits)
+    def xpoint(self, x):
+        root=findroot(lambda x2: self._BezierFunction(x2)[0]-x, 0, 1)
+        return self._BezierFunction(root)
+
+    def ypoint(self, y):
+        root = findroot(lambda y2: self._BezierFunction(y2)[1]-y, 0, 1)
+        return self._BezierFunction(root)
+
+    def fit(self, data, numpoints=None):
+        if numpoints:
+            self.NumPoints = numpoints
+        fitbezier(data, self._BezierBase)
+
+    ControlPoints = property(_getcontrolpoints, _setcontrolpoints)
+    NumPoints = property(_getnumpoints, _setnumpoints)
 
 
-    def _getNumBezierPoints(self):
-        return self._numofbezierpoints
+def bernsteinbase(d):
+    def bsf(n):
+        return lambda x: comb(d-1, n)*(x**n)*((1-x)**(d-1-n))
+    return [bsf(i) for i in range(d)]
 
-    BezierPoints=property(_getBezierPoints,_setBezierPoints)
-    Points=property(_getPoints,_setPoints)
-    NumPoints=property(_getNumPoints,_setNumpoints)
-
-
-def BernsteinBase(d):
-    def BSF(n):
-        return lambda x: comb(d-1,n)*(x**n)*((1-x)**(d-1-n))
-    return [BSF(n)  for n in range(d)]
-
-def BezierFunction(points):
+def bezierfunction(points, base=None):
     """"""
-    base=BernsteinBase(len(points))
+    if not base:
+        base = bernsteinbase(len(points))
     def func(x):
         val=np.zeros(len(points[0]))
         for i in range(len(points)):
@@ -69,15 +70,14 @@ def BezierFunction(points):
     return func
 
 
-def FitBezier(points,splines=3, start=True, end=True):
+def fitbezier(points, base=bernsteinbase(3), start=True, end=True):
     """Fit to a given set of points with a certain number of spline-points (default=3)
     if start (/ end) is True, the first (/ last) point of the Curve is included"""
-    base=BernsteinBase(splines)
-    matrix=np.matrix([[base[spalte](zeile*1./(len(points)-1)) for spalte in range(splines)] for zeile in range(len(points))])
-    matrix=np.linalg.pinv(matrix)
+    matrix = np.matrix([[base[column](row*1./(len(points)-1)) for column in range(splines)] for row in range(len(points))])
+    matrix = np.linalg.pinv(matrix)
     out = np.array(matrix*points)
     if start:
-        out[0]=points[0]
+        out[0] = points[0]
     if end:
-        out[-1]=points[-1]
-    return(out)
+        out[-1] = points[-1]
+    return out
