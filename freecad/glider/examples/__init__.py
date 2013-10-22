@@ -13,8 +13,8 @@ class LoadGlider:
             return True
 
     def Activated(self):
-        pol=np.loadtxt('/usr/lib/freecad/Mod/glider/examples/p.dat',dtype=int)
-        nod=np.loadtxt('/usr/lib/freecad/Mod/glider/examples/n.dat',dtype=float)
+        pol=np.loadtxt(FreeCAD.getHomePath()+'Mod/glider/examples/p.dat',dtype=int)
+        nod=np.loadtxt(FreeCAD.getHomePath()+'Mod/glider/examples/n.dat',dtype=float)
         planarMesh = []
         for i in pol:
             planarMesh.append(nod[i[0]])
