@@ -5,7 +5,7 @@ from scipy.optimize import bisect as findroot
 
 
 class BezierCurve(object):
-    def __init__(self,points=[[0,0],[1,10],[2,0]]):
+    def __init__(self, points=[[0, 0], [1, 10], [2, 0]]):
         """Bezier Curve represantative
         http://en.wikipedia.org/wiki/Bezier_curve#Generalization"""
         self.ControlPoints = points
@@ -35,7 +35,7 @@ class BezierCurve(object):
         return self._controlpoints
 
     def xpoint(self, x):
-        root=findroot(lambda x2: self._BezierFunction(x2)[0]-x, 0, 1)
+        root = findroot(lambda x2: self._BezierFunction(x2)[0]-x, 0, 1)
         return self._BezierFunction(root)
 
     def ypoint(self, y):
