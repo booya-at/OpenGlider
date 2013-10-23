@@ -1,25 +1,31 @@
 __author__ = 'simon'
 import openglider.Ribs as Ribs
 import numpy
-from ..Vector import normalize
+from ..Vector import normalize, norm
 from ..Profile import Profile3D
+import math
 
 class BasicCell(object):
-    def __init__(self, rib1=Profile3D(), rib2=Profile3D(), ballooning=[]):
-        self.prof1 = rib1
-        self.prof2 = rib2
-        self.ballooning_mapped = ballooning
+    def __init__(self, prof1=Profile3D(), prof2=Profile3D(), ballooning=[]):
+        self.prof1 = prof1
+        self.prof2 = prof2
+        self._ballooning = [[numpy.cos(ballooning[i]), norm(prof1.data[i]-prof2.data[i])/(2*numpy.sin(ballooning[i]))]
+                            for i in range(len(ballooning))]
+
+        p1 = self.prof1.normvectors()
+        p2 = self.prof2.normvectors()
+        self._normvectors = [normalize(p1[i]+p2[i]) for i in range(len(p1))]
 
     def point(self, x=0, i=0, k=0):
         ##round ballooning
         return self.midrib(x).point((i, k))
 
     def midrib(self, x, ballooning=True):
-        if x == 0:
+        if x == 0:              # left side
             return self.prof1
-        elif x == 1:
+        elif x == 1:            # right side
             return self.prof2
-        else:
+        else:                   # somewhere
             #self._checkxvals()
 
             midrib = []
@@ -27,40 +33,51 @@ class BasicCell(object):
             prof2 = self.prof2.data
 
             if ballooning:
-                normvectors = self.normvectors()
-                func = lambda i: prof1[i]+x*(prof2[i]-prof1[i])
+                def func(j):
+                    r = self._ballooning[i][1]
+                    cosphi = self._ballooning[i][0]
+                    d = prof2[j]-prof1[j]
+                    #phi=math.asin(norm(d)/r*(x+1/2)) -> phi=1-(norm(d)/r*(x+1/2))^2
+                    cosphi2 = 1-(norm(d)/r*(x+1/2))**2
+                    return prof1[j]+x*d + self._normvectors[j]*(cosphi2-cosphi)/r
             else:
-                func = lambda i: prof1[i]+x*(prof2[i]-prof1[i])
+                func = lambda j: prof1[j]+x*(prof2[j]-prof1[j])
 
-            for i in range(len(self.prof1)):  # Arc -> phi(bal) -> r  # oder so...
+            for i in range(len(self.prof1.data)):  # Arc -> phi(bal) -> r  # oder so...
                 midrib.append(func(i))
             return Profile3D(midrib)
 
-    def normvectors(self):
-        try:
-            return self._normvectors
-        except ValueError:
-            p1 = self.prof1.normvectors()
-            p2 = self.prof2.normvectors()
-            self._normvectors = [normalize(p1[i]+p2[i]) for i in range(len(p1))]
-            return self._normvectors
-
+"""
+Ballooning is considered to be arcs, following two simple rules:
+1: x1 = x*d
+2: x2 = normvekt*(cos(phi2)-cos(phi)
+3: norm(d)/r*(x-1/2) = cos(phi(2))
+"""
 
 class Cell(BasicCell):
-    def __init__(self, rib1=Ribs.Rib(), rib2=Ribs.Rib(),miniribs=[]):
-        self.rib1 = rib1
-        self.rib2 = rib2
+    def __init__(self, prof1=Ribs.Rib(), prof2=Ribs.Rib(),miniribs=[]):
+        self.rib1 = prof1
+        self.rib2 = prof2
         self.prof1 = self.rib1.profile_3d
         self.prof2 = self.rib2.profile_3d
         self.prof1._normvectors = self.rib1.normvectors()
         self.prof2._normvectors = self.rib2.normvectors()
-        self.miniribs=miniribs
+        self.miniribs = miniribs
 
     def recalc(self):
         if len(self.miniribs) == 0:
             self._cells = [self]
         else:
-            self.miniribs.sort(key=lambda x: (x[2]-0.5)**2)  # from the middle towards the outside
+            self._cells = []
+            self.miniribs.sort(key=lambda x: x[2])  # sort for cell-wide-argument
+            # MINIRIB CONVENTION: X-value(cell-wide), Front
+            self.miniribs.append([0,])
+            self._cells.append(BasicCell(self.midrib()))
+            # super??
+
+
+    def minirib(self, x, front = 0, back = 1, lenfront = 0, lenback = 0):
+
 
 
 
