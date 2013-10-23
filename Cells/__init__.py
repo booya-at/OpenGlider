@@ -37,8 +37,8 @@ class BasicCell(object):
                     r = self._ballooning[i][1]
                     cosphi = self._ballooning[i][0]
                     d = prof2[j]-prof1[j]
-                    #phi=math.asin(norm(d)/r*(x+1/2)) -> phi=1-(norm(d)/r*(x+1/2))^2
-                    cosphi2 = 1-(norm(d)/r*(x+1/2))**2
+                    #phi=math.asin(norm(d)/r*(x+1/2)) -> phi=sqrt(1-(norm(d)/r*(x+1/2))^2
+                    cosphi2 = math.sqrt(1-(norm(d)/r*(x+1/2))**2)
                     return prof1[j]+x*d + self._normvectors[j]*(cosphi2-cosphi)/r
             else:
                 func = lambda j: prof1[j]+x*(prof2[j]-prof1[j])
