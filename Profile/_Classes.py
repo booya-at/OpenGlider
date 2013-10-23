@@ -38,8 +38,8 @@ class BasicProfile2D(Vectorlist2D):
             return (i, k), self.point(i, k)
 
         else:   # middlepoint
-            p1 = self.profilepoint(xval)[0]
-            p2 = self.profilepoint(-xval)[0]
+            p1 = self.profilepoint(xval)[1]
+            p2 = self.profilepoint(-xval)[1]
             return p1 + h*(p2-p1)
 
     def points(self, xvalues):
@@ -258,22 +258,47 @@ class Profile3D(Vectorlist):
         self.data = profile
         self.name = name
 
+    def projection(self):
+        try:
+            self.diff
+            self.xvect
+            self.yvect
+        except ValueError:
+            p1 = self.data[0]
+            nose = max(self.data, key=lambda x: numpy.linalg.norm(x - p1))
+            self.diff = [nose - i for i in self.data]
+
+            xvekt = normalize(self.diff[0])
+            yvekt = numpy.array([0, 0, 0])
+
+            for i in self.diff:
+                temp = i - xvekt * xvekt.dot(i)
+                yvekt = max([yvekt + temp, yvekt - temp], key=lambda x: numpy.linalg.norm(x))
+
+            yvekt = normalize(yvekt)
+            self.xvect = xvekt
+            self.yvect = yvekt
+
     def flatten(self):
         """Flatten the Profile and return a 2d-Representative"""
-        p1 = self.data[0]
-        nose = max(self.data, key=lambda x: numpy.linalg.norm(x - p1))
-        diff = [nose - i for i in self.data]
-
-        xvekt = normalize(diff[0])
-        yvekt = numpy.array([0, 0, 0])
-
-        for i in diff:
-            temp = i - xvekt * xvekt.dot(i)
-            yvekt = max([yvekt + temp, yvekt - temp], key=lambda x: numpy.linalg.norm(x))
-
-        yvekt = normalize(yvekt)
-
-        return Profile2D([[xvekt.dot(i), yvekt.dot(i)] for i in diff], name=self.Name + "flattened")
+        self.projection()
+        return Profile2D([[self.xvekt.dot(i), self.yvekt.dot(i)] for i in self.diff], name=self.Name + "flattened")
         ###find x-y projection-layer first
+
+    def normvectors(self):
+        try:
+            return self._normvectors
+        except ValueError:
+            self.projection()
+            profnorm = numpy.cross(self.xvect, self.yvect)
+            func = lambda x: normalize(numpy.cross(x, profnorm))
+            vectors = [func(self.data[1]-self.data[0])]
+            for i in range(1, len(self.data)-1):
+                vectors.append(func(
+                    normalize(self.data[i+1]-self.data[i]) +
+                    normalize(self.data[i]-self.data[i-1])))
+            vectors.append(func(self.data[-1]-self.data[-2]))
+            self._normvectors = vectors
+            return self._normvectors
 
 

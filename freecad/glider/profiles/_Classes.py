@@ -12,7 +12,7 @@ class Airfoil():
         obj.addProperty("App::PropertyInteger", "Numpoints", "profile", "Number of points").Numpoints = self.prof.Numpoints
         obj.addProperty("App::PropertyFloat", "Thickness", "profile", "Thickness of Profile").Thickness = max(self.prof.Thickness[:,1]) * 1000
         obj.addProperty("App::PropertyFloat", "Camber", "profile", "Camber of Profile").Camber = max(self.prof.Camber[:,1]) * 1000
-        obj.addProperty("App::PropertyString", "Name", "profile", "Name of profile").Name = self.prof.Name
+        obj.addProperty("App::PropertyString", "Name", "profile", "Name of profile").Name = self.prof.name
         obj.addProperty("App::PropertyVectorList", "coords", "profile", "profilcoords")
         obj.addProperty("App::PropertyPath", "FilePath", "profile", "Name of profile").FilePath = ""
         obj.Proxy = self
@@ -21,14 +21,14 @@ class Airfoil():
         self.prof.Numpoints = fp.Numpoints
         self.prof.Thickness = fp.Thickness / 1000.
         self.prof.Camber = fp.Camber / 1000.
-        self.prof.Name=fp.Name
-        fp.coords = map(lambda x: FreeCAD.Vector(x[0],x[1],0.),self.prof.Profile)
+        self.prof.name=fp.Name
+        fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
 
 
     def onChanged(self, fp, prop):
         if prop == "FilePath":
             FreeCAD.Console.PrintMessage("1")
-            self.prof.Import(fp.FilePath)
+            self.prof.importdat(fp.FilePath)
             fp.Numpoints = self.prof.Numpoints
             fp.Thickness = max(self.prof.Thickness[:,1]) *1000.
             fp.Camber = max(self.prof.Camber[:,1]) *1000.
