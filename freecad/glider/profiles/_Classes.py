@@ -1,5 +1,5 @@
 import FreeCAD
-from openglider.Profile import Profile2D
+from OpenGlider.Profile import Profile2D
 from pivy import coin
 import PartGui
 
@@ -11,7 +11,7 @@ class Airfoil():
 
         obj.addProperty("App::PropertyInteger", "Numpoints", "profile", "Number of points").Numpoints = self.prof.Numpoints
         obj.addProperty("App::PropertyFloat", "Thickness", "profile", "Thickness of Profile").Thickness = max(self.prof.Thickness[:,1]) * 1000
-        obj.addProperty("App::PropertyFloat", "Camber", "profile", "Camber of Profile").Camber = max(self.prof.Camber[:,1]) * 1000
+        #obj.addProperty("App::PropertyFloat", "Camber", "profile", "Camber of Profile").Camber = max(self.prof.Camber[:,1]) * 1000
         obj.addProperty("App::PropertyString", "Name", "profile", "Name of profile").Name = self.prof.name
         obj.addProperty("App::PropertyVectorList", "coords", "profile", "profilcoords")
         obj.addProperty("App::PropertyPath", "FilePath", "profile", "Name of profile").FilePath = ""
@@ -20,9 +20,10 @@ class Airfoil():
     def execute(self, fp):
         self.prof.Numpoints = fp.Numpoints
         self.prof.Thickness = fp.Thickness / 1000.
-        self.prof.Camber = fp.Camber / 1000.
+        #self.prof.Camber = fp.Camber / 1000.
         self.prof.name=fp.Name
-        fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
+        fp.coords = map(lambda x: FreeCAD.Vector(x[0],x[1],0.),self.prof.Profile)
+        pass
 
 
     def onChanged(self, fp, prop):
@@ -30,21 +31,22 @@ class Airfoil():
             FreeCAD.Console.PrintMessage("1")
             self.prof.importdat(fp.FilePath)
             fp.Numpoints = self.prof.Numpoints
-            fp.Thickness = max(self.prof.Thickness[:,1]) *1000.
-            fp.Camber = max(self.prof.Camber[:,1]) *1000.
+            fp.Thickness = max(self.prof.Thickness[:, 1]) *1000.
+            #fp.Camber = max(self.prof.Camber[:, 1]) *1000.
             fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
         elif prop == "Thickness":
             FreeCAD.Console.PrintMessage("2")
             self.prof.Thickness = fp.Thickness / 1000.
             fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
-        elif prop == "Numpoints":
-            FreeCAD.Console.PrintMessage("3")
-            self.prof.Numpoints = fp.Numpoints
-            fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
+        # elif prop == "Numpoints":
+        #     FreeCAD.Console.PrintMessage("3")
+        #     self.prof.Numpoints = fp.Numpoints
+        #     fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
         elif prop == "Camber":
             FreeCAD.Console.PrintMessage("4")
             self.prof.Camber = fp.Camber /1000.
             fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
+        pass
 
 
 
@@ -59,6 +61,8 @@ class ViewProviderAirfoil():
         self.shaded = coin.SoSeparator()
         t = coin.SoType.fromName("SoBrepEdgeSet")
         self.lineset = t.createInstance()
+        self.lineset.highlightIndex = -1
+        self.lineset.selectionIndex = 0
         self.color = coin.SoBaseColor()
         c=vobj.LineColor
         self.color.rgb.setValue(c[0], c[1], c[2])
@@ -71,23 +75,24 @@ class ViewProviderAirfoil():
         self.shaded.addChild(self.data)
         self.shaded.addChild(self.lineset)
         vobj.addDisplayMode(self.shaded, 'Shaded')
+        pass
 
     def updateData(self, fp, prop):
         'jkhjkn'
         if prop == "coords":
-            s = fp.getPropertyByName("coords")
-            pts = s
+            points = fp.getPropertyByName("coords")
             self.data.point.setValue(0,0,0)
-            self.data.point.setValues(0 , len(pts),pts)
-            nums = []
-            numPoints = len(pts)
-            for i in range(numPoints):
-                nums.append(i)
-                nums.append((i+1)%numPoints)
-                nums.append(-1)
-            nums.append(-1)
+            self.data.point.setValues(0 , len(points),points)
+            nums = range(len(points))
             self.lineset.coordIndex.setValue(0)
             self.lineset.coordIndex.setValues(0,len(nums), nums)
+        pass
+
+    def getElement(self,detail):
+        if detail.getTypeId() == coin.SoLineDetail.getClassTypeId():
+            line_detail = coin.cast(detail,str(detail.getTypeId().getName()))
+            edge = line_detail.getLineIndex() + 1
+            return "Edge" + str(edge)
 
     def onChanged(self, vp, prop):
         if prop == "LineWidth":
@@ -95,6 +100,7 @@ class ViewProviderAirfoil():
         if prop == "LineColor":
             c = vp.LineColor
             self.color.rgb.setValue(c[0], c[1], c[2])
+        pass
 
 
     def getDisplayModes(self,obj):
@@ -102,24 +108,25 @@ class ViewProviderAirfoil():
         modes=[]
         modes.append("Shaded")
         return modes
-
-
-
-from Utils.Bezier import BezierCurve
-class BezierCurve(BezierCurve):
-    def __init__(self, obj, coords=None):
-        """a bspline object that can be used to change shapes like airfoils"""
-        if not coords: coords = [[0., 0.], [1., 1.], [2., 0.], [2., 1.]]
-        BezierCurve.__init__(self,coords)
-        obj.addProperty("App::PropertyInteger", "beziernumpoints", "bezier", "number of bezierpoints").beziernumpoints = self.numofbezierpoints
-        obj.addProperty("App::PropertyVectorList", "bezierpoints", "bezier", "bezierpoints").bezierpoints = self.BezierPoints
-        obj.addProperty("App::PropertyInteger", "numlinepoints", "line", "number of points").numpoints = self.numpoints
-        obj.addProperty("App::PropertyVectorList", "linepoints", "line", "store")
-        obj.Proxy = self
-
-    def execute(self, fp):
-        self.numofbezierpoints = fp.beziernumpoints
-        fp.linepoints = self.getPoints()
-
-    def onChanged(self, fp, prop):
         pass
+
+
+
+# from Utils.Bezier import BezierCurve
+# class BezierCurve(BezierCurve):
+#     def __init__(self, obj, coords=None):
+#         """a bspline object that can be used to change shapes like airfoils"""
+#         if not coords: coords = [[0., 0.], [1., 1.], [2., 0.], [2., 1.]]
+#         BezierCurve.__init__(self,coords)
+#         obj.addProperty("App::PropertyInteger", "beziernumpoints", "bezier", "number of bezierpoints").beziernumpoints = self.numofbezierpoints
+#         obj.addProperty("App::PropertyVectorList", "bezierpoints", "bezier", "bezierpoints").bezierpoints = self.BezierPoints
+#         obj.addProperty("App::PropertyInteger", "numlinepoints", "line", "number of points").numpoints = self.numpoints
+#         obj.addProperty("App::PropertyVectorList", "linepoints", "line", "store")
+#         obj.Proxy = self
+
+#     def execute(self, fp):
+#         self.numofbezierpoints = fp.beziernumpoints
+#         fp.linepoints = self.getPoints()
+
+#     def onChanged(self, fp, prop):
+#         pass
