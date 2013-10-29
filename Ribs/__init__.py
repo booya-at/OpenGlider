@@ -8,7 +8,7 @@ class Rib(object):
     """Openglider Rib Class: contains a profile, needs a startpoint, angle (arcwide), angle of attack,
         glide-wide rotation and glider ratio.
         optional: name, absolute aoa (bool), startposition"""
-    def __init__(self, profile=[], startpoint=numpy.array([0, 0, 0]), arcang=0, aoa=0, zrot=0, glide=1,
+    def __init__(self, profile=Profile2D(), startpoint=numpy.array([0, 0, 0]), arcang=0, aoa=0, zrot=0, glide=1,
                  name="unnamed rib", aoaabs=False, startpos=0.):
         self.name = name
         if isinstance(profile, list):

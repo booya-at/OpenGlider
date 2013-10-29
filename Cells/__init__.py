@@ -38,7 +38,7 @@ class BasicCell(object):
                     cosphi = self._ballooning[i][0]
                     d = prof2[j]-prof1[j]
                     #phi=math.asin(norm(d)/(2*r)*(x-1/2)) -> cosphi=sqrt(1-(norm(d)/r*(x+1/2))^2
-                    cosphi2 = math.sqrt(1-(norm(d)*(1-2*x)/(2*r))**2)
+                    cosphi2 = math.sqrt(1-(norm(d)*(0.5-x)/(r))**2)
                     #print((cosphi2,cosphi,x+1/2))
                     return prof1[j]+x*d + self._normvectors[j]*(cosphi2-cosphi)/r
             else:
@@ -52,7 +52,7 @@ class BasicCell(object):
 Ballooning is considered to be arcs, following two simple rules:
 1: x1 = x*d
 2: x2 = normvekt*(cos(phi2)-cos(phi)
-3: norm(d)/r*(x-1/2) = cos(phi(2))
+3: norm(d)/r*(1-x) = 2*sin(phi(2))
 """
 
 class Cell(BasicCell):
@@ -65,15 +65,22 @@ class Cell(BasicCell):
         self.prof2._normvectors = self.rib2.normvectors()
         self.miniribs = miniribs
 
+
     def recalc(self):
+        self.xvalues=self.rib1.profile_2d.XValues
         if len(self.miniribs) == 0:
-            self._cells = [self]
+            self._cells = [BasicCell(self.prof1,self.prof2)]
         else:
             self._cells = []
-            self.miniribs.sort(key=lambda x: x[2])  # sort for cell-wide-argument
+            miniribs=sorted(self.miniribs,key=lambda x: x[0])  # sort for cell-wide (x) argument. second value is function
             # MINIRIB CONVENTION: X-value(cell-wide), Front
-            self.miniribs.append([0,])
-            self._cells.append(BasicCell(self.midrib()))
+            miniribs.append([1.,lambda: 0])
+            for rib in miniribs:
+                big=self.midrib(rib[0],True).data  # SUPER!!!?
+                small=self.midrib(rib[0],False).data
+                midrib=[rib[1](self.xvalues[i])*(big[i]-small[i])+small[i]+for i in range(len(big.data))]
+                self._cells.append(BasicCell())
+
             # super??
 
 
