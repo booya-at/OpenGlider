@@ -37,8 +37,9 @@ class BasicCell(object):
                     r = self._ballooning[i][1]
                     cosphi = self._ballooning[i][0]
                     d = prof2[j]-prof1[j]
-                    #phi=math.asin(norm(d)/r*(x+1/2)) -> phi=sqrt(1-(norm(d)/r*(x+1/2))^2
-                    cosphi2 = math.sqrt(1-(norm(d)/r*(x+1/2))**2)
+                    #phi=math.asin(norm(d)/(2*r)*(x-1/2)) -> cosphi=sqrt(1-(norm(d)/r*(x+1/2))^2
+                    cosphi2 = math.sqrt(1-(norm(d)*(1-2*x)/(2*r))**2)
+                    #print((cosphi2,cosphi,x+1/2))
                     return prof1[j]+x*d + self._normvectors[j]*(cosphi2-cosphi)/r
             else:
                 func = lambda j: prof1[j]+x*(prof2[j]-prof1[j])
@@ -76,7 +77,7 @@ class Cell(BasicCell):
             # super??
 
 
-    def minirib(self, x, front = 0, back = 1, lenfront = 0, lenback = 0):
+    # def minirib(self, x, front = 0, back = 1, lenfront = 0, lenback = 0):
 
 
 

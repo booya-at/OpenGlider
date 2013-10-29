@@ -2,7 +2,7 @@ __author__ = 'simon'
 import random
 import unittest
 from openglider.Profile import Profile2D, Profile3D
-from openglider.cells import BasicCell
+from openglider.Cells import BasicCell
 from openglider.Ribs import Rib
 import numpy
 from openglider.Vector import Vectorlist2D

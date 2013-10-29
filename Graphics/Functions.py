@@ -1,6 +1,6 @@
 import vtk
 import numpy as np
-from Vector import depth
+from openglider.Vector import depth
 
 
 def tofloat(lst):

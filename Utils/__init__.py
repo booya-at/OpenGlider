@@ -1,5 +1,7 @@
 __author__ = 'lo'
+
+
 def sign(val):
-    return cmp(val,0)
+    return (val > 0) - (val < 0)
 
 

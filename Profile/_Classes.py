@@ -263,7 +263,7 @@ class Profile3D(Vectorlist):
             self.diff
             self.xvect
             self.yvect
-        except ValueError:
+        except AttributeError:
             p1 = self.data[0]
             nose = max(self.data, key=lambda x: numpy.linalg.norm(x - p1))
             self.diff = [nose - i for i in self.data]
@@ -288,7 +288,7 @@ class Profile3D(Vectorlist):
     def normvectors(self):
         try:
             return self._normvectors
-        except ValueError:
+        except AttributeError:
             self.projection()
             profnorm = numpy.cross(self.xvect, self.yvect)
             func = lambda x: normalize(numpy.cross(x, profnorm))
