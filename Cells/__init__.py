@@ -5,6 +5,7 @@ from ..Vector import normalize, norm
 from ..Profile import Profile3D
 import math
 
+
 class BasicCell(object):
     def __init__(self, prof1=Profile3D(), prof2=Profile3D(), ballooning=[]):
         self.prof1 = prof1
@@ -56,9 +57,10 @@ Ballooning is considered to be arcs, following two simple rules:
 """
 
 class Cell(BasicCell):
-    def __init__(self, prof1=Ribs.Rib(), prof2=Ribs.Rib(),miniribs=[]):
+    def __init__(self, prof1=Ribs.Rib(), prof2=Ribs.Rib(), miniribs=[]):
         self.rib1 = prof1
         self.rib2 = prof2
+        super.__init__(self.rib1.profile_3d, self.rib2.profile_3d, [])
         self.prof1 = self.rib1.profile_3d
         self.prof2 = self.rib2.profile_3d
         self.prof1._normvectors = self.rib1.normvectors()
@@ -69,16 +71,16 @@ class Cell(BasicCell):
     def recalc(self):
         self.xvalues=self.rib1.profile_2d.XValues
         if len(self.miniribs) == 0:
-            self._cells = [BasicCell(self.prof1,self.prof2)]
+            self._cells = [BasicCell(self.prof1, self.prof2,)]
         else:
             self._cells = []
             miniribs=sorted(self.miniribs,key=lambda x: x[0])  # sort for cell-wide (x) argument. second value is function
             # MINIRIB CONVENTION: X-value(cell-wide), Front
-            miniribs.append([1.,lambda: 0])
+            miniribs.append([1., lambda: 0])
             for rib in miniribs:
                 big=self.midrib(rib[0],True).data  # SUPER!!!?
                 small=self.midrib(rib[0],False).data
-                midrib=[rib[1](self.xvalues[i])*(big[i]-small[i])+small[i]+for i in range(len(big.data))]
+                #midrib=[rib[1](self.xvalues[i])*(big[i]-small[i])+small[i]+for i in range(len(big.data))]
                 self._cells.append(BasicCell())
 
             # super??

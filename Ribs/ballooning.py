@@ -27,7 +27,7 @@ class Ballooning(object):
         pass
 
     def amount_set(self,amount):
-        factor=float(amount)/self.Amount
+        factor = float(amount)/self.Amount
         self.upper.ControlPoints = [i*[1, factor] for i in self.upper.ControlPoints]
         self.lower.ControlPoints = [i*[1, factor] for i in self.lower.ControlPoints]
 
