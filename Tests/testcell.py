@@ -10,7 +10,7 @@ from openglider.Ribs.ballooning import Ballooning
 a = Profile2D()
 a.importdat(os.path.dirname(os.path.abspath(__file__))+"/test.dat")
 
-r1 = Rib(a,[0.1,0,0],10*math.pi/180,5,0,7)
+r1 = Rib(a, [0.1, 0, 0], 10*math.pi/180, 5, 0, 7)
 
 r2 = r1.copy()
 r2.mirror()
@@ -21,7 +21,7 @@ for i in [r1,r2]:
 ballooning = Ballooning()
 balloon = [ballooning.get(i) for i in r1.profile_2d.XValues]
 
-cell = BasicCell(r1.profile_3d,r2.profile_3d, balloon)
+cell = BasicCell(r1.profile_3d, r2.profile_3d, balloon)
 
 ribs = [cell.midrib(x*1./10) for x in range(11)]
 #G.Graphics3D([G.Line(r1.profile_3d.data),G.Line(r2.profile_3d.data),G.Line([[0.,0.,0.],[1.,0.,0.]]),G.Line([[0.,0.,0.],[0.,0.5,0.]])])
