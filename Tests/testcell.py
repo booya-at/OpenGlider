@@ -24,5 +24,5 @@ balloon = [ballooning.get(i) for i in r1.profile_2d.XValues]
 cell = BasicCell(r1.profile_3d,r2.profile_3d, balloon)
 
 ribs = [cell.midrib(x*1./10) for x in range(11)]
-G.Graphics3D([G.Line(r1.profile_3d.data),G.Line(r2.profile_3d.data),G.Line([[0.,0.,0.],[1.,0.,0.]]),G.Line([[0.,0.,0.],[0.,0.5,0.]])])
+#G.Graphics3D([G.Line(r1.profile_3d.data),G.Line(r2.profile_3d.data),G.Line([[0.,0.,0.],[1.,0.,0.]]),G.Line([[0.,0.,0.],[0.,0.5,0.]])])
 G.Graphics3D([G.Line(x.data) for x in ribs])
