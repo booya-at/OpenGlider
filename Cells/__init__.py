@@ -10,8 +10,13 @@ class BasicCell(object):
     def __init__(self, prof1=Profile3D(), prof2=Profile3D(), ballooning=[]):
         self.prof1 = prof1
         self.prof2 = prof2
-        self._ballooning = [[numpy.cos(ballooning[i]), norm(prof1.data[i]-prof2.data[i])/(2*numpy.sin(ballooning[i]))]
-                            for i in range(len(ballooning))]
+        self._ballooning = []
+        for i in range(len(ballooning)):
+            if round(ballooning[i], 5) > 0:
+                self._ballooning.append([numpy.cos(ballooning[i]),
+                                         norm(prof1.data[i]-prof2.data[i])/(2*numpy.sin(ballooning[i]))])
+            else:
+                self._ballooning.append([0, 0])
 
         p1 = self.prof1.normvectors()
         p2 = self.prof2.normvectors()
@@ -33,17 +38,22 @@ class BasicCell(object):
             prof1 = self.prof1.data
             prof2 = self.prof2.data
 
+            _horizontal = lambda j: prof1[j]+x*(prof2[j]-prof1[j])
+
             if ballooning:
                 def func(j):
-                    r = self._ballooning[i][1]
-                    cosphi = self._ballooning[i][0]
-                    d = prof2[j]-prof1[j]
-                    #phi=math.asin(norm(d)/(2*r)*(x-1/2)) -> cosphi=sqrt(1-(norm(d)/r*(x+1/2))^2
-                    cosphi2 = math.sqrt(1-(norm(d)*(0.5-x)/(r))**2)
-                    #print((cosphi2,cosphi,x+1/2))
-                    return prof1[j]+x*d + self._normvectors[j]*(cosphi2-cosphi)/r
+                    r = self._ballooning[j][1]
+                    if r > 0:
+                        cosphi = self._ballooning[j][0]
+                        d = prof2[j]-prof1[j]
+                        #phi=math.asin(norm(d)/(2*r)*(x-1/2)) -> cosphi=sqrt(1-(norm(d)/r*(x+1/2))^2
+                        cosphi2 = math.sqrt(1-(norm(d)*(0.5-x)/(r))**2)
+                        #print((cosphi2,cosphi,x+1/2))
+                        return prof1[j]+x*d + self._normvectors[j]*(cosphi2-cosphi)/r
+                    else:
+                        return _horizontal(j)
             else:
-                func = lambda j: prof1[j]+x*(prof2[j]-prof1[j])
+                func = _horizontal
 
             for i in range(len(self.prof1.data)):  # Arc -> phi(bal) -> r  # oder so...
                 midrib.append(func(i))

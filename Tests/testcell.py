@@ -5,6 +5,7 @@ from openglider.Ribs import Rib
 import os
 import math
 import openglider.Graphics as G
+from openglider.Ribs.ballooning import Ballooning
 
 a = Profile2D()
 a.importdat(os.path.dirname(os.path.abspath(__file__))+"/test.dat")
@@ -17,9 +18,11 @@ print("jopjO")
 for i in [r1,r2]:
     i.ReCalc()
 
+ballooning = Ballooning()
+balloon = [ballooning.get(i) for i in r1.profile_2d.XValues]
 
-cell=BasicCell(r1.profile_3d,r2.profile_3d,[.18 for i in range(len(r1.profile_3d.data))])
+cell = BasicCell(r1.profile_3d,r2.profile_3d, balloon)
 
-ribs=[cell.midrib(x*1./10) for x in range(11)]
+ribs = [cell.midrib(x*1./10) for x in range(11)]
 G.Graphics3D([G.Line(r1.profile_3d.data),G.Line(r2.profile_3d.data),G.Line([[0.,0.,0.],[1.,0.,0.]]),G.Line([[0.,0.,0.],[0.,0.5,0.]])])
 G.Graphics3D([G.Line(x.data) for x in ribs])

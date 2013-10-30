@@ -76,18 +76,20 @@ class BasicProfile2D(Vectorlist2D):
 
     Profile = property(_getprofile, _setprofile)
 
+_profdata = [[1.00000000e+00,  -1.77114326e-16],
+             [5.00000000e-01,   1.73720187e-02],
+             [1.33974596e-01,   6.44897990e-02],
+             [0.00000000e+00,   0.00000000e+00],
+             [1.33974596e-01,  -4.74705844e-02],
+             [5.00000000e-01,  -6.58261348e-02],
+             [1.00000000e+00,  -2.63677968e-16]]
+
 
 class Profile2D(BasicProfile2D):
     """Profile2D: 2 Dimensional Standard Profile representative in OpenGlider"""
     #############Initialisation###################
     def __init__(self,
-                 profile=[[1.00000000e+00,  -1.77114326e-16],
-                          [5.00000000e-01,   1.73720187e-02],
-                          [1.33974596e-01,   6.44897990e-02],
-                          [0.00000000e+00,   0.00000000e+00],
-                          [1.33974596e-01,  -4.74705844e-02],
-                          [5.00000000e-01,  -6.58261348e-02],
-                          [1.00000000e+00,  -2.63677968e-16]],
+                 profile=_profdata,
                  name="Profile"):
         self.name = name
         if len(profile) > 2:
