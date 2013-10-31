@@ -1,5 +1,5 @@
 import FreeCAD
-from OpenGlider.Profile import Profile2D
+from openglider.Profile import Profile2D
 from pivy import coin
 import PartGui
 

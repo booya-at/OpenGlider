@@ -3,6 +3,7 @@ import openglider.Ribs as Ribs
 import numpy
 from ..Vector import normalize, norm
 from ..Profile import Profile3D
+from ..Utils import Ballooning
 import math
 
 

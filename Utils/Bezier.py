@@ -1,8 +1,9 @@
 import numpy as np
 from scipy.misc import comb
+import scipy.interpolate
 from openglider.Vector import depth
 from scipy.optimize import bisect as findroot
-
+import openglider.Graphics
 
 class BezierCurve(object):
     def __init__(self, points=[[0, 0], [1, 10], [2, 0]]):
@@ -11,7 +12,7 @@ class BezierCurve(object):
         self.ControlPoints = points
 
     def __getitem__(self, value):
-        if 0 <= value <= 1.:
+        if 0 <= value <= 1:
             return self._BezierFunction(value)
         else:
             ValueError("value must be in the range (0,1) for xvalues use xpoint-function")
@@ -46,6 +47,15 @@ class BezierCurve(object):
         if numpoints:
             self.NumPoints = numpoints
         fitbezier(data, self._BezierBase)
+
+    def interpolation(self, num=100):
+        x = []
+        y = []
+        for i in range(num):
+            point=self[i*1./(num-1)]
+            x.append(point[0])
+            y.append(point[1])
+        return scipy.interpolate.interp1d(x,y)
 
     ControlPoints = property(_getcontrolpoints, _setcontrolpoints)
     NumPoints = property(_getnumpoints, _setnumpoints)

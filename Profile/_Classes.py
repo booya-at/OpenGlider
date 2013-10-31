@@ -259,13 +259,11 @@ class Profile3D(Vectorlist):
         #Vector.List.__init__(profile)
         self.data = profile
         self.name = name
+        self._normvectors = self._tangents = False
+        self._diff = self._xvekt = self._yvekt = False
 
     def projection(self):
-        try:
-            self.diff
-            self.xvect
-            self.yvect
-        except AttributeError:
+        if not self._xvekt or not self._yvekt or not self._diff:
             p1 = self.data[0]
             nose = max(self.data, key=lambda x: numpy.linalg.norm(x - p1))
             self.diff = [nose - i for i in self.data]
@@ -288,9 +286,7 @@ class Profile3D(Vectorlist):
         ###find x-y projection-layer first
 
     def normvectors(self):
-        try:
-            return self._normvectors
-        except AttributeError:
+        if not self._normvectors:
             self.projection()
             profnorm = numpy.cross(self.xvect, self.yvect)
             func = lambda x: normalize(numpy.cross(x, profnorm))
@@ -301,6 +297,24 @@ class Profile3D(Vectorlist):
                     normalize(self.data[i]-self.data[i-1])))
             vectors.append(func(self.data[-1]-self.data[-2]))
             self._normvectors = vectors
-            return self._normvectors
+        return self._normvectors
+
+    def tangents(self):
+        if not self._tangents:
+            func = lambda i, ii, iii: normalize(normalize(iii-ii)+normalize(ii-i))
+            second = self.data[0]
+            third = self.data[1]
+            self._tangents = [[normalize(third-second)]]
+            for element in self.data[2:]:
+                first = second
+                second = third
+                third = element
+                self._tangents.append(func(first, second, third))
+            second = third
+            third = self.data[-1]
+            self._tangents.append(normalize(third-second))
+        return self._tangents
+
+
 
 
