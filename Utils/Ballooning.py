@@ -7,7 +7,7 @@ from openglider.Utils.Bezier import BezierCurve
 
 
 class Ballooning(object):
-    def __init__(self, points=[[[0, 0], [0.2, 0.14], [0.8, 0.14], [1, 0]],
+    def __init__(self, points=[[[0, 0], [0.2, 0.44], [0.8, 0.44], [1, 0]],
                                [[0, 0], [0.2, -0.14], [0.8, -0.14], [1, 0]]]):
         self.upper = BezierCurve(points[0])
         self.lower = BezierCurve(points[1])
@@ -26,16 +26,16 @@ class Ballooning(object):
             ValueError("Ballooning only between -1 and 1")
 
     def get(self, xval):
-        return self.phi(1./(self.__getitem__(xval)+1.))
+        return self.phi(1./(self.__getitem__(xval)+1))
 
     @staticmethod
     def phi(*baloon):
         """Return the angle of the piece of cake.
         b/l=R*phi/(R*Sin(phi)) -> Phi=arsinc(l/b)"""
-        global phiinterpolation
-        if not phiinterpolation:
+        global arsinc
+        if not arsinc:
             interpolate()
-        return phiinterpolation(baloon)
+        return arsinc(baloon)
 
 
 
@@ -57,17 +57,17 @@ class Ballooning(object):
     Amount = property(amount_integral, amount_set)
 
 
-phiinterpolation = None
+arsinc = None
 
 
-def interpolate(numpoints=1000, phi0=0, phi1=numpy.pi/2):
-    global phiinterpolation
+def interpolate(numpoints=1000, phi0=0, phi1=numpy.pi):
+    global arsinc
     (x, y) = ([], [])
     for i in range(numpoints+1):
-        phi = phi0+(1-i*1./numpoints)*(phi1-phi0)  # reverse for interpolation (increasing x_values)
-        x.append(numpy.sinc(phi))
+        phi = phi1+(i*1./numpoints)*(phi0-phi1)  # reverse for interpolation (increasing x_values)
+        x.append(numpy.sinc(phi/numpy.pi))
         y.append(phi)
-    phiinterpolation = interp1d(x, y)
+    arsinc = interp1d(x, y)
 
 interpolate()
-phiinterpolation
+#arsinc

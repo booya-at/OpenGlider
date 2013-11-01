@@ -34,7 +34,6 @@ class BasicCell(object):
             return self.prof2
         else:                   # somewhere
             #self._checkxvals()
-
             midrib = []
             prof1 = self.prof1.data
             prof2 = self.prof2.data
@@ -48,9 +47,9 @@ class BasicCell(object):
                         cosphi = self._ballooning[j][0]
                         d = prof2[j]-prof1[j]
                         #phi=math.asin(norm(d)/(2*r)*(x-1/2)) -> cosphi=sqrt(1-(norm(d)/r*(x+1/2))^2
-                        cosphi2 = math.sqrt(1-(norm(d)*(0.5-x)/(r))**2)
+                        cosphi2 = math.sqrt(1-(norm(d)*(0.5-x)/r)**2)
                         #print((cosphi2,cosphi,x+1/2))
-                        return prof1[j]+x*d + self._normvectors[j]*(cosphi2-cosphi)/r
+                        return prof1[j]+x*d + self._normvectors[j]*(cosphi2-cosphi)*r
                     else:
                         return _horizontal(j)
             else:
@@ -63,7 +62,7 @@ class BasicCell(object):
 """
 Ballooning is considered to be arcs, following two simple rules:
 1: x1 = x*d
-2: x2 = normvekt*(cos(phi2)-cos(phi)
+2: x2 = R*normvekt*(cos(phi2)-cos(phi)
 3: norm(d)/r*(1-x) = 2*sin(phi(2))
 """
 
