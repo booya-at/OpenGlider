@@ -7,7 +7,7 @@ from openglider.Utils.Bezier import BezierCurve
 
 
 class Ballooning(object):
-    def __init__(self, points=[[[0, 0], [0.2, 0.44], [0.8, 0.44], [1, 0]],
+    def __init__(self, points=[[[0, 0], [0.2, 0.34], [0.8, 0.34], [1, 0]],
                                [[0, 0], [0.2, -0.14], [0.8, -0.14], [1, 0]]]):
         self.upper = BezierCurve(points[0])
         self.lower = BezierCurve(points[1])

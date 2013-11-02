@@ -45,6 +45,7 @@ def norm(vector):
 def normalize(vector):
     return vector / norm(vector)
 
+
 def rangefrom(maxl, startpoint=0):
     j = 1
     if 0 <= startpoint <= maxl:

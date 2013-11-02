@@ -19,9 +19,15 @@ class BasicCell(object):
             else:
                 self._ballooning.append([0, 0])
 
-        p1 = self.prof1.normvectors()
-        p2 = self.prof2.normvectors()
-        self._normvectors = [normalize(p1[i]+p2[i]) for i in range(len(p1))]
+        prof1=prof1.data
+        prof2=prof2.data
+        p1 = self.prof1.tangents()
+        p2 = self.prof2.tangents()
+        # cross differenzvektor, tangentialvektor
+        self._normvectors = [-numpy.cross(p1[i]+p2[i], prof1[i]-prof2[i]) for i in range(len(p1))]
+        #print(map(norm, self._normvectors))
+        #print("hoho",self._normvectors)
+        #print(self._normvectors)
 
     def point(self, x=0, i=0, k=0):
         ##round ballooning
@@ -67,9 +73,12 @@ Ballooning is considered to be arcs, following two simple rules:
 """
 
 class Cell(BasicCell):
-    def __init__(self, prof1=Ribs.Rib(), prof2=Ribs.Rib(), miniribs=[]):
-        self.rib1 = prof1
-        self.rib2 = prof2
+    def __init__(self, rib1=Ribs.Rib(), rib2=Ribs.Rib(), miniribs=[]):
+        self.rib1 = rib1
+        self.rib2 = rib2
+        #if not self.rib1.profile_2d.Numpoints == self.rib2.profile_2d.Numpoints:
+
+        #ballooning=rib1.ballooning
         super.__init__(self.rib1.profile_3d, self.rib2.profile_3d, [])
         self.prof1 = self.rib1.profile_3d
         self.prof2 = self.rib2.profile_3d
