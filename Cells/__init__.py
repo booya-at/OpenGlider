@@ -24,7 +24,7 @@ class BasicCell(object):
         p1 = self.prof1.tangents()
         p2 = self.prof2.tangents()
         # cross differenzvektor, tangentialvektor
-        self._normvectors = [-numpy.cross(p1[i]+p2[i], prof1[i]-prof2[i]) for i in range(len(p1))]
+        self._normvectors = [-normalize(numpy.cross(p1[i]+p2[i], prof1[i]-prof2[i])) for i in range(len(p1))]
         #print(map(norm, self._normvectors))
         #print("hoho",self._normvectors)
         #print(self._normvectors)

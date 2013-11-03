@@ -39,7 +39,7 @@ def arrtype(arg):
 
 
 def norm(vector):
-    return np.sqrt(np.dot(vector, vector))
+    return np.sqrt(np.vdot(vector, vector))
 
 
 def normalize(vector):

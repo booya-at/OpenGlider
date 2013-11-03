@@ -301,15 +301,14 @@ class Profile3D(Vectorlist):
 
     def tangents(self):
         if not self._tangents:
-            func = lambda i, ii, iii: normalize(normalize(iii-ii)+normalize(ii-i))
             second = self.data[0]
             third = self.data[1]
             self._tangents = [[normalize(third-second)]]
-            for element in self.data[2:]:
+            for element in self.data[2:-1]:
                 first = second
                 second = third
                 third = element
-                self._tangents.append(func(first, second, third))
+                self._tangents.append(normalize(normalize(third-second)+normalize(second-first)))
             second = third
             third = self.data[-1]
             self._tangents.append(normalize(third-second))
