@@ -8,7 +8,7 @@ class Rib(object):
     """Openglider Rib Class: contains a profile, needs a startpoint, angle (arcwide), angle of attack,
         glide-wide rotation and glider ratio.
         optional: name, absolute aoa (bool), startposition"""
-    def __init__(self, profile=Profile2D(), startpoint=numpy.array([0, 0, 0]), arcang=0, aoa=0, zrot=0, glide=1,
+    def __init__(self, profile=Profile2D(), startpoint=numpy.array([0, 0, 0]), length=1.,arcang=0, aoa=0, zrot=0, glide=1,
                  name="unnamed rib", aoaabs=False, startpos=0.):
         self.name = name
         if isinstance(profile, list):
@@ -21,6 +21,7 @@ class Rib(object):
         self.arcang = arcang
         self.zrot = zrot
         self.pos = startpoint
+        self.length = length
         
         #self.ReCalc()
 
@@ -28,11 +29,11 @@ class Rib(object):
     def Align(self, points):
         ptype=arrtype(points)
         if ptype == 1:
-            return self.pos+self._rot.dot([points[0],points[1],0])
+            return self.pos+self._rot.dot([points[0]*self.length,points[1]*self.length,0])
         if ptype == 2 or ptype == 4:
             return [self.Align(i) for i in points]
         if ptype == 3:
-            return self._rot.dot(points)
+            return self._rot.dot(numpy.array([self.length,self.length,0])*points)
     
     def _SetAOA(self, aoa):
         try:
@@ -63,7 +64,7 @@ class Rib(object):
         #self.ReCalc()
 
     def copy(self):
-        return self.__class__(self.profile_2d.copy(), self.pos, self.arcang, self._aoa[0], self.zrot, self.glide,
+        return self.__class__(self.profile_2d.copy(), self.pos, self.length, self.arcang, self._aoa[0], self.zrot, self.glide,
                               self.name + "_copy", self._aoa[1])
 
     AOA = property(_GetAOA, _SetAOA)

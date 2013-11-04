@@ -12,8 +12,8 @@ a = Profile2D()
 a.importdat(os.path.dirname(os.path.abspath(__file__))+"/test.dat")
 #a.Numpoints = 2000
 
-r1 = Rib(a, [0.15, 0, 0], 20*math.pi/180, 10*math.pi/180, 0, 7)
-r3 = Rib(a, [0.3, 0, -0.1], 30*math.pi/180, 10*math.pi/180, 0, 7)
+r1 = Rib(a, [0.12, 0, 0], 1., 20*math.pi/180, 2*math.pi/180, 0, 7)
+r3 = Rib(a, [0.3, 0.2, -0.1], 0.8, 30*math.pi/180, 5*math.pi/180, 0, 7)
 r2 = r1.copy()
 r2.mirror()
 for i in [r1, r2, r3]:
