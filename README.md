@@ -11,6 +11,7 @@ to try a simple cell setup, clone the repo:
 link it to the python packages, install vtk and python2-scipy
 then run the file
 
-Test/testcell.py
-
+```
+  python2 Test/testcell.py
+```
 use python2 as vtk is not yet available for p3.
