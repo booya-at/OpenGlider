@@ -316,4 +316,26 @@ class Profile3D(Vectorlist):
 
 
 
+class minirib(Profile3D):
+    def __init__(self, xvalue, front_cut, back_cut, function=None, name="minirib"):
+
+        if not function:
+            function=lambda x: 1
+
+        self.xvalue=xvalue
+        self.front_cut=front_cut
+        self.back_cut=back_cut
+        self.__function__=function
+        super.__init__(name=name)
+
+    def flatten(self):
+        prof2d = Profile3D.flatten(self)
+
+    def function(self, x):
+        if self.front_cut < abs(x) < self.back_cut:
+            return min(1, max(0, self.__function__(x)))
+        else:
+            return 1
+
+
 

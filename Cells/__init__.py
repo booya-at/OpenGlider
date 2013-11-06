@@ -25,9 +25,6 @@ class BasicCell(object):
         p2 = self.prof2.tangents()
         # cross differenzvektor, tangentialvektor
         self._normvectors = [-normalize(numpy.cross(p1[i]+p2[i], prof1[i]-prof2[i])) for i in range(len(p1))]
-        #print(map(norm, self._normvectors))
-        #print("hoho",self._normvectors)
-        #print(self._normvectors)
 
     def point(self, x=0, i=0, k=0):
         ##round ballooning
@@ -54,7 +51,6 @@ class BasicCell(object):
                         d = prof2[j]-prof1[j]
                         #phi=math.asin(norm(d)/(2*r)*(x-1/2)) -> cosphi=sqrt(1-(norm(d)/r*(x+1/2))^2
                         cosphi2 = math.sqrt(1-(norm(d)*(0.5-x)/r)**2)
-                        #print((cosphi2,cosphi,x+1/2))
                         return prof1[j]+x*d + self._normvectors[j]*(cosphi2-cosphi)*r
                     else:
                         return _horizontal(j)
@@ -86,19 +82,44 @@ class Cell(BasicCell):
         self.prof2._normvectors = self.rib2.normvectors()
         self.miniribs = miniribs
 
-
     def recalc(self):
-        self.xvalues=self.rib1.profile_2d.XValues
+        xvalues = self.rib1.profile_2d.XValues
         if len(self.miniribs) == 0:
             self._cells = [BasicCell(self.prof1, self.prof2,)]
         else:
             self._cells = []
-            miniribs=sorted(self.miniribs,key=lambda x: x[0])  # sort for cell-wide (x) argument. second value is function
-            # MINIRIB CONVENTION: X-value(cell-wide), Front
+            miniribs = sorted(self.miniribs, key=lambda x: x.xvalue)  # sort for cell-wide (x) argument. second value is function
+            # MINIRIB CONVENTION: X-value(cell-wide), Front, back, function
             miniribs.append([1., lambda: 0])
-            for rib in miniribs:
-                big=self.midrib(rib[0],True).data  # SUPER!!!?
-                small=self.midrib(rib[0],False).data
+            xvalue=0
+            for minirib in miniribs:
+
+                big = self.midrib(minirib.xvalue, True).data  # SUPER!!!?
+                small = self.midrib(minirib.xvalue, False).data
+                minirib.data = []
+                phi1 = []
+                prof2 = self.rib1.profile_3d
+
+                for i in range(len(big.data)):
+                    fakt = minirib.function(xvalues[i])  # factor ballooned/unb. (0-1)
+                    point = small[i]+fakt*(big[i]-small[i])
+                    phi = math.acos(self._ballooning[i][0])  # TODO: maybe simplify dha shit
+                    phi_big = phi * (minirib.xvalue - xvalue)
+                    phi_small = phi
+
+                    phineu = phi_small + fakt * (phi_big - phi_small)
+
+                    minirib.data.append(point)
+                    phi1.append(phineu)
+                prof1 = prof2
+                prof2 = minirib
+                self._cells.append(BasicCell(prof1,prof2,phi1))
+
+                xvalue = minirib.xvalue
+
+
+
+
                 #midrib=[rib[1](self.xvalues[i])*(big[i]-small[i])+small[i]+for i in range(len(big.data))]
                 self._cells.append(BasicCell())
 
