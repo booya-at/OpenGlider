@@ -176,7 +176,7 @@ class Profile2D(BasicProfile2D):
     def _setlen(self, num):
         """Set Profile to cosinus-Distributed XValues"""
         i = num - num % 2
-        xtemp = lambda x: cmp(x, 0.5)*(1-math.sin(math.pi*x))
+        xtemp = lambda x: ((x > 0.5)-(x < 0.5))*(1-math.sin(math.pi*x))
         self.XValues = [xtemp(j * 1. / i) for j in range(i + 1)]
 
     def _getthick(self, *xvals):

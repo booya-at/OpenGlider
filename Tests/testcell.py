@@ -1,3 +1,5 @@
+#!/bin/python2
+
 __author__ = 'simon'
 from openglider.Profile import Profile2D
 from openglider.Cells import BasicCell
@@ -18,7 +20,7 @@ r3 = Rib(a, [0.3, 0.2, -0.1], 0.8, 30*math.pi/180, 5*math.pi/180, 0, 7)
 r2 = r1.copy()
 r2.mirror()
 for i in [r1, r2, r3]:
-    i.ReCalc()
+    i.recalc()
 
 ballooning = Ballooning()
 balloon = [ballooning.get(i) for i in r1.profile_2d.XValues]
