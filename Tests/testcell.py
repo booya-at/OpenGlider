@@ -6,9 +6,9 @@ from openglider.Cells import BasicCell
 from openglider.Ribs import Rib
 import os
 import math
-import numpy
+#import numpy
 import openglider.Graphics as G
-from openglider.Utils.Ballooning import Ballooning
+from openglider.Utils.Ballooning import BallooningBezier
 
 
 a = Profile2D()
@@ -22,8 +22,8 @@ r2.mirror()
 for i in [r1, r2, r3]:
     i.recalc()
 
-ballooning = Ballooning()
-balloon = [ballooning.get(i) for i in r1.profile_2d.XValues]
+ballooning = BallooningBezier()
+balloon = [ballooning(i) for i in r1.profile_2d.XValues]
 
 cell = BasicCell(r2.profile_3d, r1.profile_3d, balloon)
 cell2 = BasicCell(r1.profile_3d, r3.profile_3d, balloon)

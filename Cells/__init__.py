@@ -37,25 +37,26 @@ class BasicCell(object):
             prof1 = self.prof1.data
             prof2 = self.prof2.data
 
-            _horizontal = lambda j: prof1[j]+x*(prof2[j]-prof1[j])
+            _horizontal = lambda xx, j: prof1[j]+xx*(prof2[j]-prof1[j])
 
             if ballooning:
                 self._calcballooning()
-                def func(j):
+
+                def func(xx, j):
                     r = self._radius[j]
                     if r > 0:
                         cosphi = self._cosphi[j][0]
                         d = prof2[j]-prof1[j]
                         #phi=math.asin(norm(d)/(2*r)*(x-1/2)) -> cosphi=sqrt(1-(norm(d)/r*(x+1/2))^2
-                        cosphi2 = math.sqrt(1-(norm(d)*(0.5-x)/r)**2)
-                        return prof1[j]+x*d + self._normvectors[j]*(cosphi2-cosphi)*r
+                        cosphi2 = math.sqrt(1-(norm(d)*(0.5-xx)/r)**2)
+                        return prof1[j]+xx*d + self._normvectors[j]*(cosphi2-cosphi)*r
                     else:
-                        return _horizontal(j)
+                        return _horizontal(xx, j)
             else:
                 func = _horizontal
 
             for i in range(len(self.prof1.data)):  # Arc -> phi(bal) -> r  # oder so...
-                midrib.append(func(i))
+                midrib.append(func(x, i))
             return Profile3D(midrib)
 
     def _calcballooning(self):
@@ -68,7 +69,8 @@ class BasicCell(object):
                         self._cosphi.append(numpy.cos(self._phi[i]))
                         self._radius.append(norm(self.prof1.data[i]-self.prof2.data[i])/(2*numpy.sin(self._phi[i])))
                     else:
-                        self._cosphi.append([0, 0])
+                        self._cosphi.append(0)
+                        self._radius.append(0)
             else:
                 raise "length of ballooning/profile data unequal"
 
