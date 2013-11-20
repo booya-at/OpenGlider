@@ -5,10 +5,11 @@ from ..Vector import normalize, norm
 from ..Profile import Profile3D
 from ..Utils import Ballooning
 import math
+from openglider.Utils.Ballooning import arsinc
 
 
 class BasicCell(object):
-    def __init__(self, prof1=Profile3D(), prof2=Profile3D(), ballooning=[]):
+    def __init__(self, prof1=Profile3D(), prof2=Profile3D(), ballooning=None):
         self.prof1 = prof1
         self.prof2 = prof2
 
@@ -102,10 +103,14 @@ class Cell(BasicCell):
 
     def recalc(self):
         xvalues = self.rib1.profile_2d.XValues
+        #Map Ballooning
+
         if len(self.miniribs) == 0:  # In case there is no midrib, The Cell represents itself!
-            self._cells = [BasicCell(self.prof1, self.prof2,)]
+            self._cells = [self]  # The cell itself is its cell, clear?
+            self._phi = [self.rib1.ballooning(x)+self.rib2.ballooning(x) for x in xvalues]
             self._yvalues = [0, 1]
         else:
+            ballooning = [self.rib1.ballooning[x]+self.rib2.ballooning[x] for x in xvalues]
             self._cells = []
             miniribs = sorted(self.miniribs, key=lambda x: x.xvalue)    # sort for cell-wide (x) argument.
             self._yvalues = [i.xvalue for i in miniribs]
@@ -123,17 +128,19 @@ class Cell(BasicCell):
                     minirib.data.append(point)
 
                 prof2 = minirib
-                self._cells.append(BasicCell(prof1, prof2, []))  # leace ballooning empty
+                self._cells.append(BasicCell(prof1, prof2, []))  # leave ballooning empty
                 prof1 = prof2
 
-            self._cells.append(BasicCell(prof1, self.rib2.profile_3d))
+            #Last Sub-Cell
+            self._cells.append(BasicCell(prof1, self.rib2.profile_3d, []))
 
-            for i in range(len(prof1.data)):    # Calculate ballooning for each x-value
-                bl = self._ballooning[i]
-                l = norm(self.prof2.data[i]-self.prof1.data[i])
-                lnew = sum([norm(c.prof1.data[i]-c.prof2.data[i]) for c in self._cells])
+            # Calculate ballooning for each x-value
+            for i in range(len(prof1.data)):
+                bl = ballooning[i]+1  # B/L old
+                l = norm(self.prof2.data[i]-self.prof1.data[i])  # L
+                lnew = sum([norm(c.prof1.data[i]-c.prof2.data[i]) for c in self._cells])  # L-NEW
                 for c in self._cells:
-                    c._ballooning.append(bl*l/lnew)
+                    c._ballooning.append(arsinc(1/(bl*l/lnew)))  # B/L NEW
 
 
 #            for i in range(len(big.data)):  # Calculate Ballooning for each subcell

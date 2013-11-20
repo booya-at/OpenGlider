@@ -1,5 +1,6 @@
 from openglider.Ribs.move import rotation#, alignment
 from openglider.Profile import Profile2D, Profile3D
+from openglider.Utils.Ballooning import BallooningBezier
 import numpy
 from ..Vector import arrtype
 
@@ -8,7 +9,7 @@ class Rib(object):
     """Openglider Rib Class: contains a profile, needs a startpoint, angle (arcwide), angle of attack,
         glide-wide rotation and glider ratio.
         optional: name, absolute aoa (bool), startposition"""
-    def __init__(self, profile=Profile2D(), startpoint=numpy.array([0, 0, 0]), size=1., arcang=0, aoa=0, zrot=0,
+    def __init__(self, profile=Profile2D(), ballooning=BallooningBezier(), startpoint=numpy.array([0, 0, 0]), size=1., arcang=0, aoa=0, zrot=0,
                  glide=1, name="unnamed rib", aoaabs=False, startpos=0.):
         # TODO: Startpos > Set Rotation Axis in Percent
         self.name = name
@@ -16,6 +17,7 @@ class Rib(object):
             self.profile_2d = Profile2D(profile, name=name)
         else:
             self.profile_2d = profile
+        self.ballooning = ballooning
         self._aoa = (aoa, aoaabs)
         self.aoa = [0, 0]
         self.glide = glide
