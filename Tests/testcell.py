@@ -1,30 +1,34 @@
+#!/bin/python2
+
 __author__ = 'simon'
 from openglider.Profile import Profile2D
 from openglider.Cells import BasicCell
 from openglider.Ribs import Rib
 import os
 import math
-import numpy
+#import numpy
 import openglider.Graphics as G
-from openglider.Utils.Ballooning import Ballooning
+from openglider.Utils.Ballooning import BallooningBezier
+
 
 a = Profile2D()
 a.importdat(os.path.dirname(os.path.abspath(__file__))+"/test.dat")
 #a.Numpoints = 2000
 
-r1 = Rib(a, [0.15, 0, 0], 20*math.pi/180, 20*math.pi/180, 0, 7)
-r3 = Rib(a, [0.3,0,-0.1], 30*math.pi/180, 20*math.pi/180, 0, 7)
+r1 = Rib(a, [0.12, 0, 0], 1., 20*math.pi/180, 2*math.pi/180, 0, 7)
+r3 = Rib(a, [0.3, 0.2, -0.1], 0.8, 30*math.pi/180, 5*math.pi/180, 0, 7)
 r2 = r1.copy()
 r2.mirror()
 for i in [r1, r2, r3]:
-    i.ReCalc()
+    i.recalc()
 
-ballooning = Ballooning()
-balloon = [ballooning.get(i) for i in r1.profile_2d.XValues]
-
+ballooning = BallooningBezier()
+balloon = [ballooning(i) for i in r1.profile_2d.XValues]
 
 cell = BasicCell(r2.profile_3d, r1.profile_3d, balloon)
 cell2 = BasicCell(r1.profile_3d, r3.profile_3d, balloon)
+
+
 
 num = 30
 ribs = [cell.midrib(x*1./num) for x in range(num+1)]

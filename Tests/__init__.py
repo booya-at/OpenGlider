@@ -1,3 +1,4 @@
+#!/bin/python2
 __author__ = 'simon'
 import random
 import unittest

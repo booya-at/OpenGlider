@@ -7,26 +7,41 @@ from openglider.Utils.Bezier import BezierCurve
 
 
 class Ballooning(object):
-    def __init__(self, points=[[[0, 0], [0.2, 0.34], [0.8, 0.34], [1, 0]],
-                               [[0, 0], [0.2, -0.14], [0.8, -0.14], [1, 0]]]):
-        self.upper = BezierCurve(points[0])
-        self.lower = BezierCurve(points[1])
-        self.upfit = self.upper.interpolation()
-        self.lowfit = self.lower.interpolation()
-        print(self.upfit.x[0], self.upfit.x[-1])
+    def __init__(self, f_upper, f_lower):
+        self.upper = f_upper
+        self.lower = f_lower
 
     def __getitem__(self, xval):
+        """Get Ballooning Value (%) for a certain XValue"""
         if -1 <= xval < 0:
             #return self.upper.xpoint(-xval)[1]
-            return self.upfit(-xval)
+            return self.upper(-xval)  # Scipy Interp1D returns an Array for any type of argument
         elif 0 <= xval <= 1:
             #return -self.lower.xpoint(xval)[1]
-            return -self.lowfit(xval)
+            return self.lower(xval)
         else:
             ValueError("Ballooning only between -1 and 1")
 
-    def get(self, xval):
-        return self.phi(1./(self.__getitem__(xval)+1))
+    def __call__(self, arg):
+        """Get Ballooning Arc (phi) for a certain XValue"""
+        return self.phi(1./(self.__getitem__(arg)+1))
+
+    def __add__(self, other):
+        """Add another Ballooning to this one, needed for merging purposes"""
+        xup = self.upper.x  # This is valid for scipy interpolations, no clue how to do different, if so...
+        xlow = self.lower.x
+        yup = [self.upper(i)+other.upper(i) for i in xup]
+        ylow = [self.lower(i)+other.lower(i) for i in xlow]
+
+        return Ballooning(interp1d(xup, yup), interp1d(xlow, ylow))
+
+    def __mul__(self, other):
+        """Multiply Ballooning With a Value"""
+        up = self.upper.copy
+        low = self.lower.copy
+        up.y = [i*other for i in up.y]
+        low.y = [i*other for i in low.y]
+        return Ballooning(up, low)
 
     @staticmethod
     def phi(*baloon):
@@ -34,33 +49,48 @@ class Ballooning(object):
         b/l=R*phi/(R*Sin(phi)) -> Phi=arsinc(l/b)"""
         global arsinc
         if not arsinc:
-            interpolate()
+            interpolate_asinc()
         return arsinc(baloon)
-
-
-
 
     def mapx(self, xvals):
         return [self[i] for i in xvals]
 
     def amount_maximal(self):
-        pass
+        return max(max(self.upper.y),max(self.lower.y))
 
     def amount_integral(self):
         pass
 
-    def amount_set(self,amount):
+    def amount_set(self, amount):
         factor = float(amount)/self.Amount
-        self.upper.ControlPoints = [i*[1, factor] for i in self.upper.ControlPoints]
-        self.lower.ControlPoints = [i*[1, factor] for i in self.lower.ControlPoints]
+        self.upper.y = [i*factor for i in self.upper.y]
+        self.lower.y = [i*factor for i in self.lower.y]
 
-    Amount = property(amount_integral, amount_set)
+    Amount = property(amount_maximal, amount_set)
+
+
+class BallooningBezier(Ballooning):
+    def __init__(self, points=[[[0, 0], [0.2, 0.14], [0.8, 0.14], [1, 0]],
+                               [[0, 0], [0.2, 0.14], [0.8, 0.14], [1, 0]]]):
+        self.upbez = BezierCurve(points[0])
+        self.lowbez = BezierCurve(points[1])
+        Ballooning.__init__(self, self.upbez.interpolation(), self.lowbez.interpolation())
+
+    def __mul__(self, other):  # TODO: Check consistency
+        """Multiplication of BezierBallooning"""
+        Ballooning.__mul__(self, other)
+        self.upbez.fit(numpy.transpose([self.upper.x, self.upper.y]))
+        self.lowbez.fit(numpy.transpose([self.lower.x, self.lower.y]))
+
+
+
 
 
 arsinc = None
 
 
-def interpolate(numpoints=1000, phi0=0, phi1=numpy.pi):
+def interpolate_asinc(numpoints=1000, phi0=0, phi1=numpy.pi):
+    """Set Global Interpolation Function arsinc"""
     global arsinc
     (x, y) = ([], [])
     for i in range(numpoints+1):
@@ -69,5 +99,4 @@ def interpolate(numpoints=1000, phi0=0, phi1=numpy.pi):
         y.append(phi)
     arsinc = interp1d(x, y)
 
-interpolate()
-#arsinc
+

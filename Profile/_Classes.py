@@ -176,7 +176,7 @@ class Profile2D(BasicProfile2D):
     def _setlen(self, num):
         """Set Profile to cosinus-Distributed XValues"""
         i = num - num % 2
-        xtemp = lambda x: cmp(x, 0.5)*(1-math.sin(math.pi*x))
+        xtemp = lambda x: ((x > 0.5)-(x < 0.5))*(1-math.sin(math.pi*x))
         self.XValues = [xtemp(j * 1. / i) for j in range(i + 1)]
 
     def _getthick(self, *xvals):
@@ -301,20 +301,41 @@ class Profile3D(Vectorlist):
 
     def tangents(self):
         if not self._tangents:
-            func = lambda i, ii, iii: normalize(normalize(iii-ii)+normalize(ii-i))
             second = self.data[0]
             third = self.data[1]
             self._tangents = [[normalize(third-second)]]
-            for element in self.data[2:]:
+            for element in self.data[2:-1]:
                 first = second
                 second = third
                 third = element
-                self._tangents.append(func(first, second, third))
+                self._tangents.append(normalize(normalize(third-second)+normalize(second-first)))
             second = third
             third = self.data[-1]
             self._tangents.append(normalize(third-second))
         return self._tangents
 
+
+
+class minirib(Profile3D):
+    def __init__(self, xvalue, front_cut, back_cut, function=None, name="minirib"):
+
+        if not function:
+            function=lambda x: 1
+
+        self.xvalue=xvalue
+        self.front_cut=front_cut
+        self.back_cut=back_cut
+        self.__function__=function
+        super.__init__(name=name)
+
+    def flatten(self):
+        prof2d = Profile3D.flatten(self)
+
+    def function(self, x):
+        if self.front_cut < abs(x) < self.back_cut:
+            return min(1, max(0, self.__function__(x)))
+        else:
+            return 1
 
 
 

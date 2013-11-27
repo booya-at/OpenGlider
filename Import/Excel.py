@@ -8,24 +8,46 @@ from Graphics import Graphics
 def excelimport(filename):
     imp = open_workbook(filename)
     ribsheet = sheettolist(imp.sheet_by_index(0)) ### cellnr/chord/xval/yval/arcangle/aoa/z-rot/arcrot-offset/merge/baloon
-    cellsheet= sheettolist(imp.sheet_by_index(1))
+    cellsheet = sheettolist(imp.sheet_by_index(1))
 
     ######import profiles
-    profiles=profileimp(imp.sheet_by_index(3))
+    profiles = profileimp(imp.sheet_by_index(3))
+    xvalues = profiles[0].XValues
+    for profil in profiles:
+        profil.XValues = xvalues
+
+    ######import ballooning
+
+
 
     def merge(factor):
-        num=int(factor)
-        val=factor-num
-        if val > 0 and num<len(profiles):
-            prof=profiles[num]*(1-val)+prof[num+1]*val
+        num = int(factor)
+        val = factor-num
+        if val > 0 and num < len(profiles):
+            prof = profiles[num]*(1-val)+profiles[num+1]*val
         else:
-            prof=profiles[num]
+            prof = profiles[num]
         return prof
 
     rippen=[]
     arcang=0.
-    front=[0.,0.,0.]
-    for i in range(1,len(ribsheet)):
+    front=[0., 0., 0.]
+    for i in range(1, len(ribsheet)):
+        # row: num, chord, x, y, angle, aoa, z-rot, angle-offset, merge, balloonmerge
+        # Profile:
+        profil = merge(ribsheet[i, 8])
+
+
+        # Ballooning
+
+
+        # Rib
+
+
+        # Cell
+
+        #rippen.append(Rib(profil,front,arcang,ribsheet[i,5],zrot,glide,"Rib_"+str(i)))
+        # Mittelzelle -> rib.mirror, append mirrorrib, rib
         print("jo hier kommt die Aufbauarbeit")
         """
         old mathematica code:

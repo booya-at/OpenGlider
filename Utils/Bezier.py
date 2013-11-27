@@ -3,7 +3,6 @@ from scipy.misc import comb
 import scipy.interpolate
 from openglider.Vector import depth
 from scipy.optimize import bisect as findroot
-import openglider.Graphics
 
 class BezierCurve(object):
     def __init__(self, points=[[0, 0], [1, 10], [2, 0]]):
