@@ -41,3 +41,6 @@ nosetests.xml
 
 # lock-files
 *~
+
+# Doxygen generated Doc
+Doc/doxygen/*

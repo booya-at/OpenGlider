@@ -43,6 +43,9 @@ class Ballooning(object):
         low.y = [i*other for i in low.y]
         return Ballooning(up, low)
 
+    def copy(self):
+        return Ballooning(self.upper, self.lower)
+
     @staticmethod
     def phi(*baloon):
         """Return the angle of the piece of cake.
@@ -83,9 +86,7 @@ class BallooningBezier(Ballooning):
         self.lowbez.fit(numpy.transpose([self.lower.x, self.lower.y]))
 
 
-
-
-
+global arsinc
 arsinc = None
 
 
@@ -99,4 +100,5 @@ def interpolate_asinc(numpoints=1000, phi0=0, phi1=numpy.pi):
         y.append(phi)
     arsinc = interp1d(x, y)
 
-
+# TODO: Do only when needed!
+interpolate_asinc()

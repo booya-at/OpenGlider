@@ -4,6 +4,7 @@ import os  # for xfoil execution
 import numpy  # array spec
 from ._XFoilCalc import XValues, Calcfile, Impresults
 from ..Vector import normalize, norm, Vectorlist2D, Vectorlist
+from ..Utils.Bezier import BezierCurve
 
 
 class BasicProfile2D(Vectorlist2D):
@@ -16,6 +17,9 @@ class BasicProfile2D(Vectorlist2D):
     def __mul__(self, other):
         fakt = numpy.array([1, float(other)])
         return self.__class__(self.Profile * fakt)
+
+    def __call__(self, xval):
+        return self.profilepoint(xval)
 
     def profilepoint(self, xval, h=-1):
         """Get Profile Point for x-value (<0:upper side) optional: height (-1:lower,1:upper), possibly mapped"""
@@ -49,7 +53,7 @@ class BasicProfile2D(Vectorlist2D):
     def normalize(self):
         p1 = self.data[0]
         dmax = 0.
-        nose = 0
+        nose = p1
         for i in self.data:
             temp = norm(i - p1)
             if temp > dmax:
@@ -58,7 +62,7 @@ class BasicProfile2D(Vectorlist2D):
             #to normalize do: put nose to (0,0), rotate to fit (1,0), normalize to (1,0)
         #use: a.b=|a|*|b|*cos(alpha)->
         diff = p1 - nose
-        sin = (diff / dmax).dot([0, -1])  # equal to cross product of (x1,y1,0),(x2,y2,0)
+        sin = diff.dot([0, -1]) / dmax  # equal to cross product of (x1,y1,0),(x2,y2,0)
         cos = numpy.sqrt(1 - sin ** 2)
         matrix = numpy.array([[cos, -sin], [sin, cos]]) / dmax
         self.data = numpy.array([matrix.dot(i - nose) for i in self.data])
@@ -100,7 +104,7 @@ class Profile2D(BasicProfile2D):
                 i = 0
             self._rootprof = BasicProfile2D(profile[i:])
             self._rootprof.normalize()
-            self.Profile=self._rootprof.Profile  # derived from basicprofile
+            self.reset()  # to set the profile
 
     def __add__(self, other):
         if other.__class__ == self.__class__:
@@ -188,7 +192,7 @@ class Profile2D(BasicProfile2D):
     def _setthick(self, newthick):
         factor = float(newthick/max(self.Thickness[:,1]))
         new = self.Profile*[1., factor]
-        self.__init__(new, self.name+ "_" + str(newthick*100)+"%")
+        self.__init__(new, self.name + "_" + str(newthick*100) + "%")
 
     def _getcamber(self, *xvals):
         """return the camber of the profile for certain x-values or if nothing supplied, camber-line"""
@@ -209,6 +213,7 @@ class Profile2D(BasicProfile2D):
     Camber = property(_getcamber, _setcamber)
 
 
+# TODO: PYXFOIL INTEGRATION INSTEAD OF THIS
 class XFoil(Profile2D):
     """XFoil Calculation Profile based on Profile2D"""
 
@@ -216,7 +221,6 @@ class XFoil(Profile2D):
         Profile2D.__init__(self, profile)
         self._xvalues = self.XValues
         self._calcvalues = []
-
 
     def _change(self):
         """Check if something changed in coordinates"""
@@ -256,11 +260,11 @@ class XFoil(Profile2D):
 
 class Profile3D(Vectorlist):
     def __init__(self, profile=[], name="Profile3d"):
-        #Vector.List.__init__(profile)
-        self.data = profile
-        self.name = name
+        #Vectorlist.__init__(self, profile, name)
         self._normvectors = self._tangents = False
         self._diff = self._xvekt = self._yvekt = False
+        self.data = profile
+        self.name = name
 
     def projection(self):
         if not self._xvekt or not self._yvekt or not self._diff:
@@ -314,26 +318,33 @@ class Profile3D(Vectorlist):
             self._tangents.append(normalize(third-second))
         return self._tangents
 
+# TODO: SHIP TO RIBS
+class MiniRib(Profile3D):
+    def __init__(self, xvalue, front_cut, back_cut, func=None, name="minirib"):
+        #Profile3D.__init__(self, [], name)
 
+        if not func:  # Function is a bezier-function depending on front/back
+            if front_cut > 0:
+                points = [[front_cut, 1], [front_cut*2./3+back_cut*1./3]]  #
+            else:
+                points = [[front_cut, 0]]
 
-class minirib(Profile3D):
-    def __init__(self, xvalue, front_cut, back_cut, function=None, name="minirib"):
+            if back_cut < 1:
+                points = points + [[front_cut*1./3+back_cut*2./3, 0], [back_cut, 1]]
+            else:
+                points = points + [[back_cut, 0]]
+            func = BezierCurve(points).interpolation()
 
-        if not function:
-            function=lambda x: 1
+        self.__function__ = func
 
-        self.xvalue=xvalue
-        self.front_cut=front_cut
-        self.back_cut=back_cut
-        self.__function__=function
-        super.__init__(name=name)
-
-    def flatten(self):
-        prof2d = Profile3D.flatten(self)
+        self.xvalue = xvalue
+        self.front_cut = front_cut
+        self.back_cut = back_cut
+        Profile3D.__init__(self, profile=[], name=name)
 
     def function(self, x):
-        if self.front_cut < abs(x) < self.back_cut:
-            return min(1, max(0, self.__function__(x)))
+        if self.front_cut <= abs(x) <= self.back_cut:
+            return min(1, max(0, self.__function__(abs(x))))
         else:
             return 1
 

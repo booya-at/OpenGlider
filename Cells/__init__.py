@@ -23,14 +23,14 @@ class BasicCell(object):
         # cross differenzvektor, tangentialvektor
         self._normvectors = [-normalize(numpy.cross(p1[i]+p2[i], prof1[i]-prof2[i])) for i in range(len(p1))]
 
-    def point(self, x=0, i=0, k=0):
+    def point(self, y=0, i=0, k=0):
         ##round ballooning
-        return self.midrib(x).point((i, k))
+        return self.midrib(y).point((i, k))
 
-    def midrib(self, x, ballooning=True):
-        if x == 0:              # left side
+    def midrib(self, y, ballooning=True):
+        if y == 0:              # left side
             return self.prof1
-        elif x == 1:            # right side
+        elif y == 1:            # right side
             return self.prof2
         else:                   # somewhere
             #self._checkxvals()
@@ -46,7 +46,7 @@ class BasicCell(object):
                 def func(xx, j):
                     r = self._radius[j]
                     if r > 0:
-                        cosphi = self._cosphi[j][0]
+                        cosphi = self._cosphi[j]  # [0]
                         d = prof2[j]-prof1[j]
                         #phi=math.asin(norm(d)/(2*r)*(x-1/2)) -> cosphi=sqrt(1-(norm(d)/r*(x+1/2))^2
                         cosphi2 = math.sqrt(1-(norm(d)*(0.5-xx)/r)**2)
@@ -57,7 +57,7 @@ class BasicCell(object):
                 func = _horizontal
 
             for i in range(len(self.prof1.data)):  # Arc -> phi(bal) -> r  # oder so...
-                midrib.append(func(x, i))
+                midrib.append(func(y, i))
             return Profile3D(midrib)
 
     def _calcballooning(self):
@@ -73,7 +73,7 @@ class BasicCell(object):
                         self._cosphi.append(0)
                         self._radius.append(0)
             else:
-                raise "length of ballooning/profile data unequal"
+                raise ValueError("length of ballooning/profile data unequal")
 
 
 """
@@ -91,15 +91,19 @@ class Cell(BasicCell):
         #if not self.rib1.profile_2d.Numpoints == self.rib2.profile_2d.Numpoints:
 
         #ballooning=rib1.ballooning
-        
+
         self.prof1 = self.rib1.profile_3d
         self.prof2 = self.rib2.profile_3d
         self.miniribs = miniribs
 
         # inheritance backup
-        super.__init__(self.rib1.profile_3d, self.rib2.profile_3d, [])
-        self._midrib = self.midrib
-        self._point = self.point
+        BasicCell.__init__(self, self.rib1.profile_3d, self.rib2.profile_3d, [])
+
+    def _midrib(self, x, ballooning=True):
+        return BasicCell.midrib(self, x, ballooning)
+
+    def _point(self,x,i,k):
+        return BasicCell.point(self,x,i,k)
 
     def recalc(self):
         xvalues = self.rib1.profile_2d.XValues
@@ -112,17 +116,16 @@ class Cell(BasicCell):
         else:
             ballooning = [self.rib1.ballooning[x]+self.rib2.ballooning[x] for x in xvalues]
             self._cells = []
-            miniribs = sorted(self.miniribs, key=lambda x: x.xvalue)    # sort for cell-wide (x) argument.
-            self._yvalues = [i.xvalue for i in miniribs]
+            miniribs = sorted(self.miniribs, key=lambda rib: rib.xvalue)    # sort for cell-wide (x) argument.
+            self._yvalues = [0] + [i.xvalue for i in miniribs] + [1]
 
             prof1 = self.rib1.profile_3d
             for minirib in miniribs:
+                print(minirib.xvalue)
+                big = self._midrib(minirib.xvalue, True).data  # SUPER!!!?
+                small = self._midrib(minirib.xvalue, False).data
 
-                big = self.midrib(minirib.xvalue, True).data  # SUPER!!!?
-                small = self.midrib(minirib.xvalue, False).data
-                #phi1 = []
-
-                for i in range(len(big.data)):  # Calculate Rib
+                for i in range(len(big)):  # Calculate Rib
                     fakt = minirib.function(xvalues[i])  # factor ballooned/unb. (0-1)
                     point = small[i]+fakt*(big[i]-small[i])
                     minirib.data.append(point)
@@ -135,23 +138,47 @@ class Cell(BasicCell):
             self._cells.append(BasicCell(prof1, self.rib2.profile_3d, []))
 
             # Calculate ballooning for each x-value
+            # Hamilton Principle:
+            #       http://en.wikipedia.org/wiki/Hamilton%27s_principle
+            #       http://en.wikipedia.org/wiki/Hamilton%E2%80%93Jacobi_equation
+            # b' = b
+            # f' = f*(l/l') [f=b/l]
             for i in range(len(prof1.data)):
                 bl = ballooning[i]+1  # B/L old
                 l = norm(self.prof2.data[i]-self.prof1.data[i])  # L
                 lnew = sum([norm(c.prof1.data[i]-c.prof2.data[i]) for c in self._cells])  # L-NEW
                 for c in self._cells:
-                    c._ballooning.append(arsinc(1/(bl*l/lnew)))  # B/L NEW
+                    c._phi.append(arsinc(1/(bl*l/lnew)))  # B/L NEW
+
+    def point(self, y=0, i=0, k=0):
+        return self.midrib(y).point(i, k)
+
+    def midrib(self, y, ballooning=True):
+        """if x in self._yvalues:
+            # TODO: Still wrong
+            return self._cells[0]"""
+        if len(self._cells) == 1:
+            return self._midrib(y,ballooning=ballooning)
+        if ballooning:
+            i = 0
+            while self._yvalues[i+1] < y:
+                i += 1
+            cell = self._cells[i]
+            xnew = (y-self._yvalues[i]) / (self._yvalues[i+1]-self._yvalues[i])
+            return cell.midrib(xnew)
+        else:
+            return self._midrib(y, ballooning=False)
+
+    def _calcballooning(self):
+        xvalues = self.rib1.profile_2d.XValues
+        balloon = [self.rib1.ballooning[i] + self.rib2.ballooning[i] for i in xvalues]
+        self._phi = [arsinc(1/(1+i)) for i in balloon]
+        BasicCell._calcballooning(self)
 
 
-#            for i in range(len(big.data)):  # Calculate Ballooning for each subcell
-
-#                yvalue = minirib.xvalue
 
 
 
-
-                #midrib=[rib[1](self.xvalues[i])*(big[i]-small[i])+small[i]+for i in range(len(big.data))]
-                self._cells.append(BasicCell())
 
             # super??
 

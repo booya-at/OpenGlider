@@ -47,6 +47,7 @@ def normalize(vector):
 
 
 def rangefrom(maxl, startpoint=0):
+    """Iterative, similar to range() but surrounding a certain startpoint"""
     j = 1
     if 0 <= startpoint <= maxl:
         yield startpoint
@@ -84,15 +85,18 @@ def cut(p1, p2, p3, p4):
 
 class Vectorlist(object):
     def __init__(self, data=[], name="Vector List object"):
-        if arrtype(data) == 2 or arrtype(data) == 4:
-            self.data = np.array(data)
-            self.name = name
+        #if arrtype(data) == 2 or arrtype(data) == 4:
+        self.data = np.array(data)
+        self.name = name
 
     def __repr__(self):
         return self.data.__str__()
 
     def __str__(self):
         return self.name
+
+    def __get__(self, ik):
+        return self.point(int(ik), ik % 1)
 
     def copy(self):
         return self.__class__(self.data.copy(), self.name+"_copy")
@@ -123,7 +127,7 @@ class Vectorlist(object):
         diff = norm(p2 - p1)
 
         while diff < _len and len(self.data) - 1 > inew > 0:
-            inew +=  _dir
+            inew += _dir
             p1 = p2
             p2 = self.data[inew]
             temp = norm(p2 - p1)

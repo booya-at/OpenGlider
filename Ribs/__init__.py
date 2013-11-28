@@ -66,7 +66,7 @@ class Rib(object):
         #self.ReCalc()
 
     def copy(self):
-        return self.__class__(self.profile_2d.copy(), self.pos, self.size, self.arcang, self._aoa[0], self.zrot,
+        return self.__class__(self.profile_2d.copy(), self.ballooning.copy(), self.pos, self.size, self.arcang, self._aoa[0], self.zrot,
                               self.glide, self.name + "_copy", self._aoa[1])
 
     AOA = property(_getaoa, _setaoa)
