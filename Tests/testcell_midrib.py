@@ -16,9 +16,9 @@ a.importdat(os.path.dirname(os.path.abspath(__file__))+"/test.dat")
 #a.Numpoints = 400
 
 midribs = [
-    #MiniRib(0.2, 0.7, 1),
+    #MiniRib(0.2, 0.8, 1),
     MiniRib(0.5, 0.7, 1),
-    #MiniRib(0.8, 0.7, 1),
+    #MiniRib(0.8, 0.8, 1),
 ]
 
 b1 = BallooningBezier()
@@ -43,7 +43,20 @@ cell2.recalc()
 
 
 num = 40
-ribs = [cell1.midrib(x*1./num) for x in range(num+1)]
-ribs += [cell2.midrib(x*1./num) for x in range(num+1)]
+#ribs = [cell1.midrib(x*1./num) for x in range(num+1)]
+#ribs += [cell2.midrib(x*1./num) for x in range(num+1)]
 #G.Graphics3D([G.Line(r1.profile_3d.data),G.Line(r2.profile_3d.data),G.Line([[0.,0.,0.],[1.,0.,0.]]),G.Line([[0.,0.,0.],[0.,0.5,0.]])])
-Graph.Graphics3D([Graph.Line(x.data) for x in ribs])
+#Graph.Graphics3D([Graph.Line(x.data) for x in ribs])
+ribs = []
+for x in range(num+1):
+    ribs += cell1.midrib(x*1./num).data
+for x in range(1, num+1):
+    ribs += cell2.midrib(x*1./num).data
+
+polygons = []
+points = a.Numpoints
+
+for i in range(2*num):
+    for j in range(points-1):
+        polygons.append(Graph.Polygon([i*points+j, i*points+j+1, (i+1)*points+j+1, (i+1)*points+j]))
+Graph.Graphics3D(polygons, ribs)
