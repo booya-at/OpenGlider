@@ -25,8 +25,6 @@ b1 = BallooningBezier()
 b2 = BallooningBezier()
 b2.Amount *= 0.8
 
-print(b1(0.5))
-
 
 r2 = Rib(a, b1, [0.12, 0, 0], 1., 20*math.pi/180, 2*math.pi/180, 0, 7)
 r1 = r2.copy()

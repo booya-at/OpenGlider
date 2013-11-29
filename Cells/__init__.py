@@ -121,7 +121,6 @@ class Cell(BasicCell):
 
             prof1 = self.rib1.profile_3d
             for minirib in miniribs:
-                print(minirib.xvalue)
                 big = self._midrib(minirib.xvalue, True).data  # SUPER!!!?
                 small = self._midrib(minirib.xvalue, False).data
 
