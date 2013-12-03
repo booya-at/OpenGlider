@@ -95,24 +95,66 @@ class Vectorlist(object):
     def __str__(self):
         return self.name
 
-    def __get__(self, ik):
-        return self.point(int(ik), ik % 1)
+    def __getitem__(self, ik):
+        if ik < 0:
+            k = ik
+            i = 0
+        else:
+            i = min(int(ik), len(self.data)-2)  # Upper Limit for i
+            # case1: 0<ik<len -> k=ik%1;
+            # case2: ik>len(self.data) -> k += difference
+            k = ik % 1 + max(0, int(ik) - len(self.data)+2)
+        return self.point(i, k)
 
     def copy(self):
         return self.__class__(self.data.copy(), self.name+"_copy")
 
-    def point(self, _ik, _k=0):
-        try:
-            (i, k) = _ik
-        except TypeError:
-            (i, k) = (_ik, _k)
+    def point(self, i, k=0):
         if i > len(self.data) or i < 0 or not isinstance(i, int):
-            raise "invalid data for listpoint"
+            raise ValueError("invalid data for listpoint")
         return self.data[i] + k * (self.data[i + 1] - self.data[i])
 
-    def extend(self, ding, length):
+    def extend(self, start, length):
+        direction = sign(length)
+        print("new array:")
+        print("length: %s, start: %s, direction: %s, array length: %s" % (length, start, direction, len(self.data)))
+        length = abs(length)
+        next_value = int(start - start % 1 + (direction > 0))
+        while length > 0:
+            #next_value = start + (direction > 0) - start % 1
+            #if start % 1:  # start is not an integer yet
+            #    next_value = int(start - start % 1 + (direction > 0))
+            #else:  # start is an integer
+            #    next_value = start + direction
+            print("new go_trough:")
+            #clamp it between zero and the last value
+            next_value = max(0, min(len(self.data) - 1, next_value))
+            #the difference between the start and next_value point
+            difference = norm(self[start] - self[next_value])
+            print("length: %s, difference: %s, start: %s, next_value: %s" % (length, difference, start, next_value))
+            if (next_value == 0 and direction < 0) or (next_value == len(self.data) - 1 and direction > 0):
+                # we are on the end of the points, extrapolate the rest
+                #return start + direction * length / difference
+                print("break now!, length: %s" % difference)
+                break
+            length -= difference
+            start = next_value
+            next_value = start + direction
+            print("end of while: %s" % length)
+        print("finished while")
+        difference = norm(self[next_value] - self[next_value - direction])
+        # TODO: Fix This for cases (TESTS)
+        print("got difference from: %s and %s" % (next_value, (next_value - direction)))
+        print("start: %s, direction: %s, length: %s, difference: %s" % (start, direction, length, difference))
+        return start + direction * length / difference
+
+
+
+
+
+    def extend_old(self, start, length):
         """Extend the List at a given Point (i,k) by the given Length and return NEW (i,k)"""
-        (i, k) = ding
+        (i, k) = start
         _dir = sign(length)
         _len = abs(length)
 
@@ -145,7 +187,7 @@ class Vectorlist(object):
 
         return inew, knew
 
-    def get_length(self, p1a=(0, 0), p2a=(-2, 1)):
+    def get_length_old(self, p1a=(0, 0), p2a=(-2, 1)):
         (i1, k1) = p1a
         (i2, k2) = p2a
         length = 0
@@ -166,6 +208,19 @@ class Vectorlist(object):
         p2 = self.point(i2, k2)
         length += norm(p2 - p1)
         return length
+
+    def get_length(self, first, second):
+        direction = sign(second-first)
+        length = 0
+        next_value = int(first - first % 1 + (direction > 0))
+        while next_value * direction < second * direction:
+            length += norm(self[next_value] - self[first])
+            first = next_value
+            next_value += direction
+            # TODO: if first < 0, > len(self.data): make shorter
+        return length + norm(self[second] - self[first])
+
+
 
 
 class Vectorlist2D(Vectorlist):
