@@ -141,12 +141,12 @@ class Vectorlist(object):
                 print("break now!, length: %s" % difference)
                 break
             length -= difference
+            #we may fall out now, set difference right
+            difference /= abs(start - next_value)
             start = next_value
             next_value = start + direction
             print("end of while: %s" % length)
         print("finished while")
-        difference = norm(self[next_value] - self[next_value - direction])
-        # TODO: Fix This for cases (TESTS)
         print("got difference from: %s and %s" % (next_value, (next_value - direction)))
         print("start: %s, direction: %s, length: %s, difference: %s" % (start, direction, length, difference))
         return start + direction * length / difference
