@@ -41,7 +41,8 @@ class TestVector(unittest.TestCase):
             leng2 = thalist.get_length(start, new)
             self.assertAlmostEqual(abs(leng), leng2, 7,
                                    "Failed for start="+str(start)+" and leng="+str(leng) +
-                                   "\nresult: i2="+str(new)+" leng2="+str(leng2))
+                                   "\nresult: i2="+str(new)+" leng2="+str(leng2) +
+                                   " dist="+str(Vector.norm(thalist[start] - thalist[new])))
 
     def test_case2(self):
         """First Point before Start"""
@@ -52,7 +53,8 @@ class TestVector(unittest.TestCase):
             leng2 = thalist.get_length(start, new)
             self.assertAlmostEqual(abs(leng), leng2, 7,
                                    "Failed for start="+str(start)+" and leng="+str(leng) +
-                                   "\nresult: i2="+str(new)+" leng2="+str(leng2))
+                                   "\nresult: i2="+str(new)+" leng2="+str(leng2) +
+                                   " dist="+str(Vector.norm(thalist[start] - thalist[new])))
 
     def test_case3(self):
         """First Point further than the end"""
@@ -63,7 +65,8 @@ class TestVector(unittest.TestCase):
             leng2 = thalist.get_length(start, new)
             self.assertAlmostEqual(abs(leng), leng2, 7,
                                    "Failed for start="+str(start)+" and leng="+str(leng) +
-                                   "\nresult: i2="+str(new)+" leng2="+str(leng2))
+                                   "\nresult: i2="+str(new)+" leng2="+str(leng2) +
+                                   " dist="+str(Vector.norm(thalist[start] - thalist[new])))
 
 
 

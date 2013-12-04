@@ -123,6 +123,7 @@ class Vectorlist(object):
         print("length: %s, start: %s, direction: %s, array length: %s" % (length, start, direction, len(self.data)))
         length = abs(length)
         next_value = int(start - start % 1 + (direction > 0))
+        # TODO: In case the new point is in the same we inc. nextvalue here
         while length > 0:
             #next_value = start + (direction > 0) - start % 1
             #if start % 1:  # start is not an integer yet
@@ -142,9 +143,11 @@ class Vectorlist(object):
                 break
             length -= difference
             start = next_value
+            # TODO: AND! here again...
             next_value = start + direction
             print("end of while: %s" % length)
         print("finished while")
+        # TODO: So here we get the wrong difference
         difference = norm(self[next_value] - self[next_value - direction])
         # TODO: Fix This for cases (TESTS)
         print("got difference from: %s and %s" % (next_value, (next_value - direction)))
@@ -155,11 +158,13 @@ class Vectorlist(object):
 
         direction = sign(length)
         p1 = self[start]
-        next_value = start - (start % 1) + (direction > 0)
+        i = start - (start % 1)
+        next_value = i + (direction > 0)
         p2 = self[next_value]
         diff = norm(p2-p1)
+        temp = 0
 
-        while diff < length and 0 < next_value < len(self):
+        while diff < length and 0 < next_value < len(self) - 1:
             next_value += direction
             p1 = p2
             p2 = self[next_value]
@@ -167,7 +172,6 @@ class Vectorlist(object):
             diff += temp
 
         next_value -= (direction > 0)
-        i = start - (start % 1)
         if next_value == i:
             dl = norm(p1 - self[i])
             return (start - i) * (dl + length) / dl
