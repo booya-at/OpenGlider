@@ -106,6 +106,9 @@ class Vectorlist(object):
             k = ik % 1 + max(0, int(ik) - len(self.data)+2)
         return self.point(i, k)
 
+    def __len__(self):
+        return len(self.data)
+
     def copy(self):
         return self.__class__(self.data.copy(), self.name+"_copy")
 
@@ -126,7 +129,7 @@ class Vectorlist(object):
             #    next_value = int(start - start % 1 + (direction > 0))
             #else:  # start is an integer
             #    next_value = start + direction
-            print("new go_trough:")
+            print("new passtrough:")
             #clamp it between zero and the last value
             next_value = max(0, min(len(self.data) - 1, next_value))
             #the difference between the start and next_value point
@@ -148,8 +151,28 @@ class Vectorlist(object):
         print("start: %s, direction: %s, length: %s, difference: %s" % (start, direction, length, difference))
         return start + direction * length / difference
 
+    def extend_old_new(self, start, length):
 
+        direction = sign(length)
+        p1 = self[start]
+        next_value = start - (start % 1) + (direction > 0)
+        p2 = self[next_value]
+        diff = norm(p2-p1)
 
+        while diff < length and 0 < next_value < len(self):
+            next_value += direction
+            p1 = p2
+            p2 = self[next_value]
+            temp = norm(p2 - p1)
+            diff += temp
+
+        next_value -= (direction > 0)
+        i = start - (start % 1)
+        if next_value == i:
+            dl = norm(p1 - self[i])
+            return (start - i) * (dl + length) / dl
+        else:
+            return i + (diff - length) / temp - (length > 0)
 
 
     def extend_old(self, start, length):
