@@ -1,5 +1,5 @@
 import numpy as np
-from ..Utils import sign
+from openglider.Utils import sign
 
 
 def depth(arg):
@@ -119,17 +119,45 @@ class Vectorlist(object):
 
     def extend(self, start, length):
         direction = sign(length)
-        print("new array:")
-        print("length: %s, start: %s, direction: %s, array length: %s" % (length, start, direction, len(self.data)))
         length = abs(length)
-        next_value = int(start - start % 1 + (direction > 0))
+        next_value = start - start % 1 + (direction > 0)
+        difference = norm(self[start]-self[next_value])
+        length -= difference
+        #
         while length > 0:
+            #if (next_value > len(self) and direction > 0) or (next_value < 0 and direction < 0):
+            #    break
+            start = next_value
+            next_value += direction
+            difference = norm(self[next_value]-self[start])
+            length -= difference
+        # Length is smaller than zero
+        length = length
+        return next_value + direction * length * abs(next_value-start) / difference
+
+
+    def extend2(self, start, length):
+        direction = sign(length)
+        length = abs(length)
+        #print("new array:")
+        #print("length: %s, start: %s, direction: %s, array length: %s" % (length, start, direction, len(self.data)))
+        # TODO: If we should stay in the same cell we increment here:
+        next_value = int(start - start % 1 + (direction > 0))
+        # TODO: This is just a quick fix:
+        difference = norm(self[next_value]-self[start])
+        if (length - difference) < 0:
+            skip = True
+        else:
+            skip = False
+        #length -= difference
+
+        while length > 0 and not skip:
             #next_value = start + (direction > 0) - start % 1
             #if start % 1:  # start is not an integer yet
             #    next_value = int(start - start % 1 + (direction > 0))
             #else:  # start is an integer
             #    next_value = start + direction
-            print("new passtrough:")
+            #print("new passtrough:")
             #clamp it between zero and the last value
             next_value = max(0, min(len(self.data) - 1, next_value))
             #the difference between the start and next_value point
@@ -137,19 +165,21 @@ class Vectorlist(object):
             print("length: %s, difference: %s, start: %s, next_value: %s" % (length, difference, start, next_value))
             if (next_value == 0 and direction < 0) or (next_value == len(self.data) - 1 and direction > 0):
                 # we are on the end of the points, extrapolate the rest
-                #return start + direction * length / difference
+                #return start + direction * (start-next) * length / difference
+                # Difference = norm(last-forelast)
                 print("break now!, length: %s" % difference)
                 break
             length -= difference
             #we may fall out now, set difference right
-            difference /= abs(start - next_value)
+            #difference /= abs(start - next_value)
             start = next_value
+            # TODO: AND HERE!
             next_value = start + direction
-            print("end of while: %s" % length)
-        print("finished while")
-        print("got difference from: %s and %s" % (next_value, (next_value - direction)))
-        print("start: %s, direction: %s, length: %s, difference: %s" % (start, direction, length, difference))
-        return start + direction * length / difference
+            #print("end of while: %s" % length)
+        #print("finished while")
+        #print("got difference from: %s and %s" % (next_value, (next_value - direction)))
+        #print("start: %s, direction: %s, length: %s, difference: %s" % (start, direction, length, difference))
+        return start + direction * abs(start - next_value) * length / difference
 
     def extend_old_new(self, start, length):
 
@@ -233,14 +263,17 @@ class Vectorlist(object):
         return length
 
     def get_length(self, first, second):
-        direction = sign(second-first)
+        direction = sign(float(second-first))
+        temp = second-first
+        dir2=sign(temp)
         length = 0
         next_value = int(first - first % 1 + (direction > 0))
         while next_value * direction < second * direction:
+            #print("zjuhui")
             length += norm(self[next_value] - self[first])
             first = next_value
             next_value += direction
-            # TODO: if first < 0, > len(self.data): make shorter
+            # TODO: if first < 0, > len(self.data): make shorteraaa
         return length + norm(self[second] - self[first])
 
 
