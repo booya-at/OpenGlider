@@ -118,6 +118,8 @@ class Vectorlist(object):
         return self.data[i] + k * (self.data[i + 1] - self.data[i])
 
     def extend(self, start, length):
+        if length == 0:
+            return start
         direction = sign(length)
         length = abs(length)
         next_value = start - start % 1 + (direction > 0)
