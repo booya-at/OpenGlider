@@ -117,7 +117,7 @@ class Vectorlist(object):
             raise ValueError("invalid data for listpoint")
         return self.data[i] + k * (self.data[i + 1] - self.data[i])
 
-    def extend(self, start, length):
+    def extend2(self, start, length):
         if length == 0:
             return start
         direction = sign(length)
@@ -127,8 +127,8 @@ class Vectorlist(object):
         length -= difference
         #
         while length > 0:
-            #if (next_value > len(self) and direction > 0) or (next_value < 0 and direction < 0):
-            #    break
+            if (next_value > len(self) and direction > 0) or (next_value < 0 and direction < 0):
+                break
             start = next_value
             next_value += direction
             difference = norm(self[next_value]-self[start])
@@ -138,22 +138,16 @@ class Vectorlist(object):
         return next_value + direction * length * abs(next_value-start) / difference
 
 
-    def extend2(self, start, length):
+    def extend(self, start, length):
         direction = sign(length)
         length = abs(length)
         #print("new array:")
         #print("length: %s, start: %s, direction: %s, array length: %s" % (length, start, direction, len(self.data)))
         # TODO: If we should stay in the same cell we increment here:
         next_value = int(start - start % 1 + (direction > 0))
-        # TODO: This is just a quick fix:
-        difference = norm(self[next_value]-self[start])
-        if (length - difference) < 0:
-            skip = True
-        else:
-            skip = False
         #length -= difference
 
-        while length > 0 and not skip:
+        while length > 0:
             #next_value = start + (direction > 0) - start % 1
             #if start % 1:  # start is not an integer yet
             #    next_value = int(start - start % 1 + (direction > 0))
@@ -173,15 +167,14 @@ class Vectorlist(object):
                 break
             length -= difference
             #we may fall out now, set difference right
-            #difference /= abs(start - next_value)
+            difference /= abs(start - next_value)
             start = next_value
-            # TODO: AND HERE!
             next_value = start + direction
             #print("end of while: %s" % length)
         #print("finished while")
         #print("got difference from: %s and %s" % (next_value, (next_value - direction)))
         #print("start: %s, direction: %s, length: %s, difference: %s" % (start, direction, length, difference))
-        return start + direction * abs(start - next_value) * length / difference
+        return start + direction * length / difference
 
     def extend_old_new(self, start, length):
 
