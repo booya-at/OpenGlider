@@ -12,7 +12,7 @@ from openglider.Profile._Classes import MiniRib
 
 
 a = Profile2D()
-a.importdat(os.path.dirname(os.path.abspath(__file__))+"/test.dat")
+a.importdat(os.path.dirname(os.path.abspath(__file__))+"/testprofile.dat")
 #a.Numpoints = 400
 
 midribs = [
