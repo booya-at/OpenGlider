@@ -21,14 +21,14 @@ class TestVector3D(unittest.TestCase):
         """Sum up the length of the list and check"""
         for thalist in self.vectors:
             total = 0
-            for i in range(self.numpoints-1):
+            for i in range(len(thalist)-2):
                 total += Vector.norm(thalist[i]-thalist[i+1])
             # First Test:
             i2 = thalist.extend(0, total)
-            self.assertAlmostEqual(i2, len(thalist)-1)
+            self.assertAlmostEqual(i2, len(thalist)-2)
 
             # Second Test:
-            self.assertAlmostEqual(total, thalist.get_length(0,len(thalist)-1))
+            self.assertAlmostEqual(total, thalist.get_length(0,len(thalist)-2))
 
     def test_extend_case1(self):
         """First point within the list"""
@@ -70,17 +70,25 @@ class TestVector3D(unittest.TestCase):
 class TestVector2D(TestVector3D):
     def setUp(self, dim=2):
         TestVector3D.setUp(self, dim)
-        self.vectors = [Vector.Vectorlist2D(i.data) for i in self.vectors]
+        self.vectors = [Vector.Vectorlist2D(i.data[:10]) for i in self.vectors]
 
-    def test_Cut(self):
+    def test_A_selfcheck(self):
         for thalist in self.vectors:
-            i = random.random()*200-50
-            dirr = [random.randint(0, 40), random.randint(-20, 20)]
+            thalist.check()
 
-            p1 = thalist[i]+dirr
-            p2 = thalist[i]-dirr
-            neu = thalist.cut(p1, p2, i)
-            self.assertAlmostEqual(i, neu[1][0]+neu[1][1])
+    #def test_Cut(self):
+    #    for thalist in self.vectors:
+    #        i = random.random()*(len(thalist)-2)
+    #        normv = thalist.normvectors()
+    #        dirr = Vector.normalize(normv[i-i%1])+Vector.normalize(normv[i-i%1+1])
+    #        dirr *=0.001
+    #
+    #        p1 = thalist[i]+dirr
+    #        p2 = thalist[i]-dirr
+    #        neu = thalist.cut(p1, p2, i)
+    #        self.assertAlmostEqual(i, neu[1])
+
+
 
 
 

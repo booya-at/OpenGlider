@@ -271,29 +271,38 @@ class Vectorlist(object):
         return length + norm(self[second] - self[first])
 
 
-
-
 class Vectorlist2D(Vectorlist):
     def cut(self, p1, p2, startpoint=0):
-        for i in rangefrom(len(self.data)-2, startpoint):
-            try:  # in case we have parallell lines we dont get a result here, so we continue with i raised...
-                thacut = cut(self.data[i], self.data[i+1], p1, p2)
+        for i in rangefrom(len(self)-2, startpoint):
+            try:
+                thacut = cut(self[i], self[i+1], p1, p2)
+            # in case we have parallell lines we dont get a result here, so we continue with i raised...
             except np.linalg.linalg.LinAlgError:
                 continue
             if 0 < thacut[1] <= 1.:
-                return thacut[0], (i, thacut[1])
+                return thacut[0], i+thacut[1]
         # Nothing found yet? check start and end of line
         thacut = []
-        for i in [1, -1]:
-            #####change the sorting to fit absolute length, not diff-parameter
-            try:
-                temp = [cut(self.data[i-1], self.data[i], p1, p2)]
-                if sign(temp[1]) == sign(i):
-                    thacut += temp
-            except np.linalg.linalg.LinAlgError:
-                continue
-        thacut.sort(key=lambda x: abs(x[1]))
-        return thacut[0]
+        # Beginning
+        try:
+            temp = cut(self[0], self[1], p1, p2)
+            if temp[1] < 0:
+                thacut.append([temp[0], temp[1], norm(self[0]-self[1])*temp[1]])
+        except np.linalg.linalg.LinAlgError:
+            pass
+        # End
+        try:
+            i = len(self)
+            temp = cut(self[i-2], self[i-1], p1, p2)
+            if temp[1] > 0:
+                thacut.append([temp[0], len(self)-2+temp[1], norm(self[i-2]-self[i-1])*temp[1]])
+        except np.linalg.linalg.LinAlgError:
+            pass
+        print(thacut)
+        if len(thacut) > 0:
+            thacut.sort(key=lambda x: x[2])
+            thacut = thacut[0]
+            return thacut[0], thacut[1]
 
     def check(self):
         """Check for mistakes in the array, such as for the moment: self-cuttings,"""
@@ -301,7 +310,8 @@ class Vectorlist2D(Vectorlist):
             for j in range(len(self.data)-2, i):
                 temp = cut(self.data[i], self.data[i+1], self.data[j], self.data[j+1])
                 if temp[1] <= 1. and temp[2] <= 1.:
-                    self.data = np.   self.data[:i], temp[0], self.data[j+1:]
+                    self.data = np.concatenate([self.data[:i] + [temp[0]] + self.data[j+1:]])
+                    #if temp[1] == 0.:  # TODO: Drop if not a unique point
 
     def normvectors(self):
         rotate = lambda x: normalize(x).dot([[0, -1], [1, 0]])
