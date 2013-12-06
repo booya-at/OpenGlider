@@ -117,7 +117,7 @@ class Vectorlist(object):
             raise ValueError("invalid data for listpoint")
         return self.data[i] + k * (self.data[i + 1] - self.data[i])
 
-    def extend2(self, start, length):
+    def extend(self, start, length):
         if length == 0:
             return start
         direction = sign(length)
@@ -137,8 +137,7 @@ class Vectorlist(object):
         length = length
         return next_value + direction * length * abs(next_value-start) / difference
 
-
-    def extend(self, start, length):
+    def extend2(self, start, length):
         direction = sign(length)
         length = abs(length)
         #print("new array:")
