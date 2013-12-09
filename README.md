@@ -29,7 +29,7 @@ Development Progress
 
 While still being in an early status, here is a little screenshot to see the progress:
 
-![screenshot testcell with miniribs](Doc/screen.png)
+![screenshot testcell with miniribs](doc/screen.png)
 
 
 The plan is to build on:

@@ -2,7 +2,7 @@
 __author__ = 'simon'
 import unittest
 from openglider.Profile import Profile2D
-from openglider.Tests.test_vectorlist import *
+from Vector_test import *
 import os.path
 
 testfolder = os.path.dirname(os.path.abspath( __file__ ))
