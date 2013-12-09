@@ -7,21 +7,27 @@ someday, hopefully this is open source paraglider design software
 Try It
 ------
 
-to try a simple cell setup, clone the repo:
+Clone the git-repo first:
   ```
   git clone https://github.com/hiaselhans/OpenGlider.git
   ```
-link it to the python packages, install vtk and python2-scipy
-then run the file
+
+To run all unittests, run this from the main directory:
+  ```
+  python2 -m unittest discover -v -s tests
+  ```
+
+If you want to permanently install link it to the python packages.
+to try a simple cell setup, just run the file
 
 ```
-  python2 Test/testcell.py
+  python2 tests/testcell.py
 ```
 or
 ```
-  python2 Test/testcell_minirib.py
+  python2 tests/testcell_minirib.py
 ```
-use python2 as vtk is not yet available for p3.
+use python2 as vtk is not yet available for python3.
 
 
 Development Progress
