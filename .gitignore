@@ -44,3 +44,6 @@ nosetests.xml
 
 # Doxygen generated Doc
 Doc/doxygen/*
+
+dist-folder
+dist/*
