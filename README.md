@@ -18,6 +18,7 @@ To run all unittests, run this from the main directory:
   ```
 
 If you want to permanently install link it to the python packages.
+
 to try a simple cell setup, just run the file
 
 ```
