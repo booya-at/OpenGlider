@@ -15,7 +15,7 @@ class Ballooning(object):
         """Get Ballooning Value (%) for a certain XValue"""
         if -1 <= xval < 0:
             #return self.upper.xpoint(-xval)[1]
-            return self.upper(-xval)  # Scipy Interp1D returns an Array for any type of argument
+            return self.upper(-xval)
         elif 0 <= xval <= 1:
             #return -self.lower.xpoint(xval)[1]
             return self.lower(xval)
@@ -24,7 +24,7 @@ class Ballooning(object):
 
     def __call__(self, arg):
         """Get Ballooning Arc (phi) for a certain XValue"""
-        return self.phi(1./(self.__getitem__(arg)+1))
+        return self.phi(1./(self[arg]+1))
 
     def __add__(self, other):
         """Add another Ballooning to this one, needed for merging purposes"""
@@ -59,10 +59,20 @@ class Ballooning(object):
         return [self[i] for i in xvals]
 
     def amount_maximal(self):
-        return max(max(self.upper.y),max(self.lower.y))
+        return max(max(self.upper.y), max(self.lower.y))
 
     def amount_integral(self):
-        pass
+        # Integration of 2-points allways:
+        amount = 0
+        for curve in [self.upper, self.lower]:
+            for i in range(len(curve.x)-2):
+                # points: (x1,y1), (x2,y2)
+                #     _ p2
+                # p1_/ |
+                #  |   |
+                #  |___|
+                amount += (curve.y[i]+(curve.y[i+1]-curve.y[i])/2)*(curve.x[i+1]-curve.x[i])
+        return amount/2
 
     def amount_set(self, amount):
         factor = float(amount)/self.Amount
@@ -81,9 +91,18 @@ class BallooningBezier(Ballooning):
 
     def __mul__(self, other):  # TODO: Check consistency
         """Multiplication of BezierBallooning"""
+        # Multiplicate as normal interpolated ballooning, then refit
         Ballooning.__mul__(self, other)
         self.upbez.fit(numpy.transpose([self.upper.x, self.upper.y]))
         self.lowbez.fit(numpy.transpose([self.lower.x, self.lower.y]))
+
+    def _setnumpoints(self, numpoints):
+        Ballooning.__init__(self, self.upbez.interpolation(numpoints), self.lowbez.interpolation(numpoints))
+
+    def _getnumpoints(self):
+        return len(self.upper)
+
+    Numpoints = property(_getnumpoints, _setnumpoints)
 
 
 global arsinc

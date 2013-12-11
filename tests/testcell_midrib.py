@@ -3,17 +3,16 @@
 __author__ = 'simon'
 from openglider.Profile import Profile2D
 from openglider.Cells import Cell
-from openglider.Ribs import Rib
+from openglider.Ribs import Rib, MiniRib
 import os
 import math
 import openglider.Graphics as Graph
 from openglider.Utils.Ballooning import BallooningBezier
-from openglider.Profile._Classes import MiniRib
 
 
 a = Profile2D()
 a.importdat(os.path.dirname(os.path.abspath(__file__))+"/testprofile.dat")
-#a.Numpoints = 400
+a.Numpoints = 40
 
 midribs = [
     #MiniRib(0.2, 0.8, 1),
@@ -40,7 +39,7 @@ cell2 = Cell(r2, r3, [])
 cell2.recalc()
 
 
-num = 40
+num = 10
 #ribs = [cell1.midrib(x*1./num) for x in range(num+1)]
 #ribs += [cell2.midrib(x*1./num) for x in range(num+1)]
 #G.Graphics3D([G.Line(r1.profile_3d.data),G.Line(r2.profile_3d.data),G.Line([[0.,0.,0.],[1.,0.,0.]]),G.Line([[0.,0.,0.],[0.,0.5,0.]])])

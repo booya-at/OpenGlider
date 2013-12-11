@@ -104,7 +104,7 @@ class Vectorlist(object):
             # case1: 0<ik<len -> k=ik%1;
             # case2: ik>len(self.data) -> k += difference
             k = ik % 1 + max(0, int(ik) - len(self.data)+2)
-        return self.point(i, k)
+        return self.data[i] + k * (self.data[i + 1] - self.data[i])
 
     def __len__(self):
         return len(self.data)
@@ -112,6 +112,7 @@ class Vectorlist(object):
     def copy(self):
         return self.__class__(self.data.copy(), self.name+"_copy")
 
+    # TODO: This can go
     def point(self, i, k=0):
         if i > len(self.data) or i < 0 or not isinstance(i, int):
             raise ValueError("invalid data for listpoint")
@@ -175,99 +176,25 @@ class Vectorlist(object):
         #print("start: %s, direction: %s, length: %s, difference: %s" % (start, direction, length, difference))
         return start + direction * length / difference
 
-    def extend_old_new(self, start, length):
-
-        direction = sign(length)
-        p1 = self[start]
-        next_value = start - (start % 1) + (direction > 0)
-        p2 = self[next_value]
-        diff = norm(p2-p1)
-
-        while diff < length and 0 < next_value < len(self):
-            next_value += direction
-            p1 = p2
-            p2 = self[next_value]
-            temp = norm(p2 - p1)
-            diff += temp
-
-        next_value -= (direction > 0)
-        i = start - (start % 1)
-        if next_value == i:
-            dl = norm(p1 - self[i])
-            return (start - i) * (dl + length) / dl
-        else:
-            return i + (diff - length) / temp - (length > 0)
-
-
-    def extend_old(self, start, length):
-        """Extend the List at a given Point (i,k) by the given Length and return NEW (i,k)"""
-        (i, k) = start
-        _dir = sign(length)
-        _len = abs(length)
-
-        p1 = self.point(i, k)
-
-        if _dir == 1:
-            (inew, knew) = (i + 1, 0)
-        else:
-            (inew, knew) = (i, 0)
-
-        p2 = self.data[inew]
-        diff = norm(p2 - p1)
-
-        while diff < _len and len(self.data) - 1 > inew > 0:
-            inew += _dir
-            p1 = p2
-            p2 = self.data[inew]
-            temp = norm(p2 - p1)
-            diff += temp
-            # so here we are now, one too far or at the end//beginning of the list
-
-        inew -= (_dir + 1) / 2  # only for positive direction
-        if inew == i:                       # New Point is in the same 'cell'
-            d1 = norm(p1 - self.data[i])
-            knew = k * (d1 + length) / d1
-        else:                               # something between or further than the beginning/end
-            knew = (diff - _len)/ temp
-            if _dir == 1:
-                knew = 1 - knew
-
-        return inew, knew
-
-    def get_length_old(self, p1a=(0, 0), p2a=(-2, 1)):
-        (i1, k1) = p1a
-        (i2, k2) = p2a
-        length = 0
-        if sign(i2) is -1:
-            i2 += len(self.data)
-            #print(i2)
-
-        p1 = self.point(i1, k1)
-        p2 = p1
-
-        while i1 < i2:
-            i1 += 1
-            p1 = p2
-            p2 = self.data[i1]
-            length += norm(p2 - p1)
-
-        p1 = p2
-        p2 = self.point(i2, k2)
-        length += norm(p2 - p1)
-        return length
-
-    def get_length(self, first, second):
+    def get_length(self, first=0, second=None):
+        """Get the (normative) Length of a Part of the Vectorlist"""
+        if not second:
+            second = len(self)-1
         direction = sign(float(second-first))
-        temp = second-first
-        dir2=sign(temp)
         length = 0
         next_value = int(first - first % 1 + (direction > 0))
+        # Just to fasten up
+        if next_value > len(self) and direction < 0:
+            next_value = len(self)
+        elif next_value < 0 < direction:
+            next_value = 0
         while next_value * direction < second * direction:
-            #print("zjuhui")
             length += norm(self[next_value] - self[first])
             first = next_value
             next_value += direction
-            # TODO: if first < 0, > len(self.data): make shorteraaa
+            # Fasten up aswell
+            if (next_value > len(self) and direction > 0) or (next_value < 0 and direction < 0):
+                break
         return length + norm(self[second] - self[first])
 
 
@@ -292,31 +219,36 @@ class Vectorlist2D(Vectorlist):
             pass
         # End
         try:
-            i = len(self)
-            temp = cut(self[i-2], self[i-1], p1, p2)
+            i = len(self)-1
+            temp = cut(self[i], self[i+1], p1, p2)
             if temp[1] > 0:
-                thacut.append([temp[0], len(self)-2+temp[1], norm(self[i-2]-self[i-1])*temp[1]])
+                thacut.append([temp[0], i+temp[1], norm(self[i]-self[i+1])*temp[1]])
         except np.linalg.linalg.LinAlgError:
             pass
-        print(thacut)
+
         if len(thacut) > 0:
+            # sort by distance
             thacut.sort(key=lambda x: x[2])
-            thacut = thacut[0]
-            return thacut[0], thacut[1]
+            return thacut[0][0:1]
 
     def check(self):
         """Check for mistakes in the array, such as for the moment: self-cuttings,"""
-        for i in range(len(self.data)-2):
-            for j in range(len(self.data)-2, i):
-                temp = cut(self.data[i], self.data[i+1], self.data[j], self.data[j+1])
-                if temp[1] <= 1. and temp[2] <= 1.:
-                    self.data = np.concatenate([self.data[:i] + [temp[0]] + self.data[j+1:]])
-                    #if temp[1] == 0.:  # TODO: Drop if not a unique point
+        for i in range(len(self.data)-3):
+            for j in range(i+1, len(self)-2):
+                try:
+                    temp = cut(self[i], self[i+1], self[j], self[j+1])
+                    if temp[1] <= 1. and temp[2] <= 1.:
+                        self.data = np.concatenate([self.data[:i], [temp[0]], self.data[j+1:]])
+                except np.linalg.linalg.LinAlgError:
+                    continue
+                    #if temp[1] == 0.:
+                    # TODO: Drop if not a unique point
 
     def normvectors(self):
         rotate = lambda x: normalize(x).dot([[0, -1], [1, 0]])
         vectors = [rotate(self.data[1]-self.data[0])]
         for j in range(1, len(self.data)-2):
+            # TODO: Maybe not normalize here?!
             vectors.append(rotate(normalize(self.data[j+1]-self.data[j])+normalize(self.data[j]-self.data[j-1])))
         vectors.append(rotate(self.data[-1]-self.data[-2]))
         return np.array(vectors)

@@ -1,10 +1,12 @@
+# TODO: Migrate ALL to __init__
+
+
 import math
 import os  # for xfoil execution
 
 import numpy  # array spec
 from ._XFoilCalc import XValues, Calcfile, Impresults
 from ..Vector import normalize, norm, Vectorlist2D, Vectorlist
-from ..Utils.Bezier import BezierCurve
 
 
 class BasicProfile2D(Vectorlist2D):
@@ -28,24 +30,24 @@ class BasicProfile2D(Vectorlist2D):
             if xval < 0.:       # LOWER
                 i = 1
                 xval = -xval
-                while self.data[i][0] >= xval and i < len(self.data):
+                while self[i][0] >= xval and i < len(self):
                     i += 1
                 i -= 1
             elif xval == 0:     # NOSE
                 i = self.noseindex-1
             else:               # UPPER
-                i = len(self.data) - 2
-                while self.data[i][0] > xval and i > 1:
+                i = len(self) - 2
+                while self[i][0] > xval and i > 1:
                     i -= 1
             # Determine k-value
-            k = -(self.data[i][0] - xval) / (self.data[i + 1][0] - self.data[i][0])
-            return (i, k), self.point(i, k)
-
+            k = -(self[i][0] - xval) / (self[i + 1][0] - self[i][0])
+            return i+k, self[i+k]
         else:   # middlepoint
             p1 = self.profilepoint(xval)[1]
             p2 = self.profilepoint(-xval)[1]
             return p1 + h*(p2-p1)
 
+    # TODO: Get rid of this
     def points(self, xvalues):
         """Map a list of XValues onto the Profile"""
         return numpy.array([self.profilepoint(x) for x in xvalues])
@@ -68,7 +70,7 @@ class BasicProfile2D(Vectorlist2D):
         self.data = numpy.array([matrix.dot(i - nose) for i in self.data])
 
     def _setprofile(self, profile):
-        ####kontrolle: tiefe, laenge jeweils
+        # TODO: control length and depth of array or just get noseindex dynamic//private
         self.data = numpy.array(profile)
         i = 0
         while profile[i+1][0] < profile[i][0] and i < len(profile):
@@ -92,17 +94,16 @@ _profdata = [[1.00000000e+00,  -1.77114326e-16],
 class Profile2D(BasicProfile2D):
     """Profile2D: 2 Dimensional Standard Profile representative in OpenGlider"""
     #############Initialisation###################
-    def __init__(self,
-                 profile=_profdata,
-                 name="Profile"):
+    def __init__(self, profile=_profdata, name="Profile"):
         self.name = name
         if len(profile) > 2:
+            # Filter name
             if isinstance(profile[0][0], str):
                 self.name = profile[0][0]
-                i = 1
+                startindex = 1
             else:
-                i = 0
-            self._rootprof = BasicProfile2D(profile[i:])
+                startindex = 0
+            self._rootprof = BasicProfile2D(profile[startindex:])
             self._rootprof.normalize()
             self.reset()  # to set the profile
 
@@ -124,33 +125,33 @@ class Profile2D(BasicProfile2D):
     def __eq__(self, other):
         return numpy.array_equal(self.Profile, other.Profile)
 
-    def importdat(self, pfad):
-        if os.path.isfile(pfad):
-            tempfile = []
-            pfile = open(pfad, "r")
-            for line in pfile:
-                line = line.strip()
-                ###tab-seperated values except first line->name
-                if "\t" in line:
-                    line = line.split("\t")
-                else:
-                    line = line.split(" ")
-                while "" in line:
-                    line.remove("")
-                if len(line) == 2:
-                    line = [float(i) for i in line]
-                elif len(line) == 1:
-                    self.name = line
-                tempfile += [line]
-            self.__init__(tempfile)
-            pfile.close()
-        else:
-            raise Exception("Profile not found in"+pfad+"!")
+    def importdat(self, path):
+        """Import a *.dat profile"""
+        if not os.path.isfile(path):
+            raise Exception("Profile not found in"+path+"!")
+        tempfile = []
+        name = "Profile_Imported"
+        pfile = open(path, "r")
+        for line in pfile:
+            line = line.strip()
+            ###tab-seperated values except first line->name
+            if "\t" in line:
+                line = line.split("\t")
+            else:
+                line = line.split(" ")
+            while "" in line:
+                line.remove("")
+            if len(line) == 2:
+                tempfile.append([float(i) for i in line])
+            elif len(line) == 1:
+                name = line
+        self.__init__(tempfile, name)
+        pfile.close()
 
     def export(self, pfad):
         """Export Profile in .dat Format"""
         out = open(pfad, "w")
-        out.write(self.name)
+        out.write(str(self.name))
         for i in self.Profile:
             out.write("\n" + str(i[0]) + "\t" + str(i[1]))
         return pfad
@@ -172,7 +173,8 @@ class Profile2D(BasicProfile2D):
     def _setxvalues(self, xval):
         """Set X-Values of profile to defined points."""
         ###standard-value: root-prof xvalues
-        self.Profile = self._rootprof.points(xval)[:, 1]
+        self.Profile = [self._rootprof(x)[1] for x in xval]
+        #self.Profile = self._rootprof.points(xval)[:, 1]
 
     def _getlen(self):
         return len(self.data)
@@ -190,8 +192,8 @@ class Profile2D(BasicProfile2D):
         return numpy.array([[i, self.profilepoint(-i)[1][1]-self.profilepoint(i)[1][1]] for i in xvals])
 
     def _setthick(self, newthick):
-        factor = float(newthick/max(self.Thickness[:,1]))
-        new = self.Profile*[1., factor]
+        factor = float(newthick/max(self.Thickness[:, 1]))
+        new = self.Profile * [1., factor]
         self.__init__(new, self.name + "_" + str(newthick*100) + "%")
 
     def _getcamber(self, *xvals):
@@ -317,36 +319,6 @@ class Profile3D(Vectorlist):
             third = self.data[-1]
             self._tangents.append(normalize(third-second))
         return self._tangents
-
-# TODO: SHIP TO RIBS
-class MiniRib(Profile3D):
-    def __init__(self, xvalue, front_cut, back_cut, func=None, name="minirib"):
-        #Profile3D.__init__(self, [], name)
-
-        if not func:  # Function is a bezier-function depending on front/back
-            if front_cut > 0:
-                points = [[front_cut, 1], [front_cut*2./3+back_cut*1./3]]  #
-            else:
-                points = [[front_cut, 0]]
-
-            if back_cut < 1:
-                points = points + [[front_cut*1./3+back_cut*2./3, 0], [back_cut, 1]]
-            else:
-                points = points + [[back_cut, 0]]
-            func = BezierCurve(points).interpolation()
-
-        self.__function__ = func
-
-        self.xvalue = xvalue
-        self.front_cut = front_cut
-        self.back_cut = back_cut
-        Profile3D.__init__(self, profile=[], name=name)
-
-    def function(self, x):
-        if self.front_cut <= abs(x) <= self.back_cut:
-            return min(1, max(0, self.__function__(abs(x))))
-        else:
-            return 1
 
 
 

@@ -13,7 +13,7 @@ from openglider.Utils.Ballooning import BallooningBezier
 
 a = Profile2D()
 a.importdat(os.path.dirname(os.path.abspath(__file__))+"/testprofile.dat")
-#a.Numpoints = 400
+a.Numpoints = 40
 
 
 ballooning = BallooningBezier()
