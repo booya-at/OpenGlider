@@ -1,24 +1,27 @@
 __author__ = 'simon'
 from odf.opendocument import *
-import odf.table as ods
-from odf.text import P as odText
+import odf.table
+from odf.text import P
 
 
 def odfimport(filename):
 
     doc = load(filename)
-    sheets = doc.getElementsByType(ods.Table)
+    sheets = doc.getElementsByType(odf.table.Table)
+
+
+
     return sheets
 # doc.save("new document.odt")
 
 
 # Credits To Marco Conti for this (back in 2011)
 def sheettolist(sheet):
-    rows = sheet.getElementsByType(ods.TableRow)
+    rows = sheet.getElementsByType(odf.table.TableRow)
     sheetlist = []
     for row in rows:
         rowarray = []
-        cells = row.getElementsByType(ods.TableCell)
+        cells = row.getElementsByType(odf.table.TableCell)
         for cell in cells:
             # repeated value?
             cellarray = ""
@@ -26,7 +29,7 @@ def sheettolist(sheet):
             if not repeat:
                 repeat = 1
 
-            data = cell.getElementsByType(odText)
+            data = cell.getElementsByType(P)
             content = ""
 
             # for each text node

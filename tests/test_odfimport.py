@@ -1,9 +1,11 @@
 __author__ = 'simon'
-import openglider.Import.ODFImport as ODFImport
+import openglider.Import.ODFImport2 as ODFImport
 import unittest
 
-doc = ODFImport.odfimport("/home/simon/OpenGlider/tests/testkite.ods")
-print(ODFImport.sheettolist(doc[0]))
+doc = ODFImport.import_ods("/home/simon/OpenGlider/tests/demokite.ods")
+
+
+
 """
 class TestODF(unittest.TestCase):
     def setUp(self):
