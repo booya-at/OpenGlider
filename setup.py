@@ -49,4 +49,5 @@ setup(
     package_data=package_data,
     license='GPL-v3',
     long_description=open('README.md').read(),
+    requires=('ezodf', 'numpy')
 )

@@ -34,7 +34,7 @@ class Rib(object):
         if ptype == 1:
             return self.pos+self._rot.dot([points[0]*self.size, points[1]*self.size, 0])
         if ptype == 2 or ptype == 4:
-            return [self.align(i) for i in points]
+            return numpy.array([self.align(i) for i in points])
         if ptype == 3:
             return self._rot.dot(numpy.array([self.size, self.size, 0])*points)
     
@@ -50,20 +50,24 @@ class Rib(object):
     def recalc(self):
         ##recalc aoa_abs/rel
         ##Formula for aoa rel/abs: ArcTan[Cos[alpha]/gleitzahl]-aoa[rad];
+
         diff = numpy.arctan(numpy.cos(self.arcang)/self.glide)
+        # TODO: Fix relative/absolute aoa (See Mathematica:
         ##aoa->(rel,abs)
         #########checkdas!!!!!
         self.aoa[self._aoa[1]] = self._aoa[0]  # first one is relative
-        self.aoa[1-self._aoa[1]] = diff+self._aoa[0]  # second one absolute
+        self.aoa[1-self._aoa[1]] = -diff+self._aoa[0]  # second one absolute
+        # zrot -> ArcTan[Sin[alpha]/gleitzahl]*excel[[i,7]]
+        zrot = numpy.arctan(self.arcang)/self.glide*self.zrot
 
-        self._rot = rotation(self.aoa[1], self.arcang, self.zrot)
+        self._rot = rotation(self.aoa[1], self.arcang, zrot)
         self.profile_3d = Profile3D(self.align(self.profile_2d.Profile))
         self.normvectors = map(lambda x: self._rot.dot([x[0], x[1], 0]), self.profile_2d.normvectors())  # normvectors 2d->3d->rotated
 
     def mirror(self):
         self.arcang = -self.arcang
         self.zrot = -self.zrot
-        self.pos = numpy.multiply(self.pos,[-1.,1,1])
+        self.pos = numpy.multiply(self.pos, [1, -1., 1])
         #self.ReCalc()
 
     def copy(self):

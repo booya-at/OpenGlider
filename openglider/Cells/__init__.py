@@ -21,7 +21,14 @@ class BasicCell(object):
         p1 = self.prof1.tangents()
         p2 = self.prof2.tangents()
         # cross differenzvektor, tangentialvektor
-        self._normvectors = [-normalize(numpy.cross(p1[i]+p2[i], prof1[i]-prof2[i])) for i in range(len(p1))]
+
+        # TODO: Check, because no idea why, but sometimes there is a vector with length zero coming in here
+        self._normvectors = []
+        for i in range(len(p1)):
+            try:
+                self._normvectors.append(normalize(numpy.cross(p1[i]+p2[i], prof1[i]-prof2[i])))
+            except ValueError:
+                self._normvectors.append(self._normvectors[-1])
 
     def point(self, y=0, i=0, k=0):
         ##round ballooning
@@ -58,7 +65,7 @@ class BasicCell(object):
 
             for i in range(len(self.prof1.data)):  # Arc -> phi(bal) -> r  # oder so...
                 midrib.append(func(y, i))
-            return Profile3D(midrib)
+            return Profile3D(numpy.array(midrib))
 
     def _calcballooning(self):
         if not self._cosphi and not self._radius:
@@ -106,6 +113,8 @@ class Cell(BasicCell):
         return BasicCell.point(self,x,i,k)
 
     def recalc(self):
+        #self.rib1.recalc()
+        #self.rib2.recalc()
         xvalues = self.rib1.profile_2d.XValues
         #Map Ballooning
 

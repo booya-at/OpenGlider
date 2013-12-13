@@ -18,7 +18,7 @@ class BasicProfile2D(Vectorlist2D):
 
     def __mul__(self, other):
         fakt = numpy.array([1, float(other)])
-        return self.__class__(self.Profile * fakt)
+        return self.__class__(self.data * fakt)
 
     def __call__(self, xval):
         return self.profilepoint(xval)
@@ -185,11 +185,10 @@ class Profile2D(BasicProfile2D):
         xtemp = lambda x: ((x > 0.5)-(x < 0.5))*(1-math.sin(math.pi*x))
         self.XValues = [xtemp(j * 1. / i) for j in range(i + 1)]
 
-    def _getthick(self, *xvals):
+    def _getthick(self):
         """with no arg the max thick is returned"""
-        if not xvals:
-            xvals = sorted(set(map(abs, self.XValues)))
-        return numpy.array([[i, self.profilepoint(-i)[1][1]-self.profilepoint(i)[1][1]] for i in xvals])
+        xvals = sorted(set(map(abs, self.XValues)))
+        return max([self.profilepoint(-i)[1][1]-self.profilepoint(i)[1][1] for i in xvals])
 
     def _setthick(self, newthick):
         factor = float(newthick/max(self.Thickness[:, 1]))

@@ -20,8 +20,8 @@ ballooning = BallooningBezier()
 balloon = [ballooning(i) for i in a.XValues]
 
 
-r1 = Rib(a, ballooning, [0.12, 0, 0], 1., 20*math.pi/180, 2*math.pi/180, 0, 7)
-r3 = Rib(a, ballooning, [0.3, 0.2, -0.1], 0.8, 30*math.pi/180, 5*math.pi/180, 0, 7)
+r1 = Rib(a, ballooning, [0., 0.12, 0], 1., 20*math.pi/180, 2*math.pi/180, 0, 7.)
+r3 = Rib(a, ballooning, [0.2, 0.3, -0.1], 0.8, 30*math.pi/180, 5*math.pi/180, 0, 7.)
 r2 = r1.copy()
 r2.mirror()
 for i in [r1, r2, r3]:

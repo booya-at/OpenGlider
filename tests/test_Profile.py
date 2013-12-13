@@ -21,6 +21,14 @@ class TestProfile(unittest.TestCase):
         x = random.random()*random.randint(-1, 1)
         self.assertAlmostEqual(abs(x), self.prof.profilepoint(x)[1][0])
 
+    def test_multiplication(self):
+        factor = random.random()
+        other = self.prof * factor
+        self.assertAlmostEqual(other.Thickness, self.prof.Thickness * factor)
+        other *= 1./factor
+        self.assertAlmostEqual(other.Thickness, self.prof.Thickness)
+
+
 
 
 if __name__ == '__main__':

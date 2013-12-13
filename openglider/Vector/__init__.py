@@ -43,7 +43,10 @@ def norm(vector):
 
 
 def normalize(vector):
-    return vector / norm(vector)
+    leng = norm(vector)
+    if leng > 0:
+        return vector / norm(vector)
+    raise ValueError("Cannot normalize a vector of length Zero")
 
 
 def rangefrom(maxl, startpoint=0):
