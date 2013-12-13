@@ -5,6 +5,7 @@ from pivy.coin import SoMouseButtonEvent, SoLocation2Event
 
 
 
+
 class LoadProfile:
     def __init__(self):
         pass
@@ -66,16 +67,29 @@ class RunXfoil:
         else:
             return True
     def Activated(self):
+        self.b=FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Line")
+        self.ml = moveableLine(self.b, [])
+        ViewProvidermoveableLine(self.b.ViewObject)
         self.a1 = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Point")
         moveablePoint(self.a1, 1., 1.)
-        ViewProvidermoveablePoint(self.a1.ViewObject)
+        ViewProvidermoveablePoint(self.a1.ViewObject, self.ml)
         self.a2=FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Point")
         moveablePoint(self.a2, 2., 2.)
-        ViewProvidermoveablePoint(self.a2.ViewObject)
-        self.b=FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Line")
-        moveableLine(self.b, ())
-        vml = ViewProvidermoveableLine(self.b.ViewObject)
-        vml.plus((self.a1, self.a2))
+        ViewProvidermoveablePoint(self.a2.ViewObject, self.ml)
+        self.a3=FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Point")
+        moveablePoint(self.a3, 2., 0.)
+        ViewProvidermoveablePoint(self.a3.ViewObject, self.ml)
+        self.ml.addObject(self.a1)
+        self.ml.addObject(self.a2)
+        self.ml.addObject(self.a3)
+
+
+
+    def updatelist(self):
+        for i in self.b.Object.points:
+            if i.Object.ischanged:
+                self.b.Object.ViewObject.x1=0.
+
 
 class CompareProfile:
     def __init__(self):
@@ -88,6 +102,9 @@ class CompareProfile:
         else:
             return True
     def Activated(self):
+        self.a = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Points")
+        moveablepoints(self.a, [[1., 1.],[0.,0.],[3.,3.]])
+        ViewProvidermoveablepoints(self.a.ViewObject)
         pass
 
 class MergeProfile:
@@ -102,5 +119,4 @@ class MergeProfile:
             return True
     def Activated(self):
         pass
-
 
