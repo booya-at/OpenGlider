@@ -27,8 +27,8 @@ from openglider.Import import ODFImport2
 from . import Graphics as Graph
 
 #holds the importfunctions
-IMPORT_NAMES = {
-    'ods': ODFImport2.import_ods,
+IMPORT_EXPORT_NAMES = {
+    'ods': [ODFImport2.import_ods, lambda x, y: y],
 }
 
 
@@ -37,28 +37,34 @@ class Glider(object):
         self.cells = []
 
     def import_from_file(self, path, filetype='ods'):
-        IMPORT_NAMES[filetype](path, self)
+        IMPORT_EXPORT_NAMES[filetype][0](path, self)
 
-    def output_polygons(self, num):
+    def return_polygons(self, num):
+        if not self.cells:
+            return numpy.array([]), numpy.array([])
         #will hold all the points
         ribs = []
         for cell in self.cells:
             for y in range(num):
                 ribs.append(cell.midrib(y*1./num).data)
         ribs.append(self.cells[-1].midrib(1.).data)
-        # ribs is [[point1[x,y,z],[point2[x,y,z]],[point1[x,y,z],point2[x,y,z]]]
 
-        # num*cells+1 ribs
-
+        #points per rib
         points = len(ribs[0])
+        # ribs is [[point1[x,y,z],[point2[x,y,z]],[point1[x,y,z],point2[x,y,z]]]
         ribs = numpy.concatenate(ribs)
+        #now ribs is flat
         polygons = []
 
         for i in range(len(self.cells)*num):  # without +1, because we us i+1 below
             for k in range(points-1):  # same reason as above
-                polygons.append(Graph.Polygon([i*points+k, i*points+k+1, (i+1)*points+k+1, (i+1)*points+k]))
+                polygons.append([i*points+k, i*points+k+1, (i+1)*points+k+1, (i+1)*points+k])
+        return polygons, ribs
 
-        Graph.Graphics3D(polygons, ribs)
+    def close_last(self):
+        self.cells[-1].rib2.profile_2d *= 0.01
+        self.cells[-1].rib2.recalc()
+        self.cells[-1].recalc()
 
     def get_midrib(self, y=0):
         k = y % 1
@@ -85,9 +91,26 @@ class Glider(object):
             self.cells = self.cells[1:]
         for rib in self.ribs:
             rib.mirror()
+        for cell in self.cells:
+            first = cell.rib1
+            cell.rib1 = cell.rib2
+            cell.rib2 = first
+        self.cells = self.cells[::-1]
+
+    def recalc(self):
+        for rib in self.ribs:
+            rib.recalc()
+        #self.cells[0].rib1.recalc()
+        for cell in self.cells:
+        #    cell.rib2.recalc()
+            cell.recalc()
+
 
     def copy(self):
         return copy.deepcopy(self)
+
+    def export(self, path, file_type='ods'):
+        IMPORT_EXPORT_NAMES[file_type][1](self, path)
 
     ribs = property(fget=_get_ribs_)
 

@@ -77,6 +77,7 @@ class Rib(object):
         ##aoa->(rel,abs)
         #########checkdas!!!!!
         self.aoa[self._aoa[1]] = self._aoa[0]  # first one is relative
+        print(diff)
         self.aoa[1-self._aoa[1]] = -diff+self._aoa[0]  # second one absolute
         # zrot -> ArcTan[Sin[alpha]/gleitzahl]*excel[[i,7]]
         zrot = numpy.arctan(self.arcang)/self.glide*self.zrot

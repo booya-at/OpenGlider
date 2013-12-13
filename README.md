@@ -34,10 +34,10 @@ use python2 as vtk is not yet available for python3.
 Development Progress
 --------------------
 
-While still being in an early status, here is a little screenshot to see the progress:
+While still being in an early status, here is some little screenshots to see the progress:
 
 ![screenshot testcell with miniribs](doc/screen.png)
-
+![screenshot demokite with central minirib](doc/screen2.png)
 
 The plan is to build on:
 

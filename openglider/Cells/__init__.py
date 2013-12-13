@@ -113,6 +113,8 @@ Ballooning is considered to be arcs, following two simple rules:
 
 
 class Cell(BasicCell):
+
+    #TODO: cosmetics
     def __init__(self, rib1=Ribs.Rib(), rib2=Ribs.Rib(), miniribs=[]):
         self.rib1 = rib1
         self.rib2 = rib2
@@ -134,13 +136,13 @@ class Cell(BasicCell):
         return BasicCell.point(self,x,i,k)
 
     def recalc(self):
-        #self.rib1.recalc()
-        #self.rib2.recalc()
+
         xvalues = self.rib1.profile_2d.XValues
         #Map Ballooning
 
         if len(self.miniribs) == 0:  # In case there is no midrib, The Cell represents itself!
             self._cells = [self]  # The cell itself is its cell, clear?
+            BasicCell.__init__(self, self.rib1.profile_3d, self.rib2.profile_3d, [])
             self._phi = [self.rib1.ballooning(x)+self.rib2.ballooning(x) for x in xvalues]
             self._yvalues = [0, 1]
         else:

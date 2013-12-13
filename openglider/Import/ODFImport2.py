@@ -23,7 +23,7 @@ __author__ = 'simon'
 import ezodf
 from openglider.Utils.Ballooning import BallooningBezier
 from openglider.Profile import Profile2D
-from openglider.Ribs import Rib
+from openglider.Ribs import Rib, MiniRib
 from openglider.Cells import Cell
 #from openglider.glider import Glider
 import numpy
@@ -50,6 +50,7 @@ def import_ods(filename, glider=None):
     alpha2 = span_last = 0.
     # Glide -> DATAIMPORT
     for i in range(1, main.nrows()):
+        point = point.copy()
         line = [main.get_cell([i, j]).value for j in range(main.ncols())]
         if not line[0]:
             print("leere zeile:", i, main.nrows())
@@ -77,12 +78,10 @@ def import_ods(filename, glider=None):
                 return first * (1-k) + second * k
             return first
         profile = merge(line[8], profiles)
-        if i == main.nrows() - 3:
-            profile = profile * 0.0001
         ballooning = merge(line[9], balloonings)
         print(point)
 
-        ribs.append(Rib(profile, ballooning, point, chord, alpha, aoa, zrot))
+        ribs.append(Rib(profile, ballooning, point, chord, alpha, aoa, zrot, 7))
         ribs[-1].recalc()
         if i == 1 and point[1] is not 0:
             # MIDRIB

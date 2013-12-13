@@ -22,11 +22,12 @@
 #!/bin/python2
 
 __author__ = 'simon'
+import numpy
+import os
+import math
 from openglider.Profile import Profile2D
 from openglider.Cells import Cell
 from openglider.Ribs import Rib, MiniRib
-import os
-import math
 import openglider.Graphics as Graph
 from openglider.Utils.Ballooning import BallooningBezier
 
@@ -67,10 +68,10 @@ num = 40
 #Graph.Graphics3D([Graph.Line(x.data) for x in ribs])
 ribs = []
 for x in range(num+1):
-    ribs += cell1.midrib(x*1./num).data
+    ribs.append(cell1.midrib(x*1./num).data)
 for x in range(1, num+1):
-    ribs += cell2.midrib(x*1./num).data
-
+    ribs.append(cell2.midrib(x*1./num).data)
+ribs =numpy.concatenate(ribs)
 polygons = []
 points = a.Numpoints
 
