@@ -55,7 +55,7 @@ cell2 = BasicCell(r1.profile_3d, r3.profile_3d, balloon)
 
 
 num = 20
-ribs = [cell.midrib(x*1./num) for x in range(num+1)]
-ribs += [cell2.midrib(x*1./num) for x in range(num+1)]
+ribs = [cell.midrib_basic_cell(x*1./num) for x in range(num+1)]
+ribs += [cell2.midrib_basic_cell(x*1./num) for x in range(num+1)]
 #G.Graphics3D([G.Line(r1.profile_3d.data),G.Line(r2.profile_3d.data),G.Line([[0.,0.,0.],[1.,0.,0.]]),G.Line([[0.,0.,0.],[0.,0.5,0.]])])
 Graph.Graphics3D([Graph.Line(x.data) for x in ribs])

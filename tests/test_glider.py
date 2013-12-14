@@ -44,21 +44,18 @@ class test_glider_class(unittest.TestCase):
 
 
 def odf_import_visual_test(path='/home/simon/OpenGlider/tests/demokite.ods'):
-    new_glider = glider.Glider()
-    new_glider.import_from_file(path)
-    new_glider.close_last()
-    glider2 = new_glider.copy()
+    glider1 = glider.Glider()
+    glider1.import_from_file(path)
+    glider1.close_rib(-1)  # Stabi
+    glider2 = glider1.copy()
     glider2.mirror()
-    glider2.recalc()
-    #new_glider.cells[0].miniribs.append(MiniRib(0.5, 0.7, 1))
+    glider2.cells[0].rib2 = glider1.cells[0].rib1  # remove redundant rib-copy
+    glider1.cells = glider2.cells[::-1] + glider1.cells  # start from last mirrored towards last normal
+    glider1.recalc()
     # TODO: Miniribs for mirrored cells fail
-    new_glider.recalc()
-    (polygons, ribs) = new_glider.return_polygons(10)
-    (polygons2, rib2) = glider2.return_polygons(10)
-    start = len(ribs)
-    polygons = [openglider.Graphics.Polygon(polygon) for polygon in polygons] +\
-                [openglider.Graphics.Polygon([i + start for i in polygon]) for polygon in polygons2]
-    ribs = numpy.concatenate([ribs, rib2])
+    #new_glider.cells[0].miniribs.append(MiniRib(0.5, 0.7, 1))
+    (polygons, ribs) = glider1.return_polygons(20)
+    polygons = [openglider.Graphics.Polygon(polygon) for polygon in polygons]
     openglider.Graphics.Graphics3D(polygons, ribs)
 
 odf_import_visual_test()

@@ -23,12 +23,12 @@ __author__ = 'simon'
 import numpy
 import copy
 
-from openglider.Import import ODFImport2
+from openglider.Import import ODFImport
 from . import Graphics as Graph
 
 #holds the importfunctions
 IMPORT_EXPORT_NAMES = {
-    'ods': [ODFImport2.import_ods, lambda x, y: y],
+    'ods': [ODFImport.import_ods, lambda x, y: y],
 }
 
 
@@ -46,8 +46,8 @@ class Glider(object):
         ribs = []
         for cell in self.cells:
             for y in range(num):
-                ribs.append(cell.midrib(y*1./num).data)
-        ribs.append(self.cells[-1].midrib(1.).data)
+                ribs.append(cell.midrib_basic_cell(y*1./num).data)
+        ribs.append(self.cells[-1].midrib_basic_cell(1.).data)
 
         #points per rib
         points = len(ribs[0])
@@ -61,33 +61,27 @@ class Glider(object):
                 polygons.append([i*points+k, i*points+k+1, (i+1)*points+k+1, (i+1)*points+k])
         return polygons, ribs
 
-    def close_last(self):
-        self.cells[-1].rib2.profile_2d *= 0.01
-        self.cells[-1].rib2.recalc()
-        self.cells[-1].recalc()
+    def close_rib(self, rib=-1):
+        self.ribs[rib].profile_2d *= 0.01
+        self.ribs[rib].recalc()
 
     def get_midrib(self, y=0):
         k = y % 1
         i = y - k
-        if i == len(self.cells) and k == 0:
+        if i == len(self.cells) and k == 0:  # Stabi-rib
             i -= 1
             k = 1
-        return self.cells[i].midrib(k)
+        return self.cells[i].midrib_basic_cell(k)
 
     def _get_ribs_(self):
         if not self.cells:
             return []
         return [self.cells[0].rib1] + [cell.rib2 for cell in self.cells]
 
-    def recalc(self):
-        for cell in self.cells:
-            cell.recalc()
-
-    def mirror(self, cut=True):
-        #cell1 = self.cells[0]
+    def mirror(self, cutmidrib=True):
         if not self.cells:
             return
-        if self.cells[0].rib1.pos[1] != 0 and cut:
+        if self.cells[0].rib1.pos[1] != 0 and cutmidrib:  # Cut midrib
             self.cells = self.cells[1:]
         for rib in self.ribs:
             rib.mirror()
@@ -95,16 +89,12 @@ class Glider(object):
             first = cell.rib1
             cell.rib1 = cell.rib2
             cell.rib2 = first
-        self.cells = self.cells[::-1]
 
     def recalc(self):
         for rib in self.ribs:
             rib.recalc()
-        #self.cells[0].rib1.recalc()
         for cell in self.cells:
-        #    cell.rib2.recalc()
             cell.recalc()
-
 
     def copy(self):
         return copy.deepcopy(self)

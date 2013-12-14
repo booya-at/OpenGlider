@@ -37,25 +37,11 @@ class BasicCell(object):
         self._phi = ballooning  # ballooning arcs
         self._cosphi = self._radius = None
 
-        prof1 = prof1.data
-        prof2 = prof2.data
-        p1 = self.prof1.tangents()
-        p2 = self.prof2.tangents()
-        # cross differenzvektor, tangentialvektor
-
-        # TODO: Check, because no idea why, but sometimes there is a vector with length zero coming in here
-        self._normvectors = []
-        for i in range(len(p1)):
-            try:
-                self._normvectors.append(normalize(numpy.cross(p1[i]+p2[i], prof1[i]-prof2[i])))
-            except ValueError:
-                self._normvectors.append(self._normvectors[-1])
-
-    def point(self, y=0, i=0, k=0):
+    def point_basic_cell(self, y=0, i=0, k=0):
         ##round ballooning
-        return self.midrib(y).point((i, k))
+        return self.midrib_basic_cell(y).point((i, k))
 
-    def midrib(self, y, ballooning=True):
+    def midrib_basic_cell(self, y, ballooning=True):
         if y == 0:              # left side
             return self.prof1
         elif y == 1:            # right side
@@ -88,6 +74,20 @@ class BasicCell(object):
                 midrib.append(func(y, i))
             return Profile3D(numpy.array(midrib))
 
+    def recalc(self):
+        prof1 = self.prof1.data
+        prof2 = self.prof2.data
+        p1 = self.prof1.tangents()
+        p2 = self.prof2.tangents()
+        # cross differenzvektor, tangentialvektor
+        # TODO: Check, because no idea why, but sometimes there is a vector with length zero coming in here
+        self._normvectors = []
+        for i in range(len(p1)):
+            try:
+                self._normvectors.append(normalize(numpy.cross(p1[i]+p2[i], prof1[i]-prof2[i])))
+            except ValueError:
+                self._normvectors.append(self._normvectors[-1])
+
     def _calcballooning(self):
         if not self._cosphi and not self._radius:
             self._cosphi = []
@@ -119,24 +119,17 @@ class Cell(BasicCell):
         self.rib1 = rib1
         self.rib2 = rib2
         #if not self.rib1.profile_2d.Numpoints == self.rib2.profile_2d.Numpoints:
-
         #ballooning=rib1.ballooning
-
-        self.prof1 = self.rib1.profile_3d
-        self.prof2 = self.rib2.profile_3d
+        #self.prof1 = self.rib1.profile_3d
+        #self.prof2 = self.rib2.profile_3d
         self.miniribs = miniribs
-
         # inheritance backup
         BasicCell.__init__(self, self.rib1.profile_3d, self.rib2.profile_3d, [])
 
-    def _midrib(self, x, ballooning=True):
-        return BasicCell.midrib(self, x, ballooning)
-
-    def _point(self,x,i,k):
-        return BasicCell.point(self,x,i,k)
-
     def recalc(self):
-
+        self.prof1 = self.rib1.profile_3d
+        self.prof2 = self.rib2.profile_3d
+        BasicCell.recalc(self)
         xvalues = self.rib1.profile_2d.XValues
         #Map Ballooning
 
@@ -153,8 +146,8 @@ class Cell(BasicCell):
 
             prof1 = self.rib1.profile_3d
             for minirib in miniribs:
-                big = self._midrib(minirib.xvalue, True).data  # SUPER!!!?
-                small = self._midrib(minirib.xvalue, False).data
+                big = self.midrib_basic_cell(minirib.xvalue, True).data  # SUPER!!!?
+                small = self.midrib_basic_cell(minirib.xvalue, False).data
 
                 for i in range(len(big)):  # Calculate Rib
                     fakt = minirib.function(xvalues[i])  # factor ballooned/unb. (0-1)
@@ -176,46 +169,35 @@ class Cell(BasicCell):
             # f' = f*(l/l') [f=b/l]
             for i in range(len(prof1.data)):
                 bl = ballooning[i]+1  # B/L old
-                l = norm(self.prof2.data[i]-self.prof1.data[i])  # L
+                l = norm(self.rib2.profile_3d.data[i]-self.rib1.profile_3d.data[i])  # L
                 lnew = sum([norm(c.prof1.data[i]-c.prof2.data[i]) for c in self._cells])  # L-NEW
                 for c in self._cells:
                     c._phi.append(arsinc(1/(bl*l/lnew)))  # B/L NEW
 
     def point(self, y=0, i=0, k=0):
-        return self.midrib(y).point(i, k)
+        return self.midrib(y).point_basic_cell(i, k)
 
     def midrib(self, y, ballooning=True):
         """if x in self._yvalues:
             # TODO: Still wrong
             return self._cells[0]"""
         if len(self._cells) == 1:
-            return self._midrib(y,ballooning=ballooning)
+            return self.midrib_basic_cell(y, ballooning=ballooning)
         if ballooning:
             i = 0
             while self._yvalues[i+1] < y:
                 i += 1
             cell = self._cells[i]
             xnew = (y-self._yvalues[i]) / (self._yvalues[i+1]-self._yvalues[i])
-            return cell.midrib(xnew)
+            return cell.midrib_basic_cell(xnew)
         else:
-            return self._midrib(y, ballooning=False)
+            return self.midrib_basic_cell(y, ballooning=False)
 
     def _calcballooning(self):
         xvalues = self.rib1.profile_2d.XValues
         balloon = [self.rib1.ballooning[i] + self.rib2.ballooning[i] for i in xvalues]
         self._phi = [arsinc(1/(1+i)) for i in balloon]
         BasicCell._calcballooning(self)
-
-
-
-
-
-
-            # super??
-
-
-    # def minirib(self, x, front = 0, back = 1, lenfront = 0, lenback = 0):
-
 
 
 

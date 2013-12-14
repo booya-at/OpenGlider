@@ -20,56 +20,96 @@
 
 
 __author__ = 'simon'
-from odf.opendocument import *
-import odf.table
-from odf.text import P
+import ezodf
+from openglider.Utils.Ballooning import BallooningBezier
+from openglider.Profile import Profile2D
+from openglider.Ribs import Rib, MiniRib
+from openglider.Cells import Cell
+#from openglider.glider import Glider
+import numpy
 
 
-def odfimport(filename):
+def import_ods(filename, glider=None):
+    ods = ezodf.opendoc(filename)
+    sheets = ods.sheets
+    # Profiles -> map xvalues
+    profiles = [Profile2D(profile) for profile in transpose_columns(sheets[3])]
+    xvalues = sorted(profiles, key=lambda prof: prof.Numpoints)[0].XValues  # Use Profile with maximum profilepoints
+    for profile in profiles:
+        profile.XValues = xvalues
+    # Ballooning old : 1-8 > upper (prepend/append (0,0),(1,0)), 9-16 > lower (same + * (1,-1))
+    balloonings_temp = transpose_columns(sheets[4])
+    balloonings = []
+    for baloon in balloonings_temp:
+        upper = [[0, 0]] + baloon[:7] + [[1, 0]]
+        lower = [[0, 0]] + [[i[0], -1*i[1]] for i in baloon[8:15]] + [[1, 0]]
+        balloonings.append(BallooningBezier([upper, lower]))
 
-    doc = load(filename)
-    sheets = doc.getElementsByType(odf.table.Table)
+    cells = []
+    main = sheets[0]
+    x = y = z = span_last = 0.
+    alpha2 = 0.
+    thisrib = None
+    # TODO: Glide -> DATAIMPORT
+    for i in range(1, main.nrows()):
+        line = [main.get_cell([i, j]).value for j in range(main.ncols())]
+        if not line[0]:
+            print("leere zeile:", i, main.nrows())
+            break
 
+        chord = line[1]  # Rib-Chord
+        span = line[2]  # spanwise-length (flat)
+        alpha1 = alpha2  # angle before the rib
+        alpha2 += line[4]*numpy.pi/180  # angle after the rib
+        alpha = (span > 0)*(alpha1+alpha2)*0.5 + line[6] * numpy.pi/180  # rib's angle
+        x = line[3]  # x-value -> front/back (ribwise)
+        y += numpy.cos(alpha1) * (span - span_last)  # y-value -> spanwise
+        z -= numpy.sin(alpha1) * (span - span_last)  # z-axis -> up/down
+        aoa = line[5] * numpy.pi/180
+        zrot = line[7] * numpy.pi/180
+        span_last = span
 
+        # Merge Profiles/balloonings
+        def merge(factor, container):
+            k = factor % 1
+            ii = int(factor - k)
+            first = container[ii]
+            if k > 0:
+                second = container[ii+1]
+                return first * (1-k) + second * k
+            return first
 
-    return sheets
-# doc.save("new document.odt")
+        profile = merge(line[8], profiles)
+        ballooning = merge(line[9], balloonings)
 
+        lastrib = thisrib
+        thisrib = Rib(profile, ballooning, [x, y, z], chord, alpha, aoa, zrot, 7)
+        if i == 1 and y is not 0:  # Middle-cell
+            lastrib = thisrib.copy()
+            lastrib.mirror()
+        if lastrib:
+            cells.append(Cell(lastrib, thisrib, []))
 
-# Credits To Marco Conti for this (back in 2011)
-def sheettolist(sheet):
-    rows = sheet.getElementsByType(odf.table.TableRow)
-    sheetlist = []
-    for row in rows:
-        rowarray = []
-        cells = row.getElementsByType(odf.table.TableCell)
-        for cell in cells:
-            # repeated value?
-            cellarray = ""
-            repeat = cell.getAttribute("numbercolumnsrepeated")
-            if not repeat:
-                repeat = 1
+    if glider:
+        glider.cells = cells
+        glider.close_rib()
+        return
+    return cells
 
-            data = cell.getElementsByType(P)
-            content = ""
-
-            # for each text node
-            for sets in data:
-                for node in sets.childNodes:
-                    if node.nodeType == 3:
-                        content += node.data
-
-                    for i in range(int(repeat)):  # repeated?
-                        cellarray += content
-            rowarray.append(cellarray)
-        sheetlist.append(rowarray)
-
-    # fill shorter lines:
-    print(map(len, sheetlist))
-    leng = max(map(len, sheetlist))
-    for line in sheetlist:
-        line += ["" for i in range(leng-len(line))]
-    print(map(len, sheetlist))
-    return sheetlist
-
-
+def transpose_columns(sheet=ezodf.Table(), columnswidth=2):
+    num = sheet.ncols()
+    #if num % columnswidth > 0:
+    #    raise ValueError("irregular columnswidth")
+    result = []
+    for col in range(num/columnswidth):
+        columns = range(col*columnswidth, (col+1)*columnswidth)
+        element = []
+        i = 0
+        while i < sheet.nrows():
+            row = [sheet.get_cell([i, j]).value for j in columns]
+            if sum([j is None for j in row]) == len(row):  # Break at empty line
+                break
+            i += 1
+            element.append(row)
+        result.append(element)
+    return result

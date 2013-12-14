@@ -47,17 +47,21 @@ class Rib(object):
         self.zrot = zrot
         self.pos = startpoint
         self.size = size
+        self.profile_3d = None
+        self.rotation_matrix = None
+        self.normvectors = None
+        #self.profile_3d = Profile3D()
         
         #self.ReCalc()
 
     def align(self, points):
         ptype = arrtype(points)
         if ptype == 1:
-            return self.pos+self._rot.dot([points[0]*self.size, points[1]*self.size, 0])
+            return self.pos+self.rotation_matrix.dot([points[0]*self.size, points[1]*self.size, 0])
         if ptype == 2 or ptype == 4:
             return numpy.array([self.align(i) for i in points])
         if ptype == 3:
-            return self._rot.dot(numpy.array([self.size, self.size, 0])*points)
+            return self.rotation_matrix.dot(numpy.array([self.size, self.size, 0])*points)
     
     def _setaoa(self, aoa):
         try:
@@ -77,14 +81,13 @@ class Rib(object):
         ##aoa->(rel,abs)
         #########checkdas!!!!!
         self.aoa[self._aoa[1]] = self._aoa[0]  # first one is relative
-        print(diff)
         self.aoa[1-self._aoa[1]] = -diff+self._aoa[0]  # second one absolute
         # zrot -> ArcTan[Sin[alpha]/gleitzahl]*excel[[i,7]]
         zrot = numpy.arctan(self.arcang)/self.glide*self.zrot
 
-        self._rot = rotation(self.aoa[1], self.arcang, zrot)
+        self.rotation_matrix = rotation(self.aoa[1], self.arcang, zrot)
         self.profile_3d = Profile3D(self.align(self.profile_2d.Profile))
-        self.normvectors = map(lambda x: self._rot.dot([x[0], x[1], 0]), self.profile_2d.normvectors())  # normvectors 2d->3d->rotated
+        self.normvectors = map(lambda x: self.rotation_matrix.dot([x[0], x[1], 0]), self.profile_2d.normvectors())  # normvectors 2d->3d->rotated
 
     def mirror(self):
         self.arcang = -self.arcang
