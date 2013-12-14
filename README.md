@@ -28,6 +28,11 @@ or
 ```
   python2 tests/testcell_minirib.py
 ```
+or test the demokite
+```
+  python2 tests/test_glider.py
+```
+
 use python2 as vtk is not yet available for python3.
 
 
