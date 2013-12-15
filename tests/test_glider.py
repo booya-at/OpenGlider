@@ -17,11 +17,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-import numpy
 from openglider.Ribs import MiniRib
+import os
 import openglider.Graphics
 __author__ = 'simon'
-
+testfolder = os.path.dirname(os.path.abspath( __file__ ))
 import unittest
 
 from openglider import glider
@@ -30,7 +30,7 @@ class test_glider_class(unittest.TestCase):
     def __init__(self):
         unittest.TestCase.__init__(self)
         self.glider = glider.Glider()
-        self.glider.import_from_file('/home/simon/OpenGlider/tests/demokite.ods')
+        self.glider.import_from_file(testfolder+'/demokite.ods')
 
     def setUp(self):
         pass
