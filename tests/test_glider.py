@@ -20,42 +20,34 @@
 from openglider.Ribs import MiniRib
 import os
 import openglider.Graphics
+
 __author__ = 'simon'
 testfolder = os.path.dirname(os.path.abspath( __file__ ))
 import unittest
 
 from openglider import glider
 
+
 class test_glider_class(unittest.TestCase):
-    def __init__(self):
-        unittest.TestCase.__init__(self)
+    #def __init__(self):
+    #    unittest.TestCase.__init__(self)
+
+    def setUp(self):
         self.glider = glider.Glider()
         self.glider.import_from_file(testfolder+'/demokite.ods')
 
-    def setUp(self):
-        pass
-
     def test_import_export_ods(self):
         path = '/tmp/daweil.ods'
-        self.assertTrue(self.glider.export(path))
-        new_glider = glider.Glider()
-        self.assertTrue(new_glider.import_from_file(path))
+        self.glider.export(path)
+        #new_glider = glider.Glider()
+        #self.assertTrue(new_glider.import_from_file(path))
         #self.assertEqual(new_glider, self.glider)
 
+    def test_export_obj(self):
+        path = '/tmp/daweil.ods'
+        self.glider.export_obj(path)
 
-def odf_import_visual_test(path='/home/simon/OpenGlider/tests/demokite.ods'):
-    glider1 = glider.Glider()
-    glider1.import_from_file(path)
-    glider1.close_rib(-1)  # Stabi
-    glider2 = glider1.copy()
-    glider2.mirror()
-    glider2.cells[0].rib2 = glider1.cells[0].rib1  # remove redundant rib-copy
-    glider1.cells = glider2.cells[::-1] + glider1.cells  # start from last mirrored towards last normal
-    glider1.recalc()
-    # TODO: Miniribs for mirrored cells fail
-    #new_glider.cells[0].miniribs.append(MiniRib(0.5, 0.7, 1))
-    (polygons, ribs) = glider1.return_polygons(20)
-    polygons = [openglider.Graphics.Polygon(polygon) for polygon in polygons]
-    openglider.Graphics.Graphics3D(polygons, ribs)
 
-odf_import_visual_test()
+
+if __name__ == '__main__':
+        unittest.main(verbosity=2)

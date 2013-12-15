@@ -39,26 +39,54 @@ class Glider(object):
     def import_from_file(self, path, filetype='ods'):
         IMPORT_EXPORT_NAMES[filetype][0](path, self)
 
-    def return_polygons(self, num):
+    def export_obj(self, path, midribs=0, numpoints=None, floatnum=6):
+        if numpoints:
+            pass
+        other = self.copy()
+        other.mirror()
+        other.cells[0].rib2 = self.cells[0].rib1
+        other.cells = other.cells[::-1] + self.cells
+        other.recalc()
+        polygons, points = other.return_polygons(midribs)
+
+        # Write file
+        outfile = open(path, "w")
+        for point in points:
+            outfile.write("V ")
+            for coord in point:
+                outfile.write(str(round(coord, floatnum))+" ")
+            outfile.write("\n")
+        for polygon in polygons:
+            outfile.write("f ")
+            for point in polygon:
+                outfile.write(str(point)+" ")
+            outfile.write("\n")
+        outfile.close()
+
+
+        # array = other.cells[::-1] + self.cells
+
+    def return_polygons(self, num=0):
         if not self.cells:
             return numpy.array([]), numpy.array([])
+        num += 1
         #will hold all the points
         ribs = []
         for cell in self.cells:
             for y in range(num):
-                ribs.append(cell.midrib_basic_cell(y*1./num).data)
+                ribs.append(cell.midrib_basic_cell(y * 1. / num).data)
         ribs.append(self.cells[-1].midrib_basic_cell(1.).data)
 
         #points per rib
-        points = len(ribs[0])
+        numpoints = len(ribs[0])
         # ribs is [[point1[x,y,z],[point2[x,y,z]],[point1[x,y,z],point2[x,y,z]]]
         ribs = numpy.concatenate(ribs)
         #now ribs is flat
         polygons = []
-
-        for i in range(len(self.cells)*num):  # without +1, because we us i+1 below
-            for k in range(points-1):  # same reason as above
-                polygons.append([i*points+k, i*points+k+1, (i+1)*points+k+1, (i+1)*points+k])
+        for i in range(len(self.cells) * num):  # without +1, because we use i+1 below
+            for k in range(numpoints - 1):  # same reason as above
+                polygons.append(
+                    [i * numpoints + k, i * numpoints + k + 1, (i + 1) * numpoints + k + 1, (i + 1) * numpoints + k])
         return polygons, ribs
 
     def close_rib(self, rib=-1):
