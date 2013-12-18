@@ -283,8 +283,9 @@ class XFoil(Profile2D):
 class Profile3D(Vectorlist):
     def __init__(self, profile=[], name="Profile3d"):
         #Vectorlist.__init__(self, profile, name)
-        self._normvectors = self._tangents = False
-        self._diff = self._xvekt = self._yvekt = False
+        self._normvectors = self._tangents = None
+        self._diff = self._xvekt = self._yvekt = None
+        self.xvect = self.yvect = None
         self.data = profile
         self.name = name
 

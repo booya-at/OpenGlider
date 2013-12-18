@@ -38,14 +38,14 @@ class test_glider_class(unittest.TestCase):
 
     def test_import_export_ods(self):
         path = '/tmp/daweil.ods'
-        self.glider.export(path)
+        self.glider.export_to_file(path)
         #new_glider = glider.Glider()
         #self.assertTrue(new_glider.import_from_file(path))
         #self.assertEqual(new_glider, self.glider)
 
     def test_export_obj(self):
-        path = '/tmp/daweil.ods'
-        self.glider.export_obj(path)
+        path = '/tmp/Booya.obj'
+        self.glider.export_obj(path, 5)
 
 
 
