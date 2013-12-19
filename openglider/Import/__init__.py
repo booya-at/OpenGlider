@@ -17,7 +17,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
+import import_geometry
+import export_3d
 
+IMPORT_GEOMETRY = {
+    'ods': import_geometry.import_ods,
+    'xls': import_geometry.import_xls
+}
 
-neu=[]
-test=1
+EXPORT_3D = {
+    'obj': export_3d.export_obj,
+    'dxf': export_3d.export_dxf
+}
+

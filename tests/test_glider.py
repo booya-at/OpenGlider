@@ -34,18 +34,22 @@ class test_glider_class(unittest.TestCase):
 
     def setUp(self):
         self.glider = glider.Glider()
-        self.glider.import_from_file(testfolder+'/demokite.ods')
+        self.glider.import_geometry(testfolder+'/demokite.ods')
 
     def test_import_export_ods(self):
         path = '/tmp/daweil.ods'
-        self.glider.export_to_file(path)
+        self.glider.export_geometry(path)
         #new_glider = glider.Glider()
         #self.assertTrue(new_glider.import_from_file(path))
         #self.assertEqual(new_glider, self.glider)
 
     def test_export_obj(self):
         path = '/tmp/Booya.obj'
-        self.glider.export_obj(path, 5)
+        self.glider.export_3d(path, midribs=5)
+
+    def test_export_dxf(self):
+        path = '/tmp/booya.dxf'
+        self.glider.export_3d(path,midribs=5)
 
 
 

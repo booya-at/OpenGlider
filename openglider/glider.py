@@ -23,36 +23,28 @@ __author__ = 'simon'
 import numpy
 import copy
 
-from openglider.Import import ODFImport
-from openglider.Vector import normalize
-from openglider.Import import obj
-from . import Graphics as Graph
-
-#holds the importfunctions TODO: Just import the whole array
-IMPORT_NAMES = {
-    'ods': ODFImport.import_ods,
-    'obj': []
-}
-EXPORT_NAMES = {
-    'ods': lambda x, y: x
-
-}
+from openglider.Import import IMPORT_GEOMETRY, EXPORT_3D
 
 
 class Glider(object):
     def __init__(self):
         self.cells = []
 
-    def import_from_file(self, path, filetype='ods'):
-        IMPORT_NAMES[filetype](path, self)
-
-    def export_to_file(self, path="", filetype=None):
+    def import_geometry(self, path, filetype=None):
         if not filetype:
             filetype = path.split(".")[-1]
-        EXPORT_NAMES[filetype](path, self)
+        IMPORT_GEOMETRY[filetype](path, self)
 
+    def export_geometry(self, path="", filetype=None):
+        if not filetype:
+            filetype = path.split(".")[-1]
+        #EXPORT_NAMES[filetype](self, path)
 
-        # array = other.cells[::-1] + self.cells
+    def export_3d(self, path="", filetype=None, midribs=0, numpoints=None, floatnum=6):
+        if not filetype:
+            filetype = path.split(".")[-1]
+        EXPORT_3D[filetype](self, path, midribs, numpoints, floatnum)
+
     def return_ribs(self, num=0):
         if not self.cells:
             return numpy.array([])
@@ -64,55 +56,6 @@ class Glider(object):
                 ribs.append(cell.midrib(y * 1. / num).data)
         ribs.append(self.cells[-1].midrib(1.).data)
         return ribs
-
-    def export_obj(self, path, midribs=0, numpoints=None, floatnum=6):
-        if numpoints:
-            pass
-        other = self.copy()
-        other.mirror()
-        other.cells[0].rib2 = self.cells[0].rib1
-        other.cells = other.cells[::-1] + self.cells
-        other.recalc()
-        ribs = other.return_ribs(midribs)
-        normvectors = []
-        panels = []
-        points = []
-        numpoints = len(ribs[0])
-        for i in range(len(ribs)):
-            for j in range(numpoints):
-                # Create two Triangles from one rectangle:
-                # rectangle: [i * numpoints + k, i * numpoints + k + 1, (i + 1) * numpoints + k + 1, (i + 1) * numpoints + k])
-                # Start counting from 1!!
-                panels.append([i*numpoints + j+1, i*numpoints + j+2, (i+1)*numpoints + j+2])
-                panels.append([(i+1)*numpoints + j+1, i*numpoints + j+1, (i+1)*numpoints + j+2])
-                # Calculate normvectors
-                first = ribs[i+(i < len(ribs)-1)][j] - ribs[i-(i > 0)][j]  # Y-Axis
-                second = ribs[i][j-(j > 0)]-ribs[i][j+(j < numpoints-1)]
-                points.append((ribs[i][j], normalize(numpy.cross(first, second))))
-        panels = panels[:2*(len(ribs)-1)*(numpoints)-2]
-        # Write file
-        outfile = open(path, "w")
-        for point in points:
-            point = point[0]*[-1,-1,-1], point[1]*[-1,-1,-1]
-            outfile.write("vn")
-            for coord in point[1]:
-                outfile.write(" "+str(round(coord, floatnum)))
-            outfile.write("\n")
-            outfile.write("v")
-            for coord in point[0]:
-                outfile.write(" "+str(round(coord, floatnum)))
-            outfile.write("\n")
-        #outfile.write("# "+str(len(points))+" vertices, 0 vertices normals\n\n")
-        for polygon in panels:
-            outfile.write("f")
-            for point in polygon:
-                outfile.write(" "+str(point)+"//"+str(point))
-            outfile.write("\n")
-        #outfile.write("# "+str(len(panels))+" faces, 0 coords texture\n\n# End of File")
-        print(len(points),len(normvectors),len(panels),max(panels,key=lambda x: max(x)))
-
-        outfile.close()
-
 
     def return_polygons(self, num=0):
         if not self.cells:
@@ -142,11 +85,6 @@ class Glider(object):
             k = 1
         return self.cells[i].midrib_basic_cell(k)
 
-    def _get_ribs_(self):
-        if not self.cells:
-            return []
-        return [self.cells[0].rib1] + [cell.rib2 for cell in self.cells]
-
     def mirror(self, cutmidrib=True):
         if not self.cells:
             return
@@ -168,6 +106,10 @@ class Glider(object):
     def copy(self):
         return copy.deepcopy(self)
 
+    def _get_ribs_(self):
+        if not self.cells:
+            return []
+        return [self.cells[0].rib1] + [cell.rib2 for cell in self.cells]
 
     ribs = property(fget=_get_ribs_)
 

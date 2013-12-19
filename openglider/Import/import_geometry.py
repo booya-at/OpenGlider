@@ -69,16 +69,6 @@ def import_ods(filename, glider=None):
         zrot = line[7] * numpy.pi/180
         span_last = span
 
-        # Merge Profiles/balloonings
-        def merge(factor, container):
-            k = factor % 1
-            ii = int(factor - k)
-            first = container[ii]
-            if k > 0:
-                second = container[ii+1]
-                return first * (1-k) + second * k
-            return first
-
         profile = merge(line[8], profiles)
         ballooning = merge(line[9], balloonings)
 
@@ -95,6 +85,7 @@ def import_ods(filename, glider=None):
         glider.close_rib()
         return
     return cells
+
 
 def transpose_columns(sheet=ezodf.Table(), columnswidth=2):
     num = sheet.ncols()
@@ -113,3 +104,17 @@ def transpose_columns(sheet=ezodf.Table(), columnswidth=2):
             element.append(row)
         result.append(element)
     return result
+
+
+def merge(factor, container):
+    k = factor % 1
+    i = int(factor - k)
+    first = container[i]
+    if k > 0:
+        second = container[i+1]
+        return first * (1-k) + second * k
+    return first
+
+
+def import_xls():
+    pass
