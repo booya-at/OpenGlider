@@ -86,7 +86,10 @@ class BasicCell(object):
             try:
                 self._normvectors.append(normalize(numpy.cross(p1[i]+p2[i], prof1[i]-prof2[i])))
             except ValueError:
-                self._normvectors.append(self._normvectors[-1])
+                try:
+                    self._normvectors.append(self._normvectors[-1])
+                except IndexError:  # (TODO:) got one with length zero at the beginning, why?
+                    self._normvectors.append(numpy.array([0, 0, 0]))
 
     def _calcballooning(self):
         if not self._cosphi and not self._radius:
@@ -131,12 +134,12 @@ class Cell(BasicCell):
         self.prof2 = self.rib2.profile_3d
         BasicCell.recalc(self)
         xvalues = self.rib1.profile_2d.XValues
+        self._phi = [self.rib1.ballooning(x)+self.rib2.ballooning(x) for x in xvalues]
         #Map Ballooning
 
         if len(self.miniribs) == 0:  # In case there is no midrib, The Cell represents itself!
             self._cells = [self]  # The cell itself is its cell, clear?
             BasicCell.__init__(self, self.rib1.profile_3d, self.rib2.profile_3d, [])
-            self._phi = [self.rib1.ballooning(x)+self.rib2.ballooning(x) for x in xvalues]
             self._yvalues = [0, 1]
         else:
             ballooning = [self.rib1.ballooning[x]+self.rib2.ballooning[x] for x in xvalues]

@@ -1,19 +1,21 @@
 __author__ = 'simon'
-from openglider.Vector import normalize
+from openglider.Vector import normalize, norm
 import numpy
 from dxfwrite import DXFEngine as dxf
+from openglider.Graphics import Graphics3D, Line
 
 
 def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6):
-    if numpoints:
-        glider.numpoints = numpoints
     other = glider.copy()
+    if numpoints:
+        other.numpoints = numpoints
+        print(other.numpoints)
     other.mirror()
-    other.cells[0].rib2 = glider.cells[0].rib1
-    other.cells = other.cells[::-1] + glider.cells
+    other.cells[-1].rib2 = glider.cells[0].rib1
+    other.cells = other.cells + glider.cells
     other.recalc()
     ribs = other.return_ribs(midribs)
-    normvectors = []
+
     panels = []
     points = []
     numpoints = len(ribs[0])
@@ -26,8 +28,13 @@ def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6):
             panels.append([(i+1)*numpoints + j+1, i*numpoints + j+1, (i+1)*numpoints + j+2])
             # Calculate normvectors
             first = ribs[i+(i < len(ribs)-1)][j] - ribs[i-(i > 0)][j]  # Y-Axis
+            #if norm(first) == 0:  # TODO: JUst a quick fix, find the problem!! it seems to be in the center
+            #    first = ribs[i+2*(i < len(ribs)-2)][j] - ribs[i-2*(i > 1)][j]
             second = ribs[i][j-(j > 0)]-ribs[i][j+(j < numpoints-1)]
-            points.append((ribs[i][j], normalize(numpy.cross(first, second))))
+            try:
+                points.append((ribs[i][j], normalize(numpy.cross(first, second))))
+            except ValueError:
+                raise ValueError("vektor of length 0 at: i="+str(i)+", j="+str(j)+str(first))
     panels = panels[:2*(len(ribs)-1)*numpoints-2]
     # Write file
     outfile = open(path, "w")
@@ -48,7 +55,7 @@ def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6):
             outfile.write(" "+str(point)+"//"+str(point))
         outfile.write("\n")
     #outfile.write("# "+str(len(panels))+" faces, 0 coords texture\n\n# End of File")
-    print(len(points), len(normvectors), len(panels), max(panels, key=lambda x: max(x)))
+    #print(len(points), len(normvectors), len(panels), max(panels, key=lambda x: max(x)))
 
     outfile.close()
     return True

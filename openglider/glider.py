@@ -51,6 +51,7 @@ class Glider(object):
         num += 1
         #will hold all the points
         ribs = []
+        print(len(self.cells))
         for cell in self.cells:
             for y in range(num):
                 ribs.append(cell.midrib(y * 1. / num).data)
@@ -96,6 +97,7 @@ class Glider(object):
             first = cell.rib1
             cell.rib1 = cell.rib2
             cell.rib2 = first
+        self.cells = self.cells[::-1]
 
     def recalc(self):
         for rib in self.ribs:
@@ -111,7 +113,17 @@ class Glider(object):
             return []
         return [self.cells[0].rib1] + [cell.rib2 for cell in self.cells]
 
+    def _get_numpoints(self):
+        return self.ribs[0].profile_2d.Numpoints
+
+    def _set_numpoints(self, numpoints):
+        self.ribs[0].profile_2d.Numpoints = numpoints
+        xvalues = self.ribs[0].profile_2d.XValues
+        for rib in self.ribs:
+            rib.profile_2d.XValues = xvalues
+
     ribs = property(fget=_get_ribs_)
+    numpoints = property(_get_numpoints, _set_numpoints)
 
 
 

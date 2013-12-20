@@ -45,6 +45,15 @@ def import_ods(filename, glider=None):
         lower = [[0, 0]] + [[i[0], -1*i[1]] for i in baloon[8:15]] + [[1, 0]]
         balloonings.append(BallooningBezier([upper, lower]))
 
+    # Data
+    data = {}
+    datasheet = sheets[-1]
+    assert isinstance(datasheet, ezodf.Sheet)
+    for i in range(datasheet.nrows()):
+        data[datasheet.get_cell([i,0]).value] = datasheet.get_cell([i,1]).value
+    print(data["GLEITZAHL"])
+    glider.speed = data["GESCHWINDIGKEIT"]
+
     cells = []
     main = sheets[0]
     x = y = z = span_last = 0.
@@ -73,8 +82,9 @@ def import_ods(filename, glider=None):
         ballooning = merge(line[9], balloonings)
 
         lastrib = thisrib
-        thisrib = Rib(profile, ballooning, [x, y, z], chord, alpha, aoa, zrot, 7)
-        if i == 1 and y is not 0:  # Middle-cell
+        thisrib = Rib(profile, ballooning, [x, y, z], chord, alpha, aoa, zrot, data["GLEITZAHL"])
+        if i == 1 and y != 0:  # Middle-cell
+            print("midrib!", y)
             lastrib = thisrib.copy()
             lastrib.mirror()
         if lastrib:

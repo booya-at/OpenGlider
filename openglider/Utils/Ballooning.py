@@ -58,10 +58,8 @@ class Ballooning(object):
 
     def __mul__(self, other):
         """Multiply Ballooning With a Value"""
-        up = self.upper.copy
-        low = self.lower.copy
-        up.y = [i*other for i in up.y]
-        low.y = [i*other for i in low.y]
+        up = interp1d(self.upper.x, [i*other for i in self.upper.y])
+        low = interp1d(self.upper.x, [i*other for i in self.lower.y])
         return Ballooning(up, low)
 
     def copy(self):
@@ -113,9 +111,11 @@ class BallooningBezier(Ballooning):
     def __mul__(self, other):  # TODO: Check consistency
         """Multiplication of BezierBallooning"""
         # Multiplicate as normal interpolated ballooning, then refit
-        Ballooning.__mul__(self, other)
-        self.upbez.fit(numpy.transpose([self.upper.x, self.upper.y]))
-        self.lowbez.fit(numpy.transpose([self.lower.x, self.lower.y]))
+        return Ballooning.__mul__(self, other)
+        #self.upper = temp.upper
+        #self.lower = temp.lower
+        #self.upbez.fit(numpy.transpose([self.upper.x, self.upper.y]))
+        #self.lowbez.fit(numpy.transpose([self.lower.x, self.lower.y]))
 
     def _setnumpoints(self, numpoints):
         Ballooning.__init__(self, self.upbez.interpolation(numpoints), self.lowbez.interpolation(numpoints))
