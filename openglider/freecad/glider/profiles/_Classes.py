@@ -1,30 +1,9 @@
-#! /usr/bin/python2
-# -*- coding: utf-8; -*-
-#
-# (c) 2013 booya (http://booya.at)
-#
-# This file is part of the OpenGlider project.
-#
-# OpenGlider is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# OpenGlider is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-
-
 import FreeCAD
 import FreeCADGui
 from openglider.Profile import Profile2D
 from pivy import coin
 import PartGui
-
+import numpy
 
 
 class Airfoil():
@@ -37,7 +16,7 @@ class Airfoil():
         obj.addProperty("App::PropertyInteger", "Numpoints",
                         "profile", "Number of points").Numpoints = self.prof.Numpoints
         obj.addProperty("App::PropertyFloat", "Thickness", "profile",
-                        "Thickness of Profile").Thickness = max(self.prof.Thickness[:, 1]) * 1000
+                        "Thickness of Profile").Thickness = self.prof.Thickness * 1000
         #obj.addProperty("App::PropertyFloat", "Camber", "profile", "Camber of Profile").Camber = max(self.prof.Camber[:,1]) * 1000
         obj.addProperty("App::PropertyString", "Name",
                         "profile", "Name of profile").Name = self.prof.name
@@ -192,7 +171,7 @@ class ViewProvidermoveablePoint():
             self.x = fp.x
             self.y = fp.y
             self.data.point.setValue(self.x, self.y, 0)
-            self.lineobject.Object.x1 = 0.
+            self.lineobject.Object.ischanged = False
     def getDisplayModes(self, obj):
         "Return a list of display modes."
         modes = []
@@ -203,6 +182,7 @@ class ViewProvidermoveablePoint():
     def highlight_cb(self, event_callback):
         event = event_callback.getEvent()
         pos = event.getPosition()
+        #FreeCAD.Console.PrintWarning(str(pos)+"bla")
         s = self.view.getPointOnScreen(self.x, self.y, 0.)
         if (abs(s[0] - pos[0]) ** 2 +  abs(s[1] - pos[1]) ** 2) < (15 ** 2):
             if self.highlightind:
@@ -299,7 +279,7 @@ class ViewProvidermoveablepoints():
             p.append([i[0],i[1],0.])
         self.data.point.setValue(0,0,0)
         self.data.point.setValues(0, len(p), p)
-        self.lineobject.Object.x1 = 1
+        self.lineobject.Object.ischanged = True
 
 
 
@@ -357,9 +337,11 @@ class moveableLine():
     """FreeCAD Point"""
 
     def __init__(self, obj, points):
-        obj.addProperty("App::PropertyLinkList",
-                        "points", "test", "test").points = points
-        obj.addProperty("App::PropertyFloat", "x1", "test", "test").x1 = 0.
+        obj.addProperty("App::PropertyLinkList", "points", "test", "test")
+        obj.addProperty("App::PropertyBool", "ischanged", "test", "test")
+
+        obj.points = points
+        obj.ischanged = True
         obj.Proxy = self
         self.Object = obj
 
@@ -370,6 +352,7 @@ class moveableLine():
         pass
 
     def addObject(self, child):
+        #self.Object.points = self.Object.points[] + [child]
         temp = self.Object.points
         temp.append(child)
         self.Object.points = temp
@@ -385,21 +368,18 @@ class ViewProvidermoveableLine():
         return(self.object.points)
 
     def attach(self, vobj):
-        self.out = coin.SoSeparator()
+        self.seperator = coin.SoSeparator()
         self.point = coin.SoLineSet()
         self.data = coin.SoCoordinate3()
         self.color = coin.SoMaterial()
         self.color.diffuseColor.setValue(0, 0, 0)
-        self.out.addChild(self.color)
-        self.out.addChild(self.data)
-        self.out.addChild(self.point)
-        vobj.addDisplayMode(self.out, 'out')
-        pass
+        self.seperator.addChild(self.color)
+        self.seperator.addChild(self.data)
+        self.seperator.addChild(self.point)
+        vobj.addDisplayMode(self.seperator, 'out')
 
     def updateData(self, fp, prop):
-        p = []
-        for i in fp.points:
-            p.append([i.x, i.y, 0.])
+        p = [[i.x, i.y, 0] for i in fp.points]
         self.data.point.setValue(0, 0, 0)
         self.data.point.setValues(0, len(p), p)
 
@@ -408,4 +388,83 @@ class ViewProvidermoveableLine():
         modes = []
         modes.append("out")
         return modes
+
+
+from openglider.Utils import Bezier
+
+class moveableSpline():
+
+    """FreeCAD Point"""
+
+    def __init__(self, obj, points):
+        obj.addProperty("App::PropertyLinkList", "points", "test", "test")
+        obj.addProperty("App::PropertyBool", "ischanged", "test", "test")
+
+        obj.points = points
+        obj.ischanged = True
+        obj.Proxy = self
+        self.Object = obj
+
+    def execute(self, fp):
         pass
+
+    def onChanged(self, fp, prop):
+        pass
+
+    def addObject(self, child):
+        #self.Object.points = self.Object.points[] + [child]
+        temp = self.Object.points
+        temp.append(child)
+        self.Object.points = temp
+
+
+
+#class moveableSpline(moveableLine):
+#    pass
+
+# class ViewProvidermoveableSpline(ViewProvidermoveableLine):
+#     def __init__(self, obj):
+#         ViewProvidermoveableLine.__init__(self,obj)
+#         self.bezier = Bezier.BezierCurve([[0,0],[1,0]])
+
+#     def updateData(self, fp, prop):
+#         num = 100
+#         data = [self.bezier(i*1./(num-1)) for i in range(num)]
+#         self.data.point.setValue(0, 0, 0)
+#         self.data.point.setValues(0, len(data), data)
+
+
+
+class ViewProvidermoveableSpline():
+
+    def __init__(self, obj):
+        self.object = obj.Object
+        self.bezier = Bezier.BezierCurve([[0,1],[2,3],[3,0]])
+        obj.Proxy = self
+
+    def claimChildren(self):
+        return(self.object.points)
+
+    def attach(self, vobj):
+        self.seperator = coin.SoSeparator()
+        self.point = coin.SoLineSet()
+        self.data = coin.SoCoordinate3()
+        self.color = coin.SoMaterial()
+        self.color.diffuseColor.setValue(0, 0, 0)
+        self.seperator.addChild(self.color)
+        self.seperator.addChild(self.data)
+        self.seperator.addChild(self.point)
+        vobj.addDisplayMode(self.seperator, 'out')
+
+    def updateData(self, fp, prop):
+        num = 20
+        self.bezier.ControlPoints = [[i.x, i.y] for i in self.object.points]
+        data = [self.bezier(i*1./(num-1)).tolist() + [0] for i in range(num)]
+        self.data.point.setValue(0, 0, 0)
+        self.data.point.setValues(0, len(data), data)
+
+    def getDisplayModes(self, obj):
+        "Return a list of display modes."
+        modes = []
+        modes.append("out")
+        return modes

@@ -1,24 +1,3 @@
-#! /usr/bin/python2
-# -*- coding: utf-8; -*-
-#
-# (c) 2013 booya (http://booya.at)
-#
-# This file is part of the OpenGlider project.
-#
-# OpenGlider is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# OpenGlider is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-
-
 import FreeCAD
 from _Classes import *
 import FreeCADGui
@@ -77,6 +56,33 @@ class ChangeProfile:
                 self.view.removeEventCallbackPivy(SoMouseButtonEvent.getClassTypeId(),self.createcallback)    
 
 
+# class RunXfoil:
+#     def __init__(self):
+#         pass
+#     def GetResources(self):
+#         return {'Pixmap': 'glider_profile_xfoil.svg', 'MenuText': 'run xfoil', 'ToolTip': 'run xfoil'}
+#     def IsActive(self):
+#         if FreeCAD.ActiveDocument is None:
+#             return False
+#         else:
+#             return True
+#     def Activated(self):
+#         self.b=FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Line")
+#         self.ml = moveableLine(self.b, [])
+#         ViewProvidermoveableLine(self.b.ViewObject)
+#         self.a1 = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Point")
+#         moveablePoint(self.a1, 1., 1.)
+#         ViewProvidermoveablePoint(self.a1.ViewObject, self.ml)
+#         self.a2=FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Point")
+#         moveablePoint(self.a2, 2., 2.)
+#         ViewProvidermoveablePoint(self.a2.ViewObject, self.ml)
+#         self.a3=FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Point")
+#         moveablePoint(self.a3, 2., 0.)
+#         ViewProvidermoveablePoint(self.a3.ViewObject, self.ml)
+#         self.ml.addObject(self.a1)
+#         self.ml.addObject(self.a2)
+#         self.ml.addObject(self.a3)
+
 class RunXfoil:
     def __init__(self):
         pass
@@ -89,8 +95,8 @@ class RunXfoil:
             return True
     def Activated(self):
         self.b=FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Line")
-        self.ml = moveableLine(self.b, [])
-        ViewProvidermoveableLine(self.b.ViewObject)
+        self.ml = moveableSpline(self.b, [])
+        ViewProvidermoveableSpline(self.b.ViewObject)
         self.a1 = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Point")
         moveablePoint(self.a1, 1., 1.)
         ViewProvidermoveablePoint(self.a1.ViewObject, self.ml)
