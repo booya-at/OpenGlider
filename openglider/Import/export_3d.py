@@ -4,7 +4,6 @@ import numpy
 from dxfwrite import DXFEngine as dxf
 from openglider.Graphics import Graphics3D, Line
 
-
 def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6):
     other = glider.copy()
     if numpoints:
@@ -78,3 +77,7 @@ def export_dxf(glider, path="", midribs=0, numpoints=None, *other):
         outfile.add(dxf.polyface(rib*1000, layer='RIBS'))
         outfile.add(dxf.polyline(rib*1000, layer='RIBS'))
     return outfile.save()
+
+
+def export_apame():
+    

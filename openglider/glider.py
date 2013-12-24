@@ -75,7 +75,7 @@ class Glider(object):
         return polygons, ribs
 
     def close_rib(self, rib=-1):
-        self.ribs[rib].profile_2d *= 0.01
+        self.ribs[rib].profile_2d *= 0.
         self.ribs[rib].recalc()
 
     def get_midrib(self, y=0):
