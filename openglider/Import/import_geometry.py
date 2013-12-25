@@ -52,7 +52,7 @@ def import_ods(filename, glider=None):
     for i in range(datasheet.nrows()):
         data[datasheet.get_cell([i,0]).value] = datasheet.get_cell([i,1]).value
     #print(data["GLEITZAHL"])
-    glider.speed = data["GESCHWINDIGKEIT"]
+    glider.data = data
 
     cells = []
     main = sheets[0]

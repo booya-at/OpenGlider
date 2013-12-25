@@ -29,6 +29,7 @@ from openglider.Import import IMPORT_GEOMETRY, EXPORT_3D
 class Glider(object):
     def __init__(self):
         self.cells = []
+        self.data = {}
 
     def import_geometry(self, path, filetype=None):
         if not filetype:

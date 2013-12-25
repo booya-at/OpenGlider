@@ -25,7 +25,7 @@ if len(sys.argv) >= 4:
 
     # Print vinf, ca_projection, cw_projection
     alpha = math.atan(1/glider.ribs[0].glide)
-    v = glider.speed
+    v = glider.data["GESCHWINDIGKEIT"]
     vinf = [-math.cos(alpha)*v, 0, -math.sin(alpha)*v]
     ca = normalize([-vinf[2], 0, vinf[0]])
     print("vinf ", vinf)
