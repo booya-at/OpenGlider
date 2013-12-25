@@ -61,7 +61,7 @@ cell2 = Cell(r2, r3, [])
 cell2.recalc()
 
 
-num = 40
+num = 10
 #ribs = [cell1.midrib(x*1./num) for x in range(num+1)]
 #ribs += [cell2.midrib(x*1./num) for x in range(num+1)]
 #G.Graphics3D([G.Line(r1.profile_3d.data),G.Line(r2.profile_3d.data),G.Line([[0.,0.,0.],[1.,0.,0.]]),G.Line([[0.,0.,0.],[0.,0.5,0.]])])

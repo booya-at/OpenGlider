@@ -49,7 +49,7 @@ class Rib(object):
         self.size = size
         self.profile_3d = None
         self.rotation_matrix = None
-        self.normvectors = None
+        self._normvectors = None
         #self.profile_3d = Profile3D()
         
         #self.ReCalc()
@@ -72,6 +72,10 @@ class Rib(object):
     def _getaoa(self):
         return dict(zip(["rel", "abs"], self.aoa))  # return in form: ("rel":aoarel,"abs":aoa)
 
+    def normvectors(self):
+        if not self._normvectors:
+            self._normvectors = map(lambda x: self.rotation_matrix.dot([x[0], x[1], 0]), self.profile_2d.normvectors())
+
     def recalc(self):
         ##recalc aoa_abs/rel
         ##Formula for aoa rel/abs: ArcTan[Cos[alpha]/gleitzahl]-aoa[rad];
@@ -87,7 +91,8 @@ class Rib(object):
 
         self.rotation_matrix = rotation(self.aoa[1], self.arcang, zrot)
         self.profile_3d = Profile3D(self.align(self.profile_2d.Profile))
-        self.normvectors = map(lambda x: self.rotation_matrix.dot([x[0], x[1], 0]), self.profile_2d.normvectors())  # normvectors 2d->3d->rotated
+        self._normvectors = None
+          # normvectors 2d->3d->rotated
 
     def mirror(self):
         self.arcang = -self.arcang

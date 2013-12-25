@@ -35,30 +35,20 @@ void main(int argc, char* argv[]){
 
 		ofstream inputfile;
 		inputfile.open("afile.dat");
-		
-		//bool passed = false;
-		char* thisline;
-
-		while( !passed && readline(inputfile, thisline)){
-			if (thisline == "BLABALLALALLLLALLALA->panels")
-				break;
-			//Read Variables
-
-		}
-
-		//Read Points
-
-		//Read Panels+Wake
-
-		// -> struct panel -> p1(int), p2, p3, p4, normvekt, 
-
-		inputfile.close();
-
-
-		cout "etwas, " << "nowas" << endl;
-
 		cout "Loading File" << endl << endl;
+		
+		char* thisline;
+		////////////////////////////////////////////CONFIG
+		while(readline(inputfile, thisline)){
+			if (thisline[0] == '#')	continue; //Comment
+			//value->argument
 
+
+			config[value] = argument;
+
+			if (value == "NODES")	break;
+			}
+		//////////////////////Move down
 		cout "Airspeed:  " << config["AIRSPEED"] << endl;
 		cout "Density:  " << config["DENSITY"] << endl;
 		cout "Pressure [Pa]:  " << config["PRESSURE"] << endl;
@@ -68,6 +58,33 @@ void main(int argc, char* argv[]){
 		cout "SURFACE: " << config["SURFACE"] << endl;
 		// ERROR, COLLDIST, FARFIELD=5, 
 		//Results: coefficients, forces, geometry, velocity, pressure, center points, doublet values, source values, velocity components, mesh caracteristics, static pressure, dynamic pressure, manometer pressure (1/0)
+
+
+		////////////////////////////////////////////NODES
+		nodes = Matrix<float, 3, config["NODES"]>
+		int i = 0;
+		while(readline(inputfile,thisline)){
+			if (thisline[0] == '#') continue;
+
+			nodes[i] = [0,0,0]
+
+
+
+
+		}
+
+		///////////////////////////////////////////PANELS/WAKE
+		// -> struct panel -> p1(int), p2, p3, p4, normvekt,
+
+
+
+
+		 
+
+		inputfile.close();
+
+
+
 
 
 

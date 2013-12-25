@@ -51,7 +51,7 @@ def import_ods(filename, glider=None):
     assert isinstance(datasheet, ezodf.Sheet)
     for i in range(datasheet.nrows()):
         data[datasheet.get_cell([i,0]).value] = datasheet.get_cell([i,1]).value
-    print(data["GLEITZAHL"])
+    #print(data["GLEITZAHL"])
     glider.speed = data["GESCHWINDIGKEIT"]
 
     cells = []
@@ -63,7 +63,7 @@ def import_ods(filename, glider=None):
     for i in range(1, main.nrows()):
         line = [main.get_cell([i, j]).value for j in range(main.ncols())]
         if not line[0]:
-            print("leere zeile:", i, main.nrows())
+            #print("leere zeile:", i, main.nrows())
             break
 
         chord = line[1]  # Rib-Chord
@@ -84,7 +84,7 @@ def import_ods(filename, glider=None):
         lastrib = thisrib
         thisrib = Rib(profile, ballooning, [x, y, z], chord, alpha, aoa, zrot, data["GLEITZAHL"])
         if i == 1 and y != 0:  # Middle-cell
-            print("midrib!", y)
+            #print("midrib!", y)
             lastrib = thisrib.copy()
             lastrib.mirror()
         if lastrib:

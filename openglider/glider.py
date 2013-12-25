@@ -51,7 +51,7 @@ class Glider(object):
         num += 1
         #will hold all the points
         ribs = []
-        print(len(self.cells))
+        #print(len(self.cells))
         for cell in self.cells:
             for y in range(num):
                 ribs.append(cell.midrib(y * 1. / num).data)

@@ -36,6 +36,7 @@ class BasicCell(object):
 
         self._phi = ballooning  # ballooning arcs
         self._cosphi = self._radius = None
+        self._normvectors = None
 
     def point_basic_cell(self, y=0, i=0, k=0):
         ##round ballooning
@@ -130,16 +131,14 @@ class Cell(BasicCell):
         BasicCell.__init__(self, self.rib1.profile_3d, self.rib2.profile_3d, [])
 
     def recalc(self):
-        self.prof1 = self.rib1.profile_3d
-        self.prof2 = self.rib2.profile_3d
-        BasicCell.recalc(self)
         xvalues = self.rib1.profile_2d.XValues
-        self._phi = [self.rib1.ballooning(x)+self.rib2.ballooning(x) for x in xvalues]
+        phi = [self.rib1.ballooning(x)+self.rib2.ballooning(x) for x in xvalues]
+        BasicCell.__init__(self, self.rib1.profile_3d, self.rib2.profile_3d, phi)
+        BasicCell.recalc(self)
         #Map Ballooning
 
         if len(self.miniribs) == 0:  # In case there is no midrib, The Cell represents itself!
             self._cells = [self]  # The cell itself is its cell, clear?
-            BasicCell.__init__(self, self.rib1.profile_3d, self.rib2.profile_3d, [])
             self._yvalues = [0, 1]
         else:
             ballooning = [self.rib1.ballooning[x]+self.rib2.ballooning[x] for x in xvalues]
@@ -176,6 +175,8 @@ class Cell(BasicCell):
                 lnew = sum([norm(c.prof1.data[i]-c.prof2.data[i]) for c in self._cells])  # L-NEW
                 for c in self._cells:
                     c._phi.append(arsinc(1/(bl*l/lnew)))  # B/L NEW
+            for cell in self._cells:
+                cell.recalc()
 
     def point(self, y=0, i=0, k=0):
         return self.midrib(y).point_basic_cell(i, k)

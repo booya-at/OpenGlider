@@ -51,7 +51,8 @@ for i in [r1, r2, r3]:
 
 cell = BasicCell(r2.profile_3d, r1.profile_3d, balloon)
 cell2 = BasicCell(r1.profile_3d, r3.profile_3d, balloon)
-
+cell.recalc()
+cell2.recalc()
 
 
 num = 20

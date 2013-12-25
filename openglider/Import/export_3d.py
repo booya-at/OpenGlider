@@ -62,12 +62,12 @@ def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6):
 
 def export_dxf(glider, path="", midribs=0, numpoints=None, *other):
     outfile = dxf.drawing(path)
-    if numpoints:
-        glider.numpoints = numpoints
     other = glider.copy()
+    if numpoints:
+        other.numpoints = numpoints
     other.mirror()
-    other.cells[0].rib2 = glider.cells[0].rib1
-    other.cells = other.cells[::-1] + glider.cells
+    other.cells[-1].rib2 = glider.cells[0].rib1
+    other.cells = other.cells + glider.cells
     other.recalc()
     ribs = other.return_ribs(midribs)
     panels = []
@@ -80,4 +80,4 @@ def export_dxf(glider, path="", midribs=0, numpoints=None, *other):
 
 
 def export_apame():
-    
+    pass
