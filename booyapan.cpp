@@ -1,6 +1,7 @@
 #include <iostream>  //file/terminal i/o
 #include <Eigen/Core>  //matrix calculations/linalg
 #include <Eigen/Geometry>
+#include <Eigen/Dense>
 #include <map>
 #include <string>
 #include <cmath>
@@ -8,31 +9,65 @@
 
 
 //double pi=3.14159265358979323846;
-const int max_linelength=20;
+const int max_linelength=100;
 double pi=atan(1)*4;
-typedef Eigen::Array<float, 3, 1>Vector;
+
+typedef Eigen::Vector3d Vector;
 std::map<std::string, std::string> config;  //config-dictionary
 
+class Panel {
+	public:
+		bool wake;
+		int p1;
+		int p2;
+		int p3;
+		int p4;
+		int neighbour_left;
+		int neighbour_right;
+		int neighbour_front;
+		int neighbour_back;
+		Vector n; //normal-vector
+		Vector m; // tangential-vector (wingspan)
+		Vector l; // tangential-vector (chordwise)
+		float area; //Panel-Area
+		Vector r_center;  //centerpoint
 
+		Vector smp;
+		Vector smq;
+
+		float smp_len; //half median length (l-direction)
+		float smq_len; //half median length (m-direction)
+		float sigma; //source-strength
+
+
+};
+
+int num = 0;
 
 
 
 
 int main(int argc, char* argv[]){
 	using namespace std;
+	cout << "-------------------------" << endl;
+	cout << "----Booya-Panelmethod----" << endl;
+	cout << "-------------------------" << endl;
 	//Parse Command Line
 	if (argc < 3) { // more than 4 arguments, or do nothing.
         //usage(); // usage
+        //cout << "jojo,mull!";
         exit(0);
     }
     else{
     	char* inpath;
     	char* outpath;
+    	int k = 1;
     	for (int i = 1; i < argc-1; i++) { //Iterate ober argv-elements
-			if (argv[i] == "-in") { //next->inputfile
+			if (string(argv[i]) == "-i") { //next->inputfile
                     inpath = argv[i + 1];
+                    //cout << "JOJO" << inpath << endl;
                 }
-            else if (argv[i] == "-out") { //next->outputfile
+            else if (string(argv[i]) == "-out") { //next->outputfile
                     outpath = argv[i + 1];
                 }
             }
@@ -41,20 +76,26 @@ int main(int argc, char* argv[]){
     	ifstream inputfile (inpath);
 
 
-		cout << "Loading File" << endl << endl;
+		cout << "Loading File: " << inpath << endl << endl;
 		
 		char thisline[max_linelength];
+		//char* thisline;
 		char* value;
 		char* argument;
 		////////////////////////////////////////////CONFIG
 		while(inputfile.getline(thisline, max_linelength)){
-			if (thisline[0] == '#' || thisline == "")	continue; //Comment
-			//value->argument
+			//cout << "laenge: " << strlen(thisline) << " zeile: " << thisline <<endl;
+			if (thisline[0] == '#' || strlen(thisline) < 2)	{
+				continue; //Comment
+			}
 			value = strtok(thisline, " ");
 			argument = strtok(NULL, " ");
 			config[value] = argument;
 
-			if (value == "NODES")	break;
+			if (string(value) == "NODES")	{
+				num = atoi(argument);
+				break;
+			}
 			}
 		//////////////////////Move down
 		cout << "Airspeed:  " << config["AIRSPEED"] << endl;
@@ -64,28 +105,104 @@ int main(int argc, char* argv[]){
 		//casenum=3 -> anglesofattack: 0 0 0; sideslip_angles: 0 0 0
 		cout << "WINGSPAN: " << config["WINGSPAN"] << endl;
 		cout << "SURFACE: " << config["SURFACE"] << endl;
+		//cout << "NODES: " << config["NODES"] << endl;
 		// ERROR, COLLDIST, FARFIELD=5, 
 		//Results: coefficients, forces, geometry, velocity, pressure, center points, doublet values, source values, velocity components, mesh caracteristics, static pressure, dynamic pressure, manometer pressure (1/0)
-
-
+		
 		////////////////////////////////////////////NODES
-		//Vector nodes[config["NODES"]];
-		Vector nodes[10];
+		cout << "NODES: " << num << endl;
+
+		Vector nodes[num];
+		int nump = 0;
+
 		int i = 0;
-		while(inputfile.getline(thisline, max_linelength)){
-			if (thisline[0] == '#') continue;
+		while(inputfile.getline(thisline, max_linelength)) {
+			if (thisline[0] == '#' or strlen(thisline) < 2) {
+				continue;
+			}
 
-			//nodes[i] = [0,0,0]
 
-
-
+			value = strtok(thisline, " ");  //END OF NODE-SECTION
+			if (string(value) == "PANELS") {
+				//cout << "PANLS";
+				nump = atoi(strtok(NULL, " "));
+				break;
+			}
+			for (int j=0; j<3; j++){
+				nodes[i][j] = atof(value);
+				value = strtok(NULL," ");
+			}
+			i++;
 
 		}
-
+		//cout << nodes[0] << endl;
+		cout << "PANELS: " << nump <<endl;
 		///////////////////////////////////////////PANELS/WAKE
 		// -> struct panel -> p1(int), p2, p3, p4, normvekt,
+		Panel panels[nump];
+		Panel* panel;
+		Vector* p1;
+		Vector* p2;
+		Vector* p3;
+		Vector* p4;
+
+		i = 0;
+		while(inputfile.getline(thisline, max_linelength)) {
+			if (thisline[0] == '#' or strlen(thisline) < 2) continue;
+
+			value = strtok(thisline, " ");
+
+			if (string(value)=="10") panels[i].wake=true;
+			else panels[i].wake=false;
+
+			panels[i].p1 = atoi(strtok(NULL, " "));
+			panels[i].p2 = atoi(strtok(NULL, " "));
+			panels[i].p3 = atoi(strtok(NULL, " "));
+			if (value[0] == '2') panels[i].p4 = panels[i].p3; //3-node
+			else panels[i].p4 = atoi(strtok(NULL, " ")); //4-node
+
+			panels[i].neighbour_front = atoi(strtok(NULL, " "));
+			panels[i].neighbour_back = atoi(strtok(NULL, " "));
+
+			if(!panels[i].wake){
+				panels[i].neighbour_left = atoi(strtok(NULL, " "));
+				if (value[0] == '2') panels[i].neighbour_right = 0;
+				else panels[i].neighbour_right = atoi(strtok(NULL, " "));
+			}
+			///////////////////////////////////////////////////////////////////////////
+			///////////////////////CALCULATE PARAMETERS////////////////////////////////
+			panel = &panels[i];
+			p1 = &nodes[panel->p1];
+			p2 = &nodes[panel->p2];
+			p3 = &nodes[panel->p3];
+			p4 = &nodes[panel->p4];
+
+			panel->n = (*p3-*p1).cross(*p4-*p2);
+			panel->area = panel->n.norm();
+			panel->n.normalize();
+			panel->r_center = (*p1+*p2+*p3+*p4)/4;
+			panel->smp = (*p2+*p3)/2 - panel->r_center;
+			panel->smp_len = panel->smp.norm();
+			panel->smq = (*p3+*p4)/2 - panel->r_center;
+			panel->smq_len = panel->smq.norm();
+			panel->m = ((*p3+*p4)/2-panel->r_center);
+			panel->m.normalize();
+			panel->l = panel->m.cross(panel->n);
 
 
+			//cout << panel->n.norm() << endl;
+
+
+			//panels[i].n = nodes[panels[i]]
+
+
+			i++;
+			}
+			
+
+		
+
+cout << "joj" <<endl;
 
 
 		 
