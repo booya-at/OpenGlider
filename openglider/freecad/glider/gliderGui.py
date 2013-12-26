@@ -1,7 +1,8 @@
 import FreeCADGui as Gui
+import FreeCAD
 
-Gui.addIconPath("/opt/freecad/Mod/glider/icons")
-Gui.addIconPath("/home/lo/OpenGlider/freecad/glider/icons")
+
+Gui.addIconPath(FreeCAD.getHomePath()+"Mod/glider/icons")
 
 from shape import ChangeShape
 from examples import LoadGlider

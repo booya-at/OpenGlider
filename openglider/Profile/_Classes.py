@@ -212,7 +212,7 @@ class Profile2D(BasicProfile2D):
         return max([self.profilepoint(-i)[1][1]-self.profilepoint(i)[1][1] for i in xvals])
 
     def _setthick(self, newthick):
-        factor = float(newthick/max(self.Thickness[:, 1]))
+        factor = float(newthick/self.Thickness)
         new = self.Profile * [1., factor]
         self.__init__(new, self.name + "_" + str(newthick*100) + "%")
 
