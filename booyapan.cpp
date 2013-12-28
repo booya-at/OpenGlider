@@ -6,7 +6,7 @@
 #include <string>
 #include <cmath>
 #include <fstream>
-
+#include <pthread.h>
 
 //double pi=3.14159265358979323846;
 const int max_linelength=100;
@@ -14,9 +14,9 @@ double pi=atan(1)*4;
 
 typedef Eigen::Vector3d Vector;
 std::map<std::string, std::string> config;  //config-dictionary
+float faktor = 5.;
 
-class Panel {
-	public:
+struct Panel {
 		bool wake;
 		int p1;
 		int p2;
@@ -39,12 +39,87 @@ class Panel {
 		float smq_len; //half median length (m-direction)
 		float sigma; //source-strength
 
-
+		int position; //we do have those wake panels inbetween
 };
 
 int num = 0;
 
 
+struct thread_data
+{
+	int num_threads;
+	int thread_no;
+	int num_wake;
+	Panel *panels;
+	Eigen::MatrixXf matrix;
+	Eigen::VectorXf rhs;
+};
+
+
+
+
+void farfield_calc(const float &pn, const float &area, const float &pjk, float *cjk, float *bjk){
+	*cjk = pn * area / pow(pjk,3);
+	*bjk = area/pjk;
+}
+
+void nearfield_calc(Panel *a, Vector *b, float *cjk, float *bjk){
+	*cjk = 1.;
+	*bjk = 2.;
+}
+
+//void calculate_rows(int num_threads, int thread_no, int num_wake, Panel panels[], Eigen::MatrixXf &matrix, Eigen::VectorXf &rhs){
+void *calculate_rows(void *thread_arg){
+	using namespace std;
+	struct thread_data *data;
+	data = (struct thread_data *) thread_arg;
+	cout << "core_no: " << data->thread_no << endl;
+	cout << "jojo" << data->matrix(1,2) << endl;
+	data->matrix(1,2)=data->thread_no;
+	
+	//sleep(500);
+	Panel* panel_i;
+	Panel* panel_j;
+	Vector r_diff;
+	float pn, dist, cjk, bjk;
+	for (int i = data->thread_no; i<data->num_wake; i+=data->num_threads){//ROWS
+		panel_i = &(data->panels[i]);
+		// if (i%50 == 0){
+		// cout << panel_i->position << endl;}
+		for(int j=0; j<data->num_wake; j++){//COLUMNS
+			panel_j = &data->panels[j];
+			if (panel_j->wake) continue;
+
+			r_diff = panel_j->r_center - panel_i->r_center;
+			pn = r_diff.dot(panel_i->n);
+			dist = r_diff.norm();
+
+			if(dist>faktor*panel_i->smp_len*panel_i->smq_len){
+				farfield_calc(pn, panel_i->area, dist, &cjk, &bjk);
+				}
+			else {
+				nearfield_calc(panel_i, &(panel_j->r_center), &cjk, &bjk);
+				}
+
+			// if (panel_i->wake){ //wake -> two neighbours (CHECK SIGNS!! maybe sign(dot(normvecs))))
+			// 	*data->matrix((&data->panels[panel_i->neighbour_left -1])->position, panel_j->position)+=cjk;
+			// 	*data->matrix((&data->panels[panel_i->neighbour_right -1])->position, panel_j->position)-=cjk;
+			// 	}
+			// else{ //normal panel!
+			// 	data->matrix(panel_i->position, panel_j->position) = cjk;
+			// 	data->rhs(panel_j->position) += bjk;
+			// 	}
+			
+
+			}
+	
+			
+		}
+
+
+
+
+}
 
 
 int main(int argc, char* argv[]){
@@ -113,11 +188,12 @@ int main(int argc, char* argv[]){
 		cout << "NODES: " << num << endl;
 
 		Vector nodes[num];
-		int nump = 0;
+		int num_panels = 0;
 
 		int i = 0;
 		while(inputfile.getline(thisline, max_linelength)) {
 			if (thisline[0] == '#' or strlen(thisline) < 2) {
+				cout << "comment" << endl;
 				continue;
 			}
 
@@ -125,7 +201,7 @@ int main(int argc, char* argv[]){
 			value = strtok(thisline, " ");  //END OF NODE-SECTION
 			if (string(value) == "PANELS") {
 				//cout << "PANLS";
-				nump = atoi(strtok(NULL, " "));
+				num_panels = atoi(strtok(NULL, " "));
 				break;
 			}
 			for (int j=0; j<3; j++){
@@ -136,10 +212,11 @@ int main(int argc, char* argv[]){
 
 		}
 		//cout << nodes[0] << endl;
-		cout << "PANELS: " << nump <<endl;
+		cout << "PANELS: " << num_panels <<endl;
 		///////////////////////////////////////////PANELS/WAKE
 		// -> struct panel -> p1(int), p2, p3, p4, normvekt,
-		Panel panels[nump];
+		Panel panels[num_panels];
+		//local references
 		Panel* panel;
 		Vector* p1;
 		Vector* p2;
@@ -147,13 +224,23 @@ int main(int argc, char* argv[]){
 		Vector* p4;
 
 		i = 0;
+		int num_wake = 0;
 		while(inputfile.getline(thisline, max_linelength)) {
-			if (thisline[0] == '#' or strlen(thisline) < 2) continue;
+			if (thisline[0] == '#' or strlen(thisline) < 2) {
+				continue;
+				cout << "comment" << endl;
+			}
 
 			value = strtok(thisline, " ");
 
-			if (string(value)=="10") panels[i].wake=true;
-			else panels[i].wake=false;
+			if (string(value)=="10") {
+				panels[i].wake=true;
+			}
+			else {
+				panels[i].wake=false;
+				panels[i].position=num_wake;
+				num_wake++;
+			}
 
 			panels[i].p1 = atoi(strtok(NULL, " "));
 			panels[i].p2 = atoi(strtok(NULL, " "));
@@ -171,11 +258,12 @@ int main(int argc, char* argv[]){
 			}
 			///////////////////////////////////////////////////////////////////////////
 			///////////////////////CALCULATE PARAMETERS////////////////////////////////
+			
 			panel = &panels[i];
-			p1 = &nodes[panel->p1];
-			p2 = &nodes[panel->p2];
-			p3 = &nodes[panel->p3];
-			p4 = &nodes[panel->p4];
+			p1 = &nodes[panel->p1 -1];
+			p2 = &nodes[panel->p2 -1];
+			p3 = &nodes[panel->p3 -1];
+			p4 = &nodes[panel->p4 -1];
 
 			panel->n = (*p3-*p1).cross(*p4-*p2);
 			panel->area = panel->n.norm();
@@ -194,11 +282,75 @@ int main(int argc, char* argv[]){
 
 
 			//panels[i].n = nodes[panels[i]]
+			//cout << "ab" << endl;
 
 
 			i++;
 			}
+		inputfile.close();
+
 			
+
+			/////////////////////////////////////////////////////////////////////////
+			////////////////////GENERATE MATRIX (LHS)////////////////////////////////
+
+
+		Eigen::MatrixXf  matrix(num_wake, num_wake);
+		Eigen::VectorXf  rhs(num_wake);
+		cout << "CALCULATE2 " << num_wake << endl;
+		//
+		
+		//Vectors+Matrices already zeroed out
+		
+
+
+		int num_threads = 4;
+		int rc;
+		pthread_t threads[num_threads];
+		thread_data data[num_threads];
+
+
+		//calculate_rows(data);
+
+
+
+
+		for (int thread_no = 0; thread_no<num_threads; thread_no++){
+			cout << "initializing: " << thread_no << endl;
+			data[thread_no].matrix = matrix;
+			data[thread_no].rhs = rhs;
+			data[thread_no].num_threads = num_threads;
+			data[thread_no].panels = panels;
+			data[thread_no].num_wake = num_wake;
+			data[thread_no].thread_no = thread_no;
+
+			rc = pthread_create(&threads[thread_no], NULL, 
+                          calculate_rows,
+                          (void *)&data[thread_no]);
+      		if (rc){
+         		cout << "Error:unable to create thread," << rc << endl;
+         		exit(-1);
+      			}
+			
+		}
+		cout << *&matrix(0,0) << endl;
+		sleep(5000);
+
+	
+			
+
+			
+			////NUR PANELS, KANE WAKES VERWENDN!
+			////NEIGHBOUR -> WAKE -> wakecalc
+			// ---> WAKEPANELS DURCHGEHN UND BEI DE JEWEILIGN NEIGHBOURS DAZUSCHREIBN
+
+
+
+
+
+
+
+		
 
 		
 
@@ -207,7 +359,7 @@ cout << "joj" <<endl;
 
 		 
 
-		inputfile.close();
+		
 
 
 
@@ -227,6 +379,10 @@ cout << "joj" <<endl;
 
 
 }
+
+
+
+
 
 void usage(){
 	std::cout << "Booya-Panel-Solver\n";
@@ -287,6 +443,8 @@ bool compare_vectors(double *vektor1, double *vektor2){
 
 
 double coresize=0.00000000000000000001;
+
+
 
 // void NearFieldCalc (double *panelliste, double *nk, double *mk, double *lk, double *mj, double pn){
 // 	//
