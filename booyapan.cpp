@@ -51,11 +51,11 @@ struct thread_data
 	int thread_no;
 	int num_wake;
 	Panel *panels;
-	Eigen::MatrixXf matrix;
-	Eigen::VectorXf rhs;
+	Eigen::MatrixXf *matrix;
+	Eigen::VectorXf *rhs;
 };
 
-
+//Shared data
 
 
 void farfield_calc(const float &pn, const float &area, const float &pjk, float *cjk, float *bjk){
@@ -64,25 +64,27 @@ void farfield_calc(const float &pn, const float &area, const float &pjk, float *
 }
 
 void nearfield_calc(Panel *a, Vector *b, float *cjk, float *bjk){
-	*cjk = 1.;
+	*cjk = 99.;
 	*bjk = 2.;
 }
+
+void *calculate_rows(void);
 
 //void calculate_rows(int num_threads, int thread_no, int num_wake, Panel panels[], Eigen::MatrixXf &matrix, Eigen::VectorXf &rhs){
 void *calculate_rows(void *thread_arg){
 	using namespace std;
 	struct thread_data *data;
 	data = (struct thread_data *) thread_arg;
-	cout << "core_no: " << data->thread_no << endl;
-	cout << "jojo" << data->matrix(1,2) << endl;
-	data->matrix(1,2)=data->thread_no;
+	sleep(data->thread_no);
+	cout << "core_no: " << data->thread_no << " started" << endl;
+
 	
 	//sleep(500);
 	Panel* panel_i;
 	Panel* panel_j;
 	Vector r_diff;
 	float pn, dist, cjk, bjk;
-	for (int i = data->thread_no; i<data->num_wake; i+=data->num_threads){//ROWS
+	for (int i = data->thread_no; i<data->num_wake; i+=data->num_threads){//ROWSdata->
 		panel_i = &(data->panels[i]);
 		// if (i%50 == 0){
 		// cout << panel_i->position << endl;}
@@ -101,14 +103,14 @@ void *calculate_rows(void *thread_arg){
 				nearfield_calc(panel_i, &(panel_j->r_center), &cjk, &bjk);
 				}
 
-			// if (panel_i->wake){ //wake -> two neighbours (CHECK SIGNS!! maybe sign(dot(normvecs))))
-			// 	*data->matrix((&data->panels[panel_i->neighbour_left -1])->position, panel_j->position)+=cjk;
-			// 	*data->matrix((&data->panels[panel_i->neighbour_right -1])->position, panel_j->position)-=cjk;
-			// 	}
-			// else{ //normal panel!
-			// 	data->matrix(panel_i->position, panel_j->position) = cjk;
-			// 	data->rhs(panel_j->position) += bjk;
-			// 	}
+			if (panel_i->wake){ //wake -> two neighbours (CHECK SIGNS!! maybe sign(dot(normvecs))))
+				(*data->matrix)((&data->panels[panel_i->neighbour_left -1])->position, panel_j->position)+=cjk;
+				(*data->matrix)((&data->panels[panel_i->neighbour_right -1])->position, panel_j->position)-=cjk;
+				}
+			else{ //normal panel!
+				(*data->matrix)(panel_i->position, panel_j->position) = cjk;
+				(*data->rhs)(panel_j->position) += bjk;
+				}
 			
 
 			}
@@ -127,6 +129,11 @@ int main(int argc, char* argv[]){
 	cout << "-------------------------" << endl;
 	cout << "----Booya-Panelmethod----" << endl;
 	cout << "-------------------------" << endl;
+
+
+
+	int num_threads = 1;
+
 	//Parse Command Line
 	if (argc < 3) { // more than 4 arguments, or do nothing.
         //usage(); // usage
@@ -145,6 +152,9 @@ int main(int argc, char* argv[]){
             else if (string(argv[i]) == "-out") { //next->outputfile
                     outpath = argv[i + 1];
                 }
+            else if (string(argv[i]) == "-threads"){
+            	num_threads = atoi(argv[i+1]);
+            }
             }
         if (outpath == "") outpath = inpath; //TODO: Append or change ending
 
@@ -193,7 +203,7 @@ int main(int argc, char* argv[]){
 		int i = 0;
 		while(inputfile.getline(thisline, max_linelength)) {
 			if (thisline[0] == '#' or strlen(thisline) < 2) {
-				cout << "comment" << endl;
+				//cout << "comment" << endl;
 				continue;
 			}
 
@@ -228,7 +238,6 @@ int main(int argc, char* argv[]){
 		while(inputfile.getline(thisline, max_linelength)) {
 			if (thisline[0] == '#' or strlen(thisline) < 2) {
 				continue;
-				cout << "comment" << endl;
 			}
 
 			value = strtok(thisline, " ");
@@ -258,6 +267,7 @@ int main(int argc, char* argv[]){
 			}
 			///////////////////////////////////////////////////////////////////////////
 			///////////////////////CALCULATE PARAMETERS////////////////////////////////
+			//Could be serialized aswell?
 			
 			panel = &panels[i];
 			p1 = &nodes[panel->p1 -1];
@@ -295,54 +305,54 @@ int main(int argc, char* argv[]){
 			////////////////////GENERATE MATRIX (LHS)////////////////////////////////
 
 
-		Eigen::MatrixXf  matrix(num_wake, num_wake);
-		Eigen::VectorXf  rhs(num_wake);
+		Eigen::MatrixXf matrix(num_wake, num_wake);
+		Eigen::VectorXf rhs(num_wake);
 		cout << "CALCULATE2 " << num_wake << endl;
 		//
-		
 		//Vectors+Matrices already zeroed out
 		
 
-
-		int num_threads = 4;
-		int rc;
+		int thread_status[num_threads];
 		pthread_t threads[num_threads];
 		thread_data data[num_threads];
 
 
-		//calculate_rows(data);
-
-
-
+		//CALCULATE PARALLEL
 
 		for (int thread_no = 0; thread_no<num_threads; thread_no++){
-			cout << "initializing: " << thread_no << endl;
-			data[thread_no].matrix = matrix;
-			data[thread_no].rhs = rhs;
 			data[thread_no].num_threads = num_threads;
 			data[thread_no].panels = panels;
 			data[thread_no].num_wake = num_wake;
 			data[thread_no].thread_no = thread_no;
+			data[thread_no].matrix = &matrix;
+			data[thread_no].rhs = &rhs;
 
-			rc = pthread_create(&threads[thread_no], NULL, 
+			thread_status[thread_no] = pthread_create(&threads[thread_no], NULL, 
                           calculate_rows,
                           (void *)&data[thread_no]);
-      		if (rc){
-         		cout << "Error:unable to create thread," << rc << endl;
+      		if (thread_status[thread_no]){
+         		cout << "Error:unable to create thread," << thread_status[thread_no] << endl;
          		exit(-1);
       			}
 			
 		}
-		cout << *&matrix(0,0) << endl;
+
+		//WAIT FOR END OF CALCULATION
+		for (int thread_no=0; thread_no<num_threads; thread_no++){
+			pthread_join(threads[thread_no], NULL);
+			cout << "core no. " << thread_no << "exited with code: " << thread_status[thread_no] << endl;
+		}
+
+		cout << "hohoho: " << matrix(2,1) << endl;
 		sleep(5000);
 
 	
 			
 
 			
-			////NUR PANELS, KANE WAKES VERWENDN!
-			////NEIGHBOUR -> WAKE -> wakecalc
-			// ---> WAKEPANELS DURCHGEHN UND BEI DE JEWEILIGN NEIGHBOURS DAZUSCHREIBN
+		////NUR PANELS, KANE WAKES VERWENDN!
+		////NEIGHBOUR -> WAKE -> wakecalc
+		// ---> WAKEPANELS DURCHGEHN UND BEI DE JEWEILIGN NEIGHBOURS DAZUSCHREIBN
 
 
 
