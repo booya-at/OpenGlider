@@ -9,8 +9,8 @@
 #include <pthread.h>
 
 //double pi=3.14159265358979323846;
-const int max_linelength=100;
-double pi=atan(1)*4;
+const int max_linelength=500;
+const double pi=atan(1)*4;
 
 typedef Eigen::Vector3d Vector;
 std::map<std::string, std::string> config;  //config-dictionary
@@ -26,9 +26,9 @@ struct Panel {
 		int neighbour_right;
 		int neighbour_front;
 		int neighbour_back;
-		Vector n; //normal-vector
-		Vector m; // tangential-vector (wingspan)
-		Vector l; // tangential-vector (chordwise)
+		Vector norm_vect; //normal-vector
+		Vector tang_vect_span; // tangential-vector (wingspan)
+		Vector tang_vect_chord; // tangential-vector (chordwise)
 		float area; //Panel-Area
 		Vector r_center;  //centerpoint
 
@@ -49,7 +49,7 @@ struct thread_data
 {
 	int num_threads;
 	int thread_no;
-	int num_wake;
+	int num_panels;
 	Panel *panels;
 	Eigen::MatrixXf *matrix;
 	Eigen::VectorXf *rhs;
@@ -68,60 +68,10 @@ void nearfield_calc(Panel *a, Vector *b, float *cjk, float *bjk){
 	*bjk = 2.;
 }
 
-void *calculate_rows(void);
-
+void *calculate_rows(void*);
+void usage();
 //void calculate_rows(int num_threads, int thread_no, int num_wake, Panel panels[], Eigen::MatrixXf &matrix, Eigen::VectorXf &rhs){
-void *calculate_rows(void *thread_arg){
-	using namespace std;
-	struct thread_data *data;
-	data = (struct thread_data *) thread_arg;
-	sleep(data->thread_no);
-	cout << "core_no: " << data->thread_no << " started" << endl;
 
-	
-	//sleep(500);
-	Panel* panel_i;
-	Panel* panel_j;
-	Vector r_diff;
-	float pn, dist, cjk, bjk;
-	for (int i = data->thread_no; i<data->num_wake; i+=data->num_threads){//ROWSdata->
-		panel_i = &(data->panels[i]);
-		// if (i%50 == 0){
-		// cout << panel_i->position << endl;}
-		for(int j=0; j<data->num_wake; j++){//COLUMNS
-			panel_j = &data->panels[j];
-			if (panel_j->wake) continue;
-
-			r_diff = panel_j->r_center - panel_i->r_center;
-			pn = r_diff.dot(panel_i->n);
-			dist = r_diff.norm();
-
-			if(dist>faktor*panel_i->smp_len*panel_i->smq_len){
-				farfield_calc(pn, panel_i->area, dist, &cjk, &bjk);
-				}
-			else {
-				nearfield_calc(panel_i, &(panel_j->r_center), &cjk, &bjk);
-				}
-
-			if (panel_i->wake){ //wake -> two neighbours (CHECK SIGNS!! maybe sign(dot(normvecs))))
-				(*data->matrix)((&data->panels[panel_i->neighbour_left -1])->position, panel_j->position)+=cjk;
-				(*data->matrix)((&data->panels[panel_i->neighbour_right -1])->position, panel_j->position)-=cjk;
-				}
-			else{ //normal panel!
-				(*data->matrix)(panel_i->position, panel_j->position) = cjk;
-				(*data->rhs)(panel_j->position) += bjk;
-				}
-			
-
-			}
-	
-			
-		}
-
-
-
-
-}
 
 
 int main(int argc, char* argv[]){
@@ -136,7 +86,7 @@ int main(int argc, char* argv[]){
 
 	//Parse Command Line
 	if (argc < 3) { // more than 4 arguments, or do nothing.
-        //usage(); // usage
+        usage(); // usage
         //cout << "jojo,mull!";
         exit(0);
     }
@@ -149,7 +99,7 @@ int main(int argc, char* argv[]){
                     inpath = argv[i + 1];
                     //cout << "JOJO" << inpath << endl;
                 }
-            else if (string(argv[i]) == "-out") { //next->outputfile
+            else if (string(argv[i]) == "-o") { //next->outputfile
                     outpath = argv[i + 1];
                 }
             else if (string(argv[i]) == "-threads"){
@@ -234,58 +184,60 @@ int main(int argc, char* argv[]){
 		Vector* p4;
 
 		i = 0;
-		int num_wake = 0;
+		int num_not_wake = 0;
 		while(inputfile.getline(thisline, max_linelength)) {
 			if (thisline[0] == '#' or strlen(thisline) < 2) {
 				continue;
 			}
-
+			panel = panels + i;
 			value = strtok(thisline, " ");
 
 			if (string(value)=="10") {
-				panels[i].wake=true;
+				panel->wake=true;
 			}
 			else {
-				panels[i].wake=false;
-				panels[i].position=num_wake;
-				num_wake++;
+				panel->wake=false;
+				panel->position=num_not_wake;
+				num_not_wake++;
 			}
+			panel->p1 = atoi(strtok(NULL, " "));
+			panel->p2 = atoi(strtok(NULL, " "));
+			panel->p3 = atoi(strtok(NULL, " "));
+			if (value[0] == '2')
+				panel->p4 = panel->p3; //3-node
+			else
+				panel->p4 = atoi(strtok(NULL, " ")); //4-node
 
-			panels[i].p1 = atoi(strtok(NULL, " "));
-			panels[i].p2 = atoi(strtok(NULL, " "));
-			panels[i].p3 = atoi(strtok(NULL, " "));
-			if (value[0] == '2') panels[i].p4 = panels[i].p3; //3-node
-			else panels[i].p4 = atoi(strtok(NULL, " ")); //4-node
+			panel->neighbour_front = atoi(strtok(NULL, " "));
+			panel->neighbour_back = atoi(strtok(NULL, " "));
 
-			panels[i].neighbour_front = atoi(strtok(NULL, " "));
-			panels[i].neighbour_back = atoi(strtok(NULL, " "));
-
-			if(!panels[i].wake){
-				panels[i].neighbour_left = atoi(strtok(NULL, " "));
-				if (value[0] == '2') panels[i].neighbour_right = 0;
-				else panels[i].neighbour_right = atoi(strtok(NULL, " "));
+			if(!panel->wake){
+				panel->neighbour_left = atoi(strtok(NULL, " "));
+				if (value[0] == '2')
+					panel->neighbour_right = panel->neighbour_left;
+				else
+					panel->neighbour_right = atoi(strtok(NULL, " "));
 			}
 			///////////////////////////////////////////////////////////////////////////
 			///////////////////////CALCULATE PARAMETERS////////////////////////////////
-			//Could be serialized aswell?
-			
-			panel = &panels[i];
-			p1 = &nodes[panel->p1 -1];
-			p2 = &nodes[panel->p2 -1];
-			p3 = &nodes[panel->p3 -1];
-			p4 = &nodes[panel->p4 -1];
+			//Could be multithreaded aswell?
+			//subtract one because the pointnrs. start at 1
+			p1 = nodes + panel->p1 -1;
+			p2 = nodes + panel->p2 -1;
+			p3 = nodes + panel->p3 -1;
+			p4 = nodes + panel->p4 -1;
 
-			panel->n = (*p3-*p1).cross(*p4-*p2);
-			panel->area = panel->n.norm();
-			panel->n.normalize();
+			panel->norm_vect = (*p3-*p1).cross(*p4-*p2);
+			panel->area = panel->norm_vect.norm();
+			panel->norm_vect.normalize();
 			panel->r_center = (*p1+*p2+*p3+*p4)/4;
 			panel->smp = (*p2+*p3)/2 - panel->r_center;
 			panel->smp_len = panel->smp.norm();
 			panel->smq = (*p3+*p4)/2 - panel->r_center;
 			panel->smq_len = panel->smq.norm();
-			panel->m = ((*p3+*p4)/2-panel->r_center);
-			panel->m.normalize();
-			panel->l = panel->m.cross(panel->n);
+			panel->tang_vect_span = ((*p3+*p4)/2-panel->r_center);
+			panel->tang_vect_span.normalize();
+			panel->tang_vect_chord = panel->tang_vect_span.cross(panel->norm_vect);
 
 
 			//cout << panel->n.norm() << endl;
@@ -296,7 +248,7 @@ int main(int argc, char* argv[]){
 
 
 			i++;
-			}
+		}
 		inputfile.close();
 
 			
@@ -305,9 +257,9 @@ int main(int argc, char* argv[]){
 			////////////////////GENERATE MATRIX (LHS)////////////////////////////////
 
 
-		Eigen::MatrixXf matrix(num_wake, num_wake);
-		Eigen::VectorXf rhs(num_wake);
-		cout << "CALCULATE2 " << num_wake << endl;
+		Eigen::MatrixXf matrix(num_not_wake, num_not_wake);
+		Eigen::VectorXf rhs(num_not_wake);
+		cout << "CALCULATE2 " << num_not_wake << endl;
 		//
 		//Vectors+Matrices already zeroed out
 		
@@ -322,7 +274,7 @@ int main(int argc, char* argv[]){
 		for (int thread_no = 0; thread_no<num_threads; thread_no++){
 			data[thread_no].num_threads = num_threads;
 			data[thread_no].panels = panels;
-			data[thread_no].num_wake = num_wake;
+			data[thread_no].num_panels = num_panels;
 			data[thread_no].thread_no = thread_no;
 			data[thread_no].matrix = &matrix;
 			data[thread_no].rhs = &rhs;
@@ -355,34 +307,8 @@ int main(int argc, char* argv[]){
 		// ---> WAKEPANELS DURCHGEHN UND BEI DE JEWEILIGN NEIGHBOURS DAZUSCHREIBN
 
 
-
-
-
-
-
-		
-
-		
-
-cout << "joj" <<endl;
-
-
-		 
-
-		
-
-
-
-
-
-
 		cout << "Calculating Matrix" << endl;
-
-
-
 		cout << "Solving System" << endl;
-
-
 	}
 
 
@@ -392,7 +318,64 @@ cout << "joj" <<endl;
 
 
 
+void *calculate_rows(void *thread_arg){
+	using namespace std;
+	struct thread_data *data;
+	data = (struct thread_data *) thread_arg;
+	usleep(data->thread_no*20000);
+	cout << "core_no: " << data->thread_no << " started" << endl;
 
+	
+	//sleep(500);
+	Panel* panel_i;
+	Panel* panel_j;
+	Vector r_diff;
+	float pn, dist, cjk, bjk;
+	for (int i = data->thread_no; i<data->num_panels; i+=data->num_threads){//ROWSdata->
+		panel_i = data->panels + i;
+		// if (i%50 == 0){
+		// cout << panel_i->position << endl;}
+		for(int j=0; j<data->num_panels; j++){//COLUMNS
+			panel_j = data->panels + j;
+			if (panel_j->wake)
+				continue;
+
+			r_diff = panel_j->r_center - panel_i->r_center;
+			pn = r_diff.dot(panel_i->norm_vect);
+			dist = r_diff.norm();
+
+			if(dist>faktor*panel_i->smp_len*panel_i->smq_len){
+				farfield_calc(pn, panel_i->area, dist, &cjk, &bjk);
+				}
+			else {
+				nearfield_calc(panel_i, &(panel_j->r_center), &cjk, &bjk);
+				}
+
+			if (panel_i->wake){ //wake -> two neighbours (CHECK SIGNS!! maybe sign(dot(normvecs))))
+				//cout << panel_i->neighbour_front << "//" << panel_i->neighbour_back << endl;
+				//the neighbours are out of range or are wake panels
+				if (panel_i->neighbour_front < 1 || panel_i->neighbour_front > data->num_panels || (data->panels + panel_i->neighbour_front - 1)->wake)
+					cout << "Error in panel " << i << ": neighbour front not right!" << endl;
+				if (panel_i->neighbour_back < 1 || panel_i->neighbour_back > data->num_panels || (data->panels + panel_i->neighbour_back - 1)->wake)
+					cout << "Error in panel " << i << ": neighbour back not right!" << endl;
+				(*data->matrix)((data->panels + panel_i->neighbour_front -1)->position, panel_j->position)+=cjk;
+				(*data->matrix)((data->panels + panel_i->neighbour_back -1)->position, panel_j->position)-=cjk;
+				}
+			else{ //normal panel!
+				(*data->matrix)(panel_i->position, panel_j->position) = cjk;
+				(*data->rhs)(panel_j->position) += bjk;
+				}
+			
+
+			}
+	
+			
+		}
+
+
+
+
+}
 
 void usage(){
 	std::cout << "Booya-Panel-Solver\n";
@@ -455,82 +438,143 @@ bool compare_vectors(double *vektor1, double *vektor2){
 double coresize=0.00000000000000000001;
 
 
-
-// void NearFieldCalc (double *panelliste, double *nk, double *mk, double *lk, double *mj, double pn){
-// 	//
-// 	//panelpoints (4 punkte), nk vekt,mk vekt,lk vekt,mj vekt3d, pn double
-// 	//
-
-
-// 	long i,j;
-
+void NearFieldCalc (Panel *panel, Vector *points, Vector *r_diff, float &lhs_coeff, float &rhs_coeff){
+	//ALT:  panel,->panel(nk->norm_vect1,mk->r_center,lk->chordwise, mk->spanwise), MJ=r_center2, M=r_diff
+	//mk =
 	
-// 	double bjk=0.;
-// 	double cjk=0.;
-// 	double panelpunkte[5][3];
-// 	double schleife[4];
+	//panelpoints (4 punkte), nk vekt,mk vekt,lk vekt,mj vekt3d, pn double
+	//double pi;
+	//pi=3.14159265358979323846;
+	lhs_coeff = 0.;
+	rhs_coeff = 0.;
 
-// 	for(i=-1;i<4;i++){
-// 		for(j=0;j<3;j++)
-// 		panelpunkte[i+1][j]=panelliste[i==-1?9+j:3*i+j];
-// 	}//panelpunkte gesetzt
+	//double *panelliste;// 9 KOOORD
+	double *nk; //panel->normvector
+	double *mk; //panel->spanwise
+	double *lk; //panel->chordwise
+	double *mj; //panel->center
+	double *mmath; //r_diff
 
-// 	double s[3],a[3],b[3],h[3];
-// 	double abss,am,bm,sl,sm,al,al2,pa,pb,norm_a,norm_b,norm_s,cjki,bjki,gl,dnom,rnum,side;
-// 	gl=0.;
-// 	int sign;
+	long i,j;
 
-// 	//total table
-// 	for(i=0;i<4;i++){
-// 		/*
-// 		vektor s,a,b,h
-// 		double abss,am,bm,sl,sm,al,al2,pa,pb,norm_a,norm_b,norm_s,cjki,bjki,gl,dnom,rnum,side
-// 		int sign
-// 		*/
+	// double pn;
+	// pn=imp3d(mmath,nk);
+
+	double norm_dist = panel->norm_vect.dot(*r_diff); //pn
+	double norm_dist_sq = pow(norm_dist,2);
+
+	double coresize=0.00000000000000000001;
+	double bjk=0.; //LHS-coeff
+	double cjk=0.; //RHS-coeff
+	double panelpunkte[5][3];
+	Vector *panelpunkte[5];
+		panelpunkte[0] = points + panel->p1;
+		panelpunkte[1] = points + panel->p2;
+		panelpunkte[2] = points + panel->p3;
+		panelpunkte[3] = points + panel->p4;
+		panelpunkte[4] = points + panel->p1;
+
+	//double schleife[4];
+
+	// for(i=-1;i<4;i++){
+	// 	for(j=0;j<3;j++)
+	// 	panelpunkte[i+1][j]=panelliste[i<0?9+j:3*i+j];
+	// }
+
+	double s[3],a[3],b[3],h[3]; //??
+	double abss,am,bm,sl,sm,al,al2,pa,pb,norma,normb,norms,cjki,bjki,gl,dnom,rnum,side; //??
+	gl=0.;
+	int sign;
+
+	//total table
+	for(i=0;i<4;i++){
 		
-// 		setvekt(s,panelpunkte[i+1]);
-// 		vektsub(s,panelpunkte[i]);
+		vektor s,a,b,h
+		double abss,am,bm,sl,sm,al,al2,pa,pb,norma,normb,norms,cjki,bjki,gl,dnom,rnum,side
+		int sign
+		
+		
+		//setvekt(s,panelpunkte[i+1]);
+		//vektsub(s,panelpunkte[i]);
+		//abss=norm3d(s);
 
-// 		abss=norm3d(s);  //panelpunkte[i+1]-panelpunkte[i] -> eigen
+		Vector side = (panelpunkte[i+1] - panelpunkte[i]) //s
+		float side_len = side.norm() //abss
 
-// 		setvekt(a,mj);
-// 		vektsub(a,panelpunkte[i]);
+		Vector diagonal_this = panel->r_center - panelpunkte[i]; //a
+		Vector diagonal_next = panel->r_center - panelpunkte[i+1] //b
 
-// 		setvekt(b,a);
-// 		vektsub(b,s);
+		// setvekt(a,mj);
+		// vektsub(a,panelpunkte[i]);
 
-// 		//alles double, alles nach if-abfrage!!
-// 		am=dot_3d(a,mk);
-// 		bm=dot_3d(b,mk);
-// 		sl=dot_3d(s,lk);
-// 		sm=dot_3d(s,mk);
-// 		al=dot_3d(a,lk);
-// 		al2=am*sl-al*sm;
-// 		pa=pow(pn,2)*sl+al2*am;
-// 		pb=pow(pn,2)*sl+al2*bm;
-// 		norm_a=norm3d(a);
-// 		norm_b=norm3d(b);
-// 		norm_s=norm3d(s);  //WOFÜR?
+		// setvekt(b,a);
+		// vektsub(b,s);
 
-// 		//vektor
-// 		setvekt(h,a);
-// 		cross_3d(h,s);
+		//alles double
+		diagonal_this_spanwise = diagonal_this.dot(panel->tang_vect_span); //am
+		//am=imp3d(a,mk);
+		diagonal_next_spanwise = diagonal_next.dot(panel->tang_vect_span); //bm
+		//bm=imp3d(b,mk);
+		side_chordwise = side.dot(panel->tang_vect_chord); //sl
+		//sl=imp3d(s,lk);
+		side_spanwise = side.dot(panel->tang_vect_span); //sm
+		//sm=imp3d(s,mk);
+		diagonal_this_chordwise = diagonal_this.dot(panel->tang_vect_span); //al
+		//al=imp3d(a,lk);
+		blabla = diagonal_this_spanwise*side_chordwise - diagonal_this_chordwise*side_spanwise; //al2
+		//al2=am*sl-al*sm;
+		pa = norm_dist_sq*side_chordwise+blabla*diagonal_this_spanwise;
+		//pa=pow(pn,2)*sl+al2*am;
+		pb = norm_dist_sq*side_chordwise+blabla*diagonal_this_chordwise:
+		//pb=pow(pn,2)*sl+al2*bm;
+		diagonal_this_len = diagonal_this.norm(); //norma
+		//norma=norm3d(a);
+		diagonal_next_len = diagonal_next.norm(); //normb
+		//normb=norm3d(b);
+		//norms=norm3d(s);
 
-// 		if(compare_vectors(panelpunkte[i],panelpunkte[i+1]) || (norm3d(h)/norm3d(s) <= coresize && dot_3d(a,s) >= 0. && dot_3d(b,s) <= 0.) || norm_a<=coresize || norm_b<=coresize){
-// 			cjki=0.;
-// 			bjki=0.;/*case1*/
-// 			schleife[i]=0;}
-// 		else{
-// 			gl=log((norm_a+norm_b+abss)/(norm_a+norm_b-abss))/abss;
-// 			dnom=pa*pb+pow(pn,2)*norm_a*norm_b*pow(sm,2);
-// 			rnum=sm*pn*(norm_b*pa-norm_a*pb);
-// 			schleife[i]=1;
+		//vektor
+		setvekt(h,a);
+		cross3d(h,s);
 
-// 			if(sqrt(pow(pn,2))<coresize){
-// 				side=dot_3d(nk,h);
-// 				sign=side>0?-1.0:1.0;
-// 				schleife[i]=2;
-// 				if(dnom<0.0){
-// 					if(pn>0.)	{cjki=pi*sign;schleife[i]=3;}
-// 					else 		{cjki=-pi*s;}
-// 			}}}}}
+		if(vergleich(panelpunkte[i],panelpunkte[i+1])==1||(norm3d(h)/norm3d(s)<=coresize&&imp3d(a,s)>=0.&&imp3d(b,s)<=0.)||norma<=coresize||normb<=coresize){
+			cjki=0.;
+			bjki=0.;//case1
+			//schleife[i]=0;}
+		else{
+			gl=log((norma+normb+side_len)/(norma+normb-side_len))/side_len;
+			dnom=pa*pb+pow(pn,2)*norma*normb*pow(sm,2);
+			rnum=sm*pn*(normb*pa-norma*pb);
+			//schleife[i]=1;
+
+			if(sqrt(pow(pn,2))<coresize){
+				side=imp3d(nk,h);
+				sign=side>0?-1.0:1.0;
+				//chleife[i]=2;
+				if(dnom<0.0){
+					if(pn>0.)
+						cjki=pi*sign;//schleife[i]=3;
+					else 		
+						cjki=-pi*sign;//schleife[i]=4;
+				} else {
+					if(dnom==0){
+						if(pn>0.) 
+							cjki=pi*sign/2;//schleife[i]=5;
+						else 
+							cjki=-pi*sign/2;//schleife[i]=6;
+					} else
+						cjki=0.;//schleife[i]=7;
+				}
+			} else
+				cjki=atan2(rnum,dnom);//schleife[i]=cjki;
+
+			bjki=al2*gl-pn*cjki;
+			}
+
+
+		cjk=cjk+cjki;	//RETURN1
+		bjk=bjk+bjki;	//RETURN2
+		}
+
+
+}
