@@ -1,3 +1,5 @@
+//#define EIGEN_USE_MKL_ALL
+
 #include <iostream>  //file/terminal i/o
 #include <Eigen/Core>  //matrix calculations/linalg
 #include <Eigen/Geometry>
@@ -109,6 +111,7 @@ int main(int argc, char* argv[]){
 
     	Eigen::initParallel(); //Prevent synchronous writes
     	Eigen::setNbThreads(num_threads);
+    	cout << "use " << num_threads << " cores" << endl;
 
 
 		cout << "Loading File: " << inpath << endl << endl;
@@ -284,8 +287,9 @@ int main(int argc, char* argv[]){
 		Eigen::VectorXf results(num_not_wake);
 		//Eigen::LU<Eigen::MatrixXf> lumatrix(matrix);
 		//lumatrix.solve(rhs, &results);
-		matrix.lu().solve(rhs, &results);
-		cout << results[0] << endl;
+		matrix.lu().solve(rhs);
+		cout << "SOLVED!!! :)" << endl;
+		cout << rhs << endl;
 
 	}
 

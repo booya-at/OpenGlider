@@ -1,10 +1,11 @@
 __author__ = 'simon'
 from openglider import glider
 import openglider.Graphics
-
-def odf_import_visual_test(path='/home/simon/OpenGlider/tests/demokite.ods'):
+import os
+testfolder = os.path.dirname(os.path.abspath( __file__ ))
+def odf_import_visual_test(path=testfolder+'/demokite.ods'):
     glider1 = glider.Glider()
-    glider1.import_from_file(path)
+    glider1.import_geometry(path)
     glider1.close_rib(-1)  # Stabi
     glider2 = glider1.copy()
     glider2.mirror()
