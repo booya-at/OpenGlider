@@ -2,6 +2,7 @@ __author__ = 'simon'
 from openglider import glider
 import openglider.Graphics
 import os
+
 testfolder = os.path.dirname(os.path.abspath( __file__ ))
 def odf_import_visual_test(path=testfolder+'/demokite.ods'):
     glider1 = glider.Glider()
