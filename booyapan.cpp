@@ -2,6 +2,7 @@
 #include <Eigen/Core>  //matrix calculations/linalg
 #include <Eigen/Geometry>
 #include <Eigen/Dense>
+#include <Eigen/LU>
 #include <map>
 #include <string>
 #include <cmath>
@@ -45,54 +46,50 @@ struct Panel {
 int num = 0;
 
 
-struct thread_data
+struct thread_data //Shared data
 {
 	int num_threads;
 	int thread_no;
-	int num_panels;
+	int num_panels; //len(panels+wake_panels)
 	Panel *panels;
+	Vector *points;
 	Eigen::MatrixXf *matrix;
 	Eigen::VectorXf *rhs;
 };
 
-//Shared data
 
 
-void farfield_calc(const float &pn, const float &area, const float &pjk, float *cjk, float *bjk){
-	*cjk = pn * area / pow(pjk,3);
-	*bjk = area/pjk;
+
+void farfield_calc(const float &pn, const float &area, const float &pjk, float &lhs_coeff, float &rhs_coeff){
+	lhs_coeff = pn * area / pow(pjk,3);
+	rhs_coeff = area/pjk;
 }
-
-void nearfield_calc(Panel *a, Vector *b, float *cjk, float *bjk){
-	*cjk = 99.;
-	*bjk = 2.;
-}
-
+//////////////FORWARD-DECLARATIONS////////////////////////////////
+void nearfield_calc(Panel*, Vector*, Vector*, float&, float&);
 void *calculate_rows(void*);
 void usage();
-//void calculate_rows(int num_threads, int thread_no, int num_wake, Panel panels[], Eigen::MatrixXf &matrix, Eigen::VectorXf &rhs){
-
+//////////////////////////////////////////////////////////////////
 
 
 int main(int argc, char* argv[]){
+
 	using namespace std;
-	cout << "-------------------------" << endl;
-	cout << "----Booya-Panelmethod----" << endl;
-	cout << "-------------------------" << endl;
+	cout << "---------------------------------------------------------------------" << endl;
+	cout << "--------------------------Booya-Panelmethod--------------------------" << endl;
+	cout << "---------------------------------------------------------------------" << endl;
 
 
 
 	int num_threads = 1;
+	char* inpath;
+    char* outpath;
 
 	//Parse Command Line
-	if (argc < 3) { // more than 4 arguments, or do nothing.
+	if (argc < 3) { // more than 2 arguments, or do nothing.
         usage(); // usage
-        //cout << "jojo,mull!";
-        exit(0);
+        exit(1);
     }
     else{
-    	char* inpath;
-    	char* outpath;
     	int k = 1;
     	for (int i = 1; i < argc-1; i++) { //Iterate ober argv-elements
 			if (string(argv[i]) == "-i") { //next->inputfile
@@ -110,16 +107,17 @@ int main(int argc, char* argv[]){
 
     	ifstream inputfile (inpath);
 
+    	Eigen::initParallel(); //Prevent synchronous writes
+    	Eigen::setNbThreads(num_threads);
+
 
 		cout << "Loading File: " << inpath << endl << endl;
 		
 		char thisline[max_linelength];
-		//char* thisline;
 		char* value;
 		char* argument;
-		////////////////////////////////////////////CONFIG
+		////////////////////////////////////////////CONFIG TODO: PARSE DIRECTLY!!
 		while(inputfile.getline(thisline, max_linelength)){
-			//cout << "laenge: " << strlen(thisline) << " zeile: " << thisline <<endl;
 			if (thisline[0] == '#' || strlen(thisline) < 2)	{
 				continue; //Comment
 			}
@@ -172,7 +170,7 @@ int main(int argc, char* argv[]){
 
 		}
 		//cout << nodes[0] << endl;
-		cout << "PANELS: " << num_panels <<endl;
+		cout << "PANELS: " << num_panels;
 		///////////////////////////////////////////PANELS/WAKE
 		// -> struct panel -> p1(int), p2, p3, p4, normvekt,
 		Panel panels[num_panels];
@@ -190,6 +188,7 @@ int main(int argc, char* argv[]){
 				continue;
 			}
 			panel = panels + i;
+			i++;
 			value = strtok(thisline, " ");
 
 			if (string(value)=="10") {
@@ -239,46 +238,33 @@ int main(int argc, char* argv[]){
 			panel->tang_vect_span.normalize();
 			panel->tang_vect_chord = panel->tang_vect_span.cross(panel->norm_vect);
 
-
-			//cout << panel->n.norm() << endl;
-
-
-			//panels[i].n = nodes[panels[i]]
-			//cout << "ab" << endl;
-
-
-			i++;
 		}
 		inputfile.close();
 
 			
-
-			/////////////////////////////////////////////////////////////////////////
-			////////////////////GENERATE MATRIX (LHS)////////////////////////////////
-
-
+		cout << " (" << num_not_wake << ")" << endl;
+		/////////////////////////////////////////////////////////////////////////
+		////////////////////GENERATE MATRIX/(LHS+RHS)////////////////////////////
 		Eigen::MatrixXf matrix(num_not_wake, num_not_wake);
 		Eigen::VectorXf rhs(num_not_wake);
-		cout << "CALCULATE2 " << num_not_wake << endl;
-		//
+		cout << "CALCULATE MATRIX" << endl;
 		//Vectors+Matrices already zeroed out
-		
 
+		//CALCULATE PARALLELL	
 		int thread_status[num_threads];
 		pthread_t threads[num_threads];
 		thread_data data[num_threads];
 
-
-		//CALCULATE PARALLEL
-
 		for (int thread_no = 0; thread_no<num_threads; thread_no++){
+			//FILL Thread-data-struct
 			data[thread_no].num_threads = num_threads;
 			data[thread_no].panels = panels;
+			data[thread_no].points = nodes;
 			data[thread_no].num_panels = num_panels;
 			data[thread_no].thread_no = thread_no;
 			data[thread_no].matrix = &matrix;
 			data[thread_no].rhs = &rhs;
-
+			//START THREAD
 			thread_status[thread_no] = pthread_create(&threads[thread_no], NULL, 
                           calculate_rows,
                           (void *)&data[thread_no]);
@@ -286,29 +272,21 @@ int main(int argc, char* argv[]){
          		cout << "Error:unable to create thread," << thread_status[thread_no] << endl;
          		exit(-1);
       			}
-			
 		}
 
-		//WAIT FOR END OF CALCULATION
+		//WAIT FOR ALL THREADS TO FINISH (END OF CALCULATION)
 		for (int thread_no=0; thread_no<num_threads; thread_no++){
 			pthread_join(threads[thread_no], NULL);
 			cout << "core no. " << thread_no << "exited with code: " << thread_status[thread_no] << endl;
 		}
-
-		cout << "hohoho: " << matrix(2,1) << endl;
-		sleep(5000);
-
-	
-			
-
-			
-		////NUR PANELS, KANE WAKES VERWENDN!
-		////NEIGHBOUR -> WAKE -> wakecalc
-		// ---> WAKEPANELS DURCHGEHN UND BEI DE JEWEILIGN NEIGHBOURS DAZUSCHREIBN
-
-
-		cout << "Calculating Matrix" << endl;
 		cout << "Solving System" << endl;
+
+		Eigen::VectorXf results(num_not_wake);
+		//Eigen::LU<Eigen::MatrixXf> lumatrix(matrix);
+		//lumatrix.solve(rhs, &results);
+		matrix.lu().solve(rhs, &results);
+		cout << results[0] << endl;
+
 	}
 
 
@@ -345,10 +323,10 @@ void *calculate_rows(void *thread_arg){
 			dist = r_diff.norm();
 
 			if(dist>faktor*panel_i->smp_len*panel_i->smq_len){
-				farfield_calc(pn, panel_i->area, dist, &cjk, &bjk);
+				farfield_calc(pn, panel_i->area, dist, cjk, bjk);
 				}
 			else {
-				nearfield_calc(panel_i, &(panel_j->r_center), &cjk, &bjk);
+				nearfield_calc(panel_i, data->points, &(panel_j->r_center), cjk, bjk);
 				}
 
 			if (panel_i->wake){ //wake -> two neighbours (CHECK SIGNS!! maybe sign(dot(normvecs))))
@@ -376,6 +354,8 @@ void *calculate_rows(void *thread_arg){
 
 
 }
+
+
 
 void usage(){
 	std::cout << "Booya-Panel-Solver\n";
@@ -438,7 +418,7 @@ bool compare_vectors(double *vektor1, double *vektor2){
 double coresize=0.00000000000000000001;
 
 
-void NearFieldCalc (Panel *panel, Vector *points, Vector *r_diff, float &lhs_coeff, float &rhs_coeff){
+void nearfield_calc(Panel *panel, Vector *points, Vector *r_diff, float &lhs_coeff, float &rhs_coeff){
 	//ALT:  panel,->panel(nk->norm_vect1,mk->r_center,lk->chordwise, mk->spanwise), MJ=r_center2, M=r_diff
 	//mk =
 	
@@ -449,11 +429,11 @@ void NearFieldCalc (Panel *panel, Vector *points, Vector *r_diff, float &lhs_coe
 	rhs_coeff = 0.;
 
 	//double *panelliste;// 9 KOOORD
-	double *nk; //panel->normvector
-	double *mk; //panel->spanwise
-	double *lk; //panel->chordwise
-	double *mj; //panel->center
-	double *mmath; //r_diff
+	//double *nk; //panel->normvector
+	//double *mk; //panel->spanwise
+	//double *lk; //panel->chordwise
+	//double *mj; //panel->center
+	//double *mmath; //r_diff
 
 	long i,j;
 
@@ -464,9 +444,9 @@ void NearFieldCalc (Panel *panel, Vector *points, Vector *r_diff, float &lhs_coe
 	double norm_dist_sq = pow(norm_dist,2);
 
 	double coresize=0.00000000000000000001;
-	double bjk=0.; //LHS-coeff
-	double cjk=0.; //RHS-coeff
-	double panelpunkte[5][3];
+	//double bjk=0.; //LHS-coeff
+	//double cjk=0.; //RHS-coeff
+	//double panelpunkte[5][3];
 	Vector *panelpunkte[5];
 		panelpunkte[0] = points + panel->p1;
 		panelpunkte[1] = points + panel->p2;
@@ -481,28 +461,28 @@ void NearFieldCalc (Panel *panel, Vector *points, Vector *r_diff, float &lhs_coe
 	// 	panelpunkte[i+1][j]=panelliste[i<0?9+j:3*i+j];
 	// }
 
-	double s[3],a[3],b[3],h[3]; //??
-	double abss,am,bm,sl,sm,al,al2,pa,pb,norma,normb,norms,cjki,bjki,gl,dnom,rnum,side; //??
-	gl=0.;
+	//double s[3],a[3],b[3],h[3]; //??
+	//double abss,am,bm,sl,sm,al,al2,pa,pb,norma,normb,norms,cjki,bjki,gl,dnom,rnum,side; //??
+	//gl=0.;
 	int sign;
 
 	//total table
 	for(i=0;i<4;i++){
 		
-		vektor s,a,b,h
-		double abss,am,bm,sl,sm,al,al2,pa,pb,norma,normb,norms,cjki,bjki,gl,dnom,rnum,side
-		int sign
+		//vektor s,a,b,h
+		double lhs_temp, rhs_temp;
+		int sign;
 		
 		
 		//setvekt(s,panelpunkte[i+1]);
 		//vektsub(s,panelpunkte[i]);
 		//abss=norm3d(s);
 
-		Vector side = (panelpunkte[i+1] - panelpunkte[i]) //s
-		float side_len = side.norm() //abss
+		Vector side = (*panelpunkte[i+1] - *panelpunkte[i]); //s
+		float side_len = side.norm(); //abss
 
-		Vector diagonal_this = panel->r_center - panelpunkte[i]; //a
-		Vector diagonal_next = panel->r_center - panelpunkte[i+1] //b
+		Vector diagonal_this = panel->r_center - *panelpunkte[i]; //a
+		Vector diagonal_next = panel->r_center - *panelpunkte[i+1]; //b
 
 		// setvekt(a,mj);
 		// vektsub(a,panelpunkte[i]);
@@ -511,70 +491,105 @@ void NearFieldCalc (Panel *panel, Vector *points, Vector *r_diff, float &lhs_coe
 		// vektsub(b,s);
 
 		//alles double
-		diagonal_this_spanwise = diagonal_this.dot(panel->tang_vect_span); //am
+		double diagonal_this_spanwise = diagonal_this.dot(panel->tang_vect_span); //am
 		//am=imp3d(a,mk);
-		diagonal_next_spanwise = diagonal_next.dot(panel->tang_vect_span); //bm
+		double diagonal_next_spanwise = diagonal_next.dot(panel->tang_vect_span); //bm
 		//bm=imp3d(b,mk);
-		side_chordwise = side.dot(panel->tang_vect_chord); //sl
+		double side_chordwise = side.dot(panel->tang_vect_chord); //sl
 		//sl=imp3d(s,lk);
-		side_spanwise = side.dot(panel->tang_vect_span); //sm
+		double side_spanwise = side.dot(panel->tang_vect_span); //sm
 		//sm=imp3d(s,mk);
-		diagonal_this_chordwise = diagonal_this.dot(panel->tang_vect_span); //al
+		double diagonal_this_chordwise = diagonal_this.dot(panel->tang_vect_span); //al
 		//al=imp3d(a,lk);
-		blabla = diagonal_this_spanwise*side_chordwise - diagonal_this_chordwise*side_spanwise; //al2
+		double blabla = diagonal_this_spanwise*side_chordwise - diagonal_this_chordwise*side_spanwise; //al2
 		//al2=am*sl-al*sm;
-		pa = norm_dist_sq*side_chordwise+blabla*diagonal_this_spanwise;
+		double pa = norm_dist_sq*side_chordwise+blabla*diagonal_this_spanwise;
 		//pa=pow(pn,2)*sl+al2*am;
-		pb = norm_dist_sq*side_chordwise+blabla*diagonal_this_chordwise:
+		double pb = norm_dist_sq*side_chordwise+blabla*diagonal_this_chordwise;
 		//pb=pow(pn,2)*sl+al2*bm;
-		diagonal_this_len = diagonal_this.norm(); //norma
+		double diagonal_this_len = diagonal_this.norm(); //norma
 		//norma=norm3d(a);
-		diagonal_next_len = diagonal_next.norm(); //normb
+		double diagonal_next_len = diagonal_next.norm(); //normb
 		//normb=norm3d(b);
 		//norms=norm3d(s);
 
+		Vector h = diagonal_this.cross(side);
+
 		//vektor
-		setvekt(h,a);
-		cross3d(h,s);
+		// setvekt(h,a);
+		// cross3d(h,s);
+		if(*panelpunkte[i]==*panelpunkte[i+1] ||
+			h.norm()/side.norm() <=coresize && diagonal_this.dot(side) >=0. && diagonal_next.dot(side)<=0. || 
+			diagonal_this_len<=coresize ||
+			diagonal_next_len<=coresize ){
 
-		if(vergleich(panelpunkte[i],panelpunkte[i+1])==1||(norm3d(h)/norm3d(s)<=coresize&&imp3d(a,s)>=0.&&imp3d(b,s)<=0.)||norma<=coresize||normb<=coresize){
-			cjki=0.;
-			bjki=0.;//case1
-			//schleife[i]=0;}
-		else{
-			gl=log((norma+normb+side_len)/(norma+normb-side_len))/side_len;
-			dnom=pa*pb+pow(pn,2)*norma*normb*pow(sm,2);
-			rnum=sm*pn*(normb*pa-norma*pb);
-			//schleife[i]=1;
+			lhs_temp = 0.;
+			rhs_temp = 0.;
+		} else{
 
-			if(sqrt(pow(pn,2))<coresize){
-				side=imp3d(nk,h);
-				sign=side>0?-1.0:1.0;
-				//chleife[i]=2;
-				if(dnom<0.0){
-					if(pn>0.)
-						cjki=pi*sign;//schleife[i]=3;
-					else 		
-						cjki=-pi*sign;//schleife[i]=4;
-				} else {
-					if(dnom==0){
-						if(pn>0.) 
-							cjki=pi*sign/2;//schleife[i]=5;
-						else 
-							cjki=-pi*sign/2;//schleife[i]=6;
-					} else
-						cjki=0.;//schleife[i]=7;
-				}
+
+			double gl = log((diagonal_this_len+diagonal_next_len+side_len)/(diagonal_this_len+diagonal_next_len-side_len))/side_len;
+			double dnom = pa*pb + norm_dist_sq*diagonal_this_len*diagonal_next_len*pow(side_spanwise,2);
+			double rnum = side_spanwise*norm_dist*(diagonal_next_len*pa - diagonal_this_len*pb);
+
+			if (norm_dist*(norm_dist<0?-1.:1.) < coresize){
+				int sign = panel->norm_vect.dot(h)>0?1.:-1.;
+				if (dnom<0.)
+					lhs_temp = (norm_dist>0?1.:-1.)*pi*sign;
+				else if (dnom == 0.)
+					lhs_temp = (norm_dist>0?1.:-1.)*pi*sign/2.;
+				else
+					lhs_temp = 0.;
 			} else
-				cjki=atan2(rnum,dnom);//schleife[i]=cjki;
+				lhs_temp = atan2(rnum, dnom);
 
-			bjki=al2*gl-pn*cjki;
+			rhs_temp=blabla*gl-norm_dist*lhs_temp;
 			}
 
-
-		cjk=cjk+cjki;	//RETURN1
-		bjk=bjk+bjki;	//RETURN2
+		lhs_coeff += lhs_temp;
+		rhs_coeff += rhs_temp;
 		}
+
+		// if(vergleich(panelpunkte[i],panelpunkte[i+1])||(norm3d(h)/norm3d(s)<=coresize&&imp3d(a,s)>=0.&&imp3d(b,s)<=0.)||norma<=coresize||normb<=coresize){
+		// 	cjki=0.;
+		// 	bjki=0.;//case1
+		// 	//schleife[i]=0;}
+		// else{
+		// 	gl=log((norma+normb+side_len)/(norma+normb-side_len))/side_len;
+		// 	dnom=pa*pb+pow(pn,2)*norma*normb*pow(sm,2);
+		// 	rnum=sm*pn*(normb*pa-norma*pb);
+		// 	//schleife[i]=1;
+
+		// 	if(sqrt(pow(pn,2))<coresize){
+		// 		side=imp3d(nk,h);
+		// 		sign=side>0?-1.0:1.0;
+		// 		//chleife[i]=2;
+		// 		if(dnom<0.0){
+		// 			if(pn>0.)
+		// 				cjki=pi*sign;//schleife[i]=3;
+		// 			else 		
+		// 				cjki=-pi*sign;//schleife[i]=4;
+		// 		}
+		// 		else {
+		// 			if(dnom==0){
+		// 				if(pn>0.) 
+		// 					cjki=pi*sign/2;//schleife[i]=5;
+		// 				else 
+		// 					cjki=-pi*sign/2;//schleife[i]=6;
+		// 			}
+		// 		else
+		// 			cjki=0.;//schleife[i]=7;
+		// 		}
+		// 	} else
+		// 		cjki=atan2(rnum,dnom);//schleife[i]=cjki;
+
+		// 	bjki=al2*gl-pn*cjki;
+		// 	}
+
+
+		// cjk=cjk+cjki;	//RETURN1
+		// bjk=bjk+bjki;	//RETURN2
+		// }
 
 
 }
