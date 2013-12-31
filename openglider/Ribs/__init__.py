@@ -46,7 +46,7 @@ class Rib(object):
         self.arcang = arcang
         self.zrot = zrot
         self.pos = startpoint
-        self.size = size
+        self.chord = size
         self.profile_3d = None
         self.rotation_matrix = None
         self._normvectors = None
@@ -57,11 +57,11 @@ class Rib(object):
     def align(self, points):
         ptype = arrtype(points)
         if ptype == 1:
-            return self.pos+self.rotation_matrix.dot([points[0]*self.size, points[1]*self.size, 0])
+            return self.pos+self.rotation_matrix.dot([points[0]*self.chord, points[1]*self.chord, 0])
         if ptype == 2 or ptype == 4:
             return numpy.array([self.align(i) for i in points])
         if ptype == 3:
-            return self.rotation_matrix.dot(numpy.array([self.size, self.size, 0])*points)
+            return self.pos+self.rotation_matrix.dot(numpy.array([self.chord, self.chord, 0])*points)
     
     def _setaoa(self, aoa):
         try:
@@ -101,7 +101,7 @@ class Rib(object):
         #self.ReCalc()
 
     def copy(self):
-        return self.__class__(self.profile_2d.copy(), self.ballooning.copy(), self.pos, self.size, self.arcang, self._aoa[0], self.zrot,
+        return self.__class__(self.profile_2d.copy(), self.ballooning.copy(), self.pos, self.chord, self.arcang, self._aoa[0], self.zrot,
                               self.glide, self.name + "_copy", self._aoa[1])
 
     AOA = property(_getaoa, _setaoa)

@@ -1,3 +1,5 @@
+import math
+
 __author__ = 'simon'
 from openglider.Vector import normalize, norm
 import numpy
@@ -79,5 +81,46 @@ def export_dxf(glider, path="", midribs=0, numpoints=None, *other):
     return outfile.save()
 
 
-def export_apame():
-    pass
+def export_apame(glider, path="", midribs=0, numpoints=None, *other):
+    other = glider.copy()
+    other.mirror()
+    other.cells[-1].rib2 = glider.cells[0].rib1
+    other.cells = other.cells + glider.cells
+    if numpoints:
+        other.numpoints = numpoints
+    other.recalc()
+    ribs = other.return_ribs(midribs)
+    #write config
+    outfile = open(path, "w")
+    outfile.write("APAME input file\nVERSION 3.0\n")
+    outfile.write("AIRSPEED "+str(glider.data["GESCHWINDIGKEIT"])+"\n")
+    outfile.write("DENSITY 1.225\nPRESSURE 1.013e+005\nMACH 0\nCASE_NUM 1\n")  # TODO: Multiple cases
+    outfile.write(str(math.tan(1/glider.data["GLEITZAHL"]))+"\n0\n")
+    outfile.write("WINGSPAN "+str(glider.span)+"\n")
+    outfile.write("MAC 2") # TODO: Mean Choord
+    outfile.write("SURFACE "+str(glider.area)+"\n")
+    outfile.write("ORIGIN\n0 0 0\n")
+    outfile.write("METHOD 0\nERROR 1e-007\nCOLLDIST 1e-007\n")
+    outfile.write("FARFIELD "+str(5)+"\n")  # TODO: farfield argument
+    outfile.write("COLLCALC 0\nVELORDER 2\nRESULTS 1\n1  1  1  1  1  1  1  1  1  1  1  1  1\n\n")
+    outfile.write("NODES " + str(len(ribs)*len(ribs[0]))+"\n")
+
+    for rib in ribs:
+        for point in rib:
+            for coord in point:
+                outfile.write(str(coord)+"\t")
+            outfile.write("\n")
+
+    outfile.write("\nPANELS "+str((len(ribs)-1)*(len(ribs[0])-1))+"\n")  # TODO: ADD WAKE + Neighbours!
+    for i in range(len(ribs)-1):
+        for j in range(other.numpoints):
+            # COUNTER-CLOCKWISE!
+            outfile.write(u"1 {0!s}\t{1!s}\t{2!s}\t{3!s}\n".format(i * len(ribs[0]) + j + 1,
+                                                                   (i + 1) * len(ribs[0]) + j + 1,
+                                                                   (i + 1) * len(ribs[0]) + j + 2,
+                                                                   i * len(ribs[0]) + j + 2))
+
+
+    return outfile.close()
+
+

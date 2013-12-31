@@ -17,13 +17,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-
-
-__author__ = 'simon'
+import math
 import numpy
 import copy
 
 from openglider.Import import IMPORT_GEOMETRY, EXPORT_3D
+from openglider.Vector import norm, normalize
 
 
 class Glider(object):
@@ -109,22 +108,60 @@ class Glider(object):
     def copy(self):
         return copy.deepcopy(self)
 
-    def _get_ribs_(self):
+    def scale(self, faktor):
+        for rib in self.ribs:
+            rib.pos *= faktor
+            rib.chord *= faktor
+
+    def __get_ribs_(self):
         if not self.cells:
             return []
         return [self.cells[0].rib1] + [cell.rib2 for cell in self.cells]
 
-    def _get_numpoints(self):
+    def __get_numpoints(self):
         return self.ribs[0].profile_2d.Numpoints
 
-    def _set_numpoints(self, numpoints):
+    def __set_numpoints(self, numpoints):
         self.ribs[0].profile_2d.Numpoints = numpoints
         xvalues = self.ribs[0].profile_2d.XValues
         for rib in self.ribs:
             rib.profile_2d.XValues = xvalues
 
-    ribs = property(fget=_get_ribs_)
-    numpoints = property(_get_numpoints, _set_numpoints)
+    def __get_span(self):
+        span = 0.
+        last = numpy.array([0, 0, 0])
+        for rib in self.ribs[1:]:
+            span += norm((rib.pos-last)*[0, 1, 1])
+            last = rib.pos
+        return 2*span
+
+    def __set_span(self, span):
+        faktor = span/self.span
+        self.scale(faktor)
+
+    def __get_area(self):
+        area = 0.
+        if len(self.ribs) == 0:
+            return 0
+        lastrib_front = self.ribs[0].align([0, 0, 0])*numpy.array([1, 0, 1])
+        lastrib_back = self.ribs[0].align([1, 0, 0])*numpy.array([1, 0, 1])
+        for rib in self.ribs[1:]:
+            thisrib_front = rib.align([0, 0, 0])*numpy.array([1, 0, 1])
+            thisrib_back = rib.align([1, 0, 0])*numpy.array([1, 0, 1])
+            area += norm(numpy.cross(lastrib_front - thisrib_front, thisrib_back - thisrib_front))
+            area += norm(numpy.cross(lastrib_back - thisrib_back, thisrib_back - thisrib_front))
+            lastrib_back = thisrib_back
+            lastrib_front = thisrib_front
+        return area
+
+    def __set_area(self, area):
+        faktor = area/self.area
+        self.scale(math.sqrt(faktor))
+
+    ribs = property(fget=__get_ribs_)
+    numpoints = property(__get_numpoints, __set_numpoints)
+    span = property(__get_span, __set_span)
+    area = property(__get_area, __set_area)
 
 
 

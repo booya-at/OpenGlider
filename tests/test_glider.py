@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
+import random
 from openglider.Ribs import MiniRib
 import os
 import openglider.Graphics
@@ -49,8 +50,23 @@ class test_glider_class(unittest.TestCase):
 
     def test_export_dxf(self):
         path = '/tmp/booya.dxf'
-        self.glider.export_3d(path,midribs=5)
+        self.glider.export_3d(path, midribs=5)
 
+    def test_export_apame(self):
+        path = '/tmp/booya.inp'
+        self.glider.export_3d(path, midribs=1)
+
+    def test_span(self):
+        span = random.random()*100
+        self.glider.span = span
+        self.assertAlmostEqual(self.glider.span, span)
+
+    def test_area(self):
+        area = random.random()*100
+        self.glider.recalc()
+        self.glider.area = area
+        self.glider.recalc()
+        self.assertAlmostEqual(self.glider.area, area)
 
 
 if __name__ == '__main__':

@@ -55,6 +55,7 @@ struct Config
 	Vector *vinf;
 	int node_number;
 	int panel_number;
+	int panel_number_not_wake;
 };
 
 enum CONFIG_ARGUMENTS {ARG_Airspeed, ARG_Density, ARG_Pressure, ARG_Casenum, ARG_Wingspan, ARG_Mac, ARG_Sufrace, ARG_Origin, ARG_Farfield, ARG_Error, ARG_Results, ARG_Nodes, ARG_Panels};
@@ -70,7 +71,7 @@ void farfield_calc(const float &pn, const float &area, const float &pjk, float &
 	rhs_coeff = area/pjk;
 }
 //////////////FORWARD-DECLARATIONS////////////////////////////////
-void nearfield_calc(Panel*, Vector*, Vector*, float&, float&);
+void nearfield_calc(Panel*, Vector*, Vector&, float&, float&);
 void *calculate_rows(void*);
 void usage();
 //////////////////////////////////////////////////////////////////
@@ -220,6 +221,7 @@ int main(int argc, char* argv[]){
     	char *value;
     	int i;
     	Vector *nodes;
+    	Panel *panels;
 
 
 
@@ -228,17 +230,19 @@ int main(int argc, char* argv[]){
 		while (read_config(&inputfile, &config, found_nodes)) {
 			if (found_nodes) {
 				////////////////////NODES SECTION//////////////////////////////
+				//////////TODO: MOVE TO FUNCTION
 				nodes = (Vector*)malloc(sizeof(Vector) * config.node_number);
+				int i=0;
 				while(inputfile.getline(thisline, max_linelength) && i < config.node_number) {
 					if (thisline[0] == '#' or strlen(thisline) < 2)
 						continue;
 
 					value = strtok(thisline, " ");
-					if (string(value) == "PANELS") {
-						//cout << "PANLS";
-						config.panel_number = atoi(strtok(NULL, " "));
-						break;
-					}
+					// if (string(value) == "PANELS") {
+					// 	cout << "PANLS";
+					// 	config.panel_number = atoi(strtok(NULL, " "));
+					// 	break;
+					// }
 					for (int j=0; j<3; j++){
 						nodes[i][j] = atof(value);
 						value = strtok(NULL," ");
@@ -246,166 +250,87 @@ int main(int argc, char* argv[]){
 					i++;
 				}
 			} else {
+				////////////////////PANELS SECTION////////////////////////////
+				panels = (Panel*)malloc(sizeof(Panel) * config.panel_number);
+				Panel *thispanel;
+				int i = 0;
+				int num_not_wake = 0;
+				while(inputfile.getline(thisline, max_linelength) && i<config.panel_number){
+					if (thisline[0] == '#' or strlen(thisline) < 2)
+						continue;
+
+					thispanel = panels + i;
+					value = strtok(thisline, " ");  //TYPE
+
+					if (string(value)=="10") 
+						thispanel->wake=true;
+					else {
+						thispanel->wake=false;
+						thispanel->position=num_not_wake;
+						num_not_wake++;
+					}
+					//////POINTS
+					thispanel->p1 = atoi(strtok(NULL, " ")) - 1;
+					thispanel->p2 = atoi(strtok(NULL, " ")) - 1;
+					thispanel->p3 = atoi(strtok(NULL, " ")) - 1;
+					if (value[0] == '2')
+						thispanel->p4 = thispanel->p3; //3-node
+					else
+						thispanel->p4 = atoi(strtok(NULL, " ")) - 1; //4-node
+					//////NEIGHBOURS
+					thispanel->neighbour_front = atoi(strtok(NULL, " ")) - 1;
+					thispanel->neighbour_back = atoi(strtok(NULL, " ")) - 1;
+					if(!thispanel->wake){
+						thispanel->neighbour_left = atoi(strtok(NULL, " ")) - 1;
+						if (value[0] == '2')
+							thispanel->neighbour_right = thispanel->neighbour_left;
+						else
+							thispanel->neighbour_right = atoi(strtok(NULL, " ")) - 1;
+					}
+					i++;
+					}
+				config.panel_number_not_wake = num_not_wake;
+				inputfile.close();
 				break;
 			}
 		}
-/*
-		char thisline[max_linelength];
-		char* value;
-		char* argument;
-		////////////////////////////////////////////CONFIG TODO: PARSE DIRECTLY!!
-		while(inputfile.getline(thisline, max_linelength)){
-			if (thisline[0] == '#' || strlen(thisline) < 2)	{
-				continue; //Comment
-			}
-			int number = -1;
-			//cout << thisline << endl;
-			argument = strtok(thisline, " ");
 
-			while (true) {
-				number ++;
-				if (number >= ARGUMENT_NUMBERS) {
-					cout << "Argument \""<< argument << "\"not known." << endl;
-					break;
-				}
-				if (ARGUMENT_WORDS[number] == string(argument))
-					break;
-			}
-			switch(number){
-				case Airspeed:
-					cout << "Airspeed found" << endl;
-					break;
-				case Density:
-					cout << "Density found" << endl;
-					break;
-			}
-
-
-
-
-
-
-
-			// argument = strtok(NULL, " ");
-			// config[value] = argument;
-
-			// if (string(value) == "NODES")	{
-			// 	num = atoi(argument);
-			// 	break;
-			// }
-			}
-		//////////////////////Move down
-		//cout << "Airspeed:  " << config["AIRSPEED"] << endl;
-		//cout << "Density:  " << config["DENSITY"] << endl;
-		//cout << "Pressure [Pa]:  " << config["PRESSURE"] << endl;
-		//cout << "Number of cases:  " << config["CASENUM"] << endl;
-		//casenum=3 -> anglesofattack: 0 0 0; sideslip_angles: 0 0 0
-		//cout << "WINGSPAN: " << config["WINGSPAN"] << endl;
-		//cout << "SURFACE: " << config["SURFACE"] << endl;
-		//cout << "NODES: " << config["NODES"] << endl;
-		// ERROR, COLLDIST, FARFIELD=5, 
-		//Results: coefficients, forces, geometry, velocity, pressure, center points, doublet values, source values, velocity components, mesh caracteristics, static pressure, dynamic pressure, manometer pressure (1/0)
-		*/
-		////////////////////////////////////////////NODES
-		//cout << "NODES: " << num << endl;
 
 		
 		int num_panels = config.panel_number;
-
-		i = 0;
-		// while(inputfile.getline(thisline, max_linelength)) {
-		// 	if (thisline[0] == '#' or strlen(thisline) < 2) {
-		// 		//cout << "comment" << endl;
-		// 		continue;
-		// 	}
-
-
-		// 	value = strtok(thisline, " ");  //END OF NODE-SECTION
-		// 	if (string(value) == "PANELS") {
-		// 		//cout << "PANLS";
-		// 		num_panels = atoi(strtok(NULL, " "));
-		// 		break;
-		// 	}
-		// 	for (int j=0; j<3; j++){
-		// 		nodes[i][j] = atof(value);
-		// 		value = strtok(NULL," ");
-		// 	}
-		// 	i++;
-
-		// }
-		//cout << nodes[0] << endl;
+		int num_not_wake = config.panel_number_not_wake;
 		cout << "PANELS: " << num_panels;
-		///////////////////////////////////////////PANELS/WAKE
-		// -> struct panel -> p1(int), p2, p3, p4, normvekt,
-		Panel panels[num_panels];
-		//local references
-		Panel* panel;
-		Vector* p1;
-		Vector* p2;
-		Vector* p3;
-		Vector* p4;
 
-		i = 0;
-		int num_not_wake = 0;
-		while(inputfile.getline(thisline, max_linelength)) {
-			if (thisline[0] == '#' or strlen(thisline) < 2) {
-				continue;
+		#pragma omp parallel
+			{
+			Panel* thispanel;
+			Vector* p1;
+			Vector* p2;
+			Vector* p3;
+			Vector* p4;
+			#pragma omp for
+			for(int i=0; i<config.panel_number; i++){
+				thispanel = panels + i;
+				p1 = nodes + thispanel->p1;
+				p2 = nodes + thispanel->p2;
+				p3 = nodes + thispanel->p3;
+				p4 = nodes + thispanel->p4;
+
+				thispanel->norm_vect = (*p3-*p1).cross(*p4-*p2);
+				thispanel->area = thispanel->norm_vect.norm();
+				thispanel->norm_vect.normalize();
+				thispanel->r_center = (*p1+*p2+*p3+*p4)/4;
+				thispanel->smp = (*p2+*p3)/2 - thispanel->r_center;
+				thispanel->smp_len = thispanel->smp.norm();
+				thispanel->smq = (*p3+*p4)/2 - thispanel->r_center;
+				thispanel->smq_len = thispanel->smq.norm();
+				thispanel->tang_vect_span = ((*p3+*p4)/2-thispanel->r_center);
+				thispanel->tang_vect_span.normalize();
+				thispanel->tang_vect_chord = thispanel->tang_vect_span.cross(thispanel->norm_vect);
+				thispanel->sigma = thispanel->norm_vect.dot(*(config.vinf));
 			}
-			//cout << "lese" << endl;
-			panel = panels + i;
-			i++;
-			value = strtok(thisline, " ");
-
-			if (string(value)=="10") {
-				panel->wake=true;
-			}
-			else {
-				panel->wake=false;
-				panel->position=num_not_wake;
-				num_not_wake++;
-			}
-			panel->p1 = atoi(strtok(NULL, " ")) - 1;
-			panel->p2 = atoi(strtok(NULL, " ")) - 1;
-			panel->p3 = atoi(strtok(NULL, " ")) - 1;
-			if (value[0] == '2')
-				panel->p4 = panel->p3; //3-node
-			else
-				panel->p4 = atoi(strtok(NULL, " ")) - 1; //4-node
-
-			panel->neighbour_front = atoi(strtok(NULL, " ")) - 1;
-			panel->neighbour_back = atoi(strtok(NULL, " ")) - 1;
-
-			if(!panel->wake){
-				panel->neighbour_left = atoi(strtok(NULL, " ")) - 1;
-				if (value[0] == '2')
-					panel->neighbour_right = panel->neighbour_left;
-				else
-					panel->neighbour_right = atoi(strtok(NULL, " ")) - 1;
-			}
-			///////////////////////////////////////////////////////////////////////////
-			///////////////////////CALCULATE PARAMETERS////////////////////////////////
-			//Could be multithreaded aswell?
-			//subtract one because the pointnrs. start at 1
-			p1 = nodes + panel->p1;
-			p2 = nodes + panel->p2;
-			p3 = nodes + panel->p3;
-			p4 = nodes + panel->p4;
-
-			panel->norm_vect = (*p3-*p1).cross(*p4-*p2);
-			panel->area = panel->norm_vect.norm();
-			panel->norm_vect.normalize();
-			panel->r_center = (*p1+*p2+*p3+*p4)/4;
-			panel->smp = (*p2+*p3)/2 - panel->r_center;
-			panel->smp_len = panel->smp.norm();
-			panel->smq = (*p3+*p4)/2 - panel->r_center;
-			panel->smq_len = panel->smq.norm();
-			panel->tang_vect_span = ((*p3+*p4)/2-panel->r_center);
-			panel->tang_vect_span.normalize();
-			panel->tang_vect_chord = panel->tang_vect_span.cross(panel->norm_vect);
-			panel->sigma = panel->norm_vect.dot(*(config.vinf));
-
 		}
-		inputfile.close();
+		
 
 			
 		cout << " (" << num_not_wake << ")" << endl;
@@ -427,6 +352,8 @@ int main(int argc, char* argv[]){
 
 
 
+			int far;
+			int near;
 
 		#pragma omp parallel
 			{
@@ -450,13 +377,21 @@ int main(int argc, char* argv[]){
 					pn = r_diff.dot(panel_i->norm_vect);
 					dist = r_diff.norm();
 					//cout << "dist: " << dist << endl;
+					
 
 					if(dist>faktor*panel_i->smp_len*panel_i->smq_len){
 						farfield_calc(pn, panel_i->area, dist, cjk, bjk);
+						//cout << "far" << endl;
+						far++;
 						}
+					//else if(dist == 0)
+					//	cjk = 2*pi;
 					else {
-						//nearfield_calc(panel_i, nodes, &(panel_j->r_center), cjk, bjk);
+						nearfield_calc(panel_i, nodes, r_diff, cjk, bjk);
+						//cout << "near" << endl;
+						near++;
 						}
+					//break;  //DEBUG
 
 					if (panel_i->wake){ //wake -> two neighbours (CHECK SIGNS!! maybe sign(dot(normvecs))))
 						//cout << panel_i->neighbour_front << "//" << panel_i->neighbour_back << endl;
@@ -465,8 +400,8 @@ int main(int argc, char* argv[]){
 							cout << "Error in panel " << i << ": neighbour front not right!" << endl;
 						if (panel_i->neighbour_back < 0 || panel_i->neighbour_back >= num_panels || (panels + panel_i->neighbour_back)->wake)
 							cout << "Error in panel " << i << ": neighbour back not right!" << endl;
-						matrix((panels + panel_i->neighbour_front)->position, panel_j->position)+=cjk;
-						matrix((panels + panel_i->neighbour_back)->position, panel_j->position)-=cjk;
+						matrix((panels + panel_i->neighbour_front)->position, panel_j->position)-=cjk;
+						matrix((panels + panel_i->neighbour_back)->position, panel_j->position)+=cjk;
 						}
 					else if(!(panel_i->wake)){ //normal panel!
 						if(panel_j->wake || panel_i->wake || panel_i->position < 0 || panel_j->position<0)
@@ -478,7 +413,7 @@ int main(int argc, char* argv[]){
 						// 	cout << "oops, j=" << panel_j->position << " / " << num_not_wake << endl;
 						matrix(panel_i->position, panel_j->position) = cjk;
 						//cout << panel->norm_vect.dot(*(config.vinf+0)) << endl;
-						rhs(panel_j->position) += bjk*panel_j->norm_vect.dot(*(config.vinf+0));
+						rhs(panel_j->position) += bjk*panel_j->norm_vect.dot(*(config.vinf+0))/4/pi;
 						}
 					
 
@@ -493,8 +428,21 @@ int main(int argc, char* argv[]){
 
 
 		//cout << rhs << endl;
+		cout << "far: " << far << endl << "near: " << near << endl;
 		cout << "area: " << panels->area << endl;
 		cout << "mat: " << panels->r_center << endl;
+		cout << "matrix: " << endl;
+		int show = 10;
+		for (int i=0;i<show;i++){
+			for (int j=0; j<show;j++){
+				cout << matrix(i,j) << "\t";
+			}
+			cout << endl;
+		}
+
+		cout << endl << "RHS:" <<endl;
+		for (int i=0;i<show; i++)
+			cout << rhs(i) << endl;
 
 
 
@@ -586,7 +534,7 @@ void usage(){
 double coresize=0.00000000000000000001;
 
 
-void nearfield_calc(Panel *panel, Vector *points, Vector *r_diff, float &lhs_coeff, float &rhs_coeff){
+void nearfield_calc(Panel *panel, Vector *points, Vector &r_diff, float &lhs_coeff, float &rhs_coeff){
 	//ALT:  panel,->panel(nk->norm_vect1,mk->r_center,lk->chordwise, mk->spanwise), MJ=r_center2, M=r_diff
 	//mk =
 	
@@ -608,19 +556,19 @@ void nearfield_calc(Panel *panel, Vector *points, Vector *r_diff, float &lhs_coe
 	// double pn;
 	// pn=imp3d(mmath,nk);
 
-	double norm_dist = panel->norm_vect.dot(*r_diff); //pn
+	double norm_dist = panel->norm_vect.dot(r_diff); //pn
 	double norm_dist_sq = pow(norm_dist,2);
 
-	double coresize=0.00000000000000000001;
+	//double coresize=0.000001;
 	//double bjk=0.; //LHS-coeff
 	//double cjk=0.; //RHS-coeff
 	//double panelpunkte[5][3];
 	Vector *panelpunkte[5];
-		panelpunkte[0] = points + panel->p1;
-		panelpunkte[1] = points + panel->p2;
-		panelpunkte[2] = points + panel->p3;
-		panelpunkte[3] = points + panel->p4;
-		panelpunkte[4] = points + panel->p1;
+		panelpunkte[0] = points + panel->p4;
+		panelpunkte[1] = points + panel->p3;
+		panelpunkte[2] = points + panel->p2;
+		panelpunkte[3] = points + panel->p1;
+		panelpunkte[4] = points + panel->p4;
 
 	//double schleife[4];
 
@@ -694,20 +642,25 @@ void nearfield_calc(Panel *panel, Vector *points, Vector *r_diff, float &lhs_coe
 			lhs_temp = 0.;
 			rhs_temp = 0.;
 		} else{
-
-
 			double gl = log((diagonal_this_len+diagonal_next_len+side_len)/(diagonal_this_len+diagonal_next_len-side_len))/side_len;
 			double dnom = pa*pb + norm_dist_sq*diagonal_this_len*diagonal_next_len*pow(side_spanwise,2);
 			double rnum = side_spanwise*norm_dist*(diagonal_next_len*pa - diagonal_this_len*pb);
 
+			//std::cout << norm_dist*(norm_dist<0?-1.:1.) << std::endl;
+
 			if (norm_dist*(norm_dist<0?-1.:1.) < coresize){
+				
 				int sign = panel->norm_vect.dot(h)>0?1.:-1.;
+				//std::cout << "dnom: " << dnom << std::endl;
+				//std::cout << "dnorm: " << norm_dist_sq << std::endl;
+				//std::cout << "pa: " << pa << std::endl;
+				//std::cout << "pb: " << pb << std::endl;
 				if (dnom<0.)
 					lhs_temp = (norm_dist>0?1.:-1.)*pi*sign;
-				else if (dnom == 0.)
-					lhs_temp = (norm_dist>0?1.:-1.)*pi*sign/2.;
+				//else if (dnom > 0)
+				//	lhs_temp = 0;
 				else
-					lhs_temp = 0.;
+					lhs_temp = (norm_dist>0?1.:-1.)*pi*sign/2.;
 			} else
 				lhs_temp = atan2(rnum, dnom);
 
