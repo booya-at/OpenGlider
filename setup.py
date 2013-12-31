@@ -62,7 +62,6 @@ for dirpath, dirnames, filenames in os.walk(og_dir):
         package_files = package_data.setdefault('.'.join(parts), [])
         package_files.extend([os.path.join(path, f) for f in filenames])
 
-
 setup(
     name='OpenGlider',
     version='0.01dev',

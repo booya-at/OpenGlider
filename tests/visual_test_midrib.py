@@ -26,6 +26,7 @@ import numpy
 import math
 import os
 import sys
+
 try:
     import openglider
 except ImportError:
@@ -38,7 +39,7 @@ from openglider.Utils.Ballooning import BallooningBezier
 
 
 a = Profile2D()
-a.importdat(os.path.dirname(os.path.abspath(__file__))+"/testprofile.dat")
+a.importdat(os.path.dirname(os.path.abspath(__file__)) + "/testprofile.dat")
 #a.Numpoints = 40
 
 midribs = [
@@ -51,11 +52,10 @@ b1 = BallooningBezier()
 b2 = BallooningBezier()
 b2.Amount *= 0.8
 
-
-r2 = Rib(a, b1, [0, 0.12, 0], 1., 20*math.pi/180, 2*math.pi/180, 0, 7)
+r2 = Rib(a, b1, [0, 0.12, 0], 1., 20 * math.pi / 180, 2 * math.pi / 180, 0, 7)
 r1 = r2.copy()
 r1.mirror()
-r3 = Rib(a, b2, [0.2, 0.3, -0.1], 0.8, 30*math.pi/180, 5*math.pi/180, 0, 7)
+r3 = Rib(a, b2, [0.2, 0.3, -0.1], 0.8, 30 * math.pi / 180, 5 * math.pi / 180, 0, 7)
 
 for i in [r1, r2, r3]:
     i.recalc()
@@ -65,22 +65,22 @@ cell1.recalc()
 cell2 = Cell(r2, r3, [])
 cell2.recalc()
 
-
 num = 10
 #ribs = [cell1.midrib(x*1./num) for x in range(num+1)]
 #ribs += [cell2.midrib(x*1./num) for x in range(num+1)]
 #G.Graphics3D([G.Line(r1.profile_3d.data),G.Line(r2.profile_3d.data),G.Line([[0.,0.,0.],[1.,0.,0.]]),G.Line([[0.,0.,0.],[0.,0.5,0.]])])
 #Graph.Graphics3D([Graph.Line(x.data) for x in ribs])
 ribs = []
-for x in range(num+1):
-    ribs.append(cell1.midrib(x*1./num).data)
-for x in range(1, num+1):
-    ribs.append(cell2.midrib(x*1./num).data)
-ribs =numpy.concatenate(ribs)
+for x in range(num + 1):
+    ribs.append(cell1.midrib(x * 1. / num).data)
+for x in range(1, num + 1):
+    ribs.append(cell2.midrib(x * 1. / num).data)
+ribs = numpy.concatenate(ribs)
 polygons = []
 points = a.numpoints
 
-for i in range(2*num):
-    for j in range(points-1):
-        polygons.append(Graph.Polygon([i*points+j, i*points+j+1, (i+1)*points+j+1, (i+1)*points+j]))
+for i in range(2 * num):
+    for j in range(points - 1):
+        polygons.append(
+            Graph.Polygon([i * points + j, i * points + j + 1, (i + 1) * points + j + 1, (i + 1) * points + j]))
 Graph.Graphics3D(polygons, ribs)

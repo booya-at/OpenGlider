@@ -7,7 +7,6 @@ import numpy
 
 
 class Airfoil():
-
     """FreeCAD Airfoil"""
 
     def __init__(self, obj):
@@ -57,7 +56,6 @@ class Airfoil():
 
 
 class ViewProviderAirfoil():
-
     def __init__(self, obj):
         obj.addProperty(
             "App::PropertyLength", "LineWidth", "Base", "Line width")
@@ -120,11 +118,9 @@ class ViewProviderAirfoil():
 
 
 class moveablePoint():
-
     """FreeCAD Point"""
 
     def __init__(self, obj, x, y):
-
         obj.addProperty("App::PropertyFloat", "x", "coor", "cor-x").x = x
         obj.addProperty("App::PropertyFloat", "y", "coor", "cor-y").y = y
         obj.Proxy = self
@@ -137,7 +133,6 @@ class moveablePoint():
 
 
 class ViewProvidermoveablePoint():
-
     def __init__(self, obj, lineobject):
         self.lineobject = lineobject
         self.object = obj.Object
@@ -184,7 +179,7 @@ class ViewProvidermoveablePoint():
         pos = event.getPosition()
         #FreeCAD.Console.PrintWarning(str(pos)+"bla")
         s = self.view.getPointOnScreen(self.x, self.y, 0.)
-        if (abs(s[0] - pos[0]) ** 2 +  abs(s[1] - pos[1]) ** 2) < (15 ** 2):
+        if (abs(s[0] - pos[0]) ** 2 + abs(s[1] - pos[1]) ** 2) < (15 ** 2):
             if self.highlightind:
                 pass
             else:
@@ -217,8 +212,8 @@ class ViewProvidermoveablePoint():
         self.object.y = point[1]
         self.data.point.setValue(self.x, self.y, 0)
 
-class moveableLine():
 
+class moveableLine():
     """FreeCAD Point"""
 
     def __init__(self, obj, points):
@@ -248,7 +243,6 @@ class moveableLine():
 
 
 class ViewProvidermoveableLine():
-
     def __init__(self, obj):
         self.object = obj.Object
         obj.Proxy = self
@@ -281,8 +275,8 @@ class ViewProvidermoveableLine():
 
 from openglider.Utils import Bezier
 
-class moveableSpline():
 
+class moveableSpline():
     """FreeCAD Point"""
 
     def __init__(self, obj, points):
@@ -311,7 +305,6 @@ class moveableSpline():
         self.Object.points = temp
 
 
-
 #class moveableSpline(moveableLine):
 #    pass
 
@@ -329,10 +322,9 @@ class moveableSpline():
 
 
 class ViewProvidermoveableSpline():
-
     def __init__(self, obj):
         self.object = obj.Object
-        self.bezier = Bezier.BezierCurve([[0,1],[2,3],[3,0]])
+        self.bezier = Bezier.BezierCurve([[0, 1], [2, 3], [3, 0]])
         obj.Proxy = self
 
     def claimChildren(self):
@@ -352,7 +344,7 @@ class ViewProvidermoveableSpline():
     def updateData(self, fp, prop):
         num = 20
         self.bezier.controlpoints = [[i.x, i.y] for i in self.object.points]
-        data = [self.bezier(i*1./(num-1)).tolist() + [0] for i in range(num)]
+        data = [self.bezier(i * 1. / (num - 1)).tolist() + [0] for i in range(num)]
         self.data.point.setValue(0, 0, 0)
         self.data.point.setValues(0, len(data), data)
 

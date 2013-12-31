@@ -11,11 +11,11 @@ sys.ps2 = '>>'
 os.environ['PYTHONINSPECT'] = 'True'
 
 try:
-	import readline
+    import readline
 except ImportError:
-	print("Module readline not available.")
+    print("Module readline not available.")
 else:
-	import rlcompleter
+    import rlcompleter
 readline.parse_and_bind("tab: complete")
 
 

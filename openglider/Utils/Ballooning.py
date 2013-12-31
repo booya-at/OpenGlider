@@ -45,21 +45,21 @@ class Ballooning(object):
 
     def __call__(self, arg):
         """Get Ballooning Arc (phi) for a certain XValue"""
-        return self.phi(1./(self[arg]+1))
+        return self.phi(1. / (self[arg] + 1))
 
     def __add__(self, other):
         """Add another Ballooning to this one, needed for merging purposes"""
         xup = self.upper.x  # This is valid for scipy interpolations, no clue how to do different, if so...
         xlow = self.lower.x
-        yup = [self.upper(i)+other.upper(i) for i in xup]
-        ylow = [self.lower(i)+other.lower(i) for i in xlow]
+        yup = [self.upper(i) + other.upper(i) for i in xup]
+        ylow = [self.lower(i) + other.lower(i) for i in xlow]
 
         return Ballooning(interp1d(xup, yup), interp1d(xlow, ylow))
 
     def __mul__(self, other):
         """Multiply Ballooning With a Value"""
-        up = interp1d(self.upper.x, [i*other for i in self.upper.y])
-        low = interp1d(self.upper.x, [i*other for i in self.lower.y])
+        up = interp1d(self.upper.x, [i * other for i in self.upper.y])
+        low = interp1d(self.upper.x, [i * other for i in self.lower.y])
         return Ballooning(up, low)
 
     def copy(self):
@@ -84,19 +84,19 @@ class Ballooning(object):
         # Integration of 2-points allways:
         amount = 0
         for curve in [self.upper, self.lower]:
-            for i in range(len(curve.x)-2):
+            for i in range(len(curve.x) - 2):
                 # points: (x1,y1), (x2,y2)
                 #     _ p2
                 # p1_/ |
                 #  |   |
                 #  |___|
-                amount += (curve.y[i]+(curve.y[i+1]-curve.y[i])/2)*(curve.x[i+1]-curve.x[i])
-        return amount/2
+                amount += (curve.y[i] + (curve.y[i + 1] - curve.y[i]) / 2) * (curve.x[i + 1] - curve.x[i])
+        return amount / 2
 
     def amount_set(self, amount):
-        factor = float(amount)/self.Amount
-        self.upper.y = [i*factor for i in self.upper.y]
-        self.lower.y = [i*factor for i in self.lower.y]
+        factor = float(amount) / self.Amount
+        self.upper.y = [i * factor for i in self.upper.y]
+        self.lower.y = [i * factor for i in self.lower.y]
 
     Amount = property(amount_maximal, amount_set)
 
@@ -105,7 +105,7 @@ class BallooningBezier(Ballooning):
     def __init__(self, points=None):
         if not points:
             points = [[[0, 0], [0.1, 0], [0.2, 0.14], [0.8, 0.14], [0.9, 0], [1, 0]],
-                                 [[0, 0], [0.1, 0], [0.2, 0.14], [0.8, 0.14], [0.9, 0], [1, 0]]]
+                      [[0, 0], [0.1, 0], [0.2, 0.14], [0.8, 0.14], [0.9, 0], [1, 0]]]
         self.upbez = BezierCurve(points[0])
         self.lowbez = BezierCurve(points[1])
         Ballooning.__init__(self, self.upbez.interpolation(), self.lowbez.interpolation())
@@ -136,9 +136,9 @@ def interpolate_asinc(numpoints=1000, phi0=0, phi1=numpy.pi):
     """Set Global Interpolation Function arsinc"""
     global arsinc
     (x, y) = ([], [])
-    for i in range(numpoints+1):
-        phi = phi1+(i*1./numpoints)*(phi0-phi1)  # reverse for interpolation (increasing x_values)
-        x.append(numpy.sinc(phi/numpy.pi))
+    for i in range(numpoints + 1):
+        phi = phi1 + (i * 1. / numpoints) * (phi0 - phi1)  # reverse for interpolation (increasing x_values)
+        x.append(numpy.sinc(phi / numpy.pi))
         y.append(phi)
     arsinc = interp1d(x, y)
 

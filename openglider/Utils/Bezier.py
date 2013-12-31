@@ -62,11 +62,11 @@ class BezierCurve(object):
         return self._controlpoints
 
     def xpoint(self, x):
-        root = findroot(lambda x2: self._BezierFunction(x2)[0]-x, 0, 1)
+        root = findroot(lambda x2: self._BezierFunction(x2)[0] - x, 0, 1)
         return self._BezierFunction(root)
 
     def ypoint(self, y):
-        root = findroot(lambda y2: self._BezierFunction(y2)[1]-y, 0, 1)
+        root = findroot(lambda y2: self._BezierFunction(y2)[1] - y, 0, 1)
         return self._BezierFunction(root)
 
     def fit(self, data, numpoints=None):
@@ -78,7 +78,7 @@ class BezierCurve(object):
         x = []
         y = []
         for i in range(num):
-            point = self(i*1./(num-1))
+            point = self(i * 1. / (num - 1))
             x.append(point[0])
             y.append(point[1])
         return scipy.interpolate.interp1d(x, y)
@@ -92,7 +92,8 @@ class BezierCurve(object):
 
 def bernsteinbase(d):
     def bsf(n):
-        return lambda x: comb(d-1, n)*(x**n)*((1-x)**(d-1-n))
+        return lambda x: comb(d - 1, n) * (x ** n) * ((1 - x) ** (d - 1 - n))
+
     return [bsf(i) for i in range(d)]
 
 
@@ -100,22 +101,25 @@ def bezierfunction(points, base=None):
     """"""
     if not base:
         base = bernsteinbase(len(points))
+
     def func(x):
         val = np.zeros(len(points[0]))
         for i in range(len(points)):
             fakt = base[i](x)
-            v = np.array(points[i])*fakt
+            v = np.array(points[i]) * fakt
             val += v
         return val
+
     return func
 
 
 def fitbezier(points, base=bernsteinbase(3), start=True, end=True):
     """Fit to a given set of points with a certain number of spline-points (default=3)
     if start (/ end) is True, the first (/ last) point of the Curve is included"""
-    matrix = np.matrix([[base[column](row*1./(len(points)-1)) for column in range(len(base))] for row in range(len(points))])
+    matrix = np.matrix(
+        [[base[column](row * 1. / (len(points) - 1)) for column in range(len(base))] for row in range(len(points))])
     matrix = np.linalg.pinv(matrix)
-    out = np.array(matrix*points)
+    out = np.array(matrix * points)
     if start:
         out[0] = points[0]
     if end:

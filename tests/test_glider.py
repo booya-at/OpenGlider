@@ -23,7 +23,7 @@ import os
 import openglider.Graphics
 
 __author__ = 'simon'
-testfolder = os.path.dirname(os.path.abspath( __file__ ))
+testfolder = os.path.dirname(os.path.abspath(__file__))
 import unittest
 
 from openglider import glider
@@ -35,7 +35,7 @@ class TestGlider(unittest.TestCase):
 
     def setUp(self):
         self.glider = glider.Glider()
-        self.glider.import_geometry(testfolder+'/demokite.ods')
+        self.glider.import_geometry(testfolder + '/demokite.ods')
 
     def test_import_export_ods(self):
         path = '/tmp/daweil.ods'
@@ -57,12 +57,12 @@ class TestGlider(unittest.TestCase):
         self.glider.export_3d(path, midribs=1)
 
     def test_span(self):
-        span = random.random()*100
+        span = random.random() * 100
         self.glider.span = span
         self.assertAlmostEqual(self.glider.span, span)
 
     def test_area(self):
-        area = random.random()*100
+        area = random.random() * 100
         self.glider.recalc()
         self.glider.area = area
         self.glider.recalc()
@@ -70,4 +70,4 @@ class TestGlider(unittest.TestCase):
 
 
 if __name__ == '__main__':
-        unittest.main(verbosity=2)
+    unittest.main(verbosity=2)

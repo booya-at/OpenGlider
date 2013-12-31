@@ -38,7 +38,7 @@ class Glider(object):
     def export_geometry(self, path="", filetype=None):
         if not filetype:
             filetype = path.split(".")[-1]
-        #EXPORT_NAMES[filetype](self, path)
+            #EXPORT_NAMES[filetype](self, path)
 
     def export_3d(self, path="", filetype=None, midribs=0, numpoints=None, floatnum=6):
         if not filetype:
@@ -132,23 +132,23 @@ class Glider(object):
         span = 0.
         last = numpy.array([0, 0, 0])
         for rib in self.ribs[1:]:
-            span += norm((rib.pos-last)*[0, 1, 1])
+            span += norm((rib.pos - last) * [0, 1, 1])
             last = rib.pos
-        return 2*span
+        return 2 * span
 
     def __set_span(self, span):
-        faktor = span/self.span
+        faktor = span / self.span
         self.scale(faktor)
 
     def __get_area(self):
         area = 0.
         if len(self.ribs) == 0:
             return 0
-        lastrib_front = self.ribs[0].align([0, 0, 0])*numpy.array([1, 0, 1])
-        lastrib_back = self.ribs[0].align([1, 0, 0])*numpy.array([1, 0, 1])
+        lastrib_front = self.ribs[0].align([0, 0, 0]) * numpy.array([1, 0, 1])
+        lastrib_back = self.ribs[0].align([1, 0, 0]) * numpy.array([1, 0, 1])
         for rib in self.ribs[1:]:
-            thisrib_front = rib.align([0, 0, 0])*numpy.array([1, 0, 1])
-            thisrib_back = rib.align([1, 0, 0])*numpy.array([1, 0, 1])
+            thisrib_front = rib.align([0, 0, 0]) * numpy.array([1, 0, 1])
+            thisrib_back = rib.align([1, 0, 0]) * numpy.array([1, 0, 1])
             area += norm(numpy.cross(lastrib_front - thisrib_front, thisrib_back - thisrib_front))
             area += norm(numpy.cross(lastrib_back - thisrib_back, thisrib_back - thisrib_front))
             lastrib_back = thisrib_back
@@ -156,7 +156,7 @@ class Glider(object):
         return area
 
     def __set_area(self, area):
-        faktor = area/self.area
+        faktor = area / self.area
         self.scale(math.sqrt(faktor))
 
     ribs = property(fget=__get_ribs_)

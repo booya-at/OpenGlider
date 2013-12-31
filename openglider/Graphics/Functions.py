@@ -109,6 +109,7 @@ class Polygon(GraphicObject):
     def __init__(self, pointnumbers):
         super(Polygon, self).__init__(pointnumbers, 'Polygon')
 
+
 class Graphics(object):
     """Creates a GraphicsObject"""
 

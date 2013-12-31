@@ -37,7 +37,7 @@ class BasicProfile2D(Vectorlist2D):
         super(BasicProfile2D, self).__init__(profile, name)
         if not profile is None:
             i = 0
-            while profile[i+1][0] < profile[i][0] and i < len(profile):
+            while profile[i + 1][0] < profile[i][0] and i < len(profile):
                 i += 1
             self.noseindex = i
 
@@ -59,18 +59,18 @@ class BasicProfile2D(Vectorlist2D):
                     i += 1
                 i -= 1
             elif xval == 0:     # NOSE
-                i = self.noseindex-1
+                i = self.noseindex - 1
             else:               # UPPER
                 i = len(self) - 2
                 while self[i][0] > xval and i > 1:
                     i -= 1
-            # Determine k-value
+                # Determine k-value
             k = -(self[i][0] - xval) / (self[i + 1][0] - self[i][0])
-            return i+k, self[i+k]
+            return i + k, self[i + k]
         else:   # middlepoint
             p1 = self.profilepoint(xval)[1]
             p2 = self.profilepoint(-xval)[1]
-            return p1 + h*(p2-p1)
+            return p1 + h * (p2 - p1)
 
     # TODO: Get rid of this
     def points(self, xvalues):
@@ -86,8 +86,8 @@ class BasicProfile2D(Vectorlist2D):
             if temp > dmax:
                 dmax = temp
                 nose = i
-            #to normalize do: put nose to (0,0), rotate to fit (1,0), normalize to (1,0)
-        #use: a.b=|a|*|b|*cos(alpha)->
+                #to normalize do: put nose to (0,0), rotate to fit (1,0), normalize to (1,0)
+            #use: a.b=|a|*|b|*cos(alpha)->
         diff = p1 - nose
         sin = diff.dot([0, -1]) / dmax  # equal to cross product of (x1,y1,0),(x2,y2,0)
         cos = numpy.sqrt(1 - sin ** 2)
@@ -110,7 +110,7 @@ class Profile2D(BasicProfile2D):
                 name = profile[0][0]
                 profile = profile[1:]
         super(Profile2D, self).__init__(profile, name)
-        self._rootprof = BasicProfile2D(profile, name+"_root")  # keep a copy
+        self._rootprof = BasicProfile2D(profile, name + "_root")  # keep a copy
         if normalize_root and profile is not None:
             self._rootprof.normalize()
 
@@ -135,7 +135,7 @@ class Profile2D(BasicProfile2D):
     def importdat(self, path):
         """Import a *.dat profile"""
         if not os.path.isfile(path):
-            raise Exception("Profile not found in"+path+"!")
+            raise Exception("Profile not found in" + path + "!")
         tempfile = []
         name = "Profile_Imported"
         pfile = open(path, "r")
@@ -175,7 +175,7 @@ class Profile2D(BasicProfile2D):
     def _getxvalues(self):
         """Get XValues of Profile. upper side neg, lower positive"""
         i = self.noseindex
-        return numpy.concatenate((self.data[:i, 0]*-1., self.data[i:, 0]))
+        return numpy.concatenate((self.data[:i, 0] * -1., self.data[i:, 0]))
 
     def _setxvalues(self, xval):
         """Set X-Values of profile to defined points."""
@@ -189,18 +189,18 @@ class Profile2D(BasicProfile2D):
     def _setlen(self, num):
         """Set Profile to cosinus-Distributed XValues"""
         i = num - num % 2
-        xtemp = lambda x: ((x > 0.5)-(x < 0.5))*(1-math.sin(math.pi*x))
+        xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 - math.sin(math.pi * x))
         self.x_values = [xtemp(j * 1. / i) for j in range(i + 1)]
 
     def _getthick(self):
         """with no arg the max thick is returned"""
         xvals = sorted(set(map(abs, self.x_values)))
-        return max([self.profilepoint(-i)[1][1]-self.profilepoint(i)[1][1] for i in xvals])
+        return max([self.profilepoint(-i)[1][1] - self.profilepoint(i)[1][1] for i in xvals])
 
     def _setthick(self, newthick):
-        factor = float(newthick/self.thickness)
+        factor = float(newthick / self.thickness)
         new = self.profile * [1., factor]
-        self.__init__(new, self.name + "_" + str(newthick*100) + "%")
+        self.__init__(new, self.name + "_" + str(newthick * 100) + "%")
 
     def _getcamber(self, *xvals):
         """return the camber of the profile for certain x-values or if nothing supplied, camber-line"""
@@ -211,9 +211,9 @@ class Profile2D(BasicProfile2D):
     def _setcamber(self, newcamber):
         """Set maximal camber to the new value"""
         now = self.camber
-        factor = newcamber/max(now[:,1])-1
+        factor = newcamber / max(now[:, 1]) - 1
         now = dict(now)
-        self.__init__([i+[0, now[i[0]]*factor] for i in self.profile])
+        self.__init__([i + [0, now[i[0]] * factor] for i in self.profile])
 
     thickness = property(_getthick, _setthick)
     numpoints = property(_getlen, _setlen)
@@ -303,12 +303,12 @@ class Profile3D(Vectorlist):
             self.projection()
             profnorm = numpy.cross(self.xvect, self.yvect)
             func = lambda x: normalize(numpy.cross(x, profnorm))
-            vectors = [func(self.data[1]-self.data[0])]
-            for i in range(1, len(self.data)-1):
+            vectors = [func(self.data[1] - self.data[0])]
+            for i in range(1, len(self.data) - 1):
                 vectors.append(func(
-                    normalize(self.data[i+1]-self.data[i]) +
-                    normalize(self.data[i]-self.data[i-1])))
-            vectors.append(func(self.data[-1]-self.data[-2]))
+                    normalize(self.data[i + 1] - self.data[i]) +
+                    normalize(self.data[i] - self.data[i - 1])))
+            vectors.append(func(self.data[-1] - self.data[-2]))
             self._normvectors = vectors
         return self._normvectors
 
@@ -316,15 +316,15 @@ class Profile3D(Vectorlist):
         if not self._tangents:
             second = self.data[0]
             third = self.data[1]
-            self._tangents = [[normalize(third-second)]]
+            self._tangents = [[normalize(third - second)]]
             for element in self.data[2:-1]:
                 first = second
                 second = third
                 third = element
-                self._tangents.append(normalize(normalize(third-second)+normalize(second-first)))
+                self._tangents.append(normalize(normalize(third - second) + normalize(second - first)))
             second = third
             third = self.data[-1]
-            self._tangents.append(normalize(third-second))
+            self._tangents.append(normalize(third - second))
         return self._tangents
 
 

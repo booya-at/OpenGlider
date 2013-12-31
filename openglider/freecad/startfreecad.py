@@ -1,16 +1,15 @@
- #!/usr/bin/python
+#!/usr/bin/python
 
 import FreeCAD
 import FreeCADGui as gui
 
 gui.showMainWindow()
 gui.activateWorkbench("gliderWorkbench")
-l=gui.listWorkbenches().keys()
+l = gui.listWorkbenches().keys()
 l.pop(l.index('gliderWorkbench'))
 l.pop(l.index('DraftWorkbench'))
-map(gui.removeWorkbench,l)
+map(gui.removeWorkbench, l)
 
 FreeCAD.newDocument()
-
 
 gui.exec_loop()

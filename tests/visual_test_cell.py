@@ -25,6 +25,7 @@ __author__ = 'simon'
 import os
 import math
 import sys
+
 try:
     import openglider
 except ImportError:
@@ -40,30 +41,26 @@ from openglider.Utils.Ballooning import BallooningBezier
 
 
 a = Profile2D()
-a.importdat(os.path.dirname(os.path.abspath(__file__))+"/testprofile.dat")
+a.importdat(os.path.dirname(os.path.abspath(__file__)) + "/testprofile.dat")
 a.numpoints = 40
-
 
 ballooning = BallooningBezier()
 balloon = [ballooning(i) for i in a.x_values]
 
-
-r1 = Rib(a, ballooning, [0., 0.12, 0], 1., 20*math.pi/180, 2*math.pi/180, 0, 7.)
-r3 = Rib(a, ballooning, [0.2, 0.3, -0.1], 0.8, 30*math.pi/180, 5*math.pi/180, 0, 7.)
+r1 = Rib(a, ballooning, [0., 0.12, 0], 1., 20 * math.pi / 180, 2 * math.pi / 180, 0, 7.)
+r3 = Rib(a, ballooning, [0.2, 0.3, -0.1], 0.8, 30 * math.pi / 180, 5 * math.pi / 180, 0, 7.)
 r2 = r1.copy()
 r2.mirror()
 for i in [r1, r2, r3]:
     i.recalc()
-
 
 cell = BasicCell(r2.profile_3d, r1.profile_3d, balloon)
 cell2 = BasicCell(r1.profile_3d, r3.profile_3d, balloon)
 cell.recalc()
 cell2.recalc()
 
-
 num = 20
-ribs = [cell.midrib_basic_cell(x*1./num) for x in range(num+1)]
-ribs += [cell2.midrib_basic_cell(x*1./num) for x in range(num+1)]
+ribs = [cell.midrib_basic_cell(x * 1. / num) for x in range(num + 1)]
+ribs += [cell2.midrib_basic_cell(x * 1. / num) for x in range(num + 1)]
 #G.Graphics3D([G.Line(r1.profile_3d.data),G.Line(r2.profile_3d.data),G.Line([[0.,0.,0.],[1.,0.,0.]]),G.Line([[0.,0.,0.],[0.,0.5,0.]])])
 Graph.Graphics3D([Graph.Line(x.data) for x in ribs])

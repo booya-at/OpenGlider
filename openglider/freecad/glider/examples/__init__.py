@@ -2,6 +2,7 @@ import FreeCAD
 import Mesh
 import numpy as np
 
+
 class LoadGlider:
     def GetResources(self):
         return {'Pixmap': 'glider_import.svg', 'MenuText': 'creates a glider!!!', 'ToolTip': 'creates a glider'}
@@ -13,8 +14,8 @@ class LoadGlider:
             return True
 
     def Activated(self):
-        pol=np.loadtxt(FreeCAD.getHomePath()+'Mod/glider/examples/p.dat', dtype=int)
-        nod=np.loadtxt(FreeCAD.getHomePath()+'Mod/glider/examples/n.dat', dtype=float)
+        pol = np.loadtxt(FreeCAD.getHomePath() + 'Mod/glider/examples/p.dat', dtype=int)
+        nod = np.loadtxt(FreeCAD.getHomePath() + 'Mod/glider/examples/n.dat', dtype=float)
         planarMesh = []
         for i in pol:
             planarMesh.append(nod[i[0]])

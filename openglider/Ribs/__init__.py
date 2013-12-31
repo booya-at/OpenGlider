@@ -31,7 +31,9 @@ class Rib(object):
     """Openglider Rib Class: contains a profile, needs a startpoint, angle (arcwide), angle of attack,
         glide-wide rotation and glider ratio.
         optional: name, absolute aoa (bool), startposition"""
-    def __init__(self, profile=Profile2D(), ballooning=BallooningBezier(), startpoint=numpy.array([0, 0, 0]), size=1., arcang=0, aoa=0, zrot=0,
+
+    def __init__(self, profile=Profile2D(), ballooning=BallooningBezier(), startpoint=numpy.array([0, 0, 0]), size=1.,
+                 arcang=0, aoa=0, zrot=0,
                  glide=1, name="unnamed rib", aoaabs=False, startpos=0.):
         # TODO: Startpos > Set Rotation Axis in Percent
         self.name = name
@@ -51,18 +53,18 @@ class Rib(object):
         self.rotation_matrix = None
         self._normvectors = None
         #self.profile_3d = Profile3D()
-        
+
         #self.ReCalc()
 
     def align(self, points):
         ptype = arrtype(points)
         if ptype == 1:
-            return self.pos+self.rotation_matrix.dot([points[0]*self.chord, points[1]*self.chord, 0])
+            return self.pos + self.rotation_matrix.dot([points[0] * self.chord, points[1] * self.chord, 0])
         if ptype == 2 or ptype == 4:
             return numpy.array([self.align(i) for i in points])
         if ptype == 3:
-            return self.pos+self.rotation_matrix.dot(numpy.array([self.chord, self.chord, 0])*points)
-    
+            return self.pos + self.rotation_matrix.dot(numpy.array([self.chord, self.chord, 0]) * points)
+
     def _setaoa(self, aoa):
         try:
             self._aoa = (aoa[0], bool(aoa[1]))
@@ -80,19 +82,19 @@ class Rib(object):
         ##recalc aoa_abs/rel
         ##Formula for aoa rel/abs: ArcTan[Cos[alpha]/gleitzahl]-aoa[rad];
 
-        diff = numpy.arctan(numpy.cos(self.arcang)/self.glide)
+        diff = numpy.arctan(numpy.cos(self.arcang) / self.glide)
         # TODO: Fix relative/absolute aoa (See Mathematica:
         ##aoa->(rel,abs)
         #########checkdas!!!!!
         self.aoa[self._aoa[1]] = self._aoa[0]  # first one is relative
-        self.aoa[1-self._aoa[1]] = -diff+self._aoa[0]  # second one absolute
+        self.aoa[1 - self._aoa[1]] = -diff + self._aoa[0]  # second one absolute
         # zrot -> ArcTan[Sin[alpha]/gleitzahl]*excel[[i,7]]
-        zrot = numpy.arctan(self.arcang)/self.glide*self.zrot
+        zrot = numpy.arctan(self.arcang) / self.glide * self.zrot
 
         self.rotation_matrix = rotation(self.aoa[1], self.arcang, zrot)
         self.profile_3d = Profile3D(self.align(self.profile_2d.profile))
         self._normvectors = None
-          # normvectors 2d->3d->rotated
+        # normvectors 2d->3d->rotated
 
     def mirror(self):
         self.arcang = -self.arcang
@@ -101,7 +103,8 @@ class Rib(object):
         #self.ReCalc()
 
     def copy(self):
-        return self.__class__(self.profile_2d.copy(), self.ballooning.copy(), self.pos, self.chord, self.arcang, self._aoa[0], self.zrot,
+        return self.__class__(self.profile_2d.copy(), self.ballooning.copy(), self.pos, self.chord, self.arcang,
+                              self._aoa[0], self.zrot,
                               self.glide, self.name + "_copy", self._aoa[1])
 
     AOA = property(_getaoa, _setaoa)
@@ -113,12 +116,12 @@ class MiniRib(Profile3D):
 
         if not func:  # Function is a bezier-function depending on front/back
             if front_cut > 0:
-                points = [[front_cut, 1], [front_cut*2./3+back_cut*1./3]]  #
+                points = [[front_cut, 1], [front_cut * 2. / 3 + back_cut * 1. / 3]]  #
             else:
                 points = [[front_cut, 0]]
 
             if back_cut < 1:
-                points = points + [[front_cut*1./3+back_cut*2./3, 0], [back_cut, 1]]
+                points = points + [[front_cut * 1. / 3 + back_cut * 2. / 3, 0], [back_cut, 1]]
             else:
                 points = points + [[back_cut, 0]]
             func = BezierCurve(points).interpolation()

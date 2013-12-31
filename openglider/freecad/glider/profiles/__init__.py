@@ -60,7 +60,7 @@ class ChangeProfile:
                 self.view.removeEventCallbackPivy(SoMouseButtonEvent.getClassTypeId(), self.createcallback)
 
 
-            # class RunXfoil:
+                # class RunXfoil:
 
 #     def __init__(self):
 #         pass

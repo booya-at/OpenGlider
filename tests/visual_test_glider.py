@@ -1,16 +1,18 @@
 __author__ = 'simon'
 import os
 import sys
+
 try:
     import openglider
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 from openglider import glider
 import openglider.Graphics
+
 testfolder = os.path.dirname(os.path.abspath(__file__))
 
 
-def odf_import_visual_test(path=testfolder+'/demokite.ods'):
+def odf_import_visual_test(path=testfolder + '/demokite.ods'):
     glider1 = glider.Glider()
     glider1.import_geometry(path)
     glider1.close_rib(-1)  # Stabi
@@ -25,6 +27,7 @@ def odf_import_visual_test(path=testfolder+'/demokite.ods'):
 
     polygons = [openglider.Graphics.Polygon(polygon) for polygon in polygons]
     openglider.Graphics.Graphics3D(polygons, points)
+
 
 if __name__ == "__main__":
     odf_import_visual_test()

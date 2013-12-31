@@ -75,12 +75,13 @@ def rangefrom(maxl, startpoint=0):
     j = 1
     if 0 <= startpoint <= maxl:
         yield startpoint
-    while startpoint-j >= 0 or startpoint+j <= maxl:
-        if startpoint+j <= maxl:
-            yield startpoint+j
-        if maxl >= startpoint-j >= 0:
-            yield startpoint-j
+    while startpoint - j >= 0 or startpoint + j <= maxl:
+        if startpoint + j <= maxl:
+            yield startpoint + j
+        if maxl >= startpoint - j >= 0:
+            yield startpoint - j
         j += 1
+
 
 def rotation_3d(angle, axis=[1, 0, 0]):
     """3D-Rotation Matrix for (angle[rad],[axis(x,y,z)])"""
@@ -100,11 +101,11 @@ def cut(p1, p2, p3, p4):
     """2D-Linear Cut; Returns (pointxy, k, l); Solves the linear system: p1+k*(p2-p1)==p3+l*(p4-p3)"""
     """ |p2x-p1x -(p4x-p3x)|*|k|==|p3x-p1x|"""
     """ |p2y-p1y -(p4y-p3y)|*|l|==|p3y-p1y|"""
-    matrix = [[p2[0]-p1[0], p3[0]-p4[0]],
-              [p2[1]-p1[1], p3[1]-p4[1]]]
-    rhs = [p3[0]-p1[0], p3[1]-p1[1]]
+    matrix = [[p2[0] - p1[0], p3[0] - p4[0]],
+              [p2[1] - p1[1], p3[1] - p4[1]]]
+    rhs = [p3[0] - p1[0], p3[1] - p1[1]]
     (k, l) = np.linalg.solve(matrix, rhs)
-    return p1 + k*(p2-p1), k, l
+    return p1 + k * (p2 - p1), k, l
 
 
 class Vectorlist(object):
@@ -124,17 +125,17 @@ class Vectorlist(object):
             k = ik
             i = 0
         else:
-            i = min(int(ik), len(self.data)-2)  # Upper Limit for i
+            i = min(int(ik), len(self.data) - 2)  # Upper Limit for i
             # case1: 0<ik<len -> k=ik%1;
             # case2: ik>len(self.data) -> k += difference
-            k = ik % 1 + max(0, int(ik) - len(self.data)+2)
+            k = ik % 1 + max(0, int(ik) - len(self.data) + 2)
         return self.data[i] + k * (self.data[i + 1] - self.data[i])
 
     def __len__(self):
         return len(self.data)
 
     def copy(self):
-        return self.__class__(self.data.copy(), self.name+"_copy")
+        return self.__class__(self.data.copy(), self.name + "_copy")
 
     # TODO: This can go
     def point(self, i, k=0):
@@ -148,7 +149,7 @@ class Vectorlist(object):
         direction = sign(length)
         length = abs(length)
         next_value = start - start % 1 + (direction > 0)
-        difference = norm(self[start]-self[next_value])
+        difference = norm(self[start] - self[next_value])
         length -= difference
         #
         while length > 0:
@@ -156,11 +157,11 @@ class Vectorlist(object):
                 break
             start = next_value
             next_value += direction
-            difference = norm(self[next_value]-self[start])
+            difference = norm(self[next_value] - self[start])
             length -= difference
-        # Length is smaller than zero
+            # Length is smaller than zero
         length = length
-        return next_value + direction * length * abs(next_value-start) / difference
+        return next_value + direction * length * abs(next_value - start) / difference
 
     def extend2(self, start, length):
         direction = sign(length)
@@ -203,8 +204,8 @@ class Vectorlist(object):
     def get_length(self, first=0, second=None):
         """Get the (normative) Length of a Part of the Vectorlist"""
         if not second:
-            second = len(self)-1
-        direction = sign(float(second-first))
+            second = len(self) - 1
+        direction = sign(float(second - first))
         length = 0
         next_value = int(first - first % 1 + (direction > 0))
         # Just to fasten up
@@ -224,29 +225,29 @@ class Vectorlist(object):
 
 class Vectorlist2D(Vectorlist):
     def cut(self, p1, p2, startpoint=0):
-        for i in rangefrom(len(self)-2, startpoint):
+        for i in rangefrom(len(self) - 2, startpoint):
             try:
-                thacut = cut(self[i], self[i+1], p1, p2)
+                thacut = cut(self[i], self[i + 1], p1, p2)
             # in case we have parallell lines we dont get a result here, so we continue with i raised...
             except np.linalg.linalg.LinAlgError:
                 continue
             if 0 < thacut[1] <= 1.:
-                return thacut[0], i+thacut[1]
-        # Nothing found yet? check start and end of line
+                return thacut[0], i + thacut[1]
+            # Nothing found yet? check start and end of line
         thacut = []
         # Beginning
         try:
             temp = cut(self[0], self[1], p1, p2)
             if temp[1] < 0:
-                thacut.append([temp[0], temp[1], norm(self[0]-self[1])*temp[1]])
+                thacut.append([temp[0], temp[1], norm(self[0] - self[1]) * temp[1]])
         except np.linalg.linalg.LinAlgError:
             pass
-        # End
+            # End
         try:
-            i = len(self)-1
-            temp = cut(self[i], self[i+1], p1, p2)
+            i = len(self) - 1
+            temp = cut(self[i], self[i + 1], p1, p2)
             if temp[1] > 0:
-                thacut.append([temp[0], i+temp[1], norm(self[i]-self[i+1])*temp[1]])
+                thacut.append([temp[0], i + temp[1], norm(self[i] - self[i + 1]) * temp[1]])
         except np.linalg.linalg.LinAlgError:
             pass
 
@@ -257,12 +258,12 @@ class Vectorlist2D(Vectorlist):
 
     def check(self):
         """Check for mistakes in the array, such as for the moment: self-cuttings,"""
-        for i in range(len(self.data)-3):
-            for j in range(i+1, len(self)-2):
+        for i in range(len(self.data) - 3):
+            for j in range(i + 1, len(self) - 2):
                 try:
-                    temp = cut(self[i], self[i+1], self[j], self[j+1])
+                    temp = cut(self[i], self[i + 1], self[j], self[j + 1])
                     if temp[1] <= 1. and temp[2] <= 1.:
-                        self.data = np.concatenate([self.data[:i], [temp[0]], self.data[j+1:]])
+                        self.data = np.concatenate([self.data[:i], [temp[0]], self.data[j + 1:]])
                 except np.linalg.linalg.LinAlgError:
                     continue
                     #if temp[1] == 0.:
@@ -270,9 +271,10 @@ class Vectorlist2D(Vectorlist):
 
     def normvectors(self):
         rotate = lambda x: normalize(x).dot([[0, -1], [1, 0]])
-        vectors = [rotate(self.data[1]-self.data[0])]
-        for j in range(1, len(self.data)-2):
+        vectors = [rotate(self.data[1] - self.data[0])]
+        for j in range(1, len(self.data) - 2):
             # TODO: Maybe not normalize here?!
-            vectors.append(rotate(normalize(self.data[j+1]-self.data[j])+normalize(self.data[j]-self.data[j-1])))
-        vectors.append(rotate(self.data[-1]-self.data[-2]))
+            vectors.append(
+                rotate(normalize(self.data[j + 1] - self.data[j]) + normalize(self.data[j] - self.data[j - 1])))
+        vectors.append(rotate(self.data[-1] - self.data[-2]))
         return np.array(vectors)

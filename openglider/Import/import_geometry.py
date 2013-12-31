@@ -37,12 +37,12 @@ def import_ods(filename, glider=None):
     xvalues = sorted(profiles, key=lambda prof: prof.numpoints)[0].x_values  # Use Profile with maximum profilepoints
     for profile in profiles:
         profile.x_values = xvalues
-    # Ballooning old : 1-8 > upper (prepend/append (0,0),(1,0)), 9-16 > lower (same + * (1,-1))
+        # Ballooning old : 1-8 > upper (prepend/append (0,0),(1,0)), 9-16 > lower (same + * (1,-1))
     balloonings_temp = transpose_columns(sheets[4])
     balloonings = []
     for baloon in balloonings_temp:
         upper = [[0, 0]] + baloon[:7] + [[1, 0]]
-        lower = [[0, 0]] + [[i[0], -1*i[1]] for i in baloon[8:15]] + [[1, 0]]
+        lower = [[0, 0]] + [[i[0], -1 * i[1]] for i in baloon[8:15]] + [[1, 0]]
         balloonings.append(BallooningBezier([upper, lower]))
 
     # Data
@@ -51,7 +51,7 @@ def import_ods(filename, glider=None):
     assert isinstance(datasheet, ezodf.Sheet)
     for i in range(datasheet.nrows()):
         data[datasheet.get_cell([i, 0]).value] = datasheet.get_cell([i, 1]).value
-    #print(data["GLEITZAHL"])
+        #print(data["GLEITZAHL"])
     glider.data = data
 
     cells = []
@@ -69,13 +69,13 @@ def import_ods(filename, glider=None):
         chord = line[1]  # Rib-Chord
         span = line[2]  # spanwise-length (flat)
         alpha1 = alpha2  # angle before the rib
-        alpha2 += line[4]*numpy.pi/180  # angle after the rib
-        alpha = (span > 0)*(alpha1+alpha2)*0.5 + line[6] * numpy.pi/180  # rib's angle
+        alpha2 += line[4] * numpy.pi / 180  # angle after the rib
+        alpha = (span > 0) * (alpha1 + alpha2) * 0.5 + line[6] * numpy.pi / 180  # rib's angle
         x = line[3]  # x-value -> front/back (ribwise)
         y += numpy.cos(alpha1) * (span - span_last)  # y-value -> spanwise
         z -= numpy.sin(alpha1) * (span - span_last)  # z-axis -> up/down
-        aoa = line[5] * numpy.pi/180
-        zrot = line[7] * numpy.pi/180
+        aoa = line[5] * numpy.pi / 180
+        zrot = line[7] * numpy.pi / 180
         span_last = span
 
         profile = merge(line[8], profiles)
@@ -102,8 +102,8 @@ def transpose_columns(sheet=ezodf.Table(), columnswidth=2):
     #if num % columnswidth > 0:
     #    raise ValueError("irregular columnswidth")
     result = []
-    for col in range(num/columnswidth):
-        columns = range(col*columnswidth, (col+1)*columnswidth)
+    for col in range(num / columnswidth):
+        columns = range(col * columnswidth, (col + 1) * columnswidth)
         element = []
         i = 0
         while i < sheet.nrows():
@@ -121,8 +121,8 @@ def merge(factor, container):
     i = int(factor - k)
     first = container[i]
     if k > 0:
-        second = container[i+1]
-        return first * (1-k) + second * k
+        second = container[i + 1]
+        return first * (1 - k) + second * k
     return first
 
 

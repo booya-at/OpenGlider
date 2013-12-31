@@ -8,7 +8,7 @@ from openglider.Vector import normalize
 
 if len(sys.argv) >= 4:
     inputfile = os.path.abspath(sys.argv[1])
-    destfile = os.path.dirname(inputfile)+"/geometry.obj"
+    destfile = os.path.dirname(inputfile) + "/geometry.obj"
     glider = Glider()
     glider.import_geometry(inputfile)
 
@@ -24,9 +24,9 @@ if len(sys.argv) >= 4:
     glider.export_3d(destfile, midribs=midribs, numpoints=numpoints)
 
     # Print vinf, ca_projection, cw_projection
-    alpha = math.atan(1/glider.ribs[0].glide)
+    alpha = math.atan(1 / glider.ribs[0].glide)
     v = glider.data["GESCHWINDIGKEIT"]
-    vinf = [-math.cos(alpha)*v, 0, -math.sin(alpha)*v]
+    vinf = [-math.cos(alpha) * v, 0, -math.sin(alpha) * v]
     ca = normalize([-vinf[2], 0, vinf[0]])
     print("vinf ", vinf)
     print("ca: ", ca)
