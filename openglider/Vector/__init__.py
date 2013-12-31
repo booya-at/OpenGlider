@@ -109,9 +109,12 @@ def cut(p1, p2, p3, p4):
 
 
 class Vectorlist(object):
-    def __init__(self, data=[], name="Vector List object"):
+    def __init__(self, data=None, name="Vector List object"):
         #if arrtype(data) == 2 or arrtype(data) == 4:
-        self.data = np.array(data)
+        if not data is None:
+            self.data = np.array(data)
+        else:
+            self.data = None
         self.name = name
 
     def __repr__(self):

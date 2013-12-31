@@ -68,6 +68,28 @@ class TestGlider(unittest.TestCase):
         self.glider.recalc()
         self.assertAlmostEqual(self.glider.area, area)
 
+    def test_aspectratio(self):
+        ar = random.random() * 10
+        self.glider.recalc()
+        area_bak = self.glider.area
+        self.glider.aspect_ratio = ar
+        self.glider.aspect_ratio = ar  # -> Do it twice and its precise
+        self.glider.recalc()
+        self.assertAlmostEqual(area_bak, self.glider.area)
+        self.assertAlmostEqual(ar, self.glider.aspect_ratio, 3)
+
+    def test_scale(self):
+        self.glider.recalc()
+        ar = self.glider.aspect_ratio
+        self.glider.scale(random.random()*10)
+        self.glider.recalc()
+        self.assertAlmostEqual(ar, self.glider.aspect_ratio)
+
+    def test_flatten(self):
+        self.glider.recalc()
+        y = random.random()*len(self.glider.cells)
+        self.glider.get_midrib(y).flatten()
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

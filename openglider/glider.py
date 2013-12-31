@@ -81,7 +81,7 @@ class Glider(object):
 
     def get_midrib(self, y=0):
         k = y % 1
-        i = y - k
+        i = int(y - k)
         if i == len(self.cells) and k == 0:  # Stabi-rib
             i -= 1
             k = 1
@@ -144,11 +144,11 @@ class Glider(object):
         area = 0.
         if len(self.ribs) == 0:
             return 0
-        lastrib_front = self.ribs[0].align([0, 0, 0]) * numpy.array([1, 0, 1])
-        lastrib_back = self.ribs[0].align([1, 0, 0]) * numpy.array([1, 0, 1])
+        lastrib_front = self.ribs[0].align([0, 0, 0])  # * numpy.array([0, 1, 1])
+        lastrib_back = self.ribs[0].align([1, 0, 0])  # * numpy.array([0, 1, 1])
         for rib in self.ribs[1:]:
-            thisrib_front = rib.align([0, 0, 0]) * numpy.array([1, 0, 1])
-            thisrib_back = rib.align([1, 0, 0]) * numpy.array([1, 0, 1])
+            thisrib_front = rib.align([0, 0, 0])  # * numpy.array([0, 1, 1])
+            thisrib_back = rib.align([1, 0, 0])  # * numpy.array([0, 1, 1])
             area += norm(numpy.cross(lastrib_front - thisrib_front, thisrib_back - thisrib_front))
             area += norm(numpy.cross(lastrib_back - thisrib_back, thisrib_back - thisrib_front))
             lastrib_back = thisrib_back
@@ -159,10 +159,22 @@ class Glider(object):
         faktor = area / self.area
         self.scale(math.sqrt(faktor))
 
+    def __get_ar(self):
+        return self.span**2/self.area
+
+    def __set_ar(self, aspect_ratio):
+        area_backup = self.area
+        factor = self.aspect_ratio/aspect_ratio
+        for rib in self.ribs:
+            rib.chord *= factor
+            rib.recalc()
+        self.area = area_backup
+
     ribs = property(fget=__get_ribs_)
     numpoints = property(__get_numpoints, __set_numpoints)
     span = property(__get_span, __set_span)
     area = property(__get_area, __set_area)
+    aspect_ratio = property(__get_ar, __set_ar)
 
 
 

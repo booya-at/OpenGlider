@@ -39,7 +39,7 @@ class TestVector3D(unittest.TestCase):
             self.vectors.append(Vector.Vectorlist(pointlist))
 
     def test_extend_total(self):
-        """Sum up the length of the list and check"""
+        #Sum up the length of the list and check
         for thalist in self.vectors:
             total = 0
             for i in range(len(thalist) - 2):
@@ -51,8 +51,8 @@ class TestVector3D(unittest.TestCase):
             # Second Test:
             self.assertAlmostEqual(total, thalist.get_length(0, len(thalist) - 2))
 
-    def test_extend_case1(self):
-        """First point within the list"""
+    def test_extend_case_within(self):
+        #First point within the list
         for thalist in self.vectors:
             start = random.random() * self.numpoints
             leng = random.random() * 100 - 50
@@ -63,8 +63,8 @@ class TestVector3D(unittest.TestCase):
                                    "\nresult: i2=" + str(new) + " leng2=" + str(leng2) +
                                    " dist=" + str(Vector.norm(thalist[start] - thalist[new])))
 
-    def test_extend_case2(self):
-        """First Point before Start"""
+    def test_extend_case_before(self):
+        #First Point before Start
         for thalist in self.vectors:
             start = -random.random() * 30
             leng = random.random() * 100 - 50
@@ -75,8 +75,8 @@ class TestVector3D(unittest.TestCase):
                                    "\nresult: i2=" + str(new) + " leng2=" + str(leng2) +
                                    " dist=" + str(Vector.norm(thalist[start] - thalist[new])))
 
-    def test_extend_case3(self):
-        """First Point further than the end"""
+    def test_extend_case_afterend(self):
+        #First Point further than the end
         for thalist in self.vectors:
             start = self.numpoints + random.random() * 50
             leng = random.random() * 100 - 50

@@ -113,6 +113,7 @@ class Profile2D(BasicProfile2D):
         self._rootprof = BasicProfile2D(profile, name + "_root")  # keep a copy
         if normalize_root and profile is not None:
             self._rootprof.normalize()
+            self.reset()
 
     def __add__(self, other):
         if other.__class__ == self.__class__:
