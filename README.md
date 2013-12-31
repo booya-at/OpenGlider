@@ -17,20 +17,27 @@ To run all unittests, run this from the main directory:
   python2 -m unittest discover -v -s tests
   ```
 
+Or simply use the testall.sh
+
 If you want to permanently install link it to the python packages.
 
-to try a simple cell setup, just run the file
+Visual Tests
+------------
+
+By the time there are three possibilitiest to run visual tests:
+
+testcell:
 
 ```
-  python2 tests/testcell.py
+  python2 tests/visual_test_cell.py
 ```
-or
+testcell with midrib:
 ```
-  python2 tests/testcell_minirib.py
+  python2 tests/visual_test_midrib.py
 ```
-or test the demokite
+complete demokite:
 ```
-  python2 tests/test_glider.py
+  python2 tests/visual_test_glider.py
 ```
 
 use python2 as vtk is not yet available for python3.

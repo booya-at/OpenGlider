@@ -62,6 +62,7 @@ class Glider(object):
         if not self.cells:
             return numpy.array([]), numpy.array([])
         ribs = self.return_ribs(num)
+        num += 1
         #points per rib
         numpoints = len(ribs[0])
         # ribs is [[point1[x,y,z],[point2[x,y,z]],[point1[x,y,z],point2[x,y,z]]]

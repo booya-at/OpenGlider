@@ -23,8 +23,13 @@
 
 __author__ = 'simon'
 import numpy
-import os
 import math
+import os
+import sys
+try:
+    import openglider
+except ImportError:
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 from openglider.Profile import Profile2D
 from openglider.Cells import Cell
 from openglider.Ribs import Rib, MiniRib

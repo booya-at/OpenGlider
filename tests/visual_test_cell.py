@@ -22,14 +22,21 @@
 #!/bin/python2
 
 __author__ = 'simon'
+import os
+import math
+import sys
+try:
+    import openglider
+except ImportError:
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 from openglider.Profile import Profile2D
 from openglider.Cells import BasicCell
 from openglider.Ribs import Rib
-import os
-import math
-#import numpy
 import openglider.Graphics as Graph
 from openglider.Utils.Ballooning import BallooningBezier
+
+#import numpy
+
 
 
 a = Profile2D()
