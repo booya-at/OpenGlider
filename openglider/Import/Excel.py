@@ -141,7 +141,7 @@ def profileimp(sheet):
             #print(sheet.cell(j,2*i).value)
             temp += [[sheet.cell(j, 2 * i).value, sheet.cell(j, 2 * i + 1).value]]
             j += 1
-        prof.Profile = temp
+        prof.profile = temp
 
         profiles += [prof]
     return profiles

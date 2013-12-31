@@ -120,13 +120,13 @@ class Glider(object):
         return [self.cells[0].rib1] + [cell.rib2 for cell in self.cells]
 
     def __get_numpoints(self):
-        return self.ribs[0].profile_2d.Numpoints
+        return self.ribs[0].profile_2d.numpoints
 
     def __set_numpoints(self, numpoints):
-        self.ribs[0].profile_2d.Numpoints = numpoints
+        self.ribs[0].profile_2d.numpoints = numpoints
         xvalues = self.ribs[0].profile_2d.XValues
         for rib in self.ribs:
-            rib.profile_2d.XValues = xvalues
+            rib.profile_2d.x_values = xvalues
 
     def __get_span(self):
         span = 0.

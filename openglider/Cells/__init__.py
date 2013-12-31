@@ -24,7 +24,7 @@ import openglider.Ribs as Ribs
 import numpy
 from ..Vector import normalize, norm
 from ..Profile import Profile3D
-from ..Utils import Ballooning
+#from ..Utils import Ballooning
 import math
 from openglider.Utils.Ballooning import arsinc
 
@@ -116,22 +116,27 @@ Ballooning is considered to be arcs, following two simple rules:
 """
 
 
+# noinspection PyProtectedMember
 class Cell(BasicCell):
 
     #TODO: cosmetics
-    def __init__(self, rib1=Ribs.Rib(), rib2=Ribs.Rib(), miniribs=[]):
+    def __init__(self, rib1=Ribs.Rib(), rib2=Ribs.Rib(), miniribs=None):
+
         self.rib1 = rib1
         self.rib2 = rib2
         #if not self.rib1.profile_2d.Numpoints == self.rib2.profile_2d.Numpoints:
         #ballooning=rib1.ballooning
         #self.prof1 = self.rib1.profile_3d
         #self.prof2 = self.rib2.profile_3d
+        if not miniribs:
+            miniribs = []
         self.miniribs = miniribs
+        self._cells = [self]
         # inheritance backup
         BasicCell.__init__(self, self.rib1.profile_3d, self.rib2.profile_3d, [])
 
     def recalc(self):
-        xvalues = self.rib1.profile_2d.XValues
+        xvalues = self.rib1.profile_2d.x_values
         phi = [self.rib1.ballooning(x)+self.rib2.ballooning(x) for x in xvalues]
         BasicCell.__init__(self, self.rib1.profile_3d, self.rib2.profile_3d, phi)
         BasicCell.recalc(self)
@@ -198,7 +203,7 @@ class Cell(BasicCell):
             return self.midrib_basic_cell(y, ballooning=False)
 
     def _calcballooning(self):
-        xvalues = self.rib1.profile_2d.XValues
+        xvalues = self.rib1.profile_2d.x_values
         balloon = [self.rib1.ballooning[i] + self.rib2.ballooning[i] for i in xvalues]
         self._phi = [arsinc(1/(1+i)) for i in balloon]
         BasicCell._calcballooning(self)

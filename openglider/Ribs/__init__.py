@@ -90,7 +90,7 @@ class Rib(object):
         zrot = numpy.arctan(self.arcang)/self.glide*self.zrot
 
         self.rotation_matrix = rotation(self.aoa[1], self.arcang, zrot)
-        self.profile_3d = Profile3D(self.align(self.profile_2d.Profile))
+        self.profile_3d = Profile3D(self.align(self.profile_2d.profile))
         self._normvectors = None
           # normvectors 2d->3d->rotated
 

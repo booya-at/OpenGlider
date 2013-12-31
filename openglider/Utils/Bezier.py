@@ -26,9 +26,12 @@ from scipy.optimize import bisect as findroot
 
 
 class BezierCurve(object):
-    def __init__(self, points=[[0, 0], [1, 10], [2, 0]]):
+    def __init__(self, points=None):
         """Bezier Curve represantative
         http://en.wikipedia.org/wiki/Bezier_curve#Generalization"""
+        self._BezierBase = self._BezierFunction = self._controlpoints = None
+        if not points:
+            points = [[0, 0], [1, 10], [2, 0]]
         self._setcontrolpoints(points)
 
     def __call__(self, value):
@@ -38,18 +41,20 @@ class BezierCurve(object):
             ValueError("value must be in the range (0,1) for xvalues use xpoint-function")
 
     def _setnumpoints(self, num):
-        if not num == self.NumPoints:
+        if not num == self.numpoints:
             self._BezierBase = bernsteinbase(num)
 
     def _getnumpoints(self):
         try:
             leng = len(self._BezierBase)
-        except AttributeError:
+        #except AttributeError:
+        #    leng = 0
+        except TypeError:
             leng = 0
         return leng
 
     def _setcontrolpoints(self, points):
-        self.NumPoints=len(points)
+        self.numpoints = len(points)
         self._controlpoints = points
         self._BezierFunction = bezierfunction(points, self._BezierBase)
 
@@ -66,8 +71,8 @@ class BezierCurve(object):
 
     def fit(self, data, numpoints=None):
         if numpoints:
-            self.NumPoints = numpoints
-        self.ControlPoints = fitbezier(data, self._BezierBase)
+            self.numpoints = numpoints
+        self.controlpoints = fitbezier(data, self._BezierBase)
 
     def interpolation(self, num=100):
         x = []
@@ -78,8 +83,8 @@ class BezierCurve(object):
             y.append(point[1])
         return scipy.interpolate.interp1d(x, y)
 
-    ControlPoints = property(_getcontrolpoints, _setcontrolpoints)
-    NumPoints = property(_getnumpoints, _setnumpoints)
+    controlpoints = property(_getcontrolpoints, _setcontrolpoints)
+    numpoints = property(_getnumpoints, _setnumpoints)
 
 
 ##############################FUNCTIONS
@@ -100,7 +105,7 @@ def bezierfunction(points, base=None):
         for i in range(len(points)):
             fakt = base[i](x)
             v = np.array(points[i])*fakt
-            val = val+v
+            val += v
         return val
     return func
 

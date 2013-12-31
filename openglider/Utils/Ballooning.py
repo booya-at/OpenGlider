@@ -102,8 +102,10 @@ class Ballooning(object):
 
 
 class BallooningBezier(Ballooning):
-    def __init__(self, points=[[[0, 0], [0.1,0], [0.2, 0.14], [0.8, 0.14], [0.9,0], [1, 0]],
-                               [[0, 0], [0.1,0], [0.2, 0.14], [0.8, 0.14], [0.9,0], [1, 0]]]):
+    def __init__(self, points=None):
+        if not points:
+            points = [[[0, 0], [0.1, 0], [0.2, 0.14], [0.8, 0.14], [0.9, 0], [1, 0]],
+                                 [[0, 0], [0.1, 0], [0.2, 0.14], [0.8, 0.14], [0.9, 0], [1, 0]]]
         self.upbez = BezierCurve(points[0])
         self.lowbez = BezierCurve(points[1])
         Ballooning.__init__(self, self.upbez.interpolation(), self.lowbez.interpolation())

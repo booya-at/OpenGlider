@@ -35,8 +35,8 @@ class TestProfile(unittest.TestCase):
 
     def test_numpoints(self):
         num = random.randint(4, 500)
-        self.prof.Numpoints = num
-        self.assertEqual(num + 1 - num % 2, self.prof.Numpoints)
+        self.prof.numpoints = num
+        self.assertEqual(num + 1 - num % 2, self.prof.numpoints)
 
     def test_profilepoint(self):
         x = random.random()*random.randint(-1, 1)
@@ -45,9 +45,9 @@ class TestProfile(unittest.TestCase):
     def test_multiplication(self):
         factor = random.random()
         other = self.prof * factor
-        self.assertAlmostEqual(other.Thickness, self.prof.Thickness * factor)
+        self.assertAlmostEqual(other.thickness, self.prof.thickness * factor)
         other *= 1./factor
-        self.assertAlmostEqual(other.Thickness, self.prof.Thickness)
+        self.assertAlmostEqual(other.thickness, self.prof.thickness)
 
 
 

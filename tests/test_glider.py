@@ -29,7 +29,7 @@ import unittest
 from openglider import glider
 
 
-class test_glider_class(unittest.TestCase):
+class TestGlider(unittest.TestCase):
     #def __init__(self):
     #    unittest.TestCase.__init__(self)
 

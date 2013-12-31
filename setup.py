@@ -26,17 +26,17 @@ packages, package_data = [], {}
 
 
 # This is all copied 1:1 from django-project as i dont know any better way to do this
-def fullsplit(path, result=None):
+def fullsplit(splitpath, result=None):
     """
 Split a pathname into components (the opposite of os.path.join)
 in a platform-neutral way.
 """
     if result is None:
         result = []
-    head, tail = os.path.split(path)
+    head, tail = os.path.split(splitpath)
     if head == '':
         return [tail] + result
-    if head == path:
+    if head == splitpath:
         return result
     return fullsplit(head, [tail] + result)
 
@@ -70,5 +70,5 @@ setup(
     package_data=package_data,
     license='GPL-v3',
     long_description=open('README.md').read(),
-    requires=['ezodf', 'numpy', 'dxfwrite']
+    requires=['numpy', 'dxfwrite', 'ezodf2', 'scipy']
 )

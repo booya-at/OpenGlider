@@ -67,7 +67,7 @@ class TestVector3D(unittest.TestCase):
         """First Point before Start"""
         for thalist in self.vectors:
             start = -random.random()*30
-            leng = leng = random.random()*100-50
+            leng = random.random()*100-50
             new = thalist.extend(start, leng)
             leng2 = thalist.get_length(start, new)
             self.assertAlmostEqual(abs(leng), leng2, 7,

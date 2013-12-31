@@ -78,7 +78,7 @@ for x in range(1, num+1):
     ribs.append(cell2.midrib(x*1./num).data)
 ribs =numpy.concatenate(ribs)
 polygons = []
-points = a.Numpoints
+points = a.numpoints
 
 for i in range(2*num):
     for j in range(points-1):

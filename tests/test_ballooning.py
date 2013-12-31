@@ -3,7 +3,8 @@ import unittest
 from openglider.Utils import Ballooning
 import random
 
-class test_ballooningbezier(unittest.TestCase):
+
+class TestBallooningBezier(unittest.TestCase):
     def setUp(self):
         self.ballooning = Ballooning.BallooningBezier()
 
@@ -18,7 +19,6 @@ class test_ballooningbezier(unittest.TestCase):
         for i in range(100):
             val = random.random()
             self.assertAlmostEqual(2*self.ballooning[val], (self.ballooning+self.ballooning)[val])
-
 
 
 if __name__ == '__main__':

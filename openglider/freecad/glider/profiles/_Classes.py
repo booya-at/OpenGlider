@@ -14,9 +14,9 @@ class Airfoil():
         self.prof = Profile2D()
 
         obj.addProperty("App::PropertyInteger", "Numpoints",
-                        "profile", "Number of points").Numpoints = self.prof.Numpoints
+                        "profile", "Number of points").Numpoints = self.prof.numpoints
         obj.addProperty("App::PropertyFloat", "Thickness", "profile",
-                        "Thickness of Profile").Thickness = self.prof.Thickness * 1000
+                        "Thickness of Profile").Thickness = self.prof.thickness * 1000
         #obj.addProperty("App::PropertyFloat", "Camber", "profile", "Camber of Profile").Camber = max(self.prof.Camber[:,1]) * 1000
         obj.addProperty("App::PropertyString", "Name",
                         "profile", "Name of profile").Name = self.prof.name
@@ -27,26 +27,26 @@ class Airfoil():
         obj.Proxy = self
 
     def execute(self, fp):
-        self.prof.Numpoints = fp.Numpoints
-        self.prof.Thickness = fp.Thickness / 1000.
+        self.prof.numpoints = fp.Numpoints
+        self.prof.thickness = fp.Thickness / 1000.
         #self.prof.Camber = fp.Camber / 1000.
         self.prof.name = fp.Name
         fp.coords = map(
-            lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
+            lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.profile)
         pass
 
     def onChanged(self, fp, prop):
         if prop == "FilePath":
             self.prof.importdat(fp.FilePath)
-            fp.Numpoints = self.prof.Numpoints
-            fp.Thickness = max(self.prof.Thickness[:, 1]) * 1000.
+            fp.Numpoints = self.prof.numpoints
+            fp.Thickness = max(self.prof.thickness[:, 1]) * 1000.
             #fp.Camber = max(self.prof.Camber[:, 1]) *1000.
             fp.coords = map(
-                lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
+                lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.profile)
         elif prop == "Thickness":
-            self.prof.Thickness = fp.Thickness / 1000.
+            self.prof.thickness = fp.Thickness / 1000.
             fp.coords = map(
-                lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
+                lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.profile)
         elif prop == "Numpoints":
         #     self.prof.Numpoints = fp.Numpoints
         #     fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
@@ -87,7 +87,7 @@ class ViewProviderAirfoil():
         pass
 
     def updateData(self, fp, prop):
-        'jkhjkn'
+        """jkhjkn"""
         if prop == "coords":
             points = fp.getPropertyByName("coords")
             self.data.point.setValue(0, 0, 0)
@@ -112,7 +112,7 @@ class ViewProviderAirfoil():
         pass
 
     def getDisplayModes(self, obj):
-        "Return a list of display modes."
+        """Return a list of display modes."""
         modes = []
         modes.append("Shaded")
         return modes
@@ -173,7 +173,7 @@ class ViewProvidermoveablePoint():
             self.lineobject.Object.ischanged = False
 
     def getDisplayModes(self, obj):
-        "Return a list of display modes."
+        """Return a list of display modes."""
         modes = []
         modes.append("out")
         return modes
@@ -254,7 +254,7 @@ class ViewProvidermoveableLine():
         obj.Proxy = self
 
     def claimChildren(self):
-        return(self.object.points)
+        return self.object.points
 
     def attach(self, vobj):
         self.seperator = coin.SoSeparator()
@@ -273,7 +273,7 @@ class ViewProvidermoveableLine():
         self.data.point.setValues(0, len(p), p)
 
     def getDisplayModes(self, obj):
-        "Return a list of display modes."
+        """Return a list of display modes."""
         modes = []
         modes.append("out")
         return modes
@@ -336,7 +336,7 @@ class ViewProvidermoveableSpline():
         obj.Proxy = self
 
     def claimChildren(self):
-        return(self.object.points)
+        return self.object.points
 
     def attach(self, vobj):
         self.seperator = coin.SoSeparator()
@@ -351,13 +351,13 @@ class ViewProvidermoveableSpline():
 
     def updateData(self, fp, prop):
         num = 20
-        self.bezier.ControlPoints = [[i.x, i.y] for i in self.object.points]
+        self.bezier.controlpoints = [[i.x, i.y] for i in self.object.points]
         data = [self.bezier(i*1./(num-1)).tolist() + [0] for i in range(num)]
         self.data.point.setValue(0, 0, 0)
         self.data.point.setValues(0, len(data), data)
 
     def getDisplayModes(self, obj):
-        "Return a list of display modes."
+        """Return a list of display modes."""
         modes = []
         modes.append("out")
         return modes

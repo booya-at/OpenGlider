@@ -20,7 +20,7 @@
 
 
 __author__ = 'simon'
-import ezodf
+import ezodf2 as ezodf
 from openglider.Utils.Ballooning import BallooningBezier
 from openglider.Profile import Profile2D
 from openglider.Ribs import Rib, MiniRib
@@ -34,9 +34,9 @@ def import_ods(filename, glider=None):
     sheets = ods.sheets
     # Profiles -> map xvalues
     profiles = [Profile2D(profile) for profile in transpose_columns(sheets[3])]
-    xvalues = sorted(profiles, key=lambda prof: prof.Numpoints)[0].XValues  # Use Profile with maximum profilepoints
+    xvalues = sorted(profiles, key=lambda prof: prof.numpoints)[0].x_values  # Use Profile with maximum profilepoints
     for profile in profiles:
-        profile.XValues = xvalues
+        profile.x_values = xvalues
     # Ballooning old : 1-8 > upper (prepend/append (0,0),(1,0)), 9-16 > lower (same + * (1,-1))
     balloonings_temp = transpose_columns(sheets[4])
     balloonings = []
@@ -50,7 +50,7 @@ def import_ods(filename, glider=None):
     datasheet = sheets[-1]
     assert isinstance(datasheet, ezodf.Sheet)
     for i in range(datasheet.nrows()):
-        data[datasheet.get_cell([i,0]).value] = datasheet.get_cell([i,1]).value
+        data[datasheet.get_cell([i, 0]).value] = datasheet.get_cell([i, 1]).value
     #print(data["GLEITZAHL"])
     glider.data = data
 

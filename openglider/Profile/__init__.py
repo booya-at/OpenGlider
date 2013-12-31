@@ -31,7 +31,7 @@ if __name__ == "__main__":
     filename=a.getOpenFileName()
     p=Profile2D()
     p.importdat(filename)
-    print(p.Profile)
-    p.Numpoints=20
-    a=G.Graphics([G.Line(p.Profile)])
+    print(p.profile)
+    p.numpoints=20
+    a=G.Graphics([G.Line(p.profile)])
     print(a.coordinates)

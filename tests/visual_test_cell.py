@@ -41,11 +41,11 @@ from openglider.Utils.Ballooning import BallooningBezier
 
 a = Profile2D()
 a.importdat(os.path.dirname(os.path.abspath(__file__))+"/testprofile.dat")
-a.Numpoints = 40
+a.numpoints = 40
 
 
 ballooning = BallooningBezier()
-balloon = [ballooning(i) for i in a.XValues]
+balloon = [ballooning(i) for i in a.x_values]
 
 
 r1 = Rib(a, ballooning, [0., 0.12, 0], 1., 20*math.pi/180, 2*math.pi/180, 0, 7.)

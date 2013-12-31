@@ -63,15 +63,11 @@ class GraphicObject(object):
     def __init__(self, pointnumbers, ttype):
         self.pointnumbers = np.array(pointnumbers)
         self.type = ttype
-
-    ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!??????????????????
-    def gtype(self):
         if _isintlist(self.pointnumbers):
             self.gtype = 'direct'
         else:
             self.gtype = 'indirect'
 
-        #evaluating when self.gtype is 'indirect'
     #coordinates= list of points (can be nested)
     def addcoordinates(self, coordinates, add="", start=""):
         if isinstance(start, str):
@@ -101,37 +97,22 @@ class GraphicObject(object):
 
 class Point(GraphicObject):
     def __init__(self, pointnumbers):
-        self.pointnumbers = np.array(pointnumbers)
-        self.type = 'Point'
-        self.gtype()
+        super(Point, self).__init__(pointnumbers, 'Point')
 
 
 class Line(GraphicObject):
     def __init__(self, pointnumbers):
-        self.pointnumbers = np.array(pointnumbers)
-        self.type = 'Line'
-        self.gtype()
+        super(Line, self).__init__(pointnumbers, 'Line')
 
 
 class Polygon(GraphicObject):
     def __init__(self, pointnumbers):
-        self.pointnumbers = np.array(pointnumbers)
-        self.type = 'Polygon'
-        self.gtype()
-
-
-def Graphics3D(graphicsobject, coordinates=[]):
-    Graphics(graphicsobject, coordinates, rotation=True)
-
-
-def Graphics2D(graphicsobject, coordinates=[]):
-    Graphics(graphicsobject, coordinates, rotation=False)
-
+        super(Polygon, self).__init__(pointnumbers, 'Polygon')
 
 class Graphics(object):
     """Creates a GraphicsObject"""
 
-    def __init__(self, graphicobjects, coordinates=[], rotation=True):
+    def __init__(self, graphicobjects, coordinates=None, rotation=True):
         self.rotation = rotation
         self.coordinates = coordinates
         self.graphicobjects = graphicobjects
@@ -141,8 +122,11 @@ class Graphics(object):
         coordinates = np.array(self.coordinates)
         coordinates = [self._2dtest(i) for i in coordinates]
         self.points = vtk.vtkPoints()
-        for coor in coordinates:
-            self.points.InsertNextPoint(coor)
+        try:
+            for coor in coordinates:
+                self.points.InsertNextPoint(coor)
+        except TypeError:
+            pass
 
         self.lines = vtk.vtkCellArray()
         self.verts = vtk.vtkCellArray()
@@ -194,7 +178,7 @@ class Graphics(object):
                 line.GetPointIds().SetId(0, pointnumbers[i])
                 line.GetPointIds().SetId(1, pointnumbers[i + 1])
                 self.lines.InsertNextCell(line)
-                i = i + 1
+                i += 1
 
     def _createpolygon(self, pointnumbers):
         if depth(pointnumbers) >= 3:
@@ -225,3 +209,13 @@ class Graphics(object):
         iren.SetRenderWindow(renWin)
         iren.Initialize()
         iren.Start()
+
+
+class Graphics3D(Graphics):
+    def __init__(self, graphicsobject, coordinates=None):
+        super(Graphics3D, self).__init__(graphicsobject, coordinates, rotation=True)
+
+
+class Graphics2D(Graphics):
+    def __init__(self, graphicsobject, coordinates=None):
+        super(Graphics2D, self).__init__(graphicsobject, coordinates, rotation=False)
