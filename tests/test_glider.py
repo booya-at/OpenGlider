@@ -22,7 +22,6 @@ from openglider.Ribs import MiniRib
 import os
 import openglider.Graphics
 
-__author__ = 'simon'
 testfolder = os.path.dirname(os.path.abspath(__file__))
 import unittest
 
@@ -37,24 +36,10 @@ class TestGlider(unittest.TestCase):
         self.glider = glider.Glider()
         self.glider.import_geometry(testfolder + '/demokite.ods')
 
-    def test_import_export_ods(self):
-        path = '/tmp/daweil.ods'
-        self.glider.export_geometry(path)
-        #new_glider = glider.Glider()
-        #self.assertTrue(new_glider.import_from_file(path))
-        #self.assertEqual(new_glider, self.glider)
-
-    def test_export_obj(self):
-        path = '/tmp/Booya.obj'
-        self.glider.export_3d(path, midribs=5)
-
-    def test_export_dxf(self):
-        path = '/tmp/booya.dxf'
-        self.glider.export_3d(path, midribs=5)
-
-    def test_export_apame(self):
-        path = '/tmp/booya.inp'
-        self.glider.export_3d(path, midribs=1)
+    def test_numpoints(self):
+        numpoints = random.randint(1, 100)*2+1
+        self.glider.numpoints = numpoints
+        self.assertEqual(self.glider.numpoints, numpoints)
 
     def test_span(self):
         span = random.random() * 100

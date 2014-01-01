@@ -53,44 +53,50 @@ class BasicCell(object):
             prof1 = self.prof1.data
             prof2 = self.prof2.data
 
-            _horizontal = lambda xx, j: prof1[j] + xx * (prof2[j] - prof1[j])
+            _horizontal = lambda _y, j: prof1[j] + _y * (prof2[j] - prof1[j])
 
             if ballooning:
                 self._calcballooning()
 
-                def func(xx, j):
+                def _vertical(_y, j):
                     r = self._radius[j]
                     if r > 0:
-                        cosphi = self._cosphi[j]  # [0]
+                        cosphi = self._cosphi[j]
                         d = prof2[j] - prof1[j]
                         #phi=math.asin(norm(d)/(2*r)*(x-1/2)) -> cosphi=sqrt(1-(norm(d)/r*(x+1/2))^2
-                        cosphi2 = math.sqrt(1 - (norm(d) * (0.5 - xx) / r) ** 2)
-                        return prof1[j] + xx * d + self._normvectors[j] * (cosphi2 - cosphi) * r
+                        cosphi2 = math.sqrt(1 - (norm(d) * (0.5 - _y) / r) ** 2)
+                        return self.normvectors(j) * (cosphi2 - cosphi) * r
                     else:
-                        return _horizontal(xx, j)
+                        return numpy.array([0, 0, 0])
             else:
-                func = _horizontal
+                def _vertical(_y, j):
+                    return numpy.array([0, 0, 0])
 
             for i in range(len(self.prof1.data)):  # Arc -> phi(bal) -> r  # oder so...
-                midrib.append(func(y, i))
-            return Profile3D(numpy.array(midrib))
+                midrib.append(_horizontal(y, i)+_vertical(y, i))
+            return Profile3D(midrib)
 
     def recalc(self):
-        prof1 = self.prof1.data
-        prof2 = self.prof2.data
-        p1 = self.prof1.tangents()
-        p2 = self.prof2.tangents()
-        # cross differenzvektor, tangentialvektor
-        # TODO: Check, because no idea why, but sometimes there is a vector with length zero coming in here
-        self._normvectors = []
-        for i in range(len(p1)):
-            try:
+        # Clear everything
+        self._normvectors = None
+        self._cosphi = None
+        self._radius = None
+        self._calcballooning()
+
+    def normvectors(self, j=None):
+        if not self._normvectors:
+            prof1 = self.prof1.data
+            prof2 = self.prof2.data
+            p1 = self.prof1.tangents()
+            p2 = self.prof2.tangents()
+            # cross differenzvektor, tangentialvektor
+            self._normvectors = []
+            for i in range(len(p1)):
                 self._normvectors.append(normalize(numpy.cross(p1[i] + p2[i], prof1[i] - prof2[i])))
-            except ValueError:
-                try:
-                    self._normvectors.append(self._normvectors[-1])
-                except IndexError:  # (TODO:) got one with length zero at the beginning, why?
-                    self._normvectors.append(numpy.array([0, 0, 0]))
+        if j:
+            return self._normvectors[j]
+        else:
+            return self._normvectors
 
     def _calcballooning(self):
         if not self._cosphi and not self._radius:
@@ -108,6 +114,8 @@ class BasicCell(object):
             else:
                 raise ValueError("length of ballooning/profile data unequal")
 
+    #normvectors = property(__get_normvectors)
+
 
 """
 Ballooning is considered to be arcs, following two simple rules:
@@ -121,52 +129,47 @@ Ballooning is considered to be arcs, following two simple rules:
 class Cell(BasicCell):
     #TODO: cosmetics
     def __init__(self, rib1=Ribs.Rib(), rib2=Ribs.Rib(), miniribs=None):
-
         self.rib1 = rib1
         self.rib2 = rib2
-        #if not self.rib1.profile_2d.Numpoints == self.rib2.profile_2d.Numpoints:
-        #ballooning=rib1.ballooning
-        #self.prof1 = self.rib1.profile_3d
-        #self.prof2 = self.rib2.profile_3d
-        if not miniribs:
-            miniribs = []
         self.miniribs = miniribs
-        self._cells = [self]
-        # inheritance backup
+        self._yvalues = []
+        self._cells = []
         BasicCell.__init__(self, self.rib1.profile_3d, self.rib2.profile_3d, [])
 
     def recalc(self):
+        if not self.rib2.profile_2d.numpoints == self.rib1.profile_2d.numpoints:
+            raise ValueError("Unequal length of Cell-Profiles")
         xvalues = self.rib1.profile_2d.x_values
         phi = [self.rib1.ballooning(x) + self.rib2.ballooning(x) for x in xvalues]
         BasicCell.__init__(self, self.rib1.profile_3d, self.rib2.profile_3d, phi)
         BasicCell.recalc(self)
         #Map Ballooning
 
-        if len(self.miniribs) == 0:  # In case there is no midrib, The Cell represents itself!
+        if not self.miniribs:  # In case there is no midrib, The Cell represents itself!
             self._cells = [self]  # The cell itself is its cell, clear?
             self._yvalues = [0, 1]
         else:
-            ballooning = [self.rib1.ballooning[x] + self.rib2.ballooning[x] for x in xvalues]
             self._cells = []
-            miniribs = sorted(self.miniribs, key=lambda rib: rib.xvalue)    # sort for cell-wide (x) argument.
-            self._yvalues = [0] + [i.xvalue for i in miniribs] + [1]
+            self._yvalues = [0] + [rib.y_value for rib in self.miniribs] + [1]
+            miniribs = sorted(self.miniribs, key=lambda rib: rib.y_value)  # sort for cell-wide (y) argument.
 
-            prof1 = self.rib1.profile_3d
+            first = self.rib1.profile_3d
             for minirib in miniribs:
-                big = self.midrib_basic_cell(minirib.xvalue, True).data  # SUPER!!!?
-                small = self.midrib_basic_cell(minirib.xvalue, False).data
+                big = self.midrib_basic_cell(minirib.y_value, True).data
+                small = self.midrib_basic_cell(minirib.y_value, False).data
+                points = []
 
                 for i in range(len(big)):  # Calculate Rib
                     fakt = minirib.function(xvalues[i])  # factor ballooned/unb. (0-1)
                     point = small[i] + fakt * (big[i] - small[i])
-                    minirib.data.append(point)
+                    points.append(point)
 
-                prof2 = minirib
-                self._cells.append(BasicCell(prof1, prof2, []))  # leave ballooning empty
-                prof1 = prof2
-
+                minirib.data = points
+                second = minirib
+                self._cells.append(BasicCell(first, second, []))  # leave ballooning empty
+                first = second
             #Last Sub-Cell
-            self._cells.append(BasicCell(prof1, self.rib2.profile_3d, []))
+            self._cells.append(BasicCell(first, self.rib2.profile_3d, []))
 
             # Calculate ballooning for each x-value
             # Hamilton Principle:
@@ -174,12 +177,12 @@ class Cell(BasicCell):
             #       http://en.wikipedia.org/wiki/Hamilton%E2%80%93Jacobi_equation
             # b' = b
             # f' = f*(l/l') [f=b/l]
-            for i in range(len(prof1.data)):
-                bl = ballooning[i] + 1  # B/L old
+            for i in range(len(first.data)):
+                bl = self.rib1.ballooning[x] + self.rib2.ballooning[x] + 1
                 l = norm(self.rib2.profile_3d.data[i] - self.rib1.profile_3d.data[i])  # L
                 lnew = sum([norm(c.prof1.data[i] - c.prof2.data[i]) for c in self._cells])  # L-NEW
                 for c in self._cells:
-                    c._phi.append(arsinc(1 / (bl * l / lnew)))  # B/L NEW
+                    c._phi.append(arsinc((l/lnew) / bl))  # B/L NEW
             for cell in self._cells:
                 cell.recalc()
 
@@ -207,6 +210,23 @@ class Cell(BasicCell):
         balloon = [self.rib1.ballooning[i] + self.rib2.ballooning[i] for i in xvalues]
         self._phi = [arsinc(1 / (1 + i)) for i in balloon]
         BasicCell._calcballooning(self)
+
+    def __get_span(self):  # TODO: Maybe use mean length from (1,0), (0,0)
+        return norm((self.rib1.pos - self.rib2.pos)*[0, 1, 1])
+
+    def __get_area(self):
+        p1_1 = self.rib1.align([0, 0, 0])
+        p1_2 = self.rib1.align([1, 0, 0])
+        p2_1 = self.rib2.align([0, 0, 0])
+        p2_2 = self.rib2.align([1, 0, 0])
+        return 0.5*(norm(numpy.cross(p1_2-p1_1, p2_1-p1_1)) + norm(numpy.cross(p2_2-p2_1, p2_2-p1_2)))
+
+    def __get_ar(self):
+        return self.span**2/self.area
+
+    span = property(__get_span)
+    area = property(__get_area)
+    aspect_ratio = property(__get_ar)
 
 
 """

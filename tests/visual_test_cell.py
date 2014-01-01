@@ -36,13 +36,13 @@ from openglider.Ribs import Rib
 import openglider.Graphics as Graph
 from openglider.Utils.Ballooning import BallooningBezier
 
-#import numpy
+import numpy
 
 
 
 a = Profile2D()
 a.importdat(os.path.dirname(os.path.abspath(__file__)) + "/testprofile.dat")
-a.numpoints = 40
+#a.numpoints = 40
 
 ballooning = BallooningBezier()
 balloon = [ballooning(i) for i in a.x_values]
@@ -60,7 +60,7 @@ cell.recalc()
 cell2.recalc()
 
 num = 20
-ribs = [cell.midrib_basic_cell(x * 1. / num) for x in range(num + 1)]
-ribs += [cell2.midrib_basic_cell(x * 1. / num) for x in range(num + 1)]
+ribs = [cell.midrib_basic_cell(x * 1. / num).data for x in range(num + 1)]
+ribs += [cell2.midrib_basic_cell(x * 1. / num).data for x in range(num + 1)]
 #G.Graphics3D([G.Line(r1.profile_3d.data),G.Line(r2.profile_3d.data),G.Line([[0.,0.,0.],[1.,0.,0.]]),G.Line([[0.,0.,0.],[0.,0.5,0.]])])
-Graph.Graphics3D([Graph.Line(x.data) for x in ribs])
+Graph.Graphics([Graph.Line(x) for x in ribs])

@@ -69,13 +69,18 @@ class GraphicObject(object):
             self.gtype = 'indirect'
 
     #coordinates= list of points (can be nested)
-    def addcoordinates(self, coordinates, add="", start=""):
-        if isinstance(start, str):
-            startval = len(coordinates) - 1
-            additionalcoordinates = self.pointnumbers
-        else:
+    def addcoordinates(self, coordinates, add=None, start=None):
+        if coordinates is None:
+            coordinates = np.array([])
+        if start and add:
             startval = start
             additionalcoordinates = add
+        else:
+            if not coordinates is None:
+                startval = len(coordinates) - 1
+            else:
+                startval = 0
+            additionalcoordinates = self.pointnumbers
 
         for i in range(len(additionalcoordinates)):
             if depth(additionalcoordinates[i]) > 2:
@@ -88,7 +93,7 @@ class GraphicObject(object):
                     coordinates = np.append(coordinates, [additionalcoordinates[i]], axis=0)
                 additionalcoordinates[i, 0] = startval
 
-        if isinstance(start, str):
+        if not start:
             self.pointnumbers = additionalcoordinates.transpose()[0,]
             return coordinates
         else:

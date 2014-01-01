@@ -109,6 +109,15 @@ class Glider(object):
     def copy(self):
         return copy.deepcopy(self)
 
+    def copy_complete(self):
+        """Returns a mirrored and combined copy of the glider, ready for export/view"""
+        other = self.copy()
+        other2 = self.copy()
+        other2.mirror()
+        other2.cells[-1].rib2 = other.cells[0].rib1
+        other2.cells = other2.cells + other.cells
+        return other2
+
     def scale(self, faktor):
         for rib in self.ribs:
             rib.pos *= faktor
@@ -120,12 +129,16 @@ class Glider(object):
         return [self.cells[0].rib1] + [cell.rib2 for cell in self.cells]
 
     def __get_numpoints(self):
-        return self.ribs[0].profile_2d.numpoints
+        numpoints = self.ribs[0].profile_2d.numpoints
+        for rib in self.ribs:
+            if not rib.profile_2d.numpoints == numpoints:
+                raise ValueError("Numpoints vary for the glider")
+        return numpoints
 
     def __set_numpoints(self, numpoints):
         self.ribs[0].profile_2d.numpoints = numpoints
-        xvalues = self.ribs[0].profile_2d.XValues
-        for rib in self.ribs:
+        xvalues = self.ribs[0].profile_2d.x_values
+        for rib in self.ribs[1:]:
             rib.profile_2d.x_values = xvalues
 
     def __get_span(self):

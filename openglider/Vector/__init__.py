@@ -111,10 +111,8 @@ def cut(p1, p2, p3, p4):
 class Vectorlist(object):
     def __init__(self, data=None, name="Vector List object"):
         #if arrtype(data) == 2 or arrtype(data) == 4:
-        if not data is None:
-            self.data = np.array(data)
-        else:
-            self.data = None
+        self._data = None
+        self.data = data
         self.name = name
 
     def __repr__(self):
@@ -224,6 +222,15 @@ class Vectorlist(object):
             if (next_value > len(self) and direction > 0) or (next_value < 0 and direction < 0):
                 break
         return length + norm(self[second] - self[first])
+
+    def __set_data(self, data):
+        if not data is None:
+            self._data = np.array(data)
+
+    def __get_data(self):
+        return self._data
+
+    data = property(__get_data, __set_data)
 
 
 class Vectorlist2D(Vectorlist):

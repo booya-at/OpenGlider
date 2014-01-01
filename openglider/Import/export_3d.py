@@ -8,13 +8,9 @@ from openglider.Graphics import Graphics3D, Line
 
 
 def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6):
-    other = glider.copy()
+    other = glider.copy_complete()
     if numpoints:
         other.numpoints = numpoints
-        print(other.numpoints)
-    other.mirror()
-    other.cells[-1].rib2 = glider.cells[0].rib1
-    other.cells = other.cells + glider.cells
     other.recalc()
     ribs = other.return_ribs(midribs)
 
@@ -65,12 +61,9 @@ def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6):
 
 def export_dxf(glider, path="", midribs=0, numpoints=None, *other):
     outfile = dxf.drawing(path)
-    other = glider.copy()
+    other = glider.copy_complete()
     if numpoints:
         other.numpoints = numpoints
-    other.mirror()
-    other.cells[-1].rib2 = glider.cells[0].rib1
-    other.cells = other.cells + glider.cells
     other.recalc()
     ribs = other.return_ribs(midribs)
     panels = []
@@ -83,10 +76,7 @@ def export_dxf(glider, path="", midribs=0, numpoints=None, *other):
 
 
 def export_apame(glider, path="", midribs=0, numpoints=None, *other):
-    other = glider.copy()
-    other.mirror()
-    other.cells[-1].rib2 = glider.cells[0].rib1
-    other.cells = other.cells + glider.cells
+    other = glider.copy_complete()
     if numpoints:
         other.numpoints = numpoints
     other.recalc()
@@ -94,12 +84,12 @@ def export_apame(glider, path="", midribs=0, numpoints=None, *other):
     #write config
     outfile = open(path, "w")
     outfile.write("APAME input file\nVERSION 3.0\n")
-    outfile.write("AIRSPEED " + str(glider.data["GESCHWINDIGKEIT"]) + "\n")
+    outfile.write("AIRSPEED " + str(other.data["GESCHWINDIGKEIT"]) + "\n")
     outfile.write("DENSITY 1.225\nPRESSURE 1.013e+005\nMACH 0\nCASE_NUM 1\n")  # TODO: Multiple cases
-    outfile.write(str(math.tan(1 / glider.data["GLEITZAHL"])) + "\n0\n")
-    outfile.write("WINGSPAN " + str(glider.span) + "\n")
+    outfile.write(str(math.tan(1 / other.data["GLEITZAHL"])) + "\n0\n")
+    outfile.write("WINGSPAN " + str(other.span) + "\n")
     outfile.write("MAC 2") # TODO: Mean Choord
-    outfile.write("SURFACE " + str(glider.area) + "\n")
+    outfile.write("SURFACE " + str(other.area) + "\n")
     outfile.write("ORIGIN\n0 0 0\n")
     outfile.write("METHOD 0\nERROR 1e-007\nCOLLDIST 1e-007\n")
     outfile.write("FARFIELD " + str(5) + "\n")  # TODO: farfield argument

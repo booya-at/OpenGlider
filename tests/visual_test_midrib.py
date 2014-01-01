@@ -27,10 +27,7 @@ import math
 import os
 import sys
 
-try:
-    import openglider
-except ImportError:
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 from openglider.Profile import Profile2D
 from openglider.Cells import Cell
 from openglider.Ribs import Rib, MiniRib
@@ -65,7 +62,7 @@ cell1.recalc()
 cell2 = Cell(r2, r3, [])
 cell2.recalc()
 
-num = 10
+num = 20
 #ribs = [cell1.midrib(x*1./num) for x in range(num+1)]
 #ribs += [cell2.midrib(x*1./num) for x in range(num+1)]
 #G.Graphics3D([G.Line(r1.profile_3d.data),G.Line(r2.profile_3d.data),G.Line([[0.,0.,0.],[1.,0.,0.]]),G.Line([[0.,0.,0.],[0.,0.5,0.]])])

@@ -57,13 +57,13 @@ class Rib(object):
         #self.ReCalc()
 
     def align(self, points):
-        ptype = arrtype(points)
-        if ptype == 1:
-            return self.pos + self.rotation_matrix.dot([points[0] * self.chord, points[1] * self.chord, 0])
-        if ptype == 2 or ptype == 4:
-            return numpy.array([self.align(i) for i in points])
-        if ptype == 3:
-            return self.pos + self.rotation_matrix.dot(numpy.array([self.chord, self.chord, 0]) * points)
+        #ptype = arrtype(points)
+        #if ptype == 1:
+        #    return self.pos + self.rotation_matrix.dot([points[0] * self.chord, points[1] * self.chord, 0])
+        #if ptype == 2 or ptype == 4:
+        #    return numpy.array([self.align(i) for i in points])
+        #if ptype == 3:
+        return self.pos + self.rotation_matrix.dot(points) * self.chord
 
     def _setaoa(self, aoa):
         try:
@@ -79,20 +79,15 @@ class Rib(object):
             self._normvectors = map(lambda x: self.rotation_matrix.dot([x[0], x[1], 0]), self.profile_2d.normvectors())
 
     def recalc(self):
-        ##recalc aoa_abs/rel
         ##Formula for aoa rel/abs: ArcTan[Cos[alpha]/gleitzahl]-aoa[rad];
-
         diff = numpy.arctan(numpy.cos(self.arcang) / self.glide)
-        # TODO: Fix relative/absolute aoa (See Mathematica:
-        ##aoa->(rel,abs)
-        #########checkdas!!!!!
-        self.aoa[self._aoa[1]] = self._aoa[0]  # first one is relative
-        self.aoa[1 - self._aoa[1]] = -diff + self._aoa[0]  # second one absolute
-        # zrot -> ArcTan[Sin[alpha]/gleitzahl]*excel[[i,7]]
+        self.aoa[self._aoa[1]] = self._aoa[0]  # self.aoa: (relative, absolute)
+        self.aoa[1 - self._aoa[1]] = -diff + self._aoa[0]  # self._aoa: (value, bool: isabsolute)
+        # zrot -> ArcTan[Sin[alpha]/gleitzahl]*excel[[i,7]] (relative 1->aligned to airflow)
         zrot = numpy.arctan(self.arcang) / self.glide * self.zrot
 
         self.rotation_matrix = rotation(self.aoa[1], self.arcang, zrot)
-        self.profile_3d = Profile3D(self.align(self.profile_2d.profile))
+        self.profile_3d = Profile3D([self.align([point[0], point[1], 0]) for point in self.profile_2d.profile])
         self._normvectors = None
         # normvectors 2d->3d->rotated
 
@@ -111,7 +106,7 @@ class Rib(object):
 
 
 class MiniRib(Profile3D):
-    def __init__(self, xvalue, front_cut, back_cut, func=None, name="minirib"):
+    def __init__(self, yvalue, front_cut, back_cut, func=None, name="minirib"):
         #Profile3D.__init__(self, [], name)
 
         if not func:  # Function is a bezier-function depending on front/back
@@ -128,7 +123,7 @@ class MiniRib(Profile3D):
 
         self.__function__ = func
 
-        self.xvalue = xvalue
+        self.y_value = yvalue
         self.front_cut = front_cut
         self.back_cut = back_cut
         Profile3D.__init__(self, profile=[], name=name)
