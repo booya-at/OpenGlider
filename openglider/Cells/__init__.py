@@ -100,7 +100,7 @@ class BasicCell(object):
             return self._normvectors
 
     def _calcballooning(self):
-        if not self._cosphi and not self._radius:
+        if not self._cosphi and not self._radius:  # See sketches in Doc; cosphi and cake-Radius
             self._cosphi = []
             self._radius = []
             if len(self._phi) == len(self.prof1.data) == len(self.prof2.data):
@@ -118,15 +118,11 @@ class BasicCell(object):
     normvectors = property(__get_normvectors)
 
 
-"""
-Ballooning is considered to be arcs, following two simple rules:
-1: x1 = x*d
-2: x2 = R*normvekt*(cos(phi2)-cos(phi)
-3: norm(d)/r*(1-x) = 2*sin(phi(2))
-"""
+# Ballooning is considered to be arcs, following two simple rules:
+# 1: x1 = x*d
+# 2: x2 = R*normvekt*(cos(phi2)-cos(phi)
+# 3: norm(d)/r*(1-x) = 2*sin(phi(2))
 
-
-# noinspection PyProtectedMember
 class Cell(BasicCell):
     #TODO: cosmetics
     def __init__(self, rib1=Rib(), rib2=Rib(), miniribs=None):
@@ -192,9 +188,6 @@ class Cell(BasicCell):
         return self.midrib(y).point(i, k)
 
     def midrib(self, y, ballooning=True):
-        """if x in self._yvalues:
-            # TODO: Still wrong
-            return self._cells[0]"""
         if len(self._cells) == 1:
             return self.midrib_basic_cell(y, ballooning=ballooning)
         if ballooning:

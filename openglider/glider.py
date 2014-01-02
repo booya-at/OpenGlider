@@ -63,11 +63,8 @@ class Glider(object):
             return numpy.array([]), numpy.array([])
         ribs = self.return_ribs(num)
         num += 1
-        #points per rib
-        numpoints = len(ribs[0])
-        # ribs is [[point1[x,y,z],[point2[x,y,z]],[point1[x,y,z],point2[x,y,z]]]
-        ribs = numpy.concatenate(ribs)
-        #now ribs is flat
+        numpoints = len(ribs[0])  # points per rib
+        ribs = numpy.concatenate(ribs)  # ribs was [[point1[x,y,z],[point2[x,y,z]],[point1[x,y,z],point2[x,y,z]]]
         polygons = []
         for i in range(len(self.cells) * num):  # without +1, because we use i+1 below
             for k in range(numpoints - 1):  # same reason as above
@@ -123,7 +120,7 @@ class Glider(object):
             rib.pos *= faktor
             rib.chord *= faktor
 
-    def __get_ribs_(self):
+    def __get_ribs__(self):
         if not self.cells:
             return []
         return [self.cells[0].rib1] + [cell.rib2 for cell in self.cells]
@@ -183,7 +180,7 @@ class Glider(object):
             rib.recalc()
         self.area = area_backup
 
-    ribs = property(fget=__get_ribs_)
+    ribs = property(fget=__get_ribs__)
     numpoints = property(__get_numpoints, __set_numpoints)
     span = property(__get_span, __set_span)
     area = property(__get_area, __set_area)
