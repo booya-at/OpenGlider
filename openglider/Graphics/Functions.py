@@ -94,7 +94,7 @@ class GraphicObject(object):
                 additionalcoordinates[i, 0] = startval
 
         if not start:
-            self.pointnumbers = additionalcoordinates.transpose()[0,]
+            self.pointnumbers = additionalcoordinates.transpose()[0, ]
             return coordinates
         else:
             return additionalcoordinates

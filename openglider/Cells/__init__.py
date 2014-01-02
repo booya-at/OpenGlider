@@ -20,10 +20,11 @@
 
 
 __author__ = 'simon'
-import openglider.Ribs as Ribs
+#import openglider.Ribs as Ribs
 import numpy
 from ..Vector import normalize, norm
 from ..Profile import Profile3D
+from ..Ribs import Rib
 #from ..Utils import Ballooning
 import math
 from openglider.Utils.Ballooning import arsinc
@@ -65,7 +66,7 @@ class BasicCell(object):
                         d = prof2[j] - prof1[j]
                         #phi=math.asin(norm(d)/(2*r)*(x-1/2)) -> cosphi=sqrt(1-(norm(d)/r*(x+1/2))^2
                         cosphi2 = math.sqrt(1 - (norm(d) * (0.5 - _y) / r) ** 2)
-                        return self.normvectors(j) * (cosphi2 - cosphi) * r
+                        return self.normvectors[j] * (cosphi2 - cosphi) * r
                     else:
                         return numpy.array([0, 0, 0])
             else:
@@ -83,7 +84,7 @@ class BasicCell(object):
         self._radius = None
         self._calcballooning()
 
-    def normvectors(self, j=None):
+    def __get_normvectors(self, j=None):
         if not self._normvectors:
             prof1 = self.prof1.data
             prof2 = self.prof2.data
@@ -114,7 +115,7 @@ class BasicCell(object):
             else:
                 raise ValueError("length of ballooning/profile data unequal")
 
-    #normvectors = property(__get_normvectors)
+    normvectors = property(__get_normvectors)
 
 
 """
@@ -128,7 +129,7 @@ Ballooning is considered to be arcs, following two simple rules:
 # noinspection PyProtectedMember
 class Cell(BasicCell):
     #TODO: cosmetics
-    def __init__(self, rib1=Ribs.Rib(), rib2=Ribs.Rib(), miniribs=None):
+    def __init__(self, rib1=Rib(), rib2=Rib(), miniribs=None):
         self.rib1 = rib1
         self.rib2 = rib2
         self.miniribs = miniribs
@@ -151,6 +152,7 @@ class Cell(BasicCell):
         else:
             self._cells = []
             self._yvalues = [0] + [rib.y_value for rib in self.miniribs] + [1]
+            ballooning = [self.rib1.ballooning[x] + self.rib2.ballooning[x] for x in xvalues]
             miniribs = sorted(self.miniribs, key=lambda rib: rib.y_value)  # sort for cell-wide (y) argument.
 
             first = self.rib1.profile_3d
@@ -178,16 +180,16 @@ class Cell(BasicCell):
             # b' = b
             # f' = f*(l/l') [f=b/l]
             for i in range(len(first.data)):
-                bl = self.rib1.ballooning[x] + self.rib2.ballooning[x] + 1
+                bl = ballooning[i] + 1  # b/l -> *l/lnew
                 l = norm(self.rib2.profile_3d.data[i] - self.rib1.profile_3d.data[i])  # L
                 lnew = sum([norm(c.prof1.data[i] - c.prof2.data[i]) for c in self._cells])  # L-NEW
                 for c in self._cells:
-                    c._phi.append(arsinc((l/lnew) / bl))  # B/L NEW
+                    c._phi.append(arsinc(lnew/l / bl))  # B/L NEW 1 / (bl * l / lnew)
             for cell in self._cells:
                 cell.recalc()
 
     def point(self, y=0, i=0, k=0):
-        return self.midrib(y).point_basic_cell(i, k)
+        return self.midrib(y).point(i, k)
 
     def midrib(self, y, ballooning=True):
         """if x in self._yvalues:
