@@ -285,6 +285,7 @@ class Vectorlist2D(Vectorlist):
         for j in range(1, len(self.data) - 2):
             # TODO: Maybe not normalize here?!
             vectors.append(
-                rotate(normalize(self.data[j + 1] - self.data[j]) + normalize(self.data[j] - self.data[j - 1])))
+                #rotate(normalize(self.data[j + 1] - self.data[j]) + normalize(self.data[j] - self.data[j - 1])))
+                rotate(self.data[j + 1] - self.data[j - 1]))
         vectors.append(rotate(self.data[-1] - self.data[-2]))
         return np.array(vectors)

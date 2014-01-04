@@ -43,7 +43,7 @@ class BasicCell(object):
         ##round ballooning
         return self.midrib_basic_cell(y).point((i, k))
 
-    def midrib_basic_cell(self, y, ballooning=True):
+    def midrib_basic_cell(self, y, ballooning=True, arc_argument=True):
         if y == 0:              # left side
             return self.prof1
         elif y == 1:            # right side
@@ -51,30 +51,25 @@ class BasicCell(object):
         else:                   # somewhere
             #self._checkxvals()
             midrib = []
-            prof1 = self.prof1.data
-            prof2 = self.prof2.data
-
-            _horizontal = lambda _y, j: prof1[j] + _y * (prof2[j] - prof1[j])
 
             if ballooning:
                 self._calcballooning()
 
-                def _vertical(_y, j):
-                    r = self._radius[j]
-                    if r > 0:
-                        cosphi = self._cosphi[j]
-                        d = prof2[j] - prof1[j]
-                        #phi=math.asin(norm(d)/(2*r)*(x-1/2)) -> cosphi=sqrt(1-(norm(d)/r*(x+1/2))^2
-                        cosphi2 = math.sqrt(1 - (norm(d) * (0.5 - _y) / r) ** 2)
-                        return self.normvectors[j] * (cosphi2 - cosphi) * r
-                    else:
-                        return numpy.array([0, 0, 0])
-            else:
-                def _vertical(_y, j):
-                    return numpy.array([0, 0, 0])
-
             for i in range(len(self.prof1.data)):  # Arc -> phi(bal) -> r  # oder so...
-                midrib.append(_horizontal(y, i)+_vertical(y, i))
+                diff = self.prof1[i]-self.prof2[i]
+                if ballooning and self._radius[i] > 0.:
+                    if arc_argument:
+                        d = 0.5-math.sin(self._phi[i] * (0.5-y)) / math.sin(self._phi[i])
+                        h = math.cos(self._phi[i] * (0.5-y)) - self._cosphi[i]
+                    else:
+                        d = y
+                        h = math.sqrt(1 - (norm(diff) * (0.5 - y) / self._radius[i]) ** 2)
+                        h -= self._cosphi[i]  # cosphi2-cosphi
+                else:  # Without ballooning
+                    d = y
+                    h = 0.
+                midrib.append(self.prof1[i] - diff*d + self.normvectors[i]*h*self._radius[i])
+
             return Profile3D(midrib)
 
     def recalc(self):
@@ -92,7 +87,7 @@ class BasicCell(object):
             p2 = self.prof2.tangents()
             # cross differenzvektor, tangentialvektor
             self._normvectors = []
-            for i in range(len(p1)):
+            for i in range(len(prof1)):
                 self._normvectors.append(normalize(numpy.cross(p1[i] + p2[i], prof1[i] - prof2[i])))
         if j:
             return self._normvectors[j]
@@ -203,7 +198,7 @@ class Cell(BasicCell):
     def _calcballooning(self):
         xvalues = self.rib1.profile_2d.x_values
         balloon = [self.rib1.ballooning[i] + self.rib2.ballooning[i] for i in xvalues]
-        self._phi = [arsinc(1 / (1 + i)) for i in balloon]
+        self._phi = [arsinc(1. / (1 + i)) for i in balloon]
         BasicCell._calcballooning(self)
 
     def __get_span(self):  # TODO: Maybe use mean length from (1,0), (0,0)

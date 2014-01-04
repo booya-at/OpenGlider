@@ -23,7 +23,9 @@ def odf_import_visual_test(path=testfolder + '/demokite.ods'):
     glider1.recalc()
     # TODO: Miniribs for mirrored cells fail
     #new_glider.cells[0].miniribs.append(MiniRib(0.5, 0.7, 1))
-    (polygons, points) = glider1.return_polygons(0)
+    (polygons, points) = glider1.return_polygons(2)
+
+
 
     polygons = [openglider.Graphics.Polygon(polygon) for polygon in polygons]
     openglider.Graphics.Graphics3D(polygons, points)

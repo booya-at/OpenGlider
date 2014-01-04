@@ -1,5 +1,7 @@
 
 import numpy
+import openglider.Cells
+import openglider
 from openglider.Vector import Vectorlist2D, norm, normalize
 
 
@@ -8,9 +10,9 @@ def flatten_list(list1, list2):
     flat_left = [numpy.array([0, 0])]
     flat_right = [numpy.array([norm(list1[0]-list2[0]), 0])]
 
-    def which(i, j):
-        diff = list1[i] - list2[j]
-        return diff.dot(list1[i+1]-list1[i]+list2[j+1]-list2[j+1])
+    # def which(i, j):
+    #     diff = list1[i] - list2[j]
+    #     return diff.dot(list1[i+1]-list1[i]+list2[j+1]-list2[j+1])
 
     def point2d(p1_3d, p1_2d, p2_3d, p2_2d, point_3d):
         # diffwise
@@ -52,5 +54,19 @@ def flatten_list(list1, list2):
                                   list2[index_right + 1]))
         index_right += 1
 
+    return Vectorlist2D(flat_left), Vectorlist2D(flat_right)
 
-    return flat_left, flat_right
+
+def flatten_panel(cell=openglider.Cells.Cell()):
+    left, right = flatten_list(cell.rib1.profile_3d, cell.rib2.profile_3d)
+    ballooning_left = [cell.rib1.ballooning[x] for x in cell.rib1.profile_2d.x_values]
+    ballooning_right = [cell.rib2.ballooning[x] for x in cell.rib2.profile_2d.x_values]
+    for i in range(len(left)):
+        diff = right[i]-left[i]
+        left.data[i] -= diff * ballooning_left[i]
+        right.data[i] += diff * ballooning_right[i]
+
+    parts = []
+    return left, right
+
+

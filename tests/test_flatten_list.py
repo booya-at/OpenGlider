@@ -1,5 +1,6 @@
 import os
 import math
+import openglider.Cells
 import openglider.Graphics
 import openglider.Ribs
 import openglider.Profile
@@ -24,6 +25,11 @@ r2.recalc()
 left, right = openglider.plots.flatten_list(r2.profile_3d.data, r1.profile_3d.data)
 ding = [numpy.array([0, 0]), numpy.array([1., 0])]
 
-openglider.Graphics.Graphics([openglider.Graphics.Line(left), openglider.Graphics.Line(right)])
-
 #[numpy.array([0,0]),numpy.array([1,0])
+
+cell = openglider.Cells.Cell(r1, r2)
+left2, right2 = openglider.plots.flatten_panel(cell)
+
+
+openglider.Graphics.Graphics([openglider.Graphics.Line(left.data), openglider.Graphics.Line(right.data),
+                              openglider.Graphics.Line(left2.data), openglider.Graphics.Line(right2.data)])
