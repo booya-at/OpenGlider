@@ -100,8 +100,13 @@ class TestVector2D(TestVector3D):
     def test_normvectors(self):
         for thalist in self.vectors:
             i = random.randint(1, len(thalist)-3) # TODO: Fix for other values
-            normv = thalist.normvectors()
+            normv = thalist.normvectors
             self.assertAlmostEqual(normv[i].dot(thalist[i+1]-thalist[i-1]), 0)
+
+    def test_shift(self):
+        for thalist in self.vectors:
+            amount = random.random()
+            thalist.shift(amount)
 
     # def test_Cut(self):
     #     for thalist in self.vectors:

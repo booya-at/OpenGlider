@@ -36,7 +36,7 @@ def arrtype(arg):
     ##2d-p: depth 1
     ##equivalent numpy.rank?
 
-    ######Room for improvement here!
+    # TODO: Room for improvement here!
 
     if depth(arg) == 2:
         if len(arg) == 2:
@@ -234,6 +234,10 @@ class Vectorlist(object):
 
 
 class Vectorlist2D(Vectorlist):
+    def __init__(self, data=None, name="Vector List object"):
+        super(Vectorlist2D, self).__init__(data, name)
+        self._normvectors = None
+
     def cut(self, p1, p2, startpoint=0):
         for i in rangefrom(len(self) - 2, startpoint):
             try:
@@ -279,13 +283,40 @@ class Vectorlist2D(Vectorlist):
                     #if temp[1] == 0.:
                     # TODO: Drop if not a unique point
 
-    def normvectors(self):
-        rotate = lambda x: normalize(x).dot([[0, -1], [1, 0]])
-        vectors = [rotate(self.data[1] - self.data[0])]
-        for j in range(1, len(self.data) - 2):
-            # TODO: Maybe not normalize here?!
-            vectors.append(
-                #rotate(normalize(self.data[j + 1] - self.data[j]) + normalize(self.data[j] - self.data[j - 1])))
-                rotate(self.data[j + 1] - self.data[j - 1]))
-        vectors.append(rotate(self.data[-1] - self.data[-2]))
-        return np.array(vectors)
+    def __get_normvectors(self):
+        """Return Normvectors to the List-Line, heading rhs"""
+        if not self._normvectors:
+            rotate = lambda x: normalize(x).dot([[0, -1], [1, 0]])
+            self._normvectors = [rotate(self.data[1] - self.data[0])]
+            for j in range(1, len(self.data) - 1):
+                # TODO: Maybe not normalize here?!
+                self._normvectors.append(
+                    #rotate(normalize(self.data[j + 1] - self.data[j]) + normalize(self.data[j] - self.data[j - 1])))
+                    rotate(self.data[j + 1] - self.data[j - 1]))
+            self._normvectors.append(rotate(self.data[-1] - self.data[-2]))
+        return self._normvectors
+
+    def recalc(self):
+        self._normvectors = None
+
+    def shift(self, amount):
+        """Shift the whole line for a given amount (->Sewing allowance)"""
+        # cos(vectorangle(a,b)) = (a1 b1+a2 b2)/Sqrt[(a1^2+a2^2) (b1^2+b2^2)]
+        newlist = []
+        second = self.data[0]
+        third = self.data[1]
+        newlist.append(second + self.normvectors[0] * amount)
+        for i in range(1, len(self.data)-1):
+            first = second
+            second = third
+            third = self.data[i+1]
+            d1 = third - second
+            d2 = second - first
+            newlist.append(second + self.normvectors[i] * amount / d1.dot(d2) * np.sqrt(d1.dot(d1)*d2.dot(d2)))
+        newlist.append(third + self.normvectors[i+1] * amount)
+
+        return self.__class__(newlist, self.name+"_shifted_"+str(amount))
+
+    normvectors = property(__get_normvectors)
+
+
