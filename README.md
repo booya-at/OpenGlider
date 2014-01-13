@@ -12,6 +12,13 @@ Clone the git-repo first:
   git clone https://github.com/hiaselhans/OpenGlider.git
   ```
 
+Install all dependencies (using distro-repos, easy_install or pip)#
+* ezodf2
+* dxfwrite
+* scipy
+* svgwrite
+* vtk
+
 To run all unittests, run this from the main directory:
   ```
   python2 -m unittest discover -v -s tests

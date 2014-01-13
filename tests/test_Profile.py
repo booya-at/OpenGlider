@@ -67,10 +67,10 @@ class TestProfile(unittest.TestCase):
         other = self.prof*0.5 + other*0.5
         self.assertTrue(self.prof == other)
 
-    def test_numpoints2(self):
-        print("len: ", len(self.prof.data), len(self.prof._rootprof.data))
-        self.prof.numpoints = 20
-        print("len2: ", len(self.prof.data), len(self.prof._rootprof.data))
+    # def test_numpoints2(self):
+    #     print("len: ", len(self.prof.data), len(self.prof._rootprof.data))
+    #     self.prof.numpoints = 20
+    #     print("len2: ", len(self.prof.data), len(self.prof._rootprof.data))
 
 
 

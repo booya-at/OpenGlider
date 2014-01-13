@@ -175,8 +175,6 @@ class Graphics(object):
         self.data = vtk.vtkPolyData()
         self.points = vtk.vtkPoints()
 
-
-
         if not coordinates is None:
             coordinates = np.array(self.coordinates)
             coordinates = [self.test_2d(i) for i in coordinates]
@@ -210,7 +208,6 @@ class Graphics(object):
             return [arg[0], arg[1], 0.]
         else:
             return arg
-
 
     def _createwindow(self):
         render_window = vtk.vtkRenderWindow()
