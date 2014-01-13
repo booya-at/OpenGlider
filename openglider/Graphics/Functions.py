@@ -22,6 +22,7 @@
 import vtk
 import numpy as np
 from openglider.Vector import depth
+# Quick graphics lib to imitate mathematicas graphics functions
 
 
 def tofloat(lst):
@@ -31,7 +32,7 @@ def tofloat(lst):
         return float(lst)
 
 
-def ListLinePlot(points):
+def listlineplot(points):
     if isinstance(points, np.ndarray):
         points = points.tolist()
     if depth(points) == 2:
@@ -60,59 +61,107 @@ def _isintlist(arg):
 
 
 class GraphicObject(object):
-    def __init__(self, pointnumbers, ttype):
-        self.pointnumbers = np.array(pointnumbers)
+    def __init__(self, points, ttype):
         self.type = ttype
-        if _isintlist(self.pointnumbers):
+        if _isintlist(points):
             self.gtype = 'direct'
         else:
             self.gtype = 'indirect'
+        self.points = np.array(points)
 
     #coordinates= list of points (can be nested)
-    def addcoordinates(self, coordinates, add=None, start=None):
-        if coordinates is None:
-            coordinates = np.array([])
-        if start and add:
-            startval = start
-            additionalcoordinates = add
+    def add_points(self, graphics):
+        """Add Elements Points to the containing class"""
+        if self.gtype == 'direct':
+            return self.points
         else:
-            if not coordinates is None:
-                startval = len(coordinates) - 1
-            else:
-                startval = 0
-            additionalcoordinates = self.pointnumbers
-
-        for i in range(len(additionalcoordinates)):
-            if depth(additionalcoordinates[i]) > 2:
-                self.addcoordinates(coordinates, add=additionalcoordinates[i], start=startval)
-            else:
-                startval += 1
-                if len(coordinates) == 0:
-                    coordinates = [additionalcoordinates[i] * 1]
-                else:
-                    coordinates = np.append(coordinates, [additionalcoordinates[i]], axis=0)
-                additionalcoordinates[i, 0] = startval
-
-        if not start:
-            self.pointnumbers = additionalcoordinates.transpose()[0, ]
-            return coordinates
-        else:
-            return additionalcoordinates
+            pointnums = [graphics.points.InsertNextPoint(graphics.test_2d(coor)) for coor in self.points]
+            return pointnums
 
 
 class Point(GraphicObject):
     def __init__(self, pointnumbers):
         super(Point, self).__init__(pointnumbers, 'Point')
 
+    def draw(self, graphics):
+        try:
+            cell = graphics.visual_points
+        except AttributeError:
+            cell = vtk.vtkCellArray()
+        pointnums = self.add_points(graphics)
+
+        cell.InsertNextCell(len(pointnums))
+        for p in pointnums:
+            cell.InsertCellPoint(p)
+        graphics.visual_points = cell
+        graphics.data.SetVerts(cell)
+
 
 class Line(GraphicObject):
     def __init__(self, pointnumbers):
         super(Line, self).__init__(pointnumbers, 'Line')
 
+    def draw(self, graphics):
+        try:
+            cell = graphics.lines
+        except AttributeError:
+            cell = vtk.vtkCellArray()
+        pointnums = self.add_points(graphics)
+
+        for i in range(len(pointnums) - 1):
+            line = vtk.vtkLine()
+            line.GetPointIds().SetId(0, pointnums[i])
+            line.GetPointIds().SetId(1, pointnums[i + 1])
+            cell.InsertNextCell(line)
+
+        graphics.lines = cell
+        graphics.data.SetLines(cell)
+
 
 class Polygon(GraphicObject):
     def __init__(self, pointnumbers):
         super(Polygon, self).__init__(pointnumbers, 'Polygon')
+
+    def draw(self, graphics):
+        try:
+            cell = graphics.polygons
+        except AttributeError:
+            cell = vtk.vtkCellArray()
+        pointnums = self.add_points(graphics)
+
+        polygon = vtk.vtkPolygon()
+        polygon.GetPointIds().SetNumberOfIds(len(pointnums))
+        i = 0
+        for p in pointnums:
+            polygon.GetPointIds().SetId(i, p)
+            i += 1
+        cell.InsertNextCell(polygon)
+        graphics.polygons = cell
+        graphics.data.SetPolys(cell)
+
+
+class Axes(GraphicObject):
+    def __init__(self, start=(0., 0., 0.), size=None, label=False):
+        super(Axes, self).__init__(start, 'Axes')
+        self.gtype = 'indirect'
+        self.size = size
+        self.label = label
+
+    def draw(self, graphics):
+        transform = vtk.vtkTransform()
+        transform.Translate(self.points[0], self.points[1], self.points[2])
+        axes = vtk.vtkAxesActor()
+        if self.size:
+            #transform.Scale(self.size, self.size, self.size)
+            axes.SetTotalLength(self.size, self.size, self.size)
+        #  The axes are positioned with a user transform
+        #axes.SetShaftTypeToCylinder()
+        axes.SetUserTransform(transform)
+        if not self.label:
+            axes.AxisLabelsOff()
+        graphics.renderer.AddActor(axes)
+
+
 
 
 class Graphics(object):
@@ -122,99 +171,59 @@ class Graphics(object):
         self.rotation = rotation
         self.coordinates = coordinates
         self.graphicobjects = graphicobjects
-        for graphicobject in self.graphicobjects:
-            if graphicobject.gtype == 'indirect':
-                self.coordinates = graphicobject.addcoordinates(self.coordinates)
-        coordinates = np.array(self.coordinates)
-        coordinates = [self._2dtest(i) for i in coordinates]
+
+        self.data = vtk.vtkPolyData()
         self.points = vtk.vtkPoints()
-        try:
+
+
+
+        if not coordinates is None:
+            coordinates = np.array(self.coordinates)
+            coordinates = [self.test_2d(i) for i in coordinates]
             for coor in coordinates:
                 self.points.InsertNextPoint(coor)
-        except TypeError:
-            pass
 
-        self.lines = vtk.vtkCellArray()
-        self.verts = vtk.vtkCellArray()
-        self.polygons = vtk.vtkCellArray()
+        # for graphicobject in self.graphicobjects:
+        #     if graphicobject.gtype == 'indirect':
+        #         graphicobject.add_points(self)
 
-        for graphicobject in self.graphicobjects:
-            if graphicobject.type == 'Line':
-                self._createline(graphicobject.pointnumbers)
-            elif graphicobject.type == 'Point':
-                self._createpoint(graphicobject.pointnumbers)
-            elif graphicobject.type == 'Polygon':
-                self._createpolygon(graphicobject.pointnumbers)
-
-        self.polydata = vtk.vtkPolyData()
-        self.polydata.SetPoints(self.points)
-
-        self.polydata.SetLines(self.lines)
-        self.polydata.SetVerts(self.verts)
-        self.polydata.SetPolys(self.polygons)
+        self.data.SetPoints(self.points)
 
         self.mapper = vtk.vtkPolyDataMapper()
-        self.mapper.SetInput(self.polydata)
+        self.mapper.SetInput(self.data)
         self.actor = vtk.vtkActor()
         self.actor.SetMapper(self.mapper)
+
+        self.renderer = vtk.vtkRenderer()
+        self.renderer.AddActor(self.actor)
+        self.renderer.SetBackground(0.1, 0.2, 0.4)  # Blue
+        self.renderer.ResetCamera()
+
+        for graphicobject in self.graphicobjects:
+            graphicobject.draw(self)
+
         self._createwindow()
 
-    def _2dtest(self, arg):
+    @staticmethod
+    def test_2d(arg):
         if len(arg) == 2:
             return [arg[0], arg[1], 0.]
         else:
             return arg
 
-    def _createpoint(self, pointnumbers):
-        if depth(pointnumbers) >= 3:
-            for p in pointnumbers:
-                self._createpoint(p)
-        else:
-            self.verts.InsertNextCell(len(pointnumbers))
-            for p in pointnumbers:
-                self.verts.InsertCellPoint(p)
-
-    def _createline(self, pointnumbers):
-        if depth(pointnumbers) >= 3:
-            for p in pointnumbers:
-                self._createline(p)
-        else:
-            for i in range(len(pointnumbers) - 1):
-                line = vtk.vtkLine()
-                line.GetPointIds().SetId(0, pointnumbers[i])
-                line.GetPointIds().SetId(1, pointnumbers[i + 1])
-                self.lines.InsertNextCell(line)
-                i += 1
-
-    def _createpolygon(self, pointnumbers):
-        if depth(pointnumbers) >= 3:
-            for p in pointnumbers:
-                self._createpolygon(p)
-        else:
-            polygon = vtk.vtkPolygon()
-            polygon.GetPointIds().SetNumberOfIds(len(pointnumbers))
-            i = 0
-            for p in pointnumbers:
-                polygon.GetPointIds().SetId(i, p)
-                i += 1
-            self.polygons.InsertNextCell(polygon)
 
     def _createwindow(self):
-        ren1 = vtk.vtkRenderer()
-        ren1.AddActor(self.actor)
-        ren1.SetBackground(0.1, 0.2, 0.4)
-        ren1.ResetCamera()
-        renWin = vtk.vtkRenderWindow()
-        renWin.AddRenderer(ren1)
-        renWin.SetSize(700, 700)
-        iren = vtk.vtkRenderWindowInteractor()
+        render_window = vtk.vtkRenderWindow()
+        render_window.AddRenderer(self.renderer)
+        render_window.SetSize(700, 700)
+        render_interactor = vtk.vtkRenderWindowInteractor()
         if self.rotation:
-            iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
+            render_interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
         else:
-            iren.SetInteractorStyle(vtk.vtkInteractorStyleRubberBand2D())
-        iren.SetRenderWindow(renWin)
-        iren.Initialize()
-        iren.Start()
+            render_interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBand2D())
+        render_interactor.SetRenderWindow(render_window)
+        render_interactor.Initialize()
+        render_interactor.Start()
 
 
 class Graphics3D(Graphics):

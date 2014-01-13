@@ -106,20 +106,20 @@ class TestVector2D(TestVector3D):
     def test_shift(self):
         for thalist in self.vectors:
             amount = random.random()
-            thalist.shift(amount)
+            thalist.add_stuff(amount)
 
-    # def test_Cut(self):
-    #     for thalist in self.vectors:
-    #         i = random.randint(1, len(thalist)-3)
-    #         normv = thalist.normvectors()
-    #         dirr = Vector.normalize(normv[i])
-    #         #dirr = Vector.normalize(normv[i-i % 1])+Vector.normalize(normv[i - i % 1 + 1])
-    #         dirr *= 0.001
-    #
-    #         p1 = thalist[i]+dirr
-    #         p2 = thalist[i]-dirr
-    #         neu = thalist.cut(p1, p2, i-1)
-    #         self.assertAlmostEqual(i, neu[1])
+    def test_Cut(self):
+        for thalist in self.vectors:
+            i = random.randint(1, len(thalist)-3)
+            normv = thalist.normvectors
+            dirr = Vector.normalize(normv[i])
+            #dirr = Vector.normalize(normv[i-i % 1])+Vector.normalize(normv[i - i % 1 + 1])
+            dirr *= 0.001
+
+            p1 = thalist[i]+dirr
+            p2 = thalist[i]-dirr
+            neu = thalist.cut(p1, p2, i-1)
+            #self.assertAlmostEqual(i, neu[1])
 
 
 if __name__ == '__main__':

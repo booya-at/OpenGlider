@@ -41,9 +41,11 @@ import numpy
 
 
 a = Profile2D()
-a.importdat(os.path.dirname(os.path.abspath(__file__)) + "/testprofile.dat")
+#a.importdat(os.path.dirname(os.path.abspath(__file__)) + "/testprofile.dat")
+a.compute_naca(naca=2412, numpoints=200)
+# #a._rootprof.normalize()
+# #a.numpoints = 25
 #a.numpoints = 40
-
 ballooning = BallooningBezier()
 balloon = [ballooning(i) for i in a.x_values]
 

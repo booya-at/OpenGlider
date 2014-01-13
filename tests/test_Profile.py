@@ -17,10 +17,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-
-
-#!/bin/python2
-__author__ = 'simon'
 import unittest
 from openglider.Profile import Profile2D
 from test_Vector import *
@@ -49,6 +45,33 @@ class TestProfile(unittest.TestCase):
         self.assertAlmostEqual(other.thickness, self.prof.thickness * factor)
         other *= 1. / factor
         self.assertAlmostEqual(other.thickness, self.prof.thickness)
+
+    def test_area(self):
+        factor = random.random()
+        self.assertAlmostEqual(factor * self.prof.area(), (self.prof * factor).area())
+
+    def test_naca(self):
+        numpoints = random.randint(10, 200)
+        thickness = random.randint(8, 20)
+        m = random.randint(1, 9) * 1000 # Maximum camber
+        p = random.randint(1, 9) * 100  # Maximum thickness
+        self.prof.compute_naca(naca=m+p+thickness, numpoints=numpoints)
+        self.assertAlmostEqual(self.prof.thickness*100, thickness, 0)
+
+    def test_compare(self):
+        other = self.prof.copy()
+        self.assertTrue(self.prof == other)
+
+    def test_add(self):
+        other = self.prof.copy()
+        other = self.prof*0.5 + other*0.5
+        self.assertTrue(self.prof == other)
+
+    def test_numpoints2(self):
+        print("len: ", len(self.prof.data), len(self.prof._rootprof.data))
+        self.prof.numpoints = 20
+        print("len2: ", len(self.prof.data), len(self.prof._rootprof.data))
+
 
 
 if __name__ == '__main__':

@@ -23,6 +23,7 @@ import copy
 
 from openglider.Import import IMPORT_GEOMETRY, EXPORT_3D
 from openglider.Vector import norm, normalize
+from openglider.Vector.projection import flatten_list
 
 
 class Glider(object):
@@ -39,6 +40,7 @@ class Glider(object):
         if not filetype:
             filetype = path.split(".")[-1]
             #EXPORT_NAMES[filetype](self, path)
+        pass
 
     def export_3d(self, path="", filetype=None, midribs=0, numpoints=None, floatnum=6):
         if not filetype:
@@ -120,7 +122,11 @@ class Glider(object):
             rib.pos *= faktor
             rib.chord *= faktor
 
-    def __get_ribs__(self):
+    def shape(self):
+        return flatten_list(self.get_spanwise(0), self.get_spanwise(1))
+
+    @property
+    def ribs(self):
         if not self.cells:
             return []
         return [self.cells[0].rib1] + [cell.rib2 for cell in self.cells]
@@ -140,10 +146,11 @@ class Glider(object):
 
     def __get_span(self):
         span = 0.
-        last = numpy.array([0, 0, 0])
-        for rib in self.ribs[1:]:
-            span += norm((rib.pos - last) * [0, 1, 1])
-            last = rib.pos
+        front = self.get_spanwise()
+        last = front[0] * [0, 0, 1]  # centerrib only halfed
+        for this in front[1:]:
+            span += norm((this - last) * [0, 1, 1])
+            last = this
         return 2 * span
 
     def __set_span(self, span):
@@ -154,15 +161,15 @@ class Glider(object):
         area = 0.
         if len(self.ribs) == 0:
             return 0
-        lastrib_front = self.ribs[0].align([0, 0, 0])  # * numpy.array([0, 1, 1])
-        lastrib_back = self.ribs[0].align([1, 0, 0])  # * numpy.array([0, 1, 1])
-        for rib in self.ribs[1:]:
-            thisrib_front = rib.align([0, 0, 0])  # * numpy.array([0, 1, 1])
-            thisrib_back = rib.align([1, 0, 0])  # * numpy.array([0, 1, 1])
-            area += norm(numpy.cross(lastrib_front - thisrib_front, thisrib_back - thisrib_front))
-            area += norm(numpy.cross(lastrib_back - thisrib_back, thisrib_back - thisrib_front))
-            lastrib_back = thisrib_back
-            lastrib_front = thisrib_front
+        front = self.get_spanwise(0)
+        back = self.get_spanwise(1)
+        front[0][1] = 0  # Get only half a midrib, if there is...
+        back[0][1] = 0
+        for i in range(len(front) - 1):
+            area += norm(numpy.cross(front[i] - front[i+1], back[i+1] - front[i+1]))
+            area += norm(numpy.cross(back[i] - back[i+1], back[i] - front[i]))
+            # By this we get twice the area of half the glider :)
+            # http://en.wikipedia.org/wiki/Triangle#Using_vectors
         return area
 
     def __set_area(self, area):
@@ -180,7 +187,15 @@ class Glider(object):
             rib.recalc()
         self.area = area_backup
 
-    ribs = property(fget=__get_ribs__)
+    def get_spanwise(self, x=None):
+        points = []
+        if x:
+            for rib in self.ribs:
+                points.append(rib.align([x, 0, 0]))
+        else:
+            points = [rib.pos for rib in self.ribs]  # This is much faster
+        return points
+
     numpoints = property(__get_numpoints, __set_numpoints)
     span = property(__get_span, __set_span)
     area = property(__get_area, __set_area)

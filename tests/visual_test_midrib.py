@@ -17,11 +17,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-
-
-#!/bin/python2
-
-__author__ = 'simon'
 import numpy
 import math
 import os
@@ -80,4 +75,5 @@ for i in range(2 * num):
     for j in range(points - 1):
         polygons.append(
             Graph.Polygon([i * points + j, i * points + j + 1, (i + 1) * points + j + 1, (i + 1) * points + j]))
+polygons.append(Graph.Axes(size=0.3))
 Graph.Graphics3D(polygons, ribs)

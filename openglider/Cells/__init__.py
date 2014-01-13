@@ -31,13 +31,14 @@ from openglider.Utils.Ballooning import arsinc
 
 
 class BasicCell(object):
-    def __init__(self, prof1=Profile3D(), prof2=Profile3D(), ballooning=None):
+    def __init__(self, prof1=Profile3D(), prof2=Profile3D(), ballooning=None, name="unnamed_cell"):
         self.prof1 = prof1
         self.prof2 = prof2
 
         self._phi = ballooning  # ballooning arcs
         self._cosphi = self._radius = None
         self._normvectors = None
+        self.name = name
 
     def point_basic_cell(self, y=0, i=0, k=0):
         ##round ballooning
@@ -60,7 +61,9 @@ class BasicCell(object):
                 if ballooning and self._radius[i] > 0.:
                     if arc_argument:
                         d = 0.5-math.sin(self._phi[i] * (0.5-y)) / math.sin(self._phi[i])
-                        h = math.cos(self._phi[i] * (0.5-y)) - self._cosphi[i]
+                        h = math.cos(self._phi[i] * (1-2*y)) - self._cosphi[i]
+                        #h = math.sqrt(1 - (norm(diff) * (0.5 - d) / self._radius[i]) ** 2)
+                        #h -= self._cosphi[i]  # cosphi2-cosphi
                     else:
                         d = y
                         h = math.sqrt(1 - (norm(diff) * (0.5 - y) / self._radius[i]) ** 2)
@@ -79,7 +82,8 @@ class BasicCell(object):
         self._radius = None
         self._calcballooning()
 
-    def __get_normvectors(self, j=None):
+    @property
+    def normvectors(self, j=None):
         if not self._normvectors:
             prof1 = self.prof1.data
             prof2 = self.prof2.data
@@ -109,8 +113,6 @@ class BasicCell(object):
                         self._radius.append(0)
             else:
                 raise ValueError("length of ballooning/profile data unequal")
-
-    normvectors = property(__get_normvectors)
 
 
 # Ballooning is considered to be arcs, following two simple rules:
@@ -201,22 +203,21 @@ class Cell(BasicCell):
         self._phi = [arsinc(1. / (1 + i)) for i in balloon]
         BasicCell._calcballooning(self)
 
-    def __get_span(self):  # TODO: Maybe use mean length from (1,0), (0,0)
+    @property
+    def span(self):  # TODO: Maybe use mean length from (1,0), (0,0)
         return norm((self.rib1.pos - self.rib2.pos)*[0, 1, 1])
 
-    def __get_area(self):
+    @property
+    def area(self):
         p1_1 = self.rib1.align([0, 0, 0])
         p1_2 = self.rib1.align([1, 0, 0])
         p2_1 = self.rib2.align([0, 0, 0])
         p2_2 = self.rib2.align([1, 0, 0])
         return 0.5*(norm(numpy.cross(p1_2-p1_1, p2_1-p1_1)) + norm(numpy.cross(p2_2-p2_1, p2_2-p1_2)))
 
-    def __get_ar(self):
+    @property
+    def aspect_ratio(self):
         return self.span**2/self.area
-
-    span = property(__get_span)
-    area = property(__get_area)
-    aspect_ratio = property(__get_ar)
 
 
 """

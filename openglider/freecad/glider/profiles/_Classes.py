@@ -6,11 +6,12 @@ import PartGui
 import numpy
 
 
-class Airfoil():
+class Airfoil(object):
     """FreeCAD Airfoil"""
 
     def __init__(self, obj):
         self.prof = Profile2D()
+        self.prof.compute_naca(2422, numpoints=120)
 
         obj.addProperty("App::PropertyInteger", "Numpoints",
                         "profile", "Number of points").Numpoints = self.prof.numpoints
@@ -30,32 +31,35 @@ class Airfoil():
         self.prof.thickness = fp.Thickness / 1000.
         #self.prof.Camber = fp.Camber / 1000.
         self.prof.name = fp.Name
-        fp.coords = map(
-            lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.profile)
+        self.updateview(fp)
         pass
 
     def onChanged(self, fp, prop):
         if prop == "FilePath":
             self.prof.importdat(fp.FilePath)
             fp.Numpoints = self.prof.numpoints
-            fp.Thickness = max(self.prof.thickness[:, 1]) * 1000.
+            fp.Thickness = self.prof.thickness * 1000.
             #fp.Camber = max(self.prof.Camber[:, 1]) *1000.
-            fp.coords = map(
-                lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.profile)
         elif prop == "Thickness":
             self.prof.thickness = fp.Thickness / 1000.
-            fp.coords = map(
-                lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.profile)
+            self.updateview(fp)
         elif prop == "Numpoints":
+            self.updateview(fp)
+            pass
         #     self.prof.Numpoints = fp.Numpoints
         #     fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
         # elif prop == "Camber":
         #     self.prof.Camber = fp.Camber /1000.
         #     fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
-            pass
+
+    def profilepoints(self):
+        return map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.data)
+
+    def updateview(self, fp):
+        fp.coords = self.profilepoints()
 
 
-class ViewProviderAirfoil():
+class ViewProviderAirfoil(object):
     def __init__(self, obj):
         obj.addProperty(
             "App::PropertyLength", "LineWidth", "Base", "Line width")
@@ -64,6 +68,7 @@ class ViewProviderAirfoil():
         obj.Proxy = self
 
     def attach(self, vobj):
+        #self.__init__(vobj)  # Fehler Bei loeschen + strg-z
         self.shaded = coin.SoSeparator()
 
         t = coin.SoType.fromName("SoBrepEdgeSet")
@@ -85,7 +90,7 @@ class ViewProviderAirfoil():
         pass
 
     def updateData(self, fp, prop):
-        """jkhjkn"""
+        """Update geometry"""
         if prop == "coords":
             points = fp.getPropertyByName("coords")
             self.data.point.setValue(0, 0, 0)
@@ -93,6 +98,7 @@ class ViewProviderAirfoil():
             nums = range(len(points))
             self.lineset.coordIndex.setValue(0)
             self.lineset.coordIndex.setValues(0, len(nums), nums)
+            print(len(points))
         pass
 
     def getElement(self, detail):
@@ -111,10 +117,8 @@ class ViewProviderAirfoil():
 
     def getDisplayModes(self, obj):
         """Return a list of display modes."""
-        modes = []
-        modes.append("Shaded")
+        modes = ["Shaded"]
         return modes
-        pass
 
 
 class moveablePoint():

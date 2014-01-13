@@ -22,25 +22,33 @@ float faktor = 5.;
 
 struct Panel {
 		bool wake;
+		//todo: should be array
 		int p1;
 		int p2;
 		int p3;
 		int p4;
-		int neighbour_left;
+
+		/*int neighbour_left;
 		int neighbour_right;
 		int neighbour_front;
-		int neighbour_back;
-		Vector norm_vect; //normal-vector
-		Vector tang_vect_span; // tangential-vector (wingspan)
-		Vector tang_vect_chord; // tangential-vector (chordwise)
+		int neighbour_back;*/
+		Panel *neighbours[4];
+		Vector norm_vect; //normal-vector (nk)
+		//todo: should be array
+		Vector tang_vect_span; // tangential-vector (wingspan)(mk)
+		Vector tang_vect_chord; // tangential-vector (chordwise)(lk)
+
 		float area; //Panel-Area
 		Vector r_center;  //centerpoint
 
-		Vector smp;
-		Vector smq;
+		//todo: should be array
+		Vector smp; //
+		Vector smq; //
 
+		//todo: should be array
 		float smp_len; //half median length (l-direction)
 		float smq_len; //half median length (m-direction)
+
 		float sigma; //source-strength
 
 		int position; //we do have those wake panels inbetween
@@ -57,7 +65,7 @@ struct Config
 	int panel_number;
 	int panel_number_not_wake;
 };
-
+enum NEIGHBOUR_DIRECTIONS = {NEIGHBOUR_front, NEIGHBOUR_right, NEIGHBOUR_back, NEIGHBOUR_left}
 enum CONFIG_ARGUMENTS {ARG_Airspeed, ARG_Density, ARG_Pressure, ARG_Casenum, ARG_Wingspan, ARG_Mac, ARG_Sufrace, ARG_Origin, ARG_Farfield, ARG_Error, ARG_Results, ARG_Nodes, ARG_Panels};
 int ARGUMENT_NUMBERS = 13;
 std::string ARGUMENT_WORDS[] = {"AIRSPEED", "DENSITY", "PRESSURE", "CASE_NUM", "WINGSPAN", "MAC", "SURFACE", "ORIGIN", "FARFIELD", "ERROR", "RESULTS", "NODES", "PANELS"};
@@ -278,15 +286,35 @@ int main(int argc, char* argv[]){
 					else
 						thispanel->p4 = atoi(strtok(NULL, " ")) - 1; //4-node
 					//////NEIGHBOURS
-					thispanel->neighbour_front = atoi(strtok(NULL, " ")) - 1;
-					thispanel->neighbour_back = atoi(strtok(NULL, " ")) - 1;
+
+					for (int i = 0; i < 4; i++)
+						if (i == 3 && value[0] == '2')
+							//triangle
+							thispanel -> neighbours[i] = NULL;
+						else {
+							thispanel -> neighbours[i] = panels + (atoi(strtok(NULL, " ")) - 1);
+							if (thispanel->neighbours[i] == panels - 1)
+								thispanel->neighbours[i] = NULL;
+						}
+					/*
+					thispanel -> neighbours[NEIGHBOUR_front] = panels + (atoi(strtok(NULL, " ")) - 1);
+					thispanel -> neighbours[NEIGHBOUR_back] = panels + (atoi(strtok(NULL, " ")) - 1);
+					//thispanel->neighbour_front = atoi(strtok(NULL, " ")) - 1;
+					//thispanel->neighbour_back = atoi(strtok(NULL, " ")) - 1;
 					if(!thispanel->wake){
-						thispanel->neighbour_left = atoi(strtok(NULL, " ")) - 1;
-						if (value[0] == '2')
-							thispanel->neighbour_right = thispanel->neighbour_left;
+						//thispanel->neighbour_left = atoi(strtok(NULL, " ")) - 1;
+						thispanel -> neighbours[NEIGHBOUR_left] = panels + (atoi(strtok(NULL, " ")) - 1);
+						if (value[0] == '2') // triangle
+							//thispanel->neighbour_right = thispanel->neighbour_left;
+							thispanel -> neighbours[NEIGHBOUR_right] = NULL;
 						else
-							thispanel->neighbour_right = atoi(strtok(NULL, " ")) - 1;
+							thispanel -> neighbours[NEIGHBOUR_right] = panels + (atoi(strtok(NULL, " ")) - 1);
+							//thispanel->neighbour_right = atoi(strtok(NULL, " ")) - 1;
 					}
+					//if the neighbour is set to oneself (the value in the config file was zero), we set the pointer to NULL
+					for (int i = 0; i < 4; i++)
+						if (thispanel -> neighbours[i] == panels - 1)
+							thispanel -> neighbours[i] = NULL; */
 					i++;
 					}
 				config.panel_number_not_wake = num_not_wake;
@@ -383,27 +411,21 @@ int main(int argc, char* argv[]){
 						farfield_calc(pn, panel_i->area, dist, cjk, bjk);
 						//cout << "far" << endl;
 						far++;
-						}
 					//else if(dist == 0)
 					//	cjk = 2*pi;
-					else {
+					} else {
 						nearfield_calc(panel_i, nodes, r_diff, cjk, bjk);
 						//cout << "near" << endl;
 						near++;
-						}
-					//break;  //DEBUG
-
+					} 
 					if (panel_i->wake){ //wake -> two neighbours (CHECK SIGNS!! maybe sign(dot(normvecs))))
 						//cout << panel_i->neighbour_front << "//" << panel_i->neighbour_back << endl;
 						//the neighbours are out of range or are wake panels
-						if (panel_i->neighbour_front < 0 || panel_i->neighbour_front >= num_panels || (panels + panel_i->neighbour_front)->wake)
-							cout << "Error in panel " << i << ": neighbour front not right!" << endl;
-						if (panel_i->neighbour_back < 0 || panel_i->neighbour_back >= num_panels || (panels + panel_i->neighbour_back)->wake)
-							cout << "Error in panel " << i << ": neighbour back not right!" << endl;
-						matrix((panels + panel_i->neighbour_front)->position, panel_j->position)-=cjk;
-						matrix((panels + panel_i->neighbour_back)->position, panel_j->position)+=cjk;
-						}
-					else if(!(panel_i->wake)){ //normal panel!
+						//matrix((panels + panel_i->neighbour_front)->position, panel_j->position)-=cjk;
+						//matrix((panels + panel_i->neighbour_back)->position, panel_j->position)+=cjk;
+						matrix(panel_i->neighbours[0]->position, panel_j->position) -= cjk;
+						matrix(panel_i->neighbours[1]->position, panel_j->position) += cjk;
+					} else if(!(panel_i->wake)) { //normal panel!
 						if(panel_j->wake || panel_i->wake || panel_i->position < 0 || panel_j->position<0)
 							cout << "wahn!!" << panel_j->wake << "/" << panel_i->wake << endl;
 						//cout << "j: " << panel_j->position << endl;
@@ -414,10 +436,10 @@ int main(int argc, char* argv[]){
 						matrix(panel_i->position, panel_j->position) = cjk;
 						//cout << panel->norm_vect.dot(*(config.vinf+0)) << endl;
 						rhs(panel_j->position) += bjk*panel_j->norm_vect.dot(*(config.vinf+0))/4/pi;
-						}
+					}
 					
 
-					}
+				}
 			//progressbar
 			//counter++;
 			//if((counter*100)%num_panels == 0) cout << "*" << flush;
@@ -461,6 +483,70 @@ int main(int argc, char* argv[]){
 		results = matrix.lu().solve(rhs);
 		cout << "SOLVED!!! :)" << endl;
 		cout << results(2) << endl;
+
+		for (int i=0; i<num_panels; i++){
+			if (thispanel -> wake)
+				continue;
+			float gradient[4];  //sa1, sa2, sb1, sb2
+			float gradient2[4]; //da1, da2, db1, db2
+			float delta[2]; //delq, delp
+			thispanel = panels + i;
+			Panel *neighbours[4];
+			/*for (int z = 0; z < 4; z++)
+				if (thispanel->neighbours[z] == NULL) {
+					//if it doesn't have a neighbour in one dir, go to times in the other
+					int otherside = (z + 2) % 4;
+					neighbours[z] = thispanel->neighbours[otherside]->neighbours[otherside]
+				} else {
+					neighbours[z] = thispanel->neighbours[z]
+				}*/
+			for (int z = 0; z < 4; z++) {
+				if (thispanel->neighbours[z] == NULL) {  // no neighbour in this direction
+					int z_o = (z + 2) % 4;
+					gradient[z] = thispanel->smq_len + 2 * thispanel->neighbours[z_o] + thispanel->neighbours[z_o]->neighbours[z_o];
+					gradient2[z] = results(thispanel->neighbours[z_o]->position)
+				} else {
+					gradient[z] = (z>1?-1:1) * (thispanel->smq_len + thispanel->neighbours[z]->smq_len);
+					gradient2[z] = results(thispanel->neighbours[z]->position)
+				}
+				gradient2[z] -= results(thispanel->position)
+				gradient2[z] /= gradient[z]
+			}
+			//delq
+			delta[0] = (gradient2[0] * gradient[2] - gradient2[2] * gradient[0]) / (gradient[2] - gradient[0])
+			//delp
+			delta[1] = (gradient2[1] * gradient[3] - gradient2[3] * gradient[1]) / (gradient[3] - gradient[1])
+
+			tm = ((thispanel->p3 - thispanel->p2)/2 - thispanel->r_center).dot(thispanel->mk)
+			tl = ((thispanel->p3 - thispanel->p2)/2 - thispanel->r_center).dot(thispanel->lk)
+
+			vm = -4*pi*delta[0]  //float
+			vl = -4*pi*(thispanel->smp_len*delta[0]-tm*delta[1])/tl  //float
+			vn = 4 * pi * thispanel->sigma  //float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		}
+
+
+
+
+
+
+
+
+
 
 	}
 
@@ -606,6 +692,7 @@ void nearfield_calc(Panel *panel, Vector *points, Vector &r_diff, float &lhs_coe
 		// setvekt(b,a);
 		// vektsub(b,s);
 
+		//todo: spanwise vs cordwise -> array
 		//alles double
 		double diagonal_this_spanwise = diagonal_this.dot(panel->tang_vect_span); //am
 		//am=imp3d(a,mk);
@@ -655,12 +742,15 @@ void nearfield_calc(Panel *panel, Vector *points, Vector &r_diff, float &lhs_coe
 				//std::cout << "dnorm: " << norm_dist_sq << std::endl;
 				//std::cout << "pa: " << pa << std::endl;
 				//std::cout << "pb: " << pb << std::endl;
-				if (dnom<0.)
-					lhs_temp = (norm_dist>0?1.:-1.)*pi*sign;
+				lhs_temp = (norm_dist>0?1.:-1.)*pi*sign;
+				if (coresize > dnom > -coresize)
+					lhs_temp /= 2;
+				else if (dnom > coresize)
+					lhs_temp = 0
 				//else if (dnom > 0)
 				//	lhs_temp = 0;
-				else
-					lhs_temp = (norm_dist>0?1.:-1.)*pi*sign/2.;
+				//else
+				//	lhs_temp = (norm_dist>0?1.:-1.)*pi*sign/2.;
 			} else
 				lhs_temp = atan2(rnum, dnom);
 

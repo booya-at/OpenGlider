@@ -17,14 +17,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
+import math
 
-
-from openglider.Ribs.move import rotation#, alignment
 from openglider.Profile import Profile2D, Profile3D
 from openglider.Utils.Ballooning import BallooningBezier
 import numpy
 from ..Vector import arrtype
 from openglider.Utils.Bezier import BezierCurve
+from openglider.Vector import rotation_3d
 
 
 class Rib(object):
@@ -86,8 +86,8 @@ class Rib(object):
         # zrot -> ArcTan[Sin[alpha]/gleitzahl]*excel[[i,7]] (relative 1->aligned to airflow)
         zrot = numpy.arctan(self.arcang) / self.glide * self.zrot
 
-        self.rotation_matrix = rotation(self.aoa[1], self.arcang, zrot)
-        self.profile_3d = Profile3D([self.align([point[0], point[1], 0]) for point in self.profile_2d.profile])
+        self.rotation_matrix = rotation_rib(self.aoa[1], self.arcang, zrot)
+        self.profile_3d = Profile3D([self.align([point[0], point[1], 0]) for point in self.profile_2d.data])
         self._normvectors = None
         # normvectors 2d->3d->rotated
 
@@ -133,3 +133,16 @@ class MiniRib(Profile3D):
             return min(1, max(0, self.__function__(abs(x))))
         else:
             return 1
+
+
+def rotation_rib(aoa, arc, zrot):
+    """Rotation Matrix for Ribs, aoa, arcwide-angle and glidewise angle in radians"""
+    # Rotate Arcangle, rotate from lying to standing (x-z)
+    rot = rotation_3d(-arc + math.pi / 2, [-1, 0, 0])
+    axis = rot.dot([0, 0, 1])
+    rot = rotation_3d(aoa, axis).dot(rot)
+    axis = rot.dot([0, 1, 0])
+    rot = rotation_3d(zrot, axis).dot(rot)
+    #rot = rotation_3d(-math.pi/2, [0, 0, 1]).dot(rot)
+
+    return rot

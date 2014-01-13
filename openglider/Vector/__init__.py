@@ -18,15 +18,14 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import numpy as np
 from openglider.Utils import sign
 
 
 def depth(arg):
-    if isinstance(arg, list) or isinstance(arg, np.ndarray):
+    try:
         return max([depth(i) for i in arg]) + 1
-    else:
+    except TypeError:  # Not a list anymore
         return 1
 
 
@@ -97,6 +96,11 @@ def rotation_3d(angle, axis=[1, 0, 0]):
 #    (x,y,z)=normalize(axis)
 
 
+def rotation_2d(angle):
+    """Return a 2D-Rotation-Matrix"""
+    return np.array([[np.cos(angle), np.sin(angle)], [-np.sin(angle), np.cos(angle)]])
+
+
 def cut(p1, p2, p3, p4):
     """2D-Linear Cut; Returns (pointxy, k, l); Solves the linear system: p1+k*(p2-p1)==p3+l*(p4-p3)"""
     """ |p2x-p1x -(p4x-p3x)|*|k|==|p3x-p1x|"""
@@ -109,17 +113,24 @@ def cut(p1, p2, p3, p4):
 
 
 class Vectorlist(object):
-    def __init__(self, data=None, name="Vector List object"):
+    def __init__(self, data=None, name=None):
         #if arrtype(data) == 2 or arrtype(data) == 4:
         self._data = None
         self.data = data
-        self.name = name
+        try:
+            if name or not self.name:
+                raise AttributeError
+        except AttributeError:
+            self.name = name
 
     def __repr__(self):
         return self.data.__str__()
 
     def __str__(self):
         return self.name
+
+    def __call__(self, ik):  # TODO: REPLACE [] with () for vectorlists
+        return self.__getitem__(ik)
 
     def __getitem__(self, ik):
         if ik < 0:
@@ -136,7 +147,7 @@ class Vectorlist(object):
         return len(self.data)
 
     def copy(self):
-        return self.__class__(self.data.copy(), self.name + "_copy")
+        return self.__class__(self.data.copy(), self.name)
 
     # TODO: This can go
     def point(self, i, k=0):
@@ -223,20 +234,28 @@ class Vectorlist(object):
                 break
         return length + norm(self[second] - self[first])
 
-    def __set_data(self, data):
-        if not data is None:
-            self._data = np.array(data)
-
-    def __get_data(self):
+    @property
+    def data(self):
         return self._data
 
-    data = property(__get_data, __set_data)
+    @data.setter
+    def data(self, data):
+        if not data is None:
+            self._data = np.array(data)
+        else:
+            self._data = data
 
 
 class Vectorlist2D(Vectorlist):
-    def __init__(self, data=None, name="Vector List object"):
-        super(Vectorlist2D, self).__init__(data, name)
+    def __init__(self, data=None, name=None):
         self._normvectors = None
+        super(Vectorlist2D, self).__init__(data, name)
+
+    def __add__(self, other):  # this is python default behaviour for lists
+        if other.__class__ is self.__class__:
+            return self.__class__(np.append(self.data, other.data, axis=0), self.name)
+        else:
+            raise ValueError("cannot append: ", self.__class__, other.__class__)
 
     def cut(self, p1, p2, startpoint=0):
         for i in rangefrom(len(self) - 2, startpoint):
@@ -270,20 +289,23 @@ class Vectorlist2D(Vectorlist):
             thacut.sort(key=lambda x: x[2])
             return thacut[0][0:1]
 
-    def check(self):
+    def check(self):  # TODO: IMPROVE (len = len(self.data), len-=,...)
         """Check for mistakes in the array, such as for the moment: self-cuttings,"""
         for i in range(len(self.data) - 3):
-            for j in range(i + 1, len(self) - 2):
+            if i > len(self.data) - 4:
+                break
+            for j in range(i + 2, len(self.data) - 2):
+                if j > len(self.data) - 3:
+                    break
                 try:
-                    temp = cut(self[i], self[i + 1], self[j], self[j + 1])
-                    if temp[1] <= 1. and temp[2] <= 1.:
+                    temp = cut(self.data[i], self.data[i + 1], self.data[j], self.data[j + 1])
+                    if 0 < temp[1] < 1. and 0 < temp[2] < 1.:
                         self.data = np.concatenate([self.data[:i], [temp[0]], self.data[j + 1:]])
                 except np.linalg.linalg.LinAlgError:
                     continue
-                    #if temp[1] == 0.:
-                    # TODO: Drop if not a unique point
 
-    def __get_normvectors(self):
+    @property
+    def normvectors(self):
         """Return Normvectors to the List-Line, heading rhs"""
         if not self._normvectors:
             rotate = lambda x: normalize(x).dot([[0, -1], [1, 0]])
@@ -299,7 +321,11 @@ class Vectorlist2D(Vectorlist):
     def recalc(self):
         self._normvectors = None
 
-    def shift(self, amount):
+    def shift(self, vector):
+        if len(vector) == 2:
+            self.data += vector
+
+    def add_stuff(self, amount):
         """Shift the whole line for a given amount (->Sewing allowance)"""
         # cos(vectorangle(a,b)) = (a1 b1+a2 b2)/Sqrt[(a1^2+a2^2) (b1^2+b2^2)]
         newlist = []
@@ -314,9 +340,18 @@ class Vectorlist2D(Vectorlist):
             d2 = second - first
             newlist.append(second + self.normvectors[i] * amount / d1.dot(d2) * np.sqrt(d1.dot(d1)*d2.dot(d2)))
         newlist.append(third + self.normvectors[i+1] * amount)
+        self.data = newlist
 
-        return self.__class__(newlist, self.name+"_shifted_"+str(amount))
-
-    normvectors = property(__get_normvectors)
+    def rotate(self, angle, startpoint=None):
+        """Rotate around a (non)given startpoint counter-clockwise"""
+        # Rotationmatrix_2d: matrix(theta) {{Cos[[Theta]], -Sin[[Theta]]}, {Sin[[Theta]], Cos[[Theta]]}}
+        rotation_matrix = rotation_2d(angle)
+        new_data = []
+        for point in self.data:
+            if not startpoint is None:
+                new_data.append(startpoint + rotation_matrix.dot(point - startpoint))
+            else:
+                new_data.append(rotation_matrix.dot(point))
+        self.data = new_data
 
 

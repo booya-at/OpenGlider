@@ -19,7 +19,7 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#from openglider.Profile import Profile2D
+from .Profile import Profile2D
 #from Utils.Bezier import BezierCurve
 #from openglider.Vector import Vectorlist, Vectorlist2D
 #import numpy

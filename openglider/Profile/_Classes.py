@@ -17,11 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-
-
 # TODO: Migrate ALL to __init__
-
-
 import math
 import os  # for xfoil execution
 
@@ -33,13 +29,9 @@ from ..Vector import normalize, norm, Vectorlist2D, Vectorlist
 class BasicProfile2D(Vectorlist2D):
     """Basic Profile Class, not to do much, but just"""
     ####rootprof gleich mitspeichern!!
-    def __init__(self, profile, name="basicprofile"):
+    def __init__(self, profile=None, name=None):
+        self.noseindex = None
         super(BasicProfile2D, self).__init__(profile, name)
-        if not profile is None:
-            i = 0
-            while profile[i + 1][0] < profile[i][0] and i < len(profile):
-                i += 1
-            self.noseindex = i
 
     def __mul__(self, other):
         fakt = numpy.array([1, float(other)])
@@ -50,7 +42,11 @@ class BasicProfile2D(Vectorlist2D):
 
     def profilepoint(self, xval, h=-1.):
         """Get Profile Point for x-value (<0:upper side) optional: height (-1:lower,1:upper), possibly mapped"""
-        if h == -1:  # Main Routine
+        if not h == -1:  # middlepoint
+            p1 = self.profilepoint(xval)[1]
+            p2 = self.profilepoint(-xval)[1]
+            return p1 + h * (p2 - p1)
+        else:  # Main Routine
             xval = float(xval)
             if xval < 0.:       # LOWER
                 i = 1
@@ -67,17 +63,9 @@ class BasicProfile2D(Vectorlist2D):
                 # Determine k-value
             k = -(self[i][0] - xval) / (self[i + 1][0] - self[i][0])
             return i + k, self[i + k]
-        else:   # middlepoint
-            p1 = self.profilepoint(xval)[1]
-            p2 = self.profilepoint(-xval)[1]
-            return p1 + h * (p2 - p1)
-
-    # TODO: Get rid of this
-    def points(self, xvalues):
-        """Map a list of XValues onto the Profile"""
-        return numpy.array([self.profilepoint(x) for x in xvalues])
 
     def normalize(self):
+        #to normalize do: put nose to (0,0), rotate to fit (1,0), normalize to (1,0)
         p1 = self.data[0]
         dmax = 0.
         nose = p1
@@ -86,59 +74,64 @@ class BasicProfile2D(Vectorlist2D):
             if temp > dmax:
                 dmax = temp
                 nose = i
-                #to normalize do: put nose to (0,0), rotate to fit (1,0), normalize to (1,0)
-            #use: a.b=|a|*|b|*cos(alpha)->
+
         diff = p1 - nose
-        sin = diff.dot([0, -1]) / dmax  # equal to cross product of (x1,y1,0),(x2,y2,0)
+        sin = diff.dot([0, -1]) / dmax  # Angle: a.b=|a|*|b|*sin(alpha)
         cos = numpy.sqrt(1 - sin ** 2)
-        matrix = numpy.array([[cos, -sin], [sin, cos]]) / dmax
+        matrix = numpy.array([[cos, -sin], [sin, cos]]) / dmax  # de-rotate and scale
         self.data = numpy.array([matrix.dot(i - nose) for i in self.data])
 
-    def _getprofile(self):
-        return self.data
-
-    profile = property(_getprofile, __init__)
+    @Vectorlist2D.data.setter
+    def data(self, data):
+        Vectorlist2D.data.fset(self, data)
+        if not data is None:
+            i = 0
+            while data[i + 1][0] < data[i][0] and i < len(data):
+                i += 1
+            self.noseindex = i
 
 
 class Profile2D(BasicProfile2D):
     """Profile2D: 2 Dimensional Standard Profile representative in OpenGlider"""
     #############Initialisation###################
-    def __init__(self, profile=None, name="Profile", normalize_root=True):
+    def __init__(self, profile=None, name=None, normalize_root=True):
         if not profile is None and len(profile) > 2:
             # Filter name
             if isinstance(profile[0][0], str):
                 name = profile[0][0]
                 profile = profile[1:]
-        super(Profile2D, self).__init__(profile, name)
-        self._rootprof = BasicProfile2D(profile, name + "_root")  # keep a copy
+        self._rootprof = BasicProfile2D(profile, name)  # keep a copy
+        super(Profile2D, self).__init__(profile, name=name)
         if normalize_root and profile is not None:
             self._rootprof.normalize()
             self.reset()
 
-    def __add__(self, other):
+    def __add__(self, other, conservative=False):
         if other.__class__ == self.__class__:
             #use the one with more points
-            if self.numpoints > other.Numpoints:
+            if self.numpoints > other.numpoints or conservative:
+                # Conservative means to always use this profiles xvalue
+                # (new = this + other)
                 first = other.copy()
                 second = self
             else:
                 first = self.copy()
                 second = other
 
-            if not numpy.array_equal(first.XValues, second.x_values):
+            if not numpy.array_equal(first.x_values, second.x_values):
                 first.x_values = second.x_values
-            first.profile = first.Profile + second.profile * numpy.array([0, 1])
+            first.data = first.data + second.data * numpy.array([0, 1])
             return first
 
     def __eq__(self, other):
-        return numpy.array_equal(self.profile, other.Profile)
+        return numpy.allclose(self.data, other.data)
 
     def importdat(self, path):
         """Import a *.dat profile"""
         if not os.path.isfile(path):
             raise Exception("Profile not found in" + path + "!")
         tempfile = []
-        name = "Profile_Imported"
+        name = None
         pfile = open(path, "r")
         for line in pfile:
             line = line.strip()
@@ -160,7 +153,7 @@ class Profile2D(BasicProfile2D):
         """Export Profile in .dat Format"""
         out = open(pfad, "w")
         out.write(str(self.name))
-        for i in self.profile:
+        for i in self.data:
             out.write("\n" + str(i[0]) + "\t" + str(i[1]))
         return pfad
 
@@ -171,55 +164,103 @@ class Profile2D(BasicProfile2D):
 
     def reset(self):
         """Reset Profile To Root-Values"""
-        self.profile = self._rootprof.profile
+        self.data = self._rootprof.data
 
-    def _getxvalues(self):
+    def area(self):
+        area = 0
+        last = self.data[0]
+        for this in self.data[1:]:
+            diff = this - last
+            area += abs(diff[0] * last[1] + 0.5*diff[0]*diff[1])
+        return area
+
+    def compute_naca(self, naca=1234, numpoints=None):
+        """Compute a four-digit naca-profile"""
+        # See: http://people.clarkson.edu/~pmarzocc/AE429/The%20NACA%20airfoil%20series.pdf
+        # and: http://airfoiltools.com/airfoil/naca4digit
+        m = int(naca/1000)*0.01  # Maximum Camber Position
+        p = int((naca % 1000)/100)*0.1  # second digit: Maximum Thickness position
+        t = (naca % 100)*0.01  # last two digits: Maximum Thickness(%)
+        if numpoints is None:
+            numpoints = self.numpoints  # if here is an error, you should give a numpoints argument
+        x_values = [math.cos(x*math.pi/2/(numpoints-1)) for x in range(1, numpoints)]
+
+        upper = []
+        lower = []
+        a0 = 0.2969
+        a1 = -0.126
+        a2 = -0.3516
+        a3 = 0.2843
+        a4 = -0.1015
+
+        for x in x_values:
+            if x < p:
+                mean_camber = (m/(p**2)*(2*p*x-x**2))
+                gradient = 2*m/(p**2)*(p-x)
+            else:
+                mean_camber = (m / ((1-p)**2) * ((1-2*p) + 2*p*x - x**2))
+                gradient = 2*m/(1-p**2)*(p-x)
+
+            thickness_this = t/0.2*(a0*math.sqrt(x) + a1*x + a2*x**2 + a3*x**3 + a4*x**4)
+            #theta = math.atan(gradient)
+            costheta = (1+gradient**2)**(-0.5)
+            sintheta = gradient * costheta
+            upper.append([x - thickness_this*sintheta,
+                          mean_camber + thickness_this * costheta])
+            lower.append([x + thickness_this * sintheta,
+                          mean_camber - thickness_this * costheta])
+        self.__init__(upper + lower[1:][::-1], name="NACA_"+str(naca))
+
+    @property
+    def x_values(self):
         """Get XValues of Profile. upper side neg, lower positive"""
         i = self.noseindex
         return numpy.concatenate((self.data[:i, 0] * -1., self.data[i:, 0]))
 
-    def _setxvalues(self, xval):
+    @x_values.setter
+    def x_values(self, xval):
         """Set X-Values of profile to defined points."""
         ###standard-value: root-prof xvalues
-        self.profile = [self._rootprof(x)[1] for x in xval]
+        self.data = [self._rootprof(x)[1] for x in xval]
         #self.Profile = self._rootprof.points(xval)[:, 1]
 
-    def _getlen(self):
+    @property
+    def numpoints(self):
         return len(self.data)
 
-    def _setlen(self, num):
+    @numpoints.setter
+    def numpoints(self, num):
         """Set Profile to cosinus-Distributed XValues"""
         i = num - num % 2
         xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 - math.sin(math.pi * x))
         self.x_values = [xtemp(j * 1. / i) for j in range(i + 1)]
 
-    def _getthick(self):
+    @property
+    def thickness(self):
         """with no arg the max thick is returned"""
         xvals = sorted(set(map(abs, self.x_values)))
         return max([self.profilepoint(-i)[1][1] - self.profilepoint(i)[1][1] for i in xvals])
 
-    def _setthick(self, newthick):
+    @thickness.setter
+    def thickness(self, newthick):
         factor = float(newthick / self.thickness)
-        new = self.profile * [1., factor]
+        new = self.data * [1., factor]
         self.__init__(new, self.name + "_" + str(newthick * 100) + "%")
 
-    def _getcamber(self, *xvals):
+    @property
+    def camber(self, *xvals):
         """return the camber of the profile for certain x-values or if nothing supplied, camber-line"""
         if not xvals:
             xvals = sorted(set(map(abs, self.x_values)))
         return numpy.array([self.profilepoint(i, 0.) for i in xvals])
 
-    def _setcamber(self, newcamber):
+    @camber.setter
+    def camber(self, newcamber):
         """Set maximal camber to the new value"""
         now = self.camber
         factor = newcamber / max(now[:, 1]) - 1
         now = dict(now)
-        self.__init__([i + [0, now[i[0]] * factor] for i in self.profile])
-
-    thickness = property(_getthick, _setthick)
-    numpoints = property(_getlen, _setlen)
-    x_values = property(_getxvalues, _setxvalues)
-    camber = property(_getcamber, _setcamber)
+        self.__init__([i + [0, now[i[0]] * factor] for i in self.data])
 
 
 # TODO: PYXFOIL INTEGRATION INSTEAD OF THIS
@@ -280,12 +321,12 @@ class Profile3D(Vectorlist):
         if not self._xvekt or not self._yvekt or not self._diff:
             p1 = self.data[0]
             nose = max(self.data, key=lambda x: numpy.linalg.norm(x - p1))
-            self.diff = [nose - i for i in self.data]
+            self._diff = [nose - i for i in self.data]
 
-            xvekt = normalize(self.diff[0])
+            xvekt = normalize(self._diff[0])
             yvekt = numpy.array([0, 0, 0])
 
-            for i in self.diff:
+            for i in self._diff:
                 temp = i - xvekt * xvekt.dot(i)
                 yvekt = max([yvekt + temp, yvekt - temp], key=lambda x: numpy.linalg.norm(x))
 
@@ -296,7 +337,7 @@ class Profile3D(Vectorlist):
     def flatten(self):
         """Flatten the Profile and return a 2d-Representative"""
         self.projection()
-        return Profile2D([[self.xvect.dot(i), self.yvect.dot(i)] for i in self.diff], name=self.name + "flattened")
+        return Profile2D([[self.xvect.dot(i), self.yvect.dot(i)] for i in self._diff], name=self.name + "flattened")
         ###find x-y projection-layer first
 
     def normvectors(self):
