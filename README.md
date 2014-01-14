@@ -24,24 +24,18 @@ To run all unittests, run this from the main directory:
   python2 -m unittest discover -v -s tests
   ```
 
-Or simply use the testall.sh
+Or simply use the testall.py ( -a to also make visual tests)
+```
+./testall.py -a
+```
 
 If you want to permanently install link it to the python packages.
 
 Visual Tests
 ------------
 
-By the time there are three possibilitiest to run visual tests:
+To run visual tests, just run any of the visual_test_* files in tests folder
 
-testcell:
-
-```
-  python2 tests/visual_test_cell.py
-```
-testcell with midrib:
-```
-  python2 tests/visual_test_midrib.py
-```
 complete demokite:
 ```
   python2 tests/visual_test_glider.py
