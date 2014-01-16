@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import math
-import svgwrite
+#import svgwrite
 from dxfwrite import DXFEngine as dxf, DXFList
 import openglider.Cells
 import openglider
