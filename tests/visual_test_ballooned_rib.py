@@ -37,17 +37,13 @@ testfolder = os.path.dirname(os.path.abspath(__file__))
 path = testfolder + '/demokite.ods'
 glider1 = glider.Glider()
 glider1.import_geometry(path)
-glider1.close_rib(-1)  # Stabi
-glider2 = glider1.copy()
-glider2.mirror()
-glider2.cells[-1].rib2 = glider1.cells[0].rib1  # remove redundant rib-copy
-glider1.cells = glider2.cells + glider1.cells  # start from last mirrored towards last normal
+glider1 = glider1.copy_complete()
 glider1.recalc()
 
 rib1 = glider1.ribs[1].profile_2d
 rib2 = glider1.cells[0].midrib(0.5).flatten()
 rib2.normalize()
-#rib1.normalize()
+rib1.normalize()
 
 openglider.Graphics.Graphics2D([openglider.Graphics.Line(rib1.data),
                                 openglider.Graphics.Line(rib2.data)])
