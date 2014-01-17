@@ -81,7 +81,7 @@ def flatten_glider(glider, path):
 def cut_1(inner_lists, outer_left, outer_right, amount):
     p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
     p2 = inner_lists[-1][0][inner_lists[-1][1]]
-    normvect = openglider.Vector.normalize(openglider.Vector.rotation_2d(-math.pi/2).dot(p1-p2))
+    normvect = openglider.Vector.normalize(openglider.Vector.rotation_2d(math.pi/2).dot(p1-p2))
     normvect *= amount
 
     cuts = []
@@ -91,8 +91,8 @@ def cut_1(inner_lists, outer_left, outer_right, amount):
     for thislist in inner_lists:
         cuts.append(thislist[0][thislist[1]] + normvect)
     rightcut = outer_right.cut(p1, p2, inner_lists[-1][1])
-    cuts.append(rightcut[0])
     cuts.append(rightcut[0]+normvect)
+    cuts.append(rightcut[0])
 
     return cuts, leftcut[1], rightcut[1]
 

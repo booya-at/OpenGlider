@@ -133,27 +133,44 @@ class Vectorlist(object):
         return self.__getitem__(ik)
 
     def __getitem__(self, ik):
-        if ik < 0:
-            k = ik
-            i = 0
+        if isinstance(ik, int) and 0 <= ik < len(self):  # easiest case
+            return self.data[ik]
+        elif isinstance(ik, slice):  # example: list[1.2:5.5:1]
+            step = 1 if ik.step is None else ik.step
+            if step > 0:
+                start = max(int(ik.start)+1, 0)
+                stop = min(int(ik.stop) + (1 if ik.stop % 1 > 0 else 0), len(self)-1)
+            else:
+                start = min(int(ik.start) - (0 if ik.start % 1 > 0 else 1), len(self)-1)
+                stop = max(int(ik.stop), 0)
+            values = [ik.start] + range(start, stop, step) + [ik.stop]
+            return [self[i] for i in values]
         else:
-            i = min(int(ik), len(self.data) - 2)  # Upper Limit for i
-            # case1: 0<ik<len -> k=ik%1;
-            # case2: ik>len(self.data) -> k += difference
-            k = ik % 1 + max(0, int(ik) - len(self.data) + 2)
-        return self.data[i] + k * (self.data[i + 1] - self.data[i])
+            if ik < 0:
+                k = ik
+                i = 0
+            else:
+                i = min(int(ik), len(self.data) - 2)  # Upper Limit for i
+                # case1: 0<ik<len -> k=ik%1;
+                # case2: ik>len(self.data) -> k += difference
+                k = ik % 1 + max(0, int(ik) - len(self.data) + 2)
+            return self.data[i] + k * (self.data[i + 1] - self.data[i])
 
     def __len__(self):
         return len(self.data)
 
+    def point(self, x):
+        """List.point(x) is the same as List[x]"""
+        return self[x]
+
     def copy(self):
         return self.__class__(self.data.copy(), self.name)
 
-    # TODO: This can go
-    def point(self, i, k=0):
-        if i > len(self.data) or i < 0 or not isinstance(i, int):
-            raise ValueError("invalid data for listpoint")
-        return self.data[i] + k * (self.data[i + 1] - self.data[i])
+    def get(self, start, stop):
+        start2 = start - start % 1 +1
+        stop2 = stop - stop % 1
+        data = self.data[start2:stop2]
+        return np.concatenate([[self[start]], data, [self[stop]]])
 
     def extend(self, start, length):
         if length == 0:

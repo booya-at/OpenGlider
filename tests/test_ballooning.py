@@ -25,6 +25,7 @@ try:
     import openglider
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
+    import openglider
 from openglider.Utils import Ballooning
 
 

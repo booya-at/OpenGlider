@@ -66,5 +66,20 @@ openglider.Graphics.Graphics2D([openglider.Graphics.Line(left.data), openglider.
                                 openglider.Graphics.Line(left_out.data),
                                 openglider.Graphics.Line(right_out.data)])
 
+
+################CUTS
+outlist, leftcut, rightcut = openglider.plots.cut_1([[left2,0], [right2,0]], left_out, right_out, -0.02)
+end = 150
+outlist2, leftcut2, rightcut2 = openglider.plots.cut_1([[left2, end], [right2, end]], left_out, right_out, 0.02)
+
+openglider.Graphics.Graphics2D([openglider.Graphics.Line(left2.data[0:end]),
+                                openglider.Graphics.Line(right2.data[0:end]),
+                                openglider.Graphics.Line(left_out[leftcut:leftcut2]),
+                                openglider.Graphics.Line(outlist),
+                                openglider.Graphics.Line(right_out[rightcut:rightcut2]),
+                                openglider.Graphics.Line(outlist2)])
+
+
+
 #right.rotate(2., right[0])
 #openglider.Graphics.Graphics2D([openglider.Graphics.Line(left.data), openglider.Graphics.Line(right.data)])
