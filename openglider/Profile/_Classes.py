@@ -45,7 +45,7 @@ class BasicProfile2D(Vectorlist2D):
         if not h == -1:  # middlepoint
             p1 = self.profilepoint(xval)[1]
             p2 = self.profilepoint(-xval)[1]
-            return p1 + h * (p2 - p1)
+            return p1 + (1.+h)/2 * (p2 - p1)
         else:  # Main Routine
             xval = float(xval)
             if xval < 0.:       # LOWER
@@ -245,7 +245,10 @@ class Profile2D(BasicProfile2D):
     def thickness(self, newthick):
         factor = float(newthick / self.thickness)
         new = self.data * [1., factor]
-        self.__init__(new, self.name + "_" + str(newthick * 100) + "%")
+        name = self.name
+        if not name is None:
+            name += "_"+str(newthick)+"%"
+        self.__init__(new, name)
 
     @property
     def camber(self, *xvals):

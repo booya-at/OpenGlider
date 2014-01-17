@@ -76,7 +76,7 @@ class Rib(object):
 
     def normvectors(self):
         if not self._normvectors:
-            self._normvectors = map(lambda x: self.rotation_matrix.dot([x[0], x[1], 0]), self.profile_2d.normvectors())
+            self._normvectors = map(lambda x: self.rotation_matrix.dot([x[0], x[1], 0]), self.profile_2d.normvectors)
 
     def recalc(self):
         ##Formula for aoa rel/abs: ArcTan[Cos[alpha]/gleitzahl]-aoa[rad];

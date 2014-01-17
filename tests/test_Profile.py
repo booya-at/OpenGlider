@@ -40,6 +40,10 @@ class TestProfile(unittest.TestCase):
         self.prof.numpoints = num
         self.assertEqual(num + 1 - num % 2, self.prof.numpoints)
 
+    def test_export(self):
+        path = "/tmp/prof.dat"
+        self.prof.export(path)
+
     def test_profilepoint(self):
         x = random.random() * random.randint(-1, 1)
         self.assertAlmostEqual(abs(x), self.prof.profilepoint(x)[1][0])
@@ -71,6 +75,20 @@ class TestProfile(unittest.TestCase):
         other = self.prof.copy()
         other = self.prof*0.5 + other*0.5
         self.assertTrue(self.prof == other)
+
+    def test_thickness(self):
+        val = random.random()
+        thickness = self.prof.thickness
+        self.prof.thickness *= val
+        self.assertAlmostEqual(self.prof.thickness, thickness*val)
+
+    def test_camber(self):
+        val = random.random()
+        camber = max(self.prof.camber[:, 1])
+        #print(camber)
+        #self.prof.camber = camber*val
+        #self.assertAlmostEqual(self.prof.camber, camber*val)
+
 
     # def test_numpoints2(self):
     #     print("len: ", len(self.prof.data), len(self.prof._rootprof.data))

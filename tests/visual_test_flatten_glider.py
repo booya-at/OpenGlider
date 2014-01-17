@@ -51,10 +51,10 @@ def test_glider(path=testfolder + '/demokite.ods'):
         right_out.add_stuff(0.02)
         diff = left[len(left)]-left[0]
         angle = math.asin(diff[0]/norm(diff))
-        print(angle*180/math.pi)
+        #print(angle*180/math.pi)
         #angle = 0
         for part in [left, right, left_out, right_out]:
-            part.rotate(angle)
+            part.rotate(-angle)
             part.check()
         diff = 0
         for p in right.data:
