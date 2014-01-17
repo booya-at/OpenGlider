@@ -17,10 +17,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-import svgwrite
+import math
+#import svgwrite
 from dxfwrite import DXFEngine as dxf, DXFList
 import openglider.Cells
 import openglider
+import openglider.Vector
 import openglider.Vector.projection
 
 
@@ -33,7 +35,6 @@ def flattened_cell(cell=openglider.Cells.Cell()):
         left.data[i] -= diff * ballooning_left[i]
         right.data[i] += diff * ballooning_right[i]
     return left, right
-
 
 
 def flatten_glider(glider, path):
@@ -74,6 +75,32 @@ def flatten_glider(glider, path):
         drawing.add(group)
     drawing.save()
     return True
+
+###############CUTS####################
+# Check doc/drawings 7-9 for sketches
+def cut_1(inner_lists, outer_left, outer_right, amount):
+    p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
+    p2 = inner_lists[-1][0][inner_lists[-1][1]]
+    normvect = openglider.Vector.normalize(openglider.Vector.rotation_2d(-math.pi/2).dot(p1-p2))
+    normvect *= amount
+
+    cuts = []
+    leftcut = outer_left.cut(p1, p2, inner_lists[0][1])  # p1,p2,startpoint
+    cuts.append(leftcut[0])
+    cuts.append(leftcut[0]+normvect)
+    for thislist in inner_lists:
+        cuts.append(thislist[0][thislist[1]] + normvect)
+    rightcut = outer_right.cut(p1, p2, inner_lists[-1][1])
+    cuts.append(rightcut[0])
+    cuts.append(rightcut[0]+normvect)
+
+    return cuts, leftcut[1], rightcut[1]
+
+def cut_2(inner_lists, outer_left, outer_right, amount):
+    pass
+
+
+
 
 
 

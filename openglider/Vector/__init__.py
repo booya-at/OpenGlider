@@ -258,6 +258,7 @@ class Vectorlist2D(Vectorlist):
             raise ValueError("cannot append: ", self.__class__, other.__class__)
 
     def cut(self, p1, p2, startpoint=0):
+        """Cut with two points given, returns (point, position_in_list)"""
         for i in rangefrom(len(self) - 2, startpoint):
             try:
                 thacut = cut(self[i], self[i + 1], p1, p2)
