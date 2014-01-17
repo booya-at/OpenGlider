@@ -43,27 +43,20 @@ def listlineplot(points):
         Graphics3D([Line(tofloat(points))])
 
 
-def __isintlist(arg):
+def isintlist(arg):
     if depth(arg) > 1:
-        return max([__isintlist(i) for i in arg])
+        return max([isintlist(i) for i in arg])
     else:
         if isinstance(arg, int):
-            return 0
+            return True
         else:
-            return 1
-
-
-def _isintlist(arg):
-    if __isintlist(arg) == 0:
-        return True
-    else:
-        return False
+            return False
 
 
 class GraphicObject(object):
     def __init__(self, points, ttype):
         self.type = ttype
-        if _isintlist(points):
+        if isintlist(points):
             self.gtype = 'direct'
         else:
             self.gtype = 'indirect'

@@ -183,7 +183,7 @@ class Profile2D(BasicProfile2D):
         t = (naca % 100)*0.01  # last two digits: Maximum Thickness(%)
         if numpoints is None:
             numpoints = self.numpoints  # if here is an error, you should give a numpoints argument
-        x_values = [math.cos(x*math.pi/2/(numpoints-1)) for x in range(1, numpoints)]
+        x_values = [math.cos(x*1./(numpoints-1)*math.pi/2) for x in range(1, numpoints)]
 
         upper = []
         lower = []
@@ -201,7 +201,7 @@ class Profile2D(BasicProfile2D):
                 mean_camber = (m / ((1-p)**2) * ((1-2*p) + 2*p*x - x**2))
                 gradient = 2*m/(1-p**2)*(p-x)
 
-            thickness_this = t/0.2*(a0*math.sqrt(x) + a1*x + a2*x**2 + a3*x**3 + a4*x**4)
+            thickness_this = t/0.2 * (a0*math.sqrt(x) + a1*x + a2*x**2 + a3*x**3 + a4*x**4)
             #theta = math.atan(gradient)
             costheta = (1+gradient**2)**(-0.5)
             sintheta = gradient * costheta
