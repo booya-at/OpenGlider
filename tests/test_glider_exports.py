@@ -17,9 +17,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-import os
 import unittest
+import sys
+import os
 
+try:
+    import openglider
+except ImportError:
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 from openglider import glider
 import openglider.plots
 

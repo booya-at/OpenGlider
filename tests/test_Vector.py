@@ -24,19 +24,22 @@ import unittest
 import random
 from openglider import Vector
 
+def makelists(self, dim):
+    self.vectors = []
+    self.sums = []
+    numlists = 100
+    self.numpoints = numpoints = 100
+    for i in range(numlists):
+        #make the points
+        pointlist = []
+        for u in range(numpoints):
+            pointlist.append([random.random() * 100 for i in range(dim)])
+        self.vectors.append(Vector.Vectorlist(pointlist))
 
 class TestVector3D(unittest.TestCase):
+
     def setUp(self, dim=3):
-        self.vectors = []
-        self.sums = []
-        numlists = 100
-        self.numpoints = numpoints = 100
-        for i in range(numlists):
-            #make the points
-            pointlist = []
-            for u in range(numpoints):
-                pointlist.append([random.random() * 100 for i in range(dim)])
-            self.vectors.append(Vector.Vectorlist(pointlist))
+        makelists(self, dim)
 
     def test_extend_total(self):
         #Sum up the length of the list and check
@@ -90,7 +93,8 @@ class TestVector3D(unittest.TestCase):
 
 class TestVector2D(TestVector3D):
     def setUp(self, dim=2):
-        TestVector3D.setUp(self, dim)
+        makelists(self, dim)
+        #TestVector3D.setUp(self, dim)
         self.vectors = [Vector.Vectorlist2D(i.data[:]) for i in self.vectors]
 
     def test_A_selfcheck(self):
@@ -99,7 +103,7 @@ class TestVector2D(TestVector3D):
 
     def test_normvectors(self):
         for thalist in self.vectors:
-            i = random.randint(1, len(thalist)-3) # TODO: Fix for other values
+            i = random.randint(1, len(thalist)-3)  # TODO: Fix for other values
             normv = thalist.normvectors
             self.assertAlmostEqual(normv[i].dot(thalist[i+1]-thalist[i-1]), 0)
 

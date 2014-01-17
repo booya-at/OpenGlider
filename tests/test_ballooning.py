@@ -19,6 +19,12 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
 import random
+import sys
+import os
+try:
+    import openglider
+except ImportError:
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 from openglider.Utils import Ballooning
 
 

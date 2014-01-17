@@ -1,3 +1,9 @@
+import sys
+import os
+try:
+    import openglider
+except ImportError:
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 import openglider.Graphics
 
 poly = [[0.,0.,0.],[1.,0.,0.],[1.,1.,0.],[0.,1.,0.]]

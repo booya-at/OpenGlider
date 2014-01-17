@@ -17,8 +17,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-import os
+
 import math
+import sys
+import os
+try:
+    import openglider
+except ImportError:
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 import openglider.Cells
 import openglider.Graphics
 import openglider.Ribs

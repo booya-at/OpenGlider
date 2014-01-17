@@ -18,9 +18,14 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
+import sys
+import os
+try:
+    import openglider
+except ImportError:
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 from openglider.Profile import Profile2D
 from test_Vector import *
-import os.path
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
 

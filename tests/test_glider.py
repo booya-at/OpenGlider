@@ -18,14 +18,17 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import random
-from openglider.Ribs import MiniRib
 import os
-import openglider.Graphics
-
-testfolder = os.path.dirname(os.path.abspath(__file__))
+import sys
 import unittest
 
+try:
+    import openglider
+except ImportError:
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 from openglider import glider
+
+test_folder = os.path.dirname(os.path.abspath(__file__))
 
 
 class TestGlider(unittest.TestCase):
@@ -34,7 +37,7 @@ class TestGlider(unittest.TestCase):
 
     def setUp(self):
         self.glider = glider.Glider()
-        self.glider.import_geometry(testfolder + '/demokite.ods')
+        self.glider.import_geometry(test_folder + '/demokite.ods')
 
     def test_numpoints(self):
         numpoints = random.randint(1, 100)*2+1
