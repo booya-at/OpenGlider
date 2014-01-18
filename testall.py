@@ -3,7 +3,7 @@
 from optparse import OptionParser
 try:
     import unittest2 as unittest
-except NameError:
+except (ImportError, NameError):
     import unittest
 
 parser = OptionParser()
