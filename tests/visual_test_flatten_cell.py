@@ -68,7 +68,7 @@ openglider.Graphics.Graphics2D([openglider.Graphics.Line(left.data), openglider.
 
 
 ################CUTS
-outlist, leftcut, rightcut = openglider.plots.cut_1([[left2,0], [right2,0]], left_out, right_out, -0.02)
+outlist, leftcut, rightcut = openglider.plots.cut_2([[left2,0], [right2,0]], left_out, right_out, -0.02)
 end = 150
 outlist2, leftcut2, rightcut2 = openglider.plots.cut_1([[left2, end], [right2, end]], left_out, right_out, 0.02)
 

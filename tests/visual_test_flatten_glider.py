@@ -29,7 +29,7 @@ except ImportError:
     import openglider
 import openglider.Graphics
 import openglider.plots
-from openglider.Vector import norm
+from openglider.Vector import norm, Vectorlist2D
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
 
@@ -56,6 +56,14 @@ def test_glider(path=testfolder + '/demokite.ods'):
         for part in [left, right, left_out, right_out]:
             part.rotate(-angle)
             part.check()
+
+        outlist, leftcut, rightcut = openglider.plots.cut_2([[left,30], [right,20]], left_out, right_out, -0.02)
+        left = Vectorlist2D(left[30:60])
+        right = Vectorlist2D(right[20:60])
+        left_out = Vectorlist2D(left_out[leftcut:60])
+        right_out = Vectorlist2D(right_out[rightcut:60])
+
+
         diff = 0
         for p in right.data:
             if p[0] - startpoint > diff:
@@ -64,13 +72,14 @@ def test_glider(path=testfolder + '/demokite.ods'):
         marks.append(left)# + numpy.array([startpoint, 0]))
         marks.append(right)# + numpy.array([startpoint, 0]))
         cuts.append(left_out)# + numpy.array([startpoint, 0]))
+        cuts.append(Vectorlist2D(outlist))
         cuts.append(right_out)# + numpy.array([startpoint, 0]))
         startpoint += startpoint2 + 0.4
 
     #print(cuts[0].data)
 
-    openglider.Graphics.Graphics([openglider.Graphics.Line(cut.data) for cut in cuts] +
-                                 [openglider.Graphics.Point(mark.data) for mark in marks])
+    openglider.Graphics.Graphics([openglider.Graphics.Line(cut.data) for cut in cuts[:]] +
+                                 [openglider.Graphics.Point(mark.data) for mark in marks[:]])
 
 
 

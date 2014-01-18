@@ -79,6 +79,7 @@ def flatten_glider(glider, path):
 
 ###############CUTS####################
 # Check doc/drawings 7-9 for sketches
+# DESIGN-CUT Style
 def cut_1(inner_lists, outer_left, outer_right, amount):
     p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
     p2 = inner_lists[-1][0][inner_lists[-1][1]]
@@ -97,11 +98,11 @@ def cut_1(inner_lists, outer_left, outer_right, amount):
     return cuts, leftcut[1], rightcut[1]
 
 
+# OPEN-ENTRY-STYLE
 def cut_2(inner_lists, outer_left, outer_right, amount):
     p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
     p2 = inner_lists[-1][0][inner_lists[-1][1]]
     normvector = openglider.Vector.normalize(openglider.Vector.rotation_2d(math.pi/2).dot(p1-p2))
-    normvector *= amount
 
     cuts = []
     leftcut = outer_left.cut(p1, p2, inner_lists[0][1])
@@ -113,9 +114,22 @@ def cut_2(inner_lists, outer_left, outer_right, amount):
     piece1 = outer_left[leftcut[1]:leftcut_2[1]]
     piece2 = outer_right[rightcut[1]:rightcut_2[1]]
 
-    #
+    # mirror to (p1-p2) -> p'=p-2*(p.normvector)
 
-    cuts.append()
+    for point in piece1[::]:
+        cuts.append(point - 2*normvector*normvector.dot(point-leftcut[0]))
+    last = cuts[-1]
+    for point in piece1[::-1]:
+        cuts.append(-(leftcut_2[0] - point) + last)
+
+    cuts2=[]
+    for point in piece2[::]:
+        cuts2.append(point - 2*normvector*normvector.dot(point-rightcut[0]))
+    last = cuts2[-1]
+    for point in piece2[::-1]:
+        cuts2.append(-(rightcut_2[0] - point) + last)
+
+    return cuts+cuts2[::-1], leftcut[1], rightcut[1]
 
 
 
