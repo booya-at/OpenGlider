@@ -122,7 +122,7 @@ def cut_2(inner_lists, outer_left, outer_right, amount):
     for point in piece1[::-1]:
         cuts.append(-(leftcut_2[0] - point) + last)
 
-    cuts2=[]
+    cuts2 = []
     for point in piece2[::]:
         cuts2.append(point - 2*normvector*normvector.dot(point-rightcut[0]))
     last = cuts2[-1]
@@ -130,6 +130,10 @@ def cut_2(inner_lists, outer_left, outer_right, amount):
         cuts2.append(-(rightcut_2[0] - point) + last)
 
     return cuts+cuts2[::-1], leftcut[1], rightcut[1]
+
+
+def cut_3(inner_lists, outer_left, outer_right, amount):
+    pass
 
 
 

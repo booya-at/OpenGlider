@@ -19,6 +19,7 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
+from openglider.Graphics import Graphics, Line  # DEBUG
 from openglider.Utils import sign
 
 
@@ -276,20 +277,21 @@ class Vectorlist2D(Vectorlist):
 
     def cut(self, p1, p2, startpoint=0):
         """Cut with two points given, returns (point, position_in_list)"""
+        startpoint = int(startpoint)
         for i in rangefrom(len(self) - 2, startpoint):
             try:
                 thacut = cut(self[i], self[i + 1], p1, p2)
             # in case we have parallell lines we dont get a result here, so we continue with i raised...
             except np.linalg.linalg.LinAlgError:
                 continue
-            if 0 < thacut[1] <= 1.:
+            if 0 <= thacut[1] <= 1.:
                 return thacut[0], i + thacut[1]
             # Nothing found yet? check start and end of line
         thacut = []
         # Beginning
         try:
             temp = cut(self[0], self[1], p1, p2)
-            if temp[1] < 0:
+            if temp[1] <= 0:
                 thacut.append([temp[0], temp[1], norm(self[0] - self[1]) * temp[1]])
         except np.linalg.linalg.LinAlgError:
             pass
@@ -305,7 +307,11 @@ class Vectorlist2D(Vectorlist):
         if len(thacut) > 0:
             # sort by distance
             thacut.sort(key=lambda x: x[2])
-            return thacut[0][0:1]
+            print(thacut[0])
+            return thacut[0][0:2]
+        else:
+            Graphics([Line(self.data), Line([p1,p2])])  # DEBUG
+            raise ArithmeticError("no cuts discovered for p1:"+str(p1)+" p2:"+str(p2)+str(self[0])+str(cut(self[0],self[1],p1,p2)))
 
     def check(self):  # TODO: IMPROVE (len = len(self.data), len-=,...)
         """Check for mistakes in the array, such as for the moment: self-cuttings,"""

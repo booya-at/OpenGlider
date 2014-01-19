@@ -21,9 +21,14 @@
 
 import vtk
 import numpy as np
-from openglider.Vector import depth
+#from openglider.Vector import depth
 # Quick graphics lib to imitate mathematicas graphics functions
 
+def depth(arg):
+    try:
+        return max([depth(i) for i in arg]) + 1
+    except TypeError:  # Not a list anymore
+        return 1
 
 def tofloat(lst):
     if isinstance(lst, list):
