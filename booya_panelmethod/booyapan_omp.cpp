@@ -65,7 +65,7 @@ struct Config
 	int panel_number;
 	int panel_number_not_wake;
 };
-enum NEIGHBOUR_DIRECTIONS = {NEIGHBOUR_front, NEIGHBOUR_right, NEIGHBOUR_back, NEIGHBOUR_left}
+enum NEIGHBOUR_DIRECTIONS {NEIGHBOUR_front, NEIGHBOUR_right, NEIGHBOUR_back, NEIGHBOUR_left};
 enum CONFIG_ARGUMENTS {ARG_Airspeed, ARG_Density, ARG_Pressure, ARG_Casenum, ARG_Wingspan, ARG_Mac, ARG_Sufrace, ARG_Origin, ARG_Farfield, ARG_Error, ARG_Results, ARG_Nodes, ARG_Panels};
 int ARGUMENT_NUMBERS = 13;
 std::string ARGUMENT_WORDS[] = {"AIRSPEED", "DENSITY", "PRESSURE", "CASE_NUM", "WINGSPAN", "MAC", "SURFACE", "ORIGIN", "FARFIELD", "ERROR", "RESULTS", "NODES", "PANELS"};
@@ -287,14 +287,14 @@ int main(int argc, char* argv[]){
 						thispanel->p4 = atoi(strtok(NULL, " ")) - 1; //4-node
 					//////NEIGHBOURS
 
-					for (int i = 0; i < 4; i++)
-						if (i == 3 && value[0] == '2')
+					for (int j = 0; j < 4; i++)
+						if (j == 3 && value[0] == '2')
 							//triangle
-							thispanel -> neighbours[i] = NULL;
+							thispanel -> neighbours[j] = NULL;
 						else {
-							thispanel -> neighbours[i] = panels + (atoi(strtok(NULL, " ")) - 1);
-							if (thispanel->neighbours[i] == panels - 1)
-								thispanel->neighbours[i] = NULL;
+							thispanel -> neighbours[j] = panels + (atoi(strtok(NULL, " ")) - 1);
+							if (thispanel->neighbours[j] == panels - 1)
+								thispanel->neighbours[j] = NULL;
 						}
 					/*
 					thispanel -> neighbours[NEIGHBOUR_front] = panels + (atoi(strtok(NULL, " ")) - 1);
@@ -485,13 +485,13 @@ int main(int argc, char* argv[]){
 		cout << results(2) << endl;
 
 		for (int i=0; i<num_panels; i++){
-			if (thispanel -> wake)
-				continue;
 			float gradient[4];  //sa1, sa2, sb1, sb2
 			float gradient2[4]; //da1, da2, db1, db2
 			float delta[2]; //delq, delp
-			thispanel = panels + i;
+			Panel *thispanel = panels + i;
 			Panel *neighbours[4];
+			if (thispanel -> wake)
+				continue;
 			/*for (int z = 0; z < 4; z++)
 				if (thispanel->neighbours[z] == NULL) {
 					//if it doesn't have a neighbour in one dir, go to times in the other
@@ -500,29 +500,30 @@ int main(int argc, char* argv[]){
 				} else {
 					neighbours[z] = thispanel->neighbours[z]
 				}*/
-			for (int z = 0; z < 4; z++) {
+			/*for (int z = 0; z < 4; z++) {
 				if (thispanel->neighbours[z] == NULL) {  // no neighbour in this direction
 					int z_o = (z + 2) % 4;
 					gradient[z] = thispanel->smq_len + 2 * thispanel->neighbours[z_o] + thispanel->neighbours[z_o]->neighbours[z_o];
-					gradient2[z] = results(thispanel->neighbours[z_o]->position)
+					gradient2[z] = results(thispanel->neighbours[z_o]->position);
 				} else {
 					gradient[z] = (z>1?-1:1) * (thispanel->smq_len + thispanel->neighbours[z]->smq_len);
 					gradient2[z] = results(thispanel->neighbours[z]->position)
 				}
 				gradient2[z] -= results(thispanel->position)
 				gradient2[z] /= gradient[z]
-			}
+			}*/
 			//delq
-			delta[0] = (gradient2[0] * gradient[2] - gradient2[2] * gradient[0]) / (gradient[2] - gradient[0])
+			delta[0] = (gradient2[0] * gradient[2] - gradient2[2] * gradient[0]) / (gradient[2] - gradient[0]);
 			//delp
-			delta[1] = (gradient2[1] * gradient[3] - gradient2[3] * gradient[1]) / (gradient[3] - gradient[1])
+			delta[1] = (gradient2[1] * gradient[3] - gradient2[3] * gradient[1]) / (gradient[3] - gradient[1]);
 
-			tm = ((thispanel->p3 - thispanel->p2)/2 - thispanel->r_center).dot(thispanel->mk)
-			tl = ((thispanel->p3 - thispanel->p2)/2 - thispanel->r_center).dot(thispanel->lk)
-
-			vm = -4*pi*delta[0]  //float
-			vl = -4*pi*(thispanel->smp_len*delta[0]-tm*delta[1])/tl  //float
-			vn = 4 * pi * thispanel->sigma  //float
+			float tm, tl;
+			tm = ((*(nodes + thispanel->p3) - *(nodes + thispanel->p2))/2 - thispanel->r_center).dot(thispanel->tang_vect_span);
+			tl = ((*(nodes + thispanel->p3) - *(nodes + thispanel->p2))/2 - thispanel->r_center).dot(thispanel->tang_vect_chord);
+			float vm, vl, vn;
+			vm = -4*pi*delta[0];  //float
+			vl = -4*pi*(thispanel->smp_len*delta[0]-tm*delta[1])/tl;  //float
+			vn = 4 * pi * thispanel->sigma;  //float
 
 
 
@@ -746,7 +747,7 @@ void nearfield_calc(Panel *panel, Vector *points, Vector &r_diff, float &lhs_coe
 				if (coresize > dnom > -coresize)
 					lhs_temp /= 2;
 				else if (dnom > coresize)
-					lhs_temp = 0
+					lhs_temp = 0;
 				//else if (dnom > 0)
 				//	lhs_temp = 0;
 				//else
