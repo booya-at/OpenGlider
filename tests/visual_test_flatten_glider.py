@@ -73,7 +73,6 @@ def test_glider(path=testfolder + '/demokite.ods'):
         left_out = (left_out[leftcut:leftcut_2])
         right_out = (right_out[rightcut:rightcut_2])
 
-
         diff = 0
         for p in right:
             if p[0] - startpoint > diff:
@@ -87,15 +86,8 @@ def test_glider(path=testfolder + '/demokite.ods'):
         cuts.append(outlist_2 + numpy.array([startpoint, 0]))
         startpoint += startpoint2 + 0.4
 
-    #print(cuts[0].data)
-
-    openglider.Graphics.Graphics([openglider.Graphics.Line(cut) for cut in cuts[:]] +
-                                 [openglider.Graphics.Point(mark) for mark in marks[:]])
-
-
-
-
-
+    openglider.Graphics.Graphics([openglider.Graphics.Line(cut) for cut in cuts] +
+                                 [openglider.Graphics.Point(mark) for mark in marks])
 
 
 
