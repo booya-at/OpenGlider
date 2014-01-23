@@ -106,7 +106,7 @@ class Rib(object):
 
 
 class MiniRib(Profile3D):
-    def __init__(self, yvalue, front_cut, back_cut, func=None, name="minirib"):
+    def __init__(self, yvalue, front_cut, back_cut=1, func=None, name="minirib"):
         #Profile3D.__init__(self, [], name)
 
         if not func:  # Function is a bezier-function depending on front/back

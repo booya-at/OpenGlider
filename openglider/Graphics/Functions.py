@@ -21,14 +21,9 @@
 
 import vtk
 import numpy as np
-#from openglider.Vector import depth
+from openglider.Vector import depth
 # Quick graphics lib to imitate mathematicas graphics functions
 
-def depth(arg):
-    try:
-        return max([depth(i) for i in arg]) + 1
-    except TypeError:  # Not a list anymore
-        return 1
 
 def tofloat(lst):
     if isinstance(lst, list):
@@ -48,20 +43,45 @@ def listlineplot(points):
         Graphics3D([Line(tofloat(points))])
 
 
-def isintlist(arg):
+def draw_glider(glider, num=0, mirror=True, panels=True):
+    if mirror:
+        temp = glider.copy_complete()
+    else:
+        temp = glider
+    temp.recalc()
+
+    if panels:
+        polygons, points = temp.return_polygons(num)
+        Graphics([Polygon(polygon) for polygon in polygons], points)
+    else:
+        ribs = temp.return_ribs(num)
+        Graphics([Line(rib) for rib in ribs])
+    return True
+
+
+
+
+def __isintlist(arg):
     if depth(arg) > 1:
-        return max([isintlist(i) for i in arg])
+        return max([__isintlist(i) for i in arg])
     else:
         if isinstance(arg, int):
-            return True
+            return 0
         else:
-            return False
+            return 1
+
+
+def _isintlist(arg):
+    if __isintlist(arg) == 0:
+        return True
+    else:
+        return False
 
 
 class GraphicObject(object):
     def __init__(self, points, ttype):
         self.type = ttype
-        if isintlist(points):
+        if _isintlist(points):
             self.gtype = 'direct'
         else:
             self.gtype = 'indirect'

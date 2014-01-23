@@ -32,29 +32,32 @@ from openglider.Vector import norm
 testfolder = os.path.dirname(os.path.abspath(__file__))
 
 
-path=testfolder + '/demokite.ods'
-glider1 = glider.Glider()
-glider1.import_geometry(path)
-glider1.close_rib(-1)  # Stabi
-glider2 = glider1.copy()
-glider2.mirror()
-glider2.cells[-1].rib2 = glider1.cells[0].rib1  # remove redundant rib-copy
-glider1.cells = glider2.cells + glider1.cells  # start from last mirrored towards last normal
-glider1.recalc()
-# TODO: Miniribs for mirrored cells fail
-#new_glider.cells[0].miniribs.append(MiniRib(0.5, 0.7, 1))
+def odf_import_visual_test(path=testfolder + '/demokite.ods'):
+    glider1 = glider.Glider()
+    glider1.import_geometry(path)
+    glider1.close_rib(-1)  # Stabi
+    glider1 = glider1.copy_complete()
+    glider1.recalc()
+    # TODO: Miniribs for mirrored cells fail
+    #new_glider.cells[0].miniribs.append(MiniRib(0.5, 0.7, 1))
 
-# 3D-OUTPUT
-(polygons, points) = glider1.return_polygons(5)
-polygons = [openglider.Graphics.Polygon(polygon) for polygon in polygons]
-polygons.append(openglider.Graphics.Axes(size=1.2))
-openglider.Graphics.Graphics3D(polygons, points)
+    # 3D-OUTPUT
+    (polygons, points) = glider1.return_polygons(5)
+    polygons = [openglider.Graphics.Polygon(polygon) for polygon in polygons]
+    polygons.append(openglider.Graphics.Axes(size=1.2))
+    openglider.Graphics.Graphics3D(polygons, points)
 
-# Shape-Output
-left, right = glider1.shape()
-left.rotate(math.pi/2)
-right.rotate(math.pi/2, [0, 0])
-openglider.Graphics.Graphics2D([openglider.Graphics.Line(left.data),
-                                openglider.Graphics.Line([left.data[-1], right.data[-1]]),
-                                openglider.Graphics.Line(right.data),
-                                openglider.Graphics.Line([left.data[0], right.data[0]])])
+    # Shape-Output
+    left, right = glider1.shape()
+    left.rotate(math.pi/2)
+    right.rotate(math.pi/2, [0, 0])
+    openglider.Graphics.Graphics2D([openglider.Graphics.Line(left.data),
+                                    openglider.Graphics.Line([left.data[-1], right.data[-1]]),
+                                    openglider.Graphics.Line(right.data),
+                                    openglider.Graphics.Line([left.data[0], right.data[0]])])
+
+
+
+
+if __name__ == "__main__":
+    odf_import_visual_test()

@@ -19,7 +19,7 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
-from openglider.Graphics import Graphics, Line  # DEBUG
+#from openglider.Graphics import Graphics, Line  # DEBUG
 from openglider.Utils import sign
 
 

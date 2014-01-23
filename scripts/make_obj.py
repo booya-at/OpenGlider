@@ -3,6 +3,7 @@ import sys
 import os
 import math
 import numpy
+import openglider.Ribs
 from openglider.glider import Glider
 from openglider.Vector import normalize
 
@@ -11,6 +12,9 @@ if len(sys.argv) >= 4:
     destfile = os.path.dirname(inputfile) + "/geometry.obj"
     glider = Glider()
     glider.import_geometry(inputfile)
+    for cell in glider.cells:
+        pass
+        #cell.miniribs.append(openglider.Ribs.MiniRib(0.5, 0.7))
 
     numpoints = int(sys.argv[3])
     if numpoints == 0:
