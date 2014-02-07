@@ -19,24 +19,22 @@ Install all dependencies (using distro-repos, easy_install or pip)
 * (svgwrite)
 * (vtk)
 
+Unittests and Visual Tests
+--------------------------
+
 To run all unittests, run this from the main directory:
   ```
-  python2 -m unittest discover -v -s tests
+  ./testall.py
   ```
 
-Or simply use the testall.py ( -a to also make visual tests)
+Or use -a to also run visual tests
 ```
 ./testall.py -a
 ```
 
-If you want to permanently install link it to the python packages.
+If you want to permanently install link it to the python packages or install with setup.py
 
-Visual Tests
-------------
-
-To run visual tests, just run any of the visual_test_* files in tests folder
-
-complete demokite:
+single test:
 ```
   python2 tests/visual_test_glider.py
 ```

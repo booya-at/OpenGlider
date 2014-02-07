@@ -132,29 +132,28 @@ class Profile2D(BasicProfile2D):
             raise Exception("Profile not found in" + path + "!")
         tempfile = []
         name = None
-        pfile = open(path, "r")
-        for line in pfile:
-            line = line.strip()
-            ###tab-seperated values except first line->name
-            if "\t" in line:
-                line = line.split("\t")
-            else:
-                line = line.split(" ")
-            while "" in line:
-                line.remove("")
-            if len(line) == 2:
-                tempfile.append([float(i) for i in line])
-            elif len(line) == 1:
-                name = line
-        self.__init__(tempfile, name)
-        pfile.close()
+        with open(path, "r") as pfile:
+            for line in pfile:
+                line = line.strip()
+                ###tab-seperated values except first line->name
+                if "\t" in line:
+                    line = line.split("\t")
+                else:
+                    line = line.split(" ")
+                while "" in line:
+                    line.remove("")
+                if len(line) == 2:
+                    tempfile.append([float(i) for i in line])
+                elif len(line) == 1:
+                    name = line
+            self.__init__(tempfile, name)
 
     def export(self, pfad):
         """Export Profile in .dat Format"""
-        out = open(pfad, "w")
-        out.write(str(self.name))
-        for i in self.data:
-            out.write("\n" + str(i[0]) + "\t" + str(i[1]))
+        with open(pfad, "w") as out:
+            out.write(str(self.name))
+            for i in self.data:
+                out.write("\n" + str(i[0]) + "\t" + str(i[1]))
         return pfad
 
     def rootpoint(self, xval, h=-1):
@@ -346,7 +345,7 @@ class Profile3D(Vectorlist):
     def flatten(self):
         """Flatten the Profile and return a 2d-Representative"""
         self.projection()
-        return Profile2D([[-self.xvect.dot(i), self.yvect.dot(i)] for i in self._diff], name=self.name + "flattened")
+        return Profile2D([[-self.xvect.dot(i), self.yvect.dot(i)] for i in self._diff], name=self.name + "_flattened")
         ###find x-y projection-layer first
 
     def normvectors(self):

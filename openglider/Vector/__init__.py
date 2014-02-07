@@ -283,6 +283,7 @@ class Vectorlist2D(Vectorlist):
         for i in rangefrom(len(self) - 2, startpoint):
             try:
                 thacut = cut(self[i], self[i + 1], p1, p2)
+                # point, i, k
             # in case we have parallell lines we dont get a result here, so we continue with i raised...
             except np.linalg.linalg.LinAlgError:
                 continue
@@ -392,6 +393,17 @@ class Polygon2D(Vectorlist2D):
     def isclosed(self):
         return self.data[0] == self.data[-1]
 
+    def close(self):
+        try:
+            thacut = cut(self.data[0], self.data[1], self.data[-2], self.data[-1])
+            if thacut[1] <= 1 and 0 <= thacut[2]:
+                self.data[0] = thacut[0]
+                self.data[-1] = thacut[0]
+                return True
+        except ArithmeticError:
+            pass
+        return False
+
     @property
     def centerpoint(self):
         return sum(self.data)/len(self.data)
@@ -399,6 +411,6 @@ class Polygon2D(Vectorlist2D):
     def contains_point(self, point):
         """http://en.wikipedia.org/wiki/Point_in_polygon"""
         # using ray-casting-algorithm
-        return not len(self.cut(point, self.centerpoint, count_inline_cuts=True)) % 2
+        return bool(len(self.cut(point, self.centerpoint, count_inline_cuts=True)) % 2)
         # alternative: winding number
 
