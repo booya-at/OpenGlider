@@ -20,6 +20,8 @@
 
 
 #!/bin/python2
+from openglider.glider.cells import BasicCell
+from openglider.glider.ribs import Rib
 
 __author__ = 'simon'
 import os
@@ -31,13 +33,8 @@ try:
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 from openglider.Profile import Profile2D
-from openglider.Cells import BasicCell
-from openglider.Ribs import Rib
 import openglider.Graphics as Graph
-from openglider.Utils.Ballooning import BallooningBezier
-
-import numpy
-
+from openglider.glider.ballooning import BallooningBezier
 
 
 a = Profile2D()

@@ -20,8 +20,6 @@
 import math
 import os
 import sys
-import openglider.Ribs
-import openglider.Profile
 
 try:
     import openglider

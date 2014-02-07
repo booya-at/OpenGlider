@@ -21,17 +21,18 @@
 import math
 import sys
 import os
+
 try:
     import openglider
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
-import openglider.Cells
 import openglider.Graphics
-import openglider.Ribs
 import openglider.Profile
-from openglider.Utils.Ballooning import BallooningBezier
+from openglider.glider.ballooning import BallooningBezier
 from openglider.Vector.projection import flatten_list
-import openglider.plots
+import openglider.glider.plots
+from openglider.glider.cells import Cell
+from openglider.glider.ribs import Rib
 import numpy
 __author__ = 'simon'
 
@@ -42,7 +43,7 @@ prof.importdat(os.path.dirname(os.path.abspath(__file__)) + "/testprofile.dat")
 ballooning = BallooningBezier()
 balloon = [ballooning(i) for i in prof.x_values]
 
-r1 = openglider.Ribs.Rib(prof, ballooning, [0., 0.12, 0], 1., 20 * math.pi / 180, 2 * math.pi / 180, 0, 7.)
+r1 = Rib(prof, ballooning, [0., 0.12, 0], 1., 20 * math.pi / 180, 2 * math.pi / 180, 0, 7.)
 r2 = r1.copy()
 r2.mirror()
 r1.recalc()
@@ -53,8 +54,8 @@ ding = [numpy.array([0, 0]), numpy.array([1., 0])]
 
 #[numpy.array([0,0]),numpy.array([1,0])
 
-cell = openglider.Cells.Cell(r1, r2)
-left2, right2 = openglider.plots.flattened_cell(cell)
+cell = Cell(r1, r2)
+left2, right2 = openglider.glider.plots.flattened_cell(cell)
 left_out = left2.copy()
 left_out.add_stuff(-0.02)
 right_out = right2.copy()
@@ -68,9 +69,9 @@ openglider.Graphics.Graphics2D([openglider.Graphics.Line(left.data), openglider.
 
 
 ################CUTS
-outlist, leftcut, rightcut = openglider.plots.cut_2([[left2,0], [right2,0]], left_out, right_out, -0.02)
+outlist, leftcut, rightcut = openglider.glider.plots.cut_2([[left2,0], [right2,0]], left_out, right_out, -0.02)
 end = 150
-outlist2, leftcut2, rightcut2 = openglider.plots.cut_1([[left2, end], [right2, end]], left_out, right_out, 0.02)
+outlist2, leftcut2, rightcut2 = openglider.glider.plots.cut_1([[left2, end], [right2, end]], left_out, right_out, 0.02)
 
 openglider.Graphics.Graphics2D([openglider.Graphics.Line(left2.data[0:end]),
                                 openglider.Graphics.Line(right2.data[0:end]),

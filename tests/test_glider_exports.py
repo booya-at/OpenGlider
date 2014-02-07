@@ -26,7 +26,7 @@ try:
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 from openglider import glider
-import openglider.plots
+import openglider.glider.plots
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
 
@@ -61,7 +61,7 @@ class TestGlider(unittest.TestCase):
     def test_export_plots(self):
         path = '/tmp/plots.dxf'
         self.glider.recalc()
-        openglider.plots.flatten_glider(self.glider, path)
+        openglider.glider.plots.flatten_glider(self.glider, path)
 
 
 if __name__ == '__main__':

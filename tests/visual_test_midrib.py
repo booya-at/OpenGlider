@@ -17,22 +17,23 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-import numpy
 import math
-import os
 import sys
+import os
 
-import sys
-import os
+import numpy
+
+from openglider.glider.cells import Cell
+from openglider.glider.ribs import Rib, MiniRib
+
+
 try:
     import openglider
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 from openglider.Profile import Profile2D
-from openglider.Cells import Cell
-from openglider.Ribs import Rib, MiniRib
 import openglider.Graphics as Graph
-from openglider.Utils.Ballooning import BallooningBezier
+from openglider.glider.ballooning import BallooningBezier
 
 
 a = Profile2D()

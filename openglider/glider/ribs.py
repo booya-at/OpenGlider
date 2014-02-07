@@ -1,30 +1,12 @@
-#! /usr/bin/python2
-# -*- coding: utf-8; -*-
-#
-# (c) 2013 booya (http://booya.at)
-#
-# This file is part of the OpenGlider project.
-#
-# OpenGlider is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# OpenGlider is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import math
-
-from openglider.Profile import Profile2D, Profile3D
-from openglider.Utils.Ballooning import BallooningBezier
 import numpy
-from ..Vector import arrtype
+from openglider import Profile2D
+from openglider.Profile import Profile3D
+from openglider.glider.ballooning import BallooningBezier
 from openglider.Utils.Bezier import BezierCurve
 from openglider.Vector import rotation_3d
+
+__author__ = 'simon'
 
 
 class Rib(object):

@@ -21,14 +21,14 @@ import unittest
 import random
 import sys
 import os
-from openglider.Ribs import Rib
+from openglider.glider.ribs import Rib
 
 try:
     import openglider
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
     import openglider
-from openglider.Utils import Ballooning
+
 
 class TestRib(unittest.TestCase):
 

@@ -20,9 +20,6 @@
 import os
 import random
 import sys
-import unittest
-import numpy
-import math
 
 try:
     import openglider
@@ -30,65 +27,44 @@ except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
     import openglider
 import openglider.Graphics
-import openglider.plots
-from openglider.Vector import norm, Vectorlist2D
+import openglider.glider.plots
+from visual_test_glider import GliderTestClass
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
 importpath = testfolder+"/demokite.ods"
 
-class Test_Glider_Flatten(unittest.TestCase):
-    def setUp(self):
-        self.glider = openglider.Glider()
-        self.glider.import_geometry(path=importpath)
-        self.glider.recalc()
 
-    def get_flattened(self):
+class TestGlider_Flatten(GliderTestClass):
+    def setUp(self, complete=False):
+        super(TestGlider_Flatten, self).setUp(complete=complete)
+
+    def get_flattened_cell(self, allowance=0.02):
         cell = self.glider.cells[random.randint(0, len(self.glider.cells)-1)]
-        left, right = openglider.plots.flattened_cell(cell)
+        left, right = openglider.glider.plots.flattened_cell(cell)
         left_out = left.copy()
         right_out = right.copy()
-        left_out.add_stuff(-0.02)
-        right_out.add_stuff(0.02)
+        left_out.add_stuff(-allowance)
+        right_out.add_stuff(allowance)
         return left_out, left, right, right_out
 
+    def showcut(self, num):
+        left_out, left, right, right_out = self.get_flattened_cell()
+        cuts_front = [random.random()*len(left)*0.1 for __ in range(2)]
+        cuts_back = [(random.random()+1)*len(left)*0.2 for __ in range(2)]
+        outlist_1, leftcut, rightcut = openglider.glider.plots.cuts[num]([[left, cuts_front[0]], [right, cuts_front[1]]],
+                                                                  left_out, right_out, -0.02)
+        outlist_2, leftcut_2, rightcut_2 = openglider.glider.plots.cuts[num]([[left, cuts_back[0]], [right, cuts_back[1]]],
+                                                                      left_out, right_out, 0.02)
+        cuts = [left_out[leftcut:leftcut_2], outlist_1, right_out[rightcut:rightcut_2], outlist_2]
+        marks = [left[cuts_front[0]:cuts_back[0]], right[cuts_front[1]:cuts_back[1]]]
+        openglider.Graphics.Graphics2D([openglider.Graphics.Line(thalist) for thalist in cuts] +
+                                       [openglider.Graphics.Point(thalist) for thalist in marks])
 
     def test_cut1(self):
-        left_out, left, right, right_out = self.get_flattened()
-        cuts_front = [random.random()*len(left)*0.1 for __ in range(2)]
-        cuts_back = [(random.random()+1)*len(left)*0.2 for __ in range(2)]
-        outlist_1, leftcut, rightcut = openglider.plots.cut_1([[left, cuts_front[0]], [right, cuts_front[1]]],
-                                                              left_out, right_out, -0.02)
-        outlist_2, leftcut_2, rightcut_2 = openglider.plots.cut_1([[left, cuts_back[0]], [right, cuts_back[1]]],
-                                                                  left_out, right_out, 0.02)
-        cuts = [left_out[leftcut:leftcut_2], outlist_1, right_out[rightcut:rightcut_2], outlist_2]
-        marks = [left[cuts_front[0]:cuts_back[0]], right[cuts_front[1]:cuts_back[1]]]
-        openglider.Graphics.Graphics2D([openglider.Graphics.Line(list) for list in cuts] +
-                                       [openglider.Graphics.Point(list) for list in marks])
+        self.showcut(0)
 
     def test_cut2(self):
-        left_out, left, right, right_out = self.get_flattened()
-        cuts_front = [random.random()*len(left)*0.1 for __ in range(2)]
-        cuts_back = [(random.random()+1)*len(left)*0.2 for __ in range(2)]
-        outlist_1, leftcut, rightcut = openglider.plots.cut_2([[left, cuts_front[0]], [right, cuts_front[1]]],
-                                                              left_out, right_out, -0.02)
-        outlist_2, leftcut_2, rightcut_2 = openglider.plots.cut_2([[left, cuts_back[0]], [right, cuts_back[1]]],
-                                                                  left_out, right_out, 0.02)
-        cuts = [left_out[leftcut:leftcut_2], outlist_1, right_out[rightcut:rightcut_2], outlist_2]
-        marks = [left[cuts_front[0]:cuts_back[0]], right[cuts_front[1]:cuts_back[1]]]
-        openglider.Graphics.Graphics2D([openglider.Graphics.Line(list) for list in cuts] +
-                                       [openglider.Graphics.Point(list) for list in marks])
+        self.showcut(1)
 
     def test_cut3(self):
-        left_out, left, right, right_out = self.get_flattened()
-        cuts_front = [random.random()*len(left)*0.1 for __ in range(2)]
-        cuts_back = [(random.random()+1)*len(left)*0.2 for __ in range(2)]
-        outlist_1, leftcut, rightcut = openglider.plots.cut_3([[left, cuts_front[0]], [right, cuts_front[1]]],
-                                                              left_out, right_out, -0.02)
-        outlist_2, leftcut_2, rightcut_2 = openglider.plots.cut_3([[left, cuts_back[0]], [right, cuts_back[1]]],
-                                                                  left_out, right_out, 0.02)
-        cuts = [left_out[leftcut:leftcut_2], outlist_1, right_out[rightcut:rightcut_2], outlist_2]
-        marks = [left[cuts_front[0]:cuts_back[0]], right[cuts_front[1]:cuts_back[1]]]
-        openglider.Graphics.Graphics2D([openglider.Graphics.Line(list) for list in cuts] +
-                                       [openglider.Graphics.Point(list) for list in marks])
-
-
+        self.showcut(2)

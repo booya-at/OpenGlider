@@ -19,6 +19,7 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import math
 import os
+import random
 import sys
 
 try:
@@ -28,33 +29,56 @@ except ImportError:
 from openglider import glider
 import openglider.Graphics
 from openglider.Vector import norm
+import unittest
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
+importpath = testfolder + '/demokite.ods'
 
 
-path=testfolder + '/demokite.ods'
-glider1 = glider.Glider()
-glider1.import_geometry(path)
-glider1.close_rib(-1)  # Stabi
-glider2 = glider1.copy()
-glider2.mirror()
-glider2.cells[-1].rib2 = glider1.cells[0].rib1  # remove redundant rib-copy
-glider1.cells = glider2.cells + glider1.cells  # start from last mirrored towards last normal
-glider1.recalc()
-# TODO: Miniribs for mirrored cells fail
-#new_glider.cells[0].miniribs.append(MiniRib(0.5, 0.7, 1))
+class GliderTestClass(unittest.TestCase):
+    def setUp(self, complete=True):
+        self.glider = openglider.Glider()
+        self.glider.import_geometry(path=importpath)
+        self.glider.recalc()
 
-# 3D-OUTPUT
-(polygons, points) = glider1.return_polygons(5)
-polygons = [openglider.Graphics.Polygon(polygon) for polygon in polygons]
-polygons.append(openglider.Graphics.Axes(size=1.2))
-openglider.Graphics.Graphics3D(polygons, points)
 
-# Shape-Output
-left, right = glider1.shape()
-left.rotate(math.pi/2)
-right.rotate(math.pi/2, [0, 0])
-openglider.Graphics.Graphics2D([openglider.Graphics.Line(left.data),
-                                openglider.Graphics.Line([left.data[-1], right.data[-1]]),
-                                openglider.Graphics.Line(right.data),
-                                openglider.Graphics.Line([left.data[0], right.data[0]])])
+class TestGlider(GliderTestClass):
+    def test_3d(self, num=5):
+        thaglider = self.glider.copy_complete()
+        thaglider.recalc()
+        polygons, points = thaglider.return_polygons(num)
+        objects = [openglider.Graphics.Polygon(polygon) for polygon in polygons]
+        objects.append(openglider.Graphics.Axes(size=1.2))
+        openglider.Graphics.Graphics3D(objects, points)
+
+    def test_shape(self):
+        self.glider = self.glider.copy_complete()
+        self.glider.recalc()
+        left, right = self.glider.shape()
+        left.rotate(math.pi/2)
+        right.rotate(math.pi/2, [0, 0])
+        data = [left.data,
+                right.data]
+        data += [[left.data[i], right.data[i]] for i in range(len(left.data))]
+        openglider.Graphics.Graphics2D([openglider.Graphics.Line(obj) for obj in data])
+
+    @unittest.skip("skipped")
+    def test_midrib_projection(self):
+        num = 3
+        data = []
+        for i in range(num):
+            cell = self.glider.cells[random.randint(0, len(self.glider.cells)-1)]
+            prof = cell.midrib(random.random())
+            prof.projection()
+            data += [prof.data,
+                     [prof.data[0], prof.data[0]+prof.xvect],
+                     [prof.data[0], prof.data[0]+prof.yvect]]
+
+        openglider.Graphics.Graphics([openglider.Graphics.Line(obj) for obj in data])
+
+    def test_midrib_flattened(self):
+        num = 2
+        cell = self.glider.cells[random.randint(0, len(self.glider.cells)-1)]
+        profs = [cell.rib1.profile_2d.data]
+        profs += [cell.midrib(random.random()).flatten().data + [0, (i+1)*0.] for i in range(num)]
+        openglider.Graphics.Graphics2D([openglider.Graphics.Line(prof) for prof in profs])

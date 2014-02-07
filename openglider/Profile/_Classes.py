@@ -323,24 +323,30 @@ class Profile3D(Vectorlist):
     def projection(self):
         if not self._xvekt or not self._yvekt or not self._diff:
             p1 = self.data[0]
-            nose = max(self.data, key=lambda x: numpy.linalg.norm(x - p1))
-            self._diff = [nose - i for i in self.data]
+            diff_len = nose_index = 0
+            diff = [p - p1 for p in self.data]
+            for i in range(len(self.data)):
+                thisdiff = norm(diff[i])
+                if thisdiff > diff_len:
+                    nose_index = i
+                    diff_len = thisdiff
 
-            xvekt = normalize(self._diff[0])
-            yvekt = numpy.array([0, 0, 0])
+            xvect = normalize(diff[nose_index])
+            yvect = numpy.array([0, 0, 0])
 
-            for i in self._diff:
-                temp = i - xvekt * xvekt.dot(i)
-                yvekt = max([yvekt + temp, yvekt - temp], key=lambda x: numpy.linalg.norm(x))
+            for i in range(len(diff)):
+                sign = 1-2*(i > nose_index)
+                yvect = yvect + sign * (diff[i] - xvect * xvect.dot(diff[i]))
 
-            yvekt = normalize(yvekt)
-            self.xvect = xvekt
-            self.yvect = yvekt
+            self.xvect = xvect
+            self.yvect = normalize(yvect)
+            self._diff = diff
+            self.noseindex = nose_index
 
     def flatten(self):
         """Flatten the Profile and return a 2d-Representative"""
         self.projection()
-        return Profile2D([[self.xvect.dot(i), self.yvect.dot(i)] for i in self._diff], name=self.name + "flattened")
+        return Profile2D([[-self.xvect.dot(i), self.yvect.dot(i)] for i in self._diff], name=self.name + "flattened")
         ###find x-y projection-layer first
 
     def normvectors(self):

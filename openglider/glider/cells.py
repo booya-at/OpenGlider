@@ -1,33 +1,11 @@
-#! /usr/bin/python2
-# -*- coding: utf-8; -*-
-#
-# (c) 2013 booya (http://booya.at)
-#
-# This file is part of the OpenGlider project.
-#
-# OpenGlider is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# OpenGlider is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-
+import math
+import numpy
+from openglider.Profile import Profile3D
+from openglider.glider.ballooning import arsinc
+from openglider.Vector import norm, normalize
+from openglider.glider.ribs import Rib
 
 __author__ = 'simon'
-#import openglider.Ribs as Ribs
-import numpy
-from ..Vector import normalize, norm
-from ..Profile import Profile3D
-from ..Ribs import Rib
-#from ..Utils import Ballooning
-import math
-from openglider.Utils.Ballooning import arsinc
 
 
 class BasicCell(object):
@@ -114,11 +92,26 @@ class BasicCell(object):
             else:
                 raise ValueError("length of ballooning/profile data unequal")
 
-
 # Ballooning is considered to be arcs, following two simple rules:
 # 1: x1 = x*d
 # 2: x2 = R*normvekt*(cos(phi2)-cos(phi)
 # 3: norm(d)/r*(1-x) = 2*sin(phi(2))
+
+
+"""
+    def _checkxvals(self):
+        #####TODO: push to normal cell.
+        if not numpy.allclose(self.rib1.profile_2d.XValues, self.rib2.profile_2d.XValues):
+            self.rib2.profile_2d.XValues = self.rib1.profile_2d.XValues
+            self.rib2.ReCalc()
+            redo = True
+        else:
+            redo = False
+        if redo or not self.normvectors:
+            self.normvectors = [normalize(self.rib1.normvectors[i]+self.rib2.normvectors[i])
+                                for i in range(self.rib1.profile_2d.Numpoints)]
+            #TODO: map balooning
+            """
 
 class Cell(BasicCell):
     #TODO: cosmetics
@@ -218,19 +211,3 @@ class Cell(BasicCell):
     @property
     def aspect_ratio(self):
         return self.span**2/self.area
-
-
-"""
-    def _checkxvals(self):
-        #####TODO: push to normal cell.
-        if not numpy.allclose(self.rib1.profile_2d.XValues, self.rib2.profile_2d.XValues):
-            self.rib2.profile_2d.XValues = self.rib1.profile_2d.XValues
-            self.rib2.ReCalc()
-            redo = True
-        else:
-            redo = False
-        if redo or not self.normvectors:
-            self.normvectors = [normalize(self.rib1.normvectors[i]+self.rib2.normvectors[i])
-                                for i in range(self.rib1.profile_2d.Numpoints)]
-            #TODO: map balooning
-            """

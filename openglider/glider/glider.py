@@ -18,11 +18,12 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import math
-import numpy
 import copy
 
-from openglider.Import import IMPORT_GEOMETRY, EXPORT_3D
-from openglider.Vector import norm, normalize
+import numpy
+
+from openglider.glider.io import IMPORT_GEOMETRY, EXPORT_3D
+from openglider.Vector import norm
 from openglider.Vector.projection import flatten_list
 
 
@@ -86,7 +87,7 @@ class Glider(object):
             k = 1
         return self.cells[i].midrib_basic_cell(k)
 
-    def mirror(self, cutmidrib=True):
+    def mirror(self, cutmidrib=True, complete=False):
         if not self.cells:
             return
         if self.cells[0].rib1.pos[1] != 0 and cutmidrib:  # Cut midrib

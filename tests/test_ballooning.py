@@ -21,17 +21,18 @@ import unittest
 import random
 import sys
 import os
+from openglider.glider import ballooning
+
 try:
     import openglider
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
     import openglider
-from openglider.Utils import Ballooning
 
 
 class TestBallooningBezier(unittest.TestCase):
     def setUp(self):
-        self.ballooning = Ballooning.BallooningBezier()
+        self.ballooning = ballooning.BallooningBezier()
 
     def test_multiplication(self):
         for i in range(100):

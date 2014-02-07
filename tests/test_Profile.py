@@ -62,8 +62,8 @@ class TestProfile(unittest.TestCase):
     def test_naca(self):
         numpoints = random.randint(10, 200)
         thickness = random.randint(8, 20)
-        m = random.randint(1, 9) * 1000 # Maximum camber
-        p = random.randint(1, 9) * 100  # Maximum thickness
+        m = random.randint(1, 9) * 1000  # Maximum camber position
+        p = random.randint(1, 9) * 100  # Maximum thickness position
         self.prof.compute_naca(naca=m+p+thickness, numpoints=numpoints)
         self.assertAlmostEqual(self.prof.thickness*100, thickness, 0)
 
