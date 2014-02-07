@@ -275,24 +275,31 @@ class Vectorlist2D(Vectorlist):
         else:
             raise ValueError("cannot append: ", self.__class__, other.__class__)
 
-    def cut(self, p1, p2, startpoint=0):
+    def cut(self, p1, p2, startpoint=0, count_inline_cuts=False):
         """Cut with two points given, returns (point, position_in_list)"""
         startpoint = int(startpoint)
+        cutlist = []
+        #
         for i in rangefrom(len(self) - 2, startpoint):
             try:
                 thacut = cut(self[i], self[i + 1], p1, p2)
             # in case we have parallell lines we dont get a result here, so we continue with i raised...
             except np.linalg.linalg.LinAlgError:
                 continue
-            if 0 <= thacut[1] <= 1.:
-                return thacut[0], i + thacut[1]
-            # Nothing found yet? check start and end of line
-        thacut = []
+            if 0 <= thacut[1] <= 1.:  # Good CUT
+                if count_inline_cuts:
+                    cutlist.append((cutlist[0], i + thacut[1]))
+                else:
+                    return thacut[0], i + cutlist[1]
+        if not count_inline_cuts:
+            return cutlist
+
+        # Nothing found yet? Shit, so, check start and end of line
         # Beginning
         try:
             temp = cut(self[0], self[1], p1, p2)
             if temp[1] <= 0:
-                thacut.append([temp[0], temp[1], norm(self[0] - self[1]) * temp[1]])
+                cutlist.append([temp[0], temp[1], norm(self[0] - self[1]) * temp[1]])
         except np.linalg.linalg.LinAlgError:
             pass
             # End
@@ -300,18 +307,19 @@ class Vectorlist2D(Vectorlist):
             i = len(self) - 1
             temp = cut(self[i], self[i + 1], p1, p2)
             if temp[1] > 0:
-                thacut.append([temp[0], i + temp[1], norm(self[i] - self[i + 1]) * temp[1]])
+                cutlist.append([temp[0], i + temp[1], norm(self[i] - self[i + 1]) * temp[1]])
         except np.linalg.linalg.LinAlgError:
             pass
 
-        if len(thacut) > 0:
+        if len(cutlist) > 0:
             # sort by distance
-            thacut.sort(key=lambda x: x[2])
-            print(thacut[0])
-            return thacut[0][0:2]
+            cutlist.sort(key=lambda x: x[2])
+            print(cutlist[0])
+            return cutlist[0][0:2]
         else:
-            Graphics([Line(self.data), Line([p1,p2])])  # DEBUG
-            raise ArithmeticError("no cuts discovered for p1:"+str(p1)+" p2:"+str(p2)+str(self[0])+str(cut(self[0],self[1],p1,p2)))
+            #Graphics([Line(self.data), Line([p1,p2])])  # DEBUG
+            raise ArithmeticError("no cuts discovered for p1:"+str(p1)+" p2:"+str(p2)+str(self[0]) +
+                                  str(cut(self[0], self[1], p1, p2)))
 
     def check(self):  # TODO: IMPROVE (len = len(self.data), len-=,...)
         """Check for mistakes in the array, such as for the moment: self-cuttings,"""
@@ -378,4 +386,19 @@ class Vectorlist2D(Vectorlist):
                 new_data.append(rotation_matrix.dot(point))
         self.data = new_data
 
+
+class Polygon2D(Vectorlist2D):
+    @property
+    def isclosed(self):
+        return self.data[0] == self.data[-1]
+
+    @property
+    def centerpoint(self):
+        return sum(self.data)/len(self.data)
+
+    def contains_point(self, point):
+        """http://en.wikipedia.org/wiki/Point_in_polygon"""
+        # using ray-casting-algorithm
+        return not len(self.cut(point, self.centerpoint, count_inline_cuts=True)) % 2
+        # alternative: winding number
 

@@ -10,3 +10,7 @@ Then it must be linked into python-packages Folder:
 '''
 ln -s /path/to/python-packages/openglider /path/to/openglider-git/openglider
 '''
+Alternatively run the setup.py
+'''
+python2 setup.py install
+'''
