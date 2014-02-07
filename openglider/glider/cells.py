@@ -170,7 +170,12 @@ class Cell(BasicCell):
                 l = norm(self.rib2.profile_3d.data[i] - self.rib1.profile_3d.data[i])  # L
                 lnew = sum([norm(c.prof1.data[i] - c.prof2.data[i]) for c in self._cells])  # L-NEW
                 for c in self._cells:
-                    c._phi.append(arsinc(lnew/l / bl))  # B/L NEW 1 / (bl * l / lnew)
+                    newval = lnew/l / bl
+                    if newval < 1.:
+                        c._phi.append(arsinc(newval))  # B/L NEW 1 / (bl * l / lnew)
+                    else:
+                        c._phi.append(arsinc(1.))
+                        #raise ValueError("mull")
             for cell in self._cells:
                 cell.recalc()
 

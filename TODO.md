@@ -42,4 +42,12 @@ GUI
 - Make dragable spline-curves
 - Wizards for shape, AOA , curvature,...
 
+Panelmethod
+-----------
+
+- Finish the panelmethod code
+- comment everything with script page-numbers,...
+- check results
+- provide sample file + test
+
 AND MORE!

@@ -35,6 +35,7 @@ testfolder = os.path.dirname(os.path.abspath(__file__))
 importpath = testfolder + '/demokite.ods'
 
 
+<<<<<<< HEAD
 class GliderTestClass(unittest.TestCase):
     def setUp(self, complete=True):
         self.glider = openglider.Glider()
