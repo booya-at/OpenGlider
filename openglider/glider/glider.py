@@ -22,7 +22,7 @@ import copy
 
 import numpy
 
-from openglider.glider.io import IMPORT_GEOMETRY, EXPORT_3D
+from openglider.glider.in_out import IMPORT_GEOMETRY, EXPORT_3D
 from openglider.Vector import norm
 from openglider.Vector.projection import flatten_list
 

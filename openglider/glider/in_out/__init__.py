@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
-from openglider.glider.io import import_geometry, export_3d
+from openglider.glider.in_out import import_geometry, export_3d
 
 IMPORT_GEOMETRY = {
     'ods': import_geometry.import_ods,

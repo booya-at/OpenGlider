@@ -18,9 +18,9 @@ class BasicCell(object):
         self._normvectors = None
         self.name = name
 
-    def point_basic_cell(self, y=0, i=0, k=0):
+    def point_basic_cell(self, y=0, ik=0):
         ##round ballooning
-        return self.midrib_basic_cell(y).point((i, k))
+        return self.midrib_basic_cell(y).point(ik)
 
     def midrib_basic_cell(self, y, ballooning=True, arc_argument=True):
         if y == 0:              # left side
