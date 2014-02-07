@@ -1,4 +1,4 @@
-INSTALLATION
+Installation
 ============
 
 
@@ -10,7 +10,7 @@ Then it must be linked into python-packages Folder:
   ```
   ln -s /path/to/python-packages/openglider /path/to/openglider-git/openglider
   ```
-Alternatively run the setup.py
+Alternatively run the setup.py (sadly ```git pull```'s will not update your version like this...)
   ```
   python2 setup.py install
   ```
