@@ -59,7 +59,7 @@ class TestProfile(unittest.TestCase):
         factor = random.random()
         self.assertAlmostEqual(factor * self.prof.area(), (self.prof * factor).area())
 
-    def test_naca(self):
+    def test_compute_naca(self):
         numpoints = random.randint(10, 200)
         thickness = random.randint(8, 20)
         m = random.randint(1, 9) * 1000  # Maximum camber position
@@ -89,12 +89,24 @@ class TestProfile(unittest.TestCase):
         #self.prof.camber = camber*val
         #self.assertAlmostEqual(self.prof.camber, camber*val)
 
+    def test_contains_point(self):
+        allowance = random.random()*0.1
+        prof = self.prof.copy()
+        prof2 = self.prof.copy()
+        prof2.add_stuff(2*allowance)
+        self.prof.add_stuff(allowance)
+        self.prof.close()
+        # prof<self.prof<prof2
+        for p in prof.data:
+            self.assertTrue(self.prof.contains_point(p))
+        for p in prof2.data:
+            self.assertFalse(self.prof.contains_point(p))
 
-    # def test_numpoints2(self):
-    #     print("len: ", len(self.prof.data), len(self.prof._rootprof.data))
-    #     self.prof.numpoints = 20
-    #     print("len2: ", len(self.prof.data), len(self.prof._rootprof.data))
-
+    @unittest.skip("")
+    def test_numpoints2(self):
+        print("len: ", len(self.prof.data), len(self.prof._rootprof.data))
+        self.prof.numpoints = 20
+        print("len2: ", len(self.prof.data), len(self.prof._rootprof.data))
 
 
 if __name__ == '__main__':

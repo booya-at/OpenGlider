@@ -23,7 +23,6 @@
 from openglider.glider.cells import BasicCell
 from openglider.glider.ribs import Rib
 
-__author__ = 'simon'
 import os
 import math
 import sys

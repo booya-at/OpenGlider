@@ -289,10 +289,11 @@ class Vectorlist2D(Vectorlist):
                 continue
             if 0 <= thacut[1] <= 1.:  # Good CUT
                 if count_inline_cuts:
-                    cutlist.append((cutlist[0], i + thacut[1]))
+                    if thacut[2] > 0:  #Provisorisch
+                        cutlist.append((thacut[0], i + thacut[1]))
                 else:
-                    return thacut[0], i + cutlist[1]
-        if not count_inline_cuts:
+                    return thacut[0], i + thacut[1]
+        if count_inline_cuts:
             return cutlist
 
         # Nothing found yet? Shit, so, check start and end of line
@@ -411,6 +412,8 @@ class Polygon2D(Vectorlist2D):
     def contains_point(self, point):
         """http://en.wikipedia.org/wiki/Point_in_polygon"""
         # using ray-casting-algorithm
-        return bool(len(self.cut(point, self.centerpoint, count_inline_cuts=True)) % 2)
+        cuts = self.cut(point, self.centerpoint, count_inline_cuts=True)
+        #print(len(cuts), cuts)
+        return bool(len(cuts) % 2)
         # alternative: winding number
 

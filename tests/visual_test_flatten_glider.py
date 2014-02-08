@@ -48,6 +48,7 @@ class TestGlider_Flatten(GliderTestClass):
         return left_out, left, right, right_out
 
     def showcut(self, num):
+        """"""
         left_out, left, right, right_out = self.get_flattened_cell()
         cuts_front = [random.random()*len(left)*0.1 for __ in range(2)]
         cuts_back = [(random.random()+1)*len(left)*0.2 for __ in range(2)]

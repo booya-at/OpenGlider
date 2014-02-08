@@ -36,6 +36,7 @@ def makelists(self, dim):
             pointlist.append([random.random() * 100 for i in range(dim)])
         self.vectors.append(Vector.Vectorlist(pointlist))
 
+
 class TestVector3D(unittest.TestCase):
 
     def setUp(self, dim=3):

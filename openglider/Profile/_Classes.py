@@ -23,10 +23,10 @@ import os  # for xfoil execution
 
 import numpy  # array spec
 from ._XFoilCalc import XValues, Calcfile, Impresults
-from ..Vector import normalize, norm, Vectorlist2D, Vectorlist
+from ..Vector import normalize, norm, Vectorlist2D, Vectorlist, Polygon2D
 
 
-class BasicProfile2D(Vectorlist2D):
+class BasicProfile2D(Polygon2D):
     """Basic Profile Class, not to do much, but just"""
     ####rootprof gleich mitspeichern!!
     def __init__(self, profile=None, name=None):
@@ -81,7 +81,7 @@ class BasicProfile2D(Vectorlist2D):
         matrix = numpy.array([[cos, -sin], [sin, cos]]) / dmax  # de-rotate and scale
         self.data = numpy.array([matrix.dot(i - nose) for i in self.data])
 
-    @Vectorlist2D.data.setter
+    @Vectorlist.data.setter
     def data(self, data):
         Vectorlist2D.data.fset(self, data)
         if not data is None:

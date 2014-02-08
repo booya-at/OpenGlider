@@ -202,6 +202,10 @@ class Cell(BasicCell):
         BasicCell._calcballooning(self)
 
     @property
+    def ribs(self):
+        return [self.rib1, self.rib2]
+
+    @property
     def span(self):  # TODO: Maybe use mean length from (1,0), (0,0)
         return norm((self.rib1.pos - self.rib2.pos)*[0, 1, 1])
 
