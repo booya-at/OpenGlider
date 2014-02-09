@@ -1,6 +1,3 @@
-from openglider.Vector import Vectorlist
-import openglider.glider.cells
-
 
 class DiagonalRib(object):
     def __init__(self, (left_1, left_1_height), (left_2, left_2_height),
@@ -12,22 +9,23 @@ class DiagonalRib(object):
 
     def get_3d(self, glider):
         cell = glider.cells[self.cell]
-        cell = openglider.glider.cells.Cell()
+        # cell = openglider.glider.cells.Cell()
         lists = []
         for i, attributes in enumerate(self.attributes):
-            points = [cell.ribs[i].profilepoint(x, h) for x, h in attributes]
-            if attributes[0, 1] == attributes[1, 1] == 0:
-                lists.append(cell.ribs[i].get(points[0, 1], points[1, 1]))
+            rib = cell.ribs[i]
+            points = [rib.profile_2d.profilepoint(x, h) for x, h in attributes]
+            if attributes[0][1] == attributes[1][1] == -1:
+                print(points)
+                lists.append(rib.profile_3d.get(points[0][0], points[1][0]))
             else:
-                lists.append(points)
-
+                lists.append([rib.align([p[0], p[1], 0]) for p in points])
         return lists
 
     def plot_3d(self, graphicsobject):
         pass  # ????
 
     def get_flattened(self, glider, ribs_flattened):
-        first, second = self.get_3
+        first, second = self.get_3d(glider)
         # Insert Marks into ribs
         # ribs_flattened[self.cell]
         # ribs_flattened[self.cell+1]

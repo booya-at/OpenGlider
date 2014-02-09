@@ -26,9 +26,8 @@ try:
     import openglider
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
-from openglider import glider
+    import openglider
 import openglider.Graphics
-from openglider.Vector import norm
 import unittest
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
@@ -43,7 +42,7 @@ class GliderTestClass(unittest.TestCase):
 
 
 class TestGlider(GliderTestClass):
-    def test_3d(self, num=5):
+    def test_show_3d(self, num=5):
         thaglider = self.glider.copy_complete()
         thaglider.recalc()
         polygons, points = thaglider.return_polygons(num)
@@ -51,7 +50,7 @@ class TestGlider(GliderTestClass):
         objects.append(openglider.Graphics.Axes(size=1.2))
         openglider.Graphics.Graphics3D(objects, points)
 
-    def test_shape(self):
+    def test_show_shape(self):
         self.glider = self.glider.copy_complete()
         self.glider.recalc()
         left, right = self.glider.shape()

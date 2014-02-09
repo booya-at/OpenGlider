@@ -20,9 +20,8 @@
 
 
 #!/bin/python2
-from openglider.glider.cells import BasicCell
-from openglider.glider.ribs import Rib
-
+import random
+import unittest
 import os
 import math
 import sys
@@ -32,33 +31,39 @@ try:
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 from openglider.Profile import Profile2D
+from openglider.glider.cells import Cell
+from openglider.glider.ribs import Rib
 import openglider.Graphics as Graph
 from openglider.glider.ballooning import BallooningBezier
 
 
-a = Profile2D()
-#a.importdat(os.path.dirname(os.path.abspath(__file__)) + "/testprofile.dat")
-a.compute_naca(naca=2412, numpoints=200)
-# #a._rootprof.normalize()
-# #a.numpoints = 25
-#a.numpoints = 40
-ballooning = BallooningBezier()
-balloon = [ballooning(i) for i in a.x_values]
+class TestCell(unittest.TestCase):
+    def setUp(self, numpoints=100):
+        self.prof1 = Profile2D()
+        self.prof2 = Profile2D()
+        for prof in [self.prof1, self.prof2]:
+            naca = random.randint(1, 1399)
+            prof.compute_naca(naca=1223, numpoints=numpoints)
+            prof.close()
+            prof.normalize()
+        self.ballooning = BallooningBezier()
+        self.rib2 = Rib(self.prof1, self.ballooning, [0., 0.12, 0], 1., 20 * math.pi / 180, 2 * math.pi / 180, 0, 7.)
+        self.rib3 = Rib(self.prof2, self.ballooning, [0.2, 0.3, -0.1], 0.8, 30 * math.pi / 180, 5 * math.pi / 180, 0, 7.)
+        self.rib1 = self.rib2.copy()
+        self.rib1.mirror()
 
-r1 = Rib(a, ballooning, [0., 0.12, 0], 1., 20 * math.pi / 180, 2 * math.pi / 180, 0, 7.)
-r3 = Rib(a, ballooning, [0.2, 0.3, -0.1], 0.8, 30 * math.pi / 180, 5 * math.pi / 180, 0, 7.)
-r2 = r1.copy()
-r2.mirror()
-for i in [r1, r2, r3]:
-    i.recalc()
+        self.cell1 = Cell(self.rib1, self.rib2)
+        self.cell2 = Cell(self.rib2, self.rib3)
 
-cell = BasicCell(r2.profile_3d, r1.profile_3d, balloon)
-cell2 = BasicCell(r1.profile_3d, r3.profile_3d, balloon)
-cell.recalc()
-cell2.recalc()
+    def recalc(self):
+        for rib in [self.rib1, self.rib2, self.rib3]:
+            rib.recalc()
+        for cell in [self.cell1, self.cell2]:
+            cell.recalc()
 
-num = 20
-ribs = [cell.midrib_basic_cell(x * 1. / num).data for x in range(num + 1)]
-ribs += [cell2.midrib_basic_cell(x * 1. / num).data for x in range(num + 1)]
-#G.Graphics3D([G.Line(r1.profile_3d.data),G.Line(r2.profile_3d.data),G.Line([[0.,0.,0.],[1.,0.,0.]]),G.Line([[0.,0.,0.],[0.,0.5,0.]])])
-Graph.Graphics([Graph.Line(x) for x in ribs])
+    def test_show_cell(self, num=10):
+        #print(self.rib1.profile_2d.x_values)
+        self.recalc()
+        ribs = [self.cell1.midrib(x*1./num) for x in range(num)]
+        ribs += [self.cell2.midrib(x*1./num) for x in range(num)]
+        Graph.Graphics([Graph.Line(x.data) for x in ribs]+[Graph.Line(self.rib1.profile_3d.data)])
