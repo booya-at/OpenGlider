@@ -410,7 +410,10 @@ class Polygon2D(Vectorlist2D):
         return sum(self.data)/len(self.data)
 
     def contains_point(self, point):
-        """http://en.wikipedia.org/wiki/Point_in_polygon"""
+        """
+        Check if a Polygon contains a point or not
+        reference: http://en.wikipedia.org/wiki/Point_in_polygon
+        :rtype: bool"""
         # using ray-casting-algorithm
         cuts = self.cut(point, self.centerpoint, count_inline_cuts=True)
         #print(len(cuts), cuts)
