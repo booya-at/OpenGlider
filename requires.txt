@@ -1,0 +1,5 @@
+numpy
+dxfwrite
+ezodf2
+scipy
+svgwrite
