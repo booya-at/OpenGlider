@@ -413,7 +413,8 @@ class Polygon2D(Vectorlist2D):
         """
         Check if a Polygon contains a point or not
         reference: http://en.wikipedia.org/wiki/Point_in_polygon
-        :rtype: bool"""
+        :returns:  bool
+        """
         # using ray-casting-algorithm
         cuts = self.cut(point, self.centerpoint, count_inline_cuts=True)
         #print(len(cuts), cuts)
