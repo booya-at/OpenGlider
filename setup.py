@@ -20,6 +20,7 @@
 
 
 from distutils.core import setup
+import setuptools
 import os
 
 packages, package_data = [], {}
