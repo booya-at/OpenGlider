@@ -38,9 +38,9 @@ class Glider(object):
         IMPORT_GEOMETRY[filetype](path, self)
 
     def export_geometry(self, path="", filetype=None):
-        if not filetype:
-            filetype = path.split(".")[-1]
-            #EXPORT_NAMES[filetype](self, path)
+        #if not filetype:
+        #    filetype = path.split(".")[-1]
+            #EXPORT_GEOMETRY[filetype](self, path)
         pass
 
     def export_3d(self, path="", filetype=None, midribs=0, numpoints=None, floatnum=6):
@@ -123,6 +123,7 @@ class Glider(object):
             rib.pos *= faktor
             rib.chord *= faktor
 
+    @property
     def shape(self):
         return flatten_list(self.get_spanwise(0), self.get_spanwise(1))
 
@@ -132,20 +133,23 @@ class Glider(object):
             return []
         return [self.cells[0].rib1] + [cell.rib2 for cell in self.cells]
 
-    def __get_numpoints(self):
+    @property
+    def numpoints(self):
         numpoints = self.ribs[0].profile_2d.numpoints
         for rib in self.ribs:
             if not rib.profile_2d.numpoints == numpoints:
                 raise ValueError("Numpoints vary for the glider")
         return numpoints
 
-    def __set_numpoints(self, numpoints):
+    @numpoints.setter
+    def numpoints(self, numpoints):
         self.ribs[0].profile_2d.numpoints = numpoints
         xvalues = self.ribs[0].profile_2d.x_values
         for rib in self.ribs[1:]:
             rib.profile_2d.x_values = xvalues
 
-    def __get_span(self):
+    @property
+    def span(self):
         span = 0.
         front = self.get_spanwise()
         last = front[0] * [0, 0, 1]  # centerrib only halfed
@@ -154,11 +158,13 @@ class Glider(object):
             last = this
         return 2 * span
 
-    def __set_span(self, span):
+    @span.setter
+    def span(self, span):
         faktor = span / self.span
         self.scale(faktor)
 
-    def __get_area(self):
+    @property
+    def area(self):
         area = 0.
         if len(self.ribs) == 0:
             return 0
@@ -173,14 +179,17 @@ class Glider(object):
             # http://en.wikipedia.org/wiki/Triangle#Using_vectors
         return area
 
-    def __set_area(self, area):
+    @area.setter
+    def area(self, area):
         faktor = area / self.area
         self.scale(math.sqrt(faktor))
 
-    def __get_ar(self):
+    @property
+    def aspect_ratio(self):
         return self.span**2/self.area
 
-    def __set_ar(self, aspect_ratio):
+    @aspect_ratio.setter
+    def aspect_ratio(self, aspect_ratio):
         area_backup = self.area
         factor = self.aspect_ratio/aspect_ratio
         for rib in self.ribs:
@@ -196,11 +205,6 @@ class Glider(object):
         else:
             points = [rib.pos for rib in self.ribs]  # This is much faster
         return points
-
-    numpoints = property(__get_numpoints, __set_numpoints)
-    span = property(__get_span, __set_span)
-    area = property(__get_area, __set_area)
-    aspect_ratio = property(__get_ar, __set_ar)
 
 
 

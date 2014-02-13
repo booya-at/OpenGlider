@@ -20,10 +20,10 @@
 # TODO: Migrate ALL to __init__
 import math
 import os  # for xfoil execution
-
 import numpy  # array spec
-from ._XFoilCalc import XValues, Calcfile, Impresults
-from ..Vector import normalize, norm, Vectorlist2D, Vectorlist, Polygon2D
+
+#from openglider.Profile._XFoilCalc import XValues, Calcfile, Impresults
+from openglider.Vector import normalize, norm, Vectorlist2D, Vectorlist, Polygon2D
 
 
 class BasicProfile2D(Polygon2D):
@@ -39,6 +39,12 @@ class BasicProfile2D(Polygon2D):
 
     def __call__(self, xval):
         return self.profilepoint(xval)
+
+    #def align(self, (x, y)):
+    #    """Align a point (x, y) on the profile. x (0,1); y (-1,1)"""
+    #    pass
+    def _x(self, xval):
+        pass  # Maybe split up profilepoint function
 
     def profilepoint(self, xval, h=-1.):
         """Get Profile Point for x-value (<0:upper side) optional: height (-1:lower,1:upper), possibly mapped"""
@@ -130,28 +136,25 @@ class Profile2D(BasicProfile2D):
         """Import a *.dat profile"""
         if not os.path.isfile(path):
             raise Exception("Profile not found in" + path + "!")
-        tempfile = []
+        profile = []
         name = None
         with open(path, "r") as pfile:
             for line in pfile:
-                line = line.strip()
+                #line = line.strip()
                 ###tab-seperated values except first line->name
-                if "\t" in line:
-                    line = line.split("\t")
+                if "\t" in line or " " in line:
+                    line = line.split()
+                    if len(line) == 2:
+                        profile.append([float(i) for i in line])
                 else:
-                    line = line.split(" ")
-                while "" in line:
-                    line.remove("")
-                if len(line) == 2:
-                    tempfile.append([float(i) for i in line])
-                elif len(line) == 1:
-                    name = line
-            self.__init__(tempfile, name)
+                    name = line.strip()
+            self.__init__(profile, name)
 
     def export(self, pfad):
         """Export Profile in .dat Format"""
         with open(pfad, "w") as out:
-            out.write(str(self.name))
+            if self.name:
+                out.write(str(self.name))
             for i in self.data:
                 out.write("\n" + str(i[0]) + "\t" + str(i[1]))
         return pfad
@@ -166,6 +169,7 @@ class Profile2D(BasicProfile2D):
         self.data = self._rootprof.data
 
     def area(self):
+        """Return the area occupied by the profile"""
         area = 0
         last = self.data[0]
         for this in self.data[1:]:
@@ -221,7 +225,6 @@ class Profile2D(BasicProfile2D):
         """Set X-Values of profile to defined points."""
         ###standard-value: root-prof xvalues
         self.data = [self._rootprof(x)[1] for x in xval]
-        #self.Profile = self._rootprof.points(xval)[:, 1]
 
     @property
     def numpoints(self):
@@ -285,29 +288,29 @@ class XFoil(Profile2D):
 
         resfile = "/tmp/result.dat"
         pfile = "/tmp/calc_pfile.dat"
-        cfile = Calcfile(angles, resfile)
+        #cfile = Calcfile(angles, resfile)
 
         self.export(pfile)
-        status = os.system("xfoil " + pfile + " <" + cfile + " > /tmp/log.dat")
-        if status == 0:
-            result = Impresults(resfile)
-            for i in result:
-                self._calcvalues[i] = result[i]
-            os.system("rm " + resfile)
-        os.system("rm " + pfile + " " + cfile)
-        return True
+        #status = os.system("xfoil " + pfile + " <" + cfile + " > /tmp/log.dat")
+        #if status == 0:
+        #    result = Impresults(resfile)
+        #    for i in result:
+        #        self._calcvalues[i] = result[i]
+        #    os.system("rm " + resfile)
+        #os.system("rm " + pfile + " " + cfile)
+        #return True
 
     def _get(self, angle, exact=1):
         if self._change():
             self._calcvalues = {}
             self._xvalues = self.x_values[:]
         print(self._calcvalues)
-        calcangles = XValues(angle, self._calcvalues)
-        print("ho!" + str(calcangles))
-        if len(calcangles) > 0:
-            erg = self._calc(calcangles)
-            print("soso")
-            return erg
+        #calcangles = XValues(angle, self._calcvalues)
+        #print("ho!" + str(calcangles))
+        #if len(calcangles) > 0:
+        #    erg = self._calc(calcangles)
+        #    print("soso")
+        #    return erg
             ##self._calcvalues=[1,2]
 
 

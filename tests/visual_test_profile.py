@@ -14,9 +14,8 @@ import openglider.Graphics as Graph
 from openglider.glider.ballooning import BallooningBezier
 
 
-a = Profile2D()
-#a.importdat(os.path.dirname(os.path.abspath(__file__)) + "/testprofile.dat")
-a.compute_naca(naca=2412, numpoints=200)
+proffile = os.path.dirname(os.path.abspath(__file__)) + "/testprofile.dat"
+#a.compute_naca(naca=2412, numpoints=200)
 
 
 class ProfileTest(unittest.TestCase):
@@ -24,6 +23,7 @@ class ProfileTest(unittest.TestCase):
         self.profile = Profile2D()
         prof = random.randint(1, 9999)
         self.profile.compute_naca(prof, 200)
+        #self.profile.importdat(proffile)
 
     def test_allowance(self):
         prof = self.profile.copy()

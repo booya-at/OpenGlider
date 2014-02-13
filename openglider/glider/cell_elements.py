@@ -15,14 +15,11 @@ class DiagonalRib(object):
             rib = cell.ribs[i]
             points = [rib.profile_2d.profilepoint(x, h) for x, h in attributes]
             if attributes[0][1] == attributes[1][1] == -1:
-                print(points)
+                #print(points)
                 lists.append(rib.profile_3d.get(points[0][0], points[1][0]))
             else:
                 lists.append([rib.align([p[0], p[1], 0]) for p in points])
         return lists
-
-    def plot_3d(self, graphicsobject):
-        pass  # ????
 
     def get_flattened(self, glider, ribs_flattened):
         first, second = self.get_3d(glider)

@@ -98,7 +98,7 @@ def cut_1(inner_lists, outer_left, outer_right, amount):
     return newlist, leftcut[1], rightcut[1]
 
 
-# OPEN-ENTRY-STYLE
+# OPEN-ENTRY Style
 def cut_2(inner_lists, outer_left, outer_right, amount):
     p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
     p2 = inner_lists[-1][0][inner_lists[-1][1]]
@@ -132,8 +132,9 @@ def cut_2(inner_lists, outer_left, outer_right, amount):
     return newlist+cuts2[::-1], leftcut[1], rightcut[1]
 
 
+# TRAILING-EDGE Style
 def cut_3(inner_lists, outer_left, outer_right, amount):
-    ## Continue Parallel
+    # Continue Parallel
     p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
     p2 = inner_lists[-1][0][inner_lists[-1][1]]
     normvector = openglider.Vector.normalize(openglider.Vector.rotation_2d(math.pi/2).dot(p1-p2))

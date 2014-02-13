@@ -316,7 +316,7 @@ class Vectorlist2D(Vectorlist):
         if len(cutlist) > 0:
             # sort by distance
             cutlist.sort(key=lambda x: x[2])
-            print(cutlist[0])
+            #print(cutlist[0])
             return cutlist[0][0:2]
         else:
             #Graphics([Line(self.data), Line([p1,p2])])  # DEBUG
