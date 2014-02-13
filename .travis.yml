@@ -13,3 +13,4 @@ script: python testall.py
 branches:
   only:
     - master
+    - develop

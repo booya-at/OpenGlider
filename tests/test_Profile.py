@@ -82,12 +82,12 @@ class TestProfile(unittest.TestCase):
         self.prof.thickness *= val
         self.assertAlmostEqual(self.prof.thickness, thickness*val)
 
+    @unittest.skip("whatsoever!")
     def test_camber(self):
         val = random.random()
         camber = max(self.prof.camber[:, 1])
-        #print(camber)
-        #self.prof.camber = camber*val
-        #self.assertAlmostEqual(self.prof.camber, camber*val)
+        self.prof.camber = camber*val
+        self.assertAlmostEqual(self.prof.camber, camber*val)
 
     def test_contains_point(self):
         allowance = random.random()*0.1
@@ -97,12 +97,13 @@ class TestProfile(unittest.TestCase):
         self.prof.add_stuff(allowance)
         self.prof.close()
         # prof<self.prof<prof2
+        print("jo")
         for p in prof.data:
             self.assertTrue(self.prof.contains_point(p))
         for p in prof2.data:
             self.assertFalse(self.prof.contains_point(p))
 
-    @unittest.skip("")
+    @unittest.skip("redundant")
     def test_numpoints2(self):
         print("len: ", len(self.prof.data), len(self.prof._rootprof.data))
         self.prof.numpoints = 20

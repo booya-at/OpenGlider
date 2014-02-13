@@ -31,7 +31,9 @@ def depth(arg):
 
 
 def arrtype(arg):
-    """return type of a vector list: 2d-point (1), list of 2d-points (2), 3d-point (3), list of 3d-points (4)"""
+    """
+    return type of a vector list: 2d-point (1), list of 2d-points (2), 3d-point (3), list of 3d-points (4)
+    """
     ##2d-point//argof2d-points//3d-point//argof3d-points
     ##2d-p: depth 1
     ##equivalent numpy.rank?
@@ -60,10 +62,16 @@ def arrtype(arg):
 
 
 def norm(vector):
+    """
+    Norm-Function for n-dimensional vectors
+    """
     return np.sqrt(np.vdot(vector, vector))
 
 
 def normalize(vector):
+    """
+    Normalize n-dimensional vectors
+    """
     leng = norm(vector)
     if leng > 0:
         return vector / norm(vector)
@@ -71,7 +79,9 @@ def normalize(vector):
 
 
 def rangefrom(maxl, startpoint=0):
-    """Iterative, similar to range() but surrounding a certain startpoint"""
+    """
+    yield iterative, similar to range() but surrounding a certain startpoint
+    """
     j = 1
     if 0 <= startpoint <= maxl:
         yield startpoint
@@ -84,7 +94,9 @@ def rangefrom(maxl, startpoint=0):
 
 
 def rotation_3d(angle, axis=[1, 0, 0]):
-    """3D-Rotation Matrix for (angle[rad],[axis(x,y,z)])"""
+    """
+    3D-Rotation Matrix for (angle[rad],[axis(x,y,z)])
+    """
     # see http://en.wikipedia.org/wiki/SO%284%29#The_Euler.E2.80.93Rodrigues_formula_for_3D_rotations"""
     a = np.cos(angle / 2)
     (b, c, d) = -normalize(axis) * np.sin(angle / 2)
@@ -98,12 +110,18 @@ def rotation_3d(angle, axis=[1, 0, 0]):
 
 
 def rotation_2d(angle):
-    """Return a 2D-Rotation-Matrix"""
+    """
+    Return a 2D-Rotation-Matrix
+    """
     return np.array([[np.cos(angle), np.sin(angle)], [-np.sin(angle), np.cos(angle)]])
 
 
 def cut(p1, p2, p3, p4):
-    """2D-Linear Cut; Returns (pointxy, k, l); Solves the linear system: p1+k*(p2-p1)==p3+l*(p4-p3)"""
+    """
+    2D-Linear Cut; Solves the linear system: p1+k*(p2-p1)==p3+l*(p4-p3)
+
+    :returns: (point(x, y), k, l)
+    """
     """ |p2x-p1x -(p4x-p3x)|*|k|==|p3x-p1x|"""
     """ |p2y-p1y -(p4y-p3y)|*|l|==|p3y-p1y|"""
     matrix = [[p2[0] - p1[0], p3[0] - p4[0]],
@@ -139,10 +157,10 @@ class Vectorlist(object):
         elif isinstance(ik, slice):  # example: list[1.2:5.5:1]
             step = 1 if ik.step is None else ik.step
             if step > 0:
-                start = max(int(ik.start)+1, 0)
-                stop = min(int(ik.stop) + (1 if ik.stop % 1 > 0 else 0), len(self)-1)
+                start = max(int(ik.start) + 1, 0)
+                stop = min(int(ik.stop) + (1 if ik.stop % 1 > 0 else 0), len(self) - 1)
             else:
-                start = min(int(ik.start) - (0 if ik.start % 1 > 0 else 1), len(self)-1)
+                start = min(int(ik.start) - (0 if ik.start % 1 > 0 else 1), len(self) - 1)
                 stop = max(int(ik.stop), 0)
             values = [ik.start] + range(start, stop, step) + [ik.stop]
             return [self[i] for i in values]
@@ -168,7 +186,7 @@ class Vectorlist(object):
         return self.__class__(self.data.copy(), self.name)
 
     def get(self, start, stop):
-        start2 = start - start % 1 +1
+        start2 = start - start % 1 + 1
         stop2 = stop - stop % 1
         data = self.data[start2:stop2]
         return np.concatenate([[self[start]], data, [self[stop]]])
@@ -193,46 +211,10 @@ class Vectorlist(object):
         length = length
         return next_value + direction * length * abs(next_value - start) / difference
 
-    def extend2(self, start, length):
-        direction = sign(length)
-        length = abs(length)
-        #print("new array:")
-        #print("length: %s, start: %s, direction: %s, array length: %s" % (length, start, direction, len(self.data)))
-        # TODO: If we should stay in the same cell we increment here:
-        next_value = int(start - start % 1 + (direction > 0))
-        #length -= difference
-
-        while length > 0:
-            #next_value = start + (direction > 0) - start % 1
-            #if start % 1:  # start is not an integer yet
-            #    next_value = int(start - start % 1 + (direction > 0))
-            #else:  # start is an integer
-            #    next_value = start + direction
-            #print("new passtrough:")
-            #clamp it between zero and the last value
-            next_value = max(0, min(len(self.data) - 1, next_value))
-            #the difference between the start and next_value point
-            difference = norm(self[start] - self[next_value])
-            print("length: %s, difference: %s, start: %s, next_value: %s" % (length, difference, start, next_value))
-            if (next_value == 0 and direction < 0) or (next_value == len(self.data) - 1 and direction > 0):
-                # we are on the end of the points, extrapolate the rest
-                #return start + direction * (start-next) * length / difference
-                # Difference = norm(last-forelast)
-                print("break now!, length: %s" % difference)
-                break
-            length -= difference
-            #we may fall out now, set difference right
-            difference /= abs(start - next_value)
-            start = next_value
-            next_value = start + direction
-            #print("end of while: %s" % length)
-        #print("finished while")
-        #print("got difference from: %s and %s" % (next_value, (next_value - direction)))
-        #print("start: %s, direction: %s, length: %s, difference: %s" % (start, direction, length, difference))
-        return start + direction * length / difference
-
     def get_length(self, first=0, second=None):
-        """Get the (normative) Length of a Part of the Vectorlist"""
+        """
+        Get the (normative) Length of a Part of the Vectorlist.
+        """
         if not second:
             second = len(self) - 1
         direction = sign(float(second - first))
@@ -275,25 +257,27 @@ class Vectorlist2D(Vectorlist):
         else:
             raise ValueError("cannot append: ", self.__class__, other.__class__)
 
-    def cut(self, p1, p2, startpoint=0, count_inline_cuts=False):
-        """Cut with two points given, returns (point, position_in_list)"""
+    def cut(self, p1, p2, startpoint=0, break_if_found=True,
+            cut_only_positive=False, cut_only_in_between=False):
+        """
+        Cut with two points given, returns (point, position_in_list, k [*(p2-p1)])
+        """
         startpoint = int(startpoint)
         cutlist = []
-        #
+
         for i in rangefrom(len(self) - 2, startpoint):
             try:
-                thacut = cut(self[i], self[i + 1], p1, p2)
-                # point, i, k
-            # in case we have parallell lines we dont get a result here, so we continue with i raised...
+                thacut = cut(self[i], self[i + 1], p1, p2)  # point, i, k
+                if 0 <= thacut[1] < 1 and \
+                        (not cut_only_positive or thacut[2] >= 0) and \
+                        (not cut_only_in_between or thacut[2] <= 1.):
+                    cutlist.append((thacut[0], i + thacut[1], thacut[2]))
+                    if break_if_found:
+                        return cutlist[0]
             except np.linalg.linalg.LinAlgError:
                 continue
-            if 0 <= thacut[1] <= 1.:  # Good CUT
-                if count_inline_cuts:
-                    if thacut[2] > 0:  #Provisorisch
-                        cutlist.append((thacut[0], i + thacut[1]))
-                else:
-                    return thacut[0], i + thacut[1]
-        if count_inline_cuts:
+
+        if len(cutlist) > 0:
             return cutlist
 
         # Nothing found yet? Shit, so, check start and end of line
@@ -304,7 +288,7 @@ class Vectorlist2D(Vectorlist):
                 cutlist.append([temp[0], temp[1], norm(self[0] - self[1]) * temp[1]])
         except np.linalg.linalg.LinAlgError:
             pass
-            # End
+        # End
         try:
             i = len(self) - 1
             temp = cut(self[i], self[i + 1], p1, p2)
@@ -320,11 +304,13 @@ class Vectorlist2D(Vectorlist):
             return cutlist[0][0:2]
         else:
             #Graphics([Line(self.data), Line([p1,p2])])  # DEBUG
-            raise ArithmeticError("no cuts discovered for p1:"+str(p1)+" p2:"+str(p2)+str(self[0]) +
+            raise ArithmeticError("no cuts discovered for p1:" + str(p1) + " p2:" + str(p2) + str(self[0]) +
                                   str(cut(self[0], self[1], p1, p2)))
 
     def check(self):  # TODO: IMPROVE (len = len(self.data), len-=,...)
-        """Check for mistakes in the array, such as for the moment: self-cuttings,"""
+        """
+        Check for mistakes in the array, such as for the moment: self-cuttings,..
+        """
         for i in range(len(self.data) - 3):
             if i > len(self.data) - 4:
                 break
@@ -340,7 +326,9 @@ class Vectorlist2D(Vectorlist):
 
     @property
     def normvectors(self):
-        """Return Normvectors to the List-Line, heading rhs"""
+        """
+        Return Normvectors to the List-Line, heading rhs
+        """
         if not self._normvectors:
             rotate = lambda x: normalize(x).dot([[0, -1], [1, 0]])
             self._normvectors = [rotate(self.data[1] - self.data[0])]
@@ -360,24 +348,28 @@ class Vectorlist2D(Vectorlist):
             self.data += vector
 
     def add_stuff(self, amount):
-        """Shift the whole line for a given amount (->Sewing allowance)"""
+        """
+        Shift the whole line for a given amount (->Sewing allowance)
+        """
         # cos(vectorangle(a,b)) = (a1 b1+a2 b2)/Sqrt[(a1^2+a2^2) (b1^2+b2^2)]
         newlist = []
         second = self.data[0]
         third = self.data[1]
         newlist.append(second + self.normvectors[0] * amount)
-        for i in range(1, len(self.data)-1):
+        for i in range(1, len(self.data) - 1):
             first = second
             second = third
-            third = self.data[i+1]
+            third = self.data[i + 1]
             d1 = third - second
             d2 = second - first
-            newlist.append(second + self.normvectors[i] * amount / d1.dot(d2) * np.sqrt(d1.dot(d1)*d2.dot(d2)))
-        newlist.append(third + self.normvectors[i+1] * amount)
+            newlist.append(second + self.normvectors[i] * amount / d1.dot(d2) * np.sqrt(d1.dot(d1) * d2.dot(d2)))
+        newlist.append(third + self.normvectors[i + 1] * amount)
         self.data = newlist
 
     def rotate(self, angle, startpoint=None):
-        """Rotate around a (non)given startpoint counter-clockwise"""
+        """
+        Rotate around a (non)given startpoint counter-clockwise
+        """
         # Rotationmatrix_2d: matrix(theta) {{Cos[[Theta]], -Sin[[Theta]]}, {Sin[[Theta]], Cos[[Theta]]}}
         rotation_matrix = rotation_2d(angle)
         new_data = []
@@ -395,6 +387,9 @@ class Polygon2D(Vectorlist2D):
         return self.data[0] == self.data[-1]
 
     def close(self):
+        """
+        Close the endings of the polygon using a cut.
+        """
         try:
             thacut = cut(self.data[0], self.data[1], self.data[-2], self.data[-1])
             if thacut[1] <= 1 and 0 <= thacut[2]:
@@ -402,22 +397,24 @@ class Polygon2D(Vectorlist2D):
                 self.data[-1] = thacut[0]
                 return True
         except ArithmeticError:
-            pass
-        return False
+            return False
 
     @property
     def centerpoint(self):
-        return sum(self.data)/len(self.data)
+        """
+        Return the average point of the polygon.
+        """
+        return sum(self.data) / len(self.data)
 
     def contains_point(self, point):
         """
-        Check if a Polygon contains a point or not
+        Check if a Polygon contains a point or not.
         reference: http://en.wikipedia.org/wiki/Point_in_polygon
-        :returns:  bool
+
+        :returns: boolean
         """
         # using ray-casting-algorithm
-        cuts = self.cut(point, self.centerpoint, count_inline_cuts=True)
-        #print(len(cuts), cuts)
+        cuts = self.cut(point, self.centerpoint, break_if_found=False, cut_only_positive=True)
         return bool(len(cuts) % 2)
         # alternative: winding number
 
