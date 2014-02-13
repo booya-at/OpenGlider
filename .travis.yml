@@ -6,8 +6,8 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq python-scipy python-lxml
 install:
-  - pip2 install -r requires.txt
-script: python2 testall.py
+  - pip install -r requires.txt
+script: python testall.py
 branches:
   only:
     - master
