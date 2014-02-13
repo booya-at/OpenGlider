@@ -2,9 +2,9 @@ language: python
 python:
   - "2.7"
 # command to install dependencies
-before-install:
-  - sudo apt-get install scipy
-  - sudo apt-get install python-lxml
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq scipy python-lxml
 install:
   - pip2 install -r requires.txt
 script: python2 testall.py
