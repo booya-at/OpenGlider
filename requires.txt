@@ -3,4 +3,3 @@ ezodf2
 svgwrite
 numpy
 scipy
-openglider
