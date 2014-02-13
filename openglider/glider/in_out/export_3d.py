@@ -4,7 +4,7 @@ __author__ = 'simon'
 from openglider.Vector import normalize, norm
 import numpy
 from dxfwrite import DXFEngine as dxf
-from openglider.Graphics import Graphics3D, Line
+#from openglider.Graphics import Graphics3D, Line
 
 
 def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6):
