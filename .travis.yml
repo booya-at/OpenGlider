@@ -3,7 +3,7 @@ python:
   - "2.7"
 # command to install dependencies
 install:
-  - pip2 install -r requirements.txt
+  - pip2 install -r requires.txt
 script: python2 testall.py
 branches:
   only:
