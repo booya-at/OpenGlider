@@ -47,9 +47,9 @@ Development Progress
 
 While still being in an early status, here is some little screenshots to see the progress:
 
-![screenshot testcell with miniribs](doc/screen.png)
-![screenshot demokite with central minirib](doc/screen2.png)
-![screenshot demokite plots](doc/screen3.png)
+![screenshot testcell with miniribs](docs/screen.png)
+![screenshot demokite with central minirib](docs/screen2.png)
+![screenshot demokite plots](docs/screen3.png)
 
 The plan is to build on:
 
