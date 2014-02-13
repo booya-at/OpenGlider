@@ -13,7 +13,3 @@ script: python testall.py
 branches:
   only:
     - master
-notifications:
-  email:
-    recipients:
-      - simon@booya.at
