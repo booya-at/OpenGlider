@@ -1,3 +1,6 @@
 dxfwrite
 ezodf2
 svgwrite
+numpy
+scipy
+openglider
