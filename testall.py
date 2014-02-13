@@ -32,6 +32,6 @@ for i in range(int(args.num)):
     print(">>> Errors: " + str(test_results.errors))
     print(">>> Failures: " + str(test_results.failures))
 
-print("return: "+str(test_results.wasSuccessful()))
+print("return: "+str(not test_results.wasSuccessful()))
 sys.exit(not test_results.wasSuccessful())
 
