@@ -3,3 +3,4 @@ ezodf2
 svgwrite
 numpy
 scipy
+python>=2.7

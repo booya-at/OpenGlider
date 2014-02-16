@@ -38,14 +38,12 @@ class Rib(object):
 
         #self.ReCalc()
 
-    def align(self, points):
-        #ptype = arrtype(points)
-        #if ptype == 1:
-        #    return self.pos + self.rotation_matrix.dot([points[0] * self.chord, points[1] * self.chord, 0])
-        #if ptype == 2 or ptype == 4:
-        #    return numpy.array([self.align(i) for i in points])
-        #if ptype == 3:
-        return self.pos + self.rotation_matrix.dot(points) * self.chord
+    def align(self, point):
+        if len(point) == 2:
+            return self.align([point[0], point[1], 0])
+        elif len(point) == 3:
+            return self.pos + self.rotation_matrix.dot(point) * self.chord
+        raise ValueError("Can only Align one single 2D or 3D-Point")
 
     def _setaoa(self, aoa):
         try:
@@ -69,7 +67,7 @@ class Rib(object):
         zrot = numpy.arctan(self.arcang) / self.glide * self.zrot
 
         self.rotation_matrix = rotation_rib(self.aoa[1], self.arcang, zrot)
-        self.profile_3d = Profile3D([self.align([point[0], point[1], 0]) for point in self.profile_2d.data])
+        self.profile_3d = Profile3D(map(self.align, self.profile_2d.data))  # TODO: CHECKKKKKK
         self._normvectors = None
         # normvectors 2d->3d->rotated
 
