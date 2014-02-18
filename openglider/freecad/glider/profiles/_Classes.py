@@ -277,7 +277,7 @@ class ViewProvidermoveableLine():
         return modes
 
 
-from openglider.Utils import Bezier
+from openglider.Utils import bezier
 
 
 class moveableSpline():
@@ -328,7 +328,7 @@ class moveableSpline():
 class ViewProvidermoveableSpline():
     def __init__(self, obj):
         self.object = obj.Object
-        self.bezier = Bezier.BezierCurve([[0, 1], [2, 3], [3, 0]])
+        self.bezier = bezier.BezierCurve([[0, 1], [2, 3], [3, 0]])
         obj.Proxy = self
 
     def claimChildren(self):

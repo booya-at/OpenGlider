@@ -25,7 +25,7 @@ import sys
 import os
 import Graphics as G
 from Profile import Profile2D
-from Utils.Bezier import BezierCurve
+from Utils.bezier import BezierCurve
 import numpy as np
 
 #clear the terminal

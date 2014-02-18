@@ -20,6 +20,7 @@
 import os
 import random
 import sys
+from openglider.plots import flattened_cell
 
 try:
     import openglider
@@ -40,7 +41,7 @@ class TestGlider_Flatten(GliderTestClass):
 
     def get_flattened_cell(self, allowance=0.02):
         cell = self.glider.cells[random.randint(0, len(self.glider.cells)-1)]
-        left, right = openglider.glider.plots.flattened_cell(cell)
+        left, right = flattened_cell(cell)
         left_out = left.copy()
         right_out = right.copy()
         left_out.add_stuff(-allowance)

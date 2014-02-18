@@ -4,6 +4,7 @@ from openglider.Profile import Profile3D
 from openglider.glider.ballooning import arsinc
 from openglider.Vector import norm, normalize
 from openglider.glider.ribs import Rib
+from openglider.Utils.cached_property import cached_property
 
 __author__ = 'simon'
 
@@ -60,7 +61,7 @@ class BasicCell(object):
         self._radius = None
         self._calcballooning()
 
-    @property
+    @cached_property('rib1._aoa')  #todo: fix depends (miniribs)
     def normvectors(self, j=None):
         if not self._normvectors:
             prof1 = self.prof1.data
@@ -75,6 +76,8 @@ class BasicCell(object):
             return self._normvectors[j]
         else:
             return self._normvectors
+
+    # TODO: cached property radius, cosphi
 
     def _calcballooning(self):
         if not self._cosphi and not self._radius:  # See sketches in Doc; cosphi and cake-Radius

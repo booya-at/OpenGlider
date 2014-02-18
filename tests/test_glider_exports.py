@@ -20,6 +20,7 @@
 import unittest
 import sys
 import os
+from openglider.plots import flatten_glider
 
 try:
     import openglider
@@ -61,7 +62,7 @@ class TestGlider(unittest.TestCase):
     def test_export_plots(self):
         path = '/tmp/plots.dxf'
         self.glider.recalc()
-        openglider.glider.plots.flatten_glider(self.glider, path)
+        flatten_glider(self.glider, path)
 
 
 if __name__ == '__main__':

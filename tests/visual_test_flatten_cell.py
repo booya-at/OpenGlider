@@ -21,6 +21,7 @@
 import math
 import sys
 import os
+from openglider.plots import flattened_cell, cut_1, cut_2
 
 try:
     import openglider
@@ -55,7 +56,7 @@ ding = [numpy.array([0, 0]), numpy.array([1., 0])]
 #[numpy.array([0,0]),numpy.array([1,0])
 
 cell = Cell(r1, r2)
-left2, right2 = openglider.glider.plots.flattened_cell(cell)
+left2, right2 = flattened_cell(cell)
 left_out = left2.copy()
 left_out.add_stuff(-0.02)
 right_out = right2.copy()
@@ -69,9 +70,9 @@ openglider.Graphics.Graphics2D([openglider.Graphics.Line(left.data), openglider.
 
 
 ################CUTS
-outlist, leftcut, rightcut = openglider.glider.plots.cut_2([[left2,0], [right2,0]], left_out, right_out, -0.02)
+outlist, leftcut, rightcut = cut_2([[left2,0], [right2,0]], left_out, right_out, -0.02)
 end = 150
-outlist2, leftcut2, rightcut2 = openglider.glider.plots.cut_1([[left2, end], [right2, end]], left_out, right_out, 0.02)
+outlist2, leftcut2, rightcut2 = cut_1([[left2, end], [right2, end]], left_out, right_out, 0.02)
 
 openglider.Graphics.Graphics2D([openglider.Graphics.Line(left2.data[0:end]),
                                 openglider.Graphics.Line(right2.data[0:end]),

@@ -53,7 +53,7 @@ class TestGlider(GliderTestClass):
     def test_show_shape(self):
         self.glider = self.glider.copy_complete()
         self.glider.recalc()
-        left, right = self.glider.shape()
+        left, right = self.glider.shape
         left.rotate(math.pi/2)
         right.rotate(math.pi/2, [0, 0])
         data = [left.data,

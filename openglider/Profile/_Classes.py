@@ -214,6 +214,7 @@ class Profile2D(BasicProfile2D):
                           mean_camber - thickness_this * costheta])
         self.__init__(upper + lower[1:][::-1], name="NACA_"+str(naca))
 
+    #todo: cached
     @property
     def x_values(self):
         """Get XValues of Profile. upper side neg, lower positive"""
@@ -237,6 +238,7 @@ class Profile2D(BasicProfile2D):
         xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 - math.sin(math.pi * x))
         self.x_values = [xtemp(j * 1. / i) for j in range(i + 1)]
 
+    #todo: cached
     @property
     def thickness(self):
         """with no arg the max thick is returned"""

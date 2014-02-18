@@ -1,18 +1,35 @@
 from openglider import Profile2D
 from openglider.Utils.marks import polygon
-from openglider.Vector import cut
+from openglider.Vector import cut, Vectorlist2D
 
 
 class RigidFoil(object):
-    def __init__(self):
-        pass
+    def __init__(self, rib_no, start=-0.1, end=0.1, distance=0.005):
+        self.rib_no = rib_no
+        self.start = start
+        self.end = end
+        self.func = lambda x: distance
 
     def get_3d(self, glider):
         ######NEEDED??
         pass
 
-    def get_flattened(self, glider, ribs_2d):
-        pass
+    def get_length(self, glider):
+        flat = self.get_flattened(glider=glider)
+        flat = Vectorlist2D(flat)
+        flat.check()
+        return flat.get_length()
+
+    def get_flattened(self, glider):
+        profile = glider.ribs[self.rib_no].profile_2d
+        normvectors = Vectorlist2D(profile.normvectors)
+        __, start = profile.profilepoint(self.start)
+        __, end = profile.profilepoint(self.end)
+
+        list_1 = profile.data.get(start, end)
+        list_2 = normvectors.get(start, end)
+
+        return [list_1[i] + self.func(list_1[i]) * list_2[i] for i in range(len(list_1))]
 
 
 class GibusArcs(object):
@@ -21,6 +38,7 @@ class GibusArcs(object):
         self.rib_no = rib_no
         self.pos = position
         self.size = size
+        self.size_abs = False
 
     def get_3d(self, glider, num_points=10):
         # create circle with center on the point
@@ -32,13 +50,13 @@ class GibusArcs(object):
         # get center point
         profile = glider.ribs[self.rib_no].profile_2d
         start, point_1 = profile.profilepoint(self.pos)
-        point_2 = profile.profilepoint(self.pos+self.size)[1]
+        if self.size_abs:
+            point_2 = point_1 + [self.size, 0]
+        else:
+            __, point_2 = profile.profilepoint(self.pos+self.size)
 
         gib_arc = [[], []]  # first, second
         circle = polygon(point_1, point_2, num=num_points, is_center=True)[0]
-
-
-        # Rotation-Offset so it starts outside
         second = False
         for i in range(len(circle)):
             #print(profile.contains_point(circle[i]))
@@ -46,20 +64,15 @@ class GibusArcs(object):
                     (i < len(circle) - 1 and profile.contains_point(circle[i+1])) or \
                     (i > 1 and profile.contains_point(circle[i-1])):
                 gib_arc[second].append(circle[i])
-                #print("Ok")
-                #pass
             else:
-                #print("no")
                 second = True
         # Cut first and last
         gib_arc = gib_arc[1] + gib_arc[0]  # [secondlist] + [firstlist]
-        gib_arc[0], start = profile.cut(gib_arc[0], gib_arc[1], start)
-        gib_arc[-1], stop = profile.cut(gib_arc[-2], gib_arc[-1], start)
+        gib_arc[0], start2, __ = profile.cut(gib_arc[0], gib_arc[1], start)
+        gib_arc[-1], stop, __ = profile.cut(gib_arc[-2], gib_arc[-1], start)
         # Append Profile_List
-        gib_arc += profile.get(start, stop).tolist()
+        gib_arc += profile.get(start2, stop).tolist()
 
-        # insert into ribs
-        #return circle
         return gib_arc
 
 
@@ -80,7 +93,6 @@ class RibHole(object):
         p1 = rib.profile_2d.profilepoint(self.pos)[1]
         p2 = rib.profile_2d.profilepoint(-self.pos)[1]
         return polygon(p1, p2, num=num, size=self.size, is_center=False)[0]
-
 
 
 class Mylar(object):

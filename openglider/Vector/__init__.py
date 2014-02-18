@@ -268,14 +268,15 @@ class Vectorlist2D(Vectorlist):
         for i in rangefrom(len(self) - 2, startpoint):
             try:
                 thacut = cut(self[i], self[i + 1], p1, p2)  # point, i, k
-                if 0 <= thacut[1] < 1 and \
-                        (not cut_only_positive or thacut[2] >= 0) and \
-                        (not cut_only_in_between or thacut[2] <= 1.):
-                    cutlist.append((thacut[0], i + thacut[1], thacut[2]))
-                    if break_if_found:
-                        return cutlist[0]
             except np.linalg.linalg.LinAlgError:
                 continue
+            if 0 <= thacut[1] < 1 and \
+                    (not cut_only_positive or thacut[2] >= 0) and \
+                    (not cut_only_in_between or thacut[2] <= 1.):
+                cutlist.append((thacut[0], i + thacut[1], thacut[2]))
+                if break_if_found:
+                    return cutlist[0]
+
 
         if len(cutlist) > 0:
             return cutlist
@@ -324,6 +325,7 @@ class Vectorlist2D(Vectorlist):
                 except np.linalg.linalg.LinAlgError:
                     continue
 
+    # TODO: @cached-property -> add posibility to hash lists//numpy-array
     @property
     def normvectors(self):
         """
@@ -399,6 +401,7 @@ class Polygon2D(Vectorlist2D):
         except ArithmeticError:
             return False
 
+    #TODO: @cached-property
     @property
     def centerpoint(self):
         """

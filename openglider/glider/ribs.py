@@ -2,8 +2,9 @@ import math
 import numpy
 from openglider import Profile2D
 from openglider.Profile import Profile3D
+from openglider.Utils.cached_property import cached_property
 from openglider.glider.ballooning import BallooningBezier
-from openglider.Utils.Bezier import BezierCurve
+from openglider.Utils.bezier import BezierCurve
 from openglider.Vector import rotation_3d
 
 __author__ = 'simon'
@@ -13,6 +14,7 @@ class Rib(object):
     """Openglider Rib Class: contains a profile, needs a startpoint, angle (arcwide), angle of attack,
         glide-wide rotation and glider ratio.
         optional: name, absolute aoa (bool), startposition"""
+    hashlist = ('_aoa', 'glide', 'arcang', 'zrot', 'chord')  # pos
 
     def __init__(self, profile=Profile2D(), ballooning=BallooningBezier(), startpoint=numpy.array([0, 0, 0]), size=1.,
                  arcang=0, aoa=0, zrot=0,
@@ -31,11 +33,10 @@ class Rib(object):
         self.zrot = zrot
         self.pos = startpoint
         self.chord = size
-        self.profile_3d = None
-        self.rotation_matrix = None
+        #self.profile_3d = None
+        #self.rotation_matrix = None
         self._normvectors = None
         #self.profile_3d = Profile3D()
-
         #self.ReCalc()
 
     def align(self, point):
@@ -54,9 +55,22 @@ class Rib(object):
     def _getaoa(self):
         return dict(zip(["rel", "abs"], self.aoa))  # return in form: ("rel":aoarel,"abs":aoa)
 
+    @property
     def normvectors(self):
-        if not self._normvectors:
-            self._normvectors = map(lambda x: self.rotation_matrix.dot([x[0], x[1], 0]), self.profile_2d.normvectors)
+        return map(lambda x: self.rotation_matrix.dot([x[0], x[1], 0]), self.profile_2d.normvectors)
+
+    @cached_property('arcang', 'glide', 'zrot', '_aoa')
+    def rotation_matrix(self):
+        zrot = numpy.arctan(self.arcang) / self.glide * self.zrot
+        return rotation_rib(self.aoa[1], self.arcang, zrot)
+
+    @cached_property(*hashlist)
+    #@property
+    def profile_3d(self):
+        if not self.profile_2d.data is None:
+            return Profile3D(map(self.align, self.profile_2d.data))
+        else:
+            return []
 
     def recalc(self):
         ##Formula for aoa rel/abs: ArcTan[Cos[alpha]/gleitzahl]-aoa[rad];
@@ -64,10 +78,7 @@ class Rib(object):
         self.aoa[self._aoa[1]] = self._aoa[0]  # self.aoa: (relative, absolute)
         self.aoa[1 - self._aoa[1]] = -diff + self._aoa[0]  # self._aoa: (value, bool: isabsolute)
         # zrot -> ArcTan[Sin[alpha]/gleitzahl]*excel[[i,7]] (relative 1->aligned to airflow)
-        zrot = numpy.arctan(self.arcang) / self.glide * self.zrot
 
-        self.rotation_matrix = rotation_rib(self.aoa[1], self.arcang, zrot)
-        self.profile_3d = Profile3D(map(self.align, self.profile_2d.data))  # TODO: CHECKKKKKK
         self._normvectors = None
         # normvectors 2d->3d->rotated
 

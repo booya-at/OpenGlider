@@ -180,8 +180,6 @@ class Axes(GraphicObject):
         graphics.renderer.AddActor(axes)
 
 
-
-
 class Graphics(object):
     """Creates a GraphicsObject"""
 
