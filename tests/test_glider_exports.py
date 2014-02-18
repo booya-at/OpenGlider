@@ -27,7 +27,7 @@ try:
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 from openglider import glider
-import openglider.glider.plots
+from openglider.plots import flatten_glider
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
 
