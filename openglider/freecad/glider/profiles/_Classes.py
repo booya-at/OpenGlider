@@ -1,6 +1,6 @@
 import FreeCAD
 import FreeCADGui
-from openglider.Profile import Profile2D
+from openglider.airfoil import Profile2D
 from pivy import coin
 import PartGui
 import numpy
@@ -14,16 +14,16 @@ class Airfoil(object):
         self.prof.compute_naca(2422, numpoints=120)
 
         obj.addProperty("App::PropertyInteger", "Numpoints",
-                        "profile", "Number of points").Numpoints = self.prof.numpoints
-        obj.addProperty("App::PropertyFloat", "Thickness", "profile",
-                        "Thickness of Profile").Thickness = self.prof.thickness * 1000
-        #obj.addProperty("App::PropertyFloat", "Camber", "profile", "Camber of Profile").Camber = max(self.prof.Camber[:,1]) * 1000
+                        "airfoil", "Number of points").Numpoints = self.prof.numpoints
+        obj.addProperty("App::PropertyFloat", "Thickness", "airfoil",
+                        "Thickness of airfoil").Thickness = self.prof.thickness * 1000
+        #obj.addProperty("App::PropertyFloat", "Camber", "airfoil", "Camber of airfoil").Camber = max(self.prof.Camber[:,1]) * 1000
         obj.addProperty("App::PropertyString", "Name",
-                        "profile", "Name of profile").Name = self.prof.name
+                        "airfoil", "Name of airfoil").Name = self.prof.name
         obj.addProperty(
-            "App::PropertyVectorList", "coords", "profile", "profilcoords")
+            "App::PropertyVectorList", "coords", "airfoil", "profilcoords")
         obj.addProperty("App::PropertyPath", "FilePath",
-                        "profile", "Name of profile").FilePath = ""
+                        "airfoil", "Name of airfoil").FilePath = ""
         obj.Proxy = self
 
     def execute(self, fp):
@@ -47,10 +47,10 @@ class Airfoil(object):
             self.updateview(fp)
             pass
         #     self.prof.Numpoints = fp.Numpoints
-        #     fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
+        #     fp.coords = map(lambda x: FreeCAD.vector(x[0], x[1], 0.), self.prof.airfoil)
         # elif prop == "Camber":
         #     self.prof.Camber = fp.Camber /1000.
-        #     fp.coords = map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.Profile)
+        #     fp.coords = map(lambda x: FreeCAD.vector(x[0], x[1], 0.), self.prof.airfoil)
 
     def profilepoints(self):
         return map(lambda x: FreeCAD.Vector(x[0], x[1], 0.), self.prof.data)
@@ -277,7 +277,7 @@ class ViewProvidermoveableLine():
         return modes
 
 
-from openglider.Utils import bezier
+from openglider.utils import bezier
 
 
 class moveableSpline():

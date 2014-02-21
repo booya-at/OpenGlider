@@ -1,10 +1,10 @@
 import math
 
 __author__ = 'simon'
-from openglider.Vector import normalize, norm
+from openglider.vector import normalize, norm
 import numpy
 from dxfwrite import DXFEngine as dxf
-#from openglider.Graphics import Graphics3D, Line
+#from openglider.graphics import Graphics3D, Line
 
 
 def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6):

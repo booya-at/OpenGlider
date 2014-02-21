@@ -1,5 +1,5 @@
 import math
-from openglider.Vector import rotation_2d
+from openglider.vector import rotation_2d
 
 sign_size = 0.8
 
@@ -32,5 +32,7 @@ def line(p1, p2, rotation=False):
 
 def cross(p1, p2, rotation=False):
     return line(p1, p2, rotation=rotation) + line(p1, p2, rotation=rotation+math.pi/2)
+
+
 
 

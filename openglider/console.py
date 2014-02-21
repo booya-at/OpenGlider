@@ -23,9 +23,9 @@
 
 import sys
 import os
-import Graphics as G
-from Profile import Profile2D
-from Utils.bezier import BezierCurve
+import graphics as G
+from airfoil import Profile2D
+from utils.bezier import BezierCurve
 import numpy as np
 
 #clear the terminal
@@ -62,5 +62,5 @@ else:
     import rlcompleter
 readline.parse_and_bind("tab: complete")
 
-print('imported: numpy:np, Graphics:G, Profile:Profile2D ProfilIndt:b Utils:BezierCurve')
+print('imported: numpy:np, graphics:G, airfoil:Profile2D ProfilIndt:b utils:BezierCurve')
 

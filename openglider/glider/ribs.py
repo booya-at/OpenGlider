@@ -1,17 +1,17 @@
 import math
 import numpy
 from openglider import Profile2D
-from openglider.Profile import Profile3D
-from openglider.Utils.cached_property import cached_property
+from openglider.airfoil import Profile3D
+from openglider.utils.cached_property import cached_property
 from openglider.glider.ballooning import BallooningBezier
-from openglider.Utils.bezier import BezierCurve
-from openglider.Vector import rotation_3d
+from openglider.utils.bezier import BezierCurve
+from openglider.vector import rotation_3d
 
 __author__ = 'simon'
 
 
 class Rib(object):
-    """Openglider Rib Class: contains a profile, needs a startpoint, angle (arcwide), angle of attack,
+    """Openglider Rib Class: contains a airfoil, needs a startpoint, angle (arcwide), angle of attack,
         glide-wide rotation and glider ratio.
         optional: name, absolute aoa (bool), startposition"""
     hashlist = ('_aoa', 'glide', 'arcang', 'zrot', 'chord')  # pos

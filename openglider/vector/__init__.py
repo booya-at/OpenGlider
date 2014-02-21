@@ -19,8 +19,8 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
-#from openglider.Graphics import Graphics, Line  # DEBUG
-from openglider.Utils import sign
+#from openglider.graphics import graphics, Line  # DEBUG
+from openglider.utils import sign
 
 
 def depth(arg):
@@ -93,10 +93,12 @@ def rangefrom(maxl, startpoint=0):
         j += 1
 
 
-def rotation_3d(angle, axis=[1, 0, 0]):
+def rotation_3d(angle, axis=None):
     """
     3D-Rotation Matrix for (angle[rad],[axis(x,y,z)])
     """
+    if axis is None:
+        axis = [1, 0, 0]
     # see http://en.wikipedia.org/wiki/SO%284%29#The_Euler.E2.80.93Rodrigues_formula_for_3D_rotations"""
     a = np.cos(angle / 2)
     (b, c, d) = -normalize(axis) * np.sin(angle / 2)
@@ -136,7 +138,7 @@ class Vectorlist(object):
         #if arrtype(data) == 2 or arrtype(data) == 4:
         self._data = None
         self.data = data
-        try:
+        try: # TODO: whats that?
             if name or not self.name:
                 raise AttributeError
         except AttributeError:
@@ -304,7 +306,7 @@ class Vectorlist2D(Vectorlist):
             #print(cutlist[0])
             return cutlist[0][0:2]
         else:
-            #Graphics([Line(self.data), Line([p1,p2])])  # DEBUG
+            #graphics([Line(self.data), Line([p1,p2])])  # DEBUG
             raise ArithmeticError("no cuts discovered for p1:" + str(p1) + " p2:" + str(p2) + str(self[0]) +
                                   str(cut(self[0], self[1], p1, p2)))
 

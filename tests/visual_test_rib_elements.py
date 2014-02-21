@@ -10,7 +10,7 @@ except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
     import openglider
 from openglider.glider.rib_elements import RibHole, RigidFoil, GibusArcs, Mylar
-import openglider.Graphics as Graph
+import openglider.graphics as Graph
 
 
 class TestRibElements(GliderTestClass):

@@ -1,6 +1,25 @@
-from openglider import Profile2D
-from openglider.Utils.marks import polygon
-from openglider.Vector import cut, Vectorlist2D
+#! /usr/bin/python2
+# -*- coding: utf-8; -*-
+#
+# (c) 2013 booya (http://booya.at)
+#
+# This file is part of the OpenGlider project.
+#
+# OpenGlider is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# OpenGlider is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
+#from openglider import Profile2D
+from openglider.utils.marks import polygon
+from openglider.vector import cut, Vectorlist2D
 
 
 class RigidFoil(object):
@@ -53,16 +72,16 @@ class GibusArcs(object):
         if self.size_abs:
             point_2 = point_1 + [self.size, 0]
         else:
-            __, point_2 = profile.profilepoint(self.pos+self.size)
+            __, point_2 = profile.profilepoint(self.pos + self.size)
 
         gib_arc = [[], []]  # first, second
         circle = polygon(point_1, point_2, num=num_points, is_center=True)[0]
         second = False
         for i in range(len(circle)):
-            #print(profile.contains_point(circle[i]))
-            if profile.contains_point(circle[i]) or\
-                    (i < len(circle) - 1 and profile.contains_point(circle[i+1])) or \
-                    (i > 1 and profile.contains_point(circle[i-1])):
+            #print(airfoil.contains_point(circle[i]))
+            if profile.contains_point(circle[i]) or \
+                    (i < len(circle) - 1 and profile.contains_point(circle[i + 1])) or \
+                    (i > 1 and profile.contains_point(circle[i - 1])):
                 gib_arc[second].append(circle[i])
             else:
                 second = True

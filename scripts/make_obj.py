@@ -3,9 +3,8 @@ import sys
 import os
 import math
 import numpy
-import openglider.Ribs
 from openglider.glider import Glider
-from openglider.Vector import normalize
+from openglider.vector import normalize
 
 if len(sys.argv) >= 4:
     inputfile = os.path.abspath(sys.argv[1])

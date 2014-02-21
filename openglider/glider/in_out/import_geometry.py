@@ -24,7 +24,7 @@ from openglider.glider.ribs import Rib
 __author__ = 'simon'
 import ezodf2 as ezodf
 from openglider.glider.ballooning import BallooningBezier
-from openglider.Profile import Profile2D
+from openglider.airfoil import Profile2D
 #from openglider.glider import Glider
 import numpy
 
@@ -34,7 +34,7 @@ def import_ods(filename, glider=None):
     sheets = ods.sheets
     # Profiles -> map xvalues
     profiles = [Profile2D(profile) for profile in transpose_columns(sheets[3])]
-    xvalues = sorted(profiles, key=lambda prof: prof.numpoints)[0].x_values  # Use Profile with maximum profilepoints
+    xvalues = sorted(profiles, key=lambda prof: prof.numpoints)[0].x_values  # Use airfoil with maximum profilepoints
     for profile in profiles:
         profile.x_values = xvalues
         # Ballooning old : 1-8 > upper (prepend/append (0,0),(1,0)), 9-16 > lower (same + * (1,-1))

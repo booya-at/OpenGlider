@@ -33,9 +33,6 @@ testfolder = os.path.dirname(os.path.abspath(__file__))
 
 
 class TestGlider(unittest.TestCase):
-    #def __init__(self):
-    #    unittest.TestCase.__init__(self)
-
     def setUp(self):
         self.glider = glider.Glider()
         self.glider.import_geometry(testfolder + '/demokite.ods')

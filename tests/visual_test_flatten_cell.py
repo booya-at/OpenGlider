@@ -21,16 +21,18 @@
 import math
 import sys
 import os
+
 from openglider.plots import flattened_cell, cut_1, cut_2
+
 
 try:
     import openglider
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
-import openglider.Graphics
-import openglider.Profile
+import openglider.graphics
+import openglider.airfoil
 from openglider.glider.ballooning import BallooningBezier
-from openglider.Vector.projection import flatten_list
+from openglider.plots.projection import flatten_list
 import openglider.glider.plots
 from openglider.glider.cells import Cell
 from openglider.glider.ribs import Rib
@@ -38,7 +40,7 @@ import numpy
 __author__ = 'simon'
 
 
-prof = openglider.Profile.Profile2D()
+prof = openglider.airfoil.Profile2D()
 prof.importdat(os.path.dirname(os.path.abspath(__file__)) + "/testprofile.dat")
 
 ballooning = BallooningBezier()
@@ -63,10 +65,10 @@ right_out = right2.copy()
 right_out.add_stuff(0.02)
 
 
-openglider.Graphics.Graphics2D([openglider.Graphics.Line(left.data), openglider.Graphics.Line(right.data),
-                                openglider.Graphics.Line(left2.data), openglider.Graphics.Line(right2.data),
-                                openglider.Graphics.Line(left_out.data),
-                                openglider.Graphics.Line(right_out.data)])
+openglider.graphics.Graphics2D([openglider.graphics.Line(left.data), openglider.graphics.Line(right.data),
+                                openglider.graphics.Line(left2.data), openglider.graphics.Line(right2.data),
+                                openglider.graphics.Line(left_out.data),
+                                openglider.graphics.Line(right_out.data)])
 
 
 ################CUTS
@@ -74,14 +76,14 @@ outlist, leftcut, rightcut = cut_2([[left2,0], [right2,0]], left_out, right_out,
 end = 150
 outlist2, leftcut2, rightcut2 = cut_1([[left2, end], [right2, end]], left_out, right_out, 0.02)
 
-openglider.Graphics.Graphics2D([openglider.Graphics.Line(left2.data[0:end]),
-                                openglider.Graphics.Line(right2.data[0:end]),
-                                openglider.Graphics.Line(left_out[leftcut:leftcut2]),
-                                openglider.Graphics.Line(outlist),
-                                openglider.Graphics.Line(right_out[rightcut:rightcut2]),
-                                openglider.Graphics.Line(outlist2)])
+openglider.graphics.Graphics2D([openglider.graphics.Line(left2.data[0:end]),
+                                openglider.graphics.Line(right2.data[0:end]),
+                                openglider.graphics.Line(left_out[leftcut:leftcut2]),
+                                openglider.graphics.Line(outlist),
+                                openglider.graphics.Line(right_out[rightcut:rightcut2]),
+                                openglider.graphics.Line(outlist2)])
 
 
 
 #right.rotate(2., right[0])
-#openglider.Graphics.Graphics2D([openglider.Graphics.Line(left.data), openglider.Graphics.Line(right.data)])
+#openglider.graphics.Graphics2D([openglider.graphics.Line(left.data), openglider.graphics.Line(right.data)])

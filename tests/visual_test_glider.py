@@ -27,7 +27,7 @@ try:
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
     import openglider
-import openglider.Graphics
+import openglider.graphics
 import unittest
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
@@ -46,9 +46,9 @@ class TestGlider(GliderTestClass):
         thaglider = self.glider.copy_complete()
         thaglider.recalc()
         polygons, points = thaglider.return_polygons(num)
-        objects = [openglider.Graphics.Polygon(polygon) for polygon in polygons]
-        objects.append(openglider.Graphics.Axes(size=1.2))
-        openglider.Graphics.Graphics3D(objects, points)
+        objects = [openglider.graphics.Polygon(polygon) for polygon in polygons]
+        objects.append(openglider.graphics.Axes(size=1.2))
+        openglider.graphics.Graphics3D(objects, points)
 
     def test_show_shape(self):
         self.glider = self.glider.copy_complete()
@@ -59,7 +59,7 @@ class TestGlider(GliderTestClass):
         data = [left.data,
                 right.data]
         data += [[left.data[i], right.data[i]] for i in range(len(left.data))]
-        openglider.Graphics.Graphics2D([openglider.Graphics.Line(obj) for obj in data])
+        openglider.graphics.Graphics2D([openglider.graphics.Line(obj) for obj in data])
 
     @unittest.skip("skipped")
     def test_midrib_projection(self):
@@ -73,11 +73,11 @@ class TestGlider(GliderTestClass):
                      [prof.data[0], prof.data[0]+prof.xvect],
                      [prof.data[0], prof.data[0]+prof.yvect]]
 
-        openglider.Graphics.Graphics([openglider.Graphics.Line(obj) for obj in data])
+        openglider.graphics.Graphics([openglider.graphics.Line(obj) for obj in data])
 
     def test_midrib_flattened(self):
         num = 2
         cell = self.glider.cells[random.randint(0, len(self.glider.cells)-1)]
         profs = [cell.rib1.profile_2d.data]
         profs += [cell.midrib(random.random()).flatten().data + [0, (i+1)*0.] for i in range(num)]
-        openglider.Graphics.Graphics2D([openglider.Graphics.Line(prof) for prof in profs])
+        openglider.graphics.Graphics2D([openglider.graphics.Line(prof) for prof in profs])

@@ -23,7 +23,7 @@ import numpy as np
 from scipy.misc import comb
 import scipy.interpolate
 from scipy.optimize import bisect as findroot
-
+__all__ = ['BezierCurve']
 
 class BezierCurve(object):
     def __init__(self, points=None):

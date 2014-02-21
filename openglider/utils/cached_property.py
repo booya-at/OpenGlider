@@ -5,41 +5,36 @@ config = {"caching": True}
 
 
 def cached_property(*hashlist):
-    class cache(property):
+    #@functools.wraps
+    class CachedProperty(property):
         def __init__(self, fget=None):
             self.function = fget
-            #if isinstance(hashlist, tuple):
-            #    self.hashlist = hashlist
-            #else:
-            #    self.hashlist = (hashlist,)
             self.hashlist = hashlist
             self.cache = None
             self.thahash = None
 
         def __get__(self, parentclass, type=None):
-            value = 0
-            for element in self.hashlist:
-                el = rec_getattr(parentclass, element)
-                try:
-                    value += hash(el)
-                except TypeError:  # Lists
-                    value += hash(frozenset(el))
-
             if not config["caching"]:
                 return self.function(parentclass)
-            elif not self.cache is None and value == self.thahash:
-                return self.cache
             else:
-                self.thahash = value
-                res = self.function(parentclass)
-                self.cache = res
-                return res
+                # Hash arguments
+                value = 0
+                for element in self.hashlist:
+                    el = rec_getattr(parentclass, element)
+                    try:
+                        value += hash(el)
+                    except TypeError:  # Lists
+                        value += hash(frozenset(el))
+                # Return cached or recalc if hashes differ
+                if not self.cache is None and value == self.thahash:
+                    return self.cache
+                else:
+                    self.thahash = value
+                    res = self.function(parentclass)
+                    self.cache = res
+                    return res
 
-        def reset(self, name):
-            print("joj")
-            self.cache = None
-
-    return cache
+    return CachedProperty
 
 
 def rec_getattr(obj, attr):
@@ -59,6 +54,10 @@ class test(object):
     def neu(self):
         print("tuwas")
         return self.num
+
+    #@neu.reset
+    #def reset(self):
+    #    pass
 
 
 

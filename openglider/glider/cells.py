@@ -1,12 +1,11 @@
 import math
 import numpy
-from openglider.Profile import Profile3D
+from openglider.airfoil import Profile3D
 from openglider.glider.ballooning import arsinc
-from openglider.Vector import norm, normalize
+from openglider.vector import norm, normalize
 from openglider.glider.ribs import Rib
-from openglider.Utils.cached_property import cached_property
+from openglider.utils.cached_property import cached_property
 
-__author__ = 'simon'
 
 
 class BasicCell(object):
@@ -36,11 +35,11 @@ class BasicCell(object):
                 self._calcballooning()
 
             for i in range(len(self.prof1.data)):  # Arc -> phi(bal) -> r  # oder so...
-                diff = self.prof1[i]-self.prof2[i]
+                diff = self.prof1[i] - self.prof2[i]
                 if ballooning and self._radius[i] > 0.:
                     if arc_argument:
-                        d = 0.5-math.sin(self._phi[i] * (0.5-y)) / math.sin(self._phi[i])
-                        h = math.cos(self._phi[i] * (1-2*y)) - self._cosphi[i]
+                        d = 0.5 - math.sin(self._phi[i] * (0.5 - y)) / math.sin(self._phi[i])
+                        h = math.cos(self._phi[i] * (1 - 2 * y)) - self._cosphi[i]
                         #h = math.sqrt(1 - (norm(diff) * (0.5 - d) / self._radius[i]) ** 2)
                         #h -= self._cosphi[i]  # cosphi2-cosphi
                     else:
@@ -50,7 +49,7 @@ class BasicCell(object):
                 else:  # Without ballooning
                     d = y
                     h = 0.
-                midrib.append(self.prof1[i] - diff*d + self.normvectors[i]*h*self._radius[i])
+                midrib.append(self.prof1[i] - diff * d + self.normvectors[i] * h * self._radius[i])
 
             return Profile3D(midrib)
 
@@ -93,7 +92,7 @@ class BasicCell(object):
                         self._cosphi.append(0)
                         self._radius.append(0)
             else:
-                raise ValueError("length of ballooning/profile data unequal")
+                raise ValueError("length of ballooning/airfoil data unequal")
 
 # Ballooning is considered to be arcs, following two simple rules:
 # 1: x1 = x*d
@@ -115,6 +114,7 @@ class BasicCell(object):
                                 for i in range(self.rib1.profile_2d.Numpoints)]
             #TODO: map balooning
             """
+
 
 class Cell(BasicCell):
     #TODO: cosmetics
@@ -173,7 +173,7 @@ class Cell(BasicCell):
                 l = norm(self.rib2.profile_3d.data[i] - self.rib1.profile_3d.data[i])  # L
                 lnew = sum([norm(c.prof1.data[i] - c.prof2.data[i]) for c in self._cells])  # L-NEW
                 for c in self._cells:
-                    newval = lnew/l / bl
+                    newval = lnew / l / bl
                     if newval < 1.:
                         c._phi.append(arsinc(newval))  # B/L NEW 1 / (bl * l / lnew)
                     else:
@@ -210,7 +210,7 @@ class Cell(BasicCell):
 
     @property
     def span(self):  # TODO: Maybe use mean length from (1,0), (0,0)
-        return norm((self.rib1.pos - self.rib2.pos)*[0, 1, 1])
+        return norm((self.rib1.pos - self.rib2.pos) * [0, 1, 1])
 
     @property
     def area(self):
@@ -218,8 +218,8 @@ class Cell(BasicCell):
         p1_2 = self.rib1.align([1, 0, 0])
         p2_1 = self.rib2.align([0, 0, 0])
         p2_2 = self.rib2.align([1, 0, 0])
-        return 0.5*(norm(numpy.cross(p1_2-p1_1, p2_1-p1_1)) + norm(numpy.cross(p2_2-p2_1, p2_2-p1_2)))
+        return 0.5 * (norm(numpy.cross(p1_2 - p1_1, p2_1 - p1_1)) + norm(numpy.cross(p2_2 - p2_1, p2_2 - p1_2)))
 
     @property
     def aspect_ratio(self):
-        return self.span**2/self.area
+        return self.span ** 2 / self.area

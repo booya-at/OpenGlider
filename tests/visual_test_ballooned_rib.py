@@ -26,8 +26,8 @@ try:
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 from openglider import glider
-import openglider.Graphics
-from openglider.Vector import norm
+import openglider.graphics
+from openglider.vector import norm
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
 
@@ -43,5 +43,5 @@ rib2 = glider1.cells[0].midrib(0.5).flatten()
 rib2.normalize()
 rib1.normalize()
 
-openglider.Graphics.Graphics2D([openglider.Graphics.Line(rib1.data),
-                                openglider.Graphics.Line(rib2.data)])
+openglider.graphics.Graphics2D([openglider.graphics.Line(rib1.data),
+                                openglider.graphics.Line(rib2.data)])

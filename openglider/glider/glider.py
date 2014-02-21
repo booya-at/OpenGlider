@@ -23,8 +23,8 @@ import copy
 import numpy
 
 from openglider.glider.in_out import IMPORT_GEOMETRY, EXPORT_3D
-from openglider.Vector import norm
-from openglider.Vector.projection import flatten_list
+from openglider.vector import norm
+from openglider.plots.projection import flatten_list
 
 
 class Glider(object):
@@ -40,7 +40,7 @@ class Glider(object):
     def export_geometry(self, path="", filetype=None):
         #if not filetype:
         #    filetype = path.split(".")[-1]
-            #EXPORT_GEOMETRY[filetype](self, path)
+        #EXPORT_GEOMETRY[filetype](self, path)
         pass
 
     def export_3d(self, path="", filetype=None, midribs=0, numpoints=None, floatnum=6):
@@ -148,6 +148,11 @@ class Glider(object):
         for rib in self.ribs[1:]:
             rib.profile_2d.x_values = xvalues
 
+    # TODO: check consistency
+    @property
+    def x_values(self):
+        return self.ribs[0].profile_2d.x_values
+
     @property
     def span(self):
         span = 0.
@@ -173,8 +178,8 @@ class Glider(object):
         front[0][1] = 0  # Get only half a midrib, if there is...
         back[0][1] = 0
         for i in range(len(front) - 1):
-            area += norm(numpy.cross(front[i] - front[i+1], back[i+1] - front[i+1]))
-            area += norm(numpy.cross(back[i] - back[i+1], back[i] - front[i]))
+            area += norm(numpy.cross(front[i] - front[i + 1], back[i + 1] - front[i + 1]))
+            area += norm(numpy.cross(back[i] - back[i + 1], back[i] - front[i]))
             # By this we get twice the area of half the glider :)
             # http://en.wikipedia.org/wiki/Triangle#Using_vectors
         return area
@@ -186,12 +191,12 @@ class Glider(object):
 
     @property
     def aspect_ratio(self):
-        return self.span**2/self.area
+        return self.span ** 2 / self.area
 
     @aspect_ratio.setter
     def aspect_ratio(self, aspect_ratio):
         area_backup = self.area
-        factor = self.aspect_ratio/aspect_ratio
+        factor = self.aspect_ratio / aspect_ratio
         for rib in self.ribs:
             rib.chord *= factor
             rib.recalc()

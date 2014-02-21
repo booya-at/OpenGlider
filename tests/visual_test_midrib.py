@@ -31,8 +31,8 @@ try:
     import openglider
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
-from openglider.Profile import Profile2D
-import openglider.Graphics as Graph
+from openglider.airfoil import Profile2D
+import openglider.graphics as Graph
 from openglider.glider.ballooning import BallooningBezier
 
 
