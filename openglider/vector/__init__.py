@@ -21,6 +21,7 @@
 import numpy as np
 #from openglider.graphics import graphics, Line  # DEBUG
 from openglider.utils import sign
+from openglider.utils.cached_property import cached_property
 
 
 def depth(arg):
@@ -133,10 +134,10 @@ def cut(p1, p2, p3, p4):
     return p1 + k * (p2 - p1), k, l
 
 
-class Vectorlist(object):
+class HashedList(object):
     def __init__(self, data=None, name=None):
-        #if arrtype(data) == 2 or arrtype(data) == 4:
         self._data = None
+        self._hash = None
         self.data = data
         try: # TODO: whats that?
             if name or not self.name:
@@ -144,14 +145,44 @@ class Vectorlist(object):
         except AttributeError:
             self.name = name
 
+    def __getitem__(self, item):
+        return self.data[item]
+
+    def __hash__(self):
+        return self.hash
+
+    def __len__(self):
+        return len(self.data)
+
+    @property
+    def hash(self):
+        if self._hash is None:
+            self._hash = hash(str(self.data))
+        return self._hash
+
+    @property
+    def data(self):
+        return self._data
+
+    @data.setter
+    def data(self, data):
+        if not data is None:
+            self._data = np.array(data)
+            self._hash = None
+        else:
+            self._data = data
+
+
+class Vectorlist(HashedList):
+    def __init__(self, data=None, name=None):
+        super(Vectorlist, self).__init__(data, name)
+
+
     def __repr__(self):
         return self.data.__str__()
 
     def __str__(self):
         return self.name
-
-    def __call__(self, ik):  # TODO: REPLACE [] with () for vectorlists
-        return self.__getitem__(ik)
 
     def __getitem__(self, ik):
         if isinstance(ik, int) and 0 <= ik < len(self):  # easiest case
@@ -176,9 +207,6 @@ class Vectorlist(object):
                 # case2: ik>len(self.data) -> k += difference
                 k = ik % 1 + max(0, int(ik) - len(self.data) + 2)
             return self.data[i] + k * (self.data[i + 1] - self.data[i])
-
-    def __len__(self):
-        return len(self.data)
 
     def point(self, x):
         """List.point(x) is the same as List[x]"""
@@ -235,17 +263,6 @@ class Vectorlist(object):
             if (next_value > len(self) and direction > 0) or (next_value < 0 and direction < 0):
                 break
         return length + norm(self[second] - self[first])
-
-    @property
-    def data(self):
-        return self._data
-
-    @data.setter
-    def data(self, data):
-        if not data is None:
-            self._data = np.array(data)
-        else:
-            self._data = data
 
 
 class Vectorlist2D(Vectorlist):
@@ -328,7 +345,7 @@ class Vectorlist2D(Vectorlist):
                     continue
 
     # TODO: @cached-property -> add posibility to hash lists//numpy-array
-    @property
+    @cached_property('self')
     def normvectors(self):
         """
         Return Normvectors to the List-Line, heading rhs

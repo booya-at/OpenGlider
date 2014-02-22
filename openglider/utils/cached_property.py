@@ -1,4 +1,4 @@
-import functools
+#import functools
 
 #__all__ = ['cached_property']
 config = {"caching": True}
@@ -8,6 +8,7 @@ def cached_property(*hashlist):
     #@functools.wraps
     class CachedProperty(property):
         def __init__(self, fget=None):
+            super(CachedProperty, self).__init__()
             self.function = fget
             self.hashlist = hashlist
             self.cache = None
@@ -20,11 +21,20 @@ def cached_property(*hashlist):
                 # Hash arguments
                 value = 0
                 for element in self.hashlist:
-                    el = rec_getattr(parentclass, element)
+                    if element == "self":
+                        el = parentclass
+                    else:
+                        el = rec_getattr(parentclass, element)
+
                     try:
                         value += hash(el)
                     except TypeError:  # Lists
-                        value += hash(frozenset(el))
+                        print("bad cache: "+str(self.function.__name__))
+                        try:
+                            value += hash(frozenset(el))
+                        except TypeError:
+                            print("superbad cache")
+                            value += hash(str(el))
                 # Return cached or recalc if hashes differ
                 if not self.cache is None and value == self.thahash:
                     return self.cache

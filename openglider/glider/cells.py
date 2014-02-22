@@ -1,11 +1,11 @@
+
 import math
 import numpy
 from openglider.airfoil import Profile3D
 from openglider.glider.ballooning import arsinc
-from openglider.vector import norm, normalize
+from openglider.vector import norm, normalize, HashedList
 from openglider.glider.ribs import Rib
 from openglider.utils.cached_property import cached_property
-
 
 
 class BasicCell(object):
@@ -13,8 +13,8 @@ class BasicCell(object):
         self.prof1 = prof1
         self.prof2 = prof2
 
-        self._phi = ballooning  # ballooning arcs
-        self._cosphi = self._radius = None
+        if not ballooning is None:
+            self.ballooning_phi = ballooning  # ballooning arcs
         self._normvectors = None
         self.name = name
 
@@ -31,89 +31,65 @@ class BasicCell(object):
             #self._checkxvals()
             midrib = []
 
-            if ballooning:
-                self._calcballooning()
-
             for i in range(len(self.prof1.data)):  # Arc -> phi(bal) -> r  # oder so...
                 diff = self.prof1[i] - self.prof2[i]
-                if ballooning and self._radius[i] > 0.:
+                if ballooning and self.ballooning_radius[i] > 0.:
                     if arc_argument:
-                        d = 0.5 - math.sin(self._phi[i] * (0.5 - y)) / math.sin(self._phi[i])
-                        h = math.cos(self._phi[i] * (1 - 2 * y)) - self._cosphi[i]
+                        d = 0.5 - math.sin(self.ballooning_phi[i] * (0.5 - y)) / math.sin(self.ballooning_phi[i])
+                        h = math.cos(self.ballooning_phi[i] * (1 - 2 * y)) - self.ballooning_cos_phi[i]
                         #h = math.sqrt(1 - (norm(diff) * (0.5 - d) / self._radius[i]) ** 2)
                         #h -= self._cosphi[i]  # cosphi2-cosphi
                     else:
                         d = y
-                        h = math.sqrt(1 - (norm(diff) * (0.5 - y) / self._radius[i]) ** 2)
-                        h -= self._cosphi[i]  # cosphi2-cosphi
+                        h = math.sqrt(1 - (norm(diff) * (0.5 - y) / self.ballooning_radius[i]) ** 2)
+                        h -= self.ballooning_cos_phi[i]  # cosphi2-cosphi
                 else:  # Without ballooning
                     d = y
                     h = 0.
-                midrib.append(self.prof1[i] - diff * d + self.normvectors[i] * h * self._radius[i])
+                midrib.append(self.prof1[i] - diff * d + self.normvectors[i] * h * self.ballooning_radius[i])
 
             return Profile3D(midrib)
 
     def recalc(self):
+        pass
         # Clear everything
-        self._normvectors = None
-        self._cosphi = None
-        self._radius = None
-        self._calcballooning()
+        #self._normvectors = None
+        #self._calcballooning()
 
-    @cached_property('rib1._aoa')  #todo: fix depends (miniribs)
+    @cached_property('prof1', 'prof2')  # todo: fix depends (miniribs)
     def normvectors(self, j=None):
-        if not self._normvectors:
-            prof1 = self.prof1.data
-            prof2 = self.prof2.data
-            p1 = self.prof1.tangents()
-            p2 = self.prof2.tangents()
-            # cross differenzvektor, tangentialvektor
-            self._normvectors = []
-            for i in range(len(prof1)):
-                self._normvectors.append(normalize(numpy.cross(p1[i] + p2[i], prof1[i] - prof2[i])))
-        if j:
-            return self._normvectors[j]
-        else:
-            return self._normvectors
+        prof1 = self.prof1.data
+        prof2 = self.prof2.data
+        p1 = self.prof1.tangents()
+        p2 = self.prof2.tangents()
+        # cross differenzvektor, tangentialvektor
+        return [normalize(numpy.cross(p1[i] + p2[i], prof1[i] - prof2[i])) for i in range(len(prof1))]
 
-    # TODO: cached property radius, cosphi
-
-    def _calcballooning(self):
-        if not self._cosphi and not self._radius:  # See sketches in Doc; cosphi and cake-Radius
-            self._cosphi = []
-            self._radius = []
-            if len(self._phi) == len(self.prof1.data) == len(self.prof2.data):
-                for i in range(len(self._phi)):
-                    if round(self._phi[i], 5) > 0:
-                        self._cosphi.append(numpy.cos(self._phi[i]))
-                        self._radius.append(
-                            norm(self.prof1.data[i] - self.prof2.data[i]) / (2 * numpy.sin(self._phi[i])))
-                    else:
-                        self._cosphi.append(0)
-                        self._radius.append(0)
+    # TODO: raise if len not equal, cache
+    @cached_property('ballooning_phi')
+    def ballooning_cos_phi(self):
+        cos_phi = []
+        for phi in self.ballooning_phi:
+            if round(phi, 5) > 0:
+                cos_phi.append(numpy.cos(phi))
             else:
-                raise ValueError("length of ballooning/airfoil data unequal")
+                cos_phi.append(0)
+        return cos_phi
+
+    @cached_property('ballooning_phi', 'prof1', 'prof2')
+    def ballooning_radius(self):
+        radius = []
+        for i, phi in enumerate(self.ballooning_phi):
+            if round(phi, 5) > 0:
+                radius.append(norm(self.prof1.data[i] - self.prof2.data[i]) / (2*numpy.sin(phi)))
+            else:
+                radius.append(0)
+        return radius
 
 # Ballooning is considered to be arcs, following two simple rules:
 # 1: x1 = x*d
 # 2: x2 = R*normvekt*(cos(phi2)-cos(phi)
 # 3: norm(d)/r*(1-x) = 2*sin(phi(2))
-
-
-"""
-    def _checkxvals(self):
-        #####TODO: push to normal cell.
-        if not numpy.allclose(self.rib1.profile_2d.XValues, self.rib2.profile_2d.XValues):
-            self.rib2.profile_2d.XValues = self.rib1.profile_2d.XValues
-            self.rib2.ReCalc()
-            redo = True
-        else:
-            redo = False
-        if redo or not self.normvectors:
-            self.normvectors = [normalize(self.rib1.normvectors[i]+self.rib2.normvectors[i])
-                                for i in range(self.rib1.profile_2d.Numpoints)]
-            #TODO: map balooning
-            """
 
 
 class Cell(BasicCell):
@@ -124,14 +100,12 @@ class Cell(BasicCell):
         self.miniribs = miniribs
         self._yvalues = []
         self._cells = []
-        BasicCell.__init__(self, self.rib1.profile_3d, self.rib2.profile_3d, [])
+        BasicCell.__init__(self, self.rib1.profile_3d, self.rib2.profile_3d)
 
     def recalc(self):
         if not self.rib2.profile_2d.numpoints == self.rib1.profile_2d.numpoints:
             raise ValueError("Unequal length of Cell-Profiles")
         xvalues = self.rib1.profile_2d.x_values
-        phi = [self.rib1.ballooning(x) + self.rib2.ballooning(x) for x in xvalues]
-        BasicCell.__init__(self, self.rib1.profile_3d, self.rib2.profile_3d, phi)
         BasicCell.recalc(self)
         #Map Ballooning
 
@@ -185,7 +159,7 @@ class Cell(BasicCell):
     def point(self, y=0, i=0, k=0):
         return self.midrib(y).point(i, k)
 
-    def midrib(self, y, ballooning=True):
+    def midrib(self, y, ballooning=True, arc_argument=False):
         if len(self._cells) == 1:
             return self.midrib_basic_cell(y, ballooning=ballooning)
         if ballooning:
@@ -193,16 +167,16 @@ class Cell(BasicCell):
             while self._yvalues[i + 1] < y:
                 i += 1
             cell = self._cells[i]
-            xnew = (y - self._yvalues[i]) / (self._yvalues[i + 1] - self._yvalues[i])
-            return cell.midrib_basic_cell(xnew)
+            y_new = (y - self._yvalues[i]) / (self._yvalues[i + 1] - self._yvalues[i])
+            return cell.midrib_basic_cell(y_new, arc_argument=arc_argument)
         else:
             return self.midrib_basic_cell(y, ballooning=False)
 
-    def _calcballooning(self):
-        xvalues = self.rib1.profile_2d.x_values
-        balloon = [self.rib1.ballooning[i] + self.rib2.ballooning[i] for i in xvalues]
-        self._phi = [arsinc(1. / (1 + i)) for i in balloon]
-        BasicCell._calcballooning(self)
+    @cached_property('rib1.ballooning', 'rib2.ballooning')
+    def ballooning_phi(self):
+        x_values = self.rib1.profile_2d.x_values
+        balloon = [self.rib1.ballooning[i] + self.rib2.ballooning[i] for i in x_values]
+        return HashedList([arsinc(1. / (1+bal)) for bal in balloon])
 
     @property
     def ribs(self):

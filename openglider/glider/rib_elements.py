@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 #from openglider import Profile2D
-from openglider.utils.marks import polygon
+from openglider.plots.marks import polygon
 from openglider.vector import cut, Vectorlist2D
 
 

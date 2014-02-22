@@ -7,7 +7,6 @@ from openglider.glider.ballooning import BallooningBezier
 from openglider.utils.bezier import BezierCurve
 from openglider.vector import rotation_3d
 
-__author__ = 'simon'
 
 
 class Rib(object):
@@ -55,7 +54,7 @@ class Rib(object):
     def _getaoa(self):
         return dict(zip(["rel", "abs"], self.aoa))  # return in form: ("rel":aoarel,"abs":aoa)
 
-    @property
+    @cached_property('profile_3d')
     def normvectors(self):
         return map(lambda x: self.rotation_matrix.dot([x[0], x[1], 0]), self.profile_2d.normvectors)
 

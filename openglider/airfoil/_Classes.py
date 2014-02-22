@@ -23,7 +23,7 @@ import os  # for xfoil execution
 import numpy  # array spec
 
 #from openglider.airfoil._XFoilCalc import XValues, Calcfile, Impresults
-from openglider.vector import normalize, norm, Vectorlist2D, Vectorlist, Polygon2D
+from openglider.vector import normalize, norm, Vectorlist2D, Vectorlist, Polygon2D, HashedList
 
 
 def get_x_value(x_value_list, x):
@@ -104,7 +104,7 @@ class BasicProfile2D(Polygon2D):
         matrix = numpy.array([[cos, -sin], [sin, cos]]) / dmax  # de-rotate and scale
         self.data = numpy.array([matrix.dot(i - nose) for i in self.data])
 
-    @Vectorlist.data.setter
+    @HashedList.data.setter
     def data(self, data):
         Vectorlist2D.data.fset(self, data)
         if not data is None:
