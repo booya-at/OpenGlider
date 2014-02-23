@@ -2,18 +2,18 @@ import math
 import numpy
 from openglider import Profile2D
 from openglider.airfoil import Profile3D
-from openglider.utils.cached_property import cached_property
+from openglider.utils.cached_property import cached_property, HashedObject
 from openglider.glider.ballooning import BallooningBezier
 from openglider.utils.bezier import BezierCurve
 from openglider.vector import rotation_3d
 
 
 
-class Rib(object):
+class Rib(HashedObject):
     """Openglider Rib Class: contains a airfoil, needs a startpoint, angle (arcwide), angle of attack,
         glide-wide rotation and glider ratio.
         optional: name, absolute aoa (bool), startposition"""
-    hashlist = ('_aoa', 'glide', 'arcang', 'zrot', 'chord')  # pos
+    hashlist = ('aoa', 'glide', 'arcang', 'zrot', 'chord')  # pos
 
     def __init__(self, profile=Profile2D(), ballooning=BallooningBezier(), startpoint=numpy.array([0, 0, 0]), size=1.,
                  arcang=0, aoa=0, zrot=0,
@@ -25,8 +25,8 @@ class Rib(object):
         else:
             self.profile_2d = profile
         self.ballooning = ballooning
-        self._aoa = (aoa, aoaabs)
-        self.aoa = [0, 0]
+        self.aoa_absolute = aoaabs
+        self.aoa = aoa
         self.glide = glide
         self.arcang = arcang
         self.zrot = zrot
@@ -45,14 +45,27 @@ class Rib(object):
             return self.pos + self.rotation_matrix.dot(point) * self.chord
         raise ValueError("Can only Align one single 2D or 3D-Point")
 
-    def _setaoa(self, aoa):
-        try:
-            self._aoa = (aoa[0], bool(aoa[1]))
-        except ValueError:
-            self._aoa = (float(aoa), False)  # default: relative angle of attack
+    @property
+    def aoa_absolute(self):
+        if not self._aoa[1]:
+            return self._aoa[0]
+        else:
+            return self._aoa[0] - self.__aoa_diff()
 
-    def _getaoa(self):
-        return dict(zip(["rel", "abs"], self.aoa))  # return in form: ("rel":aoarel,"abs":aoa)
+    @aoa_absolute.setter
+    def aoa_absolute(self, aoa):
+        self._aoa = (aoa, False)
+
+    @property
+    def aoa_relative(self):
+        if self._aoa[1]:
+            return self._aoa[0]
+        else:
+            return self._aoa[0] + self.__aoa_diff()
+
+    @aoa_relative.setter
+    def aoa_relative(self, aoa):
+        self._aoa = (aoa, True)
 
     @cached_property('profile_3d')
     def normvectors(self):
@@ -61,7 +74,7 @@ class Rib(object):
     @cached_property('arcang', 'glide', 'zrot', '_aoa')
     def rotation_matrix(self):
         zrot = numpy.arctan(self.arcang) / self.glide * self.zrot
-        return rotation_rib(self.aoa[1], self.arcang, zrot)
+        return rotation_rib(self.aoa_absolute, self.arcang, zrot)
 
     @cached_property(*hashlist)
     #@property
@@ -71,15 +84,12 @@ class Rib(object):
         else:
             return []
 
-    def recalc(self):
+    def __aoa_diff(self):
         ##Formula for aoa rel/abs: ArcTan[Cos[alpha]/gleitzahl]-aoa[rad];
-        diff = numpy.arctan(numpy.cos(self.arcang) / self.glide)
-        self.aoa[self._aoa[1]] = self._aoa[0]  # self.aoa: (relative, absolute)
-        self.aoa[1 - self._aoa[1]] = -diff + self._aoa[0]  # self._aoa: (value, bool: isabsolute)
-        # zrot -> ArcTan[Sin[alpha]/gleitzahl]*excel[[i,7]] (relative 1->aligned to airflow)
+        return numpy.arctan(numpy.cos(self.arcang) / self.glide)
 
-        self._normvectors = None
-        # normvectors 2d->3d->rotated
+    def recalc(self):
+        pass
 
     def mirror(self):
         self.arcang = -self.arcang
@@ -92,7 +102,6 @@ class Rib(object):
                               self._aoa[0], self.zrot,
                               self.glide, self.name + "_copy", self._aoa[1])
 
-    AOA = property(_getaoa, _setaoa)
 
 
 class MiniRib(Profile3D):
