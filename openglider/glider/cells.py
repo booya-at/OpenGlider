@@ -9,12 +9,12 @@ from openglider.utils.cached_property import cached_property
 
 
 class BasicCell(object):
-    def __init__(self, prof1=Profile3D(), prof2=Profile3D(), ballooning=None, name="unnamed_cell"):
-        self.prof1 = prof1
-        self.prof2 = prof2
+    def __init__(self, prof1=None, prof2=None, ballooning=None, name="unnamed_cell"):
+        self.prof1 = prof1 or Profile3D()
+        self.prof2 = prof2 or Profile3D()
 
         if not ballooning is None:
-            self.ballooning_phi = ballooning  # ballooning arcs
+            self.ballooning_phi = ballooning  # ballooning arcs -> property in cell
         self._normvectors = None
         self.name = name
 
@@ -60,8 +60,8 @@ class BasicCell(object):
     def normvectors(self, j=None):
         prof1 = self.prof1.data
         prof2 = self.prof2.data
-        p1 = self.prof1.tangents()
-        p2 = self.prof2.tangents()
+        p1 = self.prof1.tangents
+        p2 = self.prof2.tangents
         # cross differenzvektor, tangentialvektor
         return [normalize(numpy.cross(p1[i] + p2[i], prof1[i] - prof2[i])) for i in range(len(prof1))]
 
@@ -94,9 +94,9 @@ class BasicCell(object):
 
 class Cell(BasicCell):
     #TODO: cosmetics
-    def __init__(self, rib1=Rib(), rib2=Rib(), miniribs=None):
-        self.rib1 = rib1
-        self.rib2 = rib2
+    def __init__(self, rib1=None, rib2=None, miniribs=None):
+        self.rib1 = rib1 or Rib()
+        self.rib2 = rib2 or Rib()
         self.miniribs = miniribs
         self._yvalues = []
         self._cells = []
@@ -107,6 +107,8 @@ class Cell(BasicCell):
             raise ValueError("Unequal length of Cell-Profiles")
         xvalues = self.rib1.profile_2d.x_values
         BasicCell.recalc(self)
+        self.prof1 = self.rib1.profile_3d
+        self.prof2 = self.rib2.profile_3d
         #Map Ballooning
 
         if not self.miniribs:  # In case there is no midrib, The Cell represents itself!
@@ -149,9 +151,9 @@ class Cell(BasicCell):
                 for c in self._cells:
                     newval = lnew / l / bl
                     if newval < 1.:
-                        c._phi.append(arsinc(newval))  # B/L NEW 1 / (bl * l / lnew)
+                        c.ballooning_phi.append(arsinc(newval))  # B/L NEW 1 / (bl * l / lnew)
                     else:
-                        c._phi.append(arsinc(1.))
+                        c.ballooning_phi.append(arsinc(1.))
                         #raise ValueError("mull")
             for cell in self._cells:
                 cell.recalc()

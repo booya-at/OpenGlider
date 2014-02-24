@@ -373,6 +373,7 @@ class Profile3D(Vectorlist):
         return Profile2D([[-self.xvect.dot(i), self.yvect.dot(i)] for i in self._diff], name=self.name + "_flattened")
         ###find x-y projection-layer first
 
+    @property
     def normvectors(self):
         if not self._normvectors:
             self.projection()
@@ -387,18 +388,24 @@ class Profile3D(Vectorlist):
             self._normvectors = vectors
         return self._normvectors
 
+    @property
     def tangents(self):
-        if not self._tangents:
-            second = self.data[0]
-            third = self.data[1]
-            self._tangents = [normalize(third - second)]
-            for element in self.data[2:]:
-                first = second
-                second = third
-                third = element
-                self._tangents.append(normalize(normalize(third - second) + normalize(second - first)))
-            self._tangents.append(normalize(third - second))
-        return self._tangents
+        second = self.data[0]
+        third = self.data[1]
+        tangents = [normalize(third - second)]
+        for element in self.data[2:]:
+            first = second
+            second = third
+            third = element
+            tangent = numpy.array([0, 0, 0])
+            for vec in [third-second, second-first]:
+                try:
+                    tangent = tangent + normalize(vec)
+                except ValueError:  # zero-length vector
+                    pass
+            tangents.append(tangent)
+        tangents.append(normalize(third - second))
+        return tangents
 
 
 

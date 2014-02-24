@@ -93,7 +93,9 @@ class Glider(object):
         if self.cells[0].rib1.pos[1] != 0 and cutmidrib:  # Cut midrib
             self.cells = self.cells[1:]
         for rib in self.ribs:
+            temp = rib.pos.copy()
             rib.mirror()
+            print(temp, rib.pos)
         for cell in self.cells:
             first = cell.rib1
             cell.rib1 = cell.rib2

@@ -88,7 +88,10 @@ def import_ods(filename, glider=None):
             lastrib = thisrib.copy()
             lastrib.mirror()
         if lastrib:
-            cells.append(Cell(lastrib, thisrib, []))
+            cell = Cell(lastrib, thisrib, [])
+            cell.name = "Cell_no"+str(i)
+            cells.append(cell)
+
 
     if glider:
         glider.cells = cells

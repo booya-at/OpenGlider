@@ -38,12 +38,25 @@ class GliderTestClass(unittest.TestCase):
     def setUp(self, complete=True):
         self.glider = openglider.Glider()
         self.glider.import_geometry(path=importpath)
-        self.glider.recalc()
+        #self.glider.recalc()
 
 
 class TestGlider(GliderTestClass):
+    def test_temp(self):
+        thaglider = self.glider
+        cell = thaglider.cells[-1]
+        #print(cell.normvectors)
+        print([cell.rib2.profile_3d.data[i]-cell.rib1.profile_3d.data[i] for i in range(20)])
+        print([cell.rib1.profile_3d.tangents[i] for i in range(20)])
+        openglider.graphics.Graphics([openglider.graphics.Line(cell.rib1.profile_3d.data),
+                                      openglider.graphics.Line(cell.rib2.profile_3d.data)])
+
+
     def test_show_3d(self, num=5):
-        thaglider = self.glider.copy_complete()
+        #thaglider = self.glider.copy_complete()
+        #thaglider.recalc()
+        thaglider = self.glider
+        thaglider.mirror()
         thaglider.recalc()
         polygons, points = thaglider.return_polygons(num)
         objects = [openglider.graphics.Polygon(polygon) for polygon in polygons]

@@ -24,7 +24,7 @@ from openglider.glider.cells import Cell
 from .cuts import cuts
 
 
-def flattened_cell(cell=Cell()):
+def flattened_cell(cell=None):
     left, right = openglider.plots.projection.flatten_list(cell.rib1.profile_3d, cell.rib2.profile_3d)
     ballooning_left = [cell.rib1.ballooning[x] for x in cell.rib1.profile_2d.x_values]
     ballooning_right = [cell.rib2.ballooning[x] for x in cell.rib2.profile_2d.x_values]

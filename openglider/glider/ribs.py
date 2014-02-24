@@ -1,3 +1,4 @@
+import copy
 import math
 import numpy
 from openglider import Profile2D
@@ -13,9 +14,9 @@ class Rib(HashedObject):
     """Openglider Rib Class: contains a airfoil, needs a startpoint, angle (arcwide), angle of attack,
         glide-wide rotation and glider ratio.
         optional: name, absolute aoa (bool), startposition"""
-    hashlist = ('aoa', 'glide', 'arcang', 'zrot', 'chord')  # pos
+    hashlist = ('aoa', 'glide', 'arcang', 'zrot', 'chord', 'pos')  # pos
 
-    def __init__(self, profile=Profile2D(), ballooning=BallooningBezier(), startpoint=numpy.array([0, 0, 0]), size=1.,
+    def __init__(self, profile=None, ballooning=None, startpoint=None, size=1.,
                  arcang=0, aoa=0, zrot=0,
                  glide=1, name="unnamed rib", aoaabs=False, startpos=0.):
         # TODO: Startpos > Set Rotation Axis in Percent
@@ -82,7 +83,10 @@ class Rib(HashedObject):
         if not self.profile_2d.data is None:
             return Profile3D(map(self.align, self.profile_2d.data))
         else:
+            raise ValueError("no 2d-profile present fortharib")
+            print("shit"+self.name)
             return []
+        # TODO: raise an error, as this should not be
 
     def __aoa_diff(self):
         ##Formula for aoa rel/abs: ArcTan[Cos[alpha]/gleitzahl]-aoa[rad];
@@ -98,9 +102,9 @@ class Rib(HashedObject):
         #self.ReCalc()
 
     def copy(self):
-        return self.__class__(self.profile_2d.copy(), self.ballooning.copy(), self.pos, self.chord, self.arcang,
-                              self._aoa[0], self.zrot,
-                              self.glide, self.name + "_copy", self._aoa[1])
+        new = copy.deepcopy(self)
+        new.name += "_copy"
+        return new
 
 
 

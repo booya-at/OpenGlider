@@ -51,9 +51,32 @@ def rec_getattr(obj, attr):
     return reduce(getattr, attr.split("."), obj)
 
 
-def rec_setattr(obj, attr, value):
-    attrs = attr.split(".")
-    setattr(reduce(getattr, attrs[:-1], obj), attrs[-1], value)
+def c_mul(a, b):
+    """
+    C type multiplication
+    http://stackoverflow.com/questions/6008026/how-hash-is-implemented-in-python-3-2
+    """
+    return eval(hex((int(a) * b) & 0xFFFFFFFF)[:-1])
+
+
+def hash_attributes(class_instance, hashlist):
+    """
+    http://effbot.org/zone/python-hash.htm
+    """
+    value = 0x345678
+    for attribute in hashlist:
+        value = c_mul(1000003, value) ^ hash(rec_getattr(class_instance, attribute))
+    value = value ^ len(hashlist)
+    if value == -1:
+        value = -2
+    return value
+
+
+class HashedObject(object):
+    hashlist = ()
+
+    def __hash__(self):
+        return hash_attributes(self, self.hashlist)
 
 
 class test(object):
