@@ -88,23 +88,17 @@ class Glider(object):
         return self.cells[i].midrib_basic_cell(k)
 
     def mirror(self, cutmidrib=True, complete=False):
-        if not self.cells:
-            return
+        # lets assume we have at least one cell to mirror :)
         if self.cells[0].rib1.pos[1] != 0 and cutmidrib:  # Cut midrib
             self.cells = self.cells[1:]
         for rib in self.ribs:
-            temp = rib.pos.copy()
             rib.mirror()
-            print(temp, rib.pos)
         for cell in self.cells:
-            first = cell.rib1
-            cell.rib1 = cell.rib2
-            cell.rib2 = first
+            cell.rib1, cell.rib2 = cell.rib2, cell.rib1
         self.cells = self.cells[::-1]
 
     def recalc(self):
-        for rib in self.ribs:
-            rib.recalc()
+        # TODO: make obsolete
         for cell in self.cells:
             cell.recalc()
 

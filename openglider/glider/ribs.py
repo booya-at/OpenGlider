@@ -6,15 +6,14 @@ from openglider.airfoil import Profile3D
 from openglider.utils.cached_property import cached_property, HashedObject
 from openglider.glider.ballooning import BallooningBezier
 from openglider.utils.bezier import BezierCurve
-from openglider.vector import rotation_3d
-
+from openglider.vector import rotation_3d, HashedList
 
 
 class Rib(HashedObject):
     """Openglider Rib Class: contains a airfoil, needs a startpoint, angle (arcwide), angle of attack,
         glide-wide rotation and glider ratio.
         optional: name, absolute aoa (bool), startposition"""
-    hashlist = ('aoa', 'glide', 'arcang', 'zrot', 'chord', 'pos')  # pos
+    hashlist = ('aoa_absolute', 'glide', 'arcang', 'zrot', 'chord', 'pos')  # pos
 
     def __init__(self, profile=None, ballooning=None, startpoint=None, size=1.,
                  arcang=0, aoa=0, zrot=0,
@@ -26,12 +25,14 @@ class Rib(HashedObject):
         else:
             self.profile_2d = profile
         self.ballooning = ballooning
-        self.aoa_absolute = aoaabs
-        self.aoa = aoa
+        if aoaabs:
+            self.aoa_absolute = aoa
+        else:
+            self.aoa_relative = aoa
         self.glide = glide
         self.arcang = arcang
         self.zrot = zrot
-        self.pos = startpoint
+        self.pos = startpoint  # or HashedList([0, 0, 0])
         self.chord = size
         #self.profile_3d = None
         #self.rotation_matrix = None

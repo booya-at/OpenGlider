@@ -1,7 +1,7 @@
 #import functools
 
 #__all__ = ['cached_property']
-config = {"caching": True}
+config = {"caching": True, 'verbose': False}
 
 
 def cached_property(*hashlist):
@@ -29,11 +29,11 @@ def cached_property(*hashlist):
                     try:
                         value += hash(el)
                     except TypeError:  # Lists
-                        print("bad cache: "+str(self.function.__name__))
+                        if config['verbose']:
+                            print("bad cache: "+str(self.function.__name__))
                         try:
                             value += hash(frozenset(el))
                         except TypeError:
-                            print("superbad cache")
                             value += hash(str(el))
                 # Return cached or recalc if hashes differ
                 if not self.cache is None and value == self.thahash:
@@ -73,6 +73,9 @@ def hash_attributes(class_instance, hashlist):
 
 
 class HashedObject(object):
+    """
+    Provide a list of attributes to hash down for tracking changes
+    """
     hashlist = ()
 
     def __hash__(self):

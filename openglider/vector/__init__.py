@@ -146,7 +146,11 @@ class HashedList(object):
             self.name = name
 
     def __getitem__(self, item):
-        return self.data[item]
+        return self.data.__getitem__(item)
+
+    def __setitem__(self, key, value):
+        self.data.__setitem__(key, value)
+        self._hash = None
 
     def __hash__(self):
         return self.hash
