@@ -4,7 +4,6 @@ import numpy
 from openglider import Profile2D
 from openglider.airfoil import Profile3D
 from openglider.utils.cached_property import cached_property, HashedObject
-from openglider.glider.ballooning import BallooningBezier
 from openglider.utils.bezier import BezierCurve
 from openglider.vector import rotation_3d, HashedList
 

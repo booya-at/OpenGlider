@@ -33,7 +33,7 @@ import openglider.graphics
 import openglider.airfoil
 from openglider.glider.ballooning import BallooningBezier
 from openglider.plots.projection import flatten_list
-import openglider.glider.plots
+import openglider.plots
 from openglider.glider.cells import Cell
 from openglider.glider.ribs import Rib
 import numpy
@@ -72,7 +72,7 @@ openglider.graphics.Graphics2D([openglider.graphics.Line(left.data), openglider.
 
 
 ################CUTS
-outlist, leftcut, rightcut = cut_2([[left2,0], [right2,0]], left_out, right_out, -0.02)
+outlist, leftcut, rightcut = cut_2([[left2, 0], [right2, 0]], left_out, right_out, -0.02)
 end = 150
 outlist2, leftcut2, rightcut2 = cut_1([[left2, end], [right2, end]], left_out, right_out, 0.02)
 

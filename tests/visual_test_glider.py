@@ -17,10 +17,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import division
 import math
 import os
 import random
 import sys
+from openglider.utils.bezier import BezierCurve
 
 try:
     import openglider
@@ -49,11 +51,13 @@ class TestGlider(GliderTestClass):
         openglider.graphics.Graphics([openglider.graphics.Line(cell.rib1.profile_3d.data),
                                       openglider.graphics.Line(cell.rib2.profile_3d.data)])
 
-    def test_show_3d(self, num=5):
-        thaglider = self.glider.copy_complete()
+    def test_show_3d(self, num=5, thaglider=None):
+        if thaglider is None:
+            thaglider = self.glider.copy_complete()
+        else:
+            thaglider = thaglider.copy_complete()
         #thaglider.recalc()
         #thaglider = self.glider
-        #thaglider.mirror()
         thaglider.recalc()
         polygons, points = thaglider.return_polygons(num)
         objects = [openglider.graphics.Polygon(polygon) for polygon in polygons]
@@ -91,3 +95,24 @@ class TestGlider(GliderTestClass):
         profs = [cell.rib1.profile_2d.data]
         profs += [cell.midrib(random.random()).flatten().data + [0, (i+1)*0.] for i in range(num)]
         openglider.graphics.Graphics2D([openglider.graphics.Line(prof) for prof in profs])
+
+    def test_brake(self):
+        glider = self.glider
+        brake = BezierCurve([[0., 0.], [1., 0.], [1., -0.2]])
+        num = 60
+        prof = glider.ribs[0].profile_2d
+
+        brakeprof = openglider.Profile2D([brake(i/num) for i in reversed(range(num+1))][:-1] +
+                                         [brake(i/num) for i in range(num+1)], normalize_root=False)
+
+        for rib in glider.ribs:
+            rib.profile_2d = rib.profile_2d+brakeprof
+
+        self.test_show_3d(thaglider=glider)
+
+        #
+        # for rib in glider.ribs:
+        #     data = rib.profile_2d.data
+        #     data2 = [p+(brake.xpoint(p[0])) for p in data]
+        #     print(data2)
+        #     rib.profile_2d.data = data2

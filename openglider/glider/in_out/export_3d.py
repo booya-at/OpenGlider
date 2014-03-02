@@ -20,42 +20,47 @@ def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6):
     for i in range(len(ribs)):
         for j in range(numpoints):
             # Create two Triangles from one rectangle:
-            # rectangle: [i * numpoints + k, i * numpoints + k + 1, (i + 1) * numpoints + k + 1, (i + 1) * numpoints + k])
-            # Start counting from 1!!
+            # Start counting from 1; i->row; j->line
             panels.append([i * numpoints + j + 1, i * numpoints + j + 2, (i + 1) * numpoints + j + 2])
             panels.append([(i + 1) * numpoints + j + 1, i * numpoints + j + 1, (i + 1) * numpoints + j + 2])
             # Calculate normvectors
             first = ribs[i + (i < len(ribs) - 1)][j] - ribs[i - (i > 0)][j]  # Y-Axis
-            #if norm(first) == 0:  # TODO: JUst a quick fix, find the problem!! it seems to be in the center
-            #    first = ribs[i+2*(i < len(ribs)-2)][j] - ribs[i-2*(i > 1)][j]
             second = ribs[i][j - (j > 0)] - ribs[i][j + (j < numpoints - 1)]
             try:
                 points.append((ribs[i][j], normalize(numpy.cross(first, second))))
             except ValueError:
-                raise ValueError("vektor of length 0 at: i=" + str(i) + ", j=" + str(j) + str(first))
+                raise ValueError("vector of length 0 at: i={0}, j={1}: {2}".format(i, j, first))
+    # TODO: check!?
     panels = panels[:2 * (len(ribs) - 1) * numpoints - 2]
     # Write file
-    outfile = open(path, "w")
-    for point in points:
-        point = point[0] * [-1, -1, -1], point[1] * [-1, -1, -1]
-        outfile.write("vn")
-        for coord in point[1]:
-            outfile.write(" " + str(round(coord, floatnum)))
-        outfile.write("\n")
-        outfile.write("v")
-        for coord in point[0]:
-            outfile.write(" " + str(round(coord, floatnum)))
-        outfile.write("\n")
-        #outfile.write("# "+str(len(points))+" vertices, 0 vertices normals\n\n")
-    for polygon in panels:
-        outfile.write("f")
-        for point in polygon:
-            outfile.write(" " + str(point) + "//" + str(point))
-        outfile.write("\n")
-        #outfile.write("# "+str(len(panels))+" faces, 0 coords texture\n\n# End of File")
-    #print(len(points), len(normvectors), len(panels), max(panels, key=lambda x: max(x)))
+    with open(path, "w") as outfile:
+        for point in points:
+            #point = point[0] * [-1, -1, -1], point[1] * [-1, -1, -1]
+            # Write Normvector
+            outfile.write("vn {0} {1} {2}\n".format(*map(lambda x: round(-x, floatnum), point[1])))
+            # Write point
+            outfile.write("v {0} {1} {2}\n".format(*map(lambda x: round(-x, floatnum), point[0])))
+        for polygon in panels:
+            outfile.write("f {0} {1} {2}//{0} {1} {2}\n".format(*polygon))
+    return True
 
-    outfile.close()
+
+def export_json(glider, path=None, midribs=0, numpoints=None, *other):
+    """
+    export json geometry file for panelmethod calculation
+    """
+    import json
+    new_glider = glider.copy()
+    if numpoints:
+        new_glider.numpoints = numpoints
+
+    polygons, points = new_glider.return_polygons(num=midribs)
+    config = {"numpoints": len(points),
+              "numpanels": len(polygons)}
+
+    with open(path, "w") as json_file:
+        json.dump({"config": config, "points": points.tolist(), "panels": polygons}, json_file, indent=2)
+
     return True
 
 

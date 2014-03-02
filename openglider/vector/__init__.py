@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
+import copy
 
 import numpy as np
 #from openglider.graphics import graphics, Line  # DEBUG
@@ -153,16 +154,12 @@ class HashedList(object):
         self._hash = None
 
     def __hash__(self):
-        return self.hash
-
-    def __len__(self):
-        return len(self.data)
-
-    @property
-    def hash(self):
         if self._hash is None:
             self._hash = hash(str(self.data))
         return self._hash
+
+    def __len__(self):
+        return len(self.data)
 
     @property
     def data(self):
@@ -175,6 +172,9 @@ class HashedList(object):
             self._hash = None
         else:
             self._data = data
+
+    def copy(self):
+        return copy.deepcopy(self)
 
 
 class Vectorlist(HashedList):
@@ -215,9 +215,6 @@ class Vectorlist(HashedList):
     def point(self, x):
         """List.point(x) is the same as List[x]"""
         return self[x]
-
-    def copy(self):
-        return self.__class__(self.data.copy(), self.name)
 
     def get(self, start, stop):
         start2 = start - start % 1 + 1
@@ -299,7 +296,6 @@ class Vectorlist2D(Vectorlist):
                 cutlist.append((thacut[0], i + thacut[1], thacut[2]))
                 if break_if_found:
                     return cutlist[0]
-
 
         if len(cutlist) > 0:
             return cutlist

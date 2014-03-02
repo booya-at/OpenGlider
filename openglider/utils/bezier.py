@@ -30,7 +30,7 @@ class BezierCurve(object):
         """Bezier Curve represantative
         http://en.wikipedia.org/wiki/Bezier_curve#Generalization"""
         self._BezierBase = self._BezierFunction = self._controlpoints = None
-        if not points:
+        if points is None:
             points = [[0, 0], [1, 10], [2, 0]]
         self.controlpoints = points
 

@@ -18,28 +18,12 @@ def cached_property(*hashlist):
             if not config["caching"]:
                 return self.function(parentclass)
             else:
-                # Hash arguments
-                value = 0
-                for element in self.hashlist:
-                    if element == "self":
-                        el = parentclass
-                    else:
-                        el = rec_getattr(parentclass, element)
-
-                    try:
-                        value += hash(el)
-                    except TypeError:  # Lists
-                        if config['verbose']:
-                            print("bad cache: "+str(self.function.__name__))
-                        try:
-                            value += hash(frozenset(el))
-                        except TypeError:
-                            value += hash(str(el))
+                dahash = hash_attributes(parentclass, self.hashlist)
                 # Return cached or recalc if hashes differ
-                if not self.cache is None and value == self.thahash:
+                if not self.cache is None and dahash == self.thahash:
                     return self.cache
                 else:
-                    self.thahash = value
+                    self.thahash = dahash
                     res = self.function(parentclass)
                     self.cache = res
                     return res
@@ -65,7 +49,19 @@ def hash_attributes(class_instance, hashlist):
     """
     value = 0x345678
     for attribute in hashlist:
-        value = c_mul(1000003, value) ^ hash(rec_getattr(class_instance, attribute))
+        el = rec_getattr(class_instance, attribute)
+        # hash
+        try:
+            thahash = hash(el)
+        except TypeError:  # Lists
+            if config['verbose']:
+                print("bad cache: "+str(class_instance.__name__)+" attribute: "+attribute)
+            try:
+                thahash = hash(frozenset(el))
+            except TypeError:
+                thahash = hash(str(el))
+
+        value = c_mul(1000003, value) ^ thahash
     value = value ^ len(hashlist)
     if value == -1:
         value = -2
