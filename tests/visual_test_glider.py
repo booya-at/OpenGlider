@@ -40,7 +40,7 @@ class GliderTestClass(unittest.TestCase):
     def setUp(self, complete=True):
         self.glider = openglider.Glider()
         self.glider.import_geometry(path=importpath)
-        #self.glider.recalc()
+        self.glider.recalc()
 
 
 class TestGlider(GliderTestClass):
@@ -51,17 +51,15 @@ class TestGlider(GliderTestClass):
         openglider.graphics.Graphics([openglider.graphics.Line(cell.rib1.profile_3d.data),
                                       openglider.graphics.Line(cell.rib2.profile_3d.data)])
 
-    def test_show_3d(self, num=5, thaglider=None):
+    def test_show_3d_green(self, num=5, thaglider=None):
         if thaglider is None:
             thaglider = self.glider.copy_complete()
         else:
             thaglider = thaglider.copy_complete()
-        #thaglider.recalc()
-        #thaglider = self.glider
         thaglider.recalc()
         polygons, points = thaglider.return_polygons(num)
-        objects = [openglider.graphics.Polygon(polygon) for polygon in polygons]
-        objects.append(openglider.graphics.Axes(size=1.2))
+        objects = [openglider.graphics.Axes(size=1.2), openglider.graphics.Green]
+        objects += map(openglider.graphics.Polygon, polygons)
         openglider.graphics.Graphics3D(objects, points)
 
     def test_show_shape(self):
@@ -100,19 +98,10 @@ class TestGlider(GliderTestClass):
         glider = self.glider
         brake = BezierCurve([[0., 0.], [1., 0.], [1., -0.2]])
         num = 60
-        prof = glider.ribs[0].profile_2d
-
         brakeprof = openglider.Profile2D([brake(i/num) for i in reversed(range(num+1))][:-1] +
                                          [brake(i/num) for i in range(num+1)], normalize_root=False)
 
-        for rib in glider.ribs:
-            rib.profile_2d = rib.profile_2d+brakeprof
+        for i, rib in enumerate(glider.ribs):
+            rib.profile_2d = rib.profile_2d+brakeprof*(3*i/len(glider.ribs))
 
-        self.test_show_3d(thaglider=glider)
-
-        #
-        # for rib in glider.ribs:
-        #     data = rib.profile_2d.data
-        #     data2 = [p+(brake.xpoint(p[0])) for p in data]
-        #     print(data2)
-        #     rib.profile_2d.data = data2
+        self.test_show_3d_green(thaglider=glider)
