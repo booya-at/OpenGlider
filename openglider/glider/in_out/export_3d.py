@@ -56,10 +56,12 @@ def export_json(glider, path=None, midribs=0, numpoints=None, *other):
 
     polygons, points = new_glider.return_polygons(num=midribs)
     config = {"numpoints": len(points),
-              "numpanels": len(polygons)}
+              "numpanels": len(polygons),
+              "cases": [[1, 0, 1]]}  # TODO: insert vinf
+    panels = [{"node_no": nodes, "is_wake": True, "neighbours": [0,1,2,3]} for nodes in polygons]
 
     with open(path, "w") as json_file:
-        json.dump({"config": config, "points": points.tolist(), "panels": polygons}, json_file, indent=2)
+        json.dump({"config": config, "nodes": points.tolist(), "panels": panels}, json_file, indent=2)
 
     return True
 

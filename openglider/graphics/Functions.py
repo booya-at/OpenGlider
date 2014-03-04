@@ -21,7 +21,7 @@
 
 import vtk
 import numpy as np
-from openglider.vector import depth
+from openglider.vector import depth, norm, normalize
 # Quick graphics lib to imitate mathematicas graphics functions
 
 
@@ -79,13 +79,18 @@ def _isintlist(arg):
 
 
 class GraphicObject(object):
-    def __init__(self, points, ttype):
+    def __init__(self, points, ttype, colour=None):
         self.type = ttype
+        self.__name__ = ttype
         if _isintlist(points):
             self.gtype = 'direct'
         else:
             self.gtype = 'indirect'
         self.points = np.array(points)
+        if colour is None:
+            self.colour = [255, 255, 255]
+        else:
+            self.colour = colour
 
     #coordinates= list of points (can be nested)
     def add_points(self, graphics):
@@ -96,17 +101,20 @@ class GraphicObject(object):
             pointnums = [graphics.points.InsertNextPoint(graphics.test_2d(coor)) for coor in self.points]
             return pointnums
 
+    def draw(self, graphics):
+        cell = graphics.get_cell(self.type)
+        pointnums = self.add_points(graphics)
+        #print(self.colour)
+        graphics.colours.InsertNextTupleValue(self.colour)
+        return cell, pointnums
+
 
 class Point(GraphicObject):
     def __init__(self, pointnumbers):
         super(Point, self).__init__(pointnumbers, 'Point')
 
     def draw(self, graphics):
-        try:
-            cell = graphics.visual_points
-        except AttributeError:
-            cell = vtk.vtkCellArray()
-        pointnums = self.add_points(graphics)
+        cell, pointnums = super(Point, self).draw(graphics)
 
         cell.InsertNextCell(len(pointnums))
         for p in pointnums:
@@ -120,11 +128,10 @@ class Line(GraphicObject):
         super(Line, self).__init__(pointnumbers, 'Line')
 
     def draw(self, graphics):
-        try:
-            cell = graphics.lines
-        except AttributeError:
-            cell = vtk.vtkCellArray()
-        pointnums = self.add_points(graphics)
+        cell, pointnums = super(Line, self).draw(graphics)
+        # colour bug for polylines
+        for __ in range(len(pointnums) - 2):
+            graphics.colours.InsertNextTupleValue(self.colour)
 
         for i in range(len(pointnums) - 1):
             line = vtk.vtkLine()
@@ -136,16 +143,29 @@ class Line(GraphicObject):
         graphics.data.SetLines(cell)
 
 
+class Arrow(GraphicObject):
+    def __init__(self, pointnumbers):
+        super(Arrow, self).__init__(pointnumbers, 'Arrow')
+
+    def draw(self, graphics):
+        cell, pointnums = super(Arrow, self).draw(graphics)
+        assert len(pointnums) == 2
+
+        arrow = vtk.vtkArrowSource()
+        p1, p2 = graphics.get_points(*pointnums)
+        transform = vtk.vtkTransform()
+        transform.Translate(p1)
+        length = norm(p2-p1)
+        transform.Scale(length, length, length)
+        pass
+
+
 class Polygon(GraphicObject):
     def __init__(self, pointnumbers):
         super(Polygon, self).__init__(pointnumbers, 'Polygon')
 
     def draw(self, graphics):
-        try:
-            cell = graphics.polygons
-        except AttributeError:
-            cell = vtk.vtkCellArray()
-        pointnums = self.add_points(graphics)
+        cell, pointnums = super(Polygon, self).draw(graphics)
 
         polygon = vtk.vtkPolygon()
         polygon.GetPointIds().SetNumberOfIds(len(pointnums))
@@ -190,16 +210,15 @@ class Graphics(object):
 
         self.data = vtk.vtkPolyData()
         self.points = vtk.vtkPoints()
+        self.colours = vtk.vtkUnsignedCharArray()
+        self.colours.SetNumberOfComponents(3)
+        self.colours.SetName("Colours")
 
         if not coordinates is None:
             coordinates = np.array(self.coordinates)
             coordinates = [self.test_2d(i) for i in coordinates]
             for coor in coordinates:
                 self.points.InsertNextPoint(coor)
-
-        # for graphicobject in self.graphicobjects:
-        #     if graphicobject.gtype == 'indirect':
-        #         graphicobject.add_points(self)
 
         self.data.SetPoints(self.points)
 
@@ -215,6 +234,8 @@ class Graphics(object):
 
         for graphicobject in self.graphicobjects:
             graphicobject.draw(self)
+
+        self.data.GetCellData().SetScalars(self.colours)
 
         self._createwindow()
 
@@ -237,6 +258,17 @@ class Graphics(object):
         render_interactor.SetRenderWindow(render_window)
         render_interactor.Initialize()
         render_interactor.Start()
+
+    def get_cell(self, name):
+        try:
+            return getattr(self, 'cell_'+name)
+        except AttributeError:
+            cellarray = vtk.vtkCellArray()
+            setattr(self, 'cell_'+name, cellarray)
+            return cellarray
+
+    def get_points(self, *points):
+        return [self.points.GetPoint(point_no) for point_no in points]
 
 
 class Graphics3D(Graphics):

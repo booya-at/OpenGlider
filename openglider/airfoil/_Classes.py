@@ -23,6 +23,7 @@ import os  # for xfoil execution
 import numpy  # array spec
 
 #from openglider.airfoil._XFoilCalc import XValues, Calcfile, Impresults
+from openglider.utils.cached_property import cached_property
 from openglider.vector import normalize, norm, Vectorlist2D, Vectorlist, Polygon2D, HashedList
 
 
@@ -106,7 +107,7 @@ class BasicProfile2D(Polygon2D):
 
     @HashedList.data.setter
     def data(self, data):
-        Vectorlist2D.data.fset(self, data)
+        HashedList.data.fset(self, data)
         if not data is None:
             i = 0
             while data[i + 1][0] < data[i][0] and i < len(data):
@@ -260,6 +261,7 @@ class Profile2D(BasicProfile2D):
         self.x_values = [xtemp(j * 1. / i) for j in range(i + 1)]
 
     #todo: cached
+    #@cached_property('self')
     @property
     def thickness(self):
         """with no arg the max thick is returned"""
@@ -275,6 +277,7 @@ class Profile2D(BasicProfile2D):
             name += "_" + str(newthick) + "%"
         self.__init__(new, name)
 
+    #@cached_property('self')
     @property
     def camber(self, *xvals):
         """return the camber of the airfoil for certain x-values or if nothing supplied, camber-line"""

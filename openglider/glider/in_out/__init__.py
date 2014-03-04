@@ -28,6 +28,7 @@ IMPORT_GEOMETRY = {
 EXPORT_3D = {
     'obj': export_3d.export_obj,
     'dxf': export_3d.export_dxf,
-    'inp': export_3d.export_apame
+    'inp': export_3d.export_apame,
+    'json': export_3d.export_json
 }
 
