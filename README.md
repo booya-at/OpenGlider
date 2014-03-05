@@ -2,6 +2,7 @@ OpenGlider
 ==========
 
 ![travis result](https://api.travis-ci.org/hiaselhans/OpenGlider.png?branch=master)
+
 someday, hopefully this is open source paraglider design software
 
 
