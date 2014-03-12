@@ -42,38 +42,9 @@ Run all unittests (including fancy visual ones) using::
 from the main directory.
 
 
-Project Structure
-=================
-
-All glider specific classes are in 'openglider/glider/'
-
-
-
-Developer
-=========
-
-There is a lot to do, including:
-    * Creating good code
-    * Writing documentation
-    * Run and write unittests
-
-Code Conventions
-----------------
-
-Code conventions are pretty redundant for python, but:
-    * Use python-3 compatible Language::
-
-        print("use print as a function")
-
-    * Best practice: http://www.python.org/dev/peps/pep-0008/
-    * Write unittests for everything
-
-Class Reference
-===============
-
 .. toctree::
 
-    source/modules.rst
-
+    source/project_structure
+    source/developer
 
 
