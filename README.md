@@ -22,6 +22,15 @@ Install all dependencies (using distro-repos, easy_install or pip)
 * (svgwrite)
 * (vtk)
 
+If you want to permanently install link it to the python packages or install with setup.py
+
+```
+  python2 setup.py develop
+```
+
+we use python2 as vtk is not yet available for python3.
+
+
 Unittests and Visual Tests
 --------------------------
 
@@ -34,15 +43,6 @@ Or use -a to also run visual tests
 ```
 ./testall.py -a
 ```
-
-If you want to permanently install link it to the python packages or install with setup.py
-
-single test:
-```
-  python2 tests/visual_test_glider.py
-```
-
-use python2 as vtk is not yet available for python3.
 
 
 Development Progress
@@ -61,8 +61,9 @@ The plan is to build on:
 * freecad (Open-Source Cad, written in c++ with python API (www.freecadweb.org/)
 * xfoil//Pyxfoil for 2D-foil calculation ( http://web.mit.edu/drela/Public/web/xfoil/ ) (http://www.python-science.org/project/pyxfoil)
 * self-coded panelmethod (VSAERO) and/or apame implementation (http://www.3dpanelmethod.com/) for quick 3D-calculation
-* OpenFoam CFD export ( http://www.openfoam.com/)
-* Code_Aster FEM export ( http://www.code-aster.org ) - maybe also calculix as we've done already, but it does currently not support membrane elements)
+    -> https://github.com/hiaselhans/booyapan
+* OpenFoam obj-file CFD export ( http://www.openfoam.com/)
+* Code_Aster FEM export ( http://www.code-aster.org ) - maybe calculix as we've done already, but it does currently not support membrane elements)
 
 It will take some time, if you want to help, feel free to do so!
 
