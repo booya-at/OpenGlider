@@ -69,6 +69,12 @@ def norm(vector):
     """
     return np.sqrt(np.vdot(vector, vector))
 
+def norm_squared(vector):
+    """
+    Norm_squared
+    """
+    return np.vdot(vector, vector)
+
 
 def normalize(vector):
     """
