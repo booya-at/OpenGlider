@@ -33,4 +33,3 @@ class TestMarks(unittest.TestCase):
 
     def test_circle(self):
         self.show(marks.polygon(self.p1, self.p2, num=20))
-

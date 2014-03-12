@@ -29,9 +29,9 @@ packages, package_data = [], {}
 # This is all copied 1:1 from django-project as i dont know any better way to do this
 def fullsplit(splitpath, result=None):
     """
-Split a pathname into components (the opposite of os.path.join)
-in a platform-neutral way.
-"""
+    Split a pathname into components (the opposite of os.path.join)
+    in a platform-neutral way.
+    """
     if result is None:
         result = []
     head, tail = os.path.split(splitpath)

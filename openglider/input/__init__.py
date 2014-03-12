@@ -7,7 +7,7 @@ from openglider.vector import norm_squared
 
 
 class MplWidget(FigureCanvas):
-    def __init__(self, parent=None, width=5, height=4, dpi=100, dynamic = True):
+    def __init__(self, parent=None, width=5, height=4, dpi=100, dynamic=True):
         self.ax_list = []
         self.actual_ax = 0
         self.start_move_pos = self.current_xlim = self.current_ylim = None
