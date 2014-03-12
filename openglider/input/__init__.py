@@ -3,7 +3,7 @@ import sys
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt4 import QtGui, QtCore
-from openglider.vector import norm, norm_squared
+from openglider.vector import norm_squared
 
 
 class MplWidget(FigureCanvas):
@@ -27,7 +27,7 @@ class MplWidget(FigureCanvas):
             self.fig.canvas.mpl_connect('button_press_event', self.onclick)
             self.fig.canvas.mpl_connect('motion_notify_event', self.drag)
             self.fig.canvas.mpl_connect('button_release_event', self.offclick)
-            self.fig.canvas.mpl_connect('scroll_event' , self.zoom)
+            self.fig.canvas.mpl_connect('scroll_event', self.zoom)
 
     def updatedata(self):
         for i in self.ax_list:
@@ -98,10 +98,10 @@ class MplWidget(FigureCanvas):
     def zoom(self, event):
         if event.button == "down":
             factor = 0.05
-        if event.button == 'up':
+        else:
             factor = -0.05
         if event.key == 'control':
-            factor *= 10  # TODO?
+            factor *= 10
         factor += 1
         curr_xlim = self.ax.get_xlim()
         curr_ylim = self.ax.get_ylim()
@@ -111,9 +111,9 @@ class MplWidget(FigureCanvas):
         relx = (curr_xlim[1]-event.xdata)/(curr_xlim[1]-curr_xlim[0])
         rely = (curr_ylim[1]-event.ydata)/(curr_ylim[1]-curr_ylim[0])
         self.ax.set_xlim([event.xdata-new_width*(1-relx),
-                    event.xdata+new_width*(relx)])
+                          event.xdata+new_width*relx])
         self.ax.set_ylim([event.ydata-new_width*(1-rely)/2,
-                            event.ydata+new_width*(rely)/2])
+                          event.ydata+new_width*rely/2])
         self.fig.canvas.draw()
 
 
