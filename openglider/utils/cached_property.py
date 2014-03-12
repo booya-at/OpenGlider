@@ -34,8 +34,12 @@ def cached_property(*hashlist):
 def rec_getattr(obj, attr):
     if attr == "self":
         return obj
+    elif '.' not in attr:
+        return getattr(obj, attr)
     else:
-        return reduce(getattr, attr.split("."), obj)
+        l = attr.split('.')
+        return rec_getattr(getattr(obj, l[0]), '.'.join(l[1:]))
+
 
 
 def c_mul(a, b):

@@ -21,6 +21,7 @@ import math
 import copy
 
 import numpy
+from openglider import Profile2D
 
 from openglider.glider.in_out import IMPORT_GEOMETRY, EXPORT_3D
 from openglider.vector import norm
@@ -139,9 +140,8 @@ class Glider(object):
 
     @numpoints.setter
     def numpoints(self, numpoints):
-        self.ribs[0].profile_2d.numpoints = numpoints
-        xvalues = self.ribs[0].profile_2d.x_values
-        for rib in self.ribs[1:]:
+        xvalues = Profile2D.calculate_x_values(numpoints)
+        for rib in self.ribs:
             rib.profile_2d.x_values = xvalues
 
     # TODO: check consistency

@@ -73,6 +73,9 @@ class TensionStrapSimple(DiagonalRib):
 
 
 class Panel(object):
+    """
+    Glider cell-panel
+    """
     def __init__(self, right_back=1., right_front=-1., left_back=1., left_front=-1., cell_no=0):
         self.l_1 = left_front
         self.l_2 = left_back
@@ -97,6 +100,7 @@ class Panel(object):
             front = get_x_value(xvalues, self.l_1 + y * (self.l_1 - self.r_1))
             back = get_x_value(xvalues, self.l_2 + y * (self.l_2 - self.r_2))
             ribs.append(cell.midrib(y).get(front, back))
+            # todo: return polygon-data
         return ribs
 
     def get_flattened(self, glider):

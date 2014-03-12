@@ -150,7 +150,7 @@ class HashedList(object):
         return self.data.__getitem__(item)
 
     def __setitem__(self, key, value):
-        self.data.__setitem__(key, value)
+        self.data.__setitem__(key, np.array(value))
         self._hash = None
 
     def __hash__(self):
@@ -169,6 +169,7 @@ class HashedList(object):
     def data(self, data):
         if not data is None:
             self._data = np.array(data)
+            #self._data = [np.array(vector) for vector in data]  # 1,5*execution time
             self._hash = None
         else:
             self._data = data
@@ -290,9 +291,9 @@ class Vectorlist2D(Vectorlist):
                 thacut = cut(self[i], self[i + 1], p1, p2)  # point, i, k
             except np.linalg.linalg.LinAlgError:
                 continue
-            if 0 <= thacut[1] < 1 and \
-                    (not cut_only_positive or thacut[2] >= 0) and \
-                    (not cut_only_in_between or thacut[2] <= 1.):
+            if (0 <= thacut[1] < 1 and
+                    (not cut_only_positive or thacut[2] >= 0) and
+                    (not cut_only_in_between or thacut[2] <= 1.)):
                 cutlist.append((thacut[0], i + thacut[1], thacut[2]))
                 if break_if_found:
                     return cutlist[0]
@@ -340,29 +341,28 @@ class Vectorlist2D(Vectorlist):
                 try:
                     temp = cut(self.data[i], self.data[i + 1], self.data[j], self.data[j + 1])
                     if 0 < temp[1] < 1. and 0 < temp[2] < 1.:
-                        self.data = np.concatenate([self.data[:i], [temp[0]], self.data[j + 1:]])
+                        #self.data = self.data[:i] + [temp[0]] + self.data[j + 1:]
+                        self.data = np.concatenate([self.data[:i], [temp[0]], self.data[j+1:]])
                 except np.linalg.linalg.LinAlgError:
                     continue
 
-    # TODO: @cached-property -> add posibility to hash lists//numpy-array
     @cached_property('self')
     def normvectors(self):
         """
         Return Normvectors to the List-Line, heading rhs
         """
-        if not self._normvectors:
-            rotate = lambda x: normalize(x).dot([[0, -1], [1, 0]])
-            self._normvectors = [rotate(self.data[1] - self.data[0])]
-            for j in range(1, len(self.data) - 1):
-                # TODO: Maybe not normalize here?!
-                self._normvectors.append(
-                    #rotate(normalize(self.data[j + 1] - self.data[j]) + normalize(self.data[j] - self.data[j - 1])))
-                    rotate(self.data[j + 1] - self.data[j - 1]))
-            self._normvectors.append(rotate(self.data[-1] - self.data[-2]))
-        return self._normvectors
+        rotate = lambda x: normalize(x).dot([[0, -1], [1, 0]])
+        normvectors = [rotate(self.data[1] - self.data[0])]
+        for j in range(1, len(self.data) - 1):
+            # TODO: Maybe not normalize here?!
+            normvectors.append(
+                #rotate(normalize(self.data[j + 1] - self.data[j]) + normalize(self.data[j] - self.data[j - 1])))
+                rotate(self.data[j + 1] - self.data[j - 1]))
+        normvectors.append(rotate(self.data[-1] - self.data[-2]))
+        return normvectors
 
     def recalc(self):
-        self._normvectors = None
+        pass
 
     def shift(self, vector):
         if len(vector) == 2:
@@ -377,6 +377,7 @@ class Vectorlist2D(Vectorlist):
         second = self.data[0]
         third = self.data[1]
         newlist.append(second + self.normvectors[0] * amount)
+        i = 0
         for i in range(1, len(self.data) - 1):
             first = second
             second = third
@@ -391,7 +392,6 @@ class Vectorlist2D(Vectorlist):
         """
         Rotate around a (non)given startpoint counter-clockwise
         """
-        # Rotationmatrix_2d: matrix(theta) {{Cos[[Theta]], -Sin[[Theta]]}, {Sin[[Theta]], Cos[[Theta]]}}
         rotation_matrix = rotation_2d(angle)
         new_data = []
         for point in self.data:

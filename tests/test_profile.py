@@ -27,7 +27,7 @@ except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
     import openglider
 from openglider.airfoil import Profile2D
-from test_Vector import *
+from test_vector import *
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
 

@@ -241,7 +241,9 @@ class Profile2D(BasicProfile2D):
     def x_values(self):
         """Get XValues of airfoil. upper side neg, lower positive"""
         i = self.noseindex
-        return numpy.concatenate((self.data[:i, 0] * -1., self.data[i:, 0]))
+        return [-vector[0] for vector in self.data[:i]] +\
+               [vector[0] for vector in self.data[i:]]
+        #return self.data[:i, 0] * -1. + self.data[i:, 0]
 
     @x_values.setter
     def x_values(self, xval):
@@ -256,9 +258,14 @@ class Profile2D(BasicProfile2D):
     @numpoints.setter
     def numpoints(self, num):
         """Set airfoil to cosinus-Distributed XValues"""
-        i = num - num % 2
+        self.x_values = self.calculate_x_values(num)
+
+    @staticmethod
+    def calculate_x_values(numpoints):
+        """return cosinus distributed x-values"""
+        numpoints -= numpoints % 2
         xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 - math.sin(math.pi * x))
-        self.x_values = [xtemp(j * 1. / i) for j in range(i + 1)]
+        return [xtemp(i/numpoints) for i in range(numpoints+1)]
 
     #todo: cached
     #@cached_property('self')
@@ -271,7 +278,7 @@ class Profile2D(BasicProfile2D):
     @thickness.setter
     def thickness(self, newthick):
         factor = float(newthick / self.thickness)
-        new = self.data * [1., factor]
+        new = [point * [1., factor] for point in self.data]
         name = self.name
         if not name is None:
             name += "_" + str(newthick) + "%"

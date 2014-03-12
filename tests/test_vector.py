@@ -98,6 +98,7 @@ class TestVector2D(TestVector3D):
         #TestVector3D.setUp(self, dim)
         self.vectors = [vector.Vectorlist2D(i.data[:]) for i in self.vectors]
 
+    #@unittest.skip("temp")
     def test_A_selfcheck(self):
         for thalist in self.vectors:
             thalist.check()

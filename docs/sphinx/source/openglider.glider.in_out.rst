@@ -20,6 +20,14 @@ openglider.glider.in_out.export_3d module
     :undoc-members:
     :show-inheritance:
 
+openglider.glider.in_out.import_3d module
+-----------------------------------------
+
+.. automodule:: openglider.glider.in_out.import_3d
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 openglider.glider.in_out.import_geometry module
 -----------------------------------------------
 

@@ -30,6 +30,7 @@ except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
     import openglider
 import openglider.graphics
+import openglider.graphics as G
 import unittest
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
@@ -105,3 +106,16 @@ class TestGlider(GliderTestClass):
             rib.profile_2d = rib.profile_2d+brakeprof*(3*i/len(glider.ribs))
 
         self.test_show_3d_green(thaglider=glider)
+
+    def test_export_json(self):
+        #path = os.tmpfile()
+        path = os.tmpnam()+".json"
+        self.glider.export_3d(path)
+        import json
+        file = open(path, "r")
+        data = json.load(file)
+        print(data["panels"])
+        print(data["nodes"])
+        G.Graphics([G.Polygon(panel["node_no"]) for panel in data["panels"] if not panel["is_wake"]],
+        #G.Graphics([G.Polygon(data["panels"][0]["node_no"])],
+                   data["nodes"])

@@ -100,7 +100,7 @@ class GraphicObject(object):
         """
         cell = graphics.get_cell(self.type_name)
         pointnums = self.add_points(graphics)
-        graphics.colours.InsertNextTupleValue(self.colour or graphics.std_obj_colour)
+        graphics.colours.InsertNextTupleValue(self.colour or graphics.default_colour)
         return cell, pointnums
 
 
@@ -125,7 +125,7 @@ class Line(GraphicObject):
         cell, pointnums = super(Line, self).draw(graphics)
         # colour bugfix for polylines
         for __ in range(len(pointnums) - 2):
-            graphics.colours.InsertNextTupleValue(self.colour or graphics.std_obj_colour)
+            graphics.colours.InsertNextTupleValue(self.colour or graphics.default_colour)
 
         for i in range(len(pointnums) - 1):
             line = vtk.vtkLine()
@@ -192,50 +192,55 @@ class Axes(GraphicObject):
 
 #######################################################################
 ###################COLOURS#############################################
-class Colour(object):
-    def __init__(self, colour=None):
-        if colour:
-            self.colour = colour
+class RGBColour(object):
+    def __init__(self, r=None, g=None, b=None):
+        if r is None or g is None or b is None:  # TODO
+            self.colour = [255, 255, 255]
+        else:
+            self.colour = [r, g, b]
 
     def draw(self, graphics):
-        graphics.std_obj_colour = self.colour
+        graphics.default_colour = self.colour
 
-Red = Colour([255, 0, 0])
-Blue = Colour([0, 0, 255])
-Green = Colour([0, 255, 0])
+Red = RGBColour(255, 0, 0)
+Blue = RGBColour(0, 0, 255)
+Green = RGBColour(0, 255, 0)
 
 
 #####################################################################
 ########################Graphics (MAIN)##############################
 class Graphics(object):
     """Creates a Graphics Instance"""
-    def __init__(self, graphicobjects, coordinates=None, rotation=True):
+    def __init__(self, graphicobjects, coordinates=None, rotation=True, hidden=False):
         self.allow_rotation = rotation
         self.coordinates = coordinates
         self.graphicobjects = graphicobjects
 
-        self.data = None
-        self.points = None
-        self.std_obj_colour = [255, 255, 255]  # white
-        self.colours = None
+        self.data = vtk.vtkPolyData()
+        self.points = vtk.vtkPoints()
+        self.colours = vtk.vtkUnsignedCharArray()
+        self.default_colour = [255, 255, 255]  # white
+        self.colours.SetNumberOfComponents(3)
+        self.colours.SetName("Colours")
         self.renderer = None
 
         self._draw()
-        self.show()
+        if not hidden:
+            self.show()
 
     @staticmethod
     def make_3d(arg):
         if len(arg) == 2:
             return [arg[0], arg[1], 0.]
-        else:
+        elif len(arg) == 3:
             return arg
+        else:
+            raise ValueError("Only 2D- or 3D-Vectors allowed")
 
     def _draw(self):
-        self.data = vtk.vtkPolyData()
-        self.points = vtk.vtkPoints()
-        self.colours = vtk.vtkUnsignedCharArray()
-        self.colours.SetNumberOfComponents(3)
-        self.colours.SetName("Colours")
+        self.data.Reset()
+        self.points.Reset()
+        self.colours.Reset()
 
         if not self.coordinates is None:
             for coor in self.coordinates:
@@ -256,10 +261,11 @@ class Graphics(object):
             graphicobject.draw(self)
         self.data.GetCellData().SetScalars(self.colours)
 
-    def show(self):
-        render_window = vtk.vtkRenderWindow()
+    def show(self, render_window=None):
+        if render_window is None:
+            render_window = vtk.vtkRenderWindow()
+            render_window.SetSize(700, 700)
         render_window.AddRenderer(self.renderer)
-        render_window.SetSize(700, 700)
         render_interactor = vtk.vtkRenderWindowInteractor()
         if self.allow_rotation:
             render_interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
@@ -289,3 +295,10 @@ class Graphics3D(Graphics):
 class Graphics2D(Graphics):
     def __init__(self, graphicsobject, coordinates=None):
         super(Graphics2D, self).__init__(graphicsobject, coordinates, rotation=False)
+
+
+def show(*graphics):
+    window = vtk.vtkRenderWindow()
+    window.SetSize(700, 700)
+    for g in graphics:
+        pass
