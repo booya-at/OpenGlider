@@ -2,7 +2,7 @@ import FreeCAD
 from _Classes import *
 import FreeCADGui
 from pivy.coin import SoMouseButtonEvent, SoLocation2Event
-from openglider.Vector import norm
+from openglider.vector import norm
 from numpy import array
 
 
@@ -11,7 +11,7 @@ class LoadProfile:
         pass
 
     def GetResources(self):
-        return {'Pixmap': 'glider_import_profile.svg', 'MenuText': 'load profile', 'ToolTip': 'load profile'}
+        return {'Pixmap': 'glider_import_profile.svg', 'MenuText': 'load airfoil', 'ToolTip': 'load airfoil'}
 
     def IsActive(self):
         if FreeCAD.ActiveDocument is None:
@@ -20,7 +20,7 @@ class LoadProfile:
             return True
 
     def Activated(self):
-        a = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Profile")
+        a = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "airfoil")
         Airfoil(a)
         ViewProviderAirfoil(a.ViewObject)
         FreeCAD.ActiveDocument.recompute()
@@ -162,7 +162,7 @@ class CompareProfile:
         pass
 
     def GetResources(self):
-        return {'Pixmap': 'glider_profile_compare.svg', 'MenuText': 'compare profile', 'ToolTip': 'compare profile'}
+        return {'Pixmap': 'glider_profile_compare.svg', 'MenuText': 'compare airfoil', 'ToolTip': 'compare airfoil'}
 
     def IsActive(self):
         if FreeCAD.ActiveDocument is None:
@@ -182,7 +182,7 @@ class MergeProfile:
         pass
 
     def GetResources(self):
-        return {'Pixmap': 'glider_profile_merge.svg', 'MenuText': 'merge profile', 'ToolTip': 'merge profile'}
+        return {'Pixmap': 'glider_profile_merge.svg', 'MenuText': 'merge airfoil', 'ToolTip': 'merge airfoil'}
 
     def IsActive(self):
         if FreeCAD.ActiveDocument is None:

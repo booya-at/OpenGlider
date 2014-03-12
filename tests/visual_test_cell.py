@@ -30,10 +30,10 @@ try:
     import openglider
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
-from openglider.Profile import Profile2D
+from openglider.airfoil import Profile2D
 from openglider.glider.cells import Cell
 from openglider.glider.ribs import Rib
-import openglider.Graphics as Graph
+import openglider.graphics as Graph
 from openglider.glider.ballooning import BallooningBezier
 
 

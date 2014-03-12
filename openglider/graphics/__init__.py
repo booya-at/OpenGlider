@@ -19,7 +19,7 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from openglider.Graphics.Functions import Graphics2D, Graphics3D, Graphics, Line, Point, Polygon, listlineplot, Axes, draw_glider
+from openglider.graphics.Functions import *
 
 if __name__ == "__main__":
     listlineplot([1, 2, 2, 1, 1, 2, 2, 1])

@@ -19,6 +19,6 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from ._Classes import Profile2D, Profile3D
+from ._Classes import Profile2D, Profile3D, get_x_value
 from ._Classes import XFoil
 

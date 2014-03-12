@@ -46,7 +46,7 @@ class TestRib(unittest.TestCase):
 
 
     def test_normvectors(self):
-        normvectors = self.rib.normvectors()
+        normvectors = self.rib.normvectors
 
     def test_align(self):
         first = self.rib.pos

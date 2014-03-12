@@ -23,8 +23,8 @@ from openglider.glider.ribs import Rib
 __author__ = 'simon'
 
 from xlrd import open_workbook
-from openglider.Profile import Profile2D
-from openglider.Graphics import Graphics, Line
+from openglider.airfoil import Profile2D
+from openglider.graphics import Graphics, Line
 
 
 def excelimport(filename):
@@ -57,7 +57,7 @@ def excelimport(filename):
     front = [0., 0., 0.]
     for i in range(1, len(ribsheet)):
         # row: num, chord, x, y, angle, aoa, z-rot, angle-offset, merge, balloonmerge
-        # Profile:
+        # airfoil:
         profil = merge(ribsheet[i, 8])
 
 

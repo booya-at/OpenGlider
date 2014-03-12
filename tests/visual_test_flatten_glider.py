@@ -20,13 +20,14 @@
 import os
 import random
 import sys
+from openglider.plots import flattened_cell
 
 try:
     import openglider
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
     import openglider
-import openglider.Graphics
+import openglider.graphics
 import openglider.glider.plots
 from visual_test_glider import GliderTestClass
 
@@ -40,7 +41,7 @@ class TestGlider_Flatten(GliderTestClass):
 
     def get_flattened_cell(self, allowance=0.02):
         cell = self.glider.cells[random.randint(0, len(self.glider.cells)-1)]
-        left, right = openglider.glider.plots.flattened_cell(cell)
+        left, right = flattened_cell(cell)
         left_out = left.copy()
         right_out = right.copy()
         left_out.add_stuff(-allowance)
@@ -58,8 +59,8 @@ class TestGlider_Flatten(GliderTestClass):
                                                                       left_out, right_out, 0.02)
         cuts = [left_out[leftcut:leftcut_2], outlist_1, right_out[rightcut:rightcut_2], outlist_2]
         marks = [left[cuts_front[0]:cuts_back[0]], right[cuts_front[1]:cuts_back[1]]]
-        openglider.Graphics.Graphics2D([openglider.Graphics.Line(thalist) for thalist in cuts] +
-                                       [openglider.Graphics.Point(thalist) for thalist in marks])
+        openglider.graphics.Graphics2D([openglider.graphics.Line(thalist) for thalist in cuts] +
+                                       [openglider.graphics.Point(thalist) for thalist in marks])
 
     def test_cut1(self):
         self.showcut(0)

@@ -9,8 +9,9 @@ try:
     import openglider
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
-import openglider.Graphics
-import openglider.Utils.marks as marks
+    import openglider
+import openglider.graphics
+import openglider.plots.marks as marks
 
 
 class TestMarks(unittest.TestCase):
@@ -19,9 +20,9 @@ class TestMarks(unittest.TestCase):
         self.p2 = numpy.array([random.random(), random.random()])
 
     def show(self, obj):
-        openglider.Graphics.Graphics2D([
-            openglider.Graphics.Point([self.p1, self.p2]),
-            openglider.Graphics.Polygon(obj[0])
+        openglider.graphics.Graphics2D([
+            openglider.graphics.Point([self.p1, self.p2]),
+            openglider.graphics.Polygon(obj[0])
         ])
 
     def test_triangle(self):

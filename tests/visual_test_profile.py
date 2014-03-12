@@ -3,14 +3,14 @@ import math
 import random
 import sys
 import unittest
-import openglider.Vector
+import openglider.vector
 
 try:
     import openglider
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
-from openglider.Profile import Profile2D
-import openglider.Graphics as Graph
+from openglider.airfoil import Profile2D
+import openglider.graphics as Graph
 from openglider.glider.ballooning import BallooningBezier
 
 
@@ -23,12 +23,12 @@ class ProfileTest(unittest.TestCase):
         self.profile = Profile2D()
         prof = random.randint(1, 9999)
         self.profile.compute_naca(prof, 200)
-        #self.profile.importdat(proffile)
+        #self.airfoil.importdat(proffile)
 
     def test_allowance(self):
         prof = self.profile.copy()
         prof.add_stuff(random.random()*0.1)
-        prof = openglider.Vector.Polygon2D(prof.data)
+        prof = openglider.vector.Polygon2D(prof.data)
         prof.close()
-        openglider.Graphics.Graphics([openglider.Graphics.Line(prof.data),
-                                      openglider.Graphics.Line(self.profile.data)])
+        openglider.graphics.Graphics([openglider.graphics.Line(prof.data),
+                                      openglider.graphics.Line(self.profile.data)])

@@ -6,11 +6,12 @@ Subpackages
 
 .. toctree::
 
-    openglider.Graphics
-    openglider.Profile
-    openglider.Utils
-    openglider.Vector
+    openglider.airfoil
     openglider.glider
+    openglider.graphics
+    openglider.plots
+    openglider.utils
+    openglider.vector
 
 Submodules
 ----------

@@ -1,6 +1,7 @@
 #ignore dot files:
 .*
 !.gitignore
+!.travis.yml
 
 #python compiled
 *.py[cod~]
@@ -43,7 +44,8 @@ nosetests.xml
 *~
 
 # Doxygen generated Doc
-Doc/doxygen/*
+# Doc/doxygen/*
+docs/sphinx/build/*
 
 dist-folder
 dist/*

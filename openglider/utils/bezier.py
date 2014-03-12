@@ -23,16 +23,16 @@ import numpy as np
 from scipy.misc import comb
 import scipy.interpolate
 from scipy.optimize import bisect as findroot
-
+__all__ = ['BezierCurve']
 
 class BezierCurve(object):
     def __init__(self, points=None):
         """Bezier Curve represantative
         http://en.wikipedia.org/wiki/Bezier_curve#Generalization"""
         self._BezierBase = self._BezierFunction = self._controlpoints = None
-        if not points:
+        if points is None:
             points = [[0, 0], [1, 10], [2, 0]]
-        self._setcontrolpoints(points)
+        self.controlpoints = points
 
     def __call__(self, value):
         if 0 <= value <= 1:
@@ -40,11 +40,8 @@ class BezierCurve(object):
         else:
             ValueError("value must be in the range (0,1) for xvalues use xpoint-function")
 
-    def _setnumpoints(self, num):
-        if not num == self.numpoints:
-            self._BezierBase = bernsteinbase(num)
-
-    def _getnumpoints(self):
+    @property
+    def numpoints(self):
         try:
             leng = len(self._BezierBase)
         #except AttributeError:
@@ -53,13 +50,20 @@ class BezierCurve(object):
             leng = 0
         return leng
 
-    def _setcontrolpoints(self, points):
+    @numpoints.setter
+    def numpoints(self, num):
+        if not num == self.numpoints:
+            self._BezierBase = bernsteinbase(num)
+
+    @property
+    def controlpoints(self):
+            return self._controlpoints
+
+    @controlpoints.setter
+    def controlpoints(self, points):
         self.numpoints = len(points)
         self._controlpoints = points
         self._BezierFunction = bezierfunction(points, self._BezierBase)
-
-    def _getcontrolpoints(self):
-        return self._controlpoints
 
     def xpoint(self, x):
         root = findroot(lambda x2: self._BezierFunction(x2)[0] - x, 0, 1)
@@ -82,9 +86,6 @@ class BezierCurve(object):
             x.append(point[0])
             y.append(point[1])
         return scipy.interpolate.interp1d(x, y)
-
-    controlpoints = property(_getcontrolpoints, _setcontrolpoints)
-    numpoints = property(_getnumpoints, _setnumpoints)
 
 
 ##############################FUNCTIONS

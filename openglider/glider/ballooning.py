@@ -23,7 +23,7 @@ __author__ = 'simon'
 
 import numpy
 from scipy.interpolate import interp1d
-from openglider.Utils.Bezier import BezierCurve
+from openglider.utils.bezier import BezierCurve
 #TODO ballooning -> amount (total(integral),maximal)
 
 

@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
+
 import unittest
 import sys
 import os
@@ -24,8 +25,9 @@ try:
     import openglider
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
-from openglider.Profile import Profile2D
-from test_Vector import *
+    import openglider
+from openglider.airfoil import Profile2D
+from test_vector import *
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
 
@@ -97,7 +99,7 @@ class TestProfile(unittest.TestCase):
         self.prof.add_stuff(allowance)
         self.prof.close()
         # prof<self.prof<prof2
-        print("jo")
+        #print("jo")
         for p in prof.data:
             self.assertTrue(self.prof.contains_point(p))
         for p in prof2.data:

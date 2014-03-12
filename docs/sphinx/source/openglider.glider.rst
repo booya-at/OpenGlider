@@ -7,7 +7,6 @@ Subpackages
 .. toctree::
 
     openglider.glider.in_out
-    openglider.glider.plots
 
 Submodules
 ----------

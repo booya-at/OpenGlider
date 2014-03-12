@@ -17,8 +17,8 @@ class gliderWorkbench(Workbench):
         self.appendMenu("Glider", ["LoadGlider", "ChangeShape"])
 
         profileitems = ["LoadProfile", "ChangeProfile", "CompareProfile", "MergeProfile", "RunXfoil"]
-        self.appendToolbar("Profile", profileitems)
-        self.appendMenu("Profile", profileitems)
+        self.appendToolbar("airfoil", profileitems)
+        self.appendMenu("airfoil", profileitems)
 
     def Activated(self):
         pass

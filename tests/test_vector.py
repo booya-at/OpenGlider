@@ -22,7 +22,7 @@
 __author__ = 'simon'
 import unittest
 import random
-from openglider import Vector
+from openglider import vector
 
 def makelists(self, dim):
     self.vectors = []
@@ -34,7 +34,7 @@ def makelists(self, dim):
         pointlist = []
         for u in range(numpoints):
             pointlist.append([random.random() * 100 for i in range(dim)])
-        self.vectors.append(Vector.Vectorlist(pointlist))
+        self.vectors.append(vector.Vectorlist(pointlist))
 
 
 class TestVector3D(unittest.TestCase):
@@ -47,7 +47,7 @@ class TestVector3D(unittest.TestCase):
         for thalist in self.vectors:
             total = 0
             for i in range(len(thalist) - 2):
-                total += Vector.norm(thalist[i] - thalist[i + 1])
+                total += vector.norm(thalist[i] - thalist[i + 1])
                 # First Test:
             i2 = thalist.extend(0, total)
             self.assertAlmostEqual(i2, len(thalist) - 2)
@@ -65,7 +65,7 @@ class TestVector3D(unittest.TestCase):
             self.assertAlmostEqual(abs(leng), leng2, 7,
                                    "Failed for start=" + str(start) + " and leng=" + str(leng) +
                                    "\nresult: i2=" + str(new) + " leng2=" + str(leng2) +
-                                   " dist=" + str(Vector.norm(thalist[start] - thalist[new])))
+                                   " dist=" + str(vector.norm(thalist[start] - thalist[new])))
 
     def test_extend_case_before(self):
         #First Point before Start
@@ -77,7 +77,7 @@ class TestVector3D(unittest.TestCase):
             self.assertAlmostEqual(abs(leng), leng2, 7,
                                    "Failed for start=" + str(start) + " and leng=" + str(leng) +
                                    "\nresult: i2=" + str(new) + " leng2=" + str(leng2) +
-                                   " dist=" + str(Vector.norm(thalist[start] - thalist[new])))
+                                   " dist=" + str(vector.norm(thalist[start] - thalist[new])))
 
     def test_extend_case_afterend(self):
         #First Point further than the end
@@ -89,15 +89,16 @@ class TestVector3D(unittest.TestCase):
             self.assertAlmostEqual(abs(leng), leng2, 7,
                                    "Failed for start=" + str(start) + " and leng=" + str(leng) +
                                    "\nresult: i2=" + str(new) + " leng2=" + str(leng2) +
-                                   " dist=" + str(Vector.norm(thalist[start] - thalist[new])))
+                                   " dist=" + str(vector.norm(thalist[start] - thalist[new])))
 
 
 class TestVector2D(TestVector3D):
     def setUp(self, dim=2):
         makelists(self, dim)
         #TestVector3D.setUp(self, dim)
-        self.vectors = [Vector.Vectorlist2D(i.data[:]) for i in self.vectors]
+        self.vectors = [vector.Vectorlist2D(i.data[:]) for i in self.vectors]
 
+    #@unittest.skip("temp")
     def test_A_selfcheck(self):
         for thalist in self.vectors:
             thalist.check()
@@ -117,8 +118,8 @@ class TestVector2D(TestVector3D):
         for thalist in self.vectors:
             i = random.randint(1, len(thalist)-3)
             normv = thalist.normvectors
-            dirr = Vector.normalize(normv[i])
-            #dirr = Vector.normalize(normv[i-i % 1])+Vector.normalize(normv[i - i % 1 + 1])
+            dirr = vector.normalize(normv[i])
+            #dirr = vector.normalize(normv[i-i % 1])+vector.normalize(normv[i - i % 1 + 1])
             dirr *= 0.001
 
             p1 = thalist[i]+dirr

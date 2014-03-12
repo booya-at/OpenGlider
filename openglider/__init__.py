@@ -19,13 +19,13 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from .Profile import Profile2D
-#from Utils.Bezier import BezierCurve
-#from openglider.Vector import Vectorlist, Vectorlist2D
+from .airfoil import Profile2D
+#from utils.Bezier import BezierCurve
+#from openglider.vector import Vectorlist, Vectorlist2D
 #import numpy
 from .glider import Glider
-#from Graphics import Line, Point, Graphics
-#from openglider.Utils.Ballooning import Ballooning
+#from graphics import Line, Point, graphics
+#from openglider.utils.Ballooning import Ballooning
 
 
 #def test12(*arg):
