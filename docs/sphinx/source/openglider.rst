@@ -9,6 +9,7 @@ Subpackages
     openglider.airfoil
     openglider.glider
     openglider.graphics
+    openglider.input
     openglider.plots
     openglider.utils
     openglider.vector

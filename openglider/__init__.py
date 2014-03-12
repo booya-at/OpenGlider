@@ -17,7 +17,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-
+__version__ = '0.01dev'
+__author__ = 'Booya'
 
 from .airfoil import Profile2D
 #from utils.Bezier import BezierCurve
