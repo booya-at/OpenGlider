@@ -22,7 +22,7 @@ Class Reference
 
 .. toctree::
 
-    ../apidoc/modules.rst
+    ../apidoc/index.rst
 
 
 

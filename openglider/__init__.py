@@ -35,3 +35,4 @@ from openglider.glider import Glider
 #test12("jojo","kk")
 #test12([1,2,3])
 #test12(["J","O","K"])
+

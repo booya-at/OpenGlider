@@ -7,6 +7,8 @@ from openglider.utils.cached_property import cached_property, HashedObject
 from openglider.utils.bezier import BezierCurve
 from openglider.vector import rotation_3d, HashedList
 
+print("im code:", cached_property)
+
 
 class Rib(HashedObject):
     """Openglider Rib Class: contains a airfoil, needs a startpoint, angle (arcwide), angle of attack,
@@ -70,6 +72,9 @@ class Rib(HashedObject):
 
     @cached_property('profile_3d')
     def normvectors(self):
+        """
+        Return Rib-Normvectors
+        """
         return map(lambda x: self.rotation_matrix.dot([x[0], x[1], 0]), self.profile_2d.normvectors)
 
     @cached_property('arcang', 'glide', 'zrot', '_aoa')

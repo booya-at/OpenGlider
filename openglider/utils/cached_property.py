@@ -1,21 +1,27 @@
 #import functools
 
 #__all__ = ['cached_property']
+import functools
+
 config = {"caching": True, 'verbose': False}
 
 
 def cached_property(*hashlist):
-    #@functools.wraps
-    class CachedProperty(property):
+
+    class CachedProperty(object):
+
         def __init__(self, fget=None):
-            super(CachedProperty, self).__init__()
+            #super(CachedProperty, self).__init__(fget)
             self.function = fget
             self.hashlist = hashlist
             self.cache = None
             self.thahash = None
+            functools.update_wrapper(self, fget)
 
-        def __get__(self, parentclass, type=None):
+        def __get__(self, parentclass, _none=None):
+            #__doc__ = self.__doc__
             if not config["caching"]:
+                #return super(CachedProperty, self).__get__(parentclass)
                 return self.function(parentclass)
             else:
                 dahash = hash_attributes(parentclass, self.hashlist)
@@ -24,10 +30,12 @@ def cached_property(*hashlist):
                     return self.cache
                 else:
                     self.thahash = dahash
+                    #res = super(CachedProperty, self).__get__(parentclass)
                     res = self.function(parentclass)
                     self.cache = res
                     return res
 
+    # CachedProperty = property  # ENABLE FOR SPHINX-APIDOC
     return CachedProperty
 
 

@@ -2,7 +2,7 @@
 #
 
 # You can set these variables from the command line.
-SPHINXOPTS    =
+SPHINXOPTS    = 
 SPHINXBUILD   = sphinx-build2
 PAPER         =
 BUILDDIR      = build
@@ -49,9 +49,10 @@ help:
 
 clean:
 	rm -rf $(BUILDDIR)/*
+	rm -rf apidoc/*
 
 apidoc:
-	sphinx-apidoc2 -o apidoc/ $(PACKAGEDIR)
+	sphinx-apidoc2 -o apidoc/ --full $(PACKAGEDIR)
 
 html: apidoc
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
@@ -114,7 +115,7 @@ latex:
 	@echo "Run \`make' in that directory to run these through (pdf)latex" \
 	      "(use \`make latexpdf' here to do that automatically)."
 
-latexpdf:
+latexpdf: apidoc
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
 	@echo "Running LaTeX files through pdflatex..."
 	$(MAKE) -C $(BUILDDIR)/latex all-pdf

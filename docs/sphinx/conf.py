@@ -18,11 +18,27 @@ import os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-import openglider
-
-sys.path.insert(0, os.path.dirname(
+root_path = os.path.dirname(
     os.path.dirname(
-        os.path.abspath('.'))))
+        os.path.abspath('.')))
+sys.path.insert(0, root_path)
+
+
+#########################DIRTY PATCH#######################################
+cached_property_replace = "cached_property = lambda *args: property"
+cached_property_file_path = root_path+"/openglider/utils/cached_property.py"
+with open(cached_property_file_path, "r") as cached_property_file:
+    lines = cached_property_file.readlines()
+
+if not cached_property_replace in lines:
+    with open(cached_property_file_path, "a") as cached_property_file:
+        cached_property_file.write("\n"+cached_property_replace)
+import openglider
+with open(cached_property_file_path, "w") as cached_property_file:
+    for line in lines:
+        if not line == cached_property_replace:
+            cached_property_file.write(line)
+###########################################################################
 
 #print(sys.path)
 # -- General configuration ------------------------------------------------
@@ -195,10 +211,11 @@ htmlhelp_basename = 'opengliderdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
-
 latex_elements = {
+    'classoptions': ',oneside',
+    'babel': '\\usepackage[english]{babel}',
 # The paper size ('letterpaper' or 'a4paper').
-#'papersize': 'letterpaper',
+    'papersize': 'a4paper',
 
 # The font size ('10pt', '11pt' or '12pt').
 #'pointsize': '10pt',
