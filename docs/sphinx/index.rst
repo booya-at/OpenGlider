@@ -2,6 +2,8 @@
 OpenGlider Documentation
 ========================
 
+Contents:
+
 .. toctree::
 
     source/getting_started
