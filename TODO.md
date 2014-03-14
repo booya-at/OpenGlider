@@ -8,10 +8,7 @@ Classes
 -------
 
 - Xfoil integration for Profiles (XFLR5-API??)
-- Attachmentpoints
-- Ribs -> holes, attachmentpoints,..
 - Cells -> seperate midpoint from midrib, diagonals,..
-- Lines
 
 Exports
 -------
@@ -24,6 +21,7 @@ Imports
 -------
 
 - If you have your own input format -> write a import function
+- Examine best input format-style (json, maybe xml)
 - apame results
 
 
@@ -33,19 +31,20 @@ Flattening
 - Flatten-cells: cut parts, add cuts (entry, end, design-cut)
 - Flatten-profiles: add entry, add holes
 - Flatten-diagonals
-- Markings -> text, signs (dot, cross, triangle,...)
+- Markings -> text
 
-GUI
----
+Input
+-----
 
-- Choose Blender or FreeCAD
-- Make dragable spline-curves
-- Wizards for shape, AOA , curvature,...
+- Create dragable spline-curves
+- maybe choose between Blender and FreeCAD
+- Wizards for shape, AOA , curvature,... (with matplotlib)
 
 Panelmethod
 -----------
 
 - Finish the panelmethod code
+- Write json import/export
 - comment everything with script page-numbers,...
 - check results
 - provide sample file + test
