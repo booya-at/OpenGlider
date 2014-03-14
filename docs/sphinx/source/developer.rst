@@ -9,7 +9,7 @@ There is a lot to do, including:
 Code Conventions
 ----------------
 
-Code conventions are pretty redundant for python, but:
+There is not much to say about code conventions in python, but:
     * Use python-3 compatible Language::
 
         print("use print as a function")
@@ -18,7 +18,7 @@ Code conventions are pretty redundant for python, but:
     * Write unittests for everything
 
 Class Reference
-===============
+---------------
 
 .. toctree::
 
