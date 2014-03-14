@@ -20,6 +20,7 @@ to do so launch a python console::
 
     python2
     >>> import openglider
+
 if you have ipython installed, you can also run a graphical window, save input, reload,..::
 
     ipython2 qtconsole
