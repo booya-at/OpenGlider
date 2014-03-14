@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # openglider documentation build configuration file, created by
-# sphinx-quickstart2 on Fri Mar 14 00:39:56 2014.
+# sphinx-quickstart2 on Fri Mar 14 01:11:35 2014.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
