@@ -41,6 +41,10 @@ Then, guess what, show the glider::
     >>>polygons, points = glider.return_polygons(midribs=4)
     >>>graphics.Graphics(map(graphics.Polygon, polygons), points)
 
+Export obj file for openfoam::
+
+    >>>glider.export_3d('/tmp/teil.obj')
+
 If you are not yet familiar with python, here is some places to start:
 
 codeacademy_
