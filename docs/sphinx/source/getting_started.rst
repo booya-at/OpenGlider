@@ -2,7 +2,7 @@ Getting Started
 ===============
 
 Running Tests
-=============
+-------------
 
 To get familiar, run and take a look at the unittests.
 
@@ -13,7 +13,7 @@ Run all unittests (including fancy visual ones) using::
 from the main directory.
 
 Interactive Shell
-=================
+-----------------
 
 Best practice is to use python as a module.
 to do so launch a python console::
