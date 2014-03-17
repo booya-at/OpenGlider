@@ -107,6 +107,7 @@ class TestGlider(GliderTestClass):
 
         self.test_show_3d_green(thaglider=glider)
 
+    @unittest.skip('notyet')
     def test_export_json(self):
         #path = os.tmpfile()
         path = os.tmpnam()+".json"

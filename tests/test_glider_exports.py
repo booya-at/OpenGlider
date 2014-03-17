@@ -53,9 +53,14 @@ class TestGlider(unittest.TestCase):
         path = '/tmp/booya.dxf'
         self.glider.export_3d(path, midribs=5)
 
+    #@unittest.skip('')
     def test_export_apame(self):
         path = '/tmp/booya.inp'
         self.glider.export_3d(path, midribs=1)
+
+    def test_export_json(self):
+        path = '/tmp/booya.json'
+        self.glider.export_3d(path, midribs=4)
 
     @unittest.skip("temp")
     def test_export_plots(self):

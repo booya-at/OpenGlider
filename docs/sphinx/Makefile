@@ -52,7 +52,7 @@ clean:
 	rm -rf apidoc/*
 
 apidoc:
-	sphinx-apidoc2 -o apidoc/ --full $(PACKAGEDIR)
+	sphinx-apidoc2 -o apidoc/ $(PACKAGEDIR)
 
 html: apidoc
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html

@@ -30,7 +30,10 @@ pip-log.txt
 # Unit test / coverage reports
 .coverage
 .tox
-nosetests.xml
+nosetests.
+
+#intellij
+*.iml
 
 # Translations
 *.mo
@@ -46,6 +49,3 @@ nosetests.xml
 # Doxygen generated Doc
 # Doc/doxygen/*
 docs/sphinx/build/*
-
-dist-folder
-dist/*
