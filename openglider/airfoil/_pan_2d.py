@@ -28,9 +28,11 @@ class panel_methode_2d():
 		self.panel = []
 		self.wake_panels = []
 		self.half_lenghts = numpy.zeros(self.length)
+		self.panel_normals = []
+		self.panel_tangentials = []
 
 		self.calc_panel_geo()
-		self.create_mat_douplet_lin()
+		self.create_mat_douplet_const()
 		self.create_bc_vec()
 		self.calc_douplet()
 		self.calc_velocity()
@@ -49,7 +51,7 @@ class panel_methode_2d():
 			return(1/2/numpy.pi*(-numpy.arctan2(pn, (s0 - 1) * l) + numpy.arctan2(pn, s0 * l)))
 
 
-	def create_mat_douplet_lin(self):
+	def create_mat_douplet_const(self):
 		print("create douplet matrix")
 		for i in range(self.length):
 			for j in range(self.length):
@@ -60,8 +62,8 @@ class panel_methode_2d():
 			for j in range(len(self.wake)-1):
 				wake_w = numpy.array([self.wake[j], self.wake[j+1]])
 				d_0 = self._douplet_const(self.panel_mids[i], wake_w)
-				self.mat_douplet_cooef[i][1] -= d_0
-				self.mat_douplet_cooef[i][-2] += d_0
+				self.mat_douplet_cooef[i][0] -= d_0
+				self.mat_douplet_cooef[i][-1] += d_0
 
 
 	def create_bc_vec(self):
@@ -105,13 +107,15 @@ class panel_methode_2d():
 	def inital_wake(self):
 		for i in range(self.wake_numpoints):
 			self.wake[i][0] = 1 + i *self.wake_length / self.wake_numpoints
-			self.wake[i][1] = 0
+			self.wake[i][1] = i *self.wake_length / self.wake_numpoints * self.aoa
 
 	def calc_panel_geo(self):
 		for i in range(self.length):
 			self.panel.append(numpy.array([self.airfoil[i], self.airfoil[i+1]]))
 			self.panel_mids.append((self.airfoil[i] + self.airfoil[i+1]) / 2)
 			self.half_lenghts[i] = norm(self.airfoil[i]- self.airfoil[i+1])/2
+			self.panel_tangentials.append(self.panel[-1][1] - self.panel[-1][0])
+			self.panel_normals.append(normalize([-self.panel_tangentials[-1][1], self.panel_tangentials[-1][0]]))
 		for i in range(self.wake_numpoints-1):
 			self.wake_panels.append(numpy.array([self.wake[i], self.wake[i+1]]))
 
@@ -132,14 +136,31 @@ def test():
 
 def plot_test():
 	arf = Profile2D()
-	arf.importdat("/home/lo/Dropbox/modellbau/profile/pw51-9.dat")
-	arf.numpoints = 200
-	pan = panel_methode_2d(arf.data, aoa=10*numpy.pi/180, wake_length=5, wake_numpoints=10)
+	arf.importdat("../../tests/testprofile.dat")
+	arf.numpoints = 100
+	pan = panel_methode_2d(arf.data, aoa=5*numpy.pi/180, wake_length=5, wake_numpoints=10)
 	print(pan.mat_douplet_cooef)
 	from matplotlib import pyplot
-	pyplot.plot(pan.pressure, marker="x")
+	pyplot.plot(pan.douplet, marker="o")
+	pyplot.plot(pan.velocity, marker="x")
+	# pyplot.plot(pan.pressure, marker="x")
 	pyplot.show()
 
+def graphics_test():
+	from openglider.graphics import Graphics2D, Line
+	arf = Profile2D()
+	arf.importdat("../../tests/testprofile.dat")
+	arf.numpoints = 100
+	pan = panel_methode_2d(arf.data, aoa=10*numpy.pi/180, wake_length=5, wake_numpoints=10)
+	arrows = []
+	for i in range(pan.length):
+		mid = pan.panel_mids[i]
+		normal = pan.panel_normals[i]
+		cp = pan.pressure[i]
+		arrows.append([mid,mid+normal*cp*pan.half_lenghts[i]*10])
+	arrows = numpy.array(arrows)
+	Graphics2D([Line(pan.airfoil), Line(arrows[:,1])]+map(Line,arrows))
+
 if __name__ == "__main__":
-	plot_test()
+	graphics_test()
 
