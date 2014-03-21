@@ -59,7 +59,7 @@ class TestProfile(unittest.TestCase):
 
     def test_area(self):
         factor = random.random()
-        self.assertAlmostEqual(factor * self.prof.area, (self.prof * factor).area
+        self.assertAlmostEqual(factor * self.prof.area, (self.prof * factor).area)
 
     def test_compute_naca(self):
         numpoints = random.randint(10, 200)
