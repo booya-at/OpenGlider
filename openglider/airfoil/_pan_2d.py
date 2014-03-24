@@ -119,6 +119,17 @@ class panel_methode_2d():
         for i in range(self.wake_numpoints - 1):
             self.wake_panels.append(numpy.array([self.wake[i], self.wake[i + 1]]))
 
+def _douplet_const(point_j, panel):
+    point_i_1, point_i_2 = panel
+    t = point_i_2 - point_i_1
+    n_ = normalize([t[1], -t[0]])
+    pn, s0 = numpy.linalg.solve(numpy.transpose(numpy.array([n_, t])), -point_i_1 + point_j)
+    l = norm(t)
+    if pn == 0:
+        return (0)
+    else:
+        return (1 / 2 / numpy.pi * (-numpy.arctan2(pn, (s0 - 1) * l) + numpy.arctan2(pn, s0 * l)))
+
 
 def test():
     p1 = numpy.array([0, 0])
@@ -164,7 +175,46 @@ def graphics_test():
     arrows = numpy.array(arrows)
     Graphics2D([Line(pan.airfoil), Line(arrows[:, 1])] + map(Line, arrows))
 
+def visual_test_dipol():
+    from pylab import *
+    panel1 = numpy.array([[-2, 0], [0, 2]])
+    panel2 = numpy.array([[-0, -2], [2, 0]])
+    panel3 = numpy.array([[-2, 0], [-0, -2]])
+    panel4 = numpy.array([[0, 2], [2, 0]])
+    x = numpy.linspace(-5, 5, 50)
+    y = numpy.linspace(-5, 5, 50)
+    X, Y = meshgrid(x, y)
+    z = numpy.zeros([len(x),len(y)])
+    for i in range(len(z)):
+        for j in range(len(z[0])):
+            z[i][j]+=_douplet_const([x[i], y[j]], panel1)
+            z[i][j]-=_douplet_const([x[i], y[j]], panel2)
+            z[i][j]+=_douplet_const([x[i], y[j]], panel3)
+            z[i][j]-=_douplet_const([x[i], y[j]], panel4)
+
+    contourf(X, Y, z, levels = linspace(z.min(), z.max(), len(x)), ls = '-', cmap=cm.winter, origin="lower")
+    show()
+
+def visual_test_airfoil():
+    from pylab import *
+
+    arf = Profile2D()
+    arf.importdat("../../tests/testprofile.dat")
+    arf.numpoints = 30
+    pan = panel_methode_2d(arf.data, aoa=10 * numpy.pi / 180, wake_length=5, wake_numpoints=10)
+    x = numpy.linspace(-0.3, 1.3, 30)
+    y = numpy.linspace(-0.2, 0.2, 30)
+    X, Y = meshgrid(x, y)
+    z = numpy.zeros([len(x),len(y)])
+    for i in range(len(z)):
+        for j in range(len(z[0])):
+            for k in range(len(pan.douplet)):
+                z[i][j] += -dot([x[j], y[i]], pan.v_inf)  + 100 * pan.douplet[k] * _douplet_const([x[j], y[i]], pan.panel[k])
+
+    contourf(X, Y, z, levels = linspace(z.min(), z.max(), len(x)), ls = '-', cmap=cm.winter, origin="lower")
+    show()
 
 if __name__ == "__main__":
-    graphics_test()
+    visual_test_dipol()
 
+# dot([x[j], y[i]], pan.v_inf)
