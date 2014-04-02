@@ -21,7 +21,7 @@ import unittest
 import random
 import sys
 import os
-from openglider.glider.ribs import Rib
+from openglider.glider.rib import Rib
 
 try:
     import openglider

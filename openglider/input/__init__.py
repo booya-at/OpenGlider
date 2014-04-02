@@ -8,15 +8,13 @@ from openglider.vector import norm_squared
 
 class MplWidget(FigureCanvas):
     def __init__(self, parent=None, width=5, height=4, dpi=100, dynamic=True):
-        self.ax_list = []
-        self.actual_ax = 0
-        self.start_move_pos = self.current_xlim = self.current_ylim = None
-        self.start_drag = False
-        self.start_move = False
-        self.current_pos = (0, 0)
+        self.cid_id = None
+        self.elements = []
+
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.ax = self.fig.add_subplot(111)
         self.ax.axis("equal")
+
         FigureCanvas.__init__(self, self.fig)
         FigureCanvas.setSizePolicy(self, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
@@ -25,13 +23,22 @@ class MplWidget(FigureCanvas):
         self.setFocus()
         if dynamic:
             self.fig.canvas.mpl_connect('button_press_event', self.onclick)
-            self.fig.canvas.mpl_connect('motion_notify_event', self.drag)
             self.fig.canvas.mpl_connect('button_release_event', self.offclick)
             self.fig.canvas.mpl_connect('scroll_event', self.zoom)
 
-    def updatedata(self):
-        for i in self.ax_list:
-            i.updatedata()
+    def updatedata(self, i=None):
+        if not i is None:
+            elements = [self.elements[i]]
+        else:
+            elements = self.elements
+        for element, subplot, plot in elements:
+            plot.set_xdata(element.x_list)
+            plot.set_ydata(element.y_list)
+
+    @property
+    def pixel_scale(self):
+        x_bounds = self.ax.get_xlim()
+        return (x_bounds[1]-x_bounds[0])/get_ax_size(self.ax, self.fig)[0]
 
     def onclick(self, event):
         """
@@ -49,51 +56,45 @@ class MplWidget(FigureCanvas):
             doublepress:
                 enter value for x and y
         """
-        if event.button == 3:
-            self.start_move_pos = (event.x, event.y)
-            self.current_xlim = self.ax.get_xlim()
-            self.current_ylim = self.ax.get_ylim()
-            self.start_move = True
-            #self.dragfunc = self._move
+        if event.xdata is None or event.ydata is None:
+            return
+        elif event.button == 3:
+            startpos = (event.x, event.y)
+            self.cid_id = self.fig.canvas.mpl_connect('motion_notify_event', self._move(startpos=startpos))
 
         elif event.button == 1:
-            for element in self.ax_list:
-                if element.point_over(event.xdata, event.ydata):
-                    self.actual_ax = element
-                    self.start_drag = True
-                    #self.dragfunc = self._drag
+            for (element, __, __) in self.elements:
+                for i, (x, y) in enumerate(element.control_points):
+                    if norm_squared([x-event.xdata, y-event.ydata]) < (1 * self.pixel_scale):
+                        self.cid_id = self.fig.canvas.mpl_connect('motion_notify_event', self._drag(element, i))
+                        return
+        else:
+            self.cid_id = None
 
-    # def _drag(self):
-    #     pass
-    #
-    # def _move(self):
-    #     pass
-
-    def drag(self, event):
-        #if self.dragfunc:
-        #    self.dragfunc(event.xdata, event.ydata)
-        if self.start_drag:
-            # TODO: Check bounds
-            x_temp = self.actual_ax.x_list
-            y_temp = self.actual_ax.y_list
-            pos_temp = self.actual_ax.drag_pos
-            x_temp[pos_temp] = event.xdata
-            y_temp[pos_temp] = event.ydata
-            self.actual_ax.x = x_temp
-            self.actual_ax.y = y_temp
-            self.actual_ax.updatedata()
+    def _drag(self, element, point_id=0):
+        def __drag(event):
+            if not (event.xdata is None and event.ydata is None):
+                element.x_list[point_id] = event.xdata
+                element.y_list[point_id] = event.ydata
+            self.updatedata()
             self.fig.canvas.draw()
+        return __drag
 
-        elif self.start_move:
-            delta_x = (self.start_move_pos[0]-event.x)/self.fig.dpi
-            delta_y = (self.start_move_pos[1]-event.y)/self.fig.dpi
-            self.ax.set_xlim([self.current_xlim[0]+delta_x, self.current_xlim[1]+delta_x])
-            self.ax.set_ylim([self.current_ylim[0]+delta_y, self.current_ylim[1]+delta_y])
+    def _move(self, startpos):
+        current_xlim = self.ax.get_xlim()
+        current_ylim = self.ax.get_ylim()
+
+        def __move(event):
+            delta_x = (startpos[0]-event.x)/self.fig.dpi
+            delta_y = (startpos[1]-event.y)/self.fig.dpi
+            self.ax.set_xlim([current_xlim[0]+delta_x, current_xlim[1]+delta_x])
+            self.ax.set_ylim([current_ylim[0]+delta_y, current_ylim[1]+delta_y])
             self.fig.canvas.draw()
+        return __move
 
     def offclick(self, event):
-        self.start_drag = False
-        self.start_move = False
+        if not self.cid_id is None:
+            self.fig.canvas.mpl_disconnect(self.cid_id)
 
     def zoom(self, event):
         if event.button == "down":
@@ -118,36 +119,35 @@ class MplWidget(FigureCanvas):
 
 
 class Line():
-    def __init__(self, _mpl_widget, x_list, y_list, line_width=1):
-        self.mpl = _mpl_widget
-        self.mpl.ax_list.append(self)
-        #self.points = points
+    def __init__(self, x_list, y_list, line_width=1, mplwidget=None):
+        self.mpl = []
+        self.linewidth = line_width
         self.x_list = x_list
         self.y_list = y_list
+        if not mplwidget is None:
+            self.insert_mpl(mplwidget)
         self.drag_pos = 0
-        self.ax = self.mpl.fig.add_subplot(1, 1, 1)
-        self.plot, = self.ax.plot([], [], lw=line_width, color='black', ms=5, marker="o", mfc="r", picker=5)
-        self.ax.axis("equal")
-        self.ax.get_xaxis().set_visible(False)
-        self.ax.get_yaxis().set_visible(False)
-        self.updatedata()
-        self.ax.relim()
-        self.ax.autoscale_view()
 
-    def updatedata(self):
-        #self.plot.set_xdata(self.points[:, 0])
-        #self.plot.set_ydata(self.points[:, 1])
-        self.plot.set_xdata(self.x_list)
-        self.plot.set_ydata(self.y_list)
+    def insert_mpl(self, *mpl_widgets):
+        for widget in mpl_widgets:
+            subplot = widget.fig.add_subplot(1, 1, 1)
+            subplot.axis("equal")
+            subplot.get_xaxis().set_visible(False)
+            subplot.get_yaxis().set_visible(False)
+            subplotplot, = subplot.plot([], [], lw=self.linewidth, color='black', ms=5, marker="o", mfc="r", picker=5)
+            widget.elements.append([self, subplot, subplotplot])
+            widget.updatedata(-1)
+            subplot.relim()
+            subplot.autoscale_view()
 
-    def point_over(self, x, y, tolerance=1):
-        x_bounds = self.ax.get_xlim()
-        pixel_scale = (x_bounds[1]-x_bounds[0])/get_ax_size(self.ax, self.mpl.fig)[0]
-        for i in range(len(self.x_list)):
-            if norm_squared([self.x_list[i]-x, self.y_list[i]-y]) < (tolerance * pixel_scale):
-                self.drag_pos = i
-                return True
-        return False
+    @property
+    def control_points(self):
+        return zip(self.x_list, self.y_list)
+
+    @control_points.setter
+    def control_points(self, points):
+        self.x_list = points[:, 0]
+        self.y_list = points[:, 1]
 
 
 class BezierCurve:
@@ -180,9 +180,11 @@ class ApplicationWindow(QtGui.QMainWindow):
         mpl1 = MplWidget(QtGui.QWidget(self.mainwidget), width=5, height=4, dpi=100, dynamic=True)
         mpl2 = MplWidget(QtGui.QWidget(self.mainwidget), width=5, height=4, dpi=100, dynamic=True)
 
-        Line(mpl1, [1, 2, 3, 5, 6], [1, 2, 1, 3, 4], line_width=0)
-        Line(mpl2, [2, 3, 4, 2], [2, 3, 1, 0])
-        Line(mpl2, [1, 1, 1], [2, 3, 1])
+        line1 = Line([1, 2, 3, 5, 6], [1, 2, 1, 3, 4], line_width=0, mplwidget=mpl1)
+        line2 = Line([2, 3, 4, 2], [2, 3, 1, 0], mplwidget=mpl1)
+        line3 = Line([1, 1, 1], [2, 3, 1], mplwidget=mpl2)
+        line1.insert_mpl(mpl2)
+        mpl1.updatedata()
         mpl2.updatedata()
 
         self.splitter.addWidget(mpl1)

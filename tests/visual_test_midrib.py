@@ -23,8 +23,8 @@ import os
 
 import numpy
 
-from openglider.glider.cells import Cell
-from openglider.glider.ribs import Rib, MiniRib
+from openglider.glider.cell import Cell
+from openglider.glider.rib import Rib, MiniRib
 
 
 try:

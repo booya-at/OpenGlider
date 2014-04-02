@@ -9,6 +9,15 @@ Classes
 
 - Xfoil integration for Profiles (XFLR5-API??)
 - Cells -> seperate midpoint from midrib, diagonals,..
+-double diagonals,
+    - cut with central rib
+    - split into 2 common diagonals
+-miniribs -> sin-function
+-sharknose
+    - 2 sticks
+    - modify airfoil
+-lines
+
 
 Exports
 -------
@@ -16,6 +25,7 @@ Exports
 - Calculix Export
 - Apame Export
 - ods-geometry-export
+- gmsh vortexje
 
 Imports
 -------
@@ -23,6 +33,8 @@ Imports
 - If you have your own input format -> write a import function
 - Examine best input format-style (json, maybe xml)
 - apame results
+- json panelmethod results
+- vtk vortexje
 
 
 Flattening

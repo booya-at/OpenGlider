@@ -20,7 +20,7 @@
 from dxfwrite import DXFEngine as dxf, DXFList
 
 import openglider.plots.projection
-from openglider.glider.cells import Cell
+from openglider.glider.cell import Cell
 from .cuts import cuts
 
 
@@ -76,6 +76,7 @@ def flatten_glider(glider, path):
 
 
 # FLATTENING
+# Dict for layers
 # Flatten all cell-parts
 #   * attachment points
 #   * miniribs

@@ -4,7 +4,7 @@ import numpy
 from openglider.airfoil import Profile3D
 from openglider.glider.ballooning import arsinc
 from openglider.vector import norm, normalize, HashedList
-from openglider.glider.ribs import Rib
+from openglider.glider.rib import Rib
 from openglider.utils.cached_property import cached_property
 
 
