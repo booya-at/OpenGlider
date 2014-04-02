@@ -23,12 +23,13 @@
 
 import sys
 import os
-import openglider.graphics as graphics
-import openglider
-from openglider.glider import Glider
-import openglider.input as input
 import numpy
 from PyQt4 import QtGui
+
+import openglider
+from openglider.glider import Glider
+import openglider.graphics as graphics
+import openglider.input
 
 #clear the terminal
 os.system('clear')

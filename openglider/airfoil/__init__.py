@@ -209,7 +209,10 @@ class Profile2D(BasicProfile2D):
         t = (naca % 100) * 0.01  # last two digits: Maximum Thickness(%)
         if numpoints is None:
             numpoints = self.numpoints  # if here is an error, you should give a numpoints argument
-        x_values = [math.cos(x * 1. / (numpoints - 1) * math.pi / 2) for x in range(1, numpoints)]
+        x_values = [1-math.sin((x * 1. / (numpoints-1)) * math.pi / 2) for x in range(numpoints)]
+        #x_values = self.calculate_x_values(numpoints)
+        print([x_values[i]-x_values[i+1] for i in range(len(x_values)-1)])
+        print(x_values)
 
         upper = []
         lower = []
@@ -235,7 +238,7 @@ class Profile2D(BasicProfile2D):
                           mean_camber + thickness_this * costheta])
             lower.append([x + thickness_this * sintheta,
                           mean_camber - thickness_this * costheta])
-        self.__init__(upper + lower[1:][::-1], name="NACA_" + str(naca))
+        self.__init__(upper + lower[::-1][1:], name="NACA_" + str(naca))
 
     #todo: cached??
     @property

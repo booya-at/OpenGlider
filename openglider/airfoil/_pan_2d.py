@@ -1,5 +1,6 @@
 from __future__ import division
 import numpy
+
 from openglider.vector import normalize, norm
 from openglider.airfoil import Profile2D
 
@@ -46,10 +47,9 @@ class panel_methode_2d():
         pn, s0 = numpy.linalg.solve(numpy.transpose(numpy.array([n_, t])), -point_i_1 + point_j)
         l = norm(t)
         if pn == 0:
-            return (0)
+            return 0
         else:
-            return (1 / 2 / numpy.pi * (-numpy.arctan2(pn, (s0 - 1) * l) + numpy.arctan2(pn, s0 * l)))
-
+            return 1 / 2 / numpy.pi * (-numpy.arctan2(pn, (s0 - 1) * l) + numpy.arctan2(pn, s0 * l))
 
     def create_mat_douplet_const(self):
         print("create douplet matrix")
@@ -64,7 +64,6 @@ class panel_methode_2d():
                 d_0 = self._douplet_const(self.panel_mids[i], wake_w)
                 self.mat_douplet_cooef[i][0] -= d_0
                 self.mat_douplet_cooef[i][-1] += d_0
-
 
     def create_bc_vec(self):
         for i in range(self.length):
@@ -106,8 +105,11 @@ class panel_methode_2d():
 
     def inital_wake(self):
         for i in range(self.wake_numpoints):
-            self.wake[i][0] = 1 + i * self.wake_length / self.wake_numpoints
-            self.wake[i][1] = i * self.wake_length / self.wake_numpoints * self.aoa
+            #self.wake[i][0] = 1 + i * self.wake_length / self.wake_numpoints
+            # TODO: warum des? ( *self.aoa)
+            #self.wake[i][1] = i * self.wake_length / self.wake_numpoints * self.aoa
+            faktor = i*self.wake_length/self.wake_numpoints
+            self.wake[i] = [1+faktor*numpy.cos(self.aoa), faktor*numpy.sin(self.aoa)]
 
     def calc_panel_geo(self):
         for i in range(self.length):
@@ -120,6 +122,7 @@ class panel_methode_2d():
             self.wake_panels.append(numpy.array([self.wake[i], self.wake[i + 1]]))
 
 
+
 def test():
     p1 = numpy.array([0, 0])
     p2 = numpy.array([1, 0])
@@ -127,7 +130,7 @@ def test():
     arf = Profile2D()
     # arf.importdat("../../tests/testprofile.dat")
     arf.compute_naca(2400)
-    arf.numpoints = 10
+    arf.numpoints = 30
     pan = panel_methode_2d([p1, p2, pj, p1], aoa=2 * numpy.pi / 180.)
     print(pan._douplet_const(pj, [p1, p2]))
     print(pan._douplet_lin(pj, [p1, p2]))
@@ -152,8 +155,11 @@ def graphics_test():
     from openglider.graphics import Graphics2D, Line
 
     arf = Profile2D()
-    arf.importdat("../../tests/testprofile.dat")
-    arf.numpoints = 100
+    #arf.importdat("../../tests/testprofile.dat")
+    #arf.numpoints = 100
+    arf.compute_naca(2420, numpoints=120)
+    arf.close()
+    arf.normalize()
     pan = panel_methode_2d(arf.data, aoa=10 * numpy.pi / 180, wake_length=5, wake_numpoints=10)
     arrows = []
     for i in range(pan.length):
