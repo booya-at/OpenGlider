@@ -24,6 +24,7 @@ import numpy
 
 
 class sag_matrix():
+
     def __init__(self, number_of_lines):
         self.size = number_of_lines * 2
         self.matrix = numpy.zeros([self.size, self.size])
@@ -61,30 +62,58 @@ class sag_matrix():
 class Line():
 
     def __init__(self, number):
+        """Line Class:
+        Note:
+            -for easier user the nodes are now directly in the Lines!!!
+                if the are changed also the lines have to be recomputed
+            -when you set some parameter of a node always use the node
+                dict and don't forget to update the lines.
+            -when you get parameters of nodes, you can the take them from
+                the node dict or from the nodes stored in the line.
+            """
         self.number = number
+        self.type = None                # type of line
+
+        self.lower_node_nr = None
+        self.upper_node_nr = None
+
         self.lower_node = None
         self.upper_node = None
-        self.vec = None
-        self.ortho_vec = None
-        self.length = None
-        self.ortho_length = None
+
+        # shoul work without these values!
+        #self.vec = None
+        #self.ortho_vec = None
+        # shoul work without these values!
+
+        self.init_length = None
+        self.length = None              # length of line without sag
+        self.length_tot = None          # total length of line
+        self.ortho_length = None        # length of the projected line
+
         self.force = None
         self.ortho_force = None
-        self.type = None
+
         self.cw = None
         self.b = None
-        self.sag_par_1 = None
-        self.sag_par_2 = None
+
+        self.ortho_sag_par_1 = None
+        self.ortho_sag_par_2 = None
+
         self.stretch_factor = None
 
     def calc_stretch_par(self):
         pass
 
     def calc_pressure(self, speed):
-        return(self.cw * self.b * speed**2/2)
+        return(self.cw * self.b * speed ** 2 / 2)
 
-    def calc_ortho_length(self, ortho_lower_vec, ortho_upper_vec):
-        self.ortho_length = norm(ortho_lower_vec - ortho_upper_vec)
+    def calc_ortho_length(self):
+        self.ortho_length = norm(
+            self.lower_node.vec_proj - self.upper_node.vec_proj)
+
+    def calc_length(self):
+        self.length = norm(
+            self.lower_node.vec - self.upper_node.vec)
 
 
 class Node():
@@ -95,7 +124,6 @@ class Node():
         self.vec = numpy.array([None, None, None])
         self.vec_proj = numpy.array([None, None, None])
         self.force = numpy.array([None, None, None])
-        self.length = None
 
     def calc_force_infl(self, vec):
         v = numpy.array(vec)
@@ -117,6 +145,7 @@ class Node():
 
 
 class LinePar():
+
     def __init__(self, name):
         self.type = name
         self.cw = 0.
