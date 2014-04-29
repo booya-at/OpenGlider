@@ -51,6 +51,7 @@ def try_convert(str, form):
         return(None)
 
 
+# translate to jason input?
 def import_file(path, key_dict):
     current_key = None
     with open(path, "r") as lfile:

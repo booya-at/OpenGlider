@@ -19,18 +19,20 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 from _functions import *
-from _elements import Line, Node, LinePar
+from _elements import Line, Node, LinePar, sag_matrix
 from openglider.vector import normalize, norm
 import numpy
 import openglider.graphics as g
 
 
 class Lines():
+
     """
     Notes:
         -join some loops
         -_private functions
     """
+
     def __init__(self):
         self.calc_par = {}
         self.line_types = {}
@@ -45,59 +47,71 @@ class Lines():
                 self.nodes[l.upper_node_nr].vec = vec_0 + t * l.init_length
                 conn_lines = self.get_connected_lines(l.upper_node_nr)
                 self.calc_geo(conn_lines)
-        self.update_line_points()
+        self._update_line_points()
 
-    def calc_sag(self):
-        """
-        1 every line calculates its matrix entries (pos+value) + entry for rhs
-        2 solve matrix
-        3 save sag cooef"""
-        pass
+    def calc_sag(self, lines):
+        # 0 every line calculates its parameters
+        self.mat = sag_matrix(len(self.lines))      # should go to init
+        self._calc_projected_nodes()
+        self._update_line_points()  # ???
+        self._calc_forces(lines)
+        for l in self.lines:
+            l.speed = self.calc_par["SPEED"]         # !!!
+            l.v_inf = self.calc_par["V_INF"]
+            l._calc_pressure()
+            l._calc_length()
+            l._calc_ortho_length()
+            l._calc_ortho_force()
+        self.strt = self.get_lowest_lines()
+        for s in self.strt:
+            self._calc_matrix_entries(s)
+        self.mat.solve_system()
+        for l in self.lines:
+            l.sag_par_1, l.sag_par_2 = self.mat.get_sag_par(l.number)
 
     def calc_stretch(self):
         pass
 
     # -----CALCULATE SAG-----#
-    def _calc_force_factor():
-        pass
+    def _calc_matrix_entries(self, line):
+        up = self._get_upper_conected_lines(line.upper_node_nr)
+        if line.lower_node.type == 0:
+            self.mat._type_0_lower(line)
+        else:
+            lo = self._get_lower_connected_line(line.lower_node_nr)
+            self.mat._type_1_lower(line, lo)
+        if line.upper_node.type == 1:
+            self.mat._type_1_upper(line, up)
+        else:
+            self.mat._type_2_upper(line)
+        for u in up:
+            self._calc_matrix_entries(u)
 
-    def _calc_projected_force(self):
-        for l in self.lines():
-            l.ortho_forces = l.force * l.ortho_length / l.length
-
-    def calc_forces(self, lowest_lines):
+    def _calc_forces(self, lowest_lines):
         for lo in lowest_lines:
             if lo.upper_node.type != 2:
-                lu = self._get_upper_conected_line(lo.upper_node.number)
-                self.calc_forces(lu)
+                lu = self._get_upper_conected_lines(lo.upper_node.number)
+                self._calc_forces(lu)
                 force = numpy.zeros(3)
                 for l in lu:
                     if l.force is None:
                         print("error line force not set")
                     else:
-                        force += l.force
+                        force += l.force * l._get_vec()
                 vec = lo.upper_node.vec - lo.lower_node.vec
-                lo.force = norm(proj_force(force, normalize(vec)))
+                lo.force = norm(dot(force, normalize(vec)))
 
             else:
                 force = lo.upper_node.force
                 vec = lo.upper_node.vec - lo.lower_node.vec
                 lo.force = norm(proj_force(force, normalize(vec)))
 
-    def _calc_pressure(self, line):
-        return(line.cw * line.b * (
-            self.calc_par["SPEED"] ** 2 / 2))
-
-    def _calc_ortho_length(self):
-        for l in self.lines:
-            l.calc_ortho_length()
-
     def _calc_length(self):
         """without sag..."""
         for l in self. lines:
             l.calc_length()
 
-    def _get_upper_conected_line(self, node_nr):
+    def _get_upper_conected_lines(self, node_nr):
         ret = []
         for l in self.lines:
             if l.lower_node_nr == node_nr:
@@ -109,7 +123,13 @@ class Lines():
         for l in self.lines:
             if l.upper_node_nr == node_nr:
                 ret.append(l)
-        return(ret)
+        if len(ret) > 1:
+            print("warning!!!, there are too much lower lines")
+        return(ret[0])
+
+    def _calc_projected_nodes(self):
+        for n in self.nodes.values():
+            n.calc_proj_vec(self.calc_par["V_INF"])
 
     # -----CALCULATE GEO-----#
     def get_tangential_comp(self, line, pos_vec):
@@ -146,7 +166,7 @@ class Lines():
         return(ret)
 
     # -----IMPORT-----#
-    def update_line_points(self):
+    def _update_line_points(self):
         for line in self.lines:
             line.upper_node = self.nodes[line.upper_node_nr]
             line.lower_node = self.nodes[line.lower_node_nr]
@@ -156,18 +176,19 @@ class Lines():
             "NODES": [8, self.store_nodes],
             "LINES": [5, self.store_lines],
             "LINEPAR": [4, self.store_line_par],
-            "CALCPAR": [3, self.store_calc_par]
+            "CALCPAR": [5, self.store_calc_par]
         }
         import_file(path, key_dict)
         self.set_line_par()
         self.sort_lines()
-        self.update_line_points()
+        self._update_line_points()
 
     def store_nodes(self, values):
         n = Node(try_convert(values[0], int))
         n.type = try_convert(values[1], int)
-        n.vec = map(lambda x: try_convert(x, float), values[2:5])
-        n.force = map(lambda x: try_convert(x, float), values[5:8])
+        n.vec = numpy.array(map(lambda x: try_convert(x, float), values[2:5]))
+        n.force = numpy.array(
+            map(lambda x: try_convert(x, float), values[5:8]))
         self.nodes[n.number] = n
 
     def store_lines(self, values):
@@ -186,13 +207,13 @@ class Lines():
         self.line_types[lp.type] = lp
 
     def store_calc_par(self, values):
-        self.calc_par["GEOSTEPS"] = tryconvert(values[0], int)
-        self.calc_par["SAGSTEPS"] = tryconvert(values[1], int)
-        self.calc_par["ITER"] = tryconvert(values[2], int)
-        speed = self.calc_par["SPEED"] = tryconvert(values[3], float)
-        glide = self.calc_par["GLIDE"] = tryconvert(values[4], float)
+        self.calc_par["GEOSTEPS"] = try_convert(values[0], int)
+        self.calc_par["SAGSTEPS"] = try_convert(values[1], int)
+        self.calc_par["ITER"] = try_convert(values[2], int)
+        speed = self.calc_par["SPEED"] = try_convert(values[3], float)
+        glide = self.calc_par["GLIDE"] = try_convert(values[4], float)
         self.calc_par["V_INF"] = (
-            speed * normalize(numpy.array([0., glide, 1.])))
+            speed * normalize(numpy.array([glide, 0., 1.])))
 
     def set_line_par(self):
         for l in self.lines:
@@ -205,26 +226,19 @@ class Lines():
         self.lines.sort(key=(lambda line: line.number))
 
     # -----VISUALISATION-----#
-    def visual_output(self):
-        lines = [[l.lower_node.vec, l.upper_node.vec]
+    def visual_output(self, sag=True, numpoints=10):
+        lines = [l.get_line_coords(sag, numpoints)
                  for l in self.lines]
-        lines_proj = [
-            [l.lower_node.vec_proj, l.upper_node.vec_proj]
-            for l in self.lines]
-        g.Graphics3D(map(g.Line, lines + lines_proj))
+        lines1 = [l.get_line_coords(False, numpoints)
+                  for l in self.lines]
+        g.Graphics3D(map(g.Line, lines + lines1))
 
 
 if __name__ == "__main__":
     lines = Lines()
-    lines.import_lines("TEST_INPUT_FILE.txt")
+    lines.import_lines("TEST_INPUT_FILE_3_LINES.txt")
     strt = lines.get_lowest_lines()
     lines.calc_geo(strt)
-    lines.calc_forces(strt)
-    for n in lines.nodes.values():
-        n.calc_proj_vec([1, 1, 1])
-    lines.update_line_points()
-    lines._calc_ortho_length()
-    lines._calc_length()
-    for l in lines.lines:
-        print(l.length)
+    lines.calc_sag(strt)
+    lines._update_line_points()
     lines.visual_output()
