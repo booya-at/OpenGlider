@@ -229,16 +229,13 @@ class Lines():
     def visual_output(self, sag=True, numpoints=10):
         lines = [l.get_line_coords(sag, numpoints)
                  for l in self.lines]
-        lines1 = [l.get_line_coords(False, numpoints)
-                  for l in self.lines]
-        g.Graphics3D(map(g.Line, lines + lines1))
+        g.Graphics3D(map(g.Line, lines))
 
 
 if __name__ == "__main__":
     lines = Lines()
-    lines.import_lines("TEST_INPUT_FILE_3_LINES.txt")
+    lines.import_lines("TEST_INPUT_FILE_1.txt")
     strt = lines.get_lowest_lines()
     lines.calc_geo(strt)
     lines.calc_sag(strt)
-    lines._update_line_points()
-    lines.visual_output()
+    lines.visual_output(numpoints=20)

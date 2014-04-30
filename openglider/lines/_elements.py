@@ -88,8 +88,7 @@ class Line():
     def __init__(self, number):
         """Line Class:
         Note:
-            -for easier use the nodes are now directly in the lines!!!
-                if they are changed also the lines have to be recomputed
+            -for easier use the lines have it's nodes directly as variables!!!
             -when you set some parameter of a node always use the node
                 dict and don't forget to update the lines.
             -when you get parameters of nodes, you can the take them from
