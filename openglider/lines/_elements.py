@@ -61,9 +61,9 @@ class SagMatrix():
         i = line.number
         self.matrix[2 * i, 2 * i] = 1
         infl_list = []
-        vec = line._get_ortho_vec()
+        vec = line.get_ortho_vec()
         for u in upper_lines:
-            f_vec = u._get_ortho_vec()
+            f_vec = u.get_ortho_vec()
             infl = line.ortho_force * numpy.dot(vec, f_vec)
             infl_list.append(infl)
         sum_infl = sum(infl_list)
@@ -97,7 +97,7 @@ class SagMatrix():
 
 class Line(object):
 
-    def __init__(self, number, type='liros'):
+    def __init__(self, number, line_type='liros'):
         """Line Class:
         Note:
             -for easier use the lines have it's nodes directly as variables!!!
@@ -107,7 +107,7 @@ class Line(object):
                 the node dict or from the nodes stored in the line.
             """
         self.number = number
-        self.type = type                # type of line
+        self.line_type = line_type                # type of line
 
         self.lower_node_nr = None  # TODO: weg
         self.upper_node_nr = None
@@ -130,40 +130,41 @@ class Line(object):
 
     @property
     def cw(self):
-        return line_types[self.type]['cw']
+        return line_types[self.line_type]['cw']
 
     @property
     def thickness(self):
-        return line_types[self.type]['thickness']
+        return line_types[self.line_type]['thickness']
 
     @property
     def stretch(self):
-        return line_types[self.type]['stretch']
+        return line_types[self.line_type]['stretch']
 
-    def _calc_pressure(self, speed):
+    def drag(self, speed):
+        """drag per meter"""
         self.ortho_pressure = 1 / 2 * self.cw * self.thickness * speed ** 2
 
-    def _calc_length(self):
+    def calc_length(self):
         self.length = norm(
             self.lower_node.vec - self.upper_node.vec)
 
-    def _calc_ortho_length(self):
+    def calc_ortho_length(self):
         self.ortho_length = norm(
             self.lower_node.vec_proj - self.upper_node.vec_proj)
 
     def calc_total_length(self):
         pass
 
-    def _calc_ortho_force(self):
+    def calc_ortho_force(self):
         self.ortho_force = self.force * self.ortho_length / self.length
 
-    def _get_ortho_vec(self):
+    def get_ortho_vec(self):
         return normalize(self.upper_node.vec_proj - self.lower_node.vec_proj)
 
-    def _get_vec(self):
+    def get_vec(self):
         return normalize(self.upper_node.vec - self.lower_node.vec)
 
-    def get_line_coords(self, sag=True, numpoints=10, v_inf=numpy.array([0,1,0])):
+    def get_line_coords(self, v_inf=numpy.array([0, 1, 0]), sag=True, numpoints=10):
         """
         Return a point of the line
         """
@@ -194,10 +195,11 @@ class Line(object):
 
 
 class Node(object):
-    def __init__(self, number=None):
+    def __init__(self, number=None, pos=None, node_type=None):
         self.number = number  # XXX
-        self.type = None  # lower, top, middle (0, 2, 1)
-        self.vec = numpy.array([None, None, None])  # pos
+        self.type = node_type  # lower, top, middle (0, 2, 1)
+        self.vec = pos
+
         self.vec_proj = numpy.array([None, None, None])  # pos_proj
         self.force = numpy.array([None, None, None])  # top-node force
 
@@ -218,6 +220,7 @@ class Node(object):
             print("node " + str(self.number) + "not set yet")
         else:
             self.vec_proj = proj_to_surface(self.vec, v_inf)
+        return proj_to_surface(self.vec, v_inf)
 
 
 class LinePar():

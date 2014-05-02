@@ -25,7 +25,7 @@ import numpy
 import openglider.graphics as g
 
 
-class Lines():
+class LineSet():
 
     """
     Set of different lines
@@ -33,11 +33,11 @@ class Lines():
         -join some loops
         -_private functions
     """
-
     def __init__(self, nodes=None, lines=None, calc_par=None):
         self.calc_par = calc_par or {}  # Parameters
         self.nodes = nodes or []
         self.lines = lines or []
+        self.mat = None
 
     def calc_geo(self, start=None):
         if start is None:
@@ -54,15 +54,15 @@ class Lines():
         if start is None:
             start = self.get_lowest_lines()
         # 0 every line calculates its parameters
-        self.mat = SagMatrix(len(self.lines))      # should go to init
-        self._calc_projected_nodes()
-        self._update_line_points()  # ???
-        self._calc_forces(start)
+        self.mat = SagMatrix(len(self.lines))
+        self.calc_projected_nodes()
+        self.update_line_points()  # ???
+        self.calc_forces(start)
         for l in self.lines:
-            l._calc_pressure(self.calc_par['SPEED'])
-            l._calc_length()
-            l._calc_ortho_length()
-            l._calc_ortho_force()
+            l.drag(self.calc_par['SPEED'])
+            l.calc_length()
+            l.calc_ortho_length()
+            l.calc_ortho_force()
         for line in start:
             self._calc_matrix_entries(line)
         self.mat.solve_system()
@@ -74,11 +74,11 @@ class Lines():
 
     # -----CALCULATE SAG-----#
     def _calc_matrix_entries(self, line):
-        up = self._get_upper_conected_lines(line.upper_node_nr)
+        up = self.get_upper_conected_lines(line.upper_node_nr)
         if line.lower_node.type == 0:
             self.mat.insert_type_0_lower(line)
         else:
-            lo = self._get_lower_connected_line(line.lower_node_nr)
+            lo = self.get_lower_connected_line(line.lower_node_nr)
             self.mat.insert_type_1_lower(line, lo)
         if line.upper_node.type == 1:
             self.mat.insert_type_1_upper(line, up)
@@ -87,38 +87,39 @@ class Lines():
         for u in up:
             self._calc_matrix_entries(u)
 
-    def _calc_forces(self, lowest_lines):
-        for lo in lowest_lines:
-            if lo.upper_node.type != 2:
-                lu = self._get_upper_conected_lines(lo.upper_node.number)
-                self._calc_forces(lu)
+    def calc_forces(self, start_lines):
+        for line_lower in start_lines:
+            vec = line_lower.get_vec()
+            if line_lower.upper_node.type != 2:  # not a gallery line
+                lines_upper = self.get_upper_conected_lines(line_lower.upper_node.number)
+                self.calc_forces(lines_upper)
                 force = numpy.zeros(3)
-                for l in lu:
-                    if l.force is None:
+                for line in lines_upper:
+                    if line.force is None:
                         print("error line force not set")
                     else:
-                        force += l.force * l._get_vec()
-                vec = lo.upper_node.vec - lo.lower_node.vec
-                lo.force = norm(dot(force, normalize(vec)))
+                        force += line.force * line.get_vec()
+                #vec = line_lower.upper_node.vec - line_lower.lower_node.vec
+                line_lower.force = norm(dot(force, normalize(vec)))
 
             else:
-                force = lo.upper_node.force
-                vec = lo.upper_node.vec - lo.lower_node.vec
-                lo.force = norm(proj_force(force, normalize(vec)))
+                force = line_lower.upper_node.force
+                #vec = line_lower.upper_node.vec - line_lower.lower_node.vec
+                line_lower.force = norm(proj_force(force, normalize(vec)))
 
     def _calc_length(self):
         """without sag..."""
         for l in self. lines:
             l.calc_length()
 
-    def _get_upper_conected_lines(self, node_nr):
+    def get_upper_conected_lines(self, node_nr):
         ret = []
         for l in self.lines:
             if l.lower_node_nr == node_nr:
                 ret.append(l)
         return ret
 
-    def _get_lower_connected_line(self, node_nr):
+    def get_lower_connected_line(self, node_nr):
         ret = []
         for l in self.lines:
             if l.upper_node_nr == node_nr:
@@ -127,7 +128,7 @@ class Lines():
             print("warning!!!, there are too much lower lines")
         return ret[0]
 
-    def _calc_projected_nodes(self):
+    def calc_projected_nodes(self):
         for n in self.nodes:
             n.calc_proj_vec(self.calc_par["V_INF"])
 
@@ -166,7 +167,7 @@ class Lines():
         return ret
 
     # -----IMPORT-----#
-    def _update_line_points(self):
+    def update_line_points(self):
         for line in self.lines:
             line.upper_node = self.nodes[line.upper_node_nr]
             line.lower_node = self.nodes[line.lower_node_nr]
@@ -178,10 +179,9 @@ class Lines():
 
     # -----VISUALISATION-----#
     def visual_output(self, sag=True, numpoints=10):
-        lines = [l.get_line_coords(sag, numpoints, self.calc_par["V_INF"])
+        lines = [l.get_line_coords(self.calc_par["V_INF"], sag, numpoints)
                  for l in self.lines]
         g.Graphics3D(map(g.Line, lines))
-
 
 
 ########IMPORT TEXT FILE#################
@@ -192,9 +192,7 @@ def import_lines(path):
         "CALCPAR": [5, store_calc_par, {}]
     }
     return import_file(path, key_dict)
-    #self.set_line_par()
-    #self.sort_lines()
-    #self._update_line_points()
+
 
 def store_nodes(values, thalist):
     n = Node(try_convert(values[0], int))
@@ -204,6 +202,7 @@ def store_nodes(values, thalist):
         map(lambda x: try_convert(x, float), values[5:8]))
     thalist.append(n)
 
+
 def store_lines(values, thalist):
     l = Line(try_convert(values[0], int), values[4])
     l.lower_node_nr = try_convert(values[1], int)
@@ -211,6 +210,7 @@ def store_lines(values, thalist):
     l.init_length = try_convert(values[3], float)
     #l.type = values[4]
     thalist.append(l)
+
 
 def store_calc_par(values, calc_par):
     calc_par["GEOSTEPS"] = try_convert(values[0], int)
@@ -223,14 +223,14 @@ def store_calc_par(values, calc_par):
 
 
 if __name__ == "__main__":
-    #key_dict = import_lines("TEST_INPUT_FILE_1.txt")
+    key_dict = import_lines("TEST_INPUT_FILE_1.txt")
     #key_dict = import_lines("TEST_INPUT_FILE_2.txt")
-    key_dict = import_lines("TEST_INPUT_FILE_3.txt")
-    lines = Lines(key_dict["NODES"][2], key_dict["LINES"][2], key_dict["CALCPAR"][2])
+    #key_dict = import_lines("TEST_INPUT_FILE_3.txt")
+    thalines = LineSet(key_dict["NODES"][2], key_dict["LINES"][2], key_dict["CALCPAR"][2])
     #print([(l.lower_node_nr, l.upper_node_nr) for l in lines.lines])
     #print([l.type for l in lines.nodes])
-    lines._update_line_points()
-    strt = lines.get_lowest_lines()
-    lines.calc_geo(strt)
-    lines.calc_sag(strt)
-    lines.visual_output(numpoints=20)
+    thalines.update_line_points()
+    strt = thalines.get_lowest_lines()
+    thalines.calc_geo(strt)
+    thalines.calc_sag(strt)
+    thalines.visual_output(numpoints=20)
