@@ -57,14 +57,20 @@ def import_file(path, key_dict):
     with open(path, "r") as lfile:
         line_nr = 1
         for line in lfile:
-            inp = line.replace("\n", "").replace("\t", " ").split(" ")
-            inp = filter(lambda a: a != '', inp)
-            if len(inp) > 0:
-                if inp[0] in key_dict:
-                    current_key = inp[0]
+            line = line.replace("\n", "")
+            line = line.replace("\t", " ")
+            line = line.split(" ")  # [ 'sfsd', '']
+            line = filter(lambda a: a != '', line)  # filter empty elements
+
+            if len(line) > 0:
+                if line[0] in key_dict:
+                    current_key = line[0]
                 elif current_key is not None:
-                    if key_dict[current_key][0] == len(inp):
-                        key_dict[current_key][1](inp)
-                    elif inp[0] != "#":
+                    if key_dict[current_key][0] == len(line):
+                        key_dict[current_key][1](line, key_dict[current_key][2])  # function from key-dict
+                    elif line[0] != "#":
                         print("error in inputfile, line " + str(line_nr))
+            else:
+                current_key = None
             line_nr += 1
+    return key_dict

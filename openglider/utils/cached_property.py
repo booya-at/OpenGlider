@@ -93,14 +93,14 @@ class HashedObject(object):
         return hash_attributes(self, self.hashlist)
 
 
-class test(object):
-    def __init__(self):
-        self.num = 3
-
-    @cached_property('num')
-    def neu(self):
-        print("tuwas")
-        return self.num
+# class test(object):
+#     def __init__(self):
+#         self.num = 3
+#
+#     @cached_property('num')
+#     def neu(self):
+#         print("tuwas")
+#         return self.num
 
     #@neu.reset
     #def reset(self):

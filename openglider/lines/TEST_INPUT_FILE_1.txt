@@ -45,10 +45,6 @@ LINES
 	17		11		19		None	liros
 	18		10		0 		5 		liros
 
-LINEPAR
-#	TYP		CW		B		STRETCH
-	liros	1.		0.002		0.1
-
 CALCPAR
 #	GEOSTEPS		SAGSTEPS		ITER		SPEED		GLIDE
 	2				10				10			10			100

@@ -28,39 +28,42 @@ import openglider.graphics as g
 class Lines():
 
     """
+    Set of different lines
     Notes:
         -join some loops
         -_private functions
     """
 
-    def __init__(self):
-        self.calc_par = {}  # Parameters
-        self.line_types = {}
-        self.nodes = {}
-        self.lines = []
+    def __init__(self, nodes=None, lines=None, calc_par=None):
+        self.calc_par = calc_par or {}  # Parameters
+        self.nodes = nodes or []
+        self.lines = lines or []
 
-    def calc_geo(self, lines):
-        for l in lines:
-            if l.upper_node.type == 1:
-                vec_0 = l.lower_node.vec
-                t = self.get_tangential_comp(l, vec_0)
-                self.nodes[l.upper_node_nr].vec = vec_0 + t * l.init_length
-                conn_lines = self.get_connected_lines(l.upper_node_nr)
+    def calc_geo(self, start=None):
+        if start is None:
+            start = self.get_lowest_lines()
+        for line in start:
+            if line.upper_node.type == 1:
+                vec_0 = line.lower_node.vec
+                t = self.get_tangential_comp(line, vec_0)
+                self.nodes[line.upper_node_nr].vec = vec_0 + t * line.init_length
+                conn_lines = self.get_connected_lines(line.upper_node_nr)
                 self.calc_geo(conn_lines)
 
-    def calc_sag(self, lines):
+    def calc_sag(self, start=None):
+        if start is None:
+            start = self.get_lowest_lines()
         # 0 every line calculates its parameters
         self.mat = SagMatrix(len(self.lines))      # should go to init
         self._calc_projected_nodes()
         self._update_line_points()  # ???
-        self._calc_forces(lines)
+        self._calc_forces(start)
         for l in self.lines:
             l._calc_pressure(self.calc_par['SPEED'])
             l._calc_length()
             l._calc_ortho_length()
             l._calc_ortho_force()
-        self.start_lines = self.get_lowest_lines()
-        for line in self.start_lines:
+        for line in start:
             self._calc_matrix_entries(line)
         self.mat.solve_system()
         for l in self.lines:
@@ -113,7 +116,7 @@ class Lines():
         for l in self.lines:
             if l.lower_node_nr == node_nr:
                 ret.append(l)
-        return(ret)
+        return ret
 
     def _get_lower_connected_line(self, node_nr):
         ret = []
@@ -122,10 +125,10 @@ class Lines():
                 ret.append(l)
         if len(ret) > 1:
             print("warning!!!, there are too much lower lines")
-        return(ret[0])
+        return ret[0]
 
     def _calc_projected_nodes(self):
-        for n in self.nodes.values():
+        for n in self.nodes:
             n.calc_proj_vec(self.calc_par["V_INF"])
 
     # -----CALCULATE GEO-----#
@@ -135,7 +138,7 @@ class Lines():
         tangent = numpy.array([0., 0., 0.])
         for node_nr in upper_node_nrs:
             tangent += self.nodes[node_nr].calc_force_infl(pos_vec)
-        return(normalize(tangent))
+        return normalize(tangent)
 
     def get_upper_influence_node(self, line):
         """get the points that have influence on the line and
@@ -143,9 +146,9 @@ class Lines():
         upper_node = line.upper_node
         conn_l = self.get_connected_lines(upper_node.number)
         if len(conn_l) == 0:
-            return(upper_node.number)
+            return upper_node.number
         else:
-            return(map(self.get_upper_influence_node, conn_l))
+            return map(self.get_upper_influence_node, conn_l)
 
     def get_connected_lines(self, node_number):
         ret = []
@@ -160,7 +163,7 @@ class Lines():
             n = l.lower_node
             if n.type == 0:
                 ret.append(l)
-        return(ret)
+        return ret
 
     # -----IMPORT-----#
     def _update_line_points(self):
@@ -168,52 +171,10 @@ class Lines():
             line.upper_node = self.nodes[line.upper_node_nr]
             line.lower_node = self.nodes[line.lower_node_nr]
 
-    def import_lines(self, path):
-        key_dict = {
-            "NODES": [8, self.store_nodes],
-            "LINES": [5, self.store_lines],
-            "LINEPAR": [4, self.store_line_par],
-            "CALCPAR": [5, self.store_calc_par]
-        }
-        import_file(path, key_dict)
-        #self.set_line_par()
-        self.sort_lines()
-        self._update_line_points()
-
-    def store_nodes(self, values):
-        n = Node(try_convert(values[0], int))
-        n.type = try_convert(values[1], int)
-        n.vec = numpy.array(map(lambda x: try_convert(x, float), values[2:5]))
-        n.force = numpy.array(
-            map(lambda x: try_convert(x, float), values[5:8]))
-        self.nodes[n.number] = n
-
-    def store_lines(self, values):
-        l = Line(try_convert(values[0], int), values[4])
-        l.lower_node_nr = try_convert(values[1], int)
-        l.upper_node_nr = try_convert(values[2], int)
-        l.init_length = try_convert(values[3], float)
-        #l.type = values[4]
-        self.lines.append(l)
-
-    def store_line_par(self, values):
-        lp = LinePar(values[0])
-        lp.cw = try_convert(values[1], float)
-        lp.b = try_convert(values[2], float)
-        lp.strech = try_convert(values[3], float)
-        #self.line_types[lp.type] = lp
-
-    def store_calc_par(self, values):
-        self.calc_par["GEOSTEPS"] = try_convert(values[0], int)
-        self.calc_par["SAGSTEPS"] = try_convert(values[1], int)
-        self.calc_par["ITER"] = try_convert(values[2], int)
-        speed = self.calc_par["SPEED"] = try_convert(values[3], float)
-        glide = self.calc_par["GLIDE"] = try_convert(values[4], float)
-        self.calc_par["V_INF"] = (
-            speed * normalize(numpy.array([glide, 0., 1.])))
-
     def sort_lines(self):
-        self.lines.sort(key=(lambda line: line.number))
+        self.lines.sort(key=lambda line: line.number)
+        self.nodes.sort(key=lambda node: node.number)
+        # TODO: Check for consistency
 
     # -----VISUALISATION-----#
     def visual_output(self, sag=True, numpoints=10):
@@ -222,9 +183,53 @@ class Lines():
         g.Graphics3D(map(g.Line, lines))
 
 
+
+########IMPORT TEXT FILE#################
+def import_lines(path):
+    key_dict = {
+        "NODES": [8, store_nodes, []],  # 8 tab-seperated values
+        "LINES": [5, store_lines, []],
+        "CALCPAR": [5, store_calc_par, {}]
+    }
+    return import_file(path, key_dict)
+    #self.set_line_par()
+    #self.sort_lines()
+    #self._update_line_points()
+
+def store_nodes(values, thalist):
+    n = Node(try_convert(values[0], int))
+    n.type = try_convert(values[1], int)
+    n.vec = numpy.array(map(lambda x: try_convert(x, float), values[2:5]))
+    n.force = numpy.array(
+        map(lambda x: try_convert(x, float), values[5:8]))
+    thalist.append(n)
+
+def store_lines(values, thalist):
+    l = Line(try_convert(values[0], int), values[4])
+    l.lower_node_nr = try_convert(values[1], int)
+    l.upper_node_nr = try_convert(values[2], int)
+    l.init_length = try_convert(values[3], float)
+    #l.type = values[4]
+    thalist.append(l)
+
+def store_calc_par(values, calc_par):
+    calc_par["GEOSTEPS"] = try_convert(values[0], int)
+    calc_par["SAGSTEPS"] = try_convert(values[1], int)
+    calc_par["ITER"] = try_convert(values[2], int)
+    speed = calc_par["SPEED"] = try_convert(values[3], float)
+    glide = calc_par["GLIDE"] = try_convert(values[4], float)
+    calc_par["V_INF"] = (
+        speed * normalize(numpy.array([glide, 0., 1.])))
+
+
 if __name__ == "__main__":
-    lines = Lines()
-    lines.import_lines("TEST_INPUT_FILE_1.txt")
+    #key_dict = import_lines("TEST_INPUT_FILE_1.txt")
+    #key_dict = import_lines("TEST_INPUT_FILE_2.txt")
+    key_dict = import_lines("TEST_INPUT_FILE_3.txt")
+    lines = Lines(key_dict["NODES"][2], key_dict["LINES"][2], key_dict["CALCPAR"][2])
+    #print([(l.lower_node_nr, l.upper_node_nr) for l in lines.lines])
+    #print([l.type for l in lines.nodes])
+    lines._update_line_points()
     strt = lines.get_lowest_lines()
     lines.calc_geo(strt)
     lines.calc_sag(strt)

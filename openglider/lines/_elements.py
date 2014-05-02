@@ -108,10 +108,8 @@ class Line(object):
             """
         self.number = number
         self.type = type                # type of line
-        #self.speed = None
-        #self.v_inf = None
 
-        self.lower_node_nr = None
+        self.lower_node_nr = None  # TODO: weg
         self.upper_node_nr = None
 
         self.lower_node = None
@@ -119,7 +117,7 @@ class Line(object):
 
         self.init_length = None
         self.length = None              # length of line without sag
-        self.length_tot = None          # total length of line
+        self.length_tot = None          # total length of line TODO: property
         self.ortho_length = None        # length of the projected line
 
         self.force = None
@@ -143,7 +141,7 @@ class Line(object):
         return line_types[self.type]['stretch']
 
     def _calc_pressure(self, speed):
-        self.ortho_pressure = self.cw * self.thickness * speed ** 2 / 2
+        self.ortho_pressure = 1 / 2 * self.cw * self.thickness * speed ** 2
 
     def _calc_length(self):
         self.length = norm(
@@ -160,12 +158,15 @@ class Line(object):
         self.ortho_force = self.force * self.ortho_length / self.length
 
     def _get_ortho_vec(self):
-        return(normalize(self.upper_node.vec_proj - self.lower_node.vec_proj))
+        return normalize(self.upper_node.vec_proj - self.lower_node.vec_proj)
 
     def _get_vec(self):
-        return(normalize(self.upper_node.vec - self.lower_node.vec))
+        return normalize(self.upper_node.vec - self.lower_node.vec)
 
     def get_line_coords(self, sag=True, numpoints=10, v_inf=numpy.array([0,1,0])):
+        """
+        Return a point of the line
+        """
         if sag:
             n = normalize(v_inf)
             out = []
@@ -174,19 +175,19 @@ class Line(object):
                 out.append(self.get_pos(x) + n * self.get_sag(x))
         else:
             out = [self.lower_node.vec, self.upper_node.vec]
-        return(out)
+        return out
 
     def get_pos(self, x):
-        """x,0,1"""
-        return(self.lower_node.vec * (1. - x) + self.upper_node.vec * x)
+        """pos(x) [x,y,z], x: [0,1]"""
+        return self.lower_node.vec * (1. - x) + self.upper_node.vec * x
 
     def get_sag(self, x):
-        """x,0,1"""
+        """sag u(x) [m], x: [0,1]"""
         xi = x * self.ortho_length
         u = (- xi ** 2 / 2 * self.ortho_pressure /
              self.ortho_force + xi *
              self.sag_par_1 + self.sag_par_2)
-        return(u)
+        return u
 
     def calc_stretch_par(self):
         pass

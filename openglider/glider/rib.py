@@ -7,8 +7,6 @@ from openglider.utils.cached_property import cached_property, HashedObject
 from openglider.utils.bezier import BezierCurve
 from openglider.vector import rotation_3d, HashedList
 
-print("im code:", cached_property)
-
 
 class Rib(HashedObject):
     """Openglider Rib Class: contains a airfoil, needs a startpoint, angle (arcwide), angle of attack,
