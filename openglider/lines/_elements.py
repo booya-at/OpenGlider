@@ -97,7 +97,7 @@ class SagMatrix():
 
 class Line(object):
 
-    def __init__(self, number, line_type='liros'):
+    def __init__(self, number, lower_node=None, upper_node=None, line_type='liros'):
         """Line Class:
         Note:
             -for easier use the lines have it's nodes directly as variables!!!
@@ -112,8 +112,8 @@ class Line(object):
         self.lower_node_nr = None  # TODO: weg
         self.upper_node_nr = None
 
-        self.lower_node = None
-        self.upper_node = None
+        self.lower_node = lower_node
+        self.upper_node = upper_node
 
         self.init_length = None
         self.length = None              # length of line without sag

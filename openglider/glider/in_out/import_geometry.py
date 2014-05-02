@@ -19,6 +19,7 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 from openglider.glider.cell import Cell
 from openglider.glider.rib import Rib
+from openglider.lines import Line, Node
 
 
 __author__ = 'simon'
@@ -122,6 +123,7 @@ def transpose_columns(sheet=ezodf.Table(), columnswidth=2):
 def tolist_lines(sheet=None):
     num_rows = sheet.nrows
     num_cols = sheet.ncols
+    attachment_points_lower = attachment_points_upper = []
     linelist = []
     current_nodes = [None for i in range(num_cols)]
     i = j = 0
@@ -143,17 +145,24 @@ def tolist_lines(sheet=None):
                     j = 0
                     upper = attachment_points_upper[int(val)]
                 else:
-                    upper = Node(nodetype=1)
+                    upper = Node(node_type=1)
                     current_nodes[j//2+1] = upper
                     j += 2
-                linelist.append(Line(lower, upper, linetype=sheet.get_cell))
+                linelist.append(
+                    Line(number=1, lower_node=lower, upper_node=upper, line_type=sheet.get_cell))
         elif j+1 >= num_cols:
             j = 0
             i += 1
 
 
 
-    return thalist
+    return linelist
+
+def read_attachment_points(sheet):
+    j = 0
+    while j < sheet.ncols:
+        if sheet.get_cell([0, j]).value == "AHP":
+            pass
 
 
 def merge(factor, container):
