@@ -119,6 +119,43 @@ def transpose_columns(sheet=ezodf.Table(), columnswidth=2):
     return result
 
 
+def tolist_lines(sheet=None):
+    num_rows = sheet.nrows
+    num_cols = sheet.ncols
+    linelist = []
+    current_nodes = [None for i in range(num_cols)]
+    i = j = 0
+
+    while i < num_rows:
+        val = sheet.get_cell([i, j]).value
+        if j == 0:  # first floor
+            if val != "":
+                current_nodes[0] = [attachment_points_lower[sheet.get_cell([i, j]).value - 1]] +\
+                                   [None for i in range(num_cols)]
+            j += 1
+        elif j+2 < num_cols:
+            if val == "":
+                j += 2
+            else:
+                lower = current_nodes[j//2]
+                if j + 4 >= num_cols or sheet.get_cell([i, j+2]).value == "":  # gallery
+                    i += 1
+                    j = 0
+                    upper = attachment_points_upper[int(val)]
+                else:
+                    upper = Node(nodetype=1)
+                    current_nodes[j//2+1] = upper
+                    j += 2
+                linelist.append(Line(lower, upper, linetype=sheet.get_cell))
+        elif j+1 >= num_cols:
+            j = 0
+            i += 1
+
+
+
+    return thalist
+
+
 def merge(factor, container):
     k = factor % 1
     i = int(factor - k)
