@@ -108,8 +108,8 @@ class Line(object):
             """
         self.number = number
         self.type = type                # type of line
-        self.speed = None
-        self.v_inf = None
+        #self.speed = None
+        #self.v_inf = None
 
         self.lower_node_nr = None
         self.upper_node_nr = None

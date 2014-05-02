@@ -47,7 +47,6 @@ class Lines():
                 self.nodes[l.upper_node_nr].vec = vec_0 + t * l.init_length
                 conn_lines = self.get_connected_lines(l.upper_node_nr)
                 self.calc_geo(conn_lines)
-        self._update_line_points()
 
     def calc_sag(self, lines):
         # 0 every line calculates its parameters
@@ -153,7 +152,7 @@ class Lines():
         for l in self.lines:
             if l.lower_node_nr == node_number:
                 ret.append(l)
-        return(ret)
+        return ret
 
     def get_lowest_lines(self):
         ret = []
