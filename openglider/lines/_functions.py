@@ -36,22 +36,22 @@ def proj_force(force, vec):
     if proj <= 0.00001:
         proj = 0.00001
         print("Divide by zero!!!")
-    return(dot(force, force) / proj)
+    return dot(force, force) / proj
 
 
 def proj_to_surface(vec, n_vec):
     t = -dot(n_vec, vec) / dot(n_vec, n_vec)
-    return(vec + numpy.array(n_vec) * t)
+    return vec + numpy.array(n_vec) * t
 
 
 def try_convert(str, form):
     try:
-        return(form(str))
+        return form(str)
     except Exception:
-        return(None)
+        return None
 
 
-# translate to jason input?
+# translate to json input?
 def import_file(path, key_dict):
     current_key = None
     with open(path, "r") as lfile:

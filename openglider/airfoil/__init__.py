@@ -23,7 +23,7 @@ import os
 import numpy
 
 from openglider.utils.cached_property import cached_property
-from openglider.vector import normalize, norm, Vectorlist2D, Vectorlist, Polygon2D, HashedList
+from openglider.vector import normalize, norm, Vectorlist2D, Vectorlist, Polygon2D, HashedList, Layer
 
 
 def get_x_value(x_value_list, x):
@@ -50,9 +50,12 @@ class BasicProfile2D(Polygon2D):
     def __call__(self, xval):
         return self.profilepoint(xval)
 
-    #def align(self, (x, y)):
-    #    """Align a point (x, y) on the airfoil. x (0,1); y (-1,1)"""
-    #    pass
+    def align(self, (x, y)):
+        """Align a point (x, y) on the airfoil. x: (0,1), y: (-1,1)"""
+        p1, __ = self.profilepoint(x)
+        p2, __ = self.profilepoint(x)
+        return p1 + (1 + y) / 2 * (p2 - p1)
+
     def _x(self, xval):
         pass  # Maybe split up profilepoint function
 
@@ -358,33 +361,39 @@ class Profile3D(Vectorlist):
         self._diff = self._xvekt = self._yvekt = None
         self.xvect = self.yvect = None
 
+    @cached_property('self')
+    def noseindex(self):
+        p0 = self.data[0]
+        max = 0
+        noseindex = 0
+        for i, p1 in enumerate(self.data):
+            diff = norm(p1 - p0)
+            if diff > max:
+                noseindex = i
+                max = diff
+        return noseindex
+
+    @cached_property('self')
     def projection(self):
-        if not self._xvekt or not self._yvekt or not self._diff:
-            p1 = self.data[0]
-            diff_len = nose_index = 0
-            diff = [p - p1 for p in self.data]
-            for i in range(len(self.data)):
-                thisdiff = norm(diff[i])
-                if thisdiff > diff_len:
-                    nose_index = i
-                    diff_len = thisdiff
+        p1 = self.data[0]
+        diff = [p - p1 for p in self.data]
 
-            xvect = normalize(diff[nose_index])
-            yvect = numpy.array([0, 0, 0])
+        xvect = normalize(-diff[self.noseindex])
+        yvect = numpy.array([0, 0, 0])
 
-            for i in range(len(diff)):
-                sign = 1 - 2 * (i > nose_index)
-                yvect = yvect + sign * (diff[i] - xvect * xvect.dot(diff[i]))
+        for i in range(len(diff)):
+            sign = 1 - 2 * (i > self.noseindex)
+            yvect = yvect + sign * (diff[i] - xvect * xvect.dot(diff[i]))
 
-            self.xvect = xvect
-            self.yvect = normalize(yvect)
-            self._diff = diff
-            self.noseindex = nose_index
+        yvect = normalize(yvect)
+        print(xvect, yvect)
+        return Layer(self.data[self.noseindex], xvect, yvect)
 
     def flatten(self):
         """Flatten the airfoil and return a 2d-Representative"""
-        self.projection()
-        return Profile2D([[-self.xvect.dot(i), self.yvect.dot(i)] for i in self._diff], name=self.name + "_flattened")
+        projection = self.projection
+        return Profile2D([projection.projection(p) for p in self.data], name=self.name + "_flattened")
+        #return Profile2D([[-self.xvect.dot(i), self.yvect.dot(i)] for i in self._diff], name=self.name + "_flattened")
         ###find x-y projection-layer first
 
     @property

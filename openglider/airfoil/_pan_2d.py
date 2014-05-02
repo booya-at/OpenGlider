@@ -1,7 +1,7 @@
 from __future__ import division
 import numpy
 
-from openglider.vector import normalize, norm
+import openglider.vector as vector
 from openglider.airfoil import Profile2D
 
 numpy.set_printoptions(precision=3)
@@ -43,9 +43,9 @@ class panel_methode_2d():
     def _douplet_const(self, point_j, panel):
         point_i_1, point_i_2 = panel
         t = point_i_2 - point_i_1
-        n_ = normalize([t[1], -t[0]])
+        n_ = vector.normalize([t[1], -t[0]])
         pn, s0 = numpy.linalg.solve(numpy.transpose(numpy.array([n_, t])), -point_i_1 + point_j)
-        l = norm(t)
+        l = vector.norm(t)
         if pn == 0:
             return 0
         else:
@@ -115,18 +115,18 @@ class panel_methode_2d():
         for i in range(self.length):
             self.panel.append(numpy.array([self.airfoil[i], self.airfoil[i + 1]]))
             self.panel_mids.append((self.airfoil[i] + self.airfoil[i + 1]) / 2)
-            self.half_lenghts[i] = norm(self.airfoil[i] - self.airfoil[i + 1]) / 2
+            self.half_lenghts[i] = vector.norm(self.airfoil[i] - self.airfoil[i + 1]) / 2
             self.panel_tangentials.append(self.panel[-1][1] - self.panel[-1][0])
-            self.panel_normals.append(normalize([-self.panel_tangentials[-1][1], self.panel_tangentials[-1][0]]))
+            self.panel_normals.append(vector.normalize([-self.panel_tangentials[-1][1], self.panel_tangentials[-1][0]]))
         for i in range(self.wake_numpoints - 1):
             self.wake_panels.append(numpy.array([self.wake[i], self.wake[i + 1]]))
 
 def _douplet_const(point_j, panel):
     point_i_1, point_i_2 = panel
     t = point_i_2 - point_i_1
-    n_ = normalize([t[1], -t[0]])
+    n_ = vector.normalize([t[1], -t[0]])
     pn, s0 = numpy.linalg.solve(numpy.transpose(numpy.array([n_, t])), -point_i_1 + point_j)
-    l = norm(t)
+    l = vector.norm(t)
     if pn == 0:
         return (0)
     else:
@@ -181,8 +181,8 @@ def graphics_test():
     arrows = numpy.array(arrows)
     Graphics2D([Line(pan.airfoil), Line(arrows[:, 1])] + map(Line, arrows))
 
+from pylab import *
 def visual_test_dipol():
-    from pylab import *
     panel1 = numpy.array([[-2, 0], [0, 2]])
     panel2 = numpy.array([[-0, -2], [2, 0]])
     panel3 = numpy.array([[-2, 0], [-0, -2]])
@@ -193,16 +193,15 @@ def visual_test_dipol():
     z = numpy.zeros([len(x),len(y)])
     for i in range(len(z)):
         for j in range(len(z[0])):
-            z[i][j]+=_douplet_const([x[i], y[j]], panel1)
-            z[i][j]-=_douplet_const([x[i], y[j]], panel2)
-            z[i][j]+=_douplet_const([x[i], y[j]], panel3)
-            z[i][j]-=_douplet_const([x[i], y[j]], panel4)
+            z[i][j] += _douplet_const([x[i], y[j]], panel1)
+            z[i][j] -= _douplet_const([x[i], y[j]], panel2)
+            z[i][j] += _douplet_const([x[i], y[j]], panel3)
+            z[i][j] -= _douplet_const([x[i], y[j]], panel4)
 
     contourf(X, Y, z, levels = linspace(z.min(), z.max(), len(x)), ls = '-', cmap=cm.winter, origin="lower")
     show()
 
 def visual_test_airfoil():
-    from pylab import *
 
     arf = Profile2D()
     arf.importdat("../../tests/testprofile.dat")
@@ -211,7 +210,7 @@ def visual_test_airfoil():
     x = numpy.linspace(-0.3, 1.3, 30)
     y = numpy.linspace(-0.2, 0.2, 30)
     X, Y = meshgrid(x, y)
-    z = numpy.zeros([len(x),len(y)])
+    z = numpy.zeros([len(x), len(y)])
     for i in range(len(z)):
         for j in range(len(z[0])):
             for k in range(len(pan.douplet)):
@@ -221,6 +220,9 @@ def visual_test_airfoil():
     show()
 
 if __name__ == "__main__":
+    plot_test()
+    graphics_test()
     visual_test_dipol()
+    visual_test_airfoil()
 
 # dot([x[j], y[i]], pan.v_inf)

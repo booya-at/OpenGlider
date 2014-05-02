@@ -19,7 +19,7 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 from _functions import *
-from _elements import Line, Node, LinePar, sag_matrix
+from _elements import Line, Node, LinePar, SagMatrix
 from openglider.vector import normalize, norm
 import numpy
 import openglider.graphics as g
@@ -34,7 +34,7 @@ class Lines():
     """
 
     def __init__(self):
-        self.calc_par = {}
+        self.calc_par = {}  # Parameters
         self.line_types = {}
         self.nodes = {}
         self.lines = []
@@ -51,20 +51,18 @@ class Lines():
 
     def calc_sag(self, lines):
         # 0 every line calculates its parameters
-        self.mat = sag_matrix(len(self.lines))      # should go to init
+        self.mat = SagMatrix(len(self.lines))      # should go to init
         self._calc_projected_nodes()
         self._update_line_points()  # ???
         self._calc_forces(lines)
         for l in self.lines:
-            l.speed = self.calc_par["SPEED"]         # !!!
-            l.v_inf = self.calc_par["V_INF"]
-            l._calc_pressure()
+            l._calc_pressure(self.calc_par['SPEED'])
             l._calc_length()
             l._calc_ortho_length()
             l._calc_ortho_force()
-        self.strt = self.get_lowest_lines()
-        for s in self.strt:
-            self._calc_matrix_entries(s)
+        self.start_lines = self.get_lowest_lines()
+        for line in self.start_lines:
+            self._calc_matrix_entries(line)
         self.mat.solve_system()
         for l in self.lines:
             l.sag_par_1, l.sag_par_2 = self.mat.get_sag_par(l.number)
@@ -76,14 +74,14 @@ class Lines():
     def _calc_matrix_entries(self, line):
         up = self._get_upper_conected_lines(line.upper_node_nr)
         if line.lower_node.type == 0:
-            self.mat._type_0_lower(line)
+            self.mat.insert_type_0_lower(line)
         else:
             lo = self._get_lower_connected_line(line.lower_node_nr)
-            self.mat._type_1_lower(line, lo)
+            self.mat.insert_type_1_lower(line, lo)
         if line.upper_node.type == 1:
-            self.mat._type_1_upper(line, up)
+            self.mat.insert_type_1_upper(line, up)
         else:
-            self.mat._type_2_upper(line)
+            self.mat.insert_type_2_upper(line)
         for u in up:
             self._calc_matrix_entries(u)
 
@@ -179,7 +177,7 @@ class Lines():
             "CALCPAR": [5, self.store_calc_par]
         }
         import_file(path, key_dict)
-        self.set_line_par()
+        #self.set_line_par()
         self.sort_lines()
         self._update_line_points()
 
@@ -192,11 +190,11 @@ class Lines():
         self.nodes[n.number] = n
 
     def store_lines(self, values):
-        l = Line(try_convert(values[0], int))
+        l = Line(try_convert(values[0], int), values[4])
         l.lower_node_nr = try_convert(values[1], int)
         l.upper_node_nr = try_convert(values[2], int)
         l.init_length = try_convert(values[3], float)
-        l.type = values[4]
+        #l.type = values[4]
         self.lines.append(l)
 
     def store_line_par(self, values):
@@ -204,7 +202,7 @@ class Lines():
         lp.cw = try_convert(values[1], float)
         lp.b = try_convert(values[2], float)
         lp.strech = try_convert(values[3], float)
-        self.line_types[lp.type] = lp
+        #self.line_types[lp.type] = lp
 
     def store_calc_par(self, values):
         self.calc_par["GEOSTEPS"] = try_convert(values[0], int)
@@ -215,19 +213,12 @@ class Lines():
         self.calc_par["V_INF"] = (
             speed * normalize(numpy.array([glide, 0., 1.])))
 
-    def set_line_par(self):
-        for l in self.lines:
-            name = l.type
-            l.cw = self.line_types[name].cw
-            l.b = self.line_types[name].b
-            l.strech_factor = self.line_types[name].strech
-
     def sort_lines(self):
         self.lines.sort(key=(lambda line: line.number))
 
     # -----VISUALISATION-----#
     def visual_output(self, sag=True, numpoints=10):
-        lines = [l.get_line_coords(sag, numpoints)
+        lines = [l.get_line_coords(sag, numpoints, self.calc_par["V_INF"])
                  for l in self.lines]
         g.Graphics3D(map(g.Line, lines))
 

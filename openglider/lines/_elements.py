@@ -21,25 +21,31 @@
 from __future__ import division
 from _functions import proj_force, proj_to_surface
 from openglider.vector import normalize, norm
+from openglider.lines.line_types import line_types
 import numpy
 
 
-class sag_matrix():
-
+class SagMatrix():
     def __init__(self, number_of_lines):
-        self.size = number_of_lines * 2
-        self.matrix = numpy.zeros([self.size, self.size])
-        self.rhs = numpy.zeros(self.size)
-        self.solution = numpy.zeros(self.size)
+        size = number_of_lines * 2
+        self.matrix = numpy.zeros([size, size])
+        self.rhs = numpy.zeros(size)
+        self.solution = numpy.zeros(size)
 
     def __str__(self):
         return(str(self.matrix) + "\n" + str(self.rhs))
 
-    def _type_0_lower(self, line):
+    def insert_type_0_lower(self, line):
+        """
+        fixed lower node
+        """
         i = line.number
         self.matrix[2 * i + 1, 2 * i + 1] = 1.
 
-    def _type_1_lower(self, line, lower_line):
+    def insert_type_1_lower(self, line, lower_line):
+        """
+        free lower node
+        """
         i = line.number
         j = lower_line.number
         self.matrix[2 * i + 1, 2 * i + 1] = 1.
@@ -48,7 +54,10 @@ class sag_matrix():
         self.rhs[2 * i + 1] = -lower_line.ortho_pressure * \
             lower_line.ortho_length ** 2 / lower_line.ortho_force / 2
 
-    def _type_1_upper(self, line, upper_lines):
+    def insert_type_1_upper(self, line, upper_lines):
+        """
+        free upper node
+        """
         i = line.number
         self.matrix[2 * i, 2 * i] = 1
         infl_list = []
@@ -64,7 +73,10 @@ class sag_matrix():
         self.rhs[2 * i] = line.ortho_pressure * \
             line.ortho_length / line.ortho_force
 
-    def _type_2_upper(self, line):
+    def insert_type_2_upper(self, line):
+        """
+        Fixed upper node
+        """
         i = line.number
         self.matrix[2 * line.number, 2 * line.number] = line.ortho_length
         self.matrix[2 * line.number, 2 * line.number + 1] = 1.
@@ -75,17 +87,17 @@ class sag_matrix():
         self.solution = numpy.linalg.solve(self.matrix, self.rhs)
 
     def get_sag_par(self, line_nr):
-        return([
+        return [
             self.solution[line_nr * 2],
-            self.solution[line_nr * 2 + 1]])
+            self.solution[line_nr * 2 + 1]]
 
     def _line_parameter(self):
         pass
 
 
-class Line():
+class Line(object):
 
-    def __init__(self, number):
+    def __init__(self, number, type='liros'):
         """Line Class:
         Note:
             -for easier use the lines have it's nodes directly as variables!!!
@@ -95,7 +107,7 @@ class Line():
                 the node dict or from the nodes stored in the line.
             """
         self.number = number
-        self.type = None                # type of line
+        self.type = type                # type of line
         self.speed = None
         self.v_inf = None
 
@@ -113,17 +125,25 @@ class Line():
         self.force = None
         self.ortho_force = None
 
-        self.cw = None
-        self.b = None
         self.ortho_pressure = None
 
         self.sag_par_1 = None
         self.sag_par_2 = None
 
-        self.stretch_factor = None
+    @property
+    def cw(self):
+        return line_types[self.type]['cw']
 
-    def _calc_pressure(self):
-        self.ortho_pressure = self.cw * self.b * self.speed ** 2 / 2
+    @property
+    def thickness(self):
+        return line_types[self.type]['thickness']
+
+    @property
+    def stretch(self):
+        return line_types[self.type]['stretch']
+
+    def _calc_pressure(self, speed):
+        self.ortho_pressure = self.cw * self.thickness * speed ** 2 / 2
 
     def _calc_length(self):
         self.length = norm(
@@ -145,9 +165,9 @@ class Line():
     def _get_vec(self):
         return(normalize(self.upper_node.vec - self.lower_node.vec))
 
-    def get_line_coords(self, sag=True, numpoints=10):
+    def get_line_coords(self, sag=True, numpoints=10, v_inf=numpy.array([0,1,0])):
         if sag:
-            n = normalize(self.v_inf)
+            n = normalize(v_inf)
             out = []
             for i in range(numpoints):
                 x = i / (numpoints - 1)
@@ -172,14 +192,13 @@ class Line():
         pass
 
 
-class Node():
-
-    def __init__(self, number):
-        self.number = number
-        self.type = None
-        self.vec = numpy.array([None, None, None])
-        self.vec_proj = numpy.array([None, None, None])
-        self.force = numpy.array([None, None, None])
+class Node(object):
+    def __init__(self, number=None):
+        self.number = number  # XXX
+        self.type = None  # lower, top, middle (0, 2, 1)
+        self.vec = numpy.array([None, None, None])  # pos
+        self.vec_proj = numpy.array([None, None, None])  # pos_proj
+        self.force = numpy.array([None, None, None])  # top-node force
 
     def calc_force_infl(self, vec):
         v = numpy.array(vec)
@@ -201,7 +220,6 @@ class Node():
 
 
 class LinePar():
-
     def __init__(self, name):
         self.type = name
         self.cw = 0.
