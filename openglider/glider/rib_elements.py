@@ -97,12 +97,16 @@ class GibusArcs(object):
 
 
 class AttachmentPoint(Node):
-    def __init__(self, number=None, rib_no=None, node_type=None):
-        super(AttachmentPoint, self).__init__(number, node_type=2)
+    def __init__(self, number, rib_no, rib_pos, node_type=None):
+        super(AttachmentPoint, self).__init__(node_type=2)
         self.rib_no = rib_no
+        self.rib_pos = rib_pos
+        self.number = number
 
-    def neu(self, glider):
-        self.vec = glider.ribs[self.rib_no]
+    def get_position(self, glider):
+        rib = glider.ribs[self.rib_no]
+        self.vec = rib.profile_3d[rib.profile_2d.profilepoint(self.rib_pos)[0]]
+        return self.vec
 
 
 class RibHole(object):

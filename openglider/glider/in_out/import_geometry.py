@@ -19,7 +19,9 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 from openglider.glider.cell import Cell
 from openglider.glider.rib import Rib
+from openglider.glider.rib_elements import AttachmentPoint
 from openglider.lines import Line, Node
+from openglider.lines._lines import LineSet
 
 
 __author__ = 'simon'
@@ -94,9 +96,21 @@ def import_ods(filename, glider=None):
             cells.append(cell)
 
 
+
+
     if glider:
         glider.cells = cells
         glider.close_rib()
+        glider.attachment_points = read_elements(sheets[2], "AHP", AttachmentPoint)
+        glider.attachment_points_lower = get_lower_aufhaengepunkte(glider.data)
+        for p in glider.attachment_points:
+            p.force = numpy.array([0, 0, 1])
+            p.get_position(glider)
+
+        glider.lines = tolist_lines(sheets[6], glider.attachment_points_lower, glider.attachment_points)
+        glider.lines.calc_geo()
+        glider.lines.calc_sag()
+
         return
     return cells
 
@@ -107,7 +121,7 @@ def get_lower_aufhaengepunkte(data):
     for key in data:
         if not key is None:
             if "AHP" in key:
-                print("juhuuu")
+                #print("juhuuu")
                 pos = int(key[4])
                 if key[3].upper() == "X":
                     xyz = 0
@@ -118,6 +132,8 @@ def get_lower_aufhaengepunkte(data):
                 if pos not in aufhaengepunkte:
                     aufhaengepunkte[pos] = [None, None, None]
                 aufhaengepunkte[pos][xyz] = data[key]
+    for node in aufhaengepunkte:
+        aufhaengepunkte[node] = Node(0, numpy.array(aufhaengepunkte[node]))
     return aufhaengepunkte
 
 
@@ -140,49 +156,68 @@ def transpose_columns(sheet=ezodf.Table(), columnswidth=2):
     return result
 
 
-def tolist_lines(sheet=None):
-    num_rows = sheet.nrows
-    num_cols = sheet.ncols
-    attachment_points_lower = attachment_points_upper = []
+def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
+    num_rows = sheet.nrows()
+    num_cols = sheet.ncols()
     linelist = []
     current_nodes = [None for i in range(num_cols)]
     i = j = 0
+    count = 0
 
     while i < num_rows:
+        print(i, j)
         val = sheet.get_cell([i, j]).value
         if j == 0:  # first floor
-            if val != "":
-                current_nodes[0] = [attachment_points_lower[sheet.get_cell([i, j]).value - 1]] +\
-                                   [None for i in range(num_cols)]
+            if val is not None:
+                current_nodes = [attachment_points_lower[int(sheet.get_cell([i, j]).value)]] +\
+                                   [None for __ in range(num_cols)]
             j += 1
         elif j+2 < num_cols:
-            if val == "":
+            if val is None:
                 j += 2
             else:
                 lower = current_nodes[j//2]
-                if j + 4 >= num_cols or sheet.get_cell([i, j+2]).value == "":  # gallery
+                #print(lower)
+                if j + 4 >= num_cols or sheet.get_cell([i, j+2]).value is None:  # gallery
+
+                    upper = attachment_points_upper[int(val-1)]
+                    line_length = None
                     i += 1
                     j = 0
-                    upper = attachment_points_upper[int(val)]
                 else:
                     upper = Node(node_type=1)
                     current_nodes[j//2+1] = upper
+                    line_length = sheet.get_cell([i, j]).value
                     j += 2
                 linelist.append(
-                    Line(number=1, lower_node=lower, upper_node=upper, line_type=sheet.get_cell))
-        elif j+1 >= num_cols:
+                    Line(number=count, lower_node=lower, upper_node=upper, init_length=line_length))  #line_type=sheet.get_cell
+                count += 1
+                print("made line", linelist[-1].init_length)
+                #print(upper, lower)
+        elif j+2 >= num_cols:
             j = 0
             i += 1
 
+    print(len(linelist))
+    return LineSet(linelist, {"SPEED": 10, "GLIDE": 5, "V_INF": numpy.array([10,0,0])})
 
-
-    return linelist
-
-def read_attachment_points(sheet):
+def read_elements(sheet, keyword, element_class, len_data=2):
+    print("jo")
+    elements = []
     j = 0
-    while j < sheet.ncols:
-        if sheet.get_cell([0, j]).value == "AHP":
-            pass
+    while j < sheet.ncols():
+        if sheet.get_cell([0, j]).value == keyword:
+            for i in range(1, sheet.nrows()):
+                line = [sheet.get_cell([i, j+k]).value for k in range(len_data)]
+                if line[0] is not None:
+                    elements.append(element_class(int(line[0]), i-1, line[1]))
+            j += len_data
+        else:
+            j += 1
+    elements.sort(key=lambda element: element.number)
+    return elements
+
+
 
 
 def merge(factor, container):

@@ -36,7 +36,6 @@ import unittest
 testfolder = os.path.dirname(os.path.abspath(__file__))
 importpath = testfolder + '/demokite.ods'
 
-
 class GliderTestClass(unittest.TestCase):
     def setUp(self, complete=True):
         self.glider = openglider.Glider()
@@ -59,9 +58,12 @@ class TestGlider(GliderTestClass):
             thaglider = thaglider.copy_complete()
         thaglider.recalc()
         polygons, points = thaglider.return_polygons(num)
-        objects = [openglider.graphics.Axes(size=1.2), openglider.graphics.Green]
+        objects = [openglider.graphics.Axes(size=1.2)]  #, openglider.graphics.Green
         objects += map(openglider.graphics.Polygon, polygons)
+        #objects.append(openglider.graphics.Blue)
+        objects += map(lambda line: openglider.graphics.Line(line.get_line_coords(v_inf=[10, 0, 0])), thaglider.lines.lines)
         openglider.graphics.Graphics3D(objects, points)
+
 
     def test_show_shape(self):
         self.glider = self.glider.copy_complete()

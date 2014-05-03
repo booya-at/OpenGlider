@@ -25,7 +25,7 @@ import numpy
 
 def flatten(arr, out):
     for i in arr:
-        if isinstance(i, int):
+        if not isinstance(i, list):
             out.append(i)
         else:
             flatten(i, out)
@@ -40,6 +40,8 @@ def proj_force(force, vec):
 
 
 def proj_to_surface(vec, n_vec):
+    print(vec)
+    print(n_vec)
     t = -dot(n_vec, vec) / dot(n_vec, n_vec)
     return vec + numpy.array(n_vec) * t
 
@@ -67,7 +69,7 @@ def import_file(path, key_dict):
                     current_key = line[0]
                 elif current_key is not None:
                     if key_dict[current_key][0] == len(line):
-                        key_dict[current_key][1](line, key_dict[current_key][2])  # function from key-dict
+                        key_dict[current_key][1](line, key_dict[current_key][2], key_dict)  # function from key-dict
                     elif line[0] != "#":
                         print("error in inputfile, line " + str(line_nr))
             else:

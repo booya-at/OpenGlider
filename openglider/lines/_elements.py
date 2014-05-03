@@ -99,7 +99,7 @@ class Line(object):
     #TODO: why not directly save the line_type instead of a string
     #TODO: why are lower_node and upper_node not mandatory?
     #TODO: cached properties?
-    def __init__(self, number, lower_node, upper_node, line_type=line_types.liros):
+    def __init__(self, number, lower_node, upper_node, line_type=line_types.liros, init_length=None):
         """Line Class:
         Note:
             -for easier use the lines have it's nodes directly as variables!!!
@@ -114,7 +114,7 @@ class Line(object):
         self.lower_node = lower_node
         self.upper_node = upper_node
 
-        self.init_length = None
+        self.init_length = init_length
         self.length = None              # length of line without sag
         self.length_tot = None          # total length of line TODO: property
         self.ortho_length = None        # length of the projected line

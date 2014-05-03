@@ -83,13 +83,10 @@ class Rib(HashedObject):
     @cached_property(*hashlist)
     #@property
     def profile_3d(self):
-        if not self.profile_2d.data is None:
+        if self.profile_2d.data is not None:
             return Profile3D(map(self.align, self.profile_2d.data))
         else:
             raise ValueError("no 2d-profile present fortharib")
-            print("shit"+self.name)
-            return []
-        # TODO: raise an error, as this should not be
 
     def __aoa_diff(self):
         ##Formula for aoa rel/abs: ArcTan[Cos[alpha]/gleitzahl]-aoa[rad];
