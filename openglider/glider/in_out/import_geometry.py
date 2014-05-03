@@ -93,6 +93,7 @@ def import_ods(filename, glider=None):
             cell.name = "Cell_no"+str(i)
             cells.append(cell)
 
+
     if glider:
         glider.cells = cells
         glider.close_rib()
@@ -196,4 +197,3 @@ def merge(factor, container):
 
 def import_xls():
     pass
-

@@ -124,7 +124,7 @@ class Line():
         self.linewidth = line_width
         self.x_list = x_list
         self.y_list = y_list
-        if not mplwidget is None:
+        if mplwidget is not None:
             self.insert_mpl(mplwidget)
         self.drag_pos = 0
 

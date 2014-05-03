@@ -16,8 +16,10 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-line_types = {
-    'liros': {'cw': 1.1, 'thickness': 0.01, 'stretch': 0.1},
-    'liros160': {'cw': 1.1, 'thickness': 0.02, 'stretch': 0.1}
-}
+# along with OpenGlider.  If not, see <http://www.gnu.org/licenses/
+import collections
+
+LineType = collections.namedtuple("LineType", ['name', 'cw', 'thickness', 'stretch'])
+
+liros = LineType('liros', 1.1, 0.01, 0.1)
+liros160 = LineType('liros160', 1.1, 0.02, 0.1)

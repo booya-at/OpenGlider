@@ -21,7 +21,7 @@
 from __future__ import division
 from _functions import proj_force, proj_to_surface
 from openglider.vector import normalize, norm
-from openglider.lines.line_types import line_types
+from openglider.lines import line_types
 import numpy
 
 
@@ -96,8 +96,10 @@ class SagMatrix():
 
 
 class Line(object):
-
-    def __init__(self, number, lower_node=None, upper_node=None, line_type='liros'):
+    #TODO: why not directly save the line_type instead of a string
+    #TODO: why are lower_node and upper_node not mandatory?
+    #TODO: cached properties?
+    def __init__(self, number, lower_node, upper_node, line_type=line_types.liros):
         """Line Class:
         Note:
             -for easier use the lines have it's nodes directly as variables!!!
@@ -107,10 +109,7 @@ class Line(object):
                 the node dict or from the nodes stored in the line.
             """
         self.number = number
-        self.line_type = line_type                # type of line
-
-        self.lower_node_nr = None  # TODO: weg
-        self.upper_node_nr = None
+        self.type = line_type                # type of line
 
         self.lower_node = lower_node
         self.upper_node = upper_node
@@ -128,21 +127,9 @@ class Line(object):
         self.sag_par_1 = None
         self.sag_par_2 = None
 
-    @property
-    def cw(self):
-        return line_types[self.line_type]['cw']
-
-    @property
-    def thickness(self):
-        return line_types[self.line_type]['thickness']
-
-    @property
-    def stretch(self):
-        return line_types[self.line_type]['stretch']
-
     def drag(self, speed):
         """drag per meter"""
-        self.ortho_pressure = 1 / 2 * self.cw * self.thickness * speed ** 2
+        self.ortho_pressure = 1 / 2 * self.type.cw * self.type.thickness * speed ** 2
 
     def calc_length(self):
         self.length = norm(
@@ -195,8 +182,8 @@ class Line(object):
 
 
 class Node(object):
-    def __init__(self, number=None, pos=None, node_type=None):
-        self.number = number  # XXX
+    #TODO: why are these arguments not mandatory? why node_type default to None?
+    def __init__(self, node_type, pos=None):
         self.type = node_type  # lower, top, middle (0, 2, 1)
         self.vec = pos
 
@@ -205,21 +192,10 @@ class Node(object):
 
     def calc_force_infl(self, vec):
         v = numpy.array(vec)
-        if None in self.force:
-            print("force in node " + str(self.number) + " not set")
-        elif None in self.vec:
-            print("vec in node " + str(self.number) + " not set")
-        elif self.type != 2:
-            print("wrong node type, node " + str(self.number))
-        else:
-            return(proj_force(self.force, self.vec - v) *
-                   normalize(self.vec - v))
+        return proj_force(self.force, self.vec - v) * normalize(self.vec - v)
 
     def calc_proj_vec(self, v_inf):
-        if None in self.vec:
-            print("node " + str(self.number) + "not set yet")
-        else:
-            self.vec_proj = proj_to_surface(self.vec, v_inf)
+        self.vec_proj = proj_to_surface(self.vec, v_inf)
         return proj_to_surface(self.vec, v_inf)
 
 

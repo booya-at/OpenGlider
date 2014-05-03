@@ -152,25 +152,38 @@ class Profile2D(BasicProfile2D):
     def __eq__(self, other):
         return numpy.allclose(self.data, other.data)
 
-    def importdat(self, path):
-        """
-        Import a *.dat airfoil (a tab seperated list of x/y - values
-        """
-        if not os.path.isfile(path):
-            raise Exception("airfoil not found in" + path + "!")
+    # def importdat(self, path):
+    #     """
+    #     Import a *.dat airfoil (a tab seperated list of x/y - values
+    #     """
+    #     if not os.path.isfile(path):
+    #         raise Exception("airfoil not found in" + path + "!")
+    #     profile = []
+    #     name = None
+    #     with open(path, "r") as pfile:
+    #         for line in pfile:
+    #             #line = line.strip()
+    #             ###tab-seperated values except first line->name
+    #             if "\t" in line or " " in line:
+    #                 line = line.split()
+    #                 if len(line) == 2:
+    #                     profile.append([float(i) for i in line])
+    #             else:
+    #                 name = line.strip()
+    #         self.__init__(profile, name)
+
+    @classmethod
+    def import_from_dat(cls, path):
         profile = []
-        name = None
-        with open(path, "r") as pfile:
-            for line in pfile:
-                #line = line.strip()
-                ###tab-seperated values except first line->name
-                if "\t" in line or " " in line:
-                    line = line.split()
-                    if len(line) == 2:
-                        profile.append([float(i) for i in line])
+        name = 'imported from {}'.format(path)
+        with open(path, "r") as p_file:
+            for line in p_file:
+                split_line = line.split()
+                if len(split_line) == 2:
+                    profile.append([float(i) for i in split_line])
                 else:
-                    name = line.strip()
-            self.__init__(profile, name)
+                    name = line
+        return cls(profile, name)
 
     def export(self, pfad):
         """
@@ -203,19 +216,16 @@ class Profile2D(BasicProfile2D):
             area += abs(diff[0] * last[1] + 0.5 * diff[0] * diff[1])
         return area
 
-    def compute_naca(self, naca=1234, numpoints=None):
-        """Compute a four-digit naca-airfoil"""
+    @classmethod
+    def compute_naca(cls, naca=1234, numpoints=100):
+        """Compute and return a four-digit naca-airfoil"""
         # See: http://people.clarkson.edu/~pmarzocc/AE429/The%20NACA%20airfoil%20series.pdf
         # and: http://airfoiltools.com/airfoil/naca4digit
         m = int(naca / 1000) * 0.01  # Maximum Camber Position
         p = int((naca % 1000) / 100) * 0.1  # second digit: Maximum Thickness position
         t = (naca % 100) * 0.01  # last two digits: Maximum Thickness(%)
-        if numpoints is None:
-            numpoints = self.numpoints  # if here is an error, you should give a numpoints argument
         x_values = [1-math.sin((x * 1. / (numpoints-1)) * math.pi / 2) for x in range(numpoints)]
         #x_values = self.calculate_x_values(numpoints)
-        print([x_values[i]-x_values[i+1] for i in range(len(x_values)-1)])
-        print(x_values)
 
         upper = []
         lower = []
@@ -241,7 +251,7 @@ class Profile2D(BasicProfile2D):
                           mean_camber + thickness_this * costheta])
             lower.append([x + thickness_this * sintheta,
                           mean_camber - thickness_this * costheta])
-        self.__init__(upper + lower[::-1][1:], name="NACA_" + str(naca))
+        return cls(upper + lower[::-1][1:], name="NACA_" + str(naca))
 
     #todo: cached??
     @property

@@ -18,15 +18,15 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
+
+import numpy
+import openglider.graphics as g
 from _functions import *
 from _elements import Line, Node, LinePar, SagMatrix
 from openglider.vector import normalize, norm
-import numpy
-import openglider.graphics as g
 
 
 class LineSet():
-
     """
     Set of different lines
     Notes:
@@ -73,6 +73,8 @@ class LineSet():
 
     def calc_stretch(self):
         pass
+
+
 
     # -----CALCULATE SAG-----#
     def _calc_matrix_entries(self, line):

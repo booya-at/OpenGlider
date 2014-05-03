@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 #from openglider import Profile2D
+from openglider.lines import Node
 from openglider.plots.marks import polygon
 from openglider.vector import cut, Vectorlist2D
 
@@ -93,6 +94,15 @@ class GibusArcs(object):
         gib_arc += profile.get(start2, stop).tolist()
 
         return gib_arc
+
+
+class AttachmentPoint(Node):
+    def __init__(self, number=None, rib_no=None, node_type=None):
+        super(AttachmentPoint, self).__init__(number, node_type=2)
+        self.rib_no = rib_no
+
+    def neu(self, glider):
+        self.vec = glider.ribs[self.rib_no]
 
 
 class RibHole(object):
