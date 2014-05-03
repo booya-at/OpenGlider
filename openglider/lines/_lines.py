@@ -20,7 +20,6 @@
 
 
 import numpy
-import openglider.graphics as g
 from _functions import *
 from _elements import Line, Node, LinePar, SagMatrix
 from openglider.vector import normalize, norm
@@ -202,10 +201,10 @@ class LineSet():
         # TODO: Check for consistency
 
     # -----VISUALISATION-----#
-    def visual_output(self, sag=True, numpoints=10):
-        lines = [l.get_line_coords(self.calc_par["V_INF"], sag, numpoints)
-                 for l in self.lines]
-        g.Graphics3D(map(g.Line, lines))
+    # def visual_output(self, sag=True, numpoints=10):
+    #     lines = [l.get_line_coords(self.calc_par["V_INF"], sag, numpoints)
+    #              for l in self.lines]
+    #     g.Graphics3D(map(g.Line, lines))
 
 
 # IMPORT TEXT FILE#################
