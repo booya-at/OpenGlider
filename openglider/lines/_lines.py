@@ -33,6 +33,7 @@ class LineSet():
         -join some loops
         -_private functions
     """
+
     def __init__(self, nodes=None, lines=None, calc_par=None):
         self.calc_par = calc_par or {}  # Parameters
         self.nodes = nodes or []
@@ -46,7 +47,8 @@ class LineSet():
             if line.upper_node.type == 1:
                 vec_0 = line.lower_node.vec
                 t = self.get_tangential_comp(line, vec_0)
-                self.nodes[line.upper_node_nr].vec = vec_0 + t * line.init_length
+                self.nodes[line.upper_node_nr].vec = vec_0 + \
+                    t * line.init_length
                 conn_lines = self.get_connected_lines(line.upper_node_nr)
                 self.calc_geo(conn_lines)
 
@@ -91,7 +93,8 @@ class LineSet():
         for line_lower in start_lines:
             vec = line_lower.get_vec()
             if line_lower.upper_node.type != 2:  # not a gallery line
-                lines_upper = self.get_upper_conected_lines(line_lower.upper_node.number)
+                lines_upper = self.get_upper_conected_lines(
+                    line_lower.upper_node.number)
                 self.calc_forces(lines_upper)
                 force = numpy.zeros(3)
                 for line in lines_upper:
@@ -184,7 +187,7 @@ class LineSet():
         g.Graphics3D(map(g.Line, lines))
 
 
-########IMPORT TEXT FILE#################
+# IMPORT TEXT FILE#################
 def import_lines(path):
     key_dict = {
         "NODES": [8, store_nodes, []],  # 8 tab-seperated values
@@ -226,7 +229,8 @@ if __name__ == "__main__":
     key_dict = import_lines("TEST_INPUT_FILE_1.txt")
     #key_dict = import_lines("TEST_INPUT_FILE_2.txt")
     #key_dict = import_lines("TEST_INPUT_FILE_3.txt")
-    thalines = LineSet(key_dict["NODES"][2], key_dict["LINES"][2], key_dict["CALCPAR"][2])
+    thalines = LineSet(
+        key_dict["NODES"][2], key_dict["LINES"][2], key_dict["CALCPAR"][2])
     #print([(l.lower_node_nr, l.upper_node_nr) for l in lines.lines])
     #print([l.type for l in lines.nodes])
     thalines.update_line_points()

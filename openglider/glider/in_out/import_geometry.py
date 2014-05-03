@@ -92,12 +92,31 @@ def import_ods(filename, glider=None):
             cell.name = "Cell_no"+str(i)
             cells.append(cell)
 
-
     if glider:
         glider.cells = cells
         glider.close_rib()
         return
     return cells
+
+
+def get_lower_aufhaengepunkte(data):
+    aufhaengepunkte = {}
+    xyz = 0
+    for key in data:
+        if not key is None:
+            if "AHP" in key:
+                print("juhuuu")
+                pos = int(key[4])
+                if key[3].upper() == "X":
+                    xyz = 0
+                elif key[3].upper() == "Y":
+                    xyz = 1
+                else:
+                    xyz = 2
+                if pos not in aufhaengepunkte:
+                    aufhaengepunkte[pos] = [None, None, None]
+                aufhaengepunkte[pos][xyz] = data[key]
+    return aufhaengepunkte
 
 
 def transpose_columns(sheet=ezodf.Table(), columnswidth=2):
@@ -168,3 +187,4 @@ def merge(factor, container):
 
 def import_xls():
     pass
+
