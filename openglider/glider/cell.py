@@ -120,9 +120,9 @@ class Cell():
     def _make_profile3d_from_minirib(self, minirib):
         self.basic_cell.prof1 = self.prof1
         self.basic_cell.prof2 = self.prof2
-        shape_with_ballooning = self.basic_cell.midrib_basic_cell(self, minirib.y_value,
+        shape_with_ballooning = self.basic_cell.midrib(self, minirib.y_value,
                                                                    True).data
-        shape_without_ballooning = self.basic_cell.midrib_basic_cell(minirib.y_value,
+        shape_without_ballooning = self.basic_cell.midrib(minirib.y_value,
                                                                       True).data
         points = []
         for xval, with_bal, without_bal in itertools.izip(
@@ -193,7 +193,7 @@ class Cell():
 
     def midrib(self, y, ballooning=True, arc_argument=False):
         if len(self._child_cells) == 1:
-            return self.basic_cell.midrib_basic_cell(y, ballooning=ballooning)
+            return self.basic_cell.midrib(y, ballooning=ballooning)
         if ballooning:
             i = 0
             while self._yvalues[i + 1] < y:
@@ -202,7 +202,7 @@ class Cell():
             y_new = (y - self._yvalues[i]) / (self._yvalues[i + 1] - self._yvalues[i])
             return cell.midrib(y_new, arc_argument=arc_argument)
         else:
-            return self.basic_cell.midrib_basic_cell(y, ballooning=False)
+            return self.basic_cell.midrib(y, ballooning=False)
 
     @cached_property('rib1.ballooning', 'rib2.ballooning')
     def ballooning_phi(self):
