@@ -20,8 +20,7 @@
 from openglider.glider.cell import Cell
 from openglider.glider.rib import Rib
 from openglider.glider.rib_elements import AttachmentPoint
-from openglider.lines import Line, Node
-from openglider.lines._lines import LineSet
+from openglider.lines import Line, Node, LineSet
 
 
 __author__ = 'simon'
@@ -165,7 +164,7 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
     count = 0
 
     while i < num_rows:
-        print(i, j)
+        #print(i, j)
         val = sheet.get_cell([i, j]).value
         if j == 0:  # first floor
             if val is not None:
@@ -190,19 +189,19 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
                     line_length = sheet.get_cell([i, j]).value
                     j += 2
                 linelist.append(
-                    Line(number=count, lower_node=lower, upper_node=upper, init_length=line_length))  #line_type=sheet.get_cell
+                    Line(number=count, lower_node=lower, upper_node=upper, vinf=numpy.array([10,0,0]), init_length=line_length))  #line_type=sheet.get_cell
                 count += 1
-                print("made line", linelist[-1].init_length)
+                #print("made line", linelist[-1].init_length)
                 #print(upper, lower)
         elif j+2 >= num_cols:
             j = 0
             i += 1
 
-    print(len(linelist))
+    #print(len(linelist))
     return LineSet(linelist, {"SPEED": 10, "GLIDE": 5, "V_INF": numpy.array([10,0,0])})
 
 def read_elements(sheet, keyword, element_class, len_data=2):
-    print("jo")
+    #print("jo")
     elements = []
     j = 0
     while j < sheet.ncols():

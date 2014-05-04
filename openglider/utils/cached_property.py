@@ -5,7 +5,6 @@ import functools
 
 config = {"caching": True, 'verbose': False}
 
-
 def cached_property(*hashlist):
 
     class CachedProperty(object):
