@@ -49,8 +49,6 @@ balloon = [ballooning(i) for i in prof.x_values]
 r1 = Rib(prof, ballooning, [0., 0.12, 0], 1., 20 * math.pi / 180, 2 * math.pi / 180, 0, 7.)
 r2 = r1.copy()
 r2.mirror()
-r1.recalc()
-r2.recalc()
 
 left, right = flatten_list(r2.profile_3d.data, r1.profile_3d.data)
 ding = [numpy.array([0, 0]), numpy.array([1., 0])]

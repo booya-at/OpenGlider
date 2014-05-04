@@ -11,8 +11,8 @@ def cached_property(*hashlist):
             super(CachedProperty, self).__init__()
             self.function = fget
             self.hashlist = hashlist
-            self.cache = None
-            self.thahash = None
+            self.cache = {}
+            self.thahash = {}
 
         def __get__(self, parentclass, type=None):
             if not config["caching"]:
@@ -20,12 +20,12 @@ def cached_property(*hashlist):
             else:
                 dahash = hash_attributes(parentclass, self.hashlist)
                 # Return cached or recalc if hashes differ
-                if not self.cache is None and dahash == self.thahash:
-                    return self.cache
+                if id(parentclass) in self.cache and id(parentclass) in self.thahash and dahash == self.thahash[id(parentclass)]:
+                    return self.cache[id(parentclass)]
                 else:
-                    self.thahash = dahash
+                    self.thahash[id(parentclass)] = dahash
                     res = self.function(parentclass)
-                    self.cache = res
+                    self.cache[id(parentclass)] = res
                     return res
 
     return CachedProperty
@@ -68,7 +68,8 @@ def hash_attributes(class_instance, hashlist):
             except TypeError:
                 thahash = hash(str(el))
 
-        value = c_mul(1000003, value) ^ thahash
+        #value = c_mul(1000003, value) ^ thahash
+        value = hash(value) ^ thahash
     value = value ^ len(hashlist)
     if value == -1:
         value = -2

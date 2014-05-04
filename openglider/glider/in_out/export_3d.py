@@ -10,7 +10,6 @@ def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6):
     other = glider.copy_complete()
     if numpoints:
         other.numpoints = numpoints
-    other.recalc()
     ribs = other.return_ribs(midribs)
 
     panels = []
@@ -111,7 +110,6 @@ def export_dxf(glider, path="", midribs=0, numpoints=None, *other):
     other = glider.copy_complete()
     if numpoints:
         other.numpoints = numpoints
-    other.recalc()
     ribs = other.return_ribs(midribs)
     panels = []
     points = []
@@ -126,7 +124,6 @@ def export_apame(glider, path="", midribs=0, numpoints=None, *other):
     other = glider.copy_complete()
     if numpoints:
         other.numpoints = numpoints
-    other.recalc()
     ribs = other.return_ribs(midribs)
     #write config
     outfile = open(path, "w")

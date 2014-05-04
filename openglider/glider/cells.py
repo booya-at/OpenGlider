@@ -1,6 +1,7 @@
 
 import math
 import numpy
+import itertools
 from openglider.airfoil import Profile3D
 from openglider.glider.ballooning import arsinc
 from openglider.vector import norm, normalize, HashedList
@@ -50,12 +51,6 @@ class BasicCell(object):
 
             return Profile3D(midrib)
 
-    def recalc(self):
-        pass
-        # Clear everything
-        #self._normvectors = None
-        #self._calcballooning()
-
     @cached_property('prof1', 'prof2')  # todo: fix depends (miniribs)
     def normvectors(self, j=None):
         prof1 = self.prof1.data
@@ -86,93 +81,124 @@ class BasicCell(object):
                 radius.append(0)
         return radius
 
+    midrib = midrib_basic_cell
+
 # Ballooning is considered to be arcs, following two simple rules:
 # 1: x1 = x*d
 # 2: x2 = R*normvekt*(cos(phi2)-cos(phi)
 # 3: norm(d)/r*(1-x) = 2*sin(phi(2))
 
 
-class Cell(BasicCell):
-    #TODO: cosmetics
-    def __init__(self, rib1=None, rib2=None, miniribs=None):
-        self.rib1 = rib1 or Rib()
-        self.rib2 = rib2 or Rib()
-        self.miniribs = miniribs
-        self._yvalues = []
-        self._cells = []
-        BasicCell.__init__(self, self.rib1.profile_3d, self.rib2.profile_3d)
+class Cell():
+    def __init__(self, rib1, rib2, miniribs=None):
+        #self.miniribs = miniribs and miniribs or []
+        self._ribs = [rib1, rib2]
+        self._miniribs = []
+        self.x_values = rib1.profile_2d.x_values
+        self._basic_cell = BasicCell(ballooning=self.ballooning_phi)
 
-    def recalc(self):
-        if not self.rib2.profile_2d.numpoints == self.rib1.profile_2d.numpoints:
-            raise ValueError("Unequal length of Cell-Profiles")
-        xvalues = self.rib1.profile_2d.x_values
-        BasicCell.recalc(self)
-        self.prof1 = self.rib1.profile_3d
-        self.prof2 = self.rib2.profile_3d
-        #Map Ballooning
+    def add_minirib(self, minirib):
+        """add a minirib to the cell.
+         Minirib should be within borders, otherwise a ValueError will be thrown
+         profile:
+        """
+        self._miniribs.append(minirib)
 
-        if not self.miniribs:  # In case there is no midrib, The Cell represents itself!
-            self._cells = [self]  # The cell itself is its cell, clear?
-            self._yvalues = [0, 1]
-        else:
-            self._cells = []
-            self._yvalues = [0] + [rib.y_value for rib in self.miniribs] + [1]
-            ballooning = [self.rib1.ballooning[x] + self.rib2.ballooning[x] for x in xvalues]
-            miniribs = sorted(self.miniribs, key=lambda rib: rib.y_value)  # sort for cell-wide (y) argument.
+    @cached_property('_miniribs', '_ribs')
+    def rib_profiles_3d(self):
+        midrib_profiles = [self._make_profile3d_from_minirib(mrib)
+                           for mrib in self._miniribs]
+        rib_profiles = [rib.profile_3d for rib in self._ribs]
+        return [rib_profiles[0]] + midrib_profiles + [rib_profiles[1]]
 
-            first = self.rib1.profile_3d
-            for minirib in miniribs:
-                big = self.midrib_basic_cell(minirib.y_value, True).data
-                small = self.midrib_basic_cell(minirib.y_value, False).data
-                points = []
+    def _make_profile3d_from_minirib(self, minirib):
+        self._basic_cell.prof1 = self.prof1
+        self._basic_cell.prof2 = self.prof2
+        shape_with_ballooning = self._basic_cell.midrib_basic_cell(self, minirib.y_value,
+                                                                   True).data
+        shape_without_ballooning = self._basic_cell.midrib_basic_cell(minirib.y_value,
+                                                                      True).data
+        points = []
+        for xval, with_bal, without_bal in itertools.izip(
+                self.x_values, shape_with_ballooning, shape_without_ballooning
+        ):
+                fakt = minirib.function(xval)  # factor ballooned/unb. (0-1)
+                point = without_bal + fakt * (with_bal - without_bal)
+                points.append(point)
+        return Profile3D(points)
 
-                for i in range(len(big)):  # Calculate Rib
-                    fakt = minirib.function(xvalues[i])  # factor ballooned/unb. (0-1)
-                    point = small[i] + fakt * (big[i] - small[i])
-                    points.append(point)
+    @cached_property('rib_profiles_3d')
+    def _child_cells(self):
+        """get all the child cells within the current cell,
+         defined by the miniribs
+        """
+        cells = []
+        for leftrib, rightrib in\
+                itertools.izip(self.rib_profiles_3d[:-1], self.rib_profiles_3d[1:]):
+            cells.append(BasicCell(leftrib, rightrib))
+        if not self._miniribs:
+            return cells
+        ballooning = [self.rib1.ballooning[x] + self.rib2.ballooning[x] for x in self.x_values]
+        #for i in range(len(first.data)):
+        for index, (bl, left_point, right_point) in enumerate(itertools.izip(
+            ballooning, self._ribs[0].profile_3d.data, self._ribs[1].profile_3d.data
+        )):
+            l = norm(right_point - left_point)  # L
+            lnew = sum([norm(c.prof1.data[index] - c.prof2.data[index]) for c in cells])  # L-NEW
+            for c in self._child_cells:
+                newval = lnew / l / bl
+                if newval < 1.:
+                    c.ballooning_phi.append(arsinc(newval))  # B/L NEW 1 / (bl * l / lnew)
+                else:
+                    c.ballooning_phi.append(arsinc(1.))
+                    #raise ValueError("mull")
+        return cells
 
-                minirib.data = points
-                second = minirib
-                self._cells.append(BasicCell(first, second, []))  # leave ballooning empty
-                first = second
-            #Last Sub-Cell
-            self._cells.append(BasicCell(first, self.rib2.profile_3d, []))
+    @property
+    def rib1(self):
+        return self._ribs[0]
 
-            # Calculate ballooning for each x-value
-            # Hamilton Principle:
-            #       http://en.wikipedia.org/wiki/Hamilton%27s_principle
-            #       http://en.wikipedia.org/wiki/Hamilton%E2%80%93Jacobi_equation
-            # b' = b
-            # f' = f*(l/l') [f=b/l]
-            for i in range(len(first.data)):
-                bl = ballooning[i] + 1  # b/l -> *l/lnew
-                l = norm(self.rib2.profile_3d.data[i] - self.rib1.profile_3d.data[i])  # L
-                lnew = sum([norm(c.prof1.data[i] - c.prof2.data[i]) for c in self._cells])  # L-NEW
-                for c in self._cells:
-                    newval = lnew / l / bl
-                    if newval < 1.:
-                        c.ballooning_phi.append(arsinc(newval))  # B/L NEW 1 / (bl * l / lnew)
-                    else:
-                        c.ballooning_phi.append(arsinc(1.))
-                        #raise ValueError("mull")
-            for cell in self._cells:
-                cell.recalc()
+    @rib1.setter
+    def rib1(self, rib):
+        self._ribs[0] = rib
+
+    @property
+    def rib2(self):
+        return self._ribs[1]
+
+    @rib2.setter
+    def rib2(self, rib):
+        self._ribs[1] = rib
+
+    @property
+    def _yvalues(self):
+        return [0] + [mrib.y_value for mrib in self._miniribs] + [1]
+
+    @property
+    def prof1(self):
+        return self._ribs[0].profile_3d
+
+    @property
+    def prof2(self):
+        return self._ribs[1].profile_3d
 
     def point(self, y=0, i=0, k=0):
         return self.midrib(y).point(i, k)
 
     def midrib(self, y, ballooning=True, arc_argument=False):
-        if len(self._cells) == 1:
-            return self.midrib_basic_cell(y, ballooning=ballooning)
+        self._basic_cell.prof1 = self.prof1
+        self._basic_cell.prof2 = self.prof2
+        if len(self._child_cells) == 1:
+            return self._basic_cell.midrib_basic_cell(y, ballooning=ballooning)
         if ballooning:
             i = 0
             while self._yvalues[i + 1] < y:
                 i += 1
-            cell = self._cells[i]
+            cell = self._child_cells[i]
             y_new = (y - self._yvalues[i]) / (self._yvalues[i + 1] - self._yvalues[i])
             return cell.midrib_basic_cell(y_new, arc_argument=arc_argument)
         else:
-            return self.midrib_basic_cell(y, ballooning=False)
+            return self._basic_cell.midrib_basic_cell(y, ballooning=False)
 
     @cached_property('rib1.ballooning', 'rib2.ballooning')
     def ballooning_phi(self):
@@ -180,6 +206,7 @@ class Cell(BasicCell):
         balloon = [self.rib1.ballooning[i] + self.rib2.ballooning[i] for i in x_values]
         return HashedList([arsinc(1. / (1+bal)) for bal in balloon])
 
+    #TODO: check for usages
     @property
     def ribs(self):
         return [self.rib1, self.rib2]
