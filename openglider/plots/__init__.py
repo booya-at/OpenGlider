@@ -38,7 +38,6 @@ def flattened_cell(cell=None):
 def flatten_glider(glider, path):
     # Temporary declarations:
     allowance_general = 0.01
-    glider.recalc()
     parts = []
 
     drawing = dxf.drawing(path)

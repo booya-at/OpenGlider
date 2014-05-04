@@ -36,7 +36,6 @@ path = testfolder + '/demokite.ods'
 glider1 = glider.Glider()
 glider1.import_geometry(path)
 glider1 = glider1.copy_complete()
-glider1.recalc()
 
 rib1 = glider1.ribs[1].profile_2d
 rib2 = glider1.cells[0].midrib(0.5).flatten()

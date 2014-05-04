@@ -55,15 +55,9 @@ class TestCell(unittest.TestCase):
         self.cell1 = Cell(self.rib1, self.rib2)
         self.cell2 = Cell(self.rib2, self.rib3)
 
-    def recalc(self):
-        for rib in [self.rib1, self.rib2, self.rib3]:
-            rib.recalc()
-        for cell in [self.cell1, self.cell2]:
-            cell.recalc()
 
     def test_show_cell(self, num=10):
         #print(self.rib1.profile_2d.x_values)
-        self.recalc()
         ribs = [self.cell1.midrib(x*1./num) for x in range(num)]
         ribs += [self.cell2.midrib(x*1./num) for x in range(num)]
         Graph.Graphics([Graph.Line(x.data) for x in ribs]+[Graph.Line(self.rib1.profile_3d.data)])

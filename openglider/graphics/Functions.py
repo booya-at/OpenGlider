@@ -48,7 +48,6 @@ def draw_glider(glider, num=0, mirror=True, panels=True):
         temp = glider.copy_complete()
     else:
         temp = glider
-    temp.recalc()
 
     if panels:
         polygons, points = temp.return_polygons(num)

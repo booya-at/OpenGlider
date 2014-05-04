@@ -60,7 +60,6 @@ class TestGlider(unittest.TestCase):
     @unittest.skip("temp")
     def test_export_plots(self):
         path = '/tmp/plots.dxf'
-        self.glider.recalc()
         flatten_glider(self.glider, path)
 
 
