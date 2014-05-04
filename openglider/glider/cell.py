@@ -21,14 +21,14 @@ class BasicCell(object):
 
     def point_basic_cell(self, y=0, ik=0):
         ##round ballooning
-        return self.midrib_basic_cell(y).point(ik)
+        return self.midrib(y).point(ik)
 
-    def midrib_basic_cell(self, y, ballooning=True, arc_argument=True):
+    def midrib(self, y, ballooning=True, arc_argument=True):
         if y == 0:              # left side
             return self.prof1
         elif y == 1:            # right side
             return self.prof2
-        else:                   # somewhere
+        else:                   # somewhere else
             #self._checkxvals()
             midrib = []
 
@@ -84,7 +84,6 @@ class BasicCell(object):
     def copy(self):
         return copy.deepcopy(self)
 
-    midrib = midrib_basic_cell
 
 # Ballooning is considered to be arcs, following two simple rules:
 # 1: x1 = x*d
@@ -201,7 +200,7 @@ class Cell():
                 i += 1
             cell = self._child_cells[i]
             y_new = (y - self._yvalues[i]) / (self._yvalues[i + 1] - self._yvalues[i])
-            return cell.midrib_basic_cell(y_new, arc_argument=arc_argument)
+            return cell.midrib(y_new, arc_argument=arc_argument)
         else:
             return self.basic_cell.midrib_basic_cell(y, ballooning=False)
 

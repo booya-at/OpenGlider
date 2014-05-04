@@ -192,13 +192,13 @@ class Glider(object):
         self.area = area_backup
 
     def get_spanwise(self, x=None):
-        points = []
-        if x:
-            for rib in self.ribs:
-                points.append(rib.align([x, 0, 0]))
+        """
+        Return a list of points for a x_value
+        """
+        if x is not None:
+            return [rib.align([x, 0, 0]) for rib in self.ribs]
         else:
-            points = [rib.pos for rib in self.ribs]  # This is much faster
-        return points
+            return [rib.pos for rib in self.ribs]  # This is much faster
 
 
 
