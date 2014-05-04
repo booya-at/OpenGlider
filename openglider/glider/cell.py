@@ -1,4 +1,4 @@
-
+import copy
 import math
 import numpy
 import itertools
@@ -81,6 +81,9 @@ class BasicCell(object):
                 radius.append(0)
         return radius
 
+    def copy(self):
+        return copy.deepcopy(self)
+
     midrib = midrib_basic_cell
 
 # Ballooning is considered to be arcs, following two simple rules:
@@ -95,7 +98,7 @@ class Cell():
         self._ribs = [rib1, rib2]
         self._miniribs = []
         self.x_values = rib1.profile_2d.x_values
-        self._basic_cell = BasicCell(ballooning=self.ballooning_phi)
+        self._basic_cell = BasicCell(rib1.profile_3d, rib2.profile_3d, ballooning=self.ballooning_phi)
 
     def add_minirib(self, minirib):
         """add a minirib to the cell.
@@ -103,6 +106,10 @@ class Cell():
          profile:
         """
         self._miniribs.append(minirib)
+
+    @cached_property('rib1', 'rib2')
+    def basic_cell(self):
+        return BasicCell(self.rib1.profile_3d, self.rib2.profile_3d, self.ballooning_phi)
 
     @cached_property('_miniribs', '_ribs')
     def rib_profiles_3d(self):
@@ -112,11 +119,11 @@ class Cell():
         return [rib_profiles[0]] + midrib_profiles + [rib_profiles[1]]
 
     def _make_profile3d_from_minirib(self, minirib):
-        self._basic_cell.prof1 = self.prof1
-        self._basic_cell.prof2 = self.prof2
-        shape_with_ballooning = self._basic_cell.midrib_basic_cell(self, minirib.y_value,
+        self.basic_cell.prof1 = self.prof1
+        self.basic_cell.prof2 = self.prof2
+        shape_with_ballooning = self.basic_cell.midrib_basic_cell(self, minirib.y_value,
                                                                    True).data
-        shape_without_ballooning = self._basic_cell.midrib_basic_cell(minirib.y_value,
+        shape_without_ballooning = self.basic_cell.midrib_basic_cell(minirib.y_value,
                                                                       True).data
         points = []
         for xval, with_bal, without_bal in itertools.izip(
@@ -176,20 +183,18 @@ class Cell():
 
     @property
     def prof1(self):
-        return self._ribs[0].profile_3d
+        return self.rib1.profile_3d
 
     @property
     def prof2(self):
-        return self._ribs[1].profile_3d
+        return self.rib2.profile_3d
 
     def point(self, y=0, i=0, k=0):
         return self.midrib(y).point(i, k)
 
     def midrib(self, y, ballooning=True, arc_argument=False):
-        self._basic_cell.prof1 = self.prof1
-        self._basic_cell.prof2 = self.prof2
         if len(self._child_cells) == 1:
-            return self._basic_cell.midrib_basic_cell(y, ballooning=ballooning)
+            return self.basic_cell.midrib_basic_cell(y, ballooning=ballooning)
         if ballooning:
             i = 0
             while self._yvalues[i + 1] < y:
@@ -198,7 +203,7 @@ class Cell():
             y_new = (y - self._yvalues[i]) / (self._yvalues[i + 1] - self._yvalues[i])
             return cell.midrib_basic_cell(y_new, arc_argument=arc_argument)
         else:
-            return self._basic_cell.midrib_basic_cell(y, ballooning=False)
+            return self.basic_cell.midrib_basic_cell(y, ballooning=False)
 
     @cached_property('rib1.ballooning', 'rib2.ballooning')
     def ballooning_phi(self):
@@ -226,3 +231,11 @@ class Cell():
     @property
     def aspect_ratio(self):
         return self.span ** 2 / self.area
+
+    def copy(self):
+        return copy.deepcopy(self)
+
+    def mirror(self):
+        self.rib2, self.rib1 = self.rib1, self.rib2
+        for rib in self.ribs:
+            rib.mirror()

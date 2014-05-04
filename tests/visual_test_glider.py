@@ -74,6 +74,11 @@ class TestGlider(GliderTestClass):
         data += [[left.data[i], right.data[i]] for i in range(len(left.data))]
         openglider.graphics.Graphics2D([openglider.graphics.Line(obj) for obj in data])
 
+    def test_show_ribs(self):
+        #self.glider = self.glider.copy_complete()
+        self.glider.mirror()
+        openglider.graphics.Graphics([openglider.graphics.Line(rib.profile_3d.data) for rib in self.glider.ribs])
+
     @unittest.skip("skipped")
     def test_midrib_projection(self):
         num = 3
