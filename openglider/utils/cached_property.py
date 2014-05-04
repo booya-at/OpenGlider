@@ -1,40 +1,33 @@
 #import functools
 
 #__all__ = ['cached_property']
-import functools
-
 config = {"caching": True, 'verbose': False}
 
+
 def cached_property(*hashlist):
-
-    class CachedProperty(object):
-
+    #@functools.wraps
+    class CachedProperty(property):
         def __init__(self, fget=None):
-            #super(CachedProperty, self).__init__(fget)
+            super(CachedProperty, self).__init__()
             self.function = fget
             self.hashlist = hashlist
-            self.cache = None
-            self.thahash = None
-            functools.update_wrapper(self, fget)
+            self.cache = {}
+            self.thahash = {}
 
-        def __get__(self, parentclass, _none=None):
-            #__doc__ = self.__doc__
+        def __get__(self, parentclass, type=None):
             if not config["caching"]:
-                #return super(CachedProperty, self).__get__(parentclass)
                 return self.function(parentclass)
             else:
                 dahash = hash_attributes(parentclass, self.hashlist)
                 # Return cached or recalc if hashes differ
-                if not self.cache is None and dahash == self.thahash:
-                    return self.cache
+                if id(parentclass) in self.cache and id(parentclass) in self.thahash and dahash == self.thahash[id(parentclass)]:
+                    return self.cache[id(parentclass)]
                 else:
-                    self.thahash = dahash
-                    #res = super(CachedProperty, self).__get__(parentclass)
+                    self.thahash[id(parentclass)] = dahash
                     res = self.function(parentclass)
-                    self.cache = res
+                    self.cache[id(parentclass)] = res
                     return res
 
-    # CachedProperty = property  # ENABLE FOR SPHINX-APIDOC
     return CachedProperty
 
 

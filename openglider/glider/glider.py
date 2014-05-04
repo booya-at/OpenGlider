@@ -78,7 +78,6 @@ class Glider(object):
 
     def close_rib(self, rib=-1):
         self.ribs[rib].profile_2d *= 0.
-        self.ribs[rib].recalc()
 
     def get_midrib(self, y=0):
         k = y % 1
@@ -86,7 +85,7 @@ class Glider(object):
         if i == len(self.cells) and k == 0:  # Stabi-rib
             i -= 1
             k = 1
-        return self.cells[i].midrib_basic_cell(k)
+        return self.cells[i].midrib(k)
 
     def mirror(self, cutmidrib=True, complete=False):
         # lets assume we have at least one cell to mirror :)
@@ -97,11 +96,6 @@ class Glider(object):
         for cell in self.cells:
             cell.rib1, cell.rib2 = cell.rib2, cell.rib1
         self.cells = self.cells[::-1]
-
-    def recalc(self):
-        # TODO: make obsolete
-        for cell in self.cells:
-            cell.recalc()
 
     def copy(self):
         return copy.deepcopy(self)
@@ -195,7 +189,6 @@ class Glider(object):
         factor = self.aspect_ratio / aspect_ratio
         for rib in self.ribs:
             rib.chord *= factor
-            rib.recalc()
         self.area = area_backup
 
     def get_spanwise(self, x=None):

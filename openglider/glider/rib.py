@@ -70,9 +70,6 @@ class Rib(HashedObject):
 
     @cached_property('profile_3d')
     def normvectors(self):
-        """
-        Return Rib-Normvectors
-        """
         return map(lambda x: self.rotation_matrix.dot([x[0], x[1], 0]), self.profile_2d.normvectors)
 
     @cached_property('arcang', 'glide', 'zrot', '_aoa')
@@ -80,20 +77,18 @@ class Rib(HashedObject):
         zrot = numpy.arctan(self.arcang) / self.glide * self.zrot
         return rotation_rib(self.aoa_absolute, self.arcang, zrot)
 
-    @cached_property(*hashlist)
-    #@property
+    #@cached_property(*hashlist)
+    @cached_property('self')
     def profile_3d(self):
         if self.profile_2d.data is not None:
             return Profile3D(map(self.align, self.profile_2d.data))
         else:
-            raise ValueError("no 2d-profile present fortharib")
+            raise ValueError("no 2d-profile present fortharib at rib {}".format(
+                self.name))
 
     def __aoa_diff(self):
         ##Formula for aoa rel/abs: ArcTan[Cos[alpha]/gleitzahl]-aoa[rad];
         return numpy.arctan(numpy.cos(self.arcang) / self.glide)
-
-    def recalc(self):
-        pass
 
     def mirror(self):
         self.arcang = -self.arcang
@@ -107,8 +102,7 @@ class Rib(HashedObject):
         return new
 
 
-
-class MiniRib(Profile3D):
+class MiniRib():
     def __init__(self, yvalue, front_cut, back_cut=1, func=None, name="minirib"):
         #Profile3D.__init__(self, [], name)
 
@@ -129,7 +123,6 @@ class MiniRib(Profile3D):
         self.y_value = yvalue
         self.front_cut = front_cut
         self.back_cut = back_cut
-        Profile3D.__init__(self, profile=[], name=name)
 
     def function(self, x):
         if self.front_cut <= abs(x) <= self.back_cut:

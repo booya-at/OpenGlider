@@ -55,8 +55,6 @@ r1 = r2.copy()
 r1.mirror()
 r3 = Rib(a, b2, [0.2, 0.3, -0.1], 0.8, 30 * math.pi / 180, 5 * math.pi / 180, 0, 7)
 
-for i in [r1, r2, r3]:
-    i.recalc()
 
 cell1 = Cell(r1, r2, midribs)
 cell1.recalc()

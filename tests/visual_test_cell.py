@@ -39,11 +39,11 @@ from openglider.glider.ballooning import BallooningBezier
 
 class TestCell(unittest.TestCase):
     def setUp(self, numpoints=100):
-        self.prof1 = Profile2D()
-        self.prof2 = Profile2D()
+        self.prof1 = Profile2D.compute_naca(1223)
+        self.prof2 = Profile2D.compute_naca(1223)
         for prof in [self.prof1, self.prof2]:
             naca = random.randint(1, 1399)
-            prof.compute_naca(naca=1223, numpoints=numpoints)
+            #prof.compute_naca(naca=1223, numpoints=numpoints)
             prof.close()
             prof.normalize()
         self.ballooning = BallooningBezier()
@@ -55,15 +55,23 @@ class TestCell(unittest.TestCase):
         self.cell1 = Cell(self.rib1, self.rib2)
         self.cell2 = Cell(self.rib2, self.rib3)
 
-    def recalc(self):
-        for rib in [self.rib1, self.rib2, self.rib3]:
-            rib.recalc()
-        for cell in [self.cell1, self.cell2]:
-            cell.recalc()
 
     def test_show_cell(self, num=10):
         #print(self.rib1.profile_2d.x_values)
-        self.recalc()
         ribs = [self.cell1.midrib(x*1./num) for x in range(num)]
         ribs += [self.cell2.midrib(x*1./num) for x in range(num)]
         Graph.Graphics([Graph.Line(x.data) for x in ribs]+[Graph.Line(self.rib1.profile_3d.data)])
+
+    def test_mirror(self):
+        cell1 = self.cell2
+        cell2 = self.cell2.copy()
+        cell2.mirror()
+        print(cell1._basic_cell.normvectors)
+        print([[p, normvector] for p, normvector in zip(cell1.prof2.data, cell1._basic_cell.normvectors)])
+        Graph.Graphics([Graph.Line(cell1.rib1.profile_3d.data),
+                        Graph.Line(cell2.rib1.profile_3d.data),
+                        Graph.Red,
+                        Graph.Line(cell1.prof2.data),
+                        Graph.Line(cell2.prof2.data),
+                        Graph.Green] +
+                       [Graph.Line([p, p+normvector]) for p, normvector in zip(cell2.prof2.data, cell2.basic_cell.normvectors)])

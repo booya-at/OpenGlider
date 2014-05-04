@@ -42,7 +42,6 @@ class TestRib(unittest.TestCase):
                        arcang=random.random(),
                        aoa=random.random(),
                        glide=random.random()*10)
-        self.rib.recalc()
 
 
     def test_normvectors(self):

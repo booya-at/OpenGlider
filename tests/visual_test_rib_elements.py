@@ -23,7 +23,6 @@ class TestRibElements(GliderTestClass):
                         Graph.Polygon(thalist)])
 
     def test_hole(self):
-        self.glider.recalc()
         rib_no = random.randint(0, len(self.glider.ribs)-1)
         hole = RibHole(rib_no, 0.2)
         thalist = hole.get_3d(self.glider)

@@ -41,7 +41,6 @@ class GliderTestClass(unittest.TestCase):
     def setUp(self, complete=True):
         self.glider = openglider.Glider()
         self.glider.import_geometry(path=importpath)
-        self.glider.recalc()
 
 
 class TestGlider(GliderTestClass):
@@ -57,7 +56,6 @@ class TestGlider(GliderTestClass):
             thaglider = self.glider.copy_complete()
         else:
             thaglider = thaglider.copy_complete()
-        thaglider.recalc()
         polygons, points = thaglider.return_polygons(num)
         objects = [openglider.graphics.Axes(size=1.2)]  #, openglider.graphics.Green
         objects += map(openglider.graphics.Polygon, polygons)
@@ -68,7 +66,6 @@ class TestGlider(GliderTestClass):
 
     def test_show_shape(self):
         self.glider = self.glider.copy_complete()
-        self.glider.recalc()
         left, right = self.glider.shape
         left.rotate(math.pi/2)
         right.rotate(math.pi/2, [0, 0])
@@ -76,6 +73,11 @@ class TestGlider(GliderTestClass):
                 right.data]
         data += [[left.data[i], right.data[i]] for i in range(len(left.data))]
         openglider.graphics.Graphics2D([openglider.graphics.Line(obj) for obj in data])
+
+    def test_show_ribs(self):
+        #self.glider = self.glider.copy_complete()
+        self.glider.mirror()
+        openglider.graphics.Graphics([openglider.graphics.Line(rib.profile_3d.data) for rib in self.glider.ribs])
 
     @unittest.skip("skipped")
     def test_midrib_projection(self):

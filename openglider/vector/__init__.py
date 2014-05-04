@@ -369,8 +369,6 @@ class Vectorlist2D(Vectorlist):
         normvectors.append(rotate(self.data[-1] - self.data[-2]))
         return normvectors
 
-    def recalc(self):
-        pass
 
     def shift(self, vector):
         if len(vector) == 2:
