@@ -12,8 +12,7 @@ class Rib(HashedObject):
     """Openglider Rib Class: contains a airfoil, needs a startpoint, angle (arcwide), angle of attack,
         glide-wide rotation and glider ratio.
         optional: name, absolute aoa (bool), startposition"""
-    #hashlist = ('aoa_absolute', 'glide', 'arcang', 'zrot', 'chord', 'pos')  # pos
-    hashlist = ('_aoa', 'glide', 'arcang', 'zrot', 'chord', 'pos')
+    hashlist = ('aoa_absolute', 'glide', 'arcang', 'zrot', 'chord', 'pos')  # pos
 
     def __init__(self, profile=None, ballooning=None, startpoint=None, size=1.,
                  arcang=0, aoa=0, zrot=0,
@@ -71,8 +70,7 @@ class Rib(HashedObject):
 
     @cached_property('profile_3d')
     def normvectors(self):
-        return map(lambda x: self.rotation_matrix.dot([x[0], x[1], 0]),
-                   self.profile_2d.normvectors)
+        return map(lambda x: self.rotation_matrix.dot([x[0], x[1], 0]), self.profile_2d.normvectors)
 
     @cached_property('arcang', 'glide', 'zrot', '_aoa')
     def rotation_matrix(self):
@@ -82,7 +80,7 @@ class Rib(HashedObject):
     #@cached_property(*hashlist)
     @cached_property('self')
     def profile_3d(self):
-        if not self.profile_2d.data is None:
+        if self.profile_2d.data is not None:
             return Profile3D(map(self.align, self.profile_2d.data))
         else:
             raise ValueError("no 2d-profile present fortharib at rib {}".format(

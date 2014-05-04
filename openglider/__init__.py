@@ -17,13 +17,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
+__version__ = '0.01dev'
+__author__ = 'Booya'
 
-
-from .airfoil import Profile2D
+from openglider.airfoil import Profile2D
 #from utils.Bezier import BezierCurve
 #from openglider.vector import Vectorlist, Vectorlist2D
 #import numpy
-from .glider import Glider
+from openglider.glider import Glider
 #from graphics import Line, Point, graphics
 #from openglider.utils.Ballooning import Ballooning
 
@@ -34,3 +35,4 @@ from .glider import Glider
 #test12("jojo","kk")
 #test12([1,2,3])
 #test12(["J","O","K"])
+

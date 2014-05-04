@@ -34,8 +34,8 @@ testfolder = os.path.dirname(os.path.abspath(__file__))
 
 class TestProfile(unittest.TestCase):
     def setUp(self):
-        self.prof = Profile2D()
-        self.prof.importdat(testfolder + "/testprofile.dat")
+        self.prof = Profile2D.import_from_dat(testfolder + "/testprofile.dat")
+        #self.prof.importdat(testfolder + "/testprofile.dat")
 
     def test_numpoints(self):
         num = random.randint(4, 500)
@@ -59,15 +59,15 @@ class TestProfile(unittest.TestCase):
 
     def test_area(self):
         factor = random.random()
-        self.assertAlmostEqual(factor * self.prof.area(), (self.prof * factor).area())
+        self.assertAlmostEqual(factor * self.prof.area, (self.prof * factor).area)
 
     def test_compute_naca(self):
         numpoints = random.randint(10, 200)
         thickness = random.randint(8, 20)
         m = random.randint(1, 9) * 1000  # Maximum camber position
         p = random.randint(1, 9) * 100  # Maximum thickness position
-        self.prof.compute_naca(naca=m+p+thickness, numpoints=numpoints)
-        self.assertAlmostEqual(self.prof.thickness*100, thickness, 0)
+        prof = Profile2D.compute_naca(naca=m+p+thickness, numpoints=numpoints)
+        self.assertAlmostEqual(prof.thickness*100, thickness, 0)
 
     def test_compare(self):
         other = self.prof.copy()

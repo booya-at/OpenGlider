@@ -57,9 +57,12 @@ class TestGlider(GliderTestClass):
         else:
             thaglider = thaglider.copy_complete()
         polygons, points = thaglider.return_polygons(num)
-        objects = [openglider.graphics.Axes(size=1.2), openglider.graphics.Green]
+        objects = [openglider.graphics.Axes(size=1.2)]  #, openglider.graphics.Green
         objects += map(openglider.graphics.Polygon, polygons)
+        #objects.append(openglider.graphics.Blue)
+        objects += map(lambda line: openglider.graphics.Line(line.get_line_points()), thaglider.lines.lines)
         openglider.graphics.Graphics3D(objects, points)
+
 
     def test_show_shape(self):
         self.glider = self.glider.copy_complete()
@@ -104,6 +107,7 @@ class TestGlider(GliderTestClass):
 
         self.test_show_3d_green(thaglider=glider)
 
+    @unittest.skip('notyet')
     def test_export_json(self):
         #path = os.tmpfile()
         path = os.tmpnam()+".json"

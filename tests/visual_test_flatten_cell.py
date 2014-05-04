@@ -34,8 +34,8 @@ import openglider.airfoil
 from openglider.glider.ballooning import BallooningBezier
 from openglider.plots.projection import flatten_list
 import openglider.plots
-from openglider.glider.cells import Cell
-from openglider.glider.ribs import Rib
+from openglider.glider.cell import Cell
+from openglider.glider.rib import Rib
 import numpy
 __author__ = 'simon'
 

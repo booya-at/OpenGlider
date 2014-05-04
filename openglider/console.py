@@ -23,10 +23,13 @@
 
 import sys
 import os
-import graphics as G
-from airfoil import Profile2D
-from utils.bezier import BezierCurve
-import numpy as np
+import numpy
+from PyQt4 import QtGui
+
+import openglider
+from openglider.glider import Glider
+import openglider.graphics as graphics
+import openglider.input
 
 #clear the terminal
 os.system('clear')
@@ -35,6 +38,16 @@ os.system('clear')
 sys.ps1 = ">"
 sys.ps2 = '>>'
 os.environ['PYTHONINSPECT'] = 'True'
+
+import tkFileDialog
+import Tkinter
+
+root = Tkinter.Tk()
+root.withdraw()
+
+filepath = tkFileDialog.askopenfilename
+
+
 print(
     "                     xxxxxxxxxxxxxxx                                  \n"
     "                xxxxxxxxxxxxxxxxxxxxxxx                               \n"
@@ -62,5 +75,5 @@ else:
     import rlcompleter
 readline.parse_and_bind("tab: complete")
 
-print('imported: numpy:np, graphics:G, airfoil:Profile2D ProfilIndt:b utils:BezierCurve')
+print('imported: numpy, Graphics, openglider, input')
 

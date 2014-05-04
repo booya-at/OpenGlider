@@ -21,7 +21,7 @@ import unittest
 import random
 import sys
 import os
-from openglider.glider.ribs import Rib
+from openglider.glider.rib import Rib
 
 try:
     import openglider
@@ -33,9 +33,9 @@ except ImportError:
 class TestRib(unittest.TestCase):
 
     def setUp(self):
-        self.prof = openglider.Profile2D()
         naca = random.randint(1, 9999)
-        self.prof.compute_naca(naca, random.randint(10,200))
+        numpoints = random.randint(10,200)
+        self.prof = openglider.Profile2D.compute_naca(naca, numpoints)
         self.rib = Rib(self.prof,
                        startpoint=[random.random(), random.random(), random.random()],
                        size=random.random(),

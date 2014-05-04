@@ -22,16 +22,21 @@
 from distutils.core import setup
 import setuptools
 import os
+import openglider
+
+
+
+from distutils.core import setup
+import setuptools
+import os
 
 packages, package_data = [], {}
-
-
 # This is all copied 1:1 from django-project as i dont know any better way to do this
 def fullsplit(splitpath, result=None):
     """
-    Split a pathname into components (the opposite of os.path.join)
-    in a platform-neutral way.
-    """
+Split a pathname into components (the opposite of os.path.join)
+in a platform-neutral way.
+"""
     if result is None:
         result = []
     head, tail = os.path.split(splitpath)
@@ -63,12 +68,17 @@ for dirpath, dirnames, filenames in os.walk(og_dir):
         package_files = package_data.setdefault('.'.join(parts), [])
         package_files.extend([os.path.join(path, f) for f in filenames])
 
+root_dir = os.path.dirname(__file__)
 setup(
     name='OpenGlider',
-    version='0.01dev',
+    version=openglider.__version__,
+    #version='0.01dev',
     packages=packages,
     package_data=package_data,
+    #include_package_data=True,
     license='GPL-v3',
     long_description=open('README.md').read(),
-    requires=['numpy', 'dxfwrite', 'ezodf2', 'scipy', 'svgwrite', 'matplotlib']
+    requires=['numpy', 'dxfwrite', 'ezodf2', 'scipy', 'svgwrite', 'matplotlib'],
+    author='Booya',
+    url='www.openglider.org'
 )

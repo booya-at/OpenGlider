@@ -68,8 +68,7 @@ def hash_attributes(class_instance, hashlist):
             except TypeError:
                 thahash = hash(str(el))
 
-        #value = c_mul(1000003, value) ^ thahash
-        value = hash(value) ^ thahash
+        value = c_mul(1000003, value) ^ thahash
     value = value ^ len(hashlist)
     if value == -1:
         value = -2
@@ -86,14 +85,14 @@ class HashedObject(object):
         return hash_attributes(self, self.hashlist)
 
 
-class test(object):
-    def __init__(self):
-        self.num = 3
-
-    @cached_property('num')
-    def neu(self):
-        print("tuwas")
-        return self.num
+# class test(object):
+#     def __init__(self):
+#         self.num = 3
+#
+#     @cached_property('num')
+#     def neu(self):
+#         print("tuwas")
+#         return self.num
 
     #@neu.reset
     #def reset(self):

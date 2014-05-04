@@ -59,6 +59,10 @@ class DiagonalRib(object):
         # ribs_flattened[self.cell+1]
 
 
+class DoubleDiagonalRib():
+    pass
+
+
 class TensionStrapSimple(DiagonalRib):
     def __init__(self, left, right, width, cell_no):
         super(TensionStrapSimple, self).__init__((left - width, 0), (left + width, 0),

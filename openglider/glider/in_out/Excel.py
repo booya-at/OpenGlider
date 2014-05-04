@@ -17,7 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-from openglider.glider.ribs import Rib
+from openglider.glider.rib import Rib
 
 
 __author__ = 'simon'
