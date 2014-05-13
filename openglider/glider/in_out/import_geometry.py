@@ -20,7 +20,12 @@
 from openglider.glider.cell import Cell
 from openglider.glider.rib import Rib
 from openglider.glider.rib_elements import AttachmentPoint
+<<<<<<< HEAD
 from openglider.lines import Line, Node, LineSet
+=======
+from openglider.lines import Line, Node
+from openglider.lines._lines import LineSet
+>>>>>>> b3558ca... lorenz und simon haben leinen auf den schirm gemacht
 
 
 __author__ = 'simon'
@@ -164,7 +169,11 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
     count = 0
 
     while i < num_rows:
+<<<<<<< HEAD
         #print(i, j)
+=======
+        print(i, j)
+>>>>>>> b3558ca... lorenz und simon haben leinen auf den schirm gemacht
         val = sheet.get_cell([i, j]).value
         if j == 0:  # first floor
             if val is not None:
@@ -189,19 +198,33 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
                     line_length = sheet.get_cell([i, j]).value
                     j += 2
                 linelist.append(
+<<<<<<< HEAD
                     Line(number=count, lower_node=lower, upper_node=upper, vinf=numpy.array([10,0,0]), init_length=line_length))  #line_type=sheet.get_cell
                 count += 1
                 #print("made line", linelist[-1].init_length)
+=======
+                    Line(number=count, lower_node=lower, upper_node=upper, init_length=line_length))  #line_type=sheet.get_cell
+                count += 1
+                print("made line", linelist[-1].init_length)
+>>>>>>> b3558ca... lorenz und simon haben leinen auf den schirm gemacht
                 #print(upper, lower)
         elif j+2 >= num_cols:
             j = 0
             i += 1
 
+<<<<<<< HEAD
     #print(len(linelist))
     return LineSet(linelist, {"SPEED": 10, "GLIDE": 5, "V_INF": numpy.array([10,0,0])})
 
 def read_elements(sheet, keyword, element_class, len_data=2):
     #print("jo")
+=======
+    print(len(linelist))
+    return LineSet(linelist, {"SPEED": 10, "GLIDE": 5, "V_INF": numpy.array([10,0,0])})
+
+def read_elements(sheet, keyword, element_class, len_data=2):
+    print("jo")
+>>>>>>> b3558ca... lorenz und simon haben leinen auf den schirm gemacht
     elements = []
     j = 0
     while j < sheet.ncols():

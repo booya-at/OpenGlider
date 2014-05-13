@@ -99,7 +99,11 @@ class Line(object):
     #TODO: why not directly save the line_type instead of a string
     #TODO: why are lower_node and upper_node not mandatory?
     #TODO: cached properties?
+<<<<<<< HEAD:openglider/lines/elements.py
     def __init__(self, number, lower_node, upper_node, vinf, line_type=line_types.liros, init_length=None):
+=======
+    def __init__(self, number, lower_node, upper_node, line_type=line_types.liros, init_length=None):
+>>>>>>> b3558ca... lorenz und simon haben leinen auf den schirm gemacht:openglider/lines/_elements.py
         """Line Class:
         Note:
             -for easier use the lines have it's nodes directly as variables!!!
@@ -117,6 +121,12 @@ class Line(object):
         self.upper_node = upper_node
 
         self.init_length = init_length
+<<<<<<< HEAD:openglider/lines/elements.py
+=======
+        self.length = None              # length of line without sag
+        self.length_tot = None          # total length of line TODO: property
+        self.ortho_length = None        # length of the projected line
+>>>>>>> b3558ca... lorenz und simon haben leinen auf den schirm gemacht:openglider/lines/_elements.py
 
         self.force = None
 

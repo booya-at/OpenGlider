@@ -36,7 +36,6 @@ import unittest
 testfolder = os.path.dirname(os.path.abspath(__file__))
 importpath = testfolder + '/demokite.ods'
 
-
 class GliderTestClass(unittest.TestCase):
     def setUp(self, complete=True):
         self.glider = openglider.Glider()
@@ -60,7 +59,11 @@ class TestGlider(GliderTestClass):
         objects = [openglider.graphics.Axes(size=1.2)]  #, openglider.graphics.Green
         objects += map(openglider.graphics.Polygon, polygons)
         #objects.append(openglider.graphics.Blue)
+<<<<<<< HEAD
         objects += map(lambda line: openglider.graphics.Line(line.get_line_points()), thaglider.lines.lines)
+=======
+        objects += map(lambda line: openglider.graphics.Line(line.get_line_coords(v_inf=[10, 0, 0])), thaglider.lines.lines)
+>>>>>>> b3558ca... lorenz und simon haben leinen auf den schirm gemacht
         openglider.graphics.Graphics3D(objects, points)
 
 
