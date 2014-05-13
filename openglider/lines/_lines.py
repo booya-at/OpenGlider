@@ -22,7 +22,7 @@
 import numpy
 import openglider.graphics as g
 from _functions import *
-from _elements import Line, Node, LinePar, SagMatrix
+from elements import Line, Node, LinePar, SagMatrix
 from openglider.vector import normalize, norm
 
 
@@ -81,11 +81,6 @@ class LineSet():
         self.calc_projected_nodes()
         self.update_line_points()  # ???
         self.calc_forces(start)
-        for l in self.lines:
-            l.drag(self.calc_par['SPEED'])
-            l.calc_length()
-            l.calc_ortho_length()
-            l.calc_ortho_force()
         for line in start:
             self._calc_matrix_entries(line)
         print(self.mat)
@@ -115,7 +110,7 @@ class LineSet():
 
     def calc_forces(self, start_lines):
         for line_lower in start_lines:
-            vec = line_lower.get_vec()
+            vec = line_lower.diff_vector
             if line_lower.upper_node.type != 2:  # not a gallery line
                 lines_upper = self.get_upper_conected_lines(
                     line_lower.upper_node)
@@ -125,7 +120,7 @@ class LineSet():
                     if line.force is None:
                         print("error line force not set")
                     else:
-                        force += line.force * line.get_vec()
+                        force += line.force * line.diff_vector
                 #vec = line_lower.upper_node.vec - line_lower.lower_node.vec
                 line_lower.force = norm(dot(force, normalize(vec)))
 

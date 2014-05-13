@@ -208,7 +208,7 @@ class Cell():
     def ballooning_phi(self):
         x_values = self.rib1.profile_2d.x_values
         balloon = [self.rib1.ballooning[i] + self.rib2.ballooning[i] for i in x_values]
-        return HashedList([arsinc(1. / (1+bal)) for bal in balloon])
+        return HashedList([arsinc(1. / (1+bal)) if bal > 0 else 0 for bal in balloon])
 
     #TODO: check for usages
     @property
