@@ -18,8 +18,7 @@ class TestMarks(unittest.TestCase):
     def setUp(self):
         self.curve = BezierCurve()
         self.points = [[0., 0.], [0.5, 0.5], [1., 0.]]
-        self.profile = openglider.airfoil.Profile2D()
-        self.profile.compute_naca(9012, numpoints=100)
+        self.profile = openglider.airfoil.Profile2D.compute_naca(9012, numpoints=100)
 
     def test_bezier_fit(self):
         nose_ind = self.profile.noseindex

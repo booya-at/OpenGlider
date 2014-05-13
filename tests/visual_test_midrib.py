@@ -36,8 +36,7 @@ import openglider.graphics as Graph
 from openglider.glider.ballooning import BallooningBezier
 
 
-a = Profile2D()
-a.importdat(os.path.dirname(os.path.abspath(__file__)) + "/testprofile.dat")
+a = Profile2D.import_from_dat(os.path.dirname(os.path.abspath(__file__)) + "/testprofile.dat")
 #a.Numpoints = 40
 
 midribs = [

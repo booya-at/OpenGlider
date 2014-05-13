@@ -28,7 +28,7 @@ except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
     import openglider
 import openglider.graphics
-import openglider.glider.plots
+import openglider.plots
 from visual_test_glider import GliderTestClass
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
@@ -53,9 +53,9 @@ class TestGlider_Flatten(GliderTestClass):
         left_out, left, right, right_out = self.get_flattened_cell()
         cuts_front = [random.random()*len(left)*0.1 for __ in range(2)]
         cuts_back = [(random.random()+1)*len(left)*0.2 for __ in range(2)]
-        outlist_1, leftcut, rightcut = openglider.glider.plots.cuts[num]([[left, cuts_front[0]], [right, cuts_front[1]]],
+        outlist_1, leftcut, rightcut = openglider.plots.cuts[num]([[left, cuts_front[0]], [right, cuts_front[1]]],
                                                                   left_out, right_out, -0.02)
-        outlist_2, leftcut_2, rightcut_2 = openglider.glider.plots.cuts[num]([[left, cuts_back[0]], [right, cuts_back[1]]],
+        outlist_2, leftcut_2, rightcut_2 = openglider.plots.cuts[num]([[left, cuts_back[0]], [right, cuts_back[1]]],
                                                                       left_out, right_out, 0.02)
         cuts = [left_out[leftcut:leftcut_2], outlist_1, right_out[rightcut:rightcut_2], outlist_2]
         marks = [left[cuts_front[0]:cuts_back[0]], right[cuts_front[1]:cuts_back[1]]]

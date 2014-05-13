@@ -22,7 +22,7 @@ import math
 import sys
 import os
 
-from openglider.plots import flattened_cell, cut_1, cut_2
+from openglider.plots import flattened_cell, cuts
 
 
 try:
@@ -37,11 +37,9 @@ import openglider.plots
 from openglider.glider.cell import Cell
 from openglider.glider.rib import Rib
 import numpy
-__author__ = 'simon'
 
 
-prof = openglider.airfoil.Profile2D()
-prof.importdat(os.path.dirname(os.path.abspath(__file__)) + "/testprofile.dat")
+prof = openglider.airfoil.Profile2D.import_from_dat(os.path.dirname(os.path.abspath(__file__)) + "/testprofile.dat")
 
 ballooning = BallooningBezier()
 balloon = [ballooning(i) for i in prof.x_values]
@@ -70,9 +68,9 @@ openglider.graphics.Graphics2D([openglider.graphics.Line(left.data), openglider.
 
 
 ################CUTS
-outlist, leftcut, rightcut = cut_2([[left2, 0], [right2, 0]], left_out, right_out, -0.02)
+outlist, leftcut, rightcut = cuts[1]([[left2, 0], [right2, 0]], left_out, right_out, -0.02)
 end = 150
-outlist2, leftcut2, rightcut2 = cut_1([[left2, end], [right2, end]], left_out, right_out, 0.02)
+outlist2, leftcut2, rightcut2 = cuts[0]([[left2, end], [right2, end]], left_out, right_out, 0.02)
 
 openglider.graphics.Graphics2D([openglider.graphics.Line(left2.data[0:end]),
                                 openglider.graphics.Line(right2.data[0:end]),

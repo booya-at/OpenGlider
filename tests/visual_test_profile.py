@@ -20,9 +20,8 @@ proffile = os.path.dirname(os.path.abspath(__file__)) + "/testprofile.dat"
 
 class ProfileTest(unittest.TestCase):
     def setUp(self):
-        self.profile = Profile2D()
         prof = random.randint(1, 9999)
-        self.profile.compute_naca(prof, 200)
+        self.profile = Profile2D.compute_naca(prof, 200)
         #self.airfoil.importdat(proffile)
 
     def test_allowance(self):

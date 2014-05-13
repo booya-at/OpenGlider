@@ -20,7 +20,6 @@
 
 
 import numpy
-import openglider.graphics as g
 from _functions import *
 from elements import Line, Node, LinePar, SagMatrix
 from openglider.vector import normalize, norm
