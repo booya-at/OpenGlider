@@ -27,16 +27,13 @@ try:
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 from openglider import glider
-from openglider.plots import flatten_glider
+from openglider.plots import flatten_glider, create_svg
+from test_glider import GliderTestClass
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
 
 
-class TestGlider(unittest.TestCase):
-    def setUp(self):
-        self.glider = glider.Glider()
-        self.glider.import_geometry(testfolder + '/demokite.ods')
-
+class TestGlider(GliderTestClass):
     def test_import_export_ods(self):
         path = '/tmp/daweil.ods'
         self.glider.export_geometry(path)
@@ -62,10 +59,9 @@ class TestGlider(unittest.TestCase):
         path = '/tmp/booya.json'
         self.glider.export_3d(path, midribs=4)
 
-    @unittest.skip("temp")
     def test_export_plots(self):
-        path = '/tmp/plots.dxf'
-        flatten_glider(self.glider, path)
+        path = '/tmp/plots.svg'
+        create_svg(flatten_glider(self.glider), path)
 
 
 

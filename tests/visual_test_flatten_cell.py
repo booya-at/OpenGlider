@@ -54,7 +54,7 @@ ding = [numpy.array([0, 0]), numpy.array([1., 0])]
 #[numpy.array([0,0]),numpy.array([1,0])
 
 cell = Cell(r1, r2)
-left2, right2 = flattened_cell(cell)
+left_bal, left2, right2, right_bal = flattened_cell(cell)
 left_out = left2.copy()
 left_out.add_stuff(-0.02)
 right_out = right2.copy()

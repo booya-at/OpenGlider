@@ -30,13 +30,20 @@ from openglider import glider
 
 test_folder = os.path.dirname(os.path.abspath(__file__))
 
+testfolder = os.path.dirname(os.path.abspath(__file__))
+importpath = testfolder + '/demokite.ods'
+importpath = "/home/simon/Dropbox/para-lorenz/paragleiter/fluegel/berg/berg9.ods"
 
-class TestGlider(unittest.TestCase):
+class GliderTestClass(unittest.TestCase):
+    def setUp(self, complete=True):
+        self.glider = openglider.Glider()
+        self.glider.import_geometry(path=importpath)
+
+
+
+class TestGlider(GliderTestClass):
     #def __init__(self):
     #    unittest.TestCase.__init__(self)
-    def setUp(self):
-        self.glider = glider.Glider()
-        self.glider.import_geometry(test_folder + '/demokite.ods')
 
     def test_numpoints(self):
         numpoints = random.randint(1, 100)*2+1

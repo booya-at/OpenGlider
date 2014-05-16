@@ -43,7 +43,7 @@ class LineSet():
         res = set()
         for l in self.lines:
             n = l.lower_node
-            print(n.type)
+            #(n.type)
             if n.type == 0:
                 res.add(l)
                 # maybe only return
@@ -63,12 +63,12 @@ class LineSet():
         if start is None:
             start = self.lowest_lines
         for line in start:
-            print(line.number)
+            #print(line.number)
             if line.upper_node.type == 1:
                 vec_0 = line.lower_node.vec
                 t = self.get_tangential_comp(line, vec_0)
                 line.upper_node.vec = vec_0 + t * line.init_length
-                print(line.upper_node.vec)
+                #print(line.upper_node.vec)
                 conn_lines = self.get_upper_conected_lines(line.upper_node)
                 self.calc_geo(conn_lines)
 
@@ -82,7 +82,7 @@ class LineSet():
         self.calc_forces(start)
         for line in start:
             self._calc_matrix_entries(line)
-        print(self.mat)
+        #print(self.mat)
         self.mat.solve_system()
         for l in self.lines:
             l.sag_par_1, l.sag_par_2 = self.mat.get_sag_par(l.number)

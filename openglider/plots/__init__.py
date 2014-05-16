@@ -18,61 +18,108 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 from dxfwrite import DXFEngine as dxf, DXFList
+import numpy
+import svgwrite
+from openglider.graphics import Graphics3D, Line, Graphics
 
 import openglider.plots.projection
 from openglider.glider.cell import Cell
 from .cuts import cuts
+from openglider.vector import Vectorlist2D
 
 
-def flattened_cell(cell=None):
-    left, right = openglider.plots.projection.flatten_list(cell.rib1.profile_3d, cell.rib2.profile_3d)
+def flattened_cell(cell):
+    assert isinstance(cell, openglider.glider.Cell)
+    left, right = openglider.plots.projection.flatten_list(cell.prof1, cell.prof2)
+    left_bal = left.copy()
+    right_bal = right.copy()
     ballooning_left = [cell.rib1.ballooning[x] for x in cell.rib1.profile_2d.x_values]
     ballooning_right = [cell.rib2.ballooning[x] for x in cell.rib2.profile_2d.x_values]
     for i in range(len(left)):
         diff = right[i]-left[i]
-        left.data[i] -= diff * ballooning_left[i]
-        right.data[i] += diff * ballooning_right[i]
-    return left, right
+        left_bal.data[i] -= diff * ballooning_left[i]
+        right_bal.data[i] += diff * ballooning_right[i]
+    return left_bal, left, right, right_bal
 
 
-def flatten_glider(glider, path):
+def flatten_glider(glider):
+    assert isinstance(glider, openglider.Glider)
     # Temporary declarations:
     allowance_general = 0.01
     parts = []
 
-    drawing = dxf.drawing(path)
-    drawing.add_layer('MARKS')
-    drawing.add_layer('CUTS')
-
     for cell in glider.cells:
-        left, right = flattened_cell(cell)
-
+        left_bal, left, right, right_bal = flattened_cell(cell)
         left_out = left.copy()
         right_out = right.copy()
         left_out.add_stuff(-allowance_general)
         right_out.add_stuff(allowance_general)
+        parts.append(PlotPart({"OUTER_CUTS": [left_out + right_out[::-1]], "SEWING_MARKS": [left + right[::-1]]}))
+    return parts
 
-        right_out.data = right_out.data[::-1]
-        left_out += right_out
-        right.data = right.data[::-1]
-        left = left + right
 
-        left.layer = 'MARKS'
-        left_out.layer = 'CUTS'
+class PlotPart():
+    def __init__(self, layer_dict=None):
+        self._layer_dict = {}
+        self.layer_dict = layer_dict or {}
 
-        parts.append([left, left_out])
+    @property
+    def layer_dict(self):
+        return self._layer_dict
 
-    startx = 0
-    for liste in parts:
-        startpoint = [startx+0.1, 0]
-        group = DXFList()
-        for element in liste:
-            startx = max(startx, startpoint[0]+max([x[0] for x in element.data]))
-            group.append(dxf.polyline(points=(element.data+startpoint)*1000, layer=element.layer))
-        drawing.add(group)
-    drawing.save()
-    return True
+    @layer_dict.setter
+    def layer_dict(self, layer_dict):
+        assert isinstance(layer_dict, dict)
+        for layer in layer_dict.iteritems():
+            if not isinstance(layer, Vectorlist2D):
+                layer = Vectorlist2D(layer)
+        self._layer_dict = layer_dict
 
+    def __getitem__(self, item):
+        return self.layer_dict[item]
+
+    @property
+    def max_x(self):
+        return max(map(lambda layer: max(map(lambda point: point[0], layer)), self.layer_dict))
+
+    @property
+    def max_y(self):
+        return max(map(lambda layer: max(map(lambda point: point[0], layer)), self.layer_dict))
+
+    @property
+    def min_x(self):
+        return min(map(lambda layer: min(map(lambda point: point[0], layer)), self.layer_dict))
+
+    @property
+    def min_y(self):
+        return min(map(lambda layer: min(map(lambda point: point[0], layer)), self.layer_dict))
+
+    def rotate(self, angle):
+        for layer in self.layer_dict.itervalues():
+            layer.rotate(angle)
+
+    def shift(self, vector):
+        for layer in self.layer_dict.itervalues():
+            layer.shift(vector)
+
+
+
+def create_svg(partlist, path):
+    drawing = svgwrite.Drawing()
+    partlist = [partlist[1]]
+    for part in partlist:
+        if "OUTER_CUTS" in part.layer_dict:
+            lines = part["SEWING_MARKS"]
+            for line in lines:
+                element = svgwrite.shapes.Polyline(line, id='outer',
+                                                   stroke_width="0.002",
+                                                   stroke="black",
+                                                   fill="none")
+                element.scale(1000)
+                drawing.add(element)
+
+    with open(path, "w") as output_file:
+        return drawing.write(output_file)
 
 # FLATTENING
 # Dict for layers

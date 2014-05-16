@@ -21,6 +21,7 @@ __version__ = '0.01dev'
 __author__ = 'Booya'
 
 from openglider.airfoil import Profile2D
+from openglider.vector import Vectorlist, Vectorlist2D
 #from utils.Bezier import BezierCurve
 #from openglider.vector import Vectorlist, Vectorlist2D
 #import numpy

@@ -31,16 +31,9 @@ except ImportError:
     import openglider
 import openglider.graphics
 import openglider.graphics as G
+from test_glider import GliderTestClass
 import unittest
 
-testfolder = os.path.dirname(os.path.abspath(__file__))
-importpath = testfolder + '/demokite.ods'
-importpath = "/home/simon/Dropbox/para-lorenz/paragleiter/fluegel/berg/berg9.ods"
-
-class GliderTestClass(unittest.TestCase):
-    def setUp(self, complete=True):
-        self.glider = openglider.Glider()
-        self.glider.import_geometry(path=importpath)
 
 
 class TestGlider(GliderTestClass):

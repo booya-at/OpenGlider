@@ -170,6 +170,9 @@ class HashedList(object):
     def __len__(self):
         return len(self.data)
 
+    def __iter__(self):
+        return self.data.__iter__()
+
     @property
     def data(self):
         return self._data
@@ -201,15 +204,22 @@ class Vectorlist(HashedList):
         if isinstance(ik, int) and 0 <= ik < len(self):  # easiest case
             return self.data[ik]
         elif isinstance(ik, slice):  # example: list[1.2:5.5:1]
-            step = 1 if ik.step is None else ik.step
-            if step > 0:
-                start = max(int(ik.start) + 1, 0)
-                stop = min(int(ik.stop) + (1 if ik.stop % 1 > 0 else 0), len(self) - 1)
+            start = ik.start if ik.start is not None else 0
+            stop = ik.stop if ik.stop is not None else len(self)
+            if ik.step is None:
+                step = sign(stop - start)
             else:
-                start = min(int(ik.start) - (0 if ik.start % 1 > 0 else 1), len(self) - 1)
-                stop = max(int(ik.stop), 0)
-            values = [ik.start] + range(start, stop, step) + [ik.stop]
-            return [self[i] for i in values]
+                step = ik.step
+                if step < 0:
+                    start, stop = stop, start
+            if step > 0:
+                start_round = max(int(start) + 1, 0)
+                stop_round = min(int(stop) + (1 if stop % 1 > 0 else 0), len(self) - 1)
+            else:
+                start_round = min(int(start) - (0 if start % 1 > 0 else 1), len(self) - 1)
+                stop_round = max(int(stop), 0)
+            values = [start] + range(start_round, stop_round, step) + [stop]
+            return self.__class__([self[i] for i in values])
         else:
             if ik < 0:
                 k = ik
@@ -393,6 +403,10 @@ class Vectorlist2D(Vectorlist):
             newlist.append(second + self.normvectors[i] * amount / d1.dot(d2) * np.sqrt(d1.dot(d1) * d2.dot(d2)))
         newlist.append(third + self.normvectors[i + 1] * amount)
         self.data = newlist
+
+    def mirror(self, p1, p2):
+        normvector = normalize(np.array(p1-p2).dot([[0, -1], [1, 0]]))
+        self.data = [point - 2*normvector.dot(point-p1)*normvector for point in self.data]
 
     def rotate(self, angle, startpoint=None):
         """

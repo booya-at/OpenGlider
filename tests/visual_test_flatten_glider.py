@@ -29,7 +29,7 @@ except ImportError:
     import openglider
 import openglider.graphics
 import openglider.plots
-from visual_test_glider import GliderTestClass
+from test_glider import GliderTestClass
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
 importpath = testfolder+"/demokite.ods"
@@ -41,7 +41,7 @@ class TestGlider_Flatten(GliderTestClass):
 
     def get_flattened_cell(self, allowance=0.02):
         cell = self.glider.cells[random.randint(0, len(self.glider.cells)-1)]
-        left, right = flattened_cell(cell)
+        left_bal, left, right, right_bal = flattened_cell(cell)
         left_out = left.copy()
         right_out = right.copy()
         left_out.add_stuff(-allowance)
@@ -70,3 +70,19 @@ class TestGlider_Flatten(GliderTestClass):
 
     def test_cut3(self):
         self.showcut(2)
+
+    def test_mirror(self):
+        left_out, left, right, right_out = self.get_flattened_cell()
+        mirrored_left = left_out.copy()
+        mirrored_right = right_out.copy()
+        p1 = mirrored_left.data[-1].copy()
+        p2 = mirrored_right.data[-1].copy()
+        #print(mirrored_left.data[-1])
+        mirrored_left.mirror(p1, p2)
+        mirrored_right.mirror(p1, p2)
+        openglider.graphics.Graphics2D([openglider.graphics.Line(left_out.data),
+                                        openglider.graphics.Line(right_out.data),
+                                        openglider.graphics.Green,
+                                        openglider.graphics.Line(mirrored_left.data),
+                                        openglider.graphics.Line(mirrored_right.data)
+                                        ])
