@@ -20,7 +20,7 @@
 from dxfwrite import DXFEngine as dxf, DXFList
 import numpy
 import svgwrite
-from openglider.graphics import Graphics3D, Line, Graphics
+#from openglider.graphics import Graphics3D, Line, Graphics
 
 import openglider.plots.projection
 from openglider.glider.cell import Cell
