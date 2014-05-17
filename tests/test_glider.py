@@ -32,7 +32,6 @@ test_folder = os.path.dirname(os.path.abspath(__file__))
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
 importpath = testfolder + '/demokite.ods'
-importpath = "/home/simon/Dropbox/para-lorenz/paragleiter/fluegel/berg/berg9.ods"
 
 class GliderTestClass(unittest.TestCase):
     def setUp(self, complete=True):
