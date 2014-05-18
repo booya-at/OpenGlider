@@ -29,9 +29,10 @@ from openglider.plots.projection import flatten_list
 
 
 class Glider(object):
-    def __init__(self):
-        self.cells = []
+    def __init__(self, cells=None, attachment_points=None):
+        self.cells = cells or []
         self.data = {}
+        self.attachment_points = attachment_points or []
 
     @classmethod
     def import_geometry(cls, path, filetype=None):

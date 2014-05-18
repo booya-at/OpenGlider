@@ -76,6 +76,22 @@ def flatten_glider(glider):
                                                     right_bal[front_right:back_right:-1] +
                                                     Vectorlist2D([left_bal[front_left]])]}))
 
+    for i, rib in enumerate(glider.ribs[:-1]):
+        profile = rib.profile_2d.copy()
+        profile_outer = profile.copy()
+        profile_outer.add_stuff(0.01)
+        profile_outer.close()
+        chord = rib.chord
+        attachment_points = filter(lambda p: p.rib_no==i, glider.attachment_points)
+
+        profile_outer.scale(chord)
+        profile.scale(chord)
+
+        parts.append(PlotPart({"OUTER_CUTS": [profile_outer],
+                      "SEWING_MARKS": [profile]}))
+
+
+
     return parts
 
 

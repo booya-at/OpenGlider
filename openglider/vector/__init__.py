@@ -282,6 +282,11 @@ class Vectorlist(HashedList):
                 break
         return length + norm(self[second] - self[first])
 
+    def scale(self, x, y=None):
+        if y is None:
+            y = x
+        self.data *= [x, y]
+
 
 class Vectorlist2D(Vectorlist):
     def __init__(self, data=None, name=None):
