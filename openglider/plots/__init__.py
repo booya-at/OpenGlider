@@ -20,16 +20,16 @@
 import svgwrite
 
 from openglider.airfoil import get_x_value
-from . import projection
-from openglider.glider.glider import Glider
-from openglider.glider.cell import Cell
+import projection
+#from openglider.glider import Glider
+#from openglider.glider.cell import Cell
 from .cuts import cuts
 from .part import PlotPart
 from openglider.vector import Vectorlist2D
 
 
 def flattened_cell(cell):
-    assert isinstance(cell, Cell)
+    #assert isinstance(cell, Cell)
     left, right = projection.flatten_list(cell.prof1, cell.prof2)
     left_bal = left.copy()
     right_bal = right.copy()
@@ -43,7 +43,7 @@ def flattened_cell(cell):
 
 
 def flatten_glider(glider):
-    assert isinstance(glider, Glider)
+    #assert isinstance(glider, Glider)
     # Temporary declarations:
     allowance_general = 0.01
     parts = []
