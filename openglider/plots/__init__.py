@@ -17,21 +17,20 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-from dxfwrite import DXFEngine as dxf, DXFList
-import numpy
 import svgwrite
-#from openglider.graphics import Graphics3D, Line, Graphics
-from openglider.airfoil import get_x_value
 
-import openglider.plots.projection
+from openglider.airfoil import get_x_value
+from . import projection
+from openglider.glider.glider import Glider
 from openglider.glider.cell import Cell
 from .cuts import cuts
+from .part import PlotPart
 from openglider.vector import Vectorlist2D
 
 
 def flattened_cell(cell):
-    assert isinstance(cell, openglider.glider.Cell)
-    left, right = openglider.plots.projection.flatten_list(cell.prof1, cell.prof2)
+    assert isinstance(cell, Cell)
+    left, right = projection.flatten_list(cell.prof1, cell.prof2)
     left_bal = left.copy()
     right_bal = right.copy()
     ballooning_left = [cell.rib1.ballooning[x] for x in cell.rib1.profile_2d.x_values]
@@ -44,7 +43,7 @@ def flattened_cell(cell):
 
 
 def flatten_glider(glider):
-    assert isinstance(glider, openglider.Glider)
+    assert isinstance(glider, Glider)
     # Temporary declarations:
     allowance_general = 0.01
     parts = []
@@ -78,83 +77,17 @@ def flatten_glider(glider):
 
     for i, rib in enumerate(glider.ribs[:-1]):
         profile = rib.profile_2d.copy()
+        chord = rib.chord
+        profile.scale(chord)
         profile_outer = profile.copy()
         profile_outer.add_stuff(0.01)
         profile_outer.close()
-        chord = rib.chord
-        attachment_points = filter(lambda p: p.rib_no==i, glider.attachment_points)
-
-        profile_outer.scale(chord)
-        profile.scale(chord)
+        attachment_points = filter(lambda p: p.rib_no == i, glider.attachment_points)
 
         parts.append(PlotPart({"OUTER_CUTS": [profile_outer],
-                      "SEWING_MARKS": [profile]}))
-
-
+                               "SEWING_MARKS": [profile]}))
 
     return parts
-
-
-class PlotPart():
-    def __init__(self, layer_dict=None):
-        self._layer_dict = {}
-        self.layer_dict = layer_dict or {}
-
-    @property
-    def layer_dict(self):
-        return self._layer_dict
-
-    @layer_dict.setter
-    def layer_dict(self, layer_dict):
-        assert isinstance(layer_dict, dict)
-        for layer in layer_dict.iteritems():
-            if not isinstance(layer, Vectorlist2D):
-                layer = Vectorlist2D(layer)
-        self._layer_dict = layer_dict
-
-    def __getitem__(self, item):
-        return self.layer_dict[item]
-
-    @property
-    def max_x(self):
-        max_x = lambda thalist: max(thalist, key=lambda point: point[0])[0]
-        return max(map(lambda layer: max(map(max_x, layer)), self.layer_dict.itervalues()))
-
-    @property
-    def max_y(self):
-        max_x = lambda thalist: max(thalist, key=lambda point: point[1])[1]
-        return max(map(lambda layer: max(map(max_x, layer)), self.layer_dict.itervalues()))
-
-    @property
-    def min_x(self):
-        max_x = lambda thalist: min(thalist, key=lambda point: point[0])[0]
-        return max(map(lambda layer: max(map(max_x, layer)), self.layer_dict.itervalues()))
-
-    @property
-    def min_y(self):
-        max_x = lambda thalist: min(thalist, key=lambda point: point[1])[1]
-        return max(map(lambda layer: max(map(max_x, layer)), self.layer_dict.itervalues()))
-
-    def rotate(self, angle):
-        for layer in self.layer_dict.itervalues():
-            layer.rotate(angle)
-
-    def shift(self, vector):
-        for layer in self.layer_dict.itervalues():
-            for vectorlist in layer:
-                vectorlist.shift(vector)
-
-    def return_layer_svg(self, layer):
-        """
-        Return a layer scaled for svg_coordinate_system [x,y = (mm, -mm)]
-        """
-        if layer in self.layer_dict:
-            new = []
-            for line in self.layer_dict[layer]:
-                new.append(map(lambda point: point * [1000, -1000], line))
-            return new
-        else:
-            return None
 
 
 def create_svg(partlist, path):

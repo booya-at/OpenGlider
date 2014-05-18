@@ -66,8 +66,6 @@ class TestCell(unittest.TestCase):
         cell1 = self.cell2
         cell2 = self.cell2.copy()
         cell2.mirror()
-        print(cell1._basic_cell.normvectors)
-        print([[p, normvector] for p, normvector in zip(cell1.prof2.data, cell1._basic_cell.normvectors)])
         Graph.Graphics([Graph.Line(cell1.rib1.profile_3d.data),
                         Graph.Line(cell2.rib1.profile_3d.data),
                         Graph.Red,

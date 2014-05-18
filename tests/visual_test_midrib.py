@@ -56,9 +56,7 @@ r3 = Rib(a, b2, [0.2, 0.3, -0.1], 0.8, 30 * math.pi / 180, 5 * math.pi / 180, 0,
 
 
 cell1 = Cell(r1, r2, midribs)
-cell1.recalc()
 cell2 = Cell(r2, r3, [])
-cell2.recalc()
 
 num = 20
 #ribs = [cell1.midrib(x*1./num) for x in range(num+1)]
