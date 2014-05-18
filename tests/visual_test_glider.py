@@ -56,7 +56,6 @@ class TestGlider(GliderTestClass):
         objects += map(lambda line: openglider.graphics.Line(line.get_line_points()), thaglider.lines.lines)
         openglider.graphics.Graphics3D(objects, points)
 
-
     def test_show_shape(self):
         self.glider = self.glider.copy_complete()
         left, right = self.glider.shape

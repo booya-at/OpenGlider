@@ -9,8 +9,7 @@ from openglider.vector import normalize
 if len(sys.argv) >= 4:
     inputfile = os.path.abspath(sys.argv[1])
     destfile = os.path.dirname(inputfile) + "/geometry.obj"
-    glider = Glider()
-    glider.import_geometry(inputfile)
+    glider = Glider.import_geometry(inputfile)
     for cell in glider.cells:
         pass
         #cell.miniribs.append(openglider.Ribs.MiniRib(0.5, 0.7))

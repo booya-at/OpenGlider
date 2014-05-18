@@ -1,4 +1,4 @@
-#! /usr/bin/python2
+# ! /usr/bin/python2
 # -*- coding: utf-8; -*-
 #
 # (c) 2013 booya (http://booya.at)
@@ -21,6 +21,7 @@ from dxfwrite import DXFEngine as dxf, DXFList
 import numpy
 import svgwrite
 #from openglider.graphics import Graphics3D, Line, Graphics
+from openglider.airfoil import get_x_value
 
 import openglider.plots.projection
 from openglider.glider.cell import Cell
@@ -36,7 +37,7 @@ def flattened_cell(cell):
     ballooning_left = [cell.rib1.ballooning[x] for x in cell.rib1.profile_2d.x_values]
     ballooning_right = [cell.rib2.ballooning[x] for x in cell.rib2.profile_2d.x_values]
     for i in range(len(left)):
-        diff = right[i]-left[i]
+        diff = right[i] - left[i]
         left_bal.data[i] -= diff * ballooning_left[i]
         right_bal.data[i] += diff * ballooning_right[i]
     return left_bal, left, right, right_bal
@@ -47,14 +48,34 @@ def flatten_glider(glider):
     # Temporary declarations:
     allowance_general = 0.01
     parts = []
+    xvalues = glider.x_values
 
     for cell in glider.cells:
         left_bal, left, right, right_bal = flattened_cell(cell)
-        left_out = left.copy()
-        right_out = right.copy()
+        left_out = left_bal.copy()
+        right_out = right_bal.copy()
         left_out.add_stuff(-allowance_general)
         right_out.add_stuff(allowance_general)
-        parts.append(PlotPart({"OUTER_CUTS": [left_out + right_out[::-1]], "SEWING_MARKS": [left + right[::-1]]}))
+
+        for panel in cell.panels:
+            front_left = get_x_value(xvalues, panel.cut_front[0])
+            back_left = get_x_value(xvalues, panel.cut_back[0])
+            front_right = get_x_value(xvalues, panel.cut_front[1])
+            back_right = get_x_value(xvalues, panel.cut_back[1])
+            cut_front = cuts[panel.cut_front[2] - 1]([[left_bal, front_left],
+                                                      [right_bal, front_right]],
+                                                     left_out, right_out, -panel.cut_front[3])
+            cut_back = cuts[panel.cut_back[2] - 1]([[left_bal, back_left],
+                                                    [right_bal, back_right]],
+                                                   left_out, right_out, panel.cut_back[3])
+            parts.append(PlotPart({"OUTER_CUTS": [left_out[cut_front[1]:cut_back[1]] +
+                                                  Vectorlist2D(cut_back[0]) +
+                                                  right_out[cut_front[2]:cut_back[2]:-1] +
+                                                  Vectorlist2D(cut_front[0])[::-1]],
+                                   "SEWING_MARKS": [left_bal[front_left:back_left] +
+                                                    right_bal[front_right:back_right:-1] +
+                                                    Vectorlist2D([left_bal[front_left]])]}))
+
     return parts
 
 
@@ -80,19 +101,23 @@ class PlotPart():
 
     @property
     def max_x(self):
-        return max(map(lambda layer: max(map(lambda point: point[0], layer)), self.layer_dict))
+        max_x = lambda thalist: max(thalist, key=lambda point: point[0])[0]
+        return max(map(lambda layer: max(map(max_x, layer)), self.layer_dict.itervalues()))
 
     @property
     def max_y(self):
-        return max(map(lambda layer: max(map(lambda point: point[0], layer)), self.layer_dict))
+        max_x = lambda thalist: max(thalist, key=lambda point: point[1])[1]
+        return max(map(lambda layer: max(map(max_x, layer)), self.layer_dict.itervalues()))
 
     @property
     def min_x(self):
-        return min(map(lambda layer: min(map(lambda point: point[0], layer)), self.layer_dict))
+        max_x = lambda thalist: min(thalist, key=lambda point: point[0])[0]
+        return max(map(lambda layer: max(map(max_x, layer)), self.layer_dict.itervalues()))
 
     @property
     def min_y(self):
-        return min(map(lambda layer: min(map(lambda point: point[0], layer)), self.layer_dict))
+        max_x = lambda thalist: min(thalist, key=lambda point: point[1])[1]
+        return max(map(lambda layer: max(map(max_x, layer)), self.layer_dict.itervalues()))
 
     def rotate(self, angle):
         for layer in self.layer_dict.itervalues():
@@ -100,23 +125,47 @@ class PlotPart():
 
     def shift(self, vector):
         for layer in self.layer_dict.itervalues():
-            layer.shift(vector)
+            for vectorlist in layer:
+                vectorlist.shift(vector)
 
+    def return_layer_svg(self, layer):
+        """
+        Return a layer scaled for svg_coordinate_system [x,y = (mm, -mm)]
+        """
+        if layer in self.layer_dict:
+            new = []
+            for line in self.layer_dict[layer]:
+                new.append(map(lambda point: point * [1000, -1000], line))
+            return new
+        else:
+            return None
 
 
 def create_svg(partlist, path):
     drawing = svgwrite.Drawing()
-    partlist = [partlist[1]]
+    #partlist = [partlist[1]]
+    max_last = [0, 0]
     for part in partlist:
+        part_group = svgwrite.container.Group()
         if "OUTER_CUTS" in part.layer_dict:
-            lines = part["SEWING_MARKS"]
+            part.shift([max_last[0] - part.min_x + 0.2, max_last[1] - part.min_y])
+            max_last[0] = part.max_x
+            #lines = part.return_layer_svg("SEWING_MARKS")
+            lines = part.return_layer_svg("SEWING_MARKS")
             for line in lines:
                 element = svgwrite.shapes.Polyline(line, id='outer',
-                                                   stroke_width="0.002",
+                                                   stroke_width="1",
+                                                   stroke="green",
+                                                   fill="none")
+                part_group.add(element)
+            lines = part.return_layer_svg("OUTER_CUTS")
+            for line in lines:
+                element = svgwrite.shapes.Polyline(line, id='outer',
+                                                   stroke_width="1",
                                                    stroke="black",
                                                    fill="none")
-                element.scale(1000)
-                drawing.add(element)
+                part_group.add(element)
+            drawing.add(part_group)
 
     with open(path, "w") as output_file:
         return drawing.write(output_file)

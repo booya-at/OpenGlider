@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 from openglider.glider.cell import Cell
+from openglider.glider.cell_elements import Panel
 from openglider.glider.rib import Rib
 from openglider.glider.rib_elements import AttachmentPoint
 #from openglider.lines import Line, Node, LineSet
@@ -33,7 +34,7 @@ from openglider.airfoil import Profile2D
 import numpy
 
 
-def import_ods(filename, glider=None):
+def import_ods(filename, glider):
     ods = ezodf.opendoc(filename)
     sheets = ods.sheets
     # Profiles -> map xvalues
@@ -41,7 +42,8 @@ def import_ods(filename, glider=None):
     xvalues = sorted(profiles, key=lambda prof: prof.numpoints)[0].x_values  # Use airfoil with maximum profilepoints
     for profile in profiles:
         profile.x_values = xvalues
-        # Ballooning old : 1-8 > upper (prepend/append (0,0),(1,0)), 9-16 > lower (same + * (1,-1))
+
+    # Ballooning old : 1-8 > upper (prepend/append (0,0),(1,0)), 9-16 > lower (same + * (1,-1))
     balloonings_temp = transpose_columns(sheets[4])
     balloonings = []
     for baloon in balloonings_temp:
@@ -63,12 +65,10 @@ def import_ods(filename, glider=None):
     x = y = z = span_last = 0.
     alpha2 = 0.
     thisrib = None
-    # TODO: Glide -> DATAIMPORT
     for i in range(1, main.nrows()):
         line = [main.get_cell([i, j]).value for j in range(main.ncols())]
         if not line[0]:
-            #print("leere zeile:", i, main.nrows())
-            break
+            break  # skip empty line
 
         chord = line[1]  # Rib-Chord
         span = line[2]  # spanwise-length (flat)
@@ -96,24 +96,36 @@ def import_ods(filename, glider=None):
             cell.name = "Cell_no"+str(i)
             cells.append(cell)
 
+    glider.cells = cells
+    glider.close_rib()
 
+    glider.attachment_points = map(lambda args: AttachmentPoint(args[1], args[0], args[2]), read_elements(sheets[2], "AHP", len_data=2))
+    glider.attachment_points.sort(key=lambda element: element.number)
+    glider.attachment_points_lower = get_lower_aufhaengepunkte(glider.data)
+    for p in glider.attachment_points:
+        p.force = numpy.array([0, 0, 1])
+        p.get_position(glider)
 
+    glider.lines = tolist_lines(sheets[6], glider.attachment_points_lower, glider.attachment_points)
+    glider.lines.calc_geo()
+    glider.lines.calc_sag()
 
-    if glider:
-        glider.cells = cells
-        glider.close_rib()
-        glider.attachment_points = read_elements(sheets[2], "AHP", AttachmentPoint)
-        glider.attachment_points_lower = get_lower_aufhaengepunkte(glider.data)
-        for p in glider.attachment_points:
-            p.force = numpy.array([0, 0, 1])
-            p.get_position(glider)
-
-        glider.lines = tolist_lines(sheets[6], glider.attachment_points_lower, glider.attachment_points)
-        glider.lines.calc_geo()
-        glider.lines.calc_sag()
-
-        return
-    return cells
+    cuts = map(lambda cut: cut+[1, glider.data["Designzugabe"]], read_elements(sheets[1], "DESIGNO"))
+    cuts += map(lambda cut: cut+[1, glider.data["Designzugabe"]], read_elements(sheets[1], "DESIGNM"))
+    cuts += map(lambda cut: cut+[2, glider.data["EKzugabe"]], read_elements(sheets[1], "EKV"))
+    cuts += map(lambda cut: cut+[2, glider.data["EKzugabe"]], read_elements(sheets[1], "EKH"))
+    for i, cell in enumerate(glider.cells):  # cut = [cell_no, x_left, x_right, cut_type, amount_add]
+        cuts_this = filter(lambda cut: cut[0] == i, cuts)
+        cuts_this.sort(key=lambda cut: cut[1])
+        cuts_this.sort(key=lambda cut: cut[2])
+        # Insert leading-/trailing-edge
+        cuts_this.insert(0, [i, -1, -1, 3, glider.data["HKzugabe"]])
+        cuts_this.append([i, 1, 1, 3, glider.data["HKzugabe"]])
+        cell.panels = []
+        for j in range(len(cuts_this)-1):
+            if cuts_this[j][3] != 2 or cuts_this[j+1][3] != 2:  # skip entry
+                cell.panels.append(Panel(cuts_this[j][1:], cuts_this[j+1][1:], i))
+    return glider
 
 
 def get_lower_aufhaengepunkte(data):
@@ -201,7 +213,8 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
     #print(len(linelist))
     return LineSet(linelist, {"SPEED": 10, "GLIDE": 5, "V_INF": numpy.array([10,0,0])})
 
-def read_elements(sheet, keyword, element_class, len_data=2):
+
+def read_elements(sheet, keyword, len_data=2):
     #print("jo")
     elements = []
     j = 0
@@ -210,11 +223,10 @@ def read_elements(sheet, keyword, element_class, len_data=2):
             for i in range(1, sheet.nrows()):
                 line = [sheet.get_cell([i, j+k]).value for k in range(len_data)]
                 if line[0] is not None:
-                    elements.append(element_class(int(line[0]), i-1, line[1]))
+                    elements.append([i-1] + line)
             j += len_data
         else:
             j += 1
-    elements.sort(key=lambda element: element.number)
     return elements
 
 

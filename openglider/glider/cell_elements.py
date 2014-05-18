@@ -80,11 +80,9 @@ class Panel(object):
     """
     Glider cell-panel
     """
-    def __init__(self, right_back=1., right_front=-1., left_back=1., left_front=-1., cell_no=0):
-        self.l_1 = left_front
-        self.l_2 = left_back
-        self.r_1 = right_front
-        self.r_2 = right_back
+    def __init__(self, cut_front, cut_back, cell_no):
+        self.cut_front = cut_front  # (left, right, style(int))
+        self.cut_back = cut_back
         self.cell_no = cell_no
         # TODO: colour, material, ..
 
@@ -101,8 +99,8 @@ class Panel(object):
         ribs = []
         for i in range(numribs):
             y = i / numribs
-            front = get_x_value(xvalues, self.l_1 + y * (self.l_1 - self.r_1))
-            back = get_x_value(xvalues, self.l_2 + y * (self.l_2 - self.r_2))
+            front = get_x_value(xvalues, self.cut_front[0] + y * (self.cut_front[1] - self.cut_front[0]))
+            back = get_x_value(xvalues, self.cut_back[0] + y * (self.cut_back[1] - self.cut_back[0]))
             ribs.append(cell.midrib(y).get(front, back))
             # todo: return polygon-data
         return ribs

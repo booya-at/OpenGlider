@@ -33,10 +33,13 @@ class Glider(object):
         self.cells = []
         self.data = {}
 
-    def import_geometry(self, path, filetype=None):
+    @classmethod
+    def import_geometry(cls, path, filetype=None):
         if not filetype:
             filetype = path.split(".")[-1]
-        IMPORT_GEOMETRY[filetype](path, self)
+        glider = cls()
+        IMPORT_GEOMETRY[filetype](path, glider=glider)
+        return glider
 
     def export_geometry(self, path="", filetype=None):
         #if not filetype:

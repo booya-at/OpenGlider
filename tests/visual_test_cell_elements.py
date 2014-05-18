@@ -35,7 +35,7 @@ class TestCellElements(GliderTestClass):
 
     def test_panel_3d(self):
         l1, r1, l2, r2 = sorted([random.random() for __ in range(4)])
-        panel = Panel(l1, l2, r1, r2, self.cell_no)
+        panel = Panel([l1, r1, 2], [l2, r2, 2], self.cell_no)
         ribs = panel.get_3d(glider=self.glider, numribs=10)
         Graph.Graphics(map(Graph.Line, ribs))
 

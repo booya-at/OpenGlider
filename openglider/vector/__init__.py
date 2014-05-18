@@ -205,13 +205,10 @@ class Vectorlist(HashedList):
             return self.data[ik]
         elif isinstance(ik, slice):  # example: list[1.2:5.5:1]
             start = ik.start if ik.start is not None else 0
-            stop = ik.stop if ik.stop is not None else len(self)
-            if ik.step is None:
-                step = sign(stop - start)
-            else:
-                step = ik.step
-                if step < 0:
-                    start, stop = stop, start
+            stop = ik.stop if ik.stop is not None else len(self)-1
+            if ik.step is not None and ik.step < 0:
+                start, stop = stop, start
+            step = sign(stop - start)
             if step > 0:
                 start_round = max(int(start) + 1, 0)
                 stop_round = min(int(stop) + (1 if stop % 1 > 0 else 0), len(self) - 1)
@@ -219,6 +216,7 @@ class Vectorlist(HashedList):
                 start_round = min(int(start) - (0 if start % 1 > 0 else 1), len(self) - 1)
                 stop_round = max(int(stop), 0)
             values = [start] + range(start_round, stop_round, step) + [stop]
+            #print(values, ik.start, ik.stop, ik.step, step, start_round, stop_round)
             return self.__class__([self[i] for i in values])
         else:
             if ik < 0:
@@ -292,7 +290,10 @@ class Vectorlist2D(Vectorlist):
 
     def __add__(self, other):  # this is python default behaviour for lists
         if other.__class__ is self.__class__:
-            return self.__class__(np.append(self.data, other.data, axis=0), self.name)
+            if self.data is not None:
+                return self.__class__(np.append(self.data, other.data, axis=0), self.name)
+            else:
+                return other.copy()
         else:
             raise ValueError("cannot append: ", self.__class__, other.__class__)
 

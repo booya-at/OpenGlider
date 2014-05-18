@@ -28,16 +28,13 @@ except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 from openglider import glider
 
-test_folder = os.path.dirname(os.path.abspath(__file__))
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
 importpath = testfolder + '/demokite.ods'
 
 class GliderTestClass(unittest.TestCase):
     def setUp(self, complete=True):
-        self.glider = openglider.Glider()
-        self.glider.import_geometry(path=importpath)
-
+        self.glider = openglider.Glider.import_geometry(path=importpath)
 
 
 class TestGlider(GliderTestClass):

@@ -33,8 +33,7 @@ testfolder = os.path.dirname(os.path.abspath(__file__))
 
 
 path = testfolder + '/demokite.ods'
-glider1 = glider.Glider()
-glider1.import_geometry(path)
+glider1 = glider.Glider.import_geometry(path)
 glider1 = glider1.copy_complete()
 
 rib1 = glider1.ribs[1].profile_2d

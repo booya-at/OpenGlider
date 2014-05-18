@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
+import math
 import openglider.vector
 
 
@@ -42,37 +43,40 @@ def cut_1(inner_lists, outer_left, outer_right, amount):
 
 
 # OPEN-ENTRY Style
-def cut_2(inner_lists, outer_left, outer_right, amount):
+def cut_2(inner_lists, outer_left, outer_right, amount, num_folds=2):
     p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
     p2 = inner_lists[-1][0][inner_lists[-1][1]]
     normvector = openglider.vector.normalize(openglider.vector.rotation_2d(math.pi/2).dot(p1-p2))
 
     newlist = []
-    leftcut = outer_left.cut(p1, p2, inner_lists[0][1])
-    rightcut = outer_right.cut(p1, p2, inner_lists[-1][1])
+    left_start = outer_left.cut(p1, p2, inner_lists[0][1])
+    right_start = outer_right.cut(p1, p2, inner_lists[-1][1])
+    left_end = outer_left.cut(p1-normvector*amount, p2-normvector*amount, inner_lists[0][1])
+    right_end = outer_right.cut(p1-normvector*amount, p2-normvector*amount, inner_lists[-1][1])
 
-    leftcut_2 = outer_left.cut(p1-normvector*amount, p2-normvector*amount, inner_lists[0][1])
-    rightcut_2 = outer_right.cut(p1-normvector*amount, p2-normvector*amount, inner_lists[-1][1])
-
-    piece1 = outer_left[leftcut[1]:leftcut_2[1]]
-    piece2 = outer_right[rightcut[1]:rightcut_2[1]]
+    left_piece = outer_left[left_end[1]:left_start[1]:]
+    right_piece = outer_right[right_end[1]:right_start[1]]
+    left_piece_mirrored = left_piece[::-1]
+    right_piece_mirrored = right_piece[::-1]
+    left_piece_mirrored.mirror(p1, p2)
+    right_piece_mirrored.mirror(p1, p2)
 
     # mirror to (p1-p2) -> p'=p-2*(p.normvector)
+    last_left = left_start[0]
+    last_right = right_start[0]
+    new_left = openglider.Vectorlist2D()
+    new_right = openglider.Vectorlist2D()
 
-    for point in piece1[::]:
-        newlist.append(point - 2*normvector*normvector.dot(point-leftcut[0]))
-    last = newlist[-1]
-    for point in piece1[::-1]:
-        newlist.append(-(leftcut_2[0] - point) + last)
+    for i in range(num_folds):
+        left_this = left_piece if i%2 else left_piece_mirrored
+        right_this = right_piece if i%2 else right_piece_mirrored
+        left_this.shift(last_left-left_this[0])
+        right_this.shift(last_right-right_this[0])
+        new_left += left_this
+        new_right += right_this
+        last_left, last_right = map(lambda vectorlist: vectorlist[len(vectorlist)], (new_left, new_right))
 
-    cuts2 = []
-    for point in piece2[::]:
-        cuts2.append(point - 2*normvector*normvector.dot(point-rightcut[0]))
-    last = cuts2[-1]
-    for point in piece2[::-1]:
-        cuts2.append(-(rightcut_2[0] - point) + last)
-
-    return newlist+cuts2[::-1], leftcut[1], rightcut[1]
+    return new_left+new_right[::-1], left_start[1], right_start[1]
 
 
 # TRAILING-EDGE Style

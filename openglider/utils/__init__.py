@@ -23,6 +23,7 @@ __author__ = 'lo'
 
 
 def sign(val):
+    val = float(val)
     return (val > 0) - (val < 0)
 
 
