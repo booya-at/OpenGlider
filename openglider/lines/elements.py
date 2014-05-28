@@ -27,6 +27,7 @@ import numpy
 
 
 class SagMatrix():
+
     def __init__(self, number_of_lines):
         size = number_of_lines * 2
         self.matrix = numpy.zeros([size, size])
@@ -64,7 +65,8 @@ class SagMatrix():
         infl_list = []
         vec = line.diff_vector_projected
         for u in upper_lines:
-            infl = line.force_projected * numpy.dot(vec, u.diff_vector_projected)
+            infl = line.force_projected * \
+                numpy.dot(vec, u.diff_vector_projected)
             infl_list.append(infl)
         sum_infl = sum(infl_list)
         for k in range(len(upper_lines)):
@@ -96,10 +98,12 @@ class SagMatrix():
 
 
 class Line(object):
-    #TODO: why not directly save the line_type instead of a string
-    #TODO: why are lower_node and upper_node not mandatory?
-    #TODO: cached properties?
-    def __init__(self, number, lower_node, upper_node, vinf, line_type=line_types.liros, init_length=None):
+    # TODO: why not directly save the line_type instead of a string
+    # TODO: why are lower_node and upper_node not mandatory?
+    # TODO: cached properties?
+
+    def __init__(self, number, lower_node, upper_node,
+                 vinf=None, line_type=line_types.liros, init_length=None):
         """Line Class:
         Note:
             -for easier use the lines have it's nodes directly as variables!!!
@@ -111,8 +115,7 @@ class Line(object):
         self.number = number
         self.type = line_type                # type of line
 
-        self.v_inf = vinf
-
+        self.v_inf = numpy.array([10, 0, 1]) if vinf is None else vinf
         self.lower_node = lower_node
         self.upper_node = upper_node
 
@@ -154,14 +157,13 @@ class Line(object):
     #@property
     def length_projected(self):
         return norm(self.lower_node.vec_proj - self.upper_node.vec_proj)
-        #return self.ortho_length
-
+        # return self.ortho_length
 
     #@cached_property('v_inf', 'type.cw', 'type.thickness')
     @property
     def drag_differential(self):
         """drag per meter"""
-        return  1 / 2 * self.type.cw * self.type.thickness * norm(self.v_inf) ** 2
+        return 1 / 2 * self.type.cw * self.type.thickness * norm(self.v_inf) ** 2
 
     @cached_property('lower_node.vec', 'upper_node.vec', 'v_inf')
     def drag_total(self):
@@ -177,7 +179,7 @@ class Line(object):
         """
         points = []
         for i in range(numpoints):
-            points.append(self.get_line_point(i/(numpoints-1), sag=sag))
+            points.append(self.get_line_point(i / (numpoints - 1), sag=sag))
         return points
 
     def get_line_point(self, x, sag=True):
@@ -198,6 +200,7 @@ class Line(object):
 
 
 class Node(object):
+
     def __init__(self, node_type, pos=None):
         self.type = node_type  # lower, top, middle (0, 2, 1)
         self.vec = pos
@@ -215,6 +218,7 @@ class Node(object):
 
 
 class LinePar():
+
     def __init__(self, name):
         self.type = name
         self.cw = 0.

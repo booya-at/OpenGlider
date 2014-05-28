@@ -49,12 +49,8 @@ def store_lines(values, thalist, key_dict):
     upper_no = try_convert(values[2], int)
     upper = key_dict["NODES"][2][upper_no]
     lower = key_dict["NODES"][2][lower_no]
-    #print("a",upper.vec)
-    #print("b",lower.vec)
-    l = Line(try_convert(values[0], int), upper_node=upper, lower_node=lower)  #line_type=values[4]
-    l.init_length = try_convert(values[3], float)
-
-    #l.type = values[4]
+    l = Line(try_convert(values[0], int), upper_node=upper,
+             lower_node=lower,  init_length=try_convert(values[3], float))
     thalist.append(l)
 
 
@@ -66,28 +62,6 @@ def store_calc_par(values, calc_par, key_dict):
     glide = calc_par["GLIDE"] = try_convert(values[4], float)
     calc_par["V_INF"] = (
         speed * normalize(numpy.array([glide, 0., 1.])))
-
-
-if __name__ == "__main__":
-    key_dict = import_lines("TEST_INPUT_FILE_1.txt")
-    #key_dict = import_lines("TEST_INPUT_FILE_2.txt")
-    #key_dict = import_lines("TEST_INPUT_FILE_3.txt")
-    thalines = LineSet(
-        key_dict["LINES"][2], key_dict["CALCPAR"][2])
-    #print([(l.lower_node_nr, l.upper_node_nr) for l in lines.lines])
-    #print([l.type for l in lines.nodes])
-    #thalines.update_line_points()
-    #for line in key_dict["NODES"][2]:
-    #    print(line.type)
-    strt = thalines.lowest_lines
-    thalines.calc_geo(strt)
-    #print("jo", strt)
-    #for line in thalines.lines:
-    #    print(line.lower_node.type)
-    #for line in thalines.lines:
-    #    print(line.upper_node.vec)
-    thalines.calc_sag(strt)
-    thalines.visual_output(numpoints=20)
 
 
 def try_convert(str, form):
@@ -112,7 +86,9 @@ def import_file(path, key_dict):
                     current_key = line[0]
                 elif current_key is not None:
                     if key_dict[current_key][0] == len(line):
-                        key_dict[current_key][1](line, key_dict[current_key][2], key_dict)  # function from key-dict
+                        # function from key-dict
+                        key_dict[current_key][1](
+                            line, key_dict[current_key][2], key_dict)
                     elif line[0] != "#":
                         print("error in inputfile, line " + str(line_nr))
             else:
