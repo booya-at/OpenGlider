@@ -28,30 +28,26 @@ from openglider.vector import norm, normalize
 class LineSet():
     """
     Set of different lines
+    Notes:
+        -join some loops
+        -_private functions
     """
-    def __init__(self, lines=None, calc_par=None):
-        self.calc_par = calc_par or {}  # Parameters
+
+    def __init__(self, lines=None, v_inf=None):
+        self.v_inf = v_inf if v_inf is not None else numpy.array([0, 0, 0])  # Parameters
         self.lines = lines or []
         self.mat = None
 
     @property
     def lowest_lines(self):
-        res = set()
-        for l in self.lines:
-            n = l.lower_node
-            #print(n.type)
-            if n.type == 0:
-                res.add(l)
-                # maybe only return
-        return res
+        return filter(lambda line: line.lower_node.type == 0, self.lines)
 
     @property
     def nodes(self):
         nodes = set()
-        for line in self.lowest_lines:
-            nodes.add(line.lower_node)
         for line in self.lines:
             nodes.add(line.upper_node)
+            nodes.add(line.lower_node)
         return nodes
 
     def calc_geo(self, start=None):
@@ -59,13 +55,12 @@ class LineSet():
             start = self.lowest_lines
         for line in start:
             #print(line.number)
-            if line.upper_node.type == 1:
-                vec_0 = line.lower_node.vec
-                t = self.get_tangential_comp(line, vec_0)
-                line.upper_node.vec = vec_0 + t * line.init_length
-                #print(line.upper_node.vec)
-                conn_lines = self.get_upper_conected_lines(line.upper_node)
-                self.calc_geo(conn_lines)
+            if line.upper_node.type == 1:  # no gallery line
+                lower_point = line.lower_node.vec
+                tangential = self.get_tangential_comp(line, lower_point)
+                line.upper_node.vec = lower_point + tangential * line.init_length
+
+                self.calc_geo(self.get_upper_conected_lines(line.upper_node))
 
     def calc_sag(self, start=None):
         if start is None:
@@ -75,38 +70,27 @@ class LineSet():
         self.calc_projected_nodes()
         self.calc_forces(start)
         for line in start:
-            self._calc_matrix_entries(line)
+            self.calc_matrix_entries(line)
         #print(self.mat)
         self.mat.solve_system()
         for l in self.lines:
-            l.sag_par_1, l.sag_par_2 = self.mat.get_sag_par(l.number)
-
-    def calc_stretch(self):
-        pass  # could be done in the line itself
-
-    def copy(self):
-        return copy.deepcopy(self)
-
-    def mirror(self):
-        mirror_vector = numpy.array([1, -1, 1])
-        for node in self.nodes:
-            if node.type != 1:
-                node.vec = mirror_vector*node.vec
+            l.sag_par_1, l.sag_par_2 = self.mat.get_sag_parameters(l.number)
 
     # -----CALCULATE SAG-----#
-    def _calc_matrix_entries(self, line):
-        upper_lines = self.get_upper_conected_lines(line.upper_node)
+    def calc_matrix_entries(self, line):
+        up = self.get_upper_conected_lines(line.upper_node)
         if line.lower_node.type == 0:
             self.mat.insert_type_0_lower(line)
         else:
-            lo = self.get_lower_connected_line(line.lower_node)
-            self.mat.insert_type_1_lower(line, lo)
+            lo = self.get_lower_connected_lines(line.lower_node)
+            self.mat.insert_type_1_lower(line, lo[0])
+
         if line.upper_node.type == 1:
-            self.mat.insert_type_1_upper(line, upper_lines)
+            self.mat.insert_type_1_upper(line, up)
         else:
             self.mat.insert_type_2_upper(line)
-        for line in upper_lines:
-            self._calc_matrix_entries(line)
+        for u in up:
+            self.calc_matrix_entries(u)
 
     def calc_forces(self, start_lines):
         for line_lower in start_lines:
@@ -121,70 +105,53 @@ class LineSet():
                         print("error line force not set")
                     else:
                         force += line.force * line.diff_vector
-
-                line_lower.force = dot(force, normalize(vec))
+                #vec = line_lower.upper_node.vec - line_lower.lower_node.vec
+                line_lower.force = norm(dot(force, normalize(vec)))
 
             else:
                 force = line_lower.upper_node.force
-                line_lower.force = 1/proj_force(force, normalize(vec))
+                line_lower.force = norm(proj_force(force, normalize(vec)))
 
     def get_upper_conected_lines(self, node):
-        lines = []
-        for line in self.lines:
-            if line.lower_node is node:
-                lines.append(line)
-        return lines
+        return filter(lambda line: line.lower_node is node, self.lines)
 
-    def get_lower_connected_line(self, node):
-        lines = []
-        for line in self.lines:
-            if line.upper_node is node:
-                lines.append(line)
-        #if len(ret) > 1:
-        #    print("warning!!!, there are too much lower lines")
-        return lines[0]
+    def get_lower_connected_lines(self, node):
+        return filter(lambda line: line.upper_node is node, self.lines)
 
     def get_connected_lines(self, node):
-        lines = []
-        for l in self.lines:
-            if l.lower_node is node:
-                lines.append(l)
-        return lines
+        return self.get_upper_conected_lines(node) + self.get_lower_connected_lines(node)
 
     def calc_projected_nodes(self):
         for n in self.nodes:
-            n.calc_proj_vec(self.calc_par["V_INF"])
+            n.calc_proj_vec(self.v_inf)
 
     # -----CALCULATE GEO-----#
     def get_tangential_comp(self, line, pos_vec):
-        top_nodes = self.get_top_influence_nodes(line)
+        upper_node_nrs = self.get_upper_influence_node(line)
         tangent = numpy.array([0., 0., 0.])
-        for node in top_nodes:
+        for node in upper_node_nrs:
             tangent += node.calc_force_infl(pos_vec)
-        return normalize(tangent)  # TODO: why normalize?
+        return normalize(tangent)
 
-    def get_top_influence_nodes(self, line):
+    def get_upper_influence_node(self, line):
         """get the points that have influence on the line and
         are connected to the wing"""
         upper_node = line.upper_node
         if upper_node.type == 2:
-            return upper_node
+            return [upper_node]
         else:
-            nodes = []
-            for line in self.get_upper_conected_lines(upper_node):
-                nodes.append(self.get_top_influence_nodes(line))
-            return nodes
+            upper_lines = self.get_upper_conected_lines(upper_node)
+            result = []
+            for upper_line in upper_lines:
+                result += self.get_upper_influence_node(upper_line)
+            return result
 
-    # -----IMPORT-----#
     def sort_lines(self):
         self.lines.sort(key=lambda line: line.number)
         #self.nodes.sort(key=lambda node: node.number)
         # TODO: Check for consistency
 
-    # -----VISUALISATION-----#
-    # def visual_output(self, sag=True, numpoints=10):
-    #     lines = [l.get_line_coords(self.calc_par["V_INF"], sag, numpoints)
-    #              for l in self.lines]
-    #     g.Graphics3D(map(g.Line, lines))
+    def copy(self):
+        return copy.deepcopy(self)
 
 

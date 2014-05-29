@@ -54,7 +54,7 @@ class RigidFoil(object):
 
 class GibusArcs(object):
     def __init__(self, rib_no, position, size=0.2):
-        """A Reinforcement in the form of an arc, in the shape of an arc, to reinforce attachment points"""
+        """A Reinforcement, in the shape of an arc, to reinforce attachment points"""
         self.rib_no = rib_no
         self.pos = position
         self.size = size

@@ -22,8 +22,7 @@ from openglider.glider.cell_elements import Panel
 from openglider.glider.rib import Rib
 from openglider.glider.rib_elements import AttachmentPoint
 #from openglider.lines import Line, Node, LineSet
-from openglider.lines import Line, Node
-from openglider.lines._lines import LineSet
+from openglider.lines import Line, Node, LineSet
 
 
 __author__ = 'simon'
@@ -99,17 +98,19 @@ def import_ods(filename, glider):
     glider.cells = cells
     glider.close_rib()
 
-    glider.attachment_points = map(lambda args: AttachmentPoint(args[1], args[0], args[2]), read_elements(sheets[2], "AHP", len_data=2))
-    glider.attachment_points.sort(key=lambda element: element.number)
-    glider.attachment_points_lower = get_lower_aufhaengepunkte(glider.data)
-    for p in glider.attachment_points:
+    ######################################LINESET######################################################
+    attachment_points = map(lambda args: AttachmentPoint(args[1], args[0], args[2]), read_elements(sheets[2], "AHP", len_data=2))
+    attachment_points.sort(key=lambda element: element.number)
+    attachment_points_lower = get_lower_aufhaengepunkte(glider.data)
+    for p in attachment_points:
         p.force = numpy.array([0, 0, 1])
         p.get_position(glider)
 
-    glider.lines = tolist_lines(sheets[6], glider.attachment_points_lower, glider.attachment_points)
-    glider.lines.calc_geo()
-    glider.lines.calc_sag()
+    glider.lineset = tolist_lines(sheets[6], attachment_points_lower, attachment_points)
+    glider.lineset.calc_geo()
+    glider.lineset.calc_sag()
 
+    ####################################PANELS##########################################################
     cuts = map(lambda cut: cut+[1, glider.data["Designzugabe"]], read_elements(sheets[1], "DESIGNO"))
     cuts += map(lambda cut: cut+[1, glider.data["Designzugabe"]], read_elements(sheets[1], "DESIGNM"))
     cuts += map(lambda cut: cut+[2, glider.data["EKzugabe"]], read_elements(sheets[1], "EKV"))
@@ -130,21 +131,13 @@ def import_ods(filename, glider):
 
 def get_lower_aufhaengepunkte(data):
     aufhaengepunkte = {}
-    xyz = 0
+    xyz = {"X": 0, "Y": 1, "Z": 2}
     for key in data:
-        if not key is None:
-            if "AHP" in key:
-                #print("juhuuu")
-                pos = int(key[4])
-                if key[3].upper() == "X":
-                    xyz = 0
-                elif key[3].upper() == "Y":
-                    xyz = 1
-                else:
-                    xyz = 2
-                if pos not in aufhaengepunkte:
-                    aufhaengepunkte[pos] = [None, None, None]
-                aufhaengepunkte[pos][xyz] = data[key]
+        if not key is None and "AHP" in key:
+            pos = int(key[4])
+            if pos not in aufhaengepunkte:
+                aufhaengepunkte[pos] = [None, None, None]
+            aufhaengepunkte[pos][xyz[key[3].upper()]] = data[key]
     for node in aufhaengepunkte:
         aufhaengepunkte[node] = Node(0, numpy.array(aufhaengepunkte[node]))
     return aufhaengepunkte
@@ -202,7 +195,7 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
                     line_length = sheet.get_cell([i, j]).value
                     j += 2
                 linelist.append(
-                    Line(number=count, lower_node=lower, upper_node=upper, vinf=numpy.array([10,0,0]), init_length=line_length))  #line_type=sheet.get_cell
+                    Line(number=count, lower_node=lower, upper_node=upper, vinf=numpy.array([10,0,0]), target_length=line_length))  #line_type=sheet.get_cell
                 count += 1
                 #print("made line", linelist[-1].init_length)
                 #print(upper, lower)
@@ -211,7 +204,7 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
             i += 1
 
     #print(len(linelist))
-    return LineSet(linelist, {"SPEED": 10, "GLIDE": 5, "V_INF": numpy.array([10,0,0])})
+    return LineSet(linelist, v_inf=numpy.array([10,0,0]))
 
 
 def read_elements(sheet, keyword, len_data=2):

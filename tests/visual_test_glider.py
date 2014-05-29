@@ -53,7 +53,7 @@ class TestGlider(GliderTestClass):
         objects = [openglider.graphics.Axes(size=1.2)]  #, openglider.graphics.Green
         objects += map(openglider.graphics.Polygon, polygons)
         #objects.append(openglider.graphics.Blue)
-        objects += map(lambda line: openglider.graphics.Line(line.get_line_points()), thaglider.lines.lines)
+        objects += map(lambda line: openglider.graphics.Line(line.get_line_points()), thaglider.lineset.lines)
         openglider.graphics.Graphics3D(objects, points)
 
     def test_show_shape(self):

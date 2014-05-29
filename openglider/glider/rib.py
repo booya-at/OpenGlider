@@ -2,7 +2,7 @@ import copy
 import math
 import numpy
 from openglider import Profile2D
-from openglider.airfoil import Profile3D
+from openglider.airfoil import Profile3D, get_x_value
 from openglider.utils.cached_property import cached_property, HashedObject
 from openglider.utils.bezier import BezierCurve
 from openglider.vector import rotation_3d, HashedList
@@ -24,20 +24,16 @@ class Rib(HashedObject):
         else:
             self.profile_2d = profile
         self.ballooning = ballooning
+        self.glide = glide
+        self._aoa = (0, 0)
         if aoaabs:
             self.aoa_absolute = aoa
         else:
             self.aoa_relative = aoa
-        self.glide = glide
         self.arcang = arcang
         self.zrot = zrot
         self.pos = startpoint  # or HashedList([0, 0, 0])
         self.chord = size
-        #self.profile_3d = None
-        #self.rotation_matrix = None
-        self._normvectors = None
-        #self.profile_3d = Profile3D()
-        #self.ReCalc()
 
     def align(self, point):
         if len(point) == 2:
@@ -77,7 +73,6 @@ class Rib(HashedObject):
         zrot = numpy.arctan(self.arcang) / self.glide * self.zrot
         return rotation_rib(self.aoa_absolute, self.arcang, zrot)
 
-    #@cached_property(*hashlist)
     @cached_property('self')
     def profile_3d(self):
         if self.profile_2d.data is not None:
@@ -85,6 +80,9 @@ class Rib(HashedObject):
         else:
             raise ValueError("no 2d-profile present fortharib at rib {}".format(
                 self.name))
+
+    def point(self, x_value):
+        return self.align(self.profile_2d.point(x_value))
 
     def __aoa_diff(self):
         ##Formula for aoa rel/abs: ArcTan[Cos[alpha]/gleitzahl]-aoa[rad];
@@ -94,7 +92,6 @@ class Rib(HashedObject):
         self.arcang = -self.arcang
         self.zrot = -self.zrot
         self.pos = numpy.multiply(self.pos, [1, -1., 1])
-        #self.ReCalc()
 
     def copy(self):
         new = copy.deepcopy(self)

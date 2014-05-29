@@ -28,18 +28,18 @@ class PlotPart():
 
     @property
     def max_y(self):
-        max_x = lambda thalist: max(thalist, key=lambda point: point[1])[1]
-        return max(map(lambda layer: max(map(max_x, layer)), self.layer_dict.itervalues()))
+        max_y = lambda thalist: max(thalist, key=lambda point: point[1])[1]
+        return max(map(lambda layer: max(map(max_y, layer)), self.layer_dict.itervalues()))
 
     @property
     def min_x(self):
-        max_x = lambda thalist: min(thalist, key=lambda point: point[0])[0]
-        return max(map(lambda layer: max(map(max_x, layer)), self.layer_dict.itervalues()))
+        min_x = lambda thalist: min(thalist, key=lambda point: point[0])[0]
+        return min(map(lambda layer: min(map(min_x, layer)), self.layer_dict.itervalues()))
 
     @property
     def min_y(self):
-        max_x = lambda thalist: min(thalist, key=lambda point: point[1])[1]
-        return max(map(lambda layer: max(map(max_x, layer)), self.layer_dict.itervalues()))
+        min_y = lambda thalist: min(thalist, key=lambda point: point[1])[1]
+        return min(map(lambda layer: min(map(min_y, layer)), self.layer_dict.itervalues()))
 
     def rotate(self, angle):
         for layer in self.layer_dict.itervalues():

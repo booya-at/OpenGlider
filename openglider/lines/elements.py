@@ -34,7 +34,7 @@ class SagMatrix():
         self.solution = numpy.zeros(size)
 
     def __str__(self):
-        return(str(self.matrix) + "\n" + str(self.rhs))
+        return str(self.matrix) + "\n" + str(self.rhs)
 
     def insert_type_0_lower(self, line):
         """
@@ -52,7 +52,7 @@ class SagMatrix():
         self.matrix[2 * i + 1, 2 * i + 1] = 1.
         self.matrix[2 * i + 1, 2 * j + 1] = -1.
         self.matrix[2 * i + 1, 2 * j] = -lower_line.length_projected
-        self.rhs[2 * i + 1] = -lower_line.drag_differential * \
+        self.rhs[2 * i + 1] = -lower_line.ortho_pressure * \
             lower_line.length_projected ** 2 / lower_line.force_projected / 2
 
     def insert_type_1_upper(self, line, upper_lines):
@@ -70,7 +70,7 @@ class SagMatrix():
         for k in range(len(upper_lines)):
             j = upper_lines[k].number
             self.matrix[2 * i, 2 * j] = -(infl_list[k] / sum_infl)
-        self.rhs[2 * i] = line.drag_differential * \
+        self.rhs[2 * i] = line.ortho_pressure * \
             line.length_projected / line.force_projected
 
     def insert_type_2_upper(self, line):
@@ -80,26 +80,23 @@ class SagMatrix():
         i = line.number
         self.matrix[2 * line.number, 2 * line.number] = line.length_projected
         self.matrix[2 * line.number, 2 * line.number + 1] = 1.
-        self.rhs[2 * i] = line.drag_differential * \
+        self.rhs[2 * i] = line.ortho_pressure * \
             line.length_projected ** 2 / line.force_projected / 2
 
     def solve_system(self):
         self.solution = numpy.linalg.solve(self.matrix, self.rhs)
 
-    def get_sag_par(self, line_nr):
+    def get_sag_parameters(self, line_nr):
         return [
             self.solution[line_nr * 2],
             self.solution[line_nr * 2 + 1]]
-
-    def _line_parameter(self):
-        pass
 
 
 class Line(object):
     #TODO: why not directly save the line_type instead of a string
     #TODO: why are lower_node and upper_node not mandatory?
     #TODO: cached properties?
-    def __init__(self, number, lower_node, upper_node, vinf, line_type=line_types.liros, init_length=None):
+    def __init__(self, number, lower_node, upper_node, vinf, line_type=line_types.liros, target_length=None):
         """Line Class:
         Note:
             -for easier use the lines have it's nodes directly as variables!!!
@@ -116,7 +113,8 @@ class Line(object):
         self.lower_node = lower_node
         self.upper_node = upper_node
 
-        self.init_length = init_length
+        self.target_length = target_length
+        self.init_length = target_length
 
         self.force = None
 
@@ -137,6 +135,11 @@ class Line(object):
     def diff_vector_projected(self):
         return normalize(self.upper_node.vec_proj - self.lower_node.vec_proj)
 
+    @cached_property('lower_node.vec', 'upper_node.vec', 'v_inf')
+    #@property
+    def length_projected(self):
+        return norm(self.lower_node.vec_proj - self.upper_node.vec_proj)
+
     #@cached_property('lower_node.vec', 'upper_node.vec')
     @property
     def length_no_sag(self):
@@ -145,27 +148,25 @@ class Line(object):
     @cached_property('lower_node.vec', 'upper_node.vec', 'v_inf', 'sag_par_1', 'sag_par_2')
     def length_with_sag(self):
         if self.sag_par_1 and self.sag_par_2:
-            return 0
+            return norm(self.lower_node.vec+self.sag_par_2*self.v_inf_0 -
+                        self.upper_node.vec+(self.sag_par_2+self.length_projected*self.sag_par_1)*self.v_inf_0) +\
+                   3  # add quadratic amount
         else:
             print('Sag not yet calculated!')
             return self.length_no_sag
 
-    @cached_property('lower_node.vec', 'upper_node.vec', 'v_inf')
-    #@property
-    def length_projected(self):
-        return norm(self.lower_node.vec_proj - self.upper_node.vec_proj)
-        #return self.ortho_length
-
+    def get_stretched_length(self, force=0):
+        return self.length_with_sag * (1 + self.type.stretch * (force-self.force))
 
     #@cached_property('v_inf', 'type.cw', 'type.thickness')
     @property
-    def drag_differential(self):
-        """drag per meter"""
-        return  1 / 2 * self.type.cw * self.type.thickness * norm(self.v_inf) ** 2
+    def ortho_pressure(self):
+        """drag per meter (projected)"""
+        return 1/2 * self.type.cw * self.type.thickness * norm(self.v_inf) ** 2
 
     @cached_property('lower_node.vec', 'upper_node.vec', 'v_inf')
     def drag_total(self):
-        return self.drag_differential * self.length_projected
+        return self.ortho_pressure * self.length_projected
 
     @cached_property('force', 'lower_node.vec', 'upper_node.vec')
     def force_projected(self):
@@ -175,32 +176,29 @@ class Line(object):
         """
         Return points of the line
         """
-        points = []
-        for i in range(numpoints):
-            points.append(self.get_line_point(i/(numpoints-1), sag=sag))
-        return points
+        return [self.get_line_point(i/(numpoints-1), sag=sag) for i in range(numpoints)]
 
     def get_line_point(self, x, sag=True):
         """pos(x) [x,y,z], x: [0,1]"""
-        return self.lower_node.vec * (1. - x) + self.upper_node.vec * x + self.get_sag(x) * self.v_inf_0
+        if sag:
+            return self.lower_node.vec * (1. - x) + self.upper_node.vec * x + self.get_sag(x) * self.v_inf_0
+        else:
+            return self.lower_node.vec * (1. -x) + self.upper_node.vec * x
 
     def get_sag(self, x):
         """sag u(x) [m], x: [0,1]"""
         xi = x * self.length_projected
-        u = (- xi ** 2 / 2 * self.drag_differential /
+        u = (- xi ** 2 / 2 * self.ortho_pressure /
              self.force_projected + xi *
              self.sag_par_1 + self.sag_par_2)
         #print(self.length_projected, u)
         return u
 
-    def calc_stretch_par(self):
-        pass
-
 
 class Node(object):
-    def __init__(self, node_type, pos=None):
+    def __init__(self, node_type, position_vector=None):
         self.type = node_type  # lower, top, middle (0, 2, 1)
-        self.vec = pos
+        self.vec = position_vector
 
         self.vec_proj = None  # pos_proj
         self.force = numpy.array([None, None, None])  # top-node force
@@ -212,11 +210,3 @@ class Node(object):
     def calc_proj_vec(self, v_inf):
         self.vec_proj = proj_to_surface(self.vec, v_inf)
         return proj_to_surface(self.vec, v_inf)
-
-
-class LinePar():
-    def __init__(self, name):
-        self.type = name
-        self.cw = 0.
-        self.b = 0.
-        self.strech_factor = 0.

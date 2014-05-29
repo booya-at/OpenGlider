@@ -29,10 +29,10 @@ from openglider.plots.projection import flatten_list
 
 
 class Glider(object):
-    def __init__(self, cells=None, attachment_points=None):
+    def __init__(self, cells=None, attachment_points=None, lineset=None):
         self.cells = cells or []
+        self.lineset = lineset
         self.data = {}
-        self.attachment_points = attachment_points or []
 
     @classmethod
     def import_geometry(cls, path, filetype=None):
@@ -203,6 +203,17 @@ class Glider(object):
             return [rib.align([x, 0, 0]) for rib in self.ribs]
         else:
             return [rib.pos for rib in self.ribs]  # This is much faster
+
+    @property
+    def attachment_points(self):
+        points = []
+        for line in self.lineset.lowest_lines:
+            points += self.lineset.get_upper_influence_node(line)
+        return points
+
+    @property
+    def has_center_rib(self):
+        return self.ribs[0].pos[1] != 0
 
 
 
