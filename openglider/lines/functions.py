@@ -40,5 +40,4 @@ def proj_force(force, vec):
 
 
 def proj_to_surface(vec, n_vec):
-    print(numpy.array(n_vec))
     return vec - numpy.array(n_vec) * dot(n_vec, vec) / dot(n_vec, n_vec)
