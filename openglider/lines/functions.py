@@ -23,12 +23,15 @@ from numpy import dot
 import numpy
 
 
-def flatten(arr, out):
-    for i in arr:
-        if not isinstance(i, list):
-            out.append(i)
-        else:
-            flatten(i, out)
+def flatten(x):
+    try:
+        it = iter(x)
+    except TypeError:
+        yield x
+    else:
+        for i in it:
+            for j in flatten(i):
+                yield j
 
 
 def proj_force(force, vec):

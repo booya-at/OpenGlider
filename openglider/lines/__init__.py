@@ -5,7 +5,7 @@ from import_text import import_lines
 
 
 if __name__ == "__main__":
-    key_dict = import_lines("TEST_INPUT_FILE_2.txt")
+    key_dict = import_lines("TEST_INPUT_FILE_1.txt")
     thalines = LineSet(
         key_dict["LINES"][2], key_dict["CALCPAR"][2])
     thalines.calc_geo()
