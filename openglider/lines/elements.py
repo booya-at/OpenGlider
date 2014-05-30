@@ -19,7 +19,7 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import division
-from functions import proj_force, proj_to_surface
+from functions import proj_force, proj_to_surface, vec_length
 from openglider.utils.cached_property import cached_property
 from openglider.vector import normalize, norm
 from openglider.lines import line_types
@@ -148,9 +148,11 @@ class Line(object):
     @cached_property('lower_node.vec', 'upper_node.vec', 'v_inf', 'sag_par_1', 'sag_par_2')
     def length_with_sag(self):
         if self.sag_par_1 and self.sag_par_2:
-            return norm(self.lower_node.vec+self.sag_par_2*self.v_inf_0 -
-                        self.upper_node.vec+(self.sag_par_2+self.length_projected*self.sag_par_1)*self.v_inf_0) +\
-                   3  # add quadratic amount
+            # return norm(self.lower_node.vec+self.sag_par_2*self.v_inf_0 -
+            #             self.upper_node.vec+(self.sag_par_2+self.length_projected*self.sag_par_1)*self.v_inf_0) +\
+                   # 3  # add quadratic amount
+                      # not linear to add: (x'(t)^2 + y'(t)^2)^(1/2) -->
+            return vec_length(self.get_line_points(100))
         else:
             print('Sag not yet calculated!')
             return self.length_no_sag

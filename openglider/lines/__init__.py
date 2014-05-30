@@ -21,8 +21,10 @@ import copy
 import numpy
 from numpy import dot
 from openglider.lines.elements import Line, Node, SagMatrix
-from openglider.lines.functions import proj_force, flatten
+from openglider.lines.functions import proj_force
 from openglider.vector import norm, normalize
+
+__All__ = ["Line", "Node", "LineSet"]
 
 
 class LineSet():
@@ -153,5 +155,3 @@ class LineSet():
 
     def copy(self):
         return copy.deepcopy(self)
-
-
