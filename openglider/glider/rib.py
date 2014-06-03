@@ -3,26 +3,26 @@ import math
 import numpy
 from openglider import Profile2D
 from openglider.airfoil import Profile3D, get_x_value
-from openglider.utils.cached_property import cached_property, HashedObject
+from openglider.utils.cache import cached_property, CachedObject
 from openglider.utils.bezier import BezierCurve
 from openglider.vector import rotation_3d, HashedList
 
 
-class Rib(HashedObject):
+class Rib(CachedObject):
     """Openglider Rib Class: contains a airfoil, needs a startpoint, angle (arcwide), angle of attack,
         glide-wide rotation and glider ratio.
         optional: name, absolute aoa (bool), startposition"""
     hashlist = ('aoa_absolute', 'glide', 'arcang', 'zrot', 'chord', 'pos')  # pos
 
-    def __init__(self, profile=None, ballooning=None, startpoint=None, size=1.,
+    def __init__(self, profile_2d=None,
+                 ballooning=None,
+                 startpoint=None,
+                 chord=1.,
                  arcang=0, aoa=0, zrot=0,
                  glide=1, name="unnamed rib", aoaabs=False, startpos=0.):
         # TODO: Startpos > Set Rotation Axis in Percent
         self.name = name
-        if isinstance(profile, list):
-            self.profile_2d = Profile2D(profile, name=name)
-        else:
-            self.profile_2d = profile
+        self.profile_2d = profile_2d or Profile2D()
         self.ballooning = ballooning
         self.glide = glide
         self._aoa = (0, 0)
@@ -33,7 +33,7 @@ class Rib(HashedObject):
         self.arcang = arcang
         self.zrot = zrot
         self.pos = startpoint  # or HashedList([0, 0, 0])
-        self.chord = size
+        self.chord = chord
 
     def align(self, point):
         if len(point) == 2:
@@ -47,7 +47,7 @@ class Rib(HashedObject):
         if not self._aoa[1]:
             return self._aoa[0]
         else:
-            return self._aoa[0] - self.__aoa_diff()
+            return self._aoa[0] - self.__aoa_diff(self.arcang, self.glide)
 
     @aoa_absolute.setter
     def aoa_absolute(self, aoa):
@@ -58,7 +58,7 @@ class Rib(HashedObject):
         if self._aoa[1]:
             return self._aoa[0]
         else:
-            return self._aoa[0] + self.__aoa_diff()
+            return self._aoa[0] + self.__aoa_diff(self.arcang, self.glide)
 
     @aoa_relative.setter
     def aoa_relative(self, aoa):
@@ -84,9 +84,10 @@ class Rib(HashedObject):
     def point(self, x_value):
         return self.align(self.profile_2d.point(x_value))
 
-    def __aoa_diff(self):
+    @staticmethod
+    def __aoa_diff(arc_angle, glide):
         ##Formula for aoa rel/abs: ArcTan[Cos[alpha]/gleitzahl]-aoa[rad];
-        return numpy.arctan(numpy.cos(self.arcang) / self.glide)
+        return numpy.arctan(numpy.cos(arc_angle) / glide)
 
     def mirror(self):
         self.arcang = -self.arcang

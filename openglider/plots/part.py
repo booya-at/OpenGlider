@@ -57,7 +57,7 @@ class PlotPart():
         if layer in self.layer_dict:
             new = []
             for line in self.layer_dict[layer]:
-                new.append(map(lambda point: point * [1000, -1000], line))
+                new.append(map(lambda point: point * [1, -1], line))
             return new
         else:
             return None

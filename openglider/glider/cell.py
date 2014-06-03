@@ -6,10 +6,10 @@ from openglider.airfoil import Profile3D
 from openglider.glider.ballooning import arsinc
 from openglider.vector import norm, normalize, HashedList
 from openglider.glider.rib import Rib
-from openglider.utils.cached_property import cached_property
+from openglider.utils.cache import cached_property, CachedObject
 
 
-class BasicCell(object):
+class BasicCell(CachedObject):
     def __init__(self, prof1=None, prof2=None, ballooning=None, name="unnamed_cell"):
         self.prof1 = prof1 or Profile3D()
         self.prof2 = prof2 or Profile3D()
@@ -91,7 +91,7 @@ class BasicCell(object):
 # 3: norm(d)/r*(1-x) = 2*sin(phi(2))
 
 
-class Cell():
+class Cell(CachedObject):
     def __init__(self, rib1, rib2, miniribs=None):
         #self.miniribs = miniribs and miniribs or []
         self._ribs = [rib1, rib2]

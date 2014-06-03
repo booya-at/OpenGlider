@@ -22,7 +22,7 @@ import copy
 import numpy as np
 #from openglider.graphics import graphics, Line  # DEBUG
 from openglider.utils import sign
-from openglider.utils.cached_property import cached_property
+from openglider.utils.cache import cached_property, CachedObject
 
 
 def depth(arg):
@@ -141,7 +141,7 @@ def cut(p1, p2, p3, p4):
     return p1 + k * (p2 - p1), k, l
 
 
-class HashedList(object):
+class HashedList(CachedObject):
     """
     Hashed List to use cached properties
     """

@@ -20,7 +20,7 @@
 
 from __future__ import division
 from functions import proj_force, proj_to_surface, vec_length
-from openglider.utils.cached_property import cached_property
+from openglider.utils.cache import cached_property, CachedObject
 from openglider.vector import normalize, norm
 from openglider.lines import line_types
 import numpy
@@ -92,7 +92,7 @@ class SagMatrix():
             self.solution[line_nr * 2 + 1]]
 
 
-class Line(object):
+class Line(CachedObject):
     #TODO: why not directly save the line_type instead of a string
     #TODO: why are lower_node and upper_node not mandatory?
     #TODO: cached properties?

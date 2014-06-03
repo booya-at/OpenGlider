@@ -22,7 +22,7 @@ import math
 import os
 import numpy
 
-from openglider.utils.cached_property import cached_property
+from openglider.utils.cache import cached_property
 from openglider.vector import normalize, norm, Vectorlist2D, Vectorlist, Polygon2D, HashedList, Layer
 
 

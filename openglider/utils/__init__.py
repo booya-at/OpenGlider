@@ -20,11 +20,19 @@
 
 
 __author__ = 'lo'
-
+from cache import rec_getattr
 
 def sign(val):
     val = float(val)
     return (val > 0) - (val < 0)
+
+
+def consistent_value(elements, attribute):
+    vals = [rec_getattr(element, attribute) for element in elements]
+    if vals[1:] == vals[:-1]:
+        return vals[0]
+    else:
+        return None
 
 
 

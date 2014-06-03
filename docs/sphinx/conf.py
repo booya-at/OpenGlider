@@ -26,7 +26,7 @@ sys.path.insert(0, root_path)
 
 #########################DIRTY PATCH#######################################
 cached_property_replace = "cached_property = lambda *args: property"
-cached_property_file_path = root_path+"/openglider/utils/cached_property.py"
+cached_property_file_path = root_path+"/openglider/utils/cache.py"
 with open(cached_property_file_path, "r") as cached_property_file:
     lines = cached_property_file.readlines()
 

@@ -24,6 +24,7 @@ import numpy
 from openglider import Profile2D
 
 from openglider.glider.in_out import IMPORT_GEOMETRY, EXPORT_3D
+from openglider.utils import consistent_value
 from openglider.vector import norm
 from openglider.plots.projection import flatten_list
 
@@ -142,10 +143,14 @@ class Glider(object):
         for rib in self.ribs:
             rib.profile_2d.x_values = xvalues
 
-    # TODO: check consistency
     @property
     def x_values(self):
-        return self.ribs[0].profile_2d.x_values
+        return consistent_value(self.ribs, 'profile_2d.x_values')
+
+    @x_values.setter
+    def x_values(self, xvalues):
+        for rib in self.ribs:
+            rib.profile_2d.x_values = xvalues
 
     @property
     def span(self):
@@ -214,6 +219,15 @@ class Glider(object):
     @property
     def has_center_rib(self):
         return self.ribs[0].pos[1] != 0
+
+    @property
+    def glide(self):
+        return consistent_value(self.ribs, 'glide')
+
+    @glide.setter
+    def glide(self, glide):
+        for rib in self.ribs:
+            rib.glide = glide
 
 
 
