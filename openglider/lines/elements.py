@@ -27,6 +27,7 @@ import numpy
 
 
 class SagMatrix():
+
     def __init__(self, number_of_lines):
         size = number_of_lines * 2
         self.matrix = numpy.zeros([size, size])
@@ -75,7 +76,7 @@ class SagMatrix():
 
     def insert_type_2_upper(self, line):
         """
-        Fixed upper node
+        fixed upper node
         """
         i = line.number
         self.matrix[2 * line.number, 2 * line.number] = line.length_projected
@@ -93,18 +94,13 @@ class SagMatrix():
 
 
 class Line(object):
-    #TODO: why not directly save the line_type instead of a string
-    #TODO: why are lower_node and upper_node not mandatory?
-    #TODO: cached properties?
-    def __init__(self, number, lower_node, upper_node, vinf, line_type=line_types.liros, target_length=None):
-        """Line Class:
-        Note:
-            -for easier use the lines have it's nodes directly as variables!!!
-            -when you set some parameter of a node always use the node
-                dict and don't forget to update the lines.
-            -when you get parameters of nodes, you can the take them from
-                the node dict or from the nodes stored in the line.
-            """
+    # TODO: why not directly save the line_type instead of a string
+    # TODO: why are lower_node and upper_node not mandatory?
+    # TODO: cached properties?
+
+    def __init__(self, number, lower_node, upper_node, vinf,
+                 line_type=line_types.liros, target_length=None):
+        """a Line object reprensent one Line in a Line_set"""
         self.number = number
         self.type = line_type                # type of line
 
@@ -148,23 +144,24 @@ class Line(object):
     @cached_property('lower_node.vec', 'upper_node.vec', 'v_inf', 'sag_par_1', 'sag_par_2')
     def length_with_sag(self):
         if self.sag_par_1 and self.sag_par_2:
+            #---------TODO: implement exact curve length--------#
             # return norm(self.lower_node.vec+self.sag_par_2*self.v_inf_0 -
-            #             self.upper_node.vec+(self.sag_par_2+self.length_projected*self.sag_par_1)*self.v_inf_0) +\
+            #             self.upper_node.vec+(self.sag_par_2+self.length_projected*
+                                                # self.sag_par_1)*self.v_inf_0) +\
                    # 3  # add quadratic amount
-                      # not linear to add: (x'(t)^2 + y'(t)^2)^(1/2) -->
             return vec_length(self.get_line_points(100))
         else:
             print('Sag not yet calculated!')
             return self.length_no_sag
 
     def get_stretched_length(self, force=0):
-        return self.length_with_sag * (1 + self.type.stretch * (force-self.force))
+        return self.length_with_sag * (1 + self.type.stretch * (force - self.force))
 
     #@cached_property('v_inf', 'type.cw', 'type.thickness')
     @property
     def ortho_pressure(self):
         """drag per meter (projected)"""
-        return 1/2 * self.type.cw * self.type.thickness * norm(self.v_inf) ** 2
+        return 1 / 2 * self.type.cw * self.type.thickness * norm(self.v_inf) ** 2
 
     @cached_property('lower_node.vec', 'upper_node.vec', 'v_inf')
     def drag_total(self):
@@ -178,14 +175,15 @@ class Line(object):
         """
         Return points of the line
         """
-        return [self.get_line_point(i/(numpoints-1), sag=sag) for i in range(numpoints)]
+        return [self.get_line_point(i / (numpoints - 1), sag=sag) for i in range(numpoints)]
 
     def get_line_point(self, x, sag=True):
         """pos(x) [x,y,z], x: [0,1]"""
         if sag:
-            return self.lower_node.vec * (1. - x) + self.upper_node.vec * x + self.get_sag(x) * self.v_inf_0
+            return (self.lower_node.vec * (1. - x) + self.upper_node.vec * x +
+                    self.get_sag(x) * self.v_inf_0)
         else:
-            return self.lower_node.vec * (1. -x) + self.upper_node.vec * x
+            return self.lower_node.vec * (1. - x) + self.upper_node.vec * x
 
     def get_sag(self, x):
         """sag u(x) [m], x: [0,1]"""
@@ -198,6 +196,7 @@ class Line(object):
 
 
 class Node(object):
+
     def __init__(self, node_type, position_vector=None):
         self.type = node_type  # lower, top, middle (0, 2, 1)
         self.vec = position_vector
