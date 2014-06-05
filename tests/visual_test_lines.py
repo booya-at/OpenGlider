@@ -33,3 +33,7 @@ class TestLines(unittest.TestCase):
 
     def test_case_3(self):
         self.runcase(test_dir+"/lines/TEST_INPUT_FILE_3.txt")
+
+
+if __name__ == '__main__':
+    unittest.main(verbosity=2)

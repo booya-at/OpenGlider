@@ -38,7 +38,7 @@ class TestRib(unittest.TestCase):
         self.prof = openglider.Profile2D.compute_naca(naca, numpoints)
         self.rib = Rib(self.prof,
                        startpoint=[random.random(), random.random(), random.random()],
-                       size=random.random(),
+                       chord=random.random(),
                        arcang=random.random(),
                        aoa=random.random(),
                        glide=random.random()*10)

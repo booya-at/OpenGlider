@@ -20,7 +20,7 @@
 
 from __future__ import division
 from functions import proj_force, proj_to_surface, vec_length
-from openglider.utils.cached_property import cached_property
+from openglider.utils.cache import cached_property, CachedObject
 from openglider.vector import normalize, norm
 from openglider.lines import line_types
 import numpy
@@ -93,14 +93,20 @@ class SagMatrix():
             self.solution[line_nr * 2 + 1]]
 
 
-class Line(object):
-    # TODO: why not directly save the line_type instead of a string
-    # TODO: why are lower_node and upper_node not mandatory?
-    # TODO: cached properties?
-
+class Line(CachedObject):
+    #TODO: why not directly save the line_type instead of a string
+    #TODO: why are lower_node and upper_node not mandatory?
+    #TODO: cached properties?
     def __init__(self, number, lower_node, upper_node, vinf,
                  line_type=line_types.liros, target_length=None):
-        """a Line object reprensent one Line in a Line_set"""
+        """Line Class:
+        Note:
+            -for easier use the lines have it's nodes directly as variables!!!
+            -when you set some parameter of a node always use the node
+                dict and don't forget to update the lines.
+            -when you get parameters of nodes, you can the take them from
+                the node dict or from the nodes stored in the line.
+            """
         self.number = number
         self.type = line_type                # type of line
 

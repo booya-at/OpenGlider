@@ -30,9 +30,8 @@ __All__ = ["Line", "Node", "LineSet"]
 class LineSet():
     """
     Set of different lines
-    Notes:
-        -join some loops
-        -_private functions
+    TODO:
+        -add stretch
     """
 
     def __init__(self, lines=None, v_inf=None):
@@ -51,6 +50,11 @@ class LineSet():
             nodes.add(line.upper_node)
             nodes.add(line.lower_node)
         return nodes
+
+    def calc_stretch(self):
+        for line in self.lines:
+            pass
+        pass
 
     def calc_geo(self, start=None):
         if start is None:

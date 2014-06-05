@@ -3,16 +3,28 @@
 #__all__ = ['cached_property']
 config = {"caching": True, 'verbose': False}
 
+cache_instances = []
+
+
+def clear_cache():
+    for instance in cache_instances:
+        instance.cache.clear()
+
 
 def cached_property(*hashlist):
     #@functools.wraps
-    class CachedProperty(property):
-        def __init__(self, fget=None):
+    class CachedProperty(object):
+        def __init__(self, fget=None, doc=None):
             super(CachedProperty, self).__init__()
             self.function = fget
+            self.__doc__ = doc or fget.__doc__
+            self.__module__ = fget.__module__
+
             self.hashlist = hashlist
             self.cache = {}
-            self.thahash = {}
+
+            global cache_instances
+            cache_instances.append(self)
 
         def __get__(self, parentclass, type=None):
             if not config["caching"]:
@@ -20,12 +32,12 @@ def cached_property(*hashlist):
             else:
                 dahash = hash_attributes(parentclass, self.hashlist)
                 # Return cached or recalc if hashes differ
-                if id(parentclass) in self.cache and id(parentclass) in self.thahash and dahash == self.thahash[id(parentclass)]:
-                    return self.cache[id(parentclass)]
+                if id(parentclass) in self.cache and dahash == self.cache[id(parentclass)][0]:
+                    return self.cache[id(parentclass)][1]
                 else:
-                    self.thahash[id(parentclass)] = dahash
                     res = self.function(parentclass)
-                    self.cache[id(parentclass)] = res
+                    self.cache[id(parentclass)] = [dahash, res]
+                    parentclass.cached_properties.append(self)
                     return res
 
     return CachedProperty
@@ -75,14 +87,20 @@ def hash_attributes(class_instance, hashlist):
     return value
 
 
-class HashedObject(object):
+class CachedObject(object):
     """
     Provide a list of attributes to hash down for tracking changes
     """
     hashlist = ()
+    cached_properties = []
 
     def __hash__(self):
         return hash_attributes(self, self.hashlist)
+
+    def __del__(self):
+        for prop in self.cached_properties:
+            if id(self) in prop.cache:
+                prop.cache.pop(id(self))
 
 
 # class test(object):
