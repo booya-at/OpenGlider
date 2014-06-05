@@ -60,9 +60,12 @@ def export_json(glider, path=None, midribs=0, numpoints=None, wake_panels=1, wak
         # make dicts!
         this_rib = []
         for p in rib.profile_3d.data:
+            # p is a point of the 3d airfoil
+            # first upper side than lower
             this_rib.append({"data": p.tolist(), "wake": False, "position": count})
             count += 1
         for i in range(wake_panels):
+            #   appending the wake --> (te -> upper foil -> le -> lower foil -> wake)
             this_rib.append({"data": rib.align([1+(i+1)*wake_length, 0]).tolist(), "wake": True, "position": count})
             count += 1
         ribs.append(this_rib)
@@ -71,19 +74,36 @@ def export_json(glider, path=None, midribs=0, numpoints=None, wake_panels=1, wak
     panels = []
     count = 0
     for i in range(1, len(ribs)):
-        panel = []
+        panel_row = []
         for j in range(numpoints + wake_panels - 1):
             nodes = [ribs[i-1][j],
                      ribs[i][j],
                      ribs[i][j+1],
                      ribs[i-1][j+1]]
 
-            panel.append({"position": count,
-                          "wake": sum([p["wake"] for p in nodes]) > 0,  # Check if any of the nodes is a wake node
+            panel_row.append({"position": count,
+                          "wake": sum([p["wake"] for p in nodes]) > 0, # Check if any of the nodes is a wake node
                           "nodes": [p["position"] for p in nodes]})
             count += 1
+        panels.append(panel_row)
 
-    # Calculate Neighbours
+    # Calculate Neighbours!!!
+
+    #   ASSUMPTION: panels: left to right, view from top, top of view is leadingedge
+    for panel_row_ind, panel_row in enumerate(panels):
+        for panel_col_ind, panel in enumerate(panel_row):
+            #   neighbour order: [left, trailing, right, leading]
+            left, trailing, right, leading = (0, 1, 2, 3)
+            panel["neighbours"] = [0, 0, 0, 0]
+            if not panel["wake"]:
+                if panel_row_ind != 0:
+                    panel["neighbours"][left] = panels[panel_row_ind - 1][panel_col_ind]["position"]
+                if panel_row_ind != len(panels) - 1:
+                    panel["neighbours"][right] = panels[panel_row_ind + 1][panel_col_ind]["position"]
+                if panel_col_ind != 0:
+                    panel["neighbours"][trailing] = panel_row[panel_col_ind - 1]["position"]
+                if not panel_row[panel_col_ind + 1]["wake"]:
+                    panel["neighbours"][leading] = panel_row[panel_col_ind + 1]["position"]
 
     # Flatten everything out
     nodes = []
@@ -91,10 +111,9 @@ def export_json(glider, path=None, midribs=0, numpoints=None, wake_panels=1, wak
         for p in rib:
             nodes.append(p["data"])
     panels_flat = []
-    for cell in panels:
-        for panel in cell:
-            panels_flat.append(panel["wake", "nodes", "neighbours"])
-
+    for panel_row in panels:
+        for panel in panel_row:
+            panels_flat.append([panel["wake"], panel["nodes"], panel["neighbours"]])
     config = {"cases": [[1, 0, 1]]}  # TODO: insert vinf
 
     with open(path, "w") as json_file:
