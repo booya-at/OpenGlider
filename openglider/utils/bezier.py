@@ -88,7 +88,7 @@ class BezierCurve(object):
             y.append(point[1])
         return scipy.interpolate.interp1d(x, y)
 
-    def get_sequence(self, num=50)
+    def get_sequence(self, num=50):
         x = []
         y = []
         for i in range(num):
