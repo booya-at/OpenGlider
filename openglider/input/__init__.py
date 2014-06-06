@@ -4,6 +4,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt4 import QtGui, QtCore
 from openglider.vector import norm_squared
+from openglider.utils.bezier import BezierCurve
 
 
 class MplWidget(FigureCanvas):
@@ -31,9 +32,8 @@ class MplWidget(FigureCanvas):
             elements = [self.elements[i]]
         else:
             elements = self.elements
-        for element, subplot, plot in elements:
-            plot.set_xdata(element.x_list)
-            plot.set_ydata(element.y_list)
+        for element in elements:
+            element.updatedata()
 
     @property
     def pixel_scale(self):
@@ -63,11 +63,12 @@ class MplWidget(FigureCanvas):
             self.cid_id = self.fig.canvas.mpl_connect('motion_notify_event', self._move(startpos=startpos))
 
         elif event.button == 1:
-            for (element, __, __) in self.elements:
-                for i, (x, y) in enumerate(element.control_points):
-                    if norm_squared([x-event.xdata, y-event.ydata]) < (1 * self.pixel_scale):
-                        self.cid_id = self.fig.canvas.mpl_connect('motion_notify_event', self._drag(element, i))
-                        return
+            for element in self.elements:
+                if element.dynamic:
+                    for i, (x, y) in enumerate(element.control_points):
+                        if norm_squared([x-event.xdata, y-event.ydata]) < (1 * self.pixel_scale):
+                            self.cid_id = self.fig.canvas.mpl_connect('motion_notify_event', self._drag(element, i))
+                            return
         else:
             self.cid_id = None
 
@@ -118,9 +119,10 @@ class MplWidget(FigureCanvas):
         self.fig.canvas.draw()
 
 
-class Line():
+class MPL_Line(object):
     def __init__(self, x_list, y_list, line_width=1, mplwidget=None):
         self.mpl = []
+        self.dynamic = True
         self.linewidth = line_width
         self.x_list = x_list
         self.y_list = y_list
@@ -130,15 +132,15 @@ class Line():
 
     def insert_mpl(self, *mpl_widgets):
         for widget in mpl_widgets:
-            subplot = widget.fig.add_subplot(1, 1, 1)
-            subplot.axis("equal")
-            subplot.get_xaxis().set_visible(False)
-            subplot.get_yaxis().set_visible(False)
-            subplotplot, = subplot.plot([], [], lw=self.linewidth, color='black', ms=5, marker="o", mfc="r", picker=5)
-            widget.elements.append([self, subplot, subplotplot])
-            widget.updatedata(-1)
-            subplot.relim()
-            subplot.autoscale_view()
+            self.subplot = widget.fig.add_subplot(1, 1, 1)
+            self.subplot.axis("equal")
+            self.subplot.get_xaxis().set_visible(False)
+            self.subplot.get_yaxis().set_visible(False)
+            self.subplotplot, = self.subplot.plot([], [], lw=self.linewidth, color='black', ms=5, marker="o", mfc="r", picker=5)
+            widget.elements.append(self)
+            self.updatedata()
+            self.subplot.relim()
+            self.subplot.autoscale_view()
 
     @property
     def control_points(self):
@@ -149,10 +151,44 @@ class Line():
         self.x_list = points[:, 0]
         self.y_list = points[:, 1]
 
+    def updatedata(self):
+        self.subplotplot.set_xdata(self.x_list)
+        self.subplotplot.set_ydata(self.y_list)
 
-class BezierCurve:
-    def __init__(self):
-        pass
+
+class MPL_BezierCurve(object):
+    def __init__(self, x_list, y_list, line_width=1, mplwidget=None, interpolation=True):
+        self.line = MPL_Line(x_list, y_list, 0, mplwidget)
+        self.dynamic = False
+        self.interpolation = interpolation
+        self.bezier_curve = BezierCurve()
+        if mplwidget is not None:
+            self.insert_mpl(mplwidget)
+
+    def insert_mpl(self, *mpl_widgets):
+        for widget in mpl_widgets:
+            self.subplot = widget.fig.add_subplot(1, 1, 1)
+            self.subplot.axis("equal")
+            self.subplot.get_xaxis().set_visible(False)
+            self.subplot.get_yaxis().set_visible(False)
+            self.subplotplot, = self.subplot.plot([], [], lw=1, color='black', ms=5, mfc="r", picker=5)
+            widget.elements.append(self)
+            widget.updatedata()
+            self.subplot.relim()
+            self.subplot.autoscale_view()
+
+    @property
+    def control_points(self):
+        return zip(self.x_list, self.y_list)
+
+    def updatedata(self):
+        if self.interpolation:
+            self.bezier_curve.fit(zip(self.line.x_list, self.line.y_list))
+        else:
+            self.bezier_curve.controlpoints = zip(self.line.x_list, self.line.y_list)
+        x, y = self.bezier_curve.get_sequence()
+        self.subplotplot.set_xdata(x)
+        self.subplotplot.set_ydata(y)
 
 
 def get_ax_size(ax, fig):
@@ -180,10 +216,9 @@ class ApplicationWindow(QtGui.QMainWindow):
         mpl1 = MplWidget(QtGui.QWidget(self.mainwidget), width=5, height=4, dpi=100, dynamic=True)
         mpl2 = MplWidget(QtGui.QWidget(self.mainwidget), width=5, height=4, dpi=100, dynamic=True)
 
-        line1 = Line([1, 2, 3, 5, 6], [1, 2, 1, 3, 4], line_width=0, mplwidget=mpl1)
-        line2 = Line([2, 3, 4, 2], [2, 3, 1, 0], mplwidget=mpl1)
-        line3 = Line([1, 1, 1], [2, 3, 1], mplwidget=mpl2)
-        line1.insert_mpl(mpl2)
+        line1 = MPL_BezierCurve([1, 2, 3, 5, 6], [1, 2, 1, 3, 4], line_width=1, mplwidget=mpl1, interpolation=False)
+        line2 = MPL_BezierCurve([2, 3, 4, 2], [2, 3, 1, 0], mplwidget=mpl2)
+        # line3 = BezierCurve([1, 1, 1], [2, 3, 1], mplwidget=mpl2)
         mpl1.updatedata()
         mpl2.updatedata()
 
