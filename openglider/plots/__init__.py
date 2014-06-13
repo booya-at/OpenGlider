@@ -23,7 +23,7 @@ from openglider.airfoil import get_x_value
 from openglider.plots.marks import triangle, line
 import projection
 # from openglider.glider import Glider
-#from openglider.glider.cell import Cell
+# from openglider.glider.cell import Cell
 from cuts import cuts
 from .part import PlotPart
 from openglider.vector import Vectorlist2D, depth
@@ -32,15 +32,35 @@ from openglider.vector import Vectorlist2D, depth
 # Sign configuration
 sewing_config = {
     "marks": {
-        "attachment-point": lambda p1, p2: marks.triangle(2*p1-p2, p1),  # on the inner-side
+        "attachment-point": lambda p1, p2: marks.triangle(2 * p1 - p2, p1),  # on the inner-side
         "panel-cut": marks.line
     },
-    "allowance_general": 0.01
+    "allowance_general": 0.01,
+    "scale": 1000,
+    "layers":
+        {"OUTER_CUTS": {
+            "id": 'outer',
+            "stroke_width": "1",
+            "stroke": "green",
+            "fill": "none"},
+         "SEWING_MARKS": {
+             "id": 'marks',
+             "stroke_width": "1",
+             "stroke": "black",
+             "fill": "none"},
+         "TEXT": {
+             "id": 'text',
+             "stroke_width": "1",
+             "stroke": "black",
+             "fill": "none"},
+        }
+
+
 }
 
 
 def flattened_cell(cell):
-    #assert isinstance(cell, Cell)
+    # assert isinstance(cell, Cell)
     left, right = projection.flatten_list(cell.prof1, cell.prof2)
     left_bal = left.copy()
     right_bal = right.copy()
@@ -54,7 +74,7 @@ def flattened_cell(cell):
 
 
 def flatten_glider(glider):
-    #assert isinstance(glider, Glider)
+    # assert isinstance(glider, Glider)
     parts = []
     xvalues = glider.x_values
     #cuts = openglider.plots.cuts
@@ -70,23 +90,35 @@ def flatten_glider(glider):
             front_right = get_x_value(xvalues, panel.cut_front[1])
             back_right = get_x_value(xvalues, panel.cut_back[1])
             cut_front = cuts[panel.cut_front[2] - 1]([[left_bal, front_left],
-                                                           [right_bal, front_right]],
-                                                          left_out, right_out, -panel.cut_front[3])
+                                                      [right_bal, front_right]],
+                                                     left_out, right_out, -panel.cut_front[3])
             cut_back = cuts[panel.cut_back[2] - 1]([[left_bal, back_left],
-                                                         [right_bal, back_right]],
-                                                        left_out, right_out, panel.cut_back[3])
-            parts.append(PlotPart({"OUTER_CUTS": [left_out[cut_front[1]:cut_back[1]] +
-                                                  Vectorlist2D(cut_back[0]) +
-                                                  right_out[cut_front[2]:cut_back[2]:-1] +
-                                                  Vectorlist2D(cut_front[0])[::-1]],
-                                   "SEWING_MARKS": [left_bal[front_left:back_left] +
-                                                    right_bal[front_right:back_right:-1] +
-                                                    Vectorlist2D([left_bal[front_left]])]}))
+                                                    [right_bal, back_right]],
+                                                   left_out, right_out, panel.cut_back[3])
+            part_cuts = [left_out[cut_front[1]:cut_back[1]] +
+                         Vectorlist2D(cut_back[0]) +
+                         right_out[cut_front[2]:cut_back[2]:-1] +
+                         Vectorlist2D(cut_front[0])[::-1]]
+            part_marks = [left_bal[front_left:back_left] +
+                          right_bal[front_right:back_right:-1] +
+                          Vectorlist2D([left_bal[front_left]])]
+            part_text = []
+
+            for attachment_point in filter(lambda p: p.rib is cell.rib1, glider.attachment_points):
+                pass
+
+
+
+
+            parts.append(PlotPart({"OUTER_CUTS": part_cuts,
+                                   "SEWING_MARKS": part_marks,
+                                   #"TEXT": part_text
+            }))
 
     ##################################RIBS###########################
     #################################################################
-    for i, rib in enumerate(glider.ribs[glider.has_center_rib:-1]):
-        rib_no = i + glider.has_center_rib
+    for i, rib in enumerate(glider.ribs[glider.has_center_cell:-1]):
+        rib_no = i + glider.has_center_cell
         profile = rib.profile_2d.copy()
         chord = rib.chord
         profile.scale(chord)
@@ -100,14 +132,14 @@ def flatten_glider(glider):
         rib_marks = []
 
         #####################marks for attachment-points##################################
-        attachment_points = filter(lambda p: p.rib_no == rib_no, glider.attachment_points)
+        attachment_points = filter(lambda p: p.rib == rib, glider.attachment_points)
         for point in attachment_points:
             rib_marks += sewing_config["marks"]["attachment-point"](*return_points(point.rib_pos))
 
         #####################marks for panel-cuts#########################################
         rib_cuts = set()
         if rib_no > 0:
-            for panel in glider.cells[rib_no-1].panels:
+            for panel in glider.cells[rib_no - 1].panels:
                 rib_cuts.add(panel.cut_front[1])  # left cell
                 rib_cuts.add(panel.cut_back[1])
         for panel in glider.cells[rib_no].panels:
@@ -131,28 +163,19 @@ def flatten_glider(glider):
 
 def create_svg(partlist, path):
     drawing = svgwrite.Drawing()
-    #partlist = [partlist[1]]
+    # partlist = [partlist[1]]
     max_last = [0, 0]
     for part in partlist:
         part_group = svgwrite.container.Group()
-        if "OUTER_CUTS" in part.layer_dict:
-            part.shift([max_last[0] - part.min_x + 0.2, max_last[1] - part.max_y])
-            max_last[0] = part.max_x
-            #lines = part.return_layer_svg("SEWING_MARKS")
-            lines = part.return_layer_svg("SEWING_MARKS")
-            for line in lines:
-                element = svgwrite.shapes.Polyline(line, id='outer',
-                                                   stroke_width="1",
-                                                   stroke="green",
-                                                   fill="none")
-                part_group.add(element)
-            lines = part.return_layer_svg("OUTER_CUTS")
-            for line in lines:
-                element = svgwrite.shapes.Polyline(line, id='outer',
-                                                   stroke_width="1",
-                                                   stroke="black",
-                                                   fill="none")
-                part_group.add(element)
+        part.shift([max_last[0] - part.min_x + 0.2, max_last[1] - part.max_y])
+
+        for layer_name, layer_config in sewing_config["layers"].iteritems():
+            if layer_name in part.layer_dict:
+                max_last[0] = part.max_x
+                lines = part.return_layer_svg(layer_name, scale=sewing_config["scale"])
+                for line in lines:
+                    element = svgwrite.shapes.Polyline(line, **layer_config)
+                    part_group.add(element)
             drawing.add(part_group)
 
     with open(path, "w") as output_file:

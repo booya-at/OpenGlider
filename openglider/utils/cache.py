@@ -1,14 +1,23 @@
-#import functools
-
-#__all__ = ['cached_property']
 config = {"caching": True, 'verbose': False}
 
 cache_instances = []
 
 
-def clear_cache():
-    for instance in cache_instances:
-        instance.cache.clear()
+class CachedObject(object):
+    """
+    An object to provide cached properties and functions.
+    Provide a list of attributes to hash down for tracking changes
+    """
+    hashlist = ()
+    cached_properties = []
+
+    def __hash__(self):
+        return hash_attributes(self, self.hashlist)
+
+    def __del__(self):
+        for prop in self.cached_properties:
+            if id(self) in prop.cache:
+                prop.cache.pop(id(self))
 
 
 def cached_property(*hashlist):
@@ -43,7 +52,15 @@ def cached_property(*hashlist):
     return CachedProperty
 
 
+def clear_cache():
+    for instance in cache_instances:
+        instance.cache.clear()
+
+
 def rec_getattr(obj, attr):
+    """
+    Recursive Attribute-getter
+    """
     if attr == "self":
         return obj
     elif '.' not in attr:
@@ -51,7 +68,6 @@ def rec_getattr(obj, attr):
     else:
         l = attr.split('.')
         return rec_getattr(getattr(obj, l[0]), '.'.join(l[1:]))
-
 
 
 def c_mul(a, b):
@@ -72,7 +88,7 @@ def hash_attributes(class_instance, hashlist):
         # hash
         try:
             thahash = hash(el)
-        except TypeError:  # Lists
+        except TypeError:  # Lists p.e.
             if config['verbose']:
                 print("bad cache: "+str(class_instance.__name__)+" attribute: "+attribute)
             try:
@@ -85,45 +101,3 @@ def hash_attributes(class_instance, hashlist):
     if value == -1:
         value = -2
     return value
-
-
-class CachedObject(object):
-    """
-    Provide a list of attributes to hash down for tracking changes
-    """
-    hashlist = ()
-    cached_properties = []
-
-    def __hash__(self):
-        return hash_attributes(self, self.hashlist)
-
-    def __del__(self):
-        for prop in self.cached_properties:
-            if id(self) in prop.cache:
-                prop.cache.pop(id(self))
-
-
-# class test(object):
-#     def __init__(self):
-#         self.num = 3
-#
-#     @cached_property('num')
-#     def neu(self):
-#         print("tuwas")
-#         return self.num
-
-    #@neu.reset
-    #def reset(self):
-    #    pass
-
-
-
-
-#recalc = cache.reset
-#global config
-#print(config)
-
-#ab = test()
-#print("jojo")
-#print(ab.neu)
-#print(ab.neu)

@@ -21,9 +21,13 @@ class PlotPart():
     def __getitem__(self, item):
         return self.layer_dict[item]
 
+    def max_min_function(self, _func, i):
+        func = lambda thalist: _func(thalist, key=lambda p: p[i])[i]
+        #val_list = map(lambda layer: func(map()))
+
     @property
     def max_x(self):
-        max_x = lambda thalist: max(thalist, key=lambda point: point[0])[0]
+        max_x = lambda thalist: max(thalist, key=lambda point: point[0])[0] if len(thalist) > 0 else None
         return max(map(lambda layer: max(map(max_x, layer)), self.layer_dict.itervalues()))
 
     @property
@@ -34,7 +38,7 @@ class PlotPart():
     @property
     def min_x(self):
         min_x = lambda thalist: min(thalist, key=lambda point: point[0])[0]
-        return min(map(lambda layer: min(map(min_x, layer)), self.layer_dict.itervalues()))
+        return min(x for x in map(lambda layer: min(map(min_x, layer)), self.layer_dict.itervalues()) if x is not None)
 
     @property
     def min_y(self):
@@ -50,14 +54,14 @@ class PlotPart():
             for vectorlist in layer:
                 vectorlist.shift(vector)
 
-    def return_layer_svg(self, layer):
+    def return_layer_svg(self, layer, scale=1):
         """
         Return a layer scaled for svg_coordinate_system [x,y = (mm, -mm)]
         """
         if layer in self.layer_dict:
             new = []
             for line in self.layer_dict[layer]:
-                new.append(map(lambda point: point * [1, -1], line))
+                new.append(map(lambda point: point * [scale, -scale], line))
             return new
         else:
             return None

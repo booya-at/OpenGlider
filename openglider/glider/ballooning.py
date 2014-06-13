@@ -77,9 +77,11 @@ class Ballooning(object):
     def mapx(self, xvals):
         return [self[i] for i in xvals]
 
+    @property
     def amount_maximal(self):
         return max(max(self.upper.y), max(self.lower.y))
 
+    @property
     def amount_integral(self):
         # Integration of 2-points allways:
         amount = 0
@@ -93,12 +95,11 @@ class Ballooning(object):
                 amount += (curve.y[i] + (curve.y[i + 1] - curve.y[i]) / 2) * (curve.x[i + 1] - curve.x[i])
         return amount / 2
 
-    def amount_set(self, amount):
-        factor = float(amount) / self.Amount
+    @amount_maximal.setter
+    def amount_maximal(self, amount):
+        factor = float(amount) / self.amount_maximal
         self.upper.y = [i * factor for i in self.upper.y]
         self.lower.y = [i * factor for i in self.lower.y]
-
-    Amount = property(amount_maximal, amount_set)
 
 
 class BallooningBezier(Ballooning):
@@ -119,18 +120,16 @@ class BallooningBezier(Ballooning):
         #self.upbez.fit(numpy.transpose([self.upper.x, self.upper.y]))
         #self.lowbez.fit(numpy.transpose([self.lower.x, self.lower.y]))
 
-    def _setnumpoints(self, numpoints):
-        Ballooning.__init__(self, self.upbez.interpolation(numpoints), self.lowbez.interpolation(numpoints))
-
-    def _getnumpoints(self):
+    @property
+    def numpoints(self):
         return len(self.upper)
 
-    Numpoints = property(_getnumpoints, _setnumpoints)
-
+    @numpoints.setter
+    def numpoints(self, numpoints):
+        Ballooning.__init__(self, self.upbez.interpolation(numpoints), self.lowbez.interpolation(numpoints))
 
 global arsinc
 arsinc = None
-
 
 def interpolate_asinc(numpoints=1000, phi0=0, phi1=numpy.pi):
     """Set Global Interpolation Function arsinc"""
