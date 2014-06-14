@@ -218,7 +218,6 @@ class ApplicationWindow(QtGui.QMainWindow):
 
         line1 = MPL_BezierCurve([1, 2, 3, 5, 6], [1, 2, 1, 3, 4], line_width=1, mplwidget=mpl1, interpolation=False)
         line2 = MPL_BezierCurve([2, 3, 4, 2], [2, 3, 1, 0], mplwidget=mpl2)
-        # line3 = BezierCurve([1, 1, 1], [2, 3, 1], mplwidget=mpl2)
         mpl1.updatedata()
         mpl2.updatedata()
 
