@@ -24,8 +24,8 @@ from openglider.vector import cut, Vectorlist2D
 
 
 class RigidFoil(object):
-    def __init__(self, rib_no, start=-0.1, end=0.1, distance=0.005):
-        self.rib_no = rib_no
+    def __init__(self, rib, start=-0.1, end=0.1, distance=0.005):
+        self.rib = rib
         self.start = start
         self.end = end
         self.func = lambda x: distance
@@ -34,14 +34,14 @@ class RigidFoil(object):
         ######NEEDED??
         pass
 
-    def get_length(self, glider):
-        flat = self.get_flattened(glider=glider)
+    def get_length(self):
+        flat = self.get_flattened()
         flat = Vectorlist2D(flat)
         flat.check()
         return flat.get_length()
 
-    def get_flattened(self, glider):
-        profile = glider.ribs[self.rib_no].profile_2d
+    def get_flattened(self):
+        profile = self.rib.profile_2d
         normvectors = Vectorlist2D(profile.normvectors)
         __, start = profile.profilepoint(self.start)
         __, end = profile.profilepoint(self.end)
@@ -53,22 +53,21 @@ class RigidFoil(object):
 
 
 class GibusArcs(object):
-    def __init__(self, rib_no, position, size=0.2):
+    def __init__(self, rib, position, size=0.2):
         """A Reinforcement, in the shape of an arc, to reinforce attachment points"""
-        self.rib_no = rib_no
+        self.rib = rib
         self.pos = position
         self.size = size
         self.size_abs = False
 
-    def get_3d(self, glider, num_points=10):
+    def get_3d(self, num_points=10):
         # create circle with center on the point
-        gib_arc = self.get_flattened(glider, num_points=num_points)
-        rib = glider.ribs[self.rib_no]
-        return [rib.align([p[0], p[1], 0]) for p in gib_arc]
+        gib_arc = self.get_flattened(num_points=num_points)
+        return [self.rib.align([p[0], p[1], 0]) for p in gib_arc]
 
-    def get_flattened(self, glider, ribs_2d=None, num_points=10):
+    def get_flattened(self, ribs_2d=None, num_points=10):
         # get center point
-        profile = glider.ribs[self.rib_no].profile_2d
+        profile = self.rib.profile_2d
         start, point_1 = profile.profilepoint(self.pos)
         if self.size_abs:
             point_2 = point_1 + [self.size, 0]
@@ -96,35 +95,33 @@ class GibusArcs(object):
         return gib_arc
 
 
+# Node from lines
 class AttachmentPoint(Node):
-    def __init__(self, number, rib_no, rib_pos, node_type=None):
+    def __init__(self, rib, number, rib_pos, node_type=None):
         super(AttachmentPoint, self).__init__(node_type=2)
-        self.rib_no = rib_no
+        self.rib = rib
         self.rib_pos = rib_pos
         self.number = number
 
-    def get_position(self, glider):
-        rib = glider.ribs[self.rib_no]
-        self.vec = rib.profile_3d[rib.profile_2d.profilepoint(self.rib_pos)[0]]
+    def get_position(self):
+        self.vec = self.rib.profile_3d[self.rib.profile_2d.profilepoint(self.rib_pos)[0]]
         return self.vec
 
 
 class RibHole(object):
-    def __init__(self, rib_no, pos, size=0.5, numpoints=20):
-        self.rib_no = rib_no
+    def __init__(self, rib, pos, size=0.5, numpoints=20):
+        self.rib = rib
         self.pos = pos
         self.size = size
         self.numpoints = numpoints
 
-    def get_3d(self, glider, num=20):
-        rib = glider.ribs[self.rib_no]
-        hole = self.get_flattened(glider, num=num)
-        return [rib.align([p[0], p[1], 0]) for p in hole]
+    def get_3d(self, num=20):
+        hole = self.get_flattened(num=num)
+        return [self.rib.align([p[0], p[1], 0]) for p in hole]
 
-    def get_flattened(self, glider, num=20):
-        rib = glider.ribs[self.rib_no]
-        p1 = rib.profile_2d.profilepoint(self.pos)[1]
-        p2 = rib.profile_2d.profilepoint(-self.pos)[1]
+    def get_flattened(self, num=20):
+        p1 = self.rib.profile_2d.profilepoint(self.pos)[1]
+        p2 = self.rib.profile_2d.profilepoint(-self.pos)[1]
         return polygon(p1, p2, num=num, size=self.size, is_center=False)[0]
 
 

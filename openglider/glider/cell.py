@@ -51,7 +51,7 @@ class BasicCell(CachedObject):
 
             return Profile3D(midrib)
 
-    @cached_property('prof1', 'prof2')  # todo: fix depends (miniribs)
+    @cached_property('prof1', 'prof2')
     def normvectors(self, j=None):
         prof1 = self.prof1.data
         prof2 = self.prof2.data
@@ -60,32 +60,29 @@ class BasicCell(CachedObject):
         # cross differenzvektor, tangentialvektor
         return [normalize(numpy.cross(p1[i] + p2[i], prof1[i] - prof2[i])) for i in range(len(prof1))]
 
-    # TODO: raise if len not equal, cache
     @cached_property('ballooning_phi')
     def ballooning_cos_phi(self):
-        cos_phi = []
-        for phi in self.ballooning_phi:
-            if round(phi, 5) > 0:
-                cos_phi.append(numpy.cos(phi))
-            else:
-                cos_phi.append(0)
-        return cos_phi
+        tolerance = 0.00001
+        return [numpy.cos(phi) if phi > tolerance else 0 for phi in self.ballooning_phi]
 
     @cached_property('ballooning_phi', 'prof1', 'prof2')
     def ballooning_radius(self):
-        radius = []
-        for i, phi in enumerate(self.ballooning_phi):
-            if round(phi, 5) > 0:
-                radius.append(norm(self.prof1.data[i] - self.prof2.data[i]) / (2*numpy.sin(phi)))
-            else:
-                radius.append(0)
-        return radius
+        tolerance = 0.00001
+        return [norm(p1-p2)/(2*numpy.sin(phi)) if phi>tolerance else 0
+                for p1, p2, phi in zip(self.prof1, self.prof2, self.ballooning_phi)]
+        # radius = []
+        # for i, phi in enumerate(self.ballooning_phi):
+        #     if round(phi, 5) > 0:
+        #         radius.append(norm(self.prof1.data[i] - self.prof2.data[i]) / (2*numpy.sin(phi)))
+        #     else:
+        #         radius.append(0)
+        # return radius
 
     def copy(self):
         return copy.deepcopy(self)
 
 
-# Ballooning is considered to be arcs, following two simple rules:
+# Ballooning is considered to be arcs, following 2 (two!) simple rules:
 # 1: x1 = x*d
 # 2: x2 = R*normvekt*(cos(phi2)-cos(phi)
 # 3: norm(d)/r*(1-x) = 2*sin(phi(2))
@@ -93,7 +90,6 @@ class BasicCell(CachedObject):
 
 class Cell(CachedObject):
     def __init__(self, rib1, rib2, miniribs=None):
-        #self.miniribs = miniribs and miniribs or []
         self._ribs = [rib1, rib2]
         self._miniribs = []
         self.x_values = rib1.profile_2d.x_values

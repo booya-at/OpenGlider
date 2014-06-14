@@ -118,6 +118,7 @@ class Glider(object):
         for rib in self.ribs:
             rib.pos *= faktor
             rib.chord *= faktor
+        # todo: scale lines,
 
     @property
     def shape(self):
@@ -131,11 +132,7 @@ class Glider(object):
 
     @property
     def numpoints(self):
-        numpoints = self.ribs[0].profile_2d.numpoints
-        for rib in self.ribs:
-            if not rib.profile_2d.numpoints == numpoints:
-                raise ValueError("Numpoints vary for the glider")
-        return numpoints
+        return consistent_value(self.ribs, 'profile_2d.numpoints')
 
     @numpoints.setter
     def numpoints(self, numpoints):
@@ -217,7 +214,7 @@ class Glider(object):
         return points
 
     @property
-    def has_center_rib(self):
+    def has_center_cell(self):
         return self.ribs[0].pos[1] != 0
 
     @property

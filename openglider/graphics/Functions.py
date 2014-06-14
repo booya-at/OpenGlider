@@ -193,7 +193,7 @@ class Axes(GraphicObject):
 ###################COLOURS#############################################
 class RGBColour(object):
     def __init__(self, r=None, g=None, b=None):
-        if r is None or g is None or b is None:  # TODO
+        if r is None or g is None or b is None:
             self.colour = [255, 255, 255]
         else:
             self.colour = [r, g, b]

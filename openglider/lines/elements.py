@@ -27,7 +27,6 @@ import numpy
 
 
 class SagMatrix():
-
     def __init__(self, number_of_lines):
         size = number_of_lines * 2
         self.matrix = numpy.zeros([size, size])
@@ -76,7 +75,7 @@ class SagMatrix():
 
     def insert_type_2_upper(self, line):
         """
-        fixed upper node
+        Fixed upper node
         """
         i = line.number
         self.matrix[2 * line.number, 2 * line.number] = line.length_projected
@@ -97,8 +96,7 @@ class Line(CachedObject):
     #TODO: why not directly save the line_type instead of a string
     #TODO: why are lower_node and upper_node not mandatory?
     #TODO: cached properties?
-    def __init__(self, number, lower_node, upper_node, vinf,
-                 line_type=line_types.liros, target_length=None):
+    def __init__(self, number, lower_node, upper_node, vinf, line_type=line_types.liros, target_length=None):
         """Line Class:
         Note:
             -for easier use the lines have it's nodes directly as variables!!!
@@ -150,18 +148,18 @@ class Line(CachedObject):
     @cached_property('lower_node.vec', 'upper_node.vec', 'v_inf', 'sag_par_1', 'sag_par_2')
     def length_with_sag(self):
         if self.sag_par_1 and self.sag_par_2:
-            #---------TODO: implement exact curve length--------#
             # return norm(self.lower_node.vec+self.sag_par_2*self.v_inf_0 -
-            #             self.upper_node.vec+(self.sag_par_2+self.length_projected*
-                                                # self.sag_par_1)*self.v_inf_0) +\
+            #             self.upper_node.vec+(self.sag_par_2+self.length_projected*self.sag_par_1)*self.v_inf_0) +\
                    # 3  # add quadratic amount
-            return vec_length(self.get_line_points(100))
+                      # not linear to add: (x'(t)^2 + y'(t)^2)^(1/2) -->
+            return vec_length(self.get_line_points(numpoints=100))
         else:
             print('Sag not yet calculated!')
             return self.length_no_sag
 
-    def get_stretched_length(self, force=0):
-        return self.length_with_sag * (1 + self.type.stretch * (force - self.force))
+    def get_stretched_length(self, force=50):
+        """Get the total line-length for production using a given stretch"""
+        return self.length_with_sag * (1 + self.type.stretch * (force-self.force))
 
     #@cached_property('v_inf', 'type.cw', 'type.thickness')
     @property
@@ -202,7 +200,6 @@ class Line(CachedObject):
 
 
 class Node(object):
-
     def __init__(self, node_type, position_vector=None):
         self.type = node_type  # lower, top, middle (0, 2, 1)
         self.vec = position_vector

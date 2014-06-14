@@ -23,7 +23,7 @@ import os
 import numpy
 
 from openglider.utils.cache import cached_property
-from openglider.vector import normalize, norm, Vectorlist2D, Vectorlist, Polygon2D, HashedList, Layer
+from openglider.vector import normalize, norm, Vectorlist2D, Vectorlist, Polygon2D, HashedList, Layer, norm_squared
 
 
 def get_x_value(x_value_list, x):
@@ -59,7 +59,25 @@ class BasicProfile2D(Polygon2D):
     def _x(self, xval):
         pass  # Maybe split up profilepoint function
 
+    @staticmethod
+    def calculate_x_values(numpoints):
+        """return cosinus distributed x-values"""
+        numpoints -= numpoints % 2
+        xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 - math.sin(math.pi * x))
+        return [xtemp(i/numpoints) for i in range(numpoints+1)]
+
+    @staticmethod
+    def get_from_x_value(x_value_list, x):
+        """
+        Get position of x in a list of x_values
+        zb get_x_value([1,2,3],1.5)=0.5
+        """
+        for i in range(len(x_value_list) - 1):
+            if x_value_list[i + 1] >= x or i == len(x_value_list) - 2:
+                return i - (x_value_list[i] - x) / (x_value_list[i + 1] - x_value_list[i])
+
     def profilepoint(self, xval, h=-1.):
+        # TODO: schlecht, i+k als return weg und verwenden von get_from_x_value...
         """Get airfoil Point for x-value (<0:upper side) optional: height (-1:lower,1:upper), possibly mapped"""
         if not h == -1:  # middlepoint
             p1 = self.profilepoint(xval)[1]
@@ -93,18 +111,12 @@ class BasicProfile2D(Polygon2D):
         """
         #to normalize do: put nose to (0,0), rotate to fit (1,0), normalize to (1,0)
         p1 = self.data[0]
-        dmax = 0.
-        nose = p1
-        for i in self.data:
-            temp = norm(i - p1)
-            if temp > dmax:
-                dmax = temp
-                nose = i
 
+        nose = self.data[self.noseindex]
         diff = p1 - nose
-        sin = diff.dot([0, -1]) / dmax  # Angle: a.b=|a|*|b|*sin(alpha)
-        cos = numpy.sqrt(1 - sin ** 2)
-        matrix = numpy.array([[cos, -sin], [sin, cos]]) / dmax  # de-rotate and scale
+        sin_sq = diff.dot([0, -1]) / norm_squared(diff)  # Angle: a.b=|a|*|b|*sin(alpha)
+        cos_sq = diff.dot([1, 0]) / norm_squared(diff)
+        matrix = numpy.array([[cos_sq, -sin_sq], [sin_sq, cos_sq]])  # de-rotate and scale
         self.data = numpy.array([matrix.dot(i - nose) for i in self.data])
 
     @HashedList.data.setter
@@ -151,26 +163,6 @@ class Profile2D(BasicProfile2D):
 
     def __eq__(self, other):
         return numpy.allclose(self.data, other.data)
-
-    # def importdat(self, path):
-    #     """
-    #     Import a *.dat airfoil (a tab seperated list of x/y - values
-    #     """
-    #     if not os.path.isfile(path):
-    #         raise Exception("airfoil not found in" + path + "!")
-    #     profile = []
-    #     name = None
-    #     with open(path, "r") as pfile:
-    #         for line in pfile:
-    #             #line = line.strip()
-    #             ###tab-seperated values except first line->name
-    #             if "\t" in line or " " in line:
-    #                 line = line.split()
-    #                 if len(line) == 2:
-    #                     profile.append([float(i) for i in line])
-    #             else:
-    #                 name = line.strip()
-    #         self.__init__(profile, name)
 
     @classmethod
     def import_from_dat(cls, path):
@@ -276,13 +268,6 @@ class Profile2D(BasicProfile2D):
     def numpoints(self, num):
         """Set airfoil to cosinus-Distributed XValues"""
         self.x_values = self.calculate_x_values(num)
-
-    @staticmethod
-    def calculate_x_values(numpoints):
-        """return cosinus distributed x-values"""
-        numpoints -= numpoints % 2
-        xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 - math.sin(math.pi * x))
-        return [xtemp(i/numpoints) for i in range(numpoints+1)]
 
     #todo: cached
     #@cached_property('self')

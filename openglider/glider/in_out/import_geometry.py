@@ -99,12 +99,12 @@ def import_ods(filename, glider):
     glider.close_rib()
 
     ######################################LINESET######################################################
-    attachment_points = map(lambda args: AttachmentPoint(args[1], args[0], args[2]), read_elements(sheets[2], "AHP", len_data=2))
+    attachment_points = map(lambda args: AttachmentPoint(glider.ribs[args[0]], args[1], args[2]), read_elements(sheets[2], "AHP", len_data=2))
     attachment_points.sort(key=lambda element: element.number)
     attachment_points_lower = get_lower_aufhaengepunkte(glider.data)
     for p in attachment_points:
         p.force = numpy.array([0, 0, 1])
-        p.get_position(glider)
+        p.get_position()
 
     glider.lineset = tolist_lines(sheets[6], attachment_points_lower, attachment_points)
     glider.lineset.calc_geo()
@@ -208,6 +208,9 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
 
 
 def read_elements(sheet, keyword, len_data=2):
+    """
+    Return rib/cell_no for the element + data
+    """
     #print("jo")
     elements = []
     j = 0
