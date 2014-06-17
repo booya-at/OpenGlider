@@ -9,7 +9,7 @@ from openglider.vector import normalize, norm
 def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6):
     other = glider.copy_complete()
     if numpoints:
-        other.numpoints = numpoints
+        other.profile_numpoints = numpoints
     ribs = other.return_ribs(midribs)
 
     panels = []
@@ -50,8 +50,8 @@ def export_json(glider, path=None, midribs=0, numpoints=None, wake_panels=1, wak
     import json  # TODO
     new_glider = glider.copy()
     if numpoints is None:  # Reset in any case to have same xvalues on upper/lower
-        numpoints = new_glider.numpoints
-    new_glider.numpoints = numpoints
+        numpoints = new_glider.profile_numpoints
+    new_glider.profile_numpoints = numpoints
 
     # Points list
     ribs = []
@@ -126,7 +126,7 @@ def export_dxf(glider, path="", midribs=0, numpoints=None, *other):
     outfile = dxf.drawing(path)
     other = glider.copy_complete()
     if numpoints:
-        other.numpoints = numpoints
+        other.profile_numpoints = numpoints
     ribs = other.return_ribs(midribs)
     panels = []
     points = []
@@ -140,7 +140,7 @@ def export_dxf(glider, path="", midribs=0, numpoints=None, *other):
 def export_apame(glider, path="", midribs=0, numpoints=None, *other):
     other = glider.copy_complete()
     if numpoints:
-        other.numpoints = numpoints
+        other.profile_numpoints = numpoints
     ribs = other.return_ribs(midribs)
     #write config
     outfile = open(path, "w")
@@ -165,7 +165,7 @@ def export_apame(glider, path="", midribs=0, numpoints=None, *other):
 
     outfile.write("\nPANELS " + str((len(ribs) - 1) * (len(ribs[0]) - 1)) + "\n")  # TODO: ADD WAKE + Neighbours!
     for i in range(len(ribs) - 1):
-        for j in range(other.numpoints):
+        for j in range(other.profile_numpoints):
             # COUNTER-CLOCKWISE!
             outfile.write(u"1 {0!s}\t{1!s}\t{2!s}\t{3!s}\n".format(i * len(ribs[0]) + j + 1,
                                                                    (i + 1) * len(ribs[0]) + j + 1,

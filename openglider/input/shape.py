@@ -1,52 +1,67 @@
-from openglider.input import ControlPointContainer, ControlPoint, MPL_Bezier, MplWidget
+from openglider.input import ControlPointContainer, ControlPoint, MplBezier, MplWidget, ApplicationWindow
 from PyQt4 import QtGui, QtCore
 import sys
+from openglider.utils.bezier import fitbezier
 
-class MPL_Symmetric_Bezier(MPL_Bezier):
+
+class MplSymmetricBezier(MplBezier):
     def __init__(self, controlpoints):
-        super(MPL_Symmetric_Bezier, self).__init__(controlpoints)
+        super(MplSymmetricBezier, self).__init__(controlpoints)
 
     @property
     def bezier_curve(self):
         right_pts = [p.point for p in self.controlpoints]
-        left_pts = [[-i[0], i[1]] for i in right_pts]
-        left_pts.reverse()
-        self._bezier_curve.controlpoints = right_pts + left_pts
+        left_pts = [[-p[0], p[1]] for p in right_pts[::-1]]
+        self._bezier_curve.controlpoints = left_pts + right_pts
         return self._bezier_curve
 
-class Shape(QtGui.QWidget):
-    def __init__(self):
-        QtGui.QWidget.__init__(self)
-        
+
+def shapeinput(glider):
+    front, back = glider.shape
+    a = glider.shape_x_values
+    control_front = [ControlPoint(p) for p in fitbezier(front)]
+    control_back = [ControlPoint(p) for p in fitbezier(back)]
+    control_front[0].locked_y = True
+    control_front[0].x_limit = (0, None)
+    control_back[0].x_limit = (0, None)
+    control_back[-1].locked_x = True
+    bezier_front = MplSymmetricBezier(control_front)
+    bezier_back = MplSymmetricBezier(control_back)
+
+    mpl = MplWidget(dpi=100)
+    aww = ApplicationWindow([mpl])
+    bezier_front.insert_mpl(mpl)
+    bezier_back.insert_mpl(mpl)
+    plot_front = mpl.fig.add_subplot(111)
+    plot_back = mpl.fig.add_subplot(111)
+    pp_front, = plot_front.plot([], [], lw=0.1, color='black', ms=5, marker="o", mfc="g",
+                                 picker=5)
+    pp_back, = plot_back.plot([], [], lw=0.1, color='black', ms=5, marker="o", mfc="g",
+                                picker=5)
 
 
+    def redraw_plots(event=None):
+        pp_front.set_xdata([p[0] for p in front])
+        pp_front.set_ydata([p[1] for p in front])
+        pp_back.set_xdata([p[0] for p in back])
+        pp_back.set_ydata([p[1] for p in back])
+        print("jo, updated")
 
-class ApplicationWindow(QtGui.QMainWindow):
-    def __init__(self):
-        QtGui.QMainWindow.__init__(self)
-        self.setWindowTitle("application main window")
-        self.mainwidget = QtGui.QWidget(self)
 
-        self.splitter = QtGui.QSplitter(self.mainwidget)
-        self.splitter.setOrientation(QtCore.Qt.Vertical)
+    mpl.fig.canvas.mpl_connect('button_release_event', redraw_plots)
+    redraw_plots()
 
-        mpl1 = MplWidget(QtGui.QWidget(self.mainwidget), width=10, height=4, dpi=100, dynamic=True)
-        points = [[.5, -.2], [.2, -.1], [.0, .0]]
-        controlpoints = [ControlPoint(p, locked=[0, 0]) for p in points[0:2]]
-        controlpoints += [ControlPoint(points[-1], locked=[1, 0])]
-        line1 = MPL_Symmetric_Bezier(controlpoints)  #, mplwidget=mpl1)
-        line1.insert_mpl(mpl1)
-        mpl1.updatedata()
 
-        self.splitter.addWidget(mpl1)
-
-        self.vertikal_layout = QtGui.QVBoxLayout(self.mainwidget)
-        self.vertikal_layout.addWidget(self.splitter)
-        self.setCentralWidget(self.mainwidget)
+    return aww
+    # print(front, back)
 
 
 if __name__ == "__main__":
     qApp = QtGui.QApplication(sys.argv)
-    aw = ApplicationWindow()
-    aw.show()
+    points = [[.1, .2], [.2, .2], [.3, .6], [.6, .0]]
+    #controlpoints = [ControlPoint(p, locked=[0, 0]) for p in points]
+    # print(mpl1)
+    #line1 = MPL_Symmetric_Bezier(controlpoints)  # , mplwidget=mpl1)
+    #aw = ApplicationWindow([line1])
+    #aw.show()
     sys.exit(qApp.exec_())

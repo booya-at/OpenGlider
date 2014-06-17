@@ -25,7 +25,7 @@ from openglider import Profile2D
 
 from openglider.glider.in_out import IMPORT_GEOMETRY, EXPORT_3D
 from openglider.utils import consistent_value
-from openglider.vector import norm
+from openglider.vector import norm, rotation_2d
 from openglider.plots.projection import flatten_list
 
 
@@ -122,7 +122,20 @@ class Glider(object):
 
     @property
     def shape(self):
-        return flatten_list(self.get_spanwise(0), self.get_spanwise(1))
+        rot = rotation_2d(numpy.pi/2)
+        front, back = flatten_list(self.get_spanwise(0), self.get_spanwise(1))
+        return [rot.dot(p) for p in front], [rot.dot(p) for p in back]
+
+    @property
+    def shape_x_values(self):
+        last = numpy.array([0, 0, 0])
+        x_values = []
+        for rib in self.ribs:
+            this = rib.pos*[0, 1, 1]
+            x_values.append(rib.pos-last)
+            last = this
+        print(x_values)
+        return x_values
 
     @property
     def ribs(self):
@@ -131,23 +144,23 @@ class Glider(object):
         return [self.cells[0].rib1] + [cell.rib2 for cell in self.cells]
 
     @property
-    def numpoints(self):
+    def profile_numpoints(self):
         return consistent_value(self.ribs, 'profile_2d.numpoints')
 
-    @numpoints.setter
-    def numpoints(self, numpoints):
+    @profile_numpoints.setter
+    def profile_numpoints(self, numpoints):
         xvalues = Profile2D.calculate_x_values(numpoints)
         for rib in self.ribs:
-            rib.profile_2d.x_values = xvalues
+            rib.profile_2d.profile_x_values = xvalues
 
     @property
-    def x_values(self):
+    def profile_x_values(self):
         return consistent_value(self.ribs, 'profile_2d.x_values')
 
-    @x_values.setter
-    def x_values(self, xvalues):
+    @profile_x_values.setter
+    def profile_x_values(self, xvalues):
         for rib in self.ribs:
-            rib.profile_2d.x_values = xvalues
+            rib.profile_2d.profile_x_values = xvalues
 
     @property
     def span(self):

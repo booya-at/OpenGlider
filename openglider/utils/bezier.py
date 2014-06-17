@@ -44,12 +44,9 @@ class BezierCurve(object):
     @property
     def numpoints(self):
         try:
-            leng = len(self._BezierBase)
-        #except AttributeError:
-        #    leng = 0
+            return len(self._BezierBase)
         except TypeError:
-            leng = 0
-        return leng
+            return 0
 
     @numpoints.setter
     def numpoints(self, num):

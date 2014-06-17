@@ -76,7 +76,7 @@ def flattened_cell(cell):
 def flatten_glider(glider):
     # assert isinstance(glider, Glider)
     parts = []
-    xvalues = glider.x_values
+    xvalues = glider.profile_x_values
     #cuts = openglider.plots.cuts
     for cell in glider.cells:
         left_bal, left, right, right_bal = flattened_cell(cell)

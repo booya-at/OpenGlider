@@ -94,7 +94,7 @@ class Panel(object):
         :return: List of rib-pieces (Vectorlist)
         """
         cell = glider.cells[self.cell_no]
-        xvalues = glider.x_values
+        xvalues = glider.profile_x_values
         numribs += 1
         ribs = []
         for i in range(numribs):

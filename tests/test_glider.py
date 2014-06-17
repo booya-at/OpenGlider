@@ -43,8 +43,8 @@ class TestGlider(GliderTestClass):
 
     def test_numpoints(self):
         numpoints = random.randint(1, 100)*2+1
-        self.glider.numpoints = numpoints
-        self.assertEqual(self.glider.numpoints, numpoints)
+        self.glider.profile_numpoints = numpoints
+        self.assertEqual(self.glider.profile_numpoints, numpoints)
 
     def test_span(self):
         span = random.random() * 100

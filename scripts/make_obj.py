@@ -18,7 +18,7 @@ if len(sys.argv) >= 4:
     if numpoints == 0:
         numpoints = None
     else:
-        glider.numpoints = numpoints
+        glider.profile_numpoints = numpoints
     print("numpoints: ", numpoints)
     midribs = int(sys.argv[2])
     print("midribs: ", midribs)
