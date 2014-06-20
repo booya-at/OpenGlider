@@ -157,10 +157,10 @@ class Glider(object):
 
     @property
     def span(self):
-        span = sum([cell.width for cell in self.cells])
+        span = sum([cell.span for cell in self.cells])
 
         if self.has_center_cell:
-            return 2*span - self.cells[0].width
+            return 2*span - self.cells[0].span
         else:
             return 2*span
         # span = 0.

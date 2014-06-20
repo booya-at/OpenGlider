@@ -236,7 +236,7 @@ class MplBezier(ControlPointContainer):
 
 def get_ax_size(ax, fig):
     bbox = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
-    width = bbox.width * fig.dpi
+    width = bbox.span * fig.dpi
     height = bbox.height * fig.dpi
     return width, height
 
