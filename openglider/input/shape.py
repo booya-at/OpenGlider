@@ -1,4 +1,5 @@
-from openglider.input import ControlPointContainer, ControlPoint, MplBezier, MplWidget, ApplicationWindow
+from openglider.input import ControlPointContainer, ControlPoint, MplBezier, MplWidget, ApplicationWindow, \
+    ButtonWidget
 from PyQt4 import QtGui, QtCore
 import sys
 from openglider.utils.bezier import fitbezier
@@ -27,17 +28,17 @@ def shapeinput(glider):
     bezier_front = MplSymmetricBezier(control_front)
     bezier_back = MplSymmetricBezier(control_back)
 
+    aww = ApplicationWindow()
+
     mpl = MplWidget(dpi=100)
-    aww = ApplicationWindow([mpl])
     bezier_front.insert_mpl(mpl)
     bezier_back.insert_mpl(mpl)
     plot_front = mpl.fig.add_subplot(111)
     plot_back = mpl.fig.add_subplot(111)
     pp_front, = plot_front.plot([], [], lw=0.1, color='black', ms=5, marker="o", mfc="g",
-                                 picker=5)
+                                  picker=5)
     pp_back, = plot_back.plot([], [], lw=0.1, color='black', ms=5, marker="o", mfc="g",
                                 picker=5)
-
 
     def redraw_plots(event=None):
         pp_front.set_xdata([p[0] for p in front])
@@ -46,9 +47,13 @@ def shapeinput(glider):
         pp_back.set_ydata([p[1] for p in back])
         print("jo, updated")
 
+    buttons = {'OK': redraw_plots,
+               'Close': aww.close}
+
+    aww.splitter.addWidget(mpl)
+    aww.splitter.addWidget(ButtonWidget(buttons))
     mpl.fig.canvas.mpl_connect('button_release_event', redraw_plots)
     redraw_plots()
-
 
     return aww
     # print(front, back)
@@ -57,7 +62,7 @@ def shapeinput(glider):
 if __name__ == "__main__":
     qApp = QtGui.QApplication(sys.argv)
     points = [[.1, .2], [.2, .2], [.3, .6], [.6, .0]]
-    #controlpoints = [ControlPoint(p, locked=[0, 0]) for p in points]
+    # controlpoints = [ControlPoint(p, locked=[0, 0]) for p in points]
     # print(mpl1)
     #line1 = MPL_Symmetric_Bezier(controlpoints)  # , mplwidget=mpl1)
     #aw = ApplicationWindow([line1])

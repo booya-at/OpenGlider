@@ -330,7 +330,7 @@ class MplWidget(FigureCanvas):
 
 class ApplicationWindow(QtGui.QMainWindow):
     # TODO: Add button
-    def __init__(self, mplwidgets, title="application main window"):
+    def __init__(self, mplwidgets=None, title="application main window"):
         super(ApplicationWindow, self).__init__()
         #QtGui.QMainWindow.__init__(self)
         self.setWindowTitle(title)
@@ -339,7 +339,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.splitter = QtGui.QSplitter(self.mainwidget)
         self.splitter.setOrientation(QtCore.Qt.Vertical)
 
-        self.mplwidgets = mplwidgets
+        self.mplwidgets = mplwidgets or []
         for mplwidget in self.mplwidgets:
             self.splitter.addWidget(mplwidget)
             mplwidget.updatedata()
@@ -349,25 +349,17 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.setCentralWidget(self.mainwidget)
 
 
-class InteractiveApplicationWindow(ApplicationWindow):
-    def __init__(self, mplwidgets, title="jo"):
-        super(InteractiveApplicationWindow, self).__init__(mplwidgets, title)
-        self.button_splitter = QtGui.QSplitter()
-        self.button_splitter.setOrientation(QtCore.Qt.Horizontal)
-
-        button1 = QtGui.QPushButton("Ok")
-        button2 = QtGui.QPushButton("Close")
-
-        self.buttons = button1, button2
-
-        def log(x):
-            print("jojo", x)
-
-        button2.clicked.connect(self.close)
-        #button1.clicked.connect(log)
-        self.button_splitter.addWidget(button1)
-        self.button_splitter.addWidget(button2)
-        self.splitter.addWidget(self.button_splitter)
+class ButtonWidget(QtGui.QSplitter):
+    def __init__(self, buttons):
+        super(ButtonWidget, self).__init__()
+        self.setOrientation(QtCore.Qt.Horizontal)
+        self.buttons = []
+        for button, func in buttons.iteritems():
+            tha_button = QtGui.QPushButton(button)
+            if func:
+                tha_button.clicked.connect(func)
+            self.buttons.append(tha_button)
+            self.addWidget(tha_button)
 
 
 
