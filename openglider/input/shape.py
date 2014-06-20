@@ -18,7 +18,6 @@ class MplSymmetricBezier(MplBezier):
 
 def shapeinput(glider):
     front, back = glider.shape
-    a = glider.shape_x_values
     control_front = [ControlPoint(p) for p in fitbezier(front)]
     control_back = [ControlPoint(p) for p in fitbezier(back)]
     control_front[0].locked_y = True
@@ -46,7 +45,6 @@ def shapeinput(glider):
         pp_back.set_xdata([p[0] for p in back])
         pp_back.set_ydata([p[1] for p in back])
         print("jo, updated")
-
 
     mpl.fig.canvas.mpl_connect('button_release_event', redraw_plots)
     redraw_plots()

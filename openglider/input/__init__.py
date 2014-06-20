@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.patches
+#from pyface.qt import QtGui, QtCore
 from PyQt4 import QtGui, QtCore
 from openglider.vector import norm_squared
 from openglider.utils.bezier import BezierCurve
@@ -123,7 +124,7 @@ class ControlPointContainer(object):
                 subplots[0].add_patch(point.element)
                 point.insert(widget.fig, subplots[0])
 
-            subplots[0].axis("equal")
+            #subplots[0].axis("equal")
             # subplot.get_xaxis().set_visible(False)
             #subplot.get_yaxis().set_visible(False)
 
@@ -239,6 +240,7 @@ def get_ax_size(ax, fig):
     height = bbox.height * fig.dpi
     return width, height
 
+
 class MplWidget(FigureCanvas):
     """
     A widget to contain plots and user-input-elements
@@ -327,8 +329,10 @@ class MplWidget(FigureCanvas):
 
 
 class ApplicationWindow(QtGui.QMainWindow):
+    # TODO: Add button
     def __init__(self, mplwidgets, title="application main window"):
-        QtGui.QMainWindow.__init__(self)
+        super(ApplicationWindow, self).__init__()
+        #QtGui.QMainWindow.__init__(self)
         self.setWindowTitle(title)
         self.mainwidget = QtGui.QWidget(self)
 
@@ -336,13 +340,36 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.splitter.setOrientation(QtCore.Qt.Vertical)
 
         self.mplwidgets = mplwidgets
-
         for mplwidget in self.mplwidgets:
             self.splitter.addWidget(mplwidget)
             mplwidget.updatedata()
+
         self.vertikal_layout = QtGui.QVBoxLayout(self.mainwidget)
         self.vertikal_layout.addWidget(self.splitter)
         self.setCentralWidget(self.mainwidget)
+
+
+class InteractiveApplicationWindow(ApplicationWindow):
+    def __init__(self, mplwidgets, title="jo"):
+        super(InteractiveApplicationWindow, self).__init__(mplwidgets, title)
+        self.button_splitter = QtGui.QSplitter()
+        self.button_splitter.setOrientation(QtCore.Qt.Horizontal)
+
+        button1 = QtGui.QPushButton("Ok")
+        button2 = QtGui.QPushButton("Close")
+
+        self.buttons = button1, button2
+
+        def log(x):
+            print("jojo", x)
+
+        button2.clicked.connect(self.close)
+        #button1.clicked.connect(log)
+        self.button_splitter.addWidget(button1)
+        self.button_splitter.addWidget(button2)
+        self.splitter.addWidget(self.button_splitter)
+
+
 
 
 

@@ -86,7 +86,7 @@ class Glider(object):
 
     def get_midrib(self, y=0):
         k = y % 1
-        i = int(y - k)
+        i = int(y-k)
         if i == len(self.cells) and k == 0:  # Stabi-rib
             i -= 1
             k = 1
@@ -127,15 +127,8 @@ class Glider(object):
         return [rot.dot(p) for p in front], [rot.dot(p) for p in back]
 
     @property
-    def shape_x_values(self):
-        last = numpy.array([0, 0, 0])
-        x_values = []
-        for rib in self.ribs:
-            this = rib.pos*[0, 1, 1]
-            x_values.append(rib.pos-last)
-            last = this
-        print(x_values)
-        return x_values
+    def arc(self):
+        return [rib.pos[1:] for rib in self.ribs]
 
     @property
     def ribs(self):
@@ -151,7 +144,7 @@ class Glider(object):
     def profile_numpoints(self, numpoints):
         xvalues = Profile2D.calculate_x_values(numpoints)
         for rib in self.ribs:
-            rib.profile_2d.profile_x_values = xvalues
+            rib.profile_2d.x_values = xvalues
 
     @property
     def profile_x_values(self):
@@ -164,13 +157,19 @@ class Glider(object):
 
     @property
     def span(self):
-        span = 0.
-        front = self.get_spanwise()
-        last = front[0] * [0, 0, 1]  # centerrib only halfed
-        for this in front[1:]:
-            span += norm((this - last) * [0, 1, 1])
-            last = this
-        return 2 * span
+        span = sum([cell.width for cell in self.cells])
+
+        if self.has_center_cell:
+            return 2*span - self.cells[0].width
+        else:
+            return 2*span
+        # span = 0.
+        # front = self.get_spanwise()
+        # last = front[0] * [0, 0, 1]  # centerrib only halfed
+        # for this in front[1:]:
+        #     span += norm((this - last) * [0, 1, 1])
+        #     last = this
+        #return 2 * span
 
     @span.setter
     def span(self, span):

@@ -67,8 +67,10 @@ class Ballooning(object):
 
     @staticmethod
     def phi(*baloon):
-        """Return the angle of the piece of cake.
-        b/l=R*phi/(R*Sin(phi)) -> Phi=arsinc(l/b)"""
+        """
+        Return the angle of the piece of cake.
+        b/l=R*phi/(R*Sin(phi)) -> Phi=arsinc(l/b)
+        """
         global arsinc
         if not arsinc:
             interpolate_asinc()
@@ -83,7 +85,7 @@ class Ballooning(object):
 
     @property
     def amount_integral(self):
-        # Integration of 2-points allways:
+        # Integration of 2-points always:
         amount = 0
         for curve in [self.upper, self.lower]:
             for i in range(len(curve.x) - 2):
@@ -127,6 +129,19 @@ class BallooningBezier(Ballooning):
     @numpoints.setter
     def numpoints(self, numpoints):
         Ballooning.__init__(self, self.upbez.interpolation(numpoints), self.lowbez.interpolation(numpoints))
+
+    @property
+    def controlpoints(self):
+        return self.upbez.controlpoints, self.lowbez.controlpoints
+
+    @controlpoints.setter
+    def controlpoints(self, controlpoints):
+        upper, lower = controlpoints
+        if upper is not None:
+            self.upbez.controlpoints = upper
+        if lower is not None:
+            self.lowbez.controlpoints = lower
+        Ballooning.__init__(self, self.upbez.interpolation(), self.lowbez.interpolation())
 
 global arsinc
 arsinc = None

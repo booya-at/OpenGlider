@@ -24,6 +24,7 @@ import sys
 import os
 from openglider.glider import ballooning
 from openglider.input import ControlPoint, ApplicationWindow, MplWidget
+from openglider.input.ballooning import input_ballooning
 from openglider.input.shape import shapeinput, MplSymmetricBezier
 
 try:
@@ -55,6 +56,12 @@ class GliderTestClass(unittest.TestCase):
 
     def test_shape_input(self):
         window = shapeinput(self.glider)
+        window.show()
+        qApp.exec_()
+
+    def test_ballooning_input(self):
+        ballooning = self.glider.ribs[0].ballooning
+        window = input_ballooning(ballooning)
         window.show()
         qApp.exec_()
 
