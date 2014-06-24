@@ -29,6 +29,11 @@ def dumps(obj):
     return json.dumps({"data": obj,
                        "version": openglider.__version__}, cls=Encoder)
 
+
+def dump(obj, fp):
+    return json.dump({"data": obj,
+                      "version": openglider.__version__}, fp, cls=Encoder)
+
 if __name__ == "__main__":
     from openglider import airfoil
     a = airfoil.Profile2D.compute_naca(1234)
