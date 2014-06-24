@@ -4,6 +4,7 @@ import numpy
 import itertools
 from openglider.airfoil import Profile3D
 from openglider.glider.ballooning import arsinc
+from openglider.utils import consistent_value
 from openglider.vector import norm, normalize, HashedList
 from openglider.glider.rib import Rib
 from openglider.utils.cache import cached_property, CachedObject
@@ -92,8 +93,8 @@ class Cell(CachedObject):
     def __init__(self, rib1, rib2, miniribs=None):
         self._ribs = [rib1, rib2]
         self._miniribs = miniribs or []
-        self.x_values = rib1.profile_2d.x_values
-        self._basic_cell = BasicCell(rib1.profile_3d, rib2.profile_3d, ballooning=self.ballooning_phi)
+        #self.x_values = rib1.profile_2d.x_values
+        #self._basic_cell = BasicCell(rib1.profile_3d, rib2.profile_3d, ballooning=self.ballooning_phi)
 
     def __json__(self):
         return {"rib1": self.rib1,
@@ -180,6 +181,10 @@ class Cell(CachedObject):
     @property
     def _yvalues(self):
         return [0] + [mrib.y_value for mrib in self._miniribs] + [1]
+
+    @property
+    def x_values(self):
+        return consistent_value(self.ribs, 'x_values')
 
     @property
     def prof1(self):

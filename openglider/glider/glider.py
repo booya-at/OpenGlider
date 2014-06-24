@@ -37,7 +37,13 @@ class Glider(object):
 
     def __json__(self):
         #return {"lines": [self.lineset]}
-        return {"cells": self.cells}
+        new = self.copy()
+        ribs = new.ribs[:]
+        for cell in new.cells:
+            cell.rib1 = ribs.index(cell.rib1)
+            cell.rib2 = ribs.index(cell.rib2)
+        return {"cells": new.cells,
+                "ribs": ribs}
 
     @classmethod
     def import_geometry(cls, path, filetype=None):
