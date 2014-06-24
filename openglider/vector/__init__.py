@@ -149,7 +149,7 @@ class HashedList(CachedObject):
         self._data = None
         self._hash = None
         self.data = data
-        try: # TODO: whats that?
+        try:  # TODO: whats that?
             if name or not self.name:
                 raise AttributeError
         except AttributeError:
@@ -173,6 +173,15 @@ class HashedList(CachedObject):
     def __iter__(self):
         return self.data.__iter__()
 
+    def __str__(self):
+        return self.data.__str__()
+
+    def __repr__(self):
+        return super(HashedList, self).__repr__() + " (name: {})".format(self.name)
+
+    def __json__(self):
+        return {"data": self.data.tolist(), "name": self.name}
+
     @property
     def data(self):
         return self._data
@@ -193,12 +202,6 @@ class HashedList(CachedObject):
 class Vectorlist(HashedList):
     def __init__(self, data=None, name=None):
         super(Vectorlist, self).__init__(data, name)
-
-    def __repr__(self):
-        return self.data.__str__()
-
-    def __str__(self):
-        return self.name
 
     def __getitem__(self, ik):
         if isinstance(ik, int) and 0 <= ik < len(self):  # easiest case

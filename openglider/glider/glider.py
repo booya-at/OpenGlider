@@ -35,6 +35,10 @@ class Glider(object):
         self.lineset = lineset
         self.data = {}
 
+    def __json__(self):
+        #return {"lines": [self.lineset]}
+        return {"cells": self.cells}
+
     @classmethod
     def import_geometry(cls, path, filetype=None):
         if not filetype:
@@ -134,7 +138,13 @@ class Glider(object):
     def ribs(self):
         if not self.cells:
             return []
-        return [self.cells[0].rib1] + [cell.rib2 for cell in self.cells]
+        else:
+            ribs = []
+            for cell in self.cells:
+                for rib in cell.ribs:
+                    if rib not in ribs:
+                        ribs.append(rib)
+            return ribs
 
     @property
     def profile_numpoints(self):

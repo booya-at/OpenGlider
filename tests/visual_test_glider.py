@@ -109,9 +109,9 @@ class TestGlider(GliderTestClass):
         #path = os.tmpfile()
         path = os.tmpnam()+".json"
         self.glider.export_3d(path)
-        import json
+        import custom_json
         file = open(path, "r")
-        data = json.load(file)
+        data = custom_json.load(file)
         print(data["panels"])
         print(data["nodes"])
         G.Graphics([G.Polygon(panel["node_no"]) for panel in data["panels"] if not panel["is_wake"]],

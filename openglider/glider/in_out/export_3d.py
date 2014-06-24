@@ -47,7 +47,7 @@ def export_json(glider, path=None, midribs=0, numpoints=None, wake_panels=1, wak
     """
     export json geometry file for panelmethod calculation
     """
-    import json  # TODO
+    import custom_json  # TODO
     new_glider = glider.copy()
     if numpoints is None:  # Reset in any case to have same xvalues on upper/lower
         numpoints = new_glider.profile_numpoints
@@ -117,7 +117,7 @@ def export_json(glider, path=None, midribs=0, numpoints=None, wake_panels=1, wak
     config = {"cases": [[1, 0, 1]]}  # TODO: insert vinf
 
     with open(path, "w") as json_file:
-        json.dump({"config": config, "nodes": nodes, "panels": panels_flat}, json_file, indent=2)
+        custom_json.dump({"config": config, "nodes": nodes, "panels": panels_flat}, json_file, indent=2)
 
     return True
 

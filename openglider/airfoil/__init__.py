@@ -39,9 +39,9 @@ def get_x_value(x_value_list, x):
 class BasicProfile2D(Polygon2D):
     """Basic airfoil Class, not to do much"""
     ####rootprof gleich mitspeichern!!
-    def __init__(self, profile=None, name=None):
+    def __init__(self, data=None, name=None):
         self.noseindex = None
-        super(BasicProfile2D, self).__init__(profile, name)
+        super(BasicProfile2D, self).__init__(data, name)
 
     def __mul__(self, other):
         fakt = numpy.array([1, float(other)])
@@ -132,15 +132,15 @@ class BasicProfile2D(Polygon2D):
 class Profile2D(BasicProfile2D):
     """Profile2D: 2 Dimensional Standard airfoil representative in OpenGlider"""
     #############Initialisation###################
-    def __init__(self, profile=None, name=None, normalize_root=True):
-        if not profile is None and len(profile) > 2:
+    def __init__(self, data=None, name=None, normalize_root=True):
+        if not data is None and len(data) > 2:
             # Filter name
-            if isinstance(profile[0][0], str):
-                name = profile[0][0]
-                profile = profile[1:]
-        self._rootprof = BasicProfile2D(profile, name)  # keep a copy
-        super(Profile2D, self).__init__(profile, name=name)
-        if normalize_root and profile is not None:
+            if isinstance(data[0][0], str):
+                name = data[0][0]
+                data = data[1:]
+        self._rootprof = BasicProfile2D(data, name)  # keep a copy
+        super(Profile2D, self).__init__(data, name=name)
+        if normalize_root and data is not None:
             self._rootprof.normalize()
             self.reset()
 
@@ -307,8 +307,8 @@ class Profile2D(BasicProfile2D):
 class XFoil(Profile2D):
     """XFoil Calculation airfoil based on Profile2D"""
 
-    def __init__(self, profile=None):
-        Profile2D.__init__(self, profile)
+    def __init__(self, data=None):
+        Profile2D.__init__(self, data)
         self._xvalues = self.x_values
         self._calcvalues = []
 

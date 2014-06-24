@@ -19,14 +19,14 @@ class Rib(CachedObject):
                  startpoint=None,
                  chord=1.,
                  arcang=0, aoa=0, zrot=0,
-                 glide=1, name="unnamed rib", aoaabs=False, startpos=0.):
+                 glide=1, name="unnamed rib", aoa_abs=False, startpos=0.):
         # TODO: Startpos > Set Rotation Axis in Percent
         self.name = name
         self.profile_2d = profile_2d or Profile2D()
         self.ballooning = ballooning
         self.glide = glide
         self._aoa = (0, 0)
-        if aoaabs:
+        if aoa_abs:
             self.aoa_absolute = aoa
         else:
             self.aoa_relative = aoa
@@ -34,6 +34,18 @@ class Rib(CachedObject):
         self.zrot = zrot
         self.pos = startpoint  # or HashedList([0, 0, 0])
         self.chord = chord
+
+    def __json__(self):
+        return {"profile_2d": self.profile_2d,
+                "ballooning": self.ballooning,
+                "startpoint": self.pos.tolist(),
+                "chord": self.chord,
+                "arcang": self.arcang,
+                "aoa": self._aoa[0],
+                "zrot": self.zrot,
+                "glide": self.glide,
+                "name": self.name,
+                "aoa_abs": self._aoa[1]}
 
     def align(self, point):
         if len(point) == 2:

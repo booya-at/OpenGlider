@@ -113,6 +113,9 @@ class BallooningBezier(Ballooning):
         self.lowbez = BezierCurve(points[1])
         Ballooning.__init__(self, self.upbez.interpolation(), self.lowbez.interpolation())
 
+    def __json__(self):
+        return {"points": [self.upbez.controlpoints, self.lowbez.controlpoints]}
+
     def __mul__(self, other):  # TODO: Check consistency
         """Multiplication of BezierBallooning"""
         # Multiplicate as normal interpolated ballooning, then refit
