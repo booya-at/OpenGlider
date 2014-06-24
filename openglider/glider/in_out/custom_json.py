@@ -1,9 +1,11 @@
 import json
+import time
 import openglider.glider.ballooning
 import openglider.glider.glider
 from openglider.graphics import draw_glider
 import openglider.utils
 
+__ALL__ = ['dumps', 'dump', 'loads', 'load', 'update_legacy_file']
 
 def return_glider(ribs, cells, lines=None):
     for cell in cells:
@@ -37,10 +39,12 @@ def object_hook(dct):
     if '_type' in dct and '_module' in dct:
         _type = dct['_type']
         if _type in objects:
-            #print(dct)
+            #try:
             return objects[_type](**dct['data'])
+            #except:
+            #    raise ValueError()
         else:
-            raise LookupError("No element of type {} found".format(_type))
+            raise LookupError("No element of type {} found (module: {})".format(_type, dct['_module']))
     else:
         return dct
 
@@ -50,14 +54,20 @@ def update_legacy_file(dct):
         pass
 
 
+def add_meta_info(data):
+    return {'MetaData': {'application': 'openglider',
+                         'version': openglider.__version__,
+                         'author': 'obviously, a pilot',
+                         'date_created': time.strftime("%d.%m.%y %H:%M")},
+            'data': data}
+
+
 def dumps(obj):
-    return json.dumps({"data": obj,
-                       "version": openglider.__version__}, cls=Encoder)
+    return json.dumps(add_meta_info(obj), cls=Encoder)
 
 
 def dump(obj, fp):
-    return json.dump({"data": obj,
-                      "version": openglider.__version__}, fp, cls=Encoder)
+    return json.dump(add_meta_info(obj), fp, cls=Encoder, indent=2)
 
 
 def loads(obj):
@@ -75,7 +85,9 @@ if __name__ == "__main__":
     print(dumps(a))
     jj = dumps(glide)
     glide2 = loads(jj)
+    with open("/tmp/glider.json", 'w') as exportfile:
+        dump(glide, exportfile)
 
     #print(loads("{'_type': Profile2D, 'data': [[1,2],[2,3]]"))
     print(glide2)
-    draw_glider(glide2['data'])
+    #draw_glider(glide2['data'])

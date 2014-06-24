@@ -36,9 +36,9 @@ class Glider(object):
         self.data = {}
 
     def __json__(self):
-        #return {"lines": [self.lineset]}
         new = self.copy()
         ribs = new.ribs[:]
+        # de-reference Ribs not to store too much data
         for cell in new.cells:
             cell.rib1 = ribs.index(cell.rib1)
             cell.rib2 = ribs.index(cell.rib2)
