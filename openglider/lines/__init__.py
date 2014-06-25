@@ -60,7 +60,7 @@ class LineSet():
         if start is None:
             start = self.lowest_lines
         for line in start:
-            #print(line.number)
+            # print(line.number)
             if line.upper_node.type == 1:  # no gallery line
                 lower_point = line.lower_node.vec
                 tangential = self.get_tangential_comp(line, lower_point)
@@ -77,7 +77,7 @@ class LineSet():
         self.calc_forces(start)
         for line in start:
             self.calc_matrix_entries(line)
-        #print(self.mat)
+        # print(self.mat)
         self.mat.solve_system()
         for l in self.lines:
             l.sag_par_1, l.sag_par_2 = self.mat.get_sag_parameters(l.number)
@@ -111,7 +111,7 @@ class LineSet():
                         print("error line force not set")
                     else:
                         force += line.force * line.diff_vector
-                #vec = line_lower.upper_node.vec - line_lower.lower_node.vec
+                # vec = line_lower.upper_node.vec - line_lower.lower_node.vec
                 line_lower.force = norm(dot(force, normalize(vec)))
 
             else:
@@ -154,8 +154,20 @@ class LineSet():
 
     def sort_lines(self):
         self.lines.sort(key=lambda line: line.number)
-        #self.nodes.sort(key=lambda node: node.number)
+        # self.nodes.sort(key=lambda node: node.number)
         # TODO: Check for consistency
 
     def copy(self):
         return copy.deepcopy(self)
+
+    def __json__(self):
+        new = self.copy()
+        nodes = list(new.nodes)
+        for line in new.lines:
+            line.upper_node = nodes.index(line.upper_node)
+            line.lower_node = nodes.index(line.lower_node)
+
+        return {
+            'lines': new.lines,
+            'nodes': nodes
+        }

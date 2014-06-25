@@ -43,7 +43,8 @@ class Glider(object):
             cell.rib1 = ribs.index(cell.rib1)
             cell.rib2 = ribs.index(cell.rib2)
         return {"cells": new.cells,
-                "ribs": ribs}
+                "ribs": ribs,
+                "lineset": self.lineset}
 
     @classmethod
     def import_geometry(cls, path, filetype=None):
@@ -253,8 +254,3 @@ class Glider(object):
     def glide(self, glide):
         for rib in self.ribs:
             rib.glide = glide
-
-
-
-
-

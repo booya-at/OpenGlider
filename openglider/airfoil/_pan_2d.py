@@ -150,7 +150,7 @@ def test():
 
 def plot_test():
     arf = Profile2D()
-    arf.importdat("../../tests/testprofile.dat")
+    arf.compute_naca(2420, numpoints=120)
     arf.numpoints = 100
     pan = panel_methode_2d(arf.data, aoa=5 * numpy.pi / 180, wake_length=5, wake_numpoints=10)
     print(pan.mat_douplet_cooef)
@@ -166,8 +166,6 @@ def graphics_test():
     from openglider.graphics import Graphics2D, Line
 
     arf = Profile2D()
-    #arf.importdat("../../tests/testprofile.dat")
-    #arf.numpoints = 100
     arf.compute_naca(2420, numpoints=120)
     arf.close()
     arf.normalize()
@@ -203,8 +201,7 @@ def visual_test_dipol():
 
 def visual_test_airfoil():
 
-    arf = Profile2D()
-    arf.importdat("../../tests/testprofile.dat")
+    arf = Profile2D("../../tests/testprofile.dat")
     arf.numpoints = 30
     pan = panel_methode_2d(arf.data, aoa=10 * numpy.pi / 180, wake_length=5, wake_numpoints=10)
     x = numpy.linspace(-0.3, 1.3, 30)

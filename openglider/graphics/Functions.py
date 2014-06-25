@@ -221,7 +221,7 @@ class Graphics(object):
         self.default_colour = [255, 255, 255]  # white
         self.colours.SetNumberOfComponents(3)
         self.colours.SetName("Colours")
-        self.renderer = None
+        self.renderer = vtk.vtkRenderer()
 
         self._draw()
         if not hidden:
@@ -252,7 +252,7 @@ class Graphics(object):
         actor = vtk.vtkActor()
         actor.SetMapper(mapper)
 
-        self.renderer = vtk.vtkRenderer()
+        
         self.renderer.AddActor(actor)
         self.renderer.SetBackground(0.1, 0.2, 0.4)  # Blue
         self.renderer.ResetCamera()
@@ -260,12 +260,13 @@ class Graphics(object):
             graphicobject.draw(self)
         self.data.GetCellData().SetScalars(self.colours)
 
-    def show(self, render_window=None):
+    def show(self, render_window=None, render_interactor=None):
         if render_window is None:
             render_window = vtk.vtkRenderWindow()
             render_window.SetSize(700, 700)
         render_window.AddRenderer(self.renderer)
-        render_interactor = vtk.vtkRenderWindowInteractor()
+        if render_interactor is None:
+            render_interactor = vtk.vtkRenderWindowInteractor()
         if self.allow_rotation:
             render_interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
         else:

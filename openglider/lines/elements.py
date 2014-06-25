@@ -93,7 +93,7 @@ class SagMatrix():
 
 
 class Line(CachedObject):
-    #TODO: why not directly save the line_type instead of a string
+    # TODO: why not directly save the line_type instead of a string
     #TODO: why are lower_node and upper_node not mandatory?
     #TODO: cached properties?
     def __init__(self, number, lower_node, upper_node, vinf, line_type=line_types.liros, target_length=None):
@@ -106,7 +106,7 @@ class Line(CachedObject):
                 the node dict or from the nodes stored in the line.
             """
         self.number = number
-        self.type = line_type                # type of line
+        self.type = line_type  # type of line
 
         self.v_inf = vinf
 
@@ -148,10 +148,6 @@ class Line(CachedObject):
     @cached_property('lower_node.vec', 'upper_node.vec', 'v_inf', 'sag_par_1', 'sag_par_2')
     def length_with_sag(self):
         if self.sag_par_1 and self.sag_par_2:
-            # return norm(self.lower_node.vec+self.sag_par_2*self.v_inf_0 -
-            #             self.upper_node.vec+(self.sag_par_2+self.length_projected*self.sag_par_1)*self.v_inf_0) +\
-                   # 3  # add quadratic amount
-                      # not linear to add: (x'(t)^2 + y'(t)^2)^(1/2) -->
             return vec_length(self.get_line_points(numpoints=100))
         else:
             print('Sag not yet calculated!')
@@ -159,7 +155,7 @@ class Line(CachedObject):
 
     def get_stretched_length(self, force=50):
         """Get the total line-length for production using a given stretch"""
-        return self.length_with_sag * (1 + self.type.stretch * (force-self.force))
+        return self.length_with_sag * (1 + self.type.stretch * (force - self.force))
 
     #@cached_property('v_inf', 'type.cw', 'type.thickness')
     @property
@@ -198,6 +194,26 @@ class Line(CachedObject):
         #print(self.length_projected, u)
         return u
 
+    @property
+    def _get_projected_par(self):
+        c1_n = numpy.dot(self.lower_node.get_diff(), self.v_inf_0)
+        c2_n = numpy.dot(self.upper_node.get_diff(), self.v_inf_0)
+        return [c1_n + self.sag_par_1, c2_n / self.length_projected + self.sag_par_2]
+
+    def __json__(self):
+        if isinstance(self.v_inf, numpy.ndarray):
+            v_inf = self.v_inf.tolist()
+        else:
+            v_inf = list(self.v_inf)
+        return{
+            'number': self.number,
+            'lower_node': self.lower_node,
+            'upper_node': self.upper_node,
+            'vinf': v_inf,
+            'line_type': self.type,
+            'target_length': self.target_length
+        }
+
 
 class Node(object):
     def __init__(self, node_type, position_vector=None):
@@ -214,3 +230,12 @@ class Node(object):
     def calc_proj_vec(self, v_inf):
         self.vec_proj = proj_to_surface(self.vec, v_inf)
         return proj_to_surface(self.vec, v_inf)
+
+    def get_diff(self):
+        return self.vec - self.vec_proj
+
+    def __json__(self):
+        return{
+            'node_type': list(self.vec_proj),
+            'position_vector': list(self.vec)
+        }

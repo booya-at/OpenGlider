@@ -23,4 +23,5 @@
 from openglider.graphics.Functions import *
 
 if __name__ == "__main__":
-    listlineplot([1, 2, 2, 1, 1, 2, 2, 1])
+    l = Line([[0,0,0.], [1,1,1.]])
+    a = Graphics([l])
