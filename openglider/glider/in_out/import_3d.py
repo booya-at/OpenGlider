@@ -1,6 +1,6 @@
-import custom_json
+import json
 
 
 def import_json(filename):
     #file = open(filename, "r")
-    return custom_json.load(filename)
+    return json.load(filename)

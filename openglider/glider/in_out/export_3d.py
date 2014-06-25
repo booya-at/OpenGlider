@@ -53,6 +53,13 @@ def export_json(glider, path=None, midribs=0, numpoints=None, wake_panels=1, wak
         numpoints = new_glider.profile_numpoints
     new_glider.profile_numpoints = numpoints
 
+    # ribs = new_glider.return_ribs(midribs)
+    # for rib in ribs:
+    #
+    #
+    # for i in range(len(ribs)-1):
+    #     for j in range()
+
     # Points list
     ribs = []
     count = 0

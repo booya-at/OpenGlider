@@ -27,13 +27,16 @@ __all__ = ['BezierCurve']
 
 
 class BezierCurve(object):
-    def __init__(self, points=None):
+    def __init__(self, controlpoints=None):
         """Bezier Curve represantative
         http://en.wikipedia.org/wiki/Bezier_curve#Generalization"""
         self._BezierBase = self._BezierFunction = self._controlpoints = None
-        if points is None:
-            points = [[0, 0], [1, 10], [2, 0]]
-        self.controlpoints = points
+        if controlpoints is None:
+            controlpoints = [[0, 0], [1, 10], [2, 0]]
+        self.controlpoints = controlpoints
+
+    def __json__(self):
+        return {'controlpoints': self.controlpoints}
 
     def __call__(self, value):
         if 0 <= value <= 1:

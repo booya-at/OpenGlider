@@ -35,7 +35,7 @@ class LineSet():
     """
 
     def __init__(self, lines=None, v_inf=None):
-        self.v_inf = v_inf if v_inf is not None else numpy.array([0, 0, 0])  # Parameters
+        self.v_inf = numpy.array(v_inf) if v_inf is not None else numpy.array([0, 0, 0])  # Parameters
         self.lines = lines or []
         self.mat = None
 
@@ -169,5 +169,6 @@ class LineSet():
 
         return {
             'lines': new.lines,
-            'nodes': nodes
+            'nodes': nodes,
+            'v_inf': self.v_inf.tolist()
         }

@@ -103,6 +103,11 @@ class AttachmentPoint(Node):
         self.rib_pos = rib_pos
         self.number = number
 
+    def __json__(self):
+        return {"rib": self.rib,
+                "number": self.number,
+                "rib_pos": self.rib_pos}
+
     def get_position(self):
         self.vec = self.rib.profile_3d[self.rib.profile_2d.profilepoint(self.rib_pos)[0]]
         return self.vec
