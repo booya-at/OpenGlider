@@ -71,14 +71,11 @@ def load(fp):
 if __name__ == "__main__":
     from openglider import airfoil
     a = airfoil.Profile2D.compute_naca(1234)
-    glide = openglider.glider.glider.Glider.import_geometry("../../../tests/demokite.ods")
+    glide = openglider.glider.glider.Glider.import_geometry("/home/simon/Dokumente/OpenGlider/tests/demokite.ods")
     print(dumps(a))
-    a = open("/tmp/test.json", "w")
-    dump(glide, a)
-    a.close()
     jj = dumps(glide)
-    # glide2 = loads(jj)
+    glide2 = loads(jj)
 
-    # print(loads("{'_type': Profile2D, 'data': [[1,2],[2,3]]"))
-    # print(glide2)
-    # draw_glider(glide2['data'])
+    #print(loads("{'_type': Profile2D, 'data': [[1,2],[2,3]]"))
+    print(glide2)
+    draw_glider(glide2['data'])
