@@ -28,7 +28,7 @@ from openglider.vector import PolyLine, PolyLine2D
 import glider
 import jsonify
 import plots
-import input
+#import input
 import lines
 #from graphics import Line, Point, graphics
 #from openglider.utils.Ballooning import Ballooning
