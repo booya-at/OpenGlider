@@ -1,7 +1,6 @@
 import json
 import time
 from objects import objects
-from openglider.graphics import draw_glider
 import openglider
 
 __ALL__ = ['dumps', 'dump', 'loads', 'load']
