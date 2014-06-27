@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import division
 import math
 import sys
 import os
@@ -47,7 +48,7 @@ midribs = [
 
 b1 = BallooningBezier()
 b2 = BallooningBezier()
-b2.Amount *= 0.8
+b2.amount_maximal *= 0.8
 
 r2 = Rib(a, b1, [0, 0.12, 0], 1., 20 * math.pi / 180, 2 * math.pi / 180, 0, 7)
 r1 = r2.copy()

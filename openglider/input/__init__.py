@@ -6,6 +6,7 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.patches
 #from pyface.qt import QtGui, QtCore
 from PyQt4 import QtGui, QtCore
+from openglider.input.qt import ApplicationWindow, ButtonWidget
 from openglider.vector import norm_squared
 from openglider.utils.bezier import BezierCurve
 
@@ -236,7 +237,8 @@ class MplBezier(ControlPointContainer):
 
 def get_ax_size(ax, fig):
     bbox = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
-    width = bbox.span * fig.dpi
+    #width = bbox.span * fig.dpi
+    width = bbox.width * fig.dpi
     height = bbox.height * fig.dpi
     return width, height
 
@@ -328,54 +330,22 @@ class MplWidget(FigureCanvas):
         self.redraw()
 
 
-class ApplicationWindow(QtGui.QMainWindow):
-    # TODO: Add button
-    def __init__(self, mplwidgets=None, title="application main window"):
-        super(ApplicationWindow, self).__init__()
-        #QtGui.QMainWindow.__init__(self)
-        self.setWindowTitle(title)
-        self.mainwidget = QtGui.QWidget(self)
-
-        self.splitter = QtGui.QSplitter(self.mainwidget)
-        self.splitter.setOrientation(QtCore.Qt.Vertical)
-
-        self.mplwidgets = mplwidgets or []
-        for mplwidget in self.mplwidgets:
-            self.splitter.addWidget(mplwidget)
-            mplwidget.updatedata()
-
-        self.vertikal_layout = QtGui.QVBoxLayout(self.mainwidget)
-        self.vertikal_layout.addWidget(self.splitter)
-        self.setCentralWidget(self.mainwidget)
-
-
-class ButtonWidget(QtGui.QSplitter):
-    def __init__(self, buttons):
-        super(ButtonWidget, self).__init__()
-        self.setOrientation(QtCore.Qt.Horizontal)
-        self.buttons = []
-        for button, func in buttons.iteritems():
-            tha_button = QtGui.QPushButton(button)
-            if func:
-                tha_button.clicked.connect(func)
-            self.buttons.append(tha_button)
-            self.addWidget(tha_button)
-
-
 
 
 
 
 if __name__ == "__main__":
-    pass
-    #points = [[.1, .2], [.2, .2], [.3, .6], [.6, .0]]
-    #controlpoints = [ControlPoint(p, locked=[0, 0]) for p in points]
+    points = [[.1, .2], [.2, .2], [.3, .6], [.6, .0]]
+    controlpoints = [ControlPoint(p, locked=[0, 0]) for p in points]
     # print(mpl1)
-    #line1 = MPL_Bezier(controlpoints)  #, mplwidget=mpl1)
-    #qApp = QtGui.QApplication(sys.argv)
-    #aw = ApplicationWindow([line1])
-    #aw.show()
-    #sys.exit(qApp.exec_())
+    line1 = MplBezier(controlpoints)  #, mplwidget=mpl1)
+    qApp = QtGui.QApplication(sys.argv)
+    widget = MplWidget()
+    line1.insert_mpl(widget)
+    butons = ButtonWidget({"ok": None})
+    aw = ApplicationWindow([butons])
+    aw.show()
+    sys.exit(qApp.exec_())
 
 
     # fig = plt.figure()

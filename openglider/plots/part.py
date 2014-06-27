@@ -1,4 +1,4 @@
-from openglider.vector import Vectorlist2D
+from openglider.vector import PolyLine2D
 
 
 class PlotPart():
@@ -14,8 +14,8 @@ class PlotPart():
     def layer_dict(self, layer_dict):
         assert isinstance(layer_dict, dict)
         for layer in layer_dict.iteritems():
-            if not isinstance(layer, Vectorlist2D):
-                layer = Vectorlist2D(layer)
+            if not isinstance(layer, PolyLine2D):
+                layer = PolyLine2D(layer)
         self._layer_dict = layer_dict
 
     def __getitem__(self, item):

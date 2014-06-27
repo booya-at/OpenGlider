@@ -19,7 +19,7 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import numpy
 
-from openglider.vector import normalize, norm, Vectorlist2D
+from openglider.vector import normalize, norm, PolyLine2D
 
 
 def point2d(p1_3d, p1_2d, p2_3d, p2_2d, point_3d):
@@ -74,4 +74,4 @@ def flatten_list(list1, list2):
     #                               list2[index_right + 1]))
     #     index_right += 1
 
-    return Vectorlist2D(flat_left), Vectorlist2D(flat_right)
+    return PolyLine2D(flat_left), PolyLine2D(flat_right)

@@ -1,5 +1,8 @@
 
 
-from openglider.glider.glider import Glider
-from openglider.glider.rib import Rib, MiniRib
-from openglider.glider.cell import Cell
+from glider import Glider
+from rib import Rib, MiniRib
+from cell import Cell
+import rib_elements
+import cell_elements
+import ballooning

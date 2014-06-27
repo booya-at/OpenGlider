@@ -1,5 +1,6 @@
 from openglider.glider.ballooning import BallooningBezier
-from openglider.input import ControlPoint, MplWidget, ApplicationWindow, MplBezier
+from openglider.input import ControlPoint, MplWidget, MplBezier
+from openglider.input.qt import ApplicationWindow, ButtonWidget
 
 
 def input_ballooning(ballooning):
@@ -16,10 +17,13 @@ def input_ballooning(ballooning):
     upper_curve.insert_mpl(mpl)
     lower_curve.insert_mpl(mpl)
 
+
     def set_points(x):
         ballooning.controlpoints = [[[p.point[0], p.point[1]*0.1] for p in upper_curve.controlpoints],
                                     [[p.point[0], -p.point[1]*0.1] for p in lower_curve.controlpoints]]
         print("updated")
 
-    aw.buttons[0].clicked.connect(set_points)
+
+    buttons = ButtonWidget({"Ok": set_points, "Close": aw.close})
+    aw.splitter.addWidget(buttons)
     return aw

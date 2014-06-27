@@ -57,7 +57,7 @@ def clear_cache():
         instance.cache.clear()
 
 
-def rec_getattr(obj, attr):
+def recursive_getattr(obj, attr):
     """
     Recursive Attribute-getter
     """
@@ -67,7 +67,7 @@ def rec_getattr(obj, attr):
         return getattr(obj, attr)
     else:
         l = attr.split('.')
-        return rec_getattr(getattr(obj, l[0]), '.'.join(l[1:]))
+        return recursive_getattr(getattr(obj, l[0]), '.'.join(l[1:]))
 
 
 def c_mul(a, b):
@@ -84,7 +84,7 @@ def hash_attributes(class_instance, hashlist):
     """
     value = 0x345678
     for attribute in hashlist:
-        el = rec_getattr(class_instance, attribute)
+        el = recursive_getattr(class_instance, attribute)
         # hash
         try:
             thahash = hash(el)

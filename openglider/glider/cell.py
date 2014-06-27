@@ -24,10 +24,10 @@ class BasicCell(CachedObject):
         ##round ballooning
         return self.midrib(y).point(ik)
 
-    def midrib(self, y, ballooning=True, arc_argument=True):
-        if y == 0:              # left side
+    def midrib(self, y_value, ballooning=True, arc_argument=True):
+        if y_value == 0:              # left side
             return self.prof1
-        elif y == 1:            # right side
+        elif y_value == 1:            # right side
             return self.prof2
         else:                   # somewhere else
             #self._checkxvals()
@@ -37,18 +37,19 @@ class BasicCell(CachedObject):
                 diff = self.prof1[i] - self.prof2[i]
                 if ballooning and self.ballooning_radius[i] > 0.:
                     if arc_argument:
-                        d = 0.5 - math.sin(self.ballooning_phi[i] * (0.5 - y)) / math.sin(self.ballooning_phi[i])
-                        h = math.cos(self.ballooning_phi[i] * (1 - 2 * y)) - self.ballooning_cos_phi[i]
+                        d = 0.5 - math.sin(self.ballooning_phi[i] * (0.5 - y_value)) / math.sin(self.ballooning_phi[i])
+                        h = math.cos(self.ballooning_phi[i] * (1 - 2 * y_value)) - self.ballooning_cos_phi[i]
                         #h = math.sqrt(1 - (norm(diff) * (0.5 - d) / self._radius[i]) ** 2)
                         #h -= self._cosphi[i]  # cosphi2-cosphi
                     else:
-                        d = y
-                        h = math.sqrt(1 - (norm(diff) * (0.5 - y) / self.ballooning_radius[i]) ** 2)
+                        d = y_value
+                        h = math.sqrt(1 - (norm(diff) * (0.5 - y_value) / self.ballooning_radius[i]) ** 2)
                         h -= self.ballooning_cos_phi[i]  # cosphi2-cosphi
                 else:  # Without ballooning
-                    d = y
+                    d = y_value
                     h = 0.
-                midrib.append(self.prof1[i] - diff * d + self.normvectors[i] * h * self.ballooning_radius[i])
+                midrib.append(self.prof1[i] - diff * d +
+                              self.normvectors[i] * h * self.ballooning_radius[i])
 
             return Profile3D(midrib)
 
@@ -120,16 +121,15 @@ class Cell(CachedObject):
         return [rib_profiles[0]] + midrib_profiles + [rib_profiles[1]]
 
     def _make_profile3d_from_minirib(self, minirib):
-        self.basic_cell.prof1 = self.prof1
-        self.basic_cell.prof2 = self.prof2
-        shape_with_ballooning = self.basic_cell.midrib(self, minirib.y_value,
+        # self.basic_cell.prof1 = self.prof1
+        # self.basic_cell.prof2 = self.prof2
+        shape_with_ballooning = self.basic_cell.midrib(minirib.y_value,
                                                                    True).data
         shape_without_ballooning = self.basic_cell.midrib(minirib.y_value,
                                                                       True).data
         points = []
         for xval, with_bal, without_bal in itertools.izip(
-                self.x_values, shape_with_ballooning, shape_without_ballooning
-        ):
+                self.x_values, shape_with_ballooning, shape_without_ballooning):
                 fakt = minirib.function(xval)  # factor ballooned/unb. (0-1)
                 point = without_bal + fakt * (with_bal - without_bal)
                 points.append(point)
@@ -143,7 +143,7 @@ class Cell(CachedObject):
         cells = []
         for leftrib, rightrib in\
                 itertools.izip(self.rib_profiles_3d[:-1], self.rib_profiles_3d[1:]):
-            cells.append(BasicCell(leftrib, rightrib))
+            cells.append(BasicCell(leftrib, rightrib, ballooning=[]))
         if not self._miniribs:
             return cells
         ballooning = [self.rib1.ballooning[x] + self.rib2.ballooning[x] for x in self.x_values]
@@ -153,8 +153,8 @@ class Cell(CachedObject):
         )):
             l = norm(right_point - left_point)  # L
             lnew = sum([norm(c.prof1.data[index] - c.prof2.data[index]) for c in cells])  # L-NEW
-            for c in self._child_cells:
-                newval = lnew / l / bl
+            for c in cells:
+                newval = lnew / l / bl if bl != 0 else 1
                 if newval < 1.:
                     c.ballooning_phi.append(arsinc(newval))  # B/L NEW 1 / (bl * l / lnew)
                 else:
@@ -184,7 +184,7 @@ class Cell(CachedObject):
 
     @property
     def x_values(self):
-        return consistent_value(self.ribs, 'x_values')
+        return consistent_value(self.ribs, 'profile_2d.x_values')
 
     @property
     def prof1(self):
@@ -222,7 +222,7 @@ class Cell(CachedObject):
         return [self.rib1, self.rib2]
 
     @property
-    def span(self):  # TODO: Maybe use mean length from (1,0), (0,0)
+    def span(self):
         return norm((self.rib1.pos - self.rib2.pos) * [0, 1, 1])
 
     @property

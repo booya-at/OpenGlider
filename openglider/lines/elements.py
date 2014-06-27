@@ -93,8 +93,6 @@ class SagMatrix():
 
 
 class Line(CachedObject):
-    # TODO: why not directly save the line_type instead of a string
-    #TODO: why are lower_node and upper_node not mandatory?
     #TODO: cached properties?
     def __init__(self, number, lower_node, upper_node, vinf, line_type=line_types.liros, target_length=None):
         """Line Class:

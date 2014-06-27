@@ -23,7 +23,7 @@ import os
 import numpy
 
 from openglider.utils.cache import cached_property
-from openglider.vector import normalize, norm, Vectorlist2D, Vectorlist, Polygon2D, HashedList, Layer, norm_squared
+from openglider.vector import normalize, norm, PolyLine2D, PolyLine, Polygon2D, HashedList, Layer, norm_squared
 
 
 def get_x_value(x_value_list, x):
@@ -349,7 +349,7 @@ class XFoil(Profile2D):
         ##self._calcvalues=[1,2]
 
 
-class Profile3D(Vectorlist):
+class Profile3D(PolyLine):
     def __init__(self, profile=None, name="Profile3d"):
         super(Profile3D, self).__init__(profile, name)
         self._normvectors = self._tangents = None

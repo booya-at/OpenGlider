@@ -26,7 +26,7 @@ import projection
 # from openglider.glider.cell import Cell
 from cuts import cuts
 from .part import PlotPart
-from openglider.vector import Vectorlist2D, depth
+from openglider.vector import PolyLine2D, depth
 
 
 # Sign configuration
@@ -96,12 +96,12 @@ def flatten_glider(glider):
                                                     [right_bal, back_right]],
                                                    left_out, right_out, panel.cut_back[3])
             part_cuts = [left_out[cut_front[1]:cut_back[1]] +
-                         Vectorlist2D(cut_back[0]) +
+                         PolyLine2D(cut_back[0]) +
                          right_out[cut_front[2]:cut_back[2]:-1] +
-                         Vectorlist2D(cut_front[0])[::-1]]
+                         PolyLine2D(cut_front[0])[::-1]]
             part_marks = [left_bal[front_left:back_left] +
                           right_bal[front_right:back_right:-1] +
-                          Vectorlist2D([left_bal[front_left]])]
+                          PolyLine2D([left_bal[front_left]])]
             part_text = []
 
             for attachment_point in filter(lambda p: p.rib is cell.rib1, glider.attachment_points):

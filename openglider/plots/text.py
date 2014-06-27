@@ -1,5 +1,5 @@
 import numpy
-from openglider.vector import norm, normalize, Vectorlist2D
+from openglider.vector import norm, normalize, PolyLine2D
 
 text_vectors = {
     "1": [[0.2, 0.5], [0.6, 1.], [0.6, 0.]],
@@ -55,6 +55,6 @@ def get_text_vector(text, p1, p2, height=1):
     rot = numpy.array([[x, -y], [y, x]]) * norm(diff) * [1, height]
     vectors = []
     for letter in text.upper():
-        vectors.append(Vectorlist2D(map(lambda p: p0 + rot.dot(p), text_vectors[letter])))
+        vectors.append(PolyLine2D(map(lambda p: p0 + rot.dot(p), text_vectors[letter])))
         p0 += diff
     return vectors

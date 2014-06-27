@@ -26,7 +26,7 @@ try:
     import openglider
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
-from openglider import glider
+    import openglider
 
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
@@ -34,7 +34,7 @@ importpath = testfolder + '/demokite.ods'
 
 class GliderTestClass(unittest.TestCase):
     def setUp(self, complete=True):
-        self.glider = openglider.Glider.import_geometry(path=importpath)
+        self.glider = openglider.glider.Glider.import_geometry(path=importpath)
 
 
 class TestGlider(GliderTestClass):

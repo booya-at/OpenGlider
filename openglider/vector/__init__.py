@@ -18,9 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import copy
+import numpy
 
-import numpy as np
-#from openglider.graphics import graphics, Line  # DEBUG
 from openglider.utils import sign
 from openglider.utils.cache import cached_property, CachedObject
 
@@ -67,20 +66,20 @@ def norm(vector):
     """
     Norm-Function for n-dimensional vectors
     """
-    return np.sqrt(np.vdot(vector, vector))
+    return numpy.sqrt(numpy.vdot(vector, vector))
 
 def norm_squared(vector):
     """
     Norm_squared
     """
-    return np.vdot(vector, vector)
+    return numpy.vdot(vector, vector)
 
 
 def normalize(vector):
     """
     Normalize n-dimensional vectors
     """
-    leng = norm(vector)
+    leng = norm_squared(vector)
     if leng > 0:
         return vector / norm(vector)
     raise ValueError("Cannot normalize a vector of length Zero")
@@ -108,9 +107,9 @@ def rotation_3d(angle, axis=None):
     if axis is None:
         axis = [1, 0, 0]
     # see http://en.wikipedia.org/wiki/SO%284%29#The_Euler.E2.80.93Rodrigues_formula_for_3D_rotations"""
-    a = np.cos(angle / 2)
-    (b, c, d) = -normalize(axis) * np.sin(angle / 2)
-    return np.array([[a ** 2 + b ** 2 - c ** 2 - d ** 2, 2 * (b * c - a * d), 2 * (b * d + a * c)],
+    a = numpy.cos(angle / 2)
+    (b, c, d) = -normalize(axis) * numpy.sin(angle / 2)
+    return numpy.array([[a ** 2 + b ** 2 - c ** 2 - d ** 2, 2 * (b * c - a * d), 2 * (b * d + a * c)],
                      [2 * (b * c + a * d), a ** 2 + c ** 2 - b ** 2 - d ** 2, 2 * (c * d - a * b)],
                      [2 * (b * d - a * c), 2 * (c * d + a * b), a ** 2 + d ** 2 - b ** 2 - c ** 2]])
 
@@ -123,7 +122,7 @@ def rotation_2d(angle):
     """
     Return a 2D-Rotation-Matrix
     """
-    return np.array([[np.cos(angle), np.sin(angle)], [-np.sin(angle), np.cos(angle)]])
+    return numpy.array([[numpy.cos(angle), numpy.sin(angle)], [-numpy.sin(angle), numpy.cos(angle)]])
 
 
 def cut(p1, p2, p3, p4):
@@ -137,7 +136,7 @@ def cut(p1, p2, p3, p4):
     matrix = [[p2[0] - p1[0], p3[0] - p4[0]],
               [p2[1] - p1[1], p3[1] - p4[1]]]
     rhs = [p3[0] - p1[0], p3[1] - p1[1]]
-    (k, l) = np.linalg.solve(matrix, rhs)
+    (k, l) = numpy.linalg.solve(matrix, rhs)
     return p1 + k * (p2 - p1), k, l
 
 
@@ -155,11 +154,14 @@ class HashedList(CachedObject):
         except AttributeError:
             self.name = name
 
+    def __json__(self):
+        return {"data": self.data.tolist(), "name": self.name}
+
     def __getitem__(self, item):
         return self.data.__getitem__(item)
 
     def __setitem__(self, key, value):
-        self.data.__setitem__(key, np.array(value))
+        self.data.__setitem__(key, numpy.array(value))
         self._hash = None
 
     def __hash__(self):
@@ -179,9 +181,6 @@ class HashedList(CachedObject):
     def __repr__(self):
         return super(HashedList, self).__repr__() + " (name: {})".format(self.name)
 
-    def __json__(self):
-        return {"data": self.data.tolist(), "name": self.name}
-
     @property
     def data(self):
         return self._data
@@ -189,7 +188,7 @@ class HashedList(CachedObject):
     @data.setter
     def data(self, data):
         if not data is None:
-            self._data = np.array(data)
+            self._data = numpy.array(data)
             #self._data = [np.array(vector) for vector in data]  # 1,5*execution time
             self._hash = None
         else:
@@ -199,9 +198,9 @@ class HashedList(CachedObject):
         return copy.deepcopy(self)
 
 
-class Vectorlist(HashedList):
+class PolyLine(HashedList):
     def __init__(self, data=None, name=None):
-        super(Vectorlist, self).__init__(data, name)
+        super(PolyLine, self).__init__(data, name)
 
     def __getitem__(self, ik):
         if isinstance(ik, int) and 0 <= ik < len(self):  # easiest case
@@ -240,7 +239,7 @@ class Vectorlist(HashedList):
         start2 = start - start % 1 + 1
         stop2 = stop - stop % 1
         data = self.data[start2:stop2]
-        return np.concatenate([[self[start]], data, [self[stop]]])
+        return numpy.concatenate([[self[start]], data, [self[stop]]])
 
     def extend(self, start, length):
         if length == 0:
@@ -291,20 +290,31 @@ class Vectorlist(HashedList):
         self.data *= [x, y]
 
 
-class Vectorlist2D(Vectorlist):
+class PolyLine2D(PolyLine):
     def __init__(self, data=None, name=None):
         self._normvectors = None
-        super(Vectorlist2D, self).__init__(data, name)
+        super(PolyLine2D, self).__init__(data, name)
 
     def __add__(self, other):  # this is python default behaviour for lists
         if other.__class__ is self.__class__:
             if self.data is not None:
-                return self.__class__(np.append(self.data, other.data, axis=0), self.name)
+                return self.__class__(numpy.append(self.data, other.data, axis=0), self.name)
             else:
                 return other.copy()
         else:
             raise ValueError("cannot append: ", self.__class__, other.__class__)
 
+    def new_cut(self, p1, p2, startpoint=0):
+        for i in rangefrom(len(self)-2, startpoint):
+            try:
+                thacut = cut(self[i], self[i+1], p1, p2)
+                if 0 < thacut[1] <= 1 or (thacut[1]==0 and i==0):
+                    yield i+thacut[1]
+            except numpy.linalg.LinAlgError:
+                continue
+
+
+    # TODO: make a iterator
     def cut(self, p1, p2, startpoint=0, break_if_found=True,
             cut_only_positive=False, cut_only_in_between=False):
         """
@@ -316,7 +326,7 @@ class Vectorlist2D(Vectorlist):
         for i in rangefrom(len(self) - 2, startpoint):
             try:
                 thacut = cut(self[i], self[i + 1], p1, p2)  # point, i, k
-            except np.linalg.linalg.LinAlgError:
+            except numpy.linalg.linalg.LinAlgError:
                 continue
             if (0 <= thacut[1] < 1 and
                     (not cut_only_positive or thacut[2] >= 0) and
@@ -334,7 +344,7 @@ class Vectorlist2D(Vectorlist):
             temp = cut(self[0], self[1], p1, p2)
             if temp[1] <= 0:
                 cutlist.append([temp[0], temp[1], norm(self[0] - self[1]) * temp[1]])
-        except np.linalg.linalg.LinAlgError:
+        except numpy.linalg.linalg.LinAlgError:
             pass
         # End
         try:
@@ -342,7 +352,7 @@ class Vectorlist2D(Vectorlist):
             temp = cut(self[i], self[i + 1], p1, p2)
             if temp[1] > 0:
                 cutlist.append([temp[0], i + temp[1], norm(self[i] - self[i + 1]) * temp[1]])
-        except np.linalg.linalg.LinAlgError:
+        except numpy.linalg.linalg.LinAlgError:
             pass
 
         if len(cutlist) > 0:
@@ -352,8 +362,8 @@ class Vectorlist2D(Vectorlist):
             return cutlist[0][0:2]
         else:
             #graphics([Line(self.data), Line([p1,p2])])  # DEBUG
-            raise ArithmeticError("no cuts discovered for p1:" + str(p1) + " p2:" + str(p2) + str(self[0]) +
-                                  str(cut(self[0], self[1], p1, p2)))
+            raise ArithmeticError("no cuts discovered for p1:" + str(p1) + " p2:" + str(p2) + str(self[0]))
+                                  #str(cut(self[0], self[1], p1, p2)))
 
     def check(self):  # TODO: IMPROVE (len = len(self.data), len-=,...)
         """
@@ -369,8 +379,8 @@ class Vectorlist2D(Vectorlist):
                     temp = cut(self.data[i], self.data[i + 1], self.data[j], self.data[j + 1])
                     if 0 < temp[1] < 1. and 0 < temp[2] < 1.:
                         #self.data = self.data[:i] + [temp[0]] + self.data[j + 1:]
-                        self.data = np.concatenate([self.data[:i], [temp[0]], self.data[j+1:]])
-                except np.linalg.linalg.LinAlgError:
+                        self.data = numpy.concatenate([self.data[:i], [temp[0]], self.data[j+1:]])
+                except numpy.linalg.linalg.LinAlgError:
                     continue
 
     @cached_property('self')
@@ -381,7 +391,6 @@ class Vectorlist2D(Vectorlist):
         rotate = lambda x: normalize(x).dot([[0, -1], [1, 0]])
         normvectors = [rotate(self.data[1] - self.data[0])]
         for j in range(1, len(self.data) - 1):
-            # TODO: Maybe not normalize here?!
             normvectors.append(
                 #rotate(normalize(self.data[j + 1] - self.data[j]) + normalize(self.data[j] - self.data[j - 1])))
                 rotate(self.data[j + 1] - self.data[j - 1]))
@@ -409,12 +418,12 @@ class Vectorlist2D(Vectorlist):
             third = self.data[i + 1]
             d1 = third - second
             d2 = second - first
-            newlist.append(second + self.normvectors[i] * amount / d1.dot(d2) * np.sqrt(d1.dot(d1) * d2.dot(d2)))
+            newlist.append(second + self.normvectors[i] * amount / d1.dot(d2) * numpy.sqrt(d1.dot(d1) * d2.dot(d2)))
         newlist.append(third + self.normvectors[i + 1] * amount)
         self.data = newlist
 
     def mirror(self, p1, p2):
-        normvector = normalize(np.array(p1-p2).dot([[0, -1], [1, 0]]))
+        normvector = normalize(numpy.array(p1-p2).dot([[0, -1], [1, 0]]))
         self.data = [point - 2*normvector.dot(point-p1)*normvector for point in self.data]
 
     def rotate(self, angle, startpoint=None):
@@ -431,7 +440,7 @@ class Vectorlist2D(Vectorlist):
         self.data = new_data
 
 
-class Polygon2D(Vectorlist2D):
+class Polygon2D(PolyLine2D):
     @property
     def isclosed(self):
         return self.data[0] == self.data[-1]
@@ -472,9 +481,9 @@ class Polygon2D(Vectorlist2D):
 
 class Layer(object):
     def __init__(self, p0, v1, v2):
-        self.p0 = np.array(p0)
-        self.v1 = np.array(v1)
-        self.v2 = np.array(v2)
+        self.p0 = numpy.array(p0)
+        self.v1 = numpy.array(v1)
+        self.v2 = numpy.array(v2)
 
     def point(self, x1, x2):
         return self.p0 + x1 * self.v1 + x2 * self.v2
@@ -485,9 +494,9 @@ class Layer(object):
         eq: p1 + x1*(p2-p1) = self.p0 + x2 * self.v1 + x3*self.r2
         - x1*(p2-p1) + x2 * self.v1 + x3 * self.v2 = p1 - self.p0
         """
-        lhs = np.matrix([p1-p2, self.v1, self.v2]).transpose()
+        lhs = numpy.matrix([p1-p2, self.v1, self.v2]).transpose()
         rhs = p1 - self.p0
-        res = np.linalg.solve(lhs, rhs)
+        res = numpy.linalg.solve(lhs, rhs)
         print("res: ", res, lhs, rhs)
         return res[0], res[1:], self.point(res[1], res[2])
 
@@ -497,7 +506,7 @@ class Layer(object):
 
     @property
     def translation_matrix(self):
-        return np.matrix(self.v1, self.v2, self.normvector).transpose()
+        return numpy.matrix(self.v1, self.v2, self.normvector).transpose()
 
     def align(self, point_3d):
         return self.p0 + self.translation_matrix.dot(point_3d)
@@ -508,10 +517,10 @@ class Layer(object):
 
     @property
     def normvector(self):
-        return np.cross(self.v1, self.v2)
+        return numpy.cross(self.v1, self.v2)
 
     @normvector.setter
     def normvector(self, normvector):
         #assert isinstance(normvector, np.ndarray)
-        self.v1 = np.array([0, -normvector[3], normvector[2]])
-        self.v2 = np.cross(self.v1, normvector)
+        self.v1 = numpy.array([0, -normvector[3], normvector[2]])
+        self.v2 = numpy.cross(self.v1, normvector)

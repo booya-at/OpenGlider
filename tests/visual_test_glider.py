@@ -31,6 +31,7 @@ except ImportError:
     import openglider
 import openglider.graphics
 import openglider.graphics as G
+from openglider.vector import PolyLine2D
 from test_glider import GliderTestClass
 import unittest
 
@@ -50,8 +51,9 @@ class TestGlider(GliderTestClass):
         else:
             thaglider = thaglider.copy_complete()
         polygons, points = thaglider.return_polygons(num)
-        objects = [openglider.graphics.Axes(size=1.2)]  #, openglider.graphics.Green
-        objects += map(openglider.graphics.Polygon, polygons)
+        objects = map(openglider.graphics.Polygon, polygons)
+
+        objects += [openglider.graphics.Axes(size=1.2)] #, openglider.graphics.Green]
         #objects.append(openglider.graphics.Blue)
         objects += map(lambda line: openglider.graphics.Line(line.get_line_points()), thaglider.lineset.lines)
         openglider.graphics.Graphics3D(objects, points)
@@ -59,11 +61,11 @@ class TestGlider(GliderTestClass):
     def test_show_shape(self):
         self.glider = self.glider.copy_complete()
         left, right = self.glider.shape
-        left.rotate(math.pi/2)
-        right.rotate(math.pi/2, [0, 0])
-        data = [left.data,
-                right.data]
-        data += [[left.data[i], right.data[i]] for i in range(len(left.data))]
+        #left.rotate(math.pi/2)
+        #right.rotate(math.pi/2, [0, 0])
+        data = [left,
+                right]
+        data += [[left[i], right[i]] for i in range(len(left))]
         openglider.graphics.Graphics2D([openglider.graphics.Line(obj) for obj in data])
 
     def test_show_ribs(self):

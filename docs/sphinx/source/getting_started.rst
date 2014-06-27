@@ -15,7 +15,12 @@ from the main directory.
 Interactive Shell
 -----------------
 
-Best practice is to use python as a module.
+Openglider is intended to be used as a module in scripts.
+Best practice is to use ipython::
+
+    ipython notebook
+
+
 to do so launch a python console::
 
     python2

@@ -20,6 +20,7 @@ class Rib(CachedObject):
                  chord=1.,
                  arcang=0, aoa=0, zrot=0,
                  glide=1, name="unnamed rib", aoa_abs=False, startpos=0.):
+        self.startpos = startpos
         # TODO: Startpos > Set Rotation Axis in Percent
         self.name = name
         self.profile_2d = profile_2d or Profile2D()

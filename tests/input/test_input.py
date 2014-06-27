@@ -22,10 +22,6 @@ import unittest
 import random
 import sys
 import os
-from openglider.glider import ballooning
-from openglider.input import ControlPoint, ApplicationWindow, MplWidget
-from openglider.input.ballooning import input_ballooning
-from openglider.input.shape import shapeinput, MplSymmetricBezier
 
 try:
     import openglider
@@ -33,6 +29,11 @@ except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
     import openglider
 
+from openglider.glider import ballooning
+from openglider.input import ControlPoint, MplWidget
+from openglider.input.qt import ApplicationWindow, ButtonWidget
+from openglider.input.ballooning import input_ballooning
+from openglider.input.shape import shapeinput, MplSymmetricBezier
 
 qApp = QtGui.QApplication(sys.argv)
 testfolder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -41,7 +42,7 @@ importpath = testfolder + '/demokite.ods'
 
 class GliderTestClass(unittest.TestCase):
     def setUp(self, complete=True):
-        self.glider = openglider.Glider.import_geometry(path=importpath)
+        self.glider = openglider.glider.Glider.import_geometry(path=importpath)
 
     def test_spline_input(self):
         points = [[.1, .2], [.2, .2], [.3, .6], [.6, .0]]
@@ -51,6 +52,7 @@ class GliderTestClass(unittest.TestCase):
         mplwidget = MplWidget(dpi=100)
         line1.insert_mpl(mplwidget)
         aw = ApplicationWindow([mplwidget])
+        mplwidget.redraw()
         aw.show()
         qApp.exec_()
 

@@ -20,7 +20,8 @@
 
 
 import vtk
-import numpy as np
+import numpy
+
 from openglider.vector import depth, norm, normalize
 # Quick graphics lib to imitate mathematicas graphics functions
 
@@ -33,10 +34,10 @@ def tofloat(lst):
 
 
 def listlineplot(points):
-    if isinstance(points, np.ndarray):
+    if isinstance(points, numpy.ndarray):
         points = points.tolist()
     if depth(points) == 2:
-        Graphics2D([Line(np.transpose(np.array([map(float, range(len(points))), points])))])
+        Graphics2D([Line(numpy.transpose(numpy.array([map(float, range(len(points))), points])))])
     if depth(points) == 3 and len(points[1]) == 2:
         Graphics2D([Line(tofloat(points))])
     if depth(points) == 3 and len(points[1]) == 3:
@@ -78,10 +79,11 @@ def _isintlist(arg):
 ######################################################
 ################Graphics Objects######################
 class GraphicObject(object):
-    def __init__(self, points, type_name, colour=None):
-        self.type_name = type_name
+    element_setter = None
+
+    def __init__(self, points, colour=None):
         self._is_direct = _isintlist(points)
-        self.points = np.array(points)
+        self.points = numpy.array(points)
         self.colour = colour
 
     #coordinates= list of points (can be nested)
@@ -97,15 +99,17 @@ class GraphicObject(object):
         """
         Draw Object into a Graphics-Instance
         """
-        cell = graphics.get_cell(self.type_name)
+        cell = graphics.get_cell(self.__class__)
         pointnums = self.add_points(graphics)
         graphics.colours.InsertNextTupleValue(self.colour or graphics.default_colour)
         return cell, pointnums
 
 
 class Point(GraphicObject):
+    element_setter = "SetVerts"
+
     def __init__(self, pointnumbers, colour=None):
-        super(Point, self).__init__(pointnumbers, 'Point', colour=colour)
+        super(Point, self).__init__(pointnumbers, colour=colour)
 
     def draw(self, graphics):
         cell, pointnums = super(Point, self).draw(graphics)
@@ -113,12 +117,14 @@ class Point(GraphicObject):
         cell.InsertNextCell(len(pointnums))
         for p in pointnums:
             cell.InsertCellPoint(p)
-        graphics.data.SetVerts(cell)
+        #graphics.data.SetVerts(cell)
 
 
 class Line(GraphicObject):
+    element_setter = "SetLines"
+
     def __init__(self, pointnumbers, colour=None):
-        super(Line, self).__init__(pointnumbers, 'Line', colour=colour)
+        super(Line, self).__init__(pointnumbers, colour=colour)
 
     def draw(self, graphics):
         cell, pointnums = super(Line, self).draw(graphics)
@@ -132,12 +138,13 @@ class Line(GraphicObject):
             line.GetPointIds().SetId(1, pointnums[i + 1])
             cell.InsertNextCell(line)
 
-        graphics.data.SetLines(cell)
+        #graphics.data.SetLines(cell)
 
 
 class Arrow(GraphicObject):
+
     def __init__(self, pointnumbers, colour=None):
-        super(Arrow, self).__init__(pointnumbers, 'Arrow', colour=colour)
+        super(Arrow, self).__init__(pointnumbers, colour=colour)
 
     def draw(self, graphics):
         cell, pointnums = super(Arrow, self).draw(graphics)
@@ -149,12 +156,13 @@ class Arrow(GraphicObject):
         transform.Translate(p1)
         length = norm(p2-p1)
         transform.Scale(length, length, length)
-        pass
 
 
 class Polygon(GraphicObject):
+    element_setter = "SetPolys"
+
     def __init__(self, pointnumbers, colour=None):
-        super(Polygon, self).__init__(pointnumbers, 'Polygon', colour=colour)
+        super(Polygon, self).__init__(pointnumbers, colour=colour)
 
     def draw(self, graphics):
         cell, pointnums = super(Polygon, self).draw(graphics)
@@ -164,12 +172,12 @@ class Polygon(GraphicObject):
         for i, p in enumerate(pointnums):
             polygon.GetPointIds().SetId(i, p)
         cell.InsertNextCell(polygon)
-        graphics.data.SetPolys(cell)
+        #graphics.data.SetPolys(cell)
 
 
 class Axes(GraphicObject):
     def __init__(self, start=(0., 0., 0.), size=None, label=False):
-        super(Axes, self).__init__(start, 'Axes')
+        super(Axes, self).__init__(start)
         self._is_direct = False
         self.size = size
         self.label = label
@@ -186,7 +194,7 @@ class Axes(GraphicObject):
         axes.SetUserTransform(transform)
         if not self.label:
             axes.AxisLabelsOff()
-        graphics.renderer.AddActor(axes)
+        #graphics.renderer.AddActor(axes)
 
 
 #######################################################################
@@ -210,10 +218,11 @@ Green = RGBColour(0, 255, 0)
 ########################Graphics (MAIN)##############################
 class Graphics(object):
     """Creates a Graphics Instance"""
-    def __init__(self, graphicobjects, coordinates=None, rotation=True, hidden=False):
+    def __init__(self, graphicobjects, coordinates=None, rotation=True, show=True):
         self.allow_rotation = rotation
         self.coordinates = coordinates
         self.graphicobjects = graphicobjects
+        self.vtk_cells = {}
 
         self.data = vtk.vtkPolyData()
         self.points = vtk.vtkPoints()
@@ -221,10 +230,10 @@ class Graphics(object):
         self.default_colour = [255, 255, 255]  # white
         self.colours.SetNumberOfComponents(3)
         self.colours.SetName("Colours")
-        self.renderer = vtk.vtkRenderer()
+        self.actor = vtk.vtkActor()
 
-        self._draw()
-        if not hidden:
+        if show:
+            self.redraw()
             self.show()
 
     @staticmethod
@@ -236,7 +245,7 @@ class Graphics(object):
         else:
             raise ValueError("Only 2D- or 3D-Vectors allowed")
 
-    def _draw(self):
+    def redraw(self):
         self.data.Reset()
         self.points.Reset()
         self.colours.Reset()
@@ -245,28 +254,30 @@ class Graphics(object):
             for coor in self.coordinates:
                 self.points.InsertNextPoint(self.make_3d(coor))
 
+        for graphicobject in self.graphicobjects:
+            graphicobject.draw(self)
+
         self.data.SetPoints(self.points)
+        self.data.GetCellData().SetScalars(self.colours)
+
+        # Set element types
+        for cls, vtk_cell_array in self.vtk_cells.iteritems():
+            if cls.element_setter is not None:
+                getattr(self.data, cls.element_setter)(vtk_cell_array)
 
         mapper = vtk.vtkPolyDataMapper()
         mapper.SetInput(self.data)
-        actor = vtk.vtkActor()
-        actor.SetMapper(mapper)
+        self.actor.SetMapper(mapper)
 
-        
-        self.renderer.AddActor(actor)
+    def show(self):
+        self.renderer = vtk.vtkRenderer()
         self.renderer.SetBackground(0.1, 0.2, 0.4)  # Blue
         self.renderer.ResetCamera()
-        for graphicobject in self.graphicobjects:
-            graphicobject.draw(self)
-        self.data.GetCellData().SetScalars(self.colours)
-
-    def show(self, render_window=None, render_interactor=None):
-        if render_window is None:
-            render_window = vtk.vtkRenderWindow()
-            render_window.SetSize(700, 700)
+        self.renderer.AddActor(self.actor)
+        render_window = vtk.vtkRenderWindow()
+        render_window.SetSize(700, 700)
         render_window.AddRenderer(self.renderer)
-        if render_interactor is None:
-            render_interactor = vtk.vtkRenderWindowInteractor()
+        render_interactor = vtk.vtkRenderWindowInteractor()
         if self.allow_rotation:
             render_interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
         else:
@@ -275,13 +286,15 @@ class Graphics(object):
         render_interactor.Initialize()
         render_interactor.Start()
 
-    def get_cell(self, name):
-        try:
-            return getattr(self, 'cell_'+name)
-        except AttributeError:
-            cellarray = vtk.vtkCellArray()
-            setattr(self, 'cell_'+name, cellarray)
-            return cellarray
+    def get_cell(self, graphics_cls):
+        """
+        Get a vtkCellArray container
+        """
+        name = graphics_cls
+        #name = graphics_cls.graphics_type
+        if name not in self.vtk_cells:
+            self.vtk_cells[name] = vtk.vtkCellArray()
+        return self.vtk_cells[name]
 
     def get_points(self, *points):
         return [self.points.GetPoint(point_no) for point_no in points]
@@ -298,7 +311,24 @@ class Graphics2D(Graphics):
 
 
 def show(*graphics):
-    window = vtk.vtkRenderWindow()
-    window.SetSize(700, 700)
+    allow_rotation=True
+
+    render_window = vtk.vtkRenderWindow()
+    render_window.SetSize(700, 700)
+    render_interactor = vtk.vtkRenderWindowInteractor()
+    if allow_rotation:
+        render_interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
+    else:
+        render_interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBand2D())
+
+    renderer = vtk.vtkRenderer()
+    renderer.SetBackground(0.1, 0.2, 0.4)  # Blue
+    renderer.ResetCamera()
     for g in graphics:
-        pass
+        g.redraw()
+        renderer.AddActor(g.actor)
+
+    render_interactor.SetRenderWindow(render_window)
+    render_window.AddRenderer(renderer)
+    render_interactor.Initialize()
+    render_interactor.Start()

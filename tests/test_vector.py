@@ -34,7 +34,7 @@ def makelists(self, dim):
         pointlist = []
         for u in range(numpoints):
             pointlist.append([random.random() * 100 for i in range(dim)])
-        self.vectors.append(vector.Vectorlist(pointlist))
+        self.vectors.append(vector.PolyLine(pointlist))
 
 
 class TestVector3D(unittest.TestCase):
@@ -96,7 +96,7 @@ class TestVector2D(TestVector3D):
     def setUp(self, dim=2):
         makelists(self, dim)
         #TestVector3D.setUp(self, dim)
-        self.vectors = [vector.Vectorlist2D(i.data[:]) for i in self.vectors]
+        self.vectors = [vector.PolyLine2D(i.data[:]) for i in self.vectors]
 
     #@unittest.skip("temp")
     def test_A_selfcheck(self):

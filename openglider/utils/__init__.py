@@ -20,7 +20,7 @@
 
 
 __author__ = 'lo'
-from cache import rec_getattr
+from cache import recursive_getattr
 
 def sign(val):
     val = float(val)
@@ -28,7 +28,7 @@ def sign(val):
 
 
 def consistent_value(elements, attribute):
-    vals = [rec_getattr(element, attribute) for element in elements]
+    vals = [recursive_getattr(element, attribute) for element in elements]
     if vals[1:] == vals[:-1]:
         return vals[0]
     else:

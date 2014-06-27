@@ -20,7 +20,7 @@
 #from openglider import Profile2D
 from openglider.lines import Node
 from openglider.plots.marks import polygon
-from openglider.vector import cut, Vectorlist2D
+from openglider.vector import cut, PolyLine2D
 
 
 class RigidFoil(object):
@@ -36,13 +36,13 @@ class RigidFoil(object):
 
     def get_length(self):
         flat = self.get_flattened()
-        flat = Vectorlist2D(flat)
+        flat = PolyLine2D(flat)
         flat.check()
         return flat.get_length()
 
     def get_flattened(self):
         profile = self.rib.profile_2d
-        normvectors = Vectorlist2D(profile.normvectors)
+        normvectors = PolyLine2D(profile.normvectors)
         __, start = profile.profilepoint(self.start)
         __, end = profile.profilepoint(self.end)
 
@@ -75,19 +75,21 @@ class GibusArcs(object):
             __, point_2 = profile.profilepoint(self.pos + self.size)
 
         gib_arc = [[], []]  # first, second
-        circle = polygon(point_1, point_2, num=num_points, is_center=True)[0]
-        second = False
+        circle = polygon(point_1, point_2, num=num_points, is_center=True)[0][1:]
+        is_second_run = False
+        print(circle)
         for i in range(len(circle)):
             #print(airfoil.contains_point(circle[i]))
             if profile.contains_point(circle[i]) or \
                     (i < len(circle) - 1 and profile.contains_point(circle[i + 1])) or \
                     (i > 1 and profile.contains_point(circle[i - 1])):
-                gib_arc[second].append(circle[i])
+                gib_arc[is_second_run].append(circle[i])
             else:
-                second = True
+                is_second_run = True
         # Cut first and last
         gib_arc = gib_arc[1] + gib_arc[0]  # [secondlist] + [firstlist]
         gib_arc[0], start2, __ = profile.cut(gib_arc[0], gib_arc[1], start)
+        print(gib_arc)
         gib_arc[-1], stop, __ = profile.cut(gib_arc[-2], gib_arc[-1], start)
         # Append Profile_List
         gib_arc += profile.get(start2, stop).tolist()

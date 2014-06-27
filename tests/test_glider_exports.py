@@ -26,7 +26,7 @@ try:
     import openglider
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
-from openglider import glider
+    import openglider
 from openglider.plots import flatten_glider, create_svg
 from test_glider import GliderTestClass
 
