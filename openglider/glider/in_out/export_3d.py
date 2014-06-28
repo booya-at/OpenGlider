@@ -3,7 +3,7 @@ import numpy
 from dxfwrite import DXFEngine as dxf
 
 from openglider.vector import normalize, norm
-#from openglider.graphics import Graphics3D, Line
+# from openglider.graphics import Graphics3D, Line
 
 
 def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6):
@@ -33,7 +33,7 @@ def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6):
     # Write file
     with open(path, "w") as outfile:
         for point in points:
-            #point = point[0] * [-1, -1, -1], point[1] * [-1, -1, -1]
+            # point = point[0] * [-1, -1, -1], point[1] * [-1, -1, -1]
             # Write Normvector
             outfile.write("vn {0} {1} {2}\n".format(*map(lambda x: round(-x, floatnum), point[1])))
             # Write point
@@ -43,90 +43,84 @@ def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6):
     return True
 
 
-def export_json(glider, path=None, midribs=0, numpoints=None, wake_panels=1, wake_length=0.2, *other):
+def export_json(glider, path=None, midribs=0, numpoints=50, wake_panels=1, wake_length=0.2, *other):
     """
     export json geometry file for panelmethod calculation
     """
     import json  # TODO
-    new_glider = glider.copy()
-    if numpoints is None:  # Reset in any case to have same xvalues on upper/lower
-        numpoints = new_glider.profile_numpoints
-    new_glider.profile_numpoints = numpoints
 
-    # ribs = new_glider.return_ribs(midribs)
-    # for rib in ribs:
-    #
-    #
-    # for i in range(len(ribs)-1):
-    #     for j in range()
+    class node():
+        def __init__(self, p, is_wake=False):
+            self.point = numpy.array(p)
 
-    # Points list
-    ribs = []
-    count = 0
-    for rib in new_glider.ribs:
-        # make dicts!
-        this_rib = []
-        for p in rib.profile_3d.data:
-            # p is a point of the 3d airfoil
-            # first upper side than lower
-            this_rib.append({"data": p.tolist(), "wake": False, "position": count})
-            count += 1
-        for i in range(wake_panels):
-            #   appending the wake --> (te -> upper foil -> le -> lower foil -> wake)
-            this_rib.append({"data": rib.align([1+(i+1)*wake_length, 0]).tolist(), "wake": True, "position": count})
-            count += 1
-        ribs.append(this_rib)
+        def __json__(self):
+            return self.point.tolist()
 
-    # Create panels list with counter
+    class panel():
+        def __init__(self, nodes):
+            self.nodes = nodes
+            self.node_nos = [None, None, None, None]
+            self.neighbours = None
+
+        @property
+        def is_wake(self):
+            return sum([tha_node.is_wake for tha_node in self.nodes]) > 0
+
+        # This is just lazyness..
+        def get_neighbours(self, panel_list):
+            self.neighbours = [self.get_neighbour(self.nodes[0], self.nodes[1], pan_list=panel_list),
+                          self.get_neighbour(self.nodes[1], self.nodes[2], pan_list=panel_list),
+                          self.get_neighbour(self.nodes[2], self.nodes[3], pan_list=panel_list),
+                          self.get_neighbour(self.nodes[3], self.nodes[0], pan_list=panel_list)]
+
+        def get_neighbour(self, p1, p2, pan_list):
+            for i, pan in enumerate(pan_list):
+                if p1 in pan.nodes and p2 in pan.nodes and pan is not self:
+                    return i
+            return None
+
+        def __json__(self):
+            return {"is_wake": self.is_wake,
+                    "neighbours": self.neighbours,
+                    "node_no": self.node_nos}
+
+    glide_alpha = numpy.arctan(glider.glide)
+    glider = glider.copy_complete()
+    if numpoints is not None:
+        glider.profile_numpoints = numpoints
+    v_inf = numpy.array([numpy.sin(glide_alpha), 0, numpy.cos(glide_alpha)])
+    node_ribs = [[node(p) for p in rib[1:]] for rib in glider.return_ribs(midribs)]
+    nodes_flat = []
+
+    panel_ribs = []
     panels = []
-    count = 0
-    for i in range(1, len(ribs)):
-        panel_row = []
-        for j in range(numpoints + wake_panels - 1):
-            nodes = [ribs[i-1][j],
-                     ribs[i][j],
-                     ribs[i][j+1],
-                     ribs[i-1][j+1]]
 
-            panel_row.append({"position": count,
-                          "wake": sum([p["wake"] for p in nodes]) > 0, # Check if any of the nodes is a wake node
-                          "nodes": [p["position"] for p in nodes]})
-            count += 1
-        panels.append(panel_row)
+    # Generate Wake
+    for rib in node_ribs:
+        rib += [node(rib[-1].point + v_inf * (i + 1) / wake_panels * wake_length, is_wake=True) for i in
+                range(wake_panels)]
+        nodes_flat += rib
 
-    # Calculate Neighbours!!!
+    # Generate Panels
+    for left_rib, right_rib in zip(node_ribs[:-1], node_ribs[1:]):
+        pan = panel([left_rib[-wake_panels], right_rib[-wake_panels], right_rib[0], left_rib[0]])
+        panel_rib = [pan]
+        panels.append(pan)
+        for i in range(len(left_rib) - 1):
+            pan = panel([left_rib[i], right_rib[i], right_rib[i + 1], left_rib[i + 1]])
+            panels.append(pan)
+            panel_rib.append(pan)
+        panel_ribs.append(panel_rib)
 
-    #   ASSUMPTION: panels: left to right, view from top, top of view is leadingedge
-    for panel_row_ind, panel_row in enumerate(panels):
-        for panel_col_ind, panel in enumerate(panel_row):
-            #   neighbour order: [left, trailing, right, leading]
-            left, trailing, right, leading = (0, 1, 2, 3)
-            panel["neighbours"] = [0, 0, 0, 0]
-            if not panel["wake"]:
-                if panel_row_ind != 0:
-                    panel["neighbours"][left] = panels[panel_row_ind - 1][panel_col_ind]["position"]
-                if panel_row_ind != len(panels) - 1:
-                    panel["neighbours"][right] = panels[panel_row_ind + 1][panel_col_ind]["position"]
-                if panel_col_ind != 0:
-                    panel["neighbours"][trailing] = panel_row[panel_col_ind - 1]["position"]
-                if not panel_row[panel_col_ind + 1]["wake"]:
-                    panel["neighbours"][leading] = panel_row[panel_col_ind + 1]["position"]
+    for pan in panels:
+        pan.get_neighbours(panels)
+        pan.node_nos = [nodes_flat.index if tha_node is not None else None for tha_node in pan.nodes]
 
-    # Flatten everything out
-    nodes = []
-    for rib in ribs:
-        for p in rib:
-            nodes.append(p["data"])
-    panels_flat = []
-    for panel_row in panels:
-        for panel in panel_row:
-            panels_flat.append([panel["wake"], panel["nodes"], panel["neighbours"]])
-    config = {"cases": [[1, 0, 1]]}  # TODO: insert vinf
+    print(panels)
 
-    with open(path, "w") as json_file:
-        json.dump({"config": config, "nodes": nodes, "panels": panels_flat}, json_file, indent=2)
+    import openglider.graphics as graph
 
-    return True
+    graph.Graphics([graph.Line([nodde.point for nodde in rib]) for rib in node_ribs])
 
 
 def export_dxf(glider, path="", midribs=0, numpoints=None, *other):
@@ -149,14 +143,14 @@ def export_apame(glider, path="", midribs=0, numpoints=None, *other):
     if numpoints:
         other.profile_numpoints = numpoints
     ribs = other.return_ribs(midribs)
-    #write config
+    # write config
     outfile = open(path, "w")
     outfile.write("APAME input file\nVERSION 3.0\n")
     outfile.write("AIRSPEED " + str(other.data["GESCHWINDIGKEIT"]) + "\n")
     outfile.write("DENSITY 1.225\nPRESSURE 1.013e+005\nMACH 0\nCASE_NUM 1\n")  # TODO: Multiple cases
     outfile.write(str(math.tan(1 / other.data["GLEITZAHL"])) + "\n0\n")
     outfile.write("WINGSPAN " + str(other.span) + "\n")
-    outfile.write("MAC 2") # TODO: Mean Choord
+    outfile.write("MAC 2")  # TODO: Mean Choord
     outfile.write("SURFACE " + str(other.area) + "\n")
     outfile.write("ORIGIN\n0 0 0\n")
     outfile.write("METHOD 0\nERROR 1e-007\nCOLLDIST 1e-007\n")

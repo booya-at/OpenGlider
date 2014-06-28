@@ -57,7 +57,7 @@ class TestGlider(GliderTestClass):
 
     def test_export_json(self):
         path = '/tmp/booya.json'
-        self.glider.export_3d(path, midribs=4)
+        self.glider.export_3d(path, midribs=2)
 
     def test_export_plots(self):
         path = '/tmp/plots.svg'

@@ -1,13 +1,14 @@
 from __future__ import division
 import sys
-import matplotlib.pyplot as plt
+
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.patches
+
 #from pyface.qt import QtGui, QtCore
 from PyQt4 import QtGui, QtCore
-from openglider.input.qt import ApplicationWindow, ButtonWidget
-from openglider.vector import norm_squared
+from openglider.gui import ApplicationWindow
+from openglider.gui.widgets.buttons import ButtonWidget
 from openglider.utils.bezier import BezierCurve
 
 

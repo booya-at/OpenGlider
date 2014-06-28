@@ -1,6 +1,7 @@
 from openglider.glider.ballooning import BallooningBezier
+from openglider.gui import ApplicationWindow
 from openglider.input import ControlPoint, MplWidget, MplBezier
-from openglider.input.qt import ApplicationWindow, ButtonWidget
+from openglider.gui.widgets.buttons import ButtonWidget
 
 
 def input_ballooning(ballooning):

@@ -1,4 +1,4 @@
-#! /usr/bin/python2
+# ! /usr/bin/python2
 # -*- coding: utf-8; -*-
 #
 # (c) 2013 booya (http://booya.at)
@@ -20,14 +20,17 @@
 
 # A simple graphics library using vtk and aiming to have a similar syntax as mathematica graphics
 import sys
+
 from functions import depth, tofloat
 from elements import *
-from qt import *
-from openglider.input.qt import ApplicationWindow, ButtonWidget
+from openglider.gui import ApplicationWindow
+from openglider.gui.widgets.graphics import *
+from openglider.gui.widgets.buttons import ButtonWidget
 
 
 class Graphics(object):
     """Creates a Graphics Instance"""
+
     def __init__(self, graphicobjects, coordinates=None, rotation=True, show=True):
         self.allow_rotation = rotation
         self.coordinates = coordinates
@@ -170,12 +173,19 @@ def draw_glider(glider, num=0, mirror=True, panels=True):
 
 
 if __name__ == "__main__":
+    #from IPython.qt.console.console_widget import ConsoleWidget
+
     qApp = QtGui.QApplication(sys.argv)
-    graph = Graphics([Polygon([[0.,0.,0.],[0.,1.,1.],[2.,1.,0.]])], show=False)
-    graph2 = Graphics([Red, Polygon([[-1.,-2.,-3.],[0.,0.,0.],[-1.,-1.,-1.]])], show=False)
+    graph = Graphics([Polygon([[0., 0., 0.],
+                               [0., 1., 1.],
+                               [2., 1., 0.]])], show=False)
+    graph2 = Graphics([Red, Polygon([[-1., -2., -3.],
+                                     [0., 0., 0.],
+                                     [-1., -1., -1.]])], show=False)
 
     widget = GraphicsWidget(graph, graph2)
     widget2 = GraphicsWidget(graph2, graph)
+    #console = ConsoleWidget()
     graph.redraw()
     graph2.redraw()
     window = ApplicationWindow([widget, widget2])

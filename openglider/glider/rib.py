@@ -1,8 +1,7 @@
 import copy
 import math
 import numpy
-from openglider import Profile2D
-from openglider.airfoil import Profile3D, get_x_value
+from openglider.airfoil import Profile2D, Profile3D, get_x_value
 from openglider.utils.cache import cached_property, CachedObject
 from openglider.utils.bezier import BezierCurve
 from openglider.vector import rotation_3d, HashedList
@@ -12,7 +11,7 @@ class Rib(CachedObject):
     """Openglider Rib Class: contains a airfoil, needs a startpoint, angle (arcwide), angle of attack,
         glide-wide rotation and glider ratio.
         optional: name, absolute aoa (bool), startposition"""
-    hashlist = ('aoa_absolute', 'glide', 'arcang', 'zrot', 'chord', 'pos')  # pos
+    hashlist = ('aoa_absolute', 'glide', 'arcang', 'zrot', 'chord', 'pos', 'profile_2d')  # pos
 
     def __init__(self, profile_2d=None,
                  ballooning=None,
@@ -89,7 +88,7 @@ class Rib(CachedObject):
     @cached_property('self')
     def profile_3d(self):
         if self.profile_2d.data is not None:
-            return Profile3D(map(self.align, self.profile_2d.data))
+            return Profile3D(map(self.align, self.profile_2d.data), name="profile3d (rib: {})".format(self.name))
         else:
             raise ValueError("no 2d-profile present fortharib at rib {}".format(
                 self.name))

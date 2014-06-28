@@ -85,7 +85,8 @@ def import_ods(filename, glider):
         ballooning = merge(line[9], balloonings)
 
         lastrib = thisrib
-        thisrib = Rib(profile, ballooning, numpy.array([x, y, z]), chord, alpha, aoa, zrot, data["GLEITZAHL"])
+        thisrib = Rib(profile, ballooning, numpy.array([x, y, z]), chord, alpha, aoa, zrot, data["GLEITZAHL"],
+                      name="Rib ({})".format(i))
         if i == 1 and y != 0:  # Middle-cell
             #print("midrib!", y)
             lastrib = thisrib.copy()

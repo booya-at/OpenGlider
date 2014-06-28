@@ -109,7 +109,7 @@ class Cell(CachedObject):
         """
         self._miniribs.append(minirib)
 
-    @cached_property('rib1', 'rib2')
+    @cached_property('rib1.profile_3d', 'rib2.profile_3d')
     def basic_cell(self):
         return BasicCell(self.rib1.profile_3d, self.rib2.profile_3d, self.ballooning_phi)
 

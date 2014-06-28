@@ -1,7 +1,11 @@
-from openglider.input import ControlPointContainer, ControlPoint, MplBezier, MplWidget
-from openglider.input.qt import ApplicationWindow, ButtonWidget
-from PyQt4 import QtGui, QtCore
 import sys
+
+from PyQt4 import QtGui
+
+from openglider.gui import ApplicationWindow
+
+from openglider.input import ControlPoint, MplBezier, MplWidget
+from openglider.gui.widgets.buttons import ButtonWidget
 from openglider.utils.bezier import fitbezier
 
 

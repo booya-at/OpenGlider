@@ -1,7 +1,6 @@
-from PyQt4 import QtGui
+from openglider.gui.qt import QtGui
 import vtk
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
-
 
 class GraphicsWidget(QtGui.QWidget):
     def __init__(self, *graphics):

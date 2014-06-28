@@ -17,11 +17,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-from PyQt4 import QtGui
 import unittest
-import random
 import sys
 import os
+
+from PyQt4 import QtGui
+from openglider.gui import ApplicationWindow
+
 
 try:
     import openglider
@@ -29,9 +31,7 @@ except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
     import openglider
 
-from openglider.glider import ballooning
 from openglider.input import ControlPoint, MplWidget
-from openglider.input.qt import ApplicationWindow, ButtonWidget
 from openglider.input.ballooning import input_ballooning
 from openglider.input.shape import shapeinput, MplSymmetricBezier
 
