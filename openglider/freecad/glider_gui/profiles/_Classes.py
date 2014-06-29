@@ -6,7 +6,7 @@ class ControlPoint(coin.SoSeparator):
     def __init__(self, x=0, y=0, z=0):
         super(ControlPoint, self).__init__()
         self.marker = coin.SoMarkerSet()
-        self.marker.markerIndex = coin.SoMarkerSet.CIRCLE_FILLED_5_5
+        self.marker.markerIndex = coin.SoMarkerSet.CROSS_5_5
         self.mat = coin.SoMaterial()
         self.mat.diffuseColor.setValue(0., 0., 0.)
         self.coordinate = coin.SoCoordinate3()
@@ -26,10 +26,10 @@ class ControlPoint(coin.SoSeparator):
         self.coordinate.point.setValue(self.x, self.y, self.z)
 
     def set_edit_mode(self):
-        self.marker.markerIndex = coin.SoMarkerSet.CIRCLE_FILLED_9_9
+        self.marker.markerIndex = coin.SoMarkerSet.CIRCLE_FILLED_7_7
 
     def unset_edit_mode(self):
-        self.marker.markerIndex = coin.SoMarkerSet.CIRCLE_FILLED_5_5
+        self.marker.markerIndex = coin.SoMarkerSet.CROSS_5_5
 
     def set_mouse_over(self):
         self.mouse_over = True
@@ -66,6 +66,8 @@ class ControlPointContainer(coin.SoSeparator):
             self.highlite_main = self.view.addEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.highlight_cb)
             self.drag_main = self.view.addEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.drag_main_cb)
             self.exit = self.view.addEventCallbackPivy(coin.SoKeyboardEvent.getClassTypeId(), self.exit_cb)
+        else:
+            self.unset_edit_mode()
 
 
     def unset_edit_mode(self):

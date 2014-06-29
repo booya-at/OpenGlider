@@ -12,7 +12,7 @@ class gliderWorkbench(Workbench):
         return "Gui::PythonWorkbench"
 
     def Initialize(self):
-        profileitems = ["CreatePoint"]
+        profileitems = ["CreatePoint", "Airfoil"]
         self.appendToolbar("test", profileitems)
         self.appendMenu("test", profileitems)
 
@@ -24,6 +24,3 @@ class gliderWorkbench(Workbench):
 
 
 Gui.addWorkbench(gliderWorkbench())
-
-# Append the open handler
-#FreeCAD.EndingAdd("probe formats (*.bmp *.jpg *.png *.xpm)","probeGui")
