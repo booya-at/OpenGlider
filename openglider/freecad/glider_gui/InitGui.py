@@ -1,6 +1,13 @@
 import FreeCADGui as Gui
-import gliderGui
 
+Gui.addIconPath(FreeCAD.getHomePath() + "Mod/glider_gui/icons")
+
+from objects import CreateLine, CreateSpline, Airfoil, CreateShape
+
+Gui.addCommand('CreateLine', CreateLine())
+Gui.addCommand('CreateSpline', CreateSpline())
+Gui.addCommand('Airfoil', Airfoil())
+Gui.addCommand('CreateShape', CreateShape())
 
 class gliderWorkbench(Workbench):
     """probe workbench object"""
@@ -12,7 +19,7 @@ class gliderWorkbench(Workbench):
         return "Gui::PythonWorkbench"
 
     def Initialize(self):
-        profileitems = ["CreatePoint", "Airfoil"]
+        profileitems = ["CreateLine", "CreateSpline", "Airfoil", "CreateShape"]
         self.appendToolbar("test", profileitems)
         self.appendMenu("test", profileitems)
 

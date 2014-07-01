@@ -25,7 +25,7 @@ import scipy.interpolate
 from scipy.optimize import bisect as findroot
 from openglider.utils.cache import cached_property, CachedObject
 
-__all__ = ['BezierCurve']
+__ALL = ['BezierCurve']
 
 
 class BezierCurve(CachedObject):

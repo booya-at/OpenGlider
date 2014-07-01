@@ -1,7 +1,9 @@
 from pivy import coin
 import FreeCADGui as gui
+from openglider.utils.bezier import BezierCurve
 
 
+#-------------------------BEGIN-BASE-Object-----------------------#
 class ControlPoint(coin.SoSeparator):
     def __init__(self, x=0, y=0, z=0):
         super(ControlPoint, self).__init__()
@@ -20,9 +22,7 @@ class ControlPoint(coin.SoSeparator):
         self.mouse_over = False
 
     def set_pos(self, new_pos):
-        self.x = new_pos[0]
-        self.y = new_pos[1]
-        self.z = new_pos[2]
+        self.x, self.y, self.z = self.constraint(new_pos)
         self.coordinate.point.setValue(self.x, self.y, self.z)
 
     def set_edit_mode(self):
@@ -39,6 +39,10 @@ class ControlPoint(coin.SoSeparator):
         self.mouse_over = False
         self.mat.diffuseColor.setValue(0, 0, 0)
 
+    def constraint(self, pos):
+        "overwrite for special behavior"
+        return [pos[0], pos[1], 0.]
+
 
 class ControlPointContainer(coin.SoSeparator):
     def __init__(self, points=None):
@@ -54,6 +58,11 @@ class ControlPointContainer(coin.SoSeparator):
         self.current_point = None
         self.trigger_func = None
         self.is_edit = False
+
+    @property
+    def control_point_list(self):
+        return [[i.x, i.y, i.z] for i in self.control_points]
+
 
     def set_edit_mode(self, view, triggerfunc=None):
         print(self.is_edit)
@@ -132,47 +141,115 @@ class ControlPointContainer(coin.SoSeparator):
         pass
 
 
-class Line():
-    """FreeCAD Point"""
-    def __init__(self, obj, points):
-        obj.addProperty("App::PropertyVectorList", "points", "points", "points")
-        obj.points = points
+class OGBaseObject(object):
+    def __init__(self, obj):
         obj.Proxy = self
 
     def execute(self, fp):
         pass
 
-    def onChanged(self, fp, prop):
-        pass
 
-class VpLine():
+class OGBaseVP(object):
     def __init__(self, obj):
-        self.obj = obj.Object
-        self.point_container = ControlPointContainer(self.obj.points)
         obj.Proxy = self
 
     def attach(self, vobj):
-        print("abc")
-        self.seperator = coin.SoSeparator()
+        pass
+
+    def updateData(self, fp, prop):
+        pass
+
+    def getDisplayModes(self, obj):
+        mod = ["out"]
+        return(mod)
+
+
+class OGBaseControlObject(OGBaseObject):
+    def __init__(self, obj, points):
+        obj.addProperty("App::PropertyVectorList", "points", "points", "points")
+        obj.points = points
+        super(OGBaseControlObject, self).__init__(obj)
+
+
+class OGBaseControlVP(OGBaseVP):
+    def __init__(self, obj):
+        self.obj = obj.Object
+        self.point_container = ControlPointContainer(self.obj.points)
+        self.separator = None
+        super(OGBaseControlVP, self).__init__(obj)
+
+
+    def attach(self, vobj):
+        self.separator = coin.SoSeparator()
+        self.separator.addChild(self.point_container)
+        self.add_to_view()
+        vobj.addDisplayMode(self.separator, 'out')
+
+    def add_to_view(self):
+        """overwrite add childs to self.separator"""
+
+    def _updateData(self):
+        self.updateData(fp=None, prop=None)
+
+    def doubleClicked(self, vobj):
+        self.point_container.set_edit_mode(gui.ActiveDocument.ActiveView, self._updateData)
+#----------------------------------END-BASE-Object----------------------#
+
+
+#------------------------------OBJECT-----------------------#
+class OGLine(OGBaseControlObject):
+    def __init__(self, obj, points):
+        super(OGLine, self).__init__(obj, points)
+
+
+class OGSpline(OGBaseControlObject):
+    def __init__(self, obj, points):
+        super(OGSpline, self).__init__(obj, points)
+
+
+#-----------------------------VIEWPROVIDER------------------#
+class OGLineVP(OGBaseControlVP):
+    def __init__(self, obj):
+        super(OGLineVP, self).__init__(obj)
+
+    def add_to_view(self):
         self.point = coin.SoLineSet()
         self.data = coin.SoCoordinate3()
         self.color = coin.SoMaterial()
         self.color.diffuseColor.setValue(0, 0, 0)
-        self.seperator.addChild(self.point_container)
-        self.seperator.addChild(self.color)
-        self.seperator.addChild(self.data)
-        self.seperator.addChild(self.point)
-        vobj.addDisplayMode(self.seperator, 'out')
+        self.separator.addChild(self.color)
+        self.separator.addChild(self.data)
+        self.separator.addChild(self.point)
 
-    def updateData(self, fp=None, prop=None):
+    def updateData(self, fp, prop):
         p = [[i.x, i.y, i.z] for i in self.point_container.control_points]
         self.data.point.setValue(0, 0, 0)
         self.data.point.setValues(0, len(p), p)
 
-    def getDisplayModes(self, obj):
-        modes = []
-        modes.append("out")
-        return modes
 
-    def doubleClicked(self, vobj):
-        self.point_container.set_edit_mode(gui.ActiveDocument.ActiveView, self.updateData)
+class OGSplineVP(OGBaseControlVP):
+    def __init__(self, obj):
+        self.bezier_curve = BezierCurve()
+        self.num = 10
+        obj.addProperty("App::PropertyInteger", "num", "num", "num").num = self.num
+        super(OGSplineVP, self).__init__(obj)
+
+    def add_to_view(self):
+        self.point = coin.SoLineSet()
+        self.data = coin.SoCoordinate3()
+        self.color = coin.SoMaterial()
+        self.color.diffuseColor.setValue(0, 0, 0)
+        self.separator.addChild(self.color)
+        self.separator.addChild(self.data)
+        self.separator.addChild(self.point)
+
+    def onChanged(self, fp, prop):
+        if prop == "num":
+            self.num = fp.num
+            self.updateData(None, None)
+
+    def updateData(self, fp, prop):
+        self.bezier_curve.controlpoints = self.point_container.control_point_list
+        p = [self.bezier_curve(i * 1. / (self.num - 1)) for i in range(self.num)]
+        self.data.point.setValue(0, 0, 0)
+        self.data.point.setValues(0, len(p), p)
