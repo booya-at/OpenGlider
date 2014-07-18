@@ -2,6 +2,7 @@ import FreeCAD
 import FreeCADGui as Gui
 from _base import OGLine, OGLineVP, OGSpline, OGSplineVP
 from shape import OGShape, OGShapeVP, OGSymSplineVP
+from _glider import OGGlider, OGGliderVP
 from _airfoil import _Airfoil, ViewProviderAirfoil
 
 class BaseCommand(object):
@@ -24,12 +25,12 @@ class BaseCommand(object):
 
 class CreateLine(BaseCommand):
     def GetResources(self):
-        return {'Pixmap': 'glider_obj_point.svg', 'MenuText': 'Line', 'ToolTip': 'Line'}
+        return {'Pixmap': "glider_import.svg", 'MenuText': 'glider', 'ToolTip': 'glider'}
 
     def Activated(self):
         a = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Line")
-        OGLine(a, [(1,1,0),(2,0,0),(3,1,0),(4,0,0)])
-        OGLineVP(a.ViewObject)
+        OGGlider(a)
+        OGGliderVP(a.ViewObject)
         FreeCAD.ActiveDocument.recompute()
 
 
@@ -42,6 +43,7 @@ class CreateSpline(BaseCommand):
         OGSpline(a, [(1,1,0),(2,0,0),(3,1,0),(4,0,0)])
         OGSplineVP(a.ViewObject)
         FreeCAD.ActiveDocument.recompute()
+
 
 class CreateShape(BaseCommand):
     def GetResources(self):
@@ -58,6 +60,7 @@ class CreateShape(BaseCommand):
         OGShape(shape, upper, lower)
         OGShapeVP(shape.ViewObject)
         FreeCAD.ActiveDocument.recompute()
+
 
 class Airfoil(BaseCommand):
     def GetResources(self):
