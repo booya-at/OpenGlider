@@ -1,9 +1,9 @@
 import FreeCAD
 import FreeCADGui as Gui
-from _base import OGLine, OGLineVP, OGSpline, OGSplineVP
-from shape import OGShape, OGShapeVP, OGSymSplineVP
+from shape import OGShape, OGShapeVP, OGSymSplineVP, OGSpline, OGSplineVP
 from _glider import OGGlider, OGGliderVP
 from _airfoil import _Airfoil, ViewProviderAirfoil
+from _tools import base_tool
 
 class BaseCommand(object):
     def __init__(self):
@@ -71,3 +71,14 @@ class Airfoil(BaseCommand):
         _Airfoil(a)
         ViewProviderAirfoil(a.ViewObject)
         FreeCAD.ActiveDocument.recompute()
+
+class Base_Tool(BaseCommand):
+    def GetResources(self):
+        return {'Pixmap': 'glider_profile_compare.svg', 'MenuText': 'base', 'ToolTip': 'base'}
+
+    def Activated(self):
+        obj = Gui.Selection.getSelection()
+        if len(obj) > 0:
+            obj = obj[0]
+            bt = base_tool(obj)
+            Gui.Control.showDialog(bt)

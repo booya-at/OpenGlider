@@ -1,15 +1,36 @@
 from __future__ import division
-from _base import OGBaseObject, OGBaseVP
 import openglider
 from pivy import coin
+import FreeCAD
 
 importpath = "/home/q/tmp/OpenGlider/tests/demokite.ods"
 
 
+class OGBaseObject(object):
+    def __init__(self, obj):
+        obj.Proxy = self
+
+    def execute(self, fp):
+        pass
+
+
+class OGBaseVP(object):
+    def __init__(self, obj):
+        obj.Proxy = self
+
+    def attach(self, vobj):
+        pass
+
+    def updateData(self, fp, prop):
+        pass
+
+    def getDisplayModes(self, obj):
+        mod = ["out"]
+        return(mod)
+
+
 class OGGlider(OGBaseObject):
     def __init__(self, obj):
-        obj.addProperty(
-            "App::PropertyPythonObject", "parametric_glider", "object", "parametric_glider")
         obj.addProperty(
             "App::PropertyPythonObject", "glider_instance", "object", "glider_instance")
         obj.glider_instance = openglider.glider.Glider.import_geometry(path=importpath)
@@ -20,7 +41,7 @@ class OGGliderVP(OGBaseVP):
     def __init__(self, view_obj):
         view_obj.addProperty(
             "App::PropertyInteger", "num_ribs", "num_ribs", "num_ribs")
-        view_obj.num_ribs = 3
+        view_obj.num_ribs = 0
         self.vis_glider = coin.SoSeparator()
         self.vis_lines = coin.SoSeparator()
         self.material = coin.SoMaterial()
@@ -42,6 +63,7 @@ class OGGliderVP(OGBaseVP):
         self.update_lines()
 
     def update_glider(self, midrips=None):
+        self.vis_glider.removeAllChildren()
         glider = self.glider_instance.copy_complete()
         if midrips is None:
             vertexproperty = coin.SoVertexProperty()
@@ -59,7 +81,6 @@ class OGGliderVP(OGBaseVP):
                 sep = coin.SoSeparator()
                 vertexproperty = coin.SoVertexProperty()
                 mesh = coin.SoQuadMesh()
-
                 ribs = [cell.midrib(pos / (midrips + 1)) for pos in range(midrips + 2)]
                 flat_coords = [i for rib in ribs for i in rib]
                 vertexproperty.vertex.setValues(0, len(flat_coords), flat_coords)
@@ -72,8 +93,12 @@ class OGGliderVP(OGBaseVP):
 
 
     def update_lines(self):
+        self.vis_lines.removeAllChildren()
         for l in self.glider_instance.lineset.lines:
             self.vis_lines.addChild(line(l.get_line_points()))
+
+    def getIcon(self):
+        return FreeCAD.getHomePath() + "Mod/glider_gui/icons/glider_import.svg"
 
 
 def line(points):

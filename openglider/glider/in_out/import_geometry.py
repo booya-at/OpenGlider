@@ -104,7 +104,7 @@ def import_ods(filename, glider):
     attachment_points.sort(key=lambda element: element.number)
     attachment_points_lower = get_lower_aufhaengepunkte(glider.data)
     for p in attachment_points:
-        p.force = numpy.array([0, 0, 1])
+        p.force = numpy.array([0, 0, 0.4])
         p.get_position()
 
     glider.lineset = tolist_lines(sheets[6], attachment_points_lower, attachment_points)
