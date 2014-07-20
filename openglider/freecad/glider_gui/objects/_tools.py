@@ -3,15 +3,33 @@ from PySide import QtCore, QtGui
 import FreeCADGui as Gui
 import FreeCAD as App
 import sys
+from pivy import coin
+from pivy_primitives import line
 
 class base_tool(object):
     def __init__(self, obj, widget_name="base_widget"):
         self.obj = obj
+        self.obj.ViewObject.Visibility = False
         self.view = Gui.ActiveDocument.ActiveView
         self.scene = self.view.getSceneGraph()
+
+        # the widget that appears in the task panel
         self.form = QtGui.QWidget()
         self.layout = QtGui.QVBoxLayout(self.form)
         self.form.setWindowTitle(widget_name)
+
+        # everything that should go into the scene
+        self.task_separator = coin.SoSeparator()
+        self.scene.addChild(self.task_separator)
+
+    def accept(self):
+        self.obj.ViewObject.Visibility = True
+        self.scene.removeChild(self.task_separator)
+        Gui.Control.closeDialog()
+
+    def reject(self):
+        self.obj.ViewObject.Visibility = True
+        Gui.Control.closeDialog()
 
 
 class shape_tool(base_tool):
@@ -27,7 +45,7 @@ class shape_tool(base_tool):
         self.layout.addWidget(self.edit)
 
     def set_edit_mode(self):
-        self.cpc1.set_edit_mode(self.view)
+        self.cpc1.set_edit_mode(self.view, self.update_data)
 
     def add_pivy(self):
         # set glider visibility to False
@@ -35,6 +53,9 @@ class shape_tool(base_tool):
         # show controlpoints
         control_points = [[0., 1., 0.], [1., 0.8, 0.], [2., 0.5, 0.]]
         self.cpc1 = ControlPointContainer(control_points)
-        self.scene.addChild(self.cpc1)
-        # cpc.set_edit_mode(self.view)
-        # App.ActiveDocument.recompute()
+        self.line = line(self.cpc1.control_point_list)
+        self.task_separator.addChild(self.cpc1)
+        self.task_separator.addChild(self.line.object)
+
+    def update_data(self):
+        self.line.update(self.cpc1.control_point_list)
