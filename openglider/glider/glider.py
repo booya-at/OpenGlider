@@ -49,6 +49,7 @@ class Glider(object):
 
     def apply_parametric(self, new_par):
         # change the new parameters
+        pass
 
     @classmethod
     def import_geometry(cls, path, filetype=None):
