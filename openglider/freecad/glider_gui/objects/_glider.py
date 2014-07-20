@@ -62,10 +62,10 @@ class OGGliderVP(OGBaseVP):
         self.update_glider(self.view_obj.num_ribs)
         self.update_lines()
 
-    def update_glider(self, midrips=None):
+    def update_glider(self, midrips=0):
         self.vis_glider.removeAllChildren()
         glider = self.glider_instance.copy_complete()
-        if midrips is None:
+        if midrips == 0:
             vertexproperty = coin.SoVertexProperty()
             mesh = coin.SoQuadMesh()
             ribs = glider.ribs

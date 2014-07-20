@@ -3,7 +3,7 @@ import FreeCADGui as Gui
 from shape import OGShape, OGShapeVP, OGSymSplineVP, OGSpline, OGSplineVP
 from _glider import OGGlider, OGGliderVP
 from _airfoil import _Airfoil, ViewProviderAirfoil
-from _tools import base_tool
+from _tools import shape_tool
 
 class BaseCommand(object):
     def __init__(self):
@@ -28,7 +28,7 @@ class CreateLine(BaseCommand):
         return {'Pixmap': "glider_import.svg", 'MenuText': 'glider', 'ToolTip': 'glider'}
 
     def Activated(self):
-        a = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Line")
+        a = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Glider")
         OGGlider(a)
         OGGliderVP(a.ViewObject)
         FreeCAD.ActiveDocument.recompute()
@@ -80,5 +80,16 @@ class Base_Tool(BaseCommand):
         obj = Gui.Selection.getSelection()
         if len(obj) > 0:
             obj = obj[0]
-            bt = base_tool(obj)
-            Gui.Control.showDialog(bt)
+            if check_glider(obj):
+                print("check glider: True")
+                bt = shape_tool(obj)
+                Gui.Control.showDialog(bt)
+            else:
+                pass
+
+
+def check_glider(obj):
+    if "glider_instance" in obj.PropertiesList:
+        return True
+    else:
+        return False

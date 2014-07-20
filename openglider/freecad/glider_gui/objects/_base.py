@@ -3,6 +3,9 @@ import FreeCADGui as gui
 from openglider.utils.bezier import BezierCurve
 
 
+def None_func():
+    pass
+
 #-------------------------BEGIN-BASE-Object-----------------------#
 class ControlPoint(coin.SoSeparator):
     def __init__(self, x=0, y=0, z=0):
@@ -63,7 +66,7 @@ class ControlPointContainer(coin.SoSeparator):
     def control_point_list(self):
         return [[i.x, i.y, i.z] for i in self.control_points]
 
-    def set_edit_mode(self, view, triggerfunc=None):
+    def set_edit_mode(self, view, triggerfunc=None_func):
         print(self.is_edit)
         if not self.is_edit:
             self.is_edit = True
@@ -138,3 +141,4 @@ class ControlPointContainer(coin.SoSeparator):
 
     def remove_point(self):
         pass
+
