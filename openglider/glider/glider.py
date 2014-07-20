@@ -34,6 +34,7 @@ class Glider(object):
         self.cells = cells or []
         self.lineset = lineset
         self.data = {}
+        self.parametric_data = {}
 
     def __json__(self):
         new = self.copy()
@@ -45,6 +46,9 @@ class Glider(object):
         return {"cells": new.cells,
                 "ribs": ribs,
                 "lineset": self.lineset}
+
+    def apply_parametric(self, new_par):
+        # change the new parameters
 
     @classmethod
     def import_geometry(cls, path, filetype=None):

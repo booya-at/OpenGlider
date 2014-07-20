@@ -30,5 +30,4 @@ class gliderWorkbench(Workbench):
     def Deactivated(self):
         pass
 
-
 Gui.addWorkbench(gliderWorkbench())

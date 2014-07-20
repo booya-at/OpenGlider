@@ -13,7 +13,8 @@ class base_tool(object):
         self.view = Gui.ActiveDocument.ActiveView
         self.scene = self.view.getSceneGraph()
 
-        # the widget that appears in the task panel
+        # form is the widget that appears in the task panel,
+        # "form"... freecad convention
         self.form = QtGui.QWidget()
         self.layout = QtGui.QVBoxLayout(self.form)
         self.form.setWindowTitle(widget_name)
@@ -23,12 +24,14 @@ class base_tool(object):
         self.scene.addChild(self.task_separator)
 
     def accept(self):
+        self.obj.glider_instance.ribs[3].chord *= 1.3
         self.obj.ViewObject.Visibility = True
         self.scene.removeChild(self.task_separator)
         Gui.Control.closeDialog()
 
     def reject(self):
         self.obj.ViewObject.Visibility = True
+        self.scene.removeChild(self.task_separator)
         Gui.Control.closeDialog()
 
 
@@ -51,7 +54,7 @@ class shape_tool(base_tool):
         # set glider visibility to False
         # draw the 2d shape
         # show controlpoints
-        control_points = [[0., 1., 0.], [1., 0.8, 0.], [2., 0.5, 0.]]
+        control_points = [[0., 0., 0.], [0.8, 0.0, 0.], [2., -0.2, 0.]]
         self.cpc1 = ControlPointContainer(control_points)
         self.line = line(self.cpc1.control_point_list)
         self.task_separator.addChild(self.cpc1)
