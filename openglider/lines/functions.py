@@ -24,12 +24,13 @@ from openglider.vector import norm
 import numpy
 
 
+
 def proj_force(force, vec):
     proj = dot(vec, force)
     if proj <= 0.00001:
         proj = 0.00001
         print("Divide by zero!!!")
-    return proj / dot(force, force)
+    return dot(force, force) / proj
 
 
 def proj_to_surface(vec, n_vec):

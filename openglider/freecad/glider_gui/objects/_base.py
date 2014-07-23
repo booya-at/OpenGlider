@@ -10,6 +10,9 @@ def None_func():
 class ControlPoint(coin.SoSeparator):
     def __init__(self, x=0, y=0, z=0):
         super(ControlPoint, self).__init__()
+        self.x = 0.
+        self.y = 0.
+        self.z = 0.
         self.marker = coin.SoMarkerSet()
         self.marker.markerIndex = coin.SoMarkerSet.CROSS_5_5
         self.mat = coin.SoMaterial()
@@ -24,12 +27,24 @@ class ControlPoint(coin.SoSeparator):
 
         self.mouse_over = False
 
+    def set_x(self, new_x):
+        self.x = self.constraint([new_x, 0., 0.])[0]
+        self.coordinate.point.setValue(self.x, self.y, self.z)
+
+    def set_y(self, new_y):
+        self.y = self.constraint([0., new_y, 0.])[1]
+        self.coordinate.point.setValue(self.x, self.y, self.z)
+
+    def set_z(self, new_z):
+        self.z = self.constraint([0., 0., new_z])[2]
+        self.coordinate.point.setValue(self.x, self.y, self.z)
+
     def set_pos(self, new_pos):
         self.x, self.y, self.z = self.constraint(new_pos)
         self.coordinate.point.setValue(self.x, self.y, self.z)
 
     def set_edit_mode(self):
-        self.marker.markerIndex = coin.SoMarkerSet.CIRCLE_FILLED_7_7
+        self.marker.markerIndex = coin.SoMarkerSet.CIRCLE_FILLED_9_9
 
     def unset_edit_mode(self):
         self.marker.markerIndex = coin.SoMarkerSet.CROSS_5_5
@@ -67,7 +82,6 @@ class ControlPointContainer(coin.SoSeparator):
         return [[i.x, i.y, i.z] for i in self.control_points]
 
     def set_edit_mode(self, view, triggerfunc=None_func):
-        print(self.is_edit)
         if not self.is_edit:
             self.is_edit = True
             self.view = view
@@ -93,7 +107,6 @@ class ControlPointContainer(coin.SoSeparator):
 
     def exit_cb(self, event_callback):
         event = event_callback.getEvent()
-        print(event.getKey())
         if event.getKey() == 65307:
             self.unset_edit_mode()
 

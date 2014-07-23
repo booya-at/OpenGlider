@@ -137,6 +137,28 @@ class Glider(object):
         # todo: scale lines,
 
     @property
+    def x_val(self):
+        return [i.pos[0] for i in self.ribs]
+
+    @property
+    def y_val(self):
+        out = [0.]
+        for i in self.cells:
+            out.append(out[-1] + i.span)
+        return [i - self.span / 4 for i in out]
+
+    @property
+    def shape2(self):
+        x = self.x_val
+        y = self.y_val
+        front = [[y[i], -x[i]] for i in range(len(x))]
+        rear = []
+        for i, rib in enumerate(self.ribs):
+            rear.append([front[i][0], front[i][1] - rib.chord])
+        print(rear)
+        return [front, rear]
+
+    @property
     def shape(self):
         rot = rotation_2d(numpy.pi/2)
         front, back = flatten_list(self.get_spanwise(0), self.get_spanwise(1))

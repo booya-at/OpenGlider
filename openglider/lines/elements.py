@@ -173,6 +173,8 @@ class Line(CachedObject):
         """
         Return points of the line
         """
+        if self.sag_par_1 is None or self.sag_par_2 is None:
+            sag=False
         return [self.get_line_point(i / (numpoints - 1), sag=sag) for i in range(numpoints)]
 
     def get_line_point(self, x, sag=True):
@@ -189,7 +191,6 @@ class Line(CachedObject):
         u = (- xi ** 2 / 2 * self.ortho_pressure /
              self.force_projected + xi *
              self.sag_par_1 + self.sag_par_2)
-        #print(self.length_projected, u)
         return u
 
     @property
@@ -234,6 +235,6 @@ class Node(object):
 
     def __json__(self):
         return{
-            'node_type': list(self.vec_proj),
+            'node_type': list(self.type),
             'position_vector': list(self.vec)
         }
