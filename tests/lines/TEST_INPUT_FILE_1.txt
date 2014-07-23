@@ -11,7 +11,7 @@ NODES
 	6		2		0		-7		4			0			0	 		1
 	7		2		0		-5		4			0			0	 		1
 	8		2		0		-3		4			0			0	 		1
-	9		2		0		-1		4			0			0	 		1
+	9		2		0		-1		4			0			0	 		19
 	10		0		0.		0.		-6.			None		None		None
 	11		1		None	None	None		None		None 		None
 	12		1		None	None	None		None		None 		None

@@ -2,9 +2,10 @@ from __future__ import division
 import openglider
 from pivy import coin
 import FreeCAD
-from pivy_primitives import line
+from pivy_primitives import Line
 
-importpath = "/home/q/tmp/OpenGlider/tests/demokite.ods"
+importpath = "/home/simon/Dokumente/OpenGlider/tests/demokite.ods"
+print(__file__)
 
 
 class OGBaseObject(object):
@@ -96,7 +97,7 @@ class OGGliderVP(OGBaseVP):
     def update_lines(self):
         self.vis_lines.removeAllChildren()
         for l in self.glider_instance.lineset.lines:
-            sep = line(l.get_line_points()).object
+            sep = Line(l.get_line_points()).object
             self.vis_lines.addChild(sep)
 
     def getIcon(self):

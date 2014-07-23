@@ -104,6 +104,16 @@ class BezierCurve(CachedObject):
             y.append(point[1])
         return scipy.interpolate.interp1d(x, y)
 
+    def interpolate_3d(self, num=100, xyz=0):
+        x = []
+        data = []
+        for i in range(num):
+            point = self(i * 1. / (num - 1))
+            x.append(point[xyz])
+            data.append(point)
+        print(numpy.transpose(data))
+        return scipy.interpolate.interp1d(x, numpy.transpose(data),bounds_error=False)
+
     def get_sequence(self, num=50):
         x = []
         y = []

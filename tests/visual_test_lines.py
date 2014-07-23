@@ -22,6 +22,9 @@ class TestLines(unittest.TestCase):
         thalines.calc_geo(strt)
 
         thalines.calc_sag(strt)
+        for i in thalines.lines:
+            print("fp: ", i.force_projected)
+            print("f: ", i.force)
         objects = map(lambda line: graph.Line(line.get_line_points()), thalines.lines)
         graph.Graphics3D(objects)
 
