@@ -48,23 +48,19 @@ class Point(GraphicObject):
 
 class Line(GraphicObject):
     element_setter = "SetLines"
+    # TODO: here is a bug mixing the colours around...
 
     def __init__(self, pointnumbers, colour=None):
         super(Line, self).__init__(pointnumbers, colour=colour)
 
     def draw(self, graphics):
         cell, pointnums = super(Line, self).draw(graphics)
-        # colour bugfix for polylines
-        for __ in range(len(pointnums) - 2):
-            graphics.colours.InsertNextTupleValue(self.colour or graphics.default_colour)
 
-        for i in range(len(pointnums) - 1):
-            line = vtk.vtkLine()
-            line.GetPointIds().SetId(0, pointnums[i])
-            line.GetPointIds().SetId(1, pointnums[i + 1])
-            cell.InsertNextCell(line)
-
-            #graphics.data.SetLines(cell)
+        line = vtk.vtkPolyLine()
+        line.GetPointIds().SetNumberOfIds(len(pointnums))
+        for i, p in enumerate(pointnums):
+            line.GetPointIds().SetId(i, p)
+        cell.InsertNextCell(line)
 
 
 class Arrow(GraphicObject):
@@ -98,7 +94,6 @@ class Polygon(GraphicObject):
         for i, p in enumerate(pointnums):
             polygon.GetPointIds().SetId(i, p)
         cell.InsertNextCell(polygon)
-        #graphics.data.SetPolys(cell)
 
 
 class Axes(GraphicObject):

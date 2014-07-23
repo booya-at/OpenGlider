@@ -146,11 +146,12 @@ class BallooningBezier(Ballooning):
         Ballooning.__init__(self, self.upbez.interpolation(), self.lowbez.interpolation())
 
 global arsinc
-arsinc = None
+from openglider.utils import config
 
 def interpolate_asinc(numpoints=1000, phi0=0, phi1=numpy.pi):
     """Set Global Interpolation Function arsinc"""
     global arsinc
+    print("interpolating")
     (x, y) = ([], [])
     for i in range(numpoints + 1):
         phi = phi1 + (i * 1. / numpoints) * (phi0 - phi1)  # reverse for interpolation (increasing x_values)
@@ -159,4 +160,4 @@ def interpolate_asinc(numpoints=1000, phi0=0, phi1=numpy.pi):
     arsinc = interp1d(x, y)
 
 # TODO: Do only when needed!
-interpolate_asinc()
+interpolate_asinc(config['asinc_interpolation_points'])

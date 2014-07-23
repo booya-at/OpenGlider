@@ -68,16 +68,24 @@ class Graphics(object):
             for coor in self.coordinates:
                 self.points.InsertNextPoint(self.make_3d(coor))
 
+        #BUGFIX, this disables colours partly for polylines, colour has to be set in Line(points, colour=...)
+        #for graphicobject in self.graphicobjects:
+        #    graphicobject.draw(self)
         for graphicobject in self.graphicobjects:
-            graphicobject.draw(self)
+            if hasattr(graphicobject, 'element_setter') and graphicobject.element_setter == 'SetLines':
+                graphicobject.draw(self)
+        for graphicobject in self.graphicobjects:
+            if not hasattr(graphicobject, 'element_setter') or not graphicobject.element_setter == 'SetLines':
+                graphicobject.draw(self)
 
         self.data.SetPoints(self.points)
-        self.data.GetCellData().SetScalars(self.colours)
 
         # Set element types (zb: self.data.SetPolys(poly_cell)
         for el_cls, el_cell_array in self.vtk_cells.iteritems():
             if el_cls.element_setter is not None:
                 getattr(self.data, el_cls.element_setter)(el_cell_array)
+
+        self.data.GetCellData().SetScalars(self.colours)
 
         mapper = vtk.vtkPolyDataMapper()
         mapper.SetInput(self.data)

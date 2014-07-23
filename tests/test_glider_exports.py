@@ -55,6 +55,7 @@ class TestGlider(GliderTestClass):
         path = '/tmp/booya.inp'
         self.glider.export_3d(path, midribs=1)
 
+    @unittest.skip('too slow')
     def test_export_json(self):
         path = '/tmp/booya.json'
         self.glider.export_3d(path, midribs=2)

@@ -4,7 +4,7 @@ from pivy import coin
 import FreeCAD
 from pivy_primitives import Line
 
-importpath = "/home/q/tmp/OpenGlider/tests/demokite.ods"
+importpath = "/tmp/demokite.ods"
 
 
 class OGBaseObject(object):

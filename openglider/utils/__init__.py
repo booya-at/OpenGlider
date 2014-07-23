@@ -35,4 +35,11 @@ def consistent_value(elements, attribute):
         return None
 
 
+import os
+import json
+with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.json')) as configfile:
+    print("Reading config")
+    config = json.load(configfile)
+
+
 
