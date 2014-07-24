@@ -47,15 +47,24 @@ class TestGlider(GliderTestClass):
 
     def test_show_3d_green(self, num=5, thaglider=None):
         if thaglider is None:
-            thaglider = self.glider.copy_complete()
+            left = self.glider.copy()
         else:
-            thaglider = thaglider.copy_complete()
-        polygons, points = thaglider.return_polygons(num)
-        objects = map(openglider.graphics.Polygon, polygons)
+            left = thaglider.copy()
+        right = left.copy()
+        right.mirror()
+        polygons, points = left.return_polygons(num)
+        objects = []
+        objects += [openglider.graphics.Red]
+        objects += map(openglider.graphics.Polygon, polygons)
+        objects += [openglider.graphics.Green]
+        objects += [openglider.graphics.Polygon(rib.profile_3d.data) for rib in right.ribs]
+        blue = openglider.graphics.Blue
+        objects += map(lambda line: openglider.graphics.Line(line.get_line_points(), colour=blue.colour), left.lineset.lines)
 
-        objects += [openglider.graphics.Axes(size=1.2)] #, openglider.graphics.Green]
+#objects += [openglider.graphics.Axes(size=1.2)] #, openglider.graphics.Green]
         #objects.append(openglider.graphics.Blue)
-        objects += map(lambda line: openglider.graphics.Line(line.get_line_points()), thaglider.lineset.lines)
+        #objects += [openglider.graphics.Line(rib.profile_3d.data) for rib in left.ribs]
+
         openglider.graphics.Graphics3D(objects, points)
 
     def test_show_shape(self):

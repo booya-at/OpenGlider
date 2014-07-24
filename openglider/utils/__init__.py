@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
+
 from cache import recursive_getattr
 
 def sign(val):
@@ -30,4 +31,13 @@ def consistent_value(elements, attribute):
         return vals[0]
     else:
         return None
+
+
+import os
+import json
+with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.json')) as configfile:
+    print("Reading config")
+    config = json.load(configfile)
+
+
 

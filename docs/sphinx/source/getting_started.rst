@@ -8,7 +8,7 @@ To get familiar, run and take a look at the unittests.
 
 Run all unittests (including fancy visual ones) using::
 
-    ./testall -a
+    ./testall.py -a
 
 from the main directory.
 
@@ -16,20 +16,16 @@ Interactive Shell
 -----------------
 
 Openglider is intended to be used as a module in scripts.
-Best practice is to use ipython::
+Best practice is to use ipython notebook or normal python console::
+.. code-block:: bash
+
+    python
+
+or
+.. code-block:: bash
 
     ipython notebook
 
-
-to do so launch a python console::
-
-    python2
-    >>> import openglider
-
-if you have ipython installed, you can also run a graphical window, save input, reload,..::
-
-    ipython2 qtconsole
-    In [1]: import openglider
 
 Next step is to create a glider, import a geometry file and modify::
 
@@ -40,7 +36,7 @@ Next step is to create a glider, import a geometry file and modify::
     ...
     >>>
 
-Then, guess what, show the glider::
+Then, show the glider::
 
     >>>import openglider.graphics as graphics
     >>>polygons, points = glider.return_polygons(midribs=4)
