@@ -124,6 +124,36 @@ def rotation_2d(angle):
     """
     return numpy.array([[numpy.cos(angle), numpy.sin(angle)], [-numpy.sin(angle), numpy.cos(angle)]])
 
+def mirror_func(direction=None):
+    if direction is None:
+        direction = [1., 0., 0.]
+    if len(direction) == 2:
+        x, y = normalize(direction)
+        mirrormat=numpy.array(
+            [
+                [1 - 2 * x ** 2, -2 * x * y],
+                [-2 * x * y, 1 - 2 * y ** 2]
+            ]
+        )
+    else:
+        x, y, z = normalize(direction)
+        mirrormat = numpy.array(
+            [
+                [1 - 2 * x ** 2, -2 * x * y, -2 * x * z],
+                [-2 * x * y, 1 - 2 * y ** 2, -2 * y * z],
+                [-2 * x * z, -2 * y * z, 1 - 2 * z ** 2]
+            ]
+        )
+    def mirror(vec):
+        if isinstance(vec[0], (numpy.ndarray, list, tuple)):
+            return numpy.array([mirror(i) for i in vec]).tolist()
+        else:
+            return numpy.dot(vec, mirrormat).tolist()
+
+    return mirror
+
+mirror2D_x = mirror_func(direction=[1., 0.])
+mirror_x = mirror_func(direction=[1., 0., 0.])
 
 def cut(p1, p2, p3, p4):
     """

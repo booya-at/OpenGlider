@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import division
 import math
 import copy
 
@@ -25,8 +26,9 @@ from openglider.airfoil import Profile2D
 
 from openglider.glider.in_out import IMPORT_GEOMETRY, EXPORT_3D
 from openglider.utils import consistent_value
-from openglider.vector import norm, rotation_2d
+from openglider.vector import norm, rotation_2d, mirror2D_x
 from openglider.plots.projection import flatten_list
+from openglider.utils.bezier import BezierCurve
 
 
 class Glider(object):
@@ -155,7 +157,6 @@ class Glider(object):
         rear = []
         for i, rib in enumerate(self.ribs):
             rear.append([front[i][0], front[i][1] - rib.chord])
-        print(rear)
         return [front, rear]
 
     @property
@@ -281,3 +282,107 @@ class Glider(object):
     def glide(self, glide):
         for rib in self.ribs:
             rib.glide = glide
+
+
+class glider_2D(object):
+    '''
+        a glider 2D object is used for gui inputs.
+    '''
+    def __init__(self, factor=0, front=None, back=None, cell_num=21, cell_pos=None, parametric=True):
+        self._parametric = parametric
+        self._front = BezierCurve()
+        self._back = BezierCurve()
+        self._factor = factor
+        self._cell_pos = cell_pos
+        self._cell_num = None
+        self.front = front
+        self.back = back
+        self.cell_num = cell_num     # updates cell pos
+
+    @property
+    def factor(self):
+        return self._factor
+
+    @factor.setter
+    def factor(self, val):
+        if 0 <= val <= 1:
+            self._factor = val
+            self.cell_num = self._cell_num
+
+    @property
+    def ribs(self):
+        return zip(self.discrete_front(), self.discrete_back())
+
+    def discrete_front(self, num=30):
+        interpolation = self._front.interpolate_3d(num=num)
+        return [interpolation(i) for i in self._cell_pos]
+
+    def discrete_back(self, num=30):
+        interpolation = self._back.interpolate_3d(num=num)
+        return [interpolation(i) for i in self._cell_pos]
+
+    @property
+    def parametric(self):
+        return self._parametric
+
+    @parametric.setter
+    def parametric(self, state):
+        self._parametric = True if state else False
+
+    @property
+    def front(self):
+        l = len(self._front.controlpoints)
+        return self._front.controlpoints[l//2:][::-1]
+
+    @front.setter
+    def front(self, arr):
+        if arr is None:
+            arr = [[2., 0.], [1., 0.]]
+        self._front.controlpoints = mirror2D_x(arr) + arr[::-1]
+
+    @property
+    def back(self):
+        l = len(self._front.controlpoints)
+        return self._back.controlpoints[l//2:][::-1]
+
+    @back.setter
+    def back(self, arr):
+        if arr is None:
+            arr = [[2., -1.], [1., -1.]]
+        self._back.controlpoints = mirror2D_x(arr) + arr[::-1]
+
+    @property
+    def cell_num(self):
+        return self._cell_num
+
+    @cell_num.setter
+    def cell_num(self, val):
+        if not val is None:
+            self._cell_num = val
+        l = self.front[0][0]
+        self._cell_pos = [i * l for i in self.dist]
+
+    @property
+    def dist(self):
+        start = (self.cell_num % 2) / self.cell_num
+        print(start)
+        const_span = numpy.linspace(start, 1, num=self.cell_num // 2 + 1)
+        const_ar = const_span   # todo: add the const ar
+        pos = [i[0] + (i[1] - i[0]) * self.factor for i in zip(const_span, const_ar)]
+        return [-i for i in pos][::-1] + pos
+
+    @classmethod
+    def import_from_glider(cls, glider):
+        # todo: create glider2d from glider obj (fit bezier)
+        # todo: ask simon to solve my problems
+        gl2d = cls()
+        return gl2d
+
+
+
+if __name__ == "__main__":
+    gl2d = glider_2D()
+    gl2d.cell_num = 4
+    print(gl2d.front)
+    print(gl2d.back)
+    print(numpy.array(gl2d.ribs))

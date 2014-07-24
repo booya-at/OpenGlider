@@ -17,9 +17,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-
-
-__author__ = 'lo'
 from cache import recursive_getattr
 
 def sign(val):
@@ -33,6 +30,4 @@ def consistent_value(elements, attribute):
         return vals[0]
     else:
         return None
-
-
 

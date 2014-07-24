@@ -1,7 +1,6 @@
 from pivy import coin
 from openglider.utils.bezier import BezierCurve
 import numpy
-from openglider.vector import normalize
 
 class Line(object):
     def __init__(self, points):
@@ -9,7 +8,7 @@ class Line(object):
         self.ls = coin.SoLineSet()
         self.data = coin.SoCoordinate3()
         self.color = coin.SoMaterial()
-        self.points = points
+        self.points = vector3D(points)
         self.update()
         self.object.addChild(self.color)
         self.object.addChild(self.data)
@@ -17,7 +16,7 @@ class Line(object):
 
     def update(self, points=None):
         if points is not None:
-            self.points = points
+            self.points = vector3D(points)
         self.color.diffuseColor.setValue(0, 0, 0)
         self.data.point.setValue(0, 0, 0)
         self.data.point.setValues(0, len(self.points), self.points)
@@ -31,7 +30,7 @@ class Spline(Line):
 
     def update(self, points=None):
         if points is not None:
-            self.bezier_curve.controlpoints = points
+            self.bezier_curve.controlpoints = vector3D(points)
         super(Spline, self).update(points=[self.bezier_curve(i * 1. / (self.num - 1)) for i in range(self.num)])
 
     @property
@@ -43,30 +42,20 @@ class Spline(Line):
         self.numpoints = num
         self.update(self.bezier_curve.controlpoints)
 
-
-def mirror_func(direction=[0, 1, 0]):
-    x, y, z = normalize(direction)
-    mirrormat = numpy.array(
-        [
-            [1 - 2 * x ** 2, -2 * x * y, -2 * x * z],
-            [-2 * x * y, 1 - 2 * y ** 2, -2 * y * z],
-            [-2 * x * z, -2 * y * z, 1 - 2 * z ** 2]
-        ]
-    )
-    def reflect(vec):
-        if isinstance(vec[0], (numpy.ndarray, list, tuple)):
-            return numpy.array([reflect(i) for i in vec]).tolist()
+def vector3D(vec):
+    if not isinstance(vec[0], (list, tuple, numpy.ndarray)):
+        if len(vec) == 3:
+            return vec
+        elif len(vec) == 2:
+            return numpy.array(vec).tolist() + [0.]
         else:
-            return numpy.dot(vec, mirrormat).tolist()
-
-    return reflect
-
-reflect_x = mirror_func(direction=[1, 0, 0])
-reflect_y = mirror_func(direction=[0, 1, 0])
-reflect_z = mirror_func(direction=[0, 0, 1])
+            print("something wrong with this list: ", vec)
+    else:
+        return [vector3D(i) for i in vec]
 
 
 if __name__ == "__main__":
-    a = [[1,2,3], [2,3,4]]
-    print(reflect_y(a))
+    print(vector3D([[0, 1], [2, 3]]))
+
+
 
