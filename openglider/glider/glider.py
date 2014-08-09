@@ -355,7 +355,7 @@ class glider_2D(object):
     @cell_distribution.setter
     def cell_distribution(self, arr):
         if arr is None:
-            arr = [[0.5, 0.5]]
+            arr = [[0.33, 0.33], [0.66, 0.66]]
         self._cell_dist.controlpoints = [[0, 0]] + arr + [[self.front[0][0], 1]]
 
     def depth_integrated(self, num=100):

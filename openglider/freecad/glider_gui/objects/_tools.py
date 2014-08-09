@@ -62,7 +62,8 @@ class shape_tool(base_tool):
         self.num_cells.setValue(20)
         self.base_widget.connect(self.manual_edit, QtCore.SIGNAL('stateChanged(int)'), self.line_edit)
         self.base_widget.connect(self.check1, QtCore.SIGNAL('stateChanged(int)'), self.rib_edit)
-        self.base_widget.connect(self.num_cells, QtCore.SIGNAL("valueChanged(int)"), self.update_shape)
+        self.base_widget.connect(self.num_cells, QtCore.SIGNAL('valueChanged(int)'), self.update_shape)
+        self.base_widget.connect(self.set_const, QtCore.SIGNAL('clicked()'), self.update_const)
 
         self.layout.setWidget(1, text_field, QtGui.QLabel("num_cells"))
         self.layout.setWidget(1, input_field, self.num_cells)
@@ -96,7 +97,7 @@ class shape_tool(base_tool):
         self.task_separator.addChild(self.cpc2)
 
         # CELL-POS
-        self.rib_pos_cpc = ControlPointContainer([[0.5, 0.5, 0.]])
+        self.rib_pos_cpc = ControlPointContainer([[0.33, 0.33, 0.], [0.66, 0.66, 0.]])
         self.task_separator.addChild(self.rib_pos_cpc)
         self.rib_pos_cpc.on_drag.append(self.update_shape)
 
@@ -111,7 +112,12 @@ class shape_tool(base_tool):
         self.update_shape()
 
     def update_const(self):
-        self.glider.
+        print("Hello")
+        const_dist = self.glider_2d.depth_integrated()
+        num = len(self.glider_2d._cell_dist._controlpoints)
+        self.glider_2d._cell_dist.fit(const_dist, numpoints=num)
+        self.rib_pos_cpc.set_control_points(self.glider_2d._cell_dist._controlpoints[1:-1])
+        self.update_shape()
 
     def update_shape(self, arg=None):
         self.glider_2d.front = [i[:-1] for i in self.cpc1.control_point_list]
@@ -125,7 +131,6 @@ class shape_tool(base_tool):
         ribs, front, back, dist_line = self.glider_2d.shape()
         self.shape.addChild(Line(front).object)
         self.shape.addChild(Line(back).object)
-        self.shape.addChild(Line(self.glider_2d.depth_integrated(num=30)).object)
         for rib in ribs:
             self.shape.addChild(Line(rib).object)
         if self.check1.checkState():

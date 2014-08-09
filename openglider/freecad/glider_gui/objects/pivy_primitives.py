@@ -122,6 +122,14 @@ class ControlPointContainer(coin.SoSeparator):
         if event.getKey() == 65307:
             self.unset_edit_mode()
 
+    def set_control_points(self, points):
+        self.control_points = [ControlPoint(*point) for point in points]
+        self.removeAllChildren()
+        for i in self.control_points:
+            if self.is_edit:
+                i.set_edit_mode()
+            self.addChild(i)
+
 
     def highlight_cb(self, event_callback):
         event = event_callback.getEvent()
