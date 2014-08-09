@@ -288,46 +288,32 @@ class glider_2D(object):
     '''
         a glider 2D object is used for gui inputs.
     '''
-    def __init__(self, factor=0, front=None, back=None, cell_num=21, cell_pos=None, parametric=True):
-        self._parametric = parametric
+    def __init__(self, factor=0, front=None, back=None, cell_dist=None, cell_num=21, parametric=True):
         self._front = BezierCurve()
         self._back = BezierCurve()
-        self._factor = factor
-        self._cell_pos = cell_pos
+        self._cell_dist = BezierCurve()
         self._cell_num = None
         self.front = front
         self.back = back
+        self.cell_distribution = cell_dist
         self.cell_num = cell_num     # updates cell pos
 
-    @property
-    def factor(self):
-        return self._factor
-
-    @factor.setter
-    def factor(self, val):
-        if 0 <= val <= 1:
-            self._factor = val
-            self.cell_num = self._cell_num
-
-    @property
-    def ribs(self):
-        return zip(self.discrete_front(), self.discrete_back())
-
-    def discrete_front(self, num=30):
-        interpolation = self._front.interpolate_3d(num=num)
-        return [interpolation(i) for i in self._cell_pos]
-
-    def discrete_back(self, num=30):
-        interpolation = self._back.interpolate_3d(num=num)
-        return [interpolation(i) for i in self._cell_pos]
-
-    @property
-    def parametric(self):
-        return self._parametric
-
-    @parametric.setter
-    def parametric(self, state):
-        self._parametric = True if state else False
+    def shape(self, num=30):
+        front = []
+        back = []
+        front_int = self._front.interpolate_3d(num=num)
+        back_int = self._back.interpolate_3d(num=num)
+        dist_line = self.cell_distribution
+        dist = [i[0] for i in dist_line]
+        if dist[0] == 0.:
+            full_dist = [-i for i in dist[1:][::-1]] + dist
+        else:
+            full_dist = [-i for i in dist[::-1]] + dist
+        ribs = [[front_int(i), back_int(i)] for i in full_dist]
+        for f, b in ribs:
+            front.append(f)
+            back.append(b)
+        return [ribs, front, back, dist_line]
 
     @property
     def front(self):
@@ -359,18 +345,33 @@ class glider_2D(object):
     def cell_num(self, val):
         if not val is None:
             self._cell_num = val
-        l = self.front[0][0]
-        self._cell_pos = [i * l for i in self.dist]
 
     @property
-    def dist(self):
+    def cell_distribution(self):
+        interpolation = self._cell_dist.interpolate_3d(num=20, xyz=1)
         start = (self.cell_num % 2) / self.cell_num
-        print(start)
-        const_span = numpy.linspace(start, 1, num=self.cell_num // 2 + 1)
-        const_ar = const_span   # todo: add the const ar
-        pos = [i[0] + (i[1] - i[0]) * self.factor for i in zip(const_span, const_ar)]
-        return [-i for i in pos][::-1] + pos
+        return [interpolation(i) for i in numpy.linspace(start, 1, num=self.cell_num // 2 + 1)]
 
+    @cell_distribution.setter
+    def cell_distribution(self, arr):
+        if arr is None:
+            arr = [[0.5, 0.5]]
+        self._cell_dist.controlpoints = [[0, 0]] + arr + [[self.front[0][0], 1]]
+
+    def depth_integrated(self, num=100):
+        l = numpy.linspace(0, self.front[0][0], num)
+        front_int = self._front.interpolate_3d(num=num)
+        back_int = self._back.interpolate_3d(num=num)
+        integrated_depth = [0.]
+        for i in l[1:]:
+            integrated_depth.append(integrated_depth[-1] + 1. / (front_int(i)[1] - back_int(i)[1]))
+        return zip(l, [i / integrated_depth[-1] for i in integrated_depth])
+
+
+
+
+
+    # ToDo: ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     @classmethod
     def import_from_glider(cls, glider):
         # todo: create glider2d from glider obj (fit bezier)
@@ -378,11 +379,12 @@ class glider_2D(object):
         gl2d = cls()
         return gl2d
 
+    def export_to_glider(self, glider):
+        pass
+
 
 
 if __name__ == "__main__":
     gl2d = glider_2D()
-    gl2d.cell_num = 4
-    print(gl2d.front)
-    print(gl2d.back)
-    print(numpy.array(gl2d.ribs))
+    gl2d.cell_num = 10
+    print(gl2d.discrete_back())

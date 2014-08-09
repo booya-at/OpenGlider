@@ -1,4 +1,4 @@
-from _base import ControlPointContainer
+from pivy_primitives import ControlPointContainer
 
 
 class OGBaseObject(object):
