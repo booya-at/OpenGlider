@@ -68,7 +68,6 @@ class BezierCurve(CachedObject):
 
     @cached_property('numpoints')
     def _bezierbase(self):
-        d = self.numpoints
         return bernsteinbase(self.numpoints)
         #return [lambda x: comb(d - 1, n) * (x ** n) * ((1 - x) ** (d - 1 - n)) for n in range(d)]
 
@@ -91,9 +90,11 @@ class BezierCurve(CachedObject):
         return self.__call__(root)
 
     def fit(self, data, numpoints=None):
-        if numpoints:
-            self.numpoints = numpoints
-        self.controlpoints = fitbezier(data, self._bezierbase)
+        # TODO: maybe the easy way is better
+        if numpoints is None:
+            #self.numpoints = numpoints
+            numpoints = self.numpoints
+        self.controlpoints = fitbezier(data, bernsteinbase(numpoints))
 
     def interpolation(self, num=100):
         x = []
@@ -153,10 +154,42 @@ def fitbezier(points, base=bernsteinbase(3), start=True, end=True):
     if start (/ end) is True, the first (/ last) point of the Curve is included"""
     matrix = numpy.matrix(
         [[base[column](row * 1. / (len(points) - 1)) for column in range(len(base))] for row in range(len(points))])
-    matrix = numpy.linalg.pinv(matrix)
-    out = numpy.array(matrix * points)
-    if start:
-        out[0] = points[0]
-    if end:
-        out[-1] = points[-1]
-    return out
+    if not start and not end:
+        matrix = numpy.linalg.pinv(matrix)
+        out = numpy.array(matrix * points)
+        return out
+    else:
+        A1=numpy.array(matrix)
+        A2=[]
+        points2=[]
+        points1 = numpy.array(points)
+        solution = []
+        if start:
+            # add first column to A2 and remove first column of A1
+            A2.append(A1[:, 0])
+            A1 = A1[:, 1:]
+            points2.append(points[0])
+            points1 = points1[1:]
+        if end:
+            # add last column to A2 and remove last column of A1
+            A2.append(A1[:, -1])
+            A1 = A1[:, :-1]
+            points2.append(points[-1])
+            points1 = points[:-1]
+        A1_inv = numpy.linalg.inv(numpy.dot(A1.T, A1))
+        A2 = numpy.array(A2).T
+        points1 = numpy.array(points).T
+        points2 = numpy.array(points2).T
+        for dim, _ in enumerate(points1):
+            rhs1 = numpy.array(A1.T.dot(points1[dim]))
+            rhs2 = numpy.array((A1.T.dot(A2)).dot(points2[dim])).T
+            solution.append(numpy.array(A1_inv.dot(rhs1 - rhs2)))
+        solution = (numpy.matrix(solution).T).tolist()
+        if start:
+            solution.insert(0, points[0])
+        if end:
+            solution.append(points[-1])
+        return solution
+
+if __name__ == "__main__":
+    print(fitbezier([[1], [2], [3], [4], [5], [6]],bernsteinbase(6), end=False, start=True))

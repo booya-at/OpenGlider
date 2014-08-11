@@ -97,7 +97,7 @@ class shape_tool(base_tool):
         self.task_separator.addChild(self.cpc2)
 
         # CELL-POS
-        self.rib_pos_cpc = ControlPointContainer([[0.33, 0.33, 0.], [0.66, 0.66, 0.]])
+        self.rib_pos_cpc = ControlPointContainer([[0.25, 0.25, 0.], [0.5, 0.5, 0.], [0.75, 0.75, 0.]])
         self.task_separator.addChild(self.rib_pos_cpc)
         self.rib_pos_cpc.on_drag.append(self.update_shape)
 

@@ -24,15 +24,17 @@ class TestMarks(unittest.TestCase):
         nose_ind = self.profile.noseindex
         upper = BezierCurve()
         lower = BezierCurve()
-        upper.fit(self.profile.data[:nose_ind+1],numpoints=10)
-        lower.fit(self.profile.data[nose_ind:], numpoints=10)
+        upper.fit(self.profile.data[:nose_ind+1], numpoints=5)
+        lower.fit(self.profile.data[nose_ind:], numpoints=5)
 
         Graphics2D([
             Red,
             Line(self.profile.data),
             Green,
             Line(map(upper, numpy.linspace(0, 1, 100))),
-            Line(map(lower, numpy.linspace(0, 1, 100)))
+            Line(map(lower, numpy.linspace(0, 1, 100))),
+            Line(upper.controlpoints),
+            Line(lower.controlpoints)
             ])
 
     def test_bezier_interpolation(self):
