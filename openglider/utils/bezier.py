@@ -39,7 +39,7 @@ class BezierCurve(CachedObject):
         self.controlpoints = controlpoints
 
     def __json__(self):
-        return {'controlpoints': self.controlpoints}
+        return {'controlpoints': [p.tolist() for p in self.controlpoints]}
 
     def __call__(self, value):
         if 0 <= value <= 1:

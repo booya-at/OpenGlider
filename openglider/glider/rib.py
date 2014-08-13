@@ -45,7 +45,7 @@ class Rib(CachedObject):
                 "zrot": self.zrot,
                 "glide": self.glide,
                 "name": self.name,
-                "aoa_abs": self._aoa[1]}
+                "aoa_abs": not self._aoa[1]}
 
     def align(self, point):
         if len(point) == 2:

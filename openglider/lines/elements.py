@@ -235,6 +235,6 @@ class Node(object):
 
     def __json__(self):
         return{
-            'node_type': list(self.type),
+            'node_type': self.type,
             'position_vector': list(self.vec)
         }

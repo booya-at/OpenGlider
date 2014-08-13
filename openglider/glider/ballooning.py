@@ -1,4 +1,4 @@
-#! /usr/bin/python2
+# ! /usr/bin/python2
 # -*- coding: utf-8; -*-
 #
 # (c) 2013 booya (http://booya.at)
@@ -113,7 +113,8 @@ class BallooningBezier(Ballooning):
         Ballooning.__init__(self, self.upbez.interpolation(), self.lowbez.interpolation())
 
     def __json__(self):
-        return {"points": [self.upbez.controlpoints, self.lowbez.controlpoints]}
+        return {"points": [[p.tolist() for p in self.upbez.controlpoints],
+                           [p.tolist() for p in self.lowbez.controlpoints]]}
 
     def __mul__(self, other):  # TODO: Check consistency
         """Multiplication of BezierBallooning"""
@@ -145,8 +146,10 @@ class BallooningBezier(Ballooning):
             self.lowbez.controlpoints = lower
         Ballooning.__init__(self, self.upbez.interpolation(), self.lowbez.interpolation())
 
+
 global arsinc
 from openglider.utils import config
+
 
 def interpolate_asinc(numpoints=1000, phi0=0, phi1=numpy.pi):
     """Set Global Interpolation Function arsinc"""

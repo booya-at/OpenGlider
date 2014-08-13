@@ -1,5 +1,6 @@
 import json
 import time
+import numpy
 from objects import objects
 import openglider
 
@@ -14,6 +15,8 @@ class Encoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, (list, dict, str, unicode, int, float, bool, type(None))):
             return super(Encoder, self).default(obj)
+        elif isinstance(obj, numpy.ndarray):
+            return super(Encoder, self).default(obj.tolist())
         elif hasattr(obj, "__json__"):
             return {"_type": obj.__class__.__name__,
                     "_module": obj.__class__.__module__,

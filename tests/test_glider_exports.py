@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
+import tempfile
 import unittest
 import sys
 import os
@@ -34,35 +35,48 @@ testfolder = os.path.dirname(os.path.abspath(__file__))
 
 
 class TestGlider(GliderTestClass):
+    def file(self, suffix):
+        file = tempfile.NamedTemporaryFile(suffix=suffix)
+        return file
+
     def test_import_export_ods(self):
-        path = '/tmp/daweil.ods'
+        path = self.file('.ods').name
         self.glider.export_geometry(path)
         #new_glider = glider.Glider()
         #self.assertTrue(new_glider.import_from_file(path))
         #self.assertEqual(new_glider, self.glider)
 
     def test_export_obj(self):
-        path = '/tmp/Booya.obj'
+        path = self.file('.obj').name
         self.glider.export_3d(path, midribs=5)
 
     @unittest.skip('this hangs')
     def test_export_dxf(self):
-        path = '/tmp/booya.dxf'
+        path = self.file('.dxf').name
         self.glider.export_3d(path, midribs=5)
 
     #@unittest.skip('')
     def test_export_apame(self):
-        path = '/tmp/booya.inp'
+        path = self.file('.inp').name
         self.glider.export_3d(path, midribs=1)
 
     @unittest.skip('too slow')
     def test_export_json(self):
-        path = '/tmp/booya.json'
+        path = self.file('.json').name
         self.glider.export_3d(path, midribs=2)
 
     def test_export_plots(self):
-        path = '/tmp/plots.svg'
+        path = self.file('.svg').name
         create_svg(flatten_glider(self.glider), path)
+
+    def test_export_glider_json(self):
+        print("jo")
+        from openglider import jsonify
+        path = self.file('.json')
+        jsonify.dump(self.glider, path)
+        path.seek(0)
+        glider = jsonify.load(path)['data']
+        self.assertEqualGlider(glider)
 
 
 

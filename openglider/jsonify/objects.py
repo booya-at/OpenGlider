@@ -14,7 +14,7 @@ def return_glider(ribs, cells, lineset=None):
         if isinstance(cell.rib2, int):
             cell.rib2 = ribs[cell.rib2]
     # TODO: put rib-references into attachment points
-    return openglider.Glider(cells)
+    return openglider.glider.Glider(cells)
 
 
 def return_lineset(lines, nodes, v_inf):
