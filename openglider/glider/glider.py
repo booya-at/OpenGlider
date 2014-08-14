@@ -137,9 +137,10 @@ class Glider(object):
             rib.pos *= faktor
             rib.chord *= faktor
         # todo: scale lines,
+
     @property
     def shape_simple(self):
-        last_pos = numpy.array([0,0]) # y,z
+        last_pos = numpy.array([0, 0])  # y,z
         front = []
         back = []
         x = y_front = y_back = 0
@@ -147,11 +148,11 @@ class Glider(object):
             width = norm(rib.pos[1:]-last_pos)
             last_pos = rib.pos[1:]
 
-            x += width * (rib.pos[1]>0) ## x-value
+            x += width * (rib.pos[1] > 0)   # x-value
             y_front = -rib.pos[0] + rib.chord*rib.startpos
             y_back = -rib.pos[0] + rib.chord*(rib.startpos-1)
-            front.append([x,y_front])
-            back.append([x,y_back])
+            front.append([x, y_front])
+            back.append([x, y_back])
 
         return front, back
 
@@ -295,7 +296,7 @@ class Glider_2D(object):
         self._cell_num = None
         self.front = front or BezierCurve()
         self.back = back or BezierCurve()
-        self.cell_dist = cell_dist or BezierCurve
+        self.cell_dist = cell_dist or BezierCurve()
         self.cell_num = cell_num     # updates cell pos
 
     def __json__(self):
@@ -376,31 +377,30 @@ class Glider_2D(object):
             integrated_depth.append(integrated_depth[-1] + 1. / (front_int(i)[1] - back_int(i)[1]))
         return zip(l, [i / integrated_depth[-1] for i in integrated_depth])
 
-
     # ToDo: ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     @classmethod
-    def fit_glider(cls, glider, numpoints=3):
+    def fit_glider(cls, glider, numpoints=5):
         # todo: create glider2d from glider obj (fit bezier)
-        def mirror(polyline):
-            mirrored = [[-p[0], p[1]] for p in polyline[1::-1]]
-            start = polyline[0][0]<0
-            return mirrored+polyline[start:]
+        def mirror_x(polyline):
+            mirrored = [[-p[0], p[1]] for p in polyline[1::]]
+            start = polyline[0][0] < 0
+            return mirrored[::-1]+polyline[start:]
 
         front, back = glider.shape_simple
-        front_bezier = BezierCurve.fit(mirror(front), numpoints=2*numpoints)
-        back_bezier = BezierCurve.fit(mirror(back), numpoints=2*numpoints)
+        import openglider.graphics as g
+        g.Graphics2D([g.Line(front), g.Red, g.Line(mirror_x(front))])
+
+        front_bezier = BezierCurve.fit(mirror_x(front), numpoints=2*numpoints)
+        back_bezier = BezierCurve.fit(mirror_x(back), numpoints=2*numpoints)
 
         front[0][0] = 0  # for midribs
         rib_pos = [[p[0], i/(len(front)-1)] for i, p in enumerate(front)]
-        print("jo", rib_pos)
         rib_distribution = BezierCurve.fit(rib_pos, numpoints=numpoints)
-
-
 
         #cell_pos = [point[0], i / len for i, point in enumerate(front)]
         gl2d = cls(front=front_bezier,
-                    back=back_bezier,
-                    cell_dist=rib_distribution)
+                   back=back_bezier,
+                   cell_dist=rib_distribution)
         return gl2d
 
     @property

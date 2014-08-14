@@ -39,13 +39,7 @@ class shape_tool(base_tool):
     def __init__(self, obj):
         super(shape_tool, self).__init__(obj, widget_name="shape tool")
         self.glider_copy = self.obj.glider_instance.copy_complete()
-        self.glider_2d = Glider_2D()
-        fit_2d = Glider_2D.fit_glider(self.obj.glider_instance)
-        #self.glider_2d.front = fit_2d.front
-        #self.glider_2d.back = fit_2d.back
-        print("front", self.glider_2d.front, fit_2d.front)
-        print("back", self.glider_2d.back, fit_2d.back)
-        self.glider_2d = fit_2d
+        self.glider_2d = Glider_2D.fit_glider(self.obj.glider_instance)
         self.shape = None
         self.front_cpc = None
         self.back_cpc = None
@@ -70,6 +64,9 @@ class shape_tool(base_tool):
 
     def setup_widget(self):
         self.Qnum_cells.setValue(20)
+        self.Qnum_front.setValue(len(self.glider_2d.front_controlpoints))
+        self.Qnum_back.setValue(len(self.glider_2d.back_controlpoints))
+        self.Qnum_dist.setValue(len(self.glider_2d.cell_dist_controlpoints))
         self.base_widget.connect(self.Qmanual_edit, QtCore.SIGNAL('stateChanged(int)'), self.line_edit)
         self.base_widget.connect(self.Qcheck1, QtCore.SIGNAL('stateChanged(int)'), self.rib_edit)
         self.base_widget.connect(self.Qnum_cells, QtCore.SIGNAL('valueChanged(int)'), self.update_shape)
@@ -118,8 +115,8 @@ class shape_tool(base_tool):
         self.update_shape()
 
     def update_num_front(self, val):
-        self.glider_2d.front.numpoints = val * 2
-        self.front_cpc.set_control_points(vector3D(self.glider_2d.front_controlpoints))
+        #self.glider_2d.front.numpoints = val * 2
+        #self.front_cpc.set_control_points(vector3D(self.glider_2d.front_controlpoints))
         # self.front_cpc.control_points[-1].constraint = lambda pos: [pos[0], 0., 0.]
         self.update_shape()
 
