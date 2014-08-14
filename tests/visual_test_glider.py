@@ -78,9 +78,7 @@ class TestGlider(GliderTestClass):
         openglider.graphics.Graphics2D([openglider.graphics.Line(obj) for obj in data])
 
     def test_show_shape_simple(self):
-        glider = self.glider
         front, back = self.glider.shape_simple
-
         openglider.graphics.Graphics2D([openglider.graphics.Line(obj) for obj in front, back])
 
     def test_show_ribs(self):

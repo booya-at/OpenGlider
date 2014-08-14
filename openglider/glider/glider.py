@@ -145,10 +145,11 @@ class Glider(object):
         x = y_front = y_back = 0
         for rib in self.ribs:
             width = norm(rib.pos[1:]-last_pos)
+            last_pos = rib.pos[1:]
 
             x += width * (rib.pos[1]>0) ## x-value
-            y_front = rib.pos[0] + rib.chord*rib.startpos
-            y_back = rib.pos[0] + rib.chord*(rib.startpos-1)
+            y_front = -rib.pos[0] + rib.chord*rib.startpos
+            y_back = -rib.pos[0] + rib.chord*(rib.startpos-1)
             front.append([x,y_front])
             back.append([x,y_back])
 
