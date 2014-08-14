@@ -18,12 +18,15 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import division
 
 import numpy
 from scipy.misc import comb
 import scipy.interpolate
 from scipy.optimize import bisect as findroot
+
 from openglider.utils.cache import cached_property, CachedObject
+from openglider.vector import mirror2D_x
 
 __ALL = ['BezierCurve']
 
@@ -63,12 +66,11 @@ class BezierCurve(CachedObject):
     def numpoints(self, num_ctrl, num_points=50):
         if not num_ctrl == self.numpoints:
             base = bernsteinbase(num_ctrl)
-            self.controlpoints = fitbezier([self(i) for i in numpy.linspace(0, 1, num_points)], base)
+            self._controlpoints = fitbezier([self(i) for i in numpy.linspace(0, 1, num_points)], base)
 
     @cached_property('numpoints')
     def _bezierbase(self):
         return bernsteinbase(self.numpoints)
-        #return [lambda x: comb(d - 1, n) * (x ** n) * ((1 - x) ** (d - 1 - n)) for n in range(d)]
 
     @property
     def controlpoints(self):
@@ -76,9 +78,7 @@ class BezierCurve(CachedObject):
 
     @controlpoints.setter
     def controlpoints(self, points):
-        #self.numpoints = len(points)
         self._controlpoints = [numpy.array(p) for p in points]
-        #self._BezierFunction = bezierfunction(points, self._BezierBase)
 
     def xpoint(self, x):
         root = findroot(lambda x2: self.__call__(x2)[0] - x, 0, 1)
@@ -101,28 +101,51 @@ class BezierCurve(CachedObject):
         x = []
         y = []
         for i in range(num):
-            point = self(i * 1. / (num - 1))
+            point = self(i / (num - 1))
             x.append(point[0])
             y.append(point[1])
         return scipy.interpolate.interp1d(x, y)
 
-    def interpolate_3d(self, num=100, xyz=0):
-        x = []
-        data = []
-        for i in range(num):
-            point = self(i * 1. / (num - 1))
-            x.append(point[xyz])
-            data.append(point)
-        return scipy.interpolate.interp1d(x, numpy.transpose(data),bounds_error=False)
+    def interpolate_3d(self, num=100, which=0, bounds_error=False):
+        """
+        Return scipy interpolation
+        """
+        data = self.get_sequence(num)
+        return scipy.interpolate.interp1d(data[which], data, bounds_error=bounds_error)
 
     def get_sequence(self, num=50):
-        x = []
-        y = []
+        data = []
         for i in range(num):
-            point = self(i * 1. / (num - 1))
-            x.append(point[0])
-            y.append(point[1])
-        return([x, y])
+            point = self(i / (num - 1))
+            data.append(point)
+        return numpy.transpose(data)
+
+
+class SymmetricBezier(BezierCurve):
+    def __init__(self, controlpoints=None, mirror=None):
+        self._mirror = mirror or mirror2D_x
+        super(SymmetricBezier, self).__init__(controlpoints=controlpoints)
+
+    @property
+    def controlpoints(self):
+        return self._controlpoints[self.numpoints:]
+
+    @controlpoints.setter
+    def controlpoints(self, controlpoints):
+        self._controlpoints = self._mirror(controlpoints)[::-1] + controlpoints
+
+    @property
+    def numpoints(self):
+        return len(self._controlpoints) // 2
+
+    def get_sequence(self, num=50):
+        data = []
+        for i in range(num):
+            point = self((1 + i/(num - 1))/2)
+            data.append(point)
+        return numpy.transpose(data)
+
+
 
 ##############################FUNCTIONS
 

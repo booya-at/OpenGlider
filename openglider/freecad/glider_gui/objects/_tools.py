@@ -166,8 +166,8 @@ class shape_tool(base_tool):
 
     def update_shape(self, arg=None):
         print("absdlfks")
-        self.glider_2d.front_controlpoints = [i[:-1] for i in self.front_cpc.control_point_list]
-        self.glider_2d.back_controlpoints = [i[:-1] for i in self.back_cpc.control_point_list]
+        self.glider_2d.front.controlpoints = [i[:-1] for i in self.front_cpc.control_point_list]
+        self.glider_2d.back.controlpoints = [i[:-1] for i in self.back_cpc.control_point_list]
         self.glider_2d.cell_dist_controlpoints = [i[:-1] for i in self.rib_pos_cpc.control_point_list]
         if arg is not None:
             self.glider_2d.cell_num = arg

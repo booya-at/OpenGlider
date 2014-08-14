@@ -1,4 +1,4 @@
-#! /usr/bin/python2
+# ! /usr/bin/python2
 # -*- coding: utf-8; -*-
 #
 # (c) 2013 booya (http://booya.at)
@@ -30,11 +30,9 @@ except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
     import openglider
 import openglider.graphics
-import openglider.graphics as G
-from openglider.vector import PolyLine2D
+import openglider.graphics as graphics
 from test_glider import GliderTestClass
 import unittest
-
 
 
 class TestGlider(GliderTestClass):
@@ -59,9 +57,10 @@ class TestGlider(GliderTestClass):
         objects += [openglider.graphics.Green]
         objects += [openglider.graphics.Polygon(rib.profile_3d.data) for rib in right.ribs]
         blue = openglider.graphics.Blue
-        objects += map(lambda line: openglider.graphics.Line(line.get_line_points(), colour=blue.colour), left.lineset.lines)
+        objects += map(lambda line: openglider.graphics.Line(line.get_line_points(), colour=blue.colour),
+                       left.lineset.lines)
 
-#objects += [openglider.graphics.Axes(size=1.2)] #, openglider.graphics.Green]
+        #objects += [openglider.graphics.Axes(size=1.2)] #, openglider.graphics.Green]
         #objects.append(openglider.graphics.Blue)
         #objects += [openglider.graphics.Line(rib.profile_3d.data) for rib in left.ribs]
 
@@ -91,47 +90,49 @@ class TestGlider(GliderTestClass):
         num = 3
         data = []
         for i in range(num):
-            cell = self.glider.cells[random.randint(0, len(self.glider.cells)-1)]
+            cell = self.glider.cells[random.randint(0, len(self.glider.cells) - 1)]
             prof = cell.midrib(random.random())
             prof.projection()
             data += [prof.data,
-                     [prof.data[0], prof.data[0]+prof.xvect],
-                     [prof.data[0], prof.data[0]+prof.yvect]]
+                     [prof.data[0], prof.data[0] + prof.xvect],
+                     [prof.data[0], prof.data[0] + prof.yvect]]
 
         openglider.graphics.Graphics([openglider.graphics.Line(obj) for obj in data])
 
     def test_midrib_flattened(self):
         num = 2
-        cell = self.glider.cells[random.randint(0, len(self.glider.cells)-1)]
+        cell = self.glider.cells[random.randint(0, len(self.glider.cells) - 1)]
         profs = [cell.rib1.profile_2d.data]
-        profs += [cell.midrib(random.random()).flatten().data + [0, (i+1)*0.] for i in range(num)]
+        profs += [cell.midrib(random.random()).flatten().data + [0, (i + 1) * 0.] for i in range(num)]
         openglider.graphics.Graphics2D([openglider.graphics.Line(prof) for prof in profs])
 
     def test_brake(self):
         glider = self.glider
         brake = BezierCurve([[0., 0.], [1., 0.], [1., -0.2]])
         num = 60
-        brakeprof = openglider.Profile2D([brake(i/num) for i in reversed(range(num+1))][:-1] +
-                                         [brake(i/num) for i in range(num+1)], normalize_root=False)
+        brakeprof = openglider.airfoil.Profile2D([brake(i / num) for i in reversed(range(num + 1))][:-1] +
+                                                 [brake(i / num) for i in range(num + 1)], normalize_root=False)
 
         for i, rib in enumerate(glider.ribs):
-            rib.profile_2d = rib.profile_2d+brakeprof*(3*i/len(glider.ribs))
+            rib.profile_2d = rib.profile_2d + brakeprof * (3 * i / len(glider.ribs))
 
         self.test_show_3d_green(thaglider=glider)
 
     @unittest.skip('notyet')
     def test_export_json(self):
         #path = os.tmpfile()
-        path = os.tmpnam()+".json"
+        path = os.tmpnam() + ".json"
         self.glider.export_3d(path)
         import custom_json
+
         file = open(path, "r")
         data = custom_json.load(file)
         print(data["panels"])
         print(data["nodes"])
-        G.Graphics([G.Polygon(panel["node_no"]) for panel in data["panels"] if not panel["is_wake"]],
-        #G.Graphics([G.Polygon(data["panels"][0]["node_no"])],
-                   data["nodes"])
+        graphics.Graphics([graphics.Polygon(panel["node_no"]) for panel in data["panels"] if not panel["is_wake"]],
+                          #G.Graphics([G.Polygon(data["panels"][0]["node_no"])],
+                          data["nodes"])
+
 
 if __name__ == '__main__':
     unittest.main()
