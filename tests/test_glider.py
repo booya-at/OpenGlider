@@ -44,7 +44,7 @@ class GliderTestClass(unittest.TestCase):
             for xyz_1, xyz_2 in zip(rib_1.profile_3d, rib_2.profile_3d):
                 for _p1, _p2 in zip(xyz_1, xyz_2):
                     self.assertAlmostEqual(_p1, _p2)
-        # todo: expand test
+        # todo: expand test: lines, diagonals,...
 
 
 class TestGlider(GliderTestClass):

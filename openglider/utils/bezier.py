@@ -88,12 +88,14 @@ class BezierCurve(CachedObject):
         root = findroot(lambda y2: self.__call__(y2)[1] - y, 0, 1)
         return self.__call__(root)
 
-    def fit(self, data, numpoints=None):
+    @classmethod
+    def fit(cls, data, numpoints=None):
         # wenn numpoints is none -> eigene anzahl an kontrollpunkten verwenden
-        if numpoints is None:
-            #self.numpoints = numpoints
-            numpoints = self.numpoints
-        self.controlpoints = fitbezier(data, self._bezierbase)
+        bezier = cls()
+        if numpoints:
+            bezier.numpoints = numpoints
+        bezier.controlpoints = fitbezier(data, bezier._bezierbase)
+        return bezier
 
     def interpolation(self, num=100):
         x = []
@@ -196,3 +198,4 @@ if __name__ == "__main__":
     a = BezierCurve([[0,0], [10,10], [20,20]])
     a.numpoints = 4
     print(a.controlpoints)
+    print(BezierCurve.fit([[0,0],[10,4],[20,0]]).controlpoints)

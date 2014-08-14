@@ -39,9 +39,14 @@ class shape_tool(base_tool):
     def __init__(self, obj):
         super(shape_tool, self).__init__(obj, widget_name="shape tool")
         self.glider_copy = self.obj.glider_instance.copy_complete()
-        self.glider_2d = Glider_2D.import_from_glider(self.obj.glider_instance)
+        self.glider_2d = Glider_2D()
+        fit_2d = Glider_2D.fit_glider(self.obj.glider_instance)
+        #self.glider_2d.front = fit_2d.front
+        #self.glider_2d.back = fit_2d.back
+        print("front", self.glider_2d.front, fit_2d.front)
+        print("back", self.glider_2d.back, fit_2d.back)
+        self.glider_2d = fit_2d
         self.shape = None
-        self.ribs = None
         self.front_cpc = None
         self.back_cpc = None
         self.rib_pos_cpc = None
@@ -108,25 +113,25 @@ class shape_tool(base_tool):
         self.update_shape()
 
     def update_num_dist(self, val):
-        self.glider_2d._cell_dist.numpoints = val + 2
-        self.rib_pos_cpc.set_control_points(vector3D(self.glider_2d._cell_dist._controlpoints[1:-1]))
+        self.glider_2d.cell_dist.numpoints = val + 2
+        self.rib_pos_cpc.set_control_points(vector3D(self.glider_2d.cell_dist._controlpoints[1:-1]))
         self.update_shape()
 
     def update_num_front(self, val):
-        self.glider_2d._front.numpoints = val * 2
-        self.front_cpc.set_control_points(vector3D(self.glider_2d.front))
+        self.glider_2d.front.numpoints = val * 2
+        self.front_cpc.set_control_points(vector3D(self.glider_2d.front_controlpoints))
         # self.front_cpc.control_points[-1].constraint = lambda pos: [pos[0], 0., 0.]
         self.update_shape()
 
     def update_num_back(self, val):
-        self.glider_2d._back.numpoints = val * 2
-        self.back_cpc.set_control_points(vector3D(self.glider_2d.back))
+        self.glider_2d.back.numpoints = val * 2
+        self.back_cpc.set_control_points(vector3D(self.glider_2d.back_controlpoints))
         self.update_shape()
 
     def add_pivy(self):
         # SHAPE
-        self.front_cpc = ControlPointContainer(vector3D(self.glider_2d.front))
-        self.back_cpc = ControlPointContainer(vector3D(self.glider_2d.back))
+        self.front_cpc = ControlPointContainer(vector3D(self.glider_2d.front_controlpoints))
+        self.back_cpc = ControlPointContainer(vector3D(self.glider_2d.back_controlpoints))
         self.front_cpc.on_drag.append(self.update_data_back)
         self.back_cpc.on_drag.append(self.update_data_front)
         # self.front_cpc.control_points[-1].constraint = lambda pos: [pos[0], 0., 0.]
@@ -137,8 +142,11 @@ class shape_tool(base_tool):
         self.task_separator.addChild(self.front_cpc)
         self.task_separator.addChild(self.back_cpc)
 
+        self.task_separator.addChild(Line(self.obj.glider_instance.shape_simple[0]).object)
+        self.task_separator.addChild(Line(self.obj.glider_instance.shape_simple[1]).object)
+        
         # CELL-POS
-        self.rib_pos_cpc = ControlPointContainer([[0.5, 0.5, 0.]])
+        self.rib_pos_cpc = ControlPointContainer(vector3D(self.glider_2d.cell_dist_controlpoints))
         self.task_separator.addChild(self.rib_pos_cpc)
         self.rib_pos_cpc.on_drag.append(self.update_shape)
 
@@ -154,15 +162,16 @@ class shape_tool(base_tool):
 
     def update_const(self):
         const_dist = self.glider_2d.depth_integrated()
-        num = len(self.glider_2d._cell_dist._controlpoints)
-        self.glider_2d._cell_dist.fit(const_dist, numpoints=num)
+        num = len(self.glider_2d.cell_dist.controlpoints)
+        self.glider_2d.cell_dist.fit(const_dist, numpoints=num)
         self.rib_pos_cpc.set_control_points(self.glider_2d.cell_dist)
         self.update_shape()
 
     def update_shape(self, arg=None):
-        self.glider_2d.front = [i[:-1] for i in self.front_cpc.control_point_list]
-        self.glider_2d.back = [i[:-1] for i in self.back_cpc.control_point_list]
-        self.glider_2d.cell_dist = [i[:-1] for i in self.rib_pos_cpc.control_point_list]
+        print("absdlfks")
+        self.glider_2d.front_controlpoints = [i[:-1] for i in self.front_cpc.control_point_list]
+        self.glider_2d.back_controlpoints = [i[:-1] for i in self.back_cpc.control_point_list]
+        self.glider_2d.cell_dist_controlpoints = [i[:-1] for i in self.rib_pos_cpc.control_point_list]
         if arg is not None:
             self.glider_2d.cell_num = arg
         else:

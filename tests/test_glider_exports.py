@@ -70,7 +70,6 @@ class TestGlider(GliderTestClass):
         create_svg(flatten_glider(self.glider), path)
 
     def test_export_glider_json(self):
-        print("jo")
         from openglider import jsonify
         path = self.file('.json')
         jsonify.dump(self.glider, path)

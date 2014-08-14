@@ -16,13 +16,8 @@ class Encoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, (list, dict, str, unicode, int, float, bool, type(None))):
             return super(Encoder, self).default(obj)
-<<<<<<< HEAD
         elif isinstance(obj, numpy.ndarray):
             return super(Encoder, self).default(obj.tolist())
-=======
-        if isinstance(obj, numpy.ndarray) and obj.ndim == 1:
-            return obj.tolist()
->>>>>>> zeug
         elif hasattr(obj, "__json__"):
             return {"_type": obj.__class__.__name__,
                     "_module": obj.__class__.__module__,
@@ -79,7 +74,7 @@ if __name__ == "__main__":
     from openglider import airfoil
     a = airfoil.Profile2D.compute_naca(1234)
     glide = openglider.glider.Glider.import_geometry("../../tests/demokite.ods")
-    print(dumps(a))
+    #print(dumps(a))
     jj = dumps(glide)
     glide2 = loads(jj)
     with open("/tmp/glider.json", 'w') as exportfile:

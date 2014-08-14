@@ -77,6 +77,12 @@ class TestGlider(GliderTestClass):
         data += [[left[i], right[i]] for i in range(len(left))]
         openglider.graphics.Graphics2D([openglider.graphics.Line(obj) for obj in data])
 
+    def test_show_shape_simple(self):
+        glider = self.glider
+        front, back = self.glider.shape_simple
+
+        openglider.graphics.Graphics2D([openglider.graphics.Line(obj) for obj in front, back])
+
     def test_show_ribs(self):
         #self.glider = self.glider.copy_complete()
         self.glider.mirror()
@@ -128,3 +134,6 @@ class TestGlider(GliderTestClass):
         G.Graphics([G.Polygon(panel["node_no"]) for panel in data["panels"] if not panel["is_wake"]],
         #G.Graphics([G.Polygon(data["panels"][0]["node_no"])],
                    data["nodes"])
+
+if __name__ == '__main__':
+    unittest.main()
