@@ -90,11 +90,10 @@ class BezierCurve(CachedObject):
 
     @classmethod
     def fit(cls, data, numpoints=None):
-        # wenn numpoints is none -> eigene anzahl an kontrollpunkten verwenden
         bezier = cls()
         if numpoints:
             bezier.numpoints = numpoints
-        bezier.controlpoints = fitbezier(data, bezier._bezierbase)
+        bezier._controlpoints = fitbezier(data, bezier._bezierbase)
         return bezier
 
     def interpolation(self, num=100):
@@ -210,7 +209,7 @@ def fitbezier(points, base=bernsteinbase(3), start=True, end=True):
             rhs1 = numpy.array(A1.T.dot(points1[dim]))
             rhs2 = numpy.array((A1.T.dot(A2)).dot(points2[dim])).T
             solution.append(numpy.array(A1_inv.dot(rhs1 - rhs2)))
-        solution = (numpy.matrix(solution).T).tolist()
+        solution = numpy.matrix(solution).T.tolist()
         if start:
             solution.insert(0, points[0])
         if end:
