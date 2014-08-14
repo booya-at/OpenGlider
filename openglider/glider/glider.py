@@ -78,7 +78,6 @@ class Glider(object):
         num += 1
         #will hold all the points
         ribs = []
-        #print(len(self.cells))
         for cell in self.cells:
             for y in range(num):
                 ribs.append(cell.midrib(y * 1. / num).data)
@@ -313,15 +312,12 @@ class Glider_2D(object):
     def interactive_shape(self, num=30):
         front = []
         back = []
+        print(self.front, self.front._controlpoints, self.front.controlpoints, self.front(0.2))
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
         dist_line = self.cell_dist_interpolation
         dist = [i[0] for i in dist_line]
-        if dist[0] == 0.:
-            full_dist = [-i for i in dist[1:][::-1]] + dist
-        else:
-            full_dist = [-i for i in dist[::-1]] + dist
-        ribs = [[front_int(i), back_int(i)] for i in full_dist]
+        ribs = [[front_int(i), back_int(i)] for i in dist]
         for f, b in ribs:
             front.append(f)
             back.append(b)
@@ -342,7 +338,7 @@ class Glider_2D(object):
         return [interpolation(i) for i in numpy.linspace(start, 1, num=self.cell_num // 2 + 1)]
 
     def depth_integrated(self, num=100):
-        l = numpy.linspace(0, self.front[0][0], num)
+        l = numpy.linspace(0, self.front.controlpoints[-1][0], num)
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
         integrated_depth = [0.]
@@ -355,17 +351,13 @@ class Glider_2D(object):
     def fit_glider(cls, glider, numpoints=5):
         # todo: create glider2d from glider obj (fit bezier)
         def mirror_x(polyline):
-            mirrored = [[-p[0], p[1]] for p in polyline[1::]]
+            mirrored = [[-p[0], p[1]] for p in polyline[1:]]
             start = polyline[0][0] < 0
             return mirrored[::-1] + polyline[start:]
 
         front, back = glider.shape_simple
-        import openglider.graphics as g
-
-        g.Graphics2D([g.Line(front), g.Red, g.Line(mirror_x(front))])
-
-        front_bezier = BezierCurve.fit(mirror_x(front), numpoints=2 * numpoints)
-        back_bezier = BezierCurve.fit(mirror_x(back), numpoints=2 * numpoints)
+        front_bezier = SymmetricBezier.fit(mirror_x(front), numpoints=numpoints)
+        back_bezier = SymmetricBezier.fit(mirror_x(back), numpoints=numpoints)
 
         front[0][0] = 0  # for midribs
         rib_pos = [[p[0], i / (len(front) - 1)] for i, p in enumerate(front)]

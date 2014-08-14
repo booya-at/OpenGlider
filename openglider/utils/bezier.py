@@ -47,10 +47,12 @@ class BezierCurve(CachedObject):
     def __call__(self, value):
         if 0 <= value <= 1:
             val = numpy.zeros(len(self.controlpoints[0]))
-            for i, point in enumerate(self.controlpoints):
+            for i, point in enumerate(self._controlpoints):
                 fakt = self._bezierbase[i](value)
-                #print(fakt, point, val)
-                val += point * fakt
+                try:
+                    val += point * fakt
+                except:
+                    raise Exception("fehler: {}, {}, {}".format(val.__class__, point.__class__, fakt.__class__))
             return val
         else:
             ValueError("value must be in the range (0,1) for xvalues use xpoint-function")
@@ -70,7 +72,7 @@ class BezierCurve(CachedObject):
 
     @cached_property('numpoints')
     def _bezierbase(self):
-        return bernsteinbase(self.numpoints)
+        return bernsteinbase(len(self._controlpoints))
 
     @property
     def controlpoints(self):
@@ -89,11 +91,10 @@ class BezierCurve(CachedObject):
         return self.__call__(root)
 
     @classmethod
-    def fit(cls, data, numpoints=None):
-        bezier = cls()
-        if numpoints:
-            bezier.numpoints = numpoints
-        bezier._controlpoints = fitbezier(data, bezier._bezierbase)
+    def fit(cls, data, numpoints=3):
+        bezier = cls([[0,0] for __ in range(numpoints)])
+        bezier._controlpoints = numpy.array(fitbezier(data, bezier._bezierbase))
+        print(bezier.numpoints, len(bezier._controlpoints), len(bezier.controlpoints))
         return bezier
 
     def interpolation(self, num=100):
@@ -131,11 +132,18 @@ class SymmetricBezier(BezierCurve):
 
     @controlpoints.setter
     def controlpoints(self, controlpoints):
-        self._controlpoints = self._mirror(controlpoints)[::-1] + controlpoints
+        self._controlpoints = numpy.array(self._mirror(controlpoints)[::-1] + controlpoints)
 
     @property
     def numpoints(self):
         return len(self._controlpoints) // 2
+
+    @numpoints.setter
+    def numpoints(self, num_ctrl, num_points=50):
+        if not num_ctrl == self.numpoints:
+            num_ctrl *= 2
+            base = bernsteinbase(num_ctrl)
+            self._controlpoints = fitbezier([self(i) for i in numpy.linspace(0, 1, num_points)], base)
 
     def get_sequence(self, num=50):
         data = []
@@ -214,7 +222,7 @@ def fitbezier(points, base=bernsteinbase(3), start=True, end=True):
             solution.insert(0, points[0])
         if end:
             solution.append(points[-1])
-        return solution
+        return numpy.array(solution)
 
 if __name__ == "__main__":
     a = BezierCurve([[0,0], [10,10], [20,20]])

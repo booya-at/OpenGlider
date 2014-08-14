@@ -9,9 +9,9 @@ try:
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
     import openglider
-from openglider.graphics import Graphics2D, Line, Green, Red
+from openglider.graphics import Graphics2D, Graphics, Line, Green, Red
 import openglider.airfoil
-from openglider.utils.bezier import BezierCurve
+from openglider.utils.bezier import BezierCurve, SymmetricBezier
 
 
 class TestMarks(unittest.TestCase):
@@ -22,10 +22,8 @@ class TestMarks(unittest.TestCase):
 
     def test_bezier_fit(self):
         nose_ind = self.profile.noseindex
-        upper = BezierCurve()
-        lower = BezierCurve()
-        upper.fit(self.profile.data[:nose_ind+1], numpoints=5)
-        lower.fit(self.profile.data[nose_ind:], numpoints=5)
+        upper = BezierCurve.fit(self.profile.data[:nose_ind+1], numpoints=5)
+        lower = BezierCurve.fit(self.profile.data[nose_ind:], numpoints=5)
 
         Graphics2D([
             Red,
@@ -45,6 +43,18 @@ class TestMarks(unittest.TestCase):
             Line(map(func, numpy.linspace(0, 1, 20))),
             Green,
             Line(self.points)
+            ])
+
+    def test_symmetric_bezier_fit(self):
+        curve = [[x,numpy.cos(x)] for x in numpy.linspace(-1,1,30)]
+        lower = SymmetricBezier.fit(curve, numpoints=5)
+        print(lower._controlpoints)
+        Graphics([
+            Red,
+            Line(curve),
+            Green,
+            Line(numpy.transpose(lower.get_sequence(num=100))),
+            Line(lower._controlpoints)
             ])
 
 

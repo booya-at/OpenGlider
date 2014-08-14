@@ -3,6 +3,7 @@ from pivy import coin
 import FreeCADGui as Gui
 from pivy_primitives import Line, vector3D, ControlPointContainer
 from openglider.glider.glider import Glider_2D
+from openglider.utils.bezier import fitbezier
 
 text_field = QtGui.QFormLayout.LabelRole
 input_field = QtGui.QFormLayout.FieldRole
@@ -64,8 +65,8 @@ class shape_tool(base_tool):
 
     def setup_widget(self):
         self.Qnum_cells.setValue(20)
-        self.Qnum_front.setValue(len(self.glider_2d.front_controlpoints))
-        self.Qnum_back.setValue(len(self.glider_2d.back_controlpoints))
+        self.Qnum_front.setValue(len(self.glider_2d.front.controlpoints))
+        self.Qnum_back.setValue(len(self.glider_2d.back.controlpoints))
         self.Qnum_dist.setValue(len(self.glider_2d.cell_dist_controlpoints))
         self.base_widget.connect(self.Qmanual_edit, QtCore.SIGNAL('stateChanged(int)'), self.line_edit)
         self.base_widget.connect(self.Qcheck1, QtCore.SIGNAL('stateChanged(int)'), self.rib_edit)
@@ -115,20 +116,20 @@ class shape_tool(base_tool):
         self.update_shape()
 
     def update_num_front(self, val):
-        #self.glider_2d.front.numpoints = val * 2
-        #self.front_cpc.set_control_points(vector3D(self.glider_2d.front_controlpoints))
-        # self.front_cpc.control_points[-1].constraint = lambda pos: [pos[0], 0., 0.]
+        self.glider_2d.front.numpoints = val
+        self.front_cpc.set_control_points(vector3D(self.glider_2d.front.controlpoints))
+        self.front_cpc.control_points[-1].constraint = lambda pos: [pos[0], 0., 0.]
         self.update_shape()
 
     def update_num_back(self, val):
-        self.glider_2d.back.numpoints = val * 2
-        self.back_cpc.set_control_points(vector3D(self.glider_2d.back_controlpoints))
+        self.glider_2d.back.numpoints = val
+        self.back_cpc.set_control_points(vector3D(self.glider_2d.back.controlpoints))
         self.update_shape()
 
     def add_pivy(self):
         # SHAPE
-        self.front_cpc = ControlPointContainer(vector3D(self.glider_2d.front_controlpoints))
-        self.back_cpc = ControlPointContainer(vector3D(self.glider_2d.back_controlpoints))
+        self.front_cpc = ControlPointContainer(vector3D(self.glider_2d.front.controlpoints))
+        self.back_cpc = ControlPointContainer(vector3D(self.glider_2d.back.controlpoints))
         self.front_cpc.on_drag.append(self.update_data_back)
         self.back_cpc.on_drag.append(self.update_data_front)
         # self.front_cpc.control_points[-1].constraint = lambda pos: [pos[0], 0., 0.]
@@ -150,18 +151,18 @@ class shape_tool(base_tool):
         self.update_shape()
 
     def update_data_back(self):
-        self.back_cpc.control_points[0].set_x(self.front_cpc.control_points[0].x)
+        self.back_cpc.control_points[-1].set_x(self.front_cpc.control_points[-1].x)
         self.update_shape()
 
     def update_data_front(self):
-        self.front_cpc.control_points[0].set_x(self.back_cpc.control_points[0].x)
+        self.front_cpc.control_points[-1].set_x(self.back_cpc.control_points[-1].x)
         self.update_shape()
 
     def update_const(self):
         const_dist = self.glider_2d.depth_integrated()
-        num = len(self.glider_2d.cell_dist.controlpoints)
-        self.glider_2d.cell_dist.fit(const_dist, numpoints=num)
-        self.rib_pos_cpc.set_control_points(self.glider_2d.cell_dist)
+        self.task_separator.addChild(Line(const_dist).object)
+        self.glider_2d.cell_dist.controlpoints = fitbezier(const_dist, self.glider_2d.cell_dist._bezierbase)
+        self.rib_pos_cpc.set_control_points(self.glider_2d.cell_dist_controlpoints)
         self.update_shape()
 
     def update_shape(self, arg=None):
