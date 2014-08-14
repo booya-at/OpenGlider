@@ -234,7 +234,15 @@ class Node(object):
         return self.vec - self.vec_proj
 
     def __json__(self):
+<<<<<<< HEAD
         return{
             'node_type': self.type,
             'position_vector': list(self.vec)
         }
+=======
+        return {}
+        # return{
+        #     'node_type': list(self.type),
+        #     'position_vector': list(self.vec)
+        # }
+>>>>>>> zeug

@@ -1,9 +1,8 @@
 import FreeCAD
 import FreeCADGui as Gui
-from shape import OGShape, OGShapeVP, OGSymSplineVP, OGSpline, OGSplineVP
 from _glider import OGGlider, OGGliderVP
-from _airfoil import _Airfoil, ViewProviderAirfoil
-from _tools import shape_tool
+from _tools import shape_tool, airfoil_tool
+
 
 class BaseCommand(object):
     def __init__(self):
@@ -23,7 +22,7 @@ class BaseCommand(object):
         pass
 
 
-class CreateLine(BaseCommand):
+class CreateGlider(BaseCommand):
     def GetResources(self):
         return {'Pixmap': "glider_import.svg", 'MenuText': 'glider', 'ToolTip': 'glider'}
 
@@ -34,45 +33,7 @@ class CreateLine(BaseCommand):
         FreeCAD.ActiveDocument.recompute()
 
 
-class CreateSpline(BaseCommand):
-    def GetResources(self):
-        return {'Pixmap': 'glider_obj_point.svg', 'MenuText': 'Line', 'ToolTip': 'Line'}
-
-    def Activated(self):
-        a = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Spline")
-        OGSpline(a, [(1,1,0),(2,0,0),(3,1,0),(4,0,0)])
-        OGSplineVP(a.ViewObject)
-        FreeCAD.ActiveDocument.recompute()
-
-
-class CreateShape(BaseCommand):
-    def GetResources(self):
-        return {'Pixmap': 'glider_obj_point.svg', 'MenuText': 'Line', 'ToolTip': 'Line'}
-
-    def Activated(self):
-        upper =  FreeCAD.ActiveDocument.addObject("App::FeaturePython", "upper")
-        lower = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "lower")
-        OGSpline(upper, [(1,1,0),(2,1,0),(3,1,0),(4,1,0)])
-        OGSpline(lower, [(1,0,0),(2,0,0),(3,0,0),(4,0,0)])
-        OGSymSplineVP(upper.ViewObject)
-        OGSymSplineVP(lower.ViewObject)
-        shape = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Shape")
-        OGShape(shape, upper, lower)
-        OGShapeVP(shape.ViewObject)
-        FreeCAD.ActiveDocument.recompute()
-
-
-class Airfoil(BaseCommand):
-    def GetResources(self):
-        return {'Pixmap': 'glider_profile_compare.svg', 'MenuText': 'Airfoil', 'ToolTip': 'Airfoil'}
-
-    def Activated(self):
-        a = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Airfoil")
-        _Airfoil(a)
-        ViewProviderAirfoil(a.ViewObject)
-        FreeCAD.ActiveDocument.recompute()
-
-class Base_Tool(BaseCommand):
+class Shape_Tool(BaseCommand):
     def GetResources(self):
         return {'Pixmap': 'glider_profile_compare.svg', 'MenuText': 'base', 'ToolTip': 'base'}
 
@@ -81,8 +42,21 @@ class Base_Tool(BaseCommand):
         if len(obj) > 0:
             obj = obj[0]
             if check_glider(obj):
-                print("check glider: True")
                 bt = shape_tool(obj)
+                Gui.Control.showDialog(bt)
+            else:
+                pass
+
+class Airfoil_Tool(BaseCommand):
+    def GetResources(self):
+        return {'Pixmap': 'glider_profile_compare.svg', 'MenuText': 'base', 'ToolTip': 'base'}
+
+    def Activated(self):
+        obj = Gui.Selection.getSelection()
+        if len(obj) > 0:
+            obj = obj[0]
+            if check_glider(obj):
+                bt = airfoil_tool(obj)
                 Gui.Control.showDialog(bt)
             else:
                 pass

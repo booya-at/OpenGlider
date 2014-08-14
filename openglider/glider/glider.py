@@ -35,7 +35,6 @@ class Glider(object):
     def __init__(self, cells=None, attachment_points=None, lineset=None):
         self.cells = cells or []
         self.lineset = lineset
-        self.data = {}
         self.parametric_data = {}
 
     def __json__(self):
@@ -47,7 +46,8 @@ class Glider(object):
             cell.rib2 = ribs.index(cell.rib2)
         return {"cells": new.cells,
                 "ribs": ribs,
-                "lineset": self.lineset}
+                "lineset": self.lineset
+                }
 
     def apply_parametric(self, new_par):
         # change the new parameters
@@ -284,9 +284,10 @@ class Glider(object):
             rib.glide = glide
 
 
-class glider_2D(object):
+class Glider_2D(object):
     '''
-        a glider 2D object is used for gui inputs.
+        a glider 2D object used for gui inputs
+        .
     '''
     def __init__(self, factor=0, front=None, back=None, cell_dist=None, cell_num=21, parametric=True):
         self._front = BezierCurve()
@@ -295,15 +296,26 @@ class glider_2D(object):
         self._cell_num = None
         self.front = front
         self.back = back
-        self.cell_distribution = cell_dist
+        self.cell_dist = cell_dist
         self.cell_num = cell_num     # updates cell pos
 
+    def __json__(self):
+        return {
+            "front": self.front,
+            "back": self.back,
+            "cell_dist": self.cell_dist
+        }
+
     def shape(self, num=30):
+        "ribs, front, back"
+        return(self.interactive_shape(num)[:-1])
+
+    def interactive_shape(self, num=30):
         front = []
         back = []
         front_int = self._front.interpolate_3d(num=num)
         back_int = self._back.interpolate_3d(num=num)
-        dist_line = self.cell_distribution
+        dist_line = self.cell_dist_interpolation
         dist = [i[0] for i in dist_line]
         if dist[0] == 0.:
             full_dist = [-i for i in dist[1:][::-1]] + dist
@@ -328,7 +340,7 @@ class glider_2D(object):
 
     @property
     def back(self):
-        l = len(self._front.controlpoints)
+        l = len(self._back.controlpoints)
         return self._back.controlpoints[l//2:][::-1]
 
     @back.setter
@@ -347,16 +359,20 @@ class glider_2D(object):
             self._cell_num = val
 
     @property
-    def cell_distribution(self):
+    def cell_dist(self):
+        return self._cell_dist.controlpoints[1:-1]
+
+    @cell_dist.setter
+    def cell_dist(self, arr):
+        if arr is None:
+            arr = [[0.5, 0.5]]
+        self._cell_dist.controlpoints = [[0, 0]] + arr + [[self.front[0][0], 1]]
+
+    @property
+    def cell_dist_interpolation(self):
         interpolation = self._cell_dist.interpolate_3d(num=20, xyz=1)
         start = (self.cell_num % 2) / self.cell_num
         return [interpolation(i) for i in numpy.linspace(start, 1, num=self.cell_num // 2 + 1)]
-
-    @cell_distribution.setter
-    def cell_distribution(self, arr):
-        if arr is None:
-            arr = [[0.25, 0.25], [0.5, 0.5], [0.75, 0.75]]
-        self._cell_dist.controlpoints = [[0, 0]] + arr + [[self.front[0][0], 1]]
 
     def depth_integrated(self, num=100):
         l = numpy.linspace(0, self.front[0][0], num)
@@ -368,14 +384,10 @@ class glider_2D(object):
         return zip(l, [i / integrated_depth[-1] for i in integrated_depth])
 
 
-
-
-
     # ToDo: ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     @classmethod
     def import_from_glider(cls, glider):
         # todo: create glider2d from glider obj (fit bezier)
-        # todo: ask simon to solve my problems
         gl2d = cls()
         return gl2d
 
@@ -384,7 +396,10 @@ class glider_2D(object):
 
 
 
+
 if __name__ == "__main__":
-    gl2d = glider_2D()
-    gl2d.cell_num = 10
-    print(gl2d.discrete_back())
+    from openglider.jsonify import dump, loads
+    a = Glider.import_geometry("../../tests/demokite.ods")
+    string = dump(a, open("/tmp/test1.json", "w"))
+    # k = loads(string)
+

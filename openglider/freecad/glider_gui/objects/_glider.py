@@ -4,7 +4,7 @@ from pivy import coin
 import FreeCAD
 from pivy_primitives import Line
 
-importpath = "/home/simon/Dokumente/OpenGlider/tests/demokite.ods"
+importpath = "/home/q/tmp/OpenGlider/tests/demokite.ods"
 
 
 class OGBaseObject(object):
@@ -101,27 +101,3 @@ class OGGliderVP(OGBaseVP):
 
     def getIcon(self):
         return FreeCAD.getHomePath() + "Mod/glider_gui/icons/glider_import.svg"
-
-
-
-
-
-# parametric_glider = {
-#     "shape": {
-#         "leading_edge": [],
-#         "trailing_edge": []
-#     },
-#     "arc": [],
-#     "aoa": [],
-#     "rotate": [],
-#     "profile": [
-#         {
-#             "name": "superprofil",
-#             "data": []
-#         }
-#     ],
-#     "balooning": [],
-# 	"profile_merge": [],
-# 	"balloning_merge": [],
-
-# }

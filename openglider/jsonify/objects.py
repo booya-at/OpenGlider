@@ -26,6 +26,7 @@ def return_lineset(lines, nodes, v_inf):
     return openglider.lines.LineSet(lines, v_inf)
 
 objects = {"Glider": return_glider,
+           "Glider_2D": openglider.glider.Glider_2D,
            "Rib": openglider.glider.Rib,
            "Cell": openglider.glider.Cell,
            "BallooningBezier": openglider.glider.ballooning.BallooningBezier,

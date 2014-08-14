@@ -60,7 +60,7 @@ class ControlPoint(coin.SoSeparator):
     def set_mouse_over(self):
         if not ControlPoint.lock:
             self.mouse_over = True
-            self.mat.diffuseColor.setValue(1, 1, 0)
+            self.mat.diffuseColor.setValue(0, 0, 1)
             ControlPoint.lock = True
 
     def unset_mouse_over(self):

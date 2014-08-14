@@ -60,11 +60,10 @@ class BezierCurve(CachedObject):
             return 0
 
     @numpoints.setter
-    def numpoints(self, num):
-        # TODO: fit
-        pass
-        #if not num == self.numpoints:
-        #    self._BezierBase = bernsteinbase(num)
+    def numpoints(self, num_ctrl, num_points=50):
+        if not num_ctrl == self.numpoints:
+            base = bernsteinbase(num_ctrl)
+            self.controlpoints = fitbezier([self(i) for i in numpy.linspace(0, 1, num_points)], base)
 
     @cached_property('numpoints')
     def _bezierbase(self):
@@ -90,11 +89,11 @@ class BezierCurve(CachedObject):
         return self.__call__(root)
 
     def fit(self, data, numpoints=None):
-        # TODO: maybe the easy way is better
+        # wenn numpoints is none -> eigene anzahl an kontrollpunkten verwenden
         if numpoints is None:
             #self.numpoints = numpoints
             numpoints = self.numpoints
-        self.controlpoints = fitbezier(data, bernsteinbase(numpoints))
+        self.controlpoints = fitbezier(data, self._bezierbase)
 
     def interpolation(self, num=100):
         x = []
@@ -164,12 +163,14 @@ def fitbezier(points, base=bernsteinbase(3), start=True, end=True):
         points2=[]
         points1 = numpy.array(points)
         solution = []
+        
         if start:
             # add first column to A2 and remove first column of A1
             A2.append(A1[:, 0])
             A1 = A1[:, 1:]
             points2.append(points[0])
             points1 = points1[1:]
+
         if end:
             # add last column to A2 and remove last column of A1
             A2.append(A1[:, -1])
@@ -192,4 +193,6 @@ def fitbezier(points, base=bernsteinbase(3), start=True, end=True):
         return solution
 
 if __name__ == "__main__":
-    print(fitbezier([[1], [2], [3], [4], [5], [6]],bernsteinbase(6), end=False, start=True))
+    a = BezierCurve([[0,0], [10,10], [20,20]])
+    a.numpoints = 4
+    print(a.controlpoints)

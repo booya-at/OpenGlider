@@ -9,6 +9,6 @@ try:
     sip.setapi('QVariant', 2)
 except ValueError, e:
     raise RuntimeError('Could not set API version (%s): did you import PyQt4 directly?' % e)
-from PySide import QtGui, QtCore
+from PyQt4 import QtGui, QtCore
 
 __ALL__ = ['QtGui', 'QtCore']
