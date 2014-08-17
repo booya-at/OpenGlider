@@ -1,7 +1,7 @@
 import FreeCAD
 import FreeCADGui as Gui
 from _glider import OGGlider, OGGliderVP
-from _tools import shape_tool, airfoil_tool
+from _tools import shape_tool, airfoil_tool, base_tool, arc_tool
 
 
 class BaseCommand(object):
@@ -19,7 +19,15 @@ class BaseCommand(object):
             return True
 
     def Activated(self):
-        pass
+        obj = Gui.Selection.getSelection()
+        if len(obj) > 0:
+            obj = obj[0]
+            if check_glider(obj):
+                if not obj.glider_2d.parametric:
+                    test = Gui.Control.showDialog(self.tool(obj))
+
+    def tool(self, obj):
+        return base_tool(obj)
 
 
 class CreateGlider(BaseCommand):
@@ -31,39 +39,36 @@ class CreateGlider(BaseCommand):
         OGGlider(a)
         OGGliderVP(a.ViewObject)
         FreeCAD.ActiveDocument.recompute()
+        Gui.SendMsgToActiveView("ViewFit")
 
 
 class Shape_Tool(BaseCommand):
     def GetResources(self):
         return {'Pixmap': 'glider_profile_compare.svg', 'MenuText': 'base', 'ToolTip': 'base'}
 
-    def Activated(self):
-        obj = Gui.Selection.getSelection()
-        if len(obj) > 0:
-            obj = obj[0]
-            if check_glider(obj):
-                bt = shape_tool(obj)
-                Gui.Control.showDialog(bt)
-            else:
-                pass
+    def tool(self, obj):
+        return shape_tool(obj)
+
+
+class Arc_Tool(BaseCommand):
+    def GetResources(self):
+        return {'Pixmap': 'glider_profile_compare.svg', 'MenuText': 'base', 'ToolTip': 'base'}
+
+    def tool(self, obj):
+        print("jojojo")
+        return arc_tool(obj)
+
 
 class Airfoil_Tool(BaseCommand):
     def GetResources(self):
         return {'Pixmap': 'glider_profile_compare.svg', 'MenuText': 'base', 'ToolTip': 'base'}
 
-    def Activated(self):
-        obj = Gui.Selection.getSelection()
-        if len(obj) > 0:
-            obj = obj[0]
-            if check_glider(obj):
-                bt = airfoil_tool(obj)
-                Gui.Control.showDialog(bt)
-            else:
-                pass
+    def tool(self, obj):
+        return airfoil_tool(obj)
 
 
 def check_glider(obj):
-    if "glider_instance" in obj.PropertiesList:
+    if "glider_instance" in obj.PropertiesList and "glider_2d" in obj.PropertiesList:
         return True
     else:
         return False

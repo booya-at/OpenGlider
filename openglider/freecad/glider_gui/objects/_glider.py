@@ -29,20 +29,32 @@ class OGBaseVP(object):
         mod = ["out"]
         return(mod)
 
+    def __getstate__(self):
+        return None
+
+    def __setstate__(self, state):
+        return None
+
 
 class OGGlider(OGBaseObject):
     def __init__(self, obj):
         obj.addProperty(
             "App::PropertyPythonObject", "glider_instance", "object", "glider_instance")
+        obj.addProperty(
+            "App::PropertyPythonObject", "glider_2d", "object", "parametric glider")
         obj.glider_instance = openglider.glider.Glider.import_geometry(path=importpath)
+        obj.glider_2d = openglider.glider.Glider_2D()
         super(OGGlider, self).__init__(obj)
 
 
 class OGGliderVP(OGBaseVP):
     def __init__(self, view_obj):
         view_obj.addProperty(
-            "App::PropertyInteger", "num_ribs", "num_ribs", "num_ribs")
+            "App::PropertyInteger", "num_ribs", "accuracy", "num_ribs")
+        view_obj.addProperty(
+            "App::PropertyInteger", "profile_num", "accuracy", "profile_num")
         view_obj.num_ribs = 0
+        view_obj.profile_num = 13        
         self.vis_glider = coin.SoSeparator()
         self.vis_lines = coin.SoSeparator()
         self.material = coin.SoMaterial()
@@ -60,13 +72,15 @@ class OGGliderVP(OGBaseVP):
         vobj.addDisplayMode(self.seperator, 'out')
 
     def updateData(self, fp=None, prop=None):
-        self.update_glider(self.view_obj.num_ribs)
-        self.update_lines()
+        if prop in ["num_ribs", "profile_num", None]:
+            self.update_glider(midribs=self.view_obj.num_ribs, profile_numpoints=self.view_obj.profile_num)
+        # self.update_lines()
 
-    def update_glider(self, midrips=0):
+    def update_glider(self, midribs=0, profile_numpoints=20):
         self.vis_glider.removeAllChildren()
         glider = self.glider_instance.copy_complete()
-        if midrips == 0:
+        glider.profile_numpoints = profile_numpoints
+        if midribs == 0:
             vertexproperty = coin.SoVertexProperty()
             mesh = coin.SoQuadMesh()
             ribs = glider.ribs
@@ -82,7 +96,7 @@ class OGGliderVP(OGBaseVP):
                 sep = coin.SoSeparator()
                 vertexproperty = coin.SoVertexProperty()
                 mesh = coin.SoQuadMesh()
-                ribs = [cell.midrib(pos / (midrips + 1)) for pos in range(midrips + 2)]
+                ribs = [cell.midrib(pos / (midribs + 1)) for pos in range(midribs + 2)]
                 flat_coords = [i for rib in ribs for i in rib]
                 vertexproperty.vertex.setValues(0, len(flat_coords), flat_coords)
                 mesh.verticesPerRow = len(ribs[0])
@@ -91,6 +105,9 @@ class OGGliderVP(OGBaseVP):
                 sep.addChild(vertexproperty)
                 sep.addChild(mesh)
                 self.vis_glider.addChild(sep)
+
+    def onChanged(self, vp, prop):
+        self.updateData()
 
 
     def update_lines(self):

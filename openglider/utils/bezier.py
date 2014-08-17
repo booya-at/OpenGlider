@@ -26,7 +26,7 @@ import scipy.interpolate
 from scipy.optimize import bisect as findroot
 
 from openglider.utils.cache import cached_property, CachedObject
-from openglider.vector import mirror2D_x
+from openglider.vector import mirror2D_x, norm
 
 __ALL = ['BezierCurve']
 
@@ -48,9 +48,8 @@ class BezierCurve(CachedObject):
         if 0 <= value <= 1:
             val = numpy.zeros(len(self.controlpoints[0]))
             for i, point in enumerate(self._controlpoints):
-                fakt = self._bezierbase[i](value)
                 try:
-                    val += point * fakt
+                    val += point * self._bezierbase[i](value)
                 except:
                     raise Exception("fehler: {}, {}, {}".format(val.__class__, point.__class__, fakt.__class__))
             return val
@@ -94,7 +93,6 @@ class BezierCurve(CachedObject):
     def fit(cls, data, numpoints=3):
         bezier = cls([[0,0] for __ in range(numpoints)])
         bezier._controlpoints = numpy.array(fitbezier(data, bezier._bezierbase))
-        print(bezier.numpoints, len(bezier._controlpoints), len(bezier.controlpoints))
         return bezier
 
     def interpolation(self, num=100):
@@ -120,6 +118,13 @@ class BezierCurve(CachedObject):
             data.append(point)
         return numpy.transpose(data)
 
+    def get_length(self, num):
+        seq = self.get_sequence(num=num)
+        out = 0.
+        for i, s in enumerate(seq[1:]):
+            out += norm(s - seq[i])
+        return(out)
+
 
 class SymmetricBezier(BezierCurve):
     def __init__(self, controlpoints=None, mirror=None):
@@ -144,13 +149,6 @@ class SymmetricBezier(BezierCurve):
             num_ctrl *= 2
             base = bernsteinbase(num_ctrl)
             self._controlpoints = fitbezier([self(i) for i in numpy.linspace(0, 1, num_points)], base)
-
-    def get_sequence(self, num=50):
-        data = []
-        for i in range(num):
-            point = self((1 + i/(num - 1))/2)
-            data.append(point)
-        return numpy.transpose(data)
 
 
 
@@ -226,6 +224,8 @@ def fitbezier(points, base=bernsteinbase(3), start=True, end=True):
 
 if __name__ == "__main__":
     a = BezierCurve([[0,0], [10,10], [20,20]])
-    a.numpoints = 4
-    print(a.controlpoints)
-    print(BezierCurve.fit([[0,0],[10,4],[20,0]]).controlpoints)
+    print(a.get_sequence(num=10))
+
+    # a.numpoints = 4
+    # print(a.controlpoints)
+    # print(BezierCurve.fit([[0,0],[10,4],[20,0]]).controlpoints)

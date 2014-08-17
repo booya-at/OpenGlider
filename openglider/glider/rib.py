@@ -5,6 +5,7 @@ from openglider.airfoil import Profile2D, Profile3D, get_x_value
 from openglider.utils.cache import cached_property, CachedObject
 from openglider.utils.bezier import BezierCurve
 from openglider.vector import rotation_3d, HashedList
+from openglider.glider.ballooning import BallooningBezier
 
 
 class Rib(CachedObject):
@@ -23,7 +24,7 @@ class Rib(CachedObject):
         # TODO: Startpos > Set Rotation Axis in Percent
         self.name = name
         self.profile_2d = profile_2d or Profile2D()
-        self.ballooning = ballooning
+        self.ballooning = ballooning or BallooningBezier()
         self.glide = glide
         self._aoa = (0, 0)
         if aoa_abs:

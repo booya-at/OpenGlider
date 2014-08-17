@@ -21,6 +21,7 @@ from __future__ import division
 import math
 import copy
 
+import scipy.interpolate
 import numpy
 from openglider.airfoil import Profile2D
 
@@ -35,7 +36,6 @@ class Glider(object):
     def __init__(self, cells=None, attachment_points=None, lineset=None):
         self.cells = cells or []
         self.lineset = lineset
-        self.parametric_data = {}
 
     def __json__(self):
         new = self.copy()
@@ -47,11 +47,7 @@ class Glider(object):
         return {"cells": new.cells,
                 "ribs": ribs,
                 "lineset": self.lineset
-        }
-
-    def apply_parametric(self, new_par):
-        # change the new parameters
-        pass
+                }
 
     @classmethod
     def import_geometry(cls, path, filetype=None):
@@ -167,6 +163,7 @@ class Glider(object):
         front, back = flatten_list(self.get_spanwise(0), self.get_spanwise(1))
         return [rot.dot(p) for p in front], [rot.dot(p) for p in back]
 
+    # delete ? 
     @property
     def arc(self):
         return [rib.pos[1:] for rib in self.ribs]
@@ -291,12 +288,13 @@ class Glider_2D(object):
         a glider 2D object used for gui inputs
     """
 
-    def __init__(self, factor=0, front=None, back=None, cell_dist=None, cell_num=21, parametric=True):
-        self._cell_num = None
+    def __init__(self, front=None, back=None, cell_dist=None, arc=None, cell_num=21, parametric=False):
+        self.parametric = parametric    #set to False if you change glider 3d manually
+        self.cell_num = cell_num  # updates cell pos
         self.front = front or SymmetricBezier()
         self.back = back or SymmetricBezier()
         self.cell_dist = cell_dist or BezierCurve()
-        self.cell_num = cell_num  # updates cell pos
+        self.arc = arc or BezierCurve()
 
     def __json__(self):
         return {
@@ -305,22 +303,42 @@ class Glider_2D(object):
             "cell_dist": self.cell_dist
         }
 
+#-----------------------------------------!!!!!!!!!!!!!!!!!!!!!!!!-------------------------------------
+#-----------------------------------------!!!!!!!!!!!!!!!!!!!!!!!!-------------------------------------
+    def arc_values(self, num=50):
+        dist = numpy.array(self.cell_dist_interpolation).T[0] #array of scalars
+        arc_arr = [self.arc(0.5)]
+        length_arr = [0.]
+        for i in numpy.linspace(0.5 + 1 / num, 1, num):
+            arc_arr.append(self.arc(i))
+            length_arr.append(length_arr[-1] + norm(arc_arr[-2] - arc_arr[-1]))
+        int_func = scipy.interpolate.interp1d(length_arr, numpy.array(arc_arr).T[1])
+        normed_dist = [i / dist[-1] * length_arr[-1] for i in dist]
+        z_pos = [int_func(i) for i in normed_dist]
+        y_pos = [0.]
+        for i, _ in enumerate(z_pos[1:]):
+            y_pos.append(y_pos[-1] + numpy.sqrt((normed_dist[i+1] - normed_dist[i]) ** 2 - (z_pos[i + 1] - z_pos[i]) ** 2))
+        print(z_pos[-1])
+        print(numpy.array(arc_arr).T[1])
+        # return numpy.array([int_func(i) for i in normed_dist])
+        return numpy.array(zip(y_pos, z_pos))
+
+
     def shape(self, num=30):
         """ribs, front, back"""
         return self.interactive_shape(num)[:-1]
 
+
     def interactive_shape(self, num=30):
-        front = []
-        back = []
-        print(self.front, self.front._controlpoints, self.front.controlpoints, self.front(0.2))
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
         dist_line = self.cell_dist_interpolation
         dist = [i[0] for i in dist_line]
-        ribs = [[front_int(i), back_int(i)] for i in dist]
-        for f, b in ribs:
-            front.append(f)
-            back.append(b)
+        front = map(front_int, dist)
+        front = mirror2D_x(front)[::-1] + front
+        back = map(back_int, dist)
+        back = mirror2D_x(back)[::-1] + back
+        ribs = zip(front, back)
         return [ribs, front, back, dist_line]
 
     @property
@@ -346,9 +364,8 @@ class Glider_2D(object):
             integrated_depth.append(integrated_depth[-1] + 1. / (front_int(i)[1] - back_int(i)[1]))
         return zip(l, [i / integrated_depth[-1] for i in integrated_depth])
 
-    # ToDo: ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     @classmethod
-    def fit_glider(cls, glider, numpoints=5):
+    def fit_glider(cls, glider, numpoints=3):
         # todo: create glider2d from glider obj (fit bezier)
         def mirror_x(polyline):
             mirrored = [[-p[0], p[1]] for p in polyline[1:]]
@@ -356,29 +373,63 @@ class Glider_2D(object):
             return mirrored[::-1] + polyline[start:]
 
         front, back = glider.shape_simple
+        arc = [rib.pos[1:] for rib in glider.ribs]
         front_bezier = SymmetricBezier.fit(mirror_x(front), numpoints=numpoints)
         back_bezier = SymmetricBezier.fit(mirror_x(back), numpoints=numpoints)
+        arc_bezier = SymmetricBezier.fit(mirror_x(arc), numpoints=numpoints)
 
         front[0][0] = 0  # for midribs
         rib_pos = [[p[0], i / (len(front) - 1)] for i, p in enumerate(front)]
-        rib_distribution = BezierCurve.fit(rib_pos, numpoints=numpoints)
+        rib_distribution = BezierCurve.fit(rib_pos, numpoints=numpoints+2)
+        cell_num = len(rib_pos) * 2
 
         #cell_pos = [point[0], i / len for i, point in enumerate(front)]
+        # TODO cell num funktioniert noch nicht!!
         gl2d = cls(front=front_bezier,
                    back=back_bezier,
-                   cell_dist=rib_distribution)
+                   cell_dist=rib_distribution,
+                   cell_num=cell_num,
+                   arc=arc_bezier,
+                   parametric=True)
         return gl2d
 
-    @property
-    def glider_3d(self):
-        return self._glider_instance
+    def glider_3d(self, glider, num=50):
+        """returns a new glider from parametric values"""
+        ribs = []
+        cells = []
 
+
+        # TODO airfoil, ballooning, arc-------
+        from openglider.airfoil import Profile2D
+        airfoil = Profile2D.compute_naca()
+        glide = 8.
+        #--------------------------------------
+
+        from openglider.glider import Rib, Cell
+        dist = [i[0] for i in self.cell_dist_interpolation]
+        front_int = self.front.interpolate_3d(num=num)
+        back_int = self.back.interpolate_3d(num=num)
+        if dist[0] != 0.:
+            # adding the mid cell
+            dist = [-dist[0]] + dist
+        for i, pos in enumerate(dist):
+            fr = front_int(pos)
+            ba = back_int(pos)
+            ribs.append(Rib(
+                profile_2d=airfoil,
+                startpoint= numpy.array([-fr[1], fr[0], 0.]),
+                chord=norm(fr - ba),
+                glide=glide
+                ))
+        for i, rib in enumerate(ribs[1:]):
+            cells.append(Cell(ribs[i], rib, []))
+            glider.cells = cells
 
 if __name__ == "__main__":
     from openglider.jsonify import dump, loads
-
     a = Glider.import_geometry("../../tests/demokite.ods")
-    print(Glider_2D.fit_glider(a))
-    string = dump(a, open("/tmp/test1.json", "w"))
-    # k = loads(string)
+    b = Glider_2D.fit_glider(a)
+    b.interactive_shape()
+    print(b.arc_values())
+
 
