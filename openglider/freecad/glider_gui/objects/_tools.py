@@ -17,6 +17,7 @@ class base_tool(object):
         if self.obj.glider_2d.parametric:
             self.glider_2d = self.obj.glider_2d
         else:
+            print('fit the glider')
             self.glider_2d = Glider_2D.fit_glider(self.obj.glider_instance)
         self.obj.ViewObject.Visibility = False
         Gui.activeDocument().activeView().viewTop()
@@ -42,7 +43,6 @@ class base_tool(object):
         Gui.Control.closeDialog()
 
     def reject(self):
-        print(1243243)
         self.obj.ViewObject.Visibility = True
         self.scene.removeChild(self.task_separator)
         Gui.Control.closeDialog()
@@ -79,17 +79,27 @@ class shape_tool(base_tool):
 
     def accept(self):
         self.glider_2d.glider_3d(self.obj.glider_instance)
+        self.obj.glider_2d = self.glider_2d
         self.obj.ViewObject.Proxy.updateData()
+        self.back_cpc.unset_edit_mode()
+        self.front_cpc.unset_edit_mode()
+        self.rib_pos_cpc.unset_edit_mode()
         super(shape_tool, self).accept()
 
+    def reject(self):
+        self.back_cpc.unset_edit_mode()
+        self.front_cpc.unset_edit_mode()
+        self.rib_pos_cpc.unset_edit_mode()
+        super(shape_tool, self).reject()
+
     def setup_widget(self):
-        self.Qnum_cells.setValue(20)
+        self.Qnum_cells.setValue(int(self.glider_2d.cell_num))
         self.Qnum_front.setValue(len(self.glider_2d.front.controlpoints))
         self.Qnum_back.setValue(len(self.glider_2d.back.controlpoints))
         self.Qnum_dist.setValue(len(self.glider_2d.cell_dist_controlpoints))
         self.base_widget.connect(self.Qmanual_edit, QtCore.SIGNAL('stateChanged(int)'), self.line_edit)
         self.base_widget.connect(self.Qcheck1, QtCore.SIGNAL('stateChanged(int)'), self.rib_edit)
-        self.base_widget.connect(self.Qnum_cells, QtCore.SIGNAL('valueChanged(int)'), self.update_shape)
+        self.base_widget.connect(self.Qnum_cells, QtCore.SIGNAL('valueChanged(int)'), self.update_num_cells)
         self.base_widget.connect(self.Qset_const, QtCore.SIGNAL('clicked()'), self.update_const)
         self.base_widget.connect(self.Qnum_dist, QtCore.SIGNAL('valueChanged(int)'), self.update_num_dist)
         self.base_widget.connect(self.Qnum_back, QtCore.SIGNAL('valueChanged(int)'), self.update_num_back)
@@ -150,7 +160,6 @@ class shape_tool(base_tool):
     def update_num_front(self, val):
         self.glider_2d.front.numpoints = val
         self.front_cpc.set_control_points(vector3D(self.glider_2d.front.controlpoints))
-        self.front_cpc.control_points[-1].constraint = lambda pos: [pos[0], 0., 0.]
         self.update_shape()
 
     def update_num_back(self, val):
@@ -166,6 +175,10 @@ class shape_tool(base_tool):
         self.front_cpc.control_points[-1].set_x(self.back_cpc.control_points[-1].x)
         self.update_shape()
 
+    def update_num_cells(self, val):
+        self.glider_2d.cell_num = val
+        self.update_shape()
+
     def update_const(self):
         const_dist = self.glider_2d.depth_integrated()
         self.glider_2d.cell_dist.controlpoints = fitbezier(const_dist, self.glider_2d.cell_dist._bezierbase)
@@ -176,10 +189,6 @@ class shape_tool(base_tool):
         self.glider_2d.front.controlpoints = [i[:-1] for i in self.front_cpc.control_point_list]
         self.glider_2d.back.controlpoints = [i[:-1] for i in self.back_cpc.control_point_list]
         self.glider_2d.cell_dist_controlpoints = [i[:-1] for i in self.rib_pos_cpc.control_point_list]
-        if arg is not None:
-            self.glider_2d.cell_num = arg
-        else:
-            self.glider_2d.cell_num = self.Qnum_cells.value()
         self.shape.removeAllChildren()
         ribs, front, back, dist_line = self.glider_2d.interactive_shape(num=15)
         self.shape.addChild(Line(front).object)
@@ -228,7 +237,8 @@ class arc_tool(base_tool):
     def setup_pivy(self):
         self.arc_cpc.on_drag.append(self.update_spline)
         self.task_separator.addChild(self.arc_cpc)
-        self.shape.addChild(Line(self.glider_2d.arc.get_sequence(num=20).T).object)
+        # self.shape.addChild(Line(self.glider_2d.arc.get_sequence(num=20).T).object)
+        self.shape.addChild(Line(self.glider_2d.arc_pos()).object)
 
     def set_edit(self, *arg):
         self.arc_cpc.set_edit_mode(self.view)
@@ -236,8 +246,8 @@ class arc_tool(base_tool):
     def update_spline(self):
         self.shape.removeAllChildren()
         self.glider_2d.arc.controlpoints = [i[:-1] for i in self.arc_cpc.control_point_list]
-        self.shape.addChild(Line(self.glider_2d.arc.get_sequence(num=20).T).object)
-        self.shape.addChild(Line(self.glider_2d.arc_values()).object)
+        # self.shape.addChild(Line(self.glider_2d.arc.get_sequence(num=20).T).object)
+        self.shape.addChild(Line(self.glider_2d.arc_pos()).object)
 
     def update_num(self, *arg):
         self.glider_2d.arc.numpoints = self.Qnum_arc.value()
@@ -246,6 +256,17 @@ class arc_tool(base_tool):
 
     def real_arc(self):
         pass
+
+    def accept(self):
+        self.obj.glider_2d = self.glider_2d
+        self.glider_2d.glider_3d(self.obj.glider_instance)
+        self.arc_cpc.unset_edit_mode()
+        self.obj.ViewObject.Proxy.updateData()
+        super(arc_tool, self).accept()
+
+    def reject(self):
+        self.arc_cpc.unset_edit_mode()
+        super(arc_tool, self).reject()
 
 
 

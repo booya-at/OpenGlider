@@ -23,8 +23,7 @@ class BaseCommand(object):
         if len(obj) > 0:
             obj = obj[0]
             if check_glider(obj):
-                if not obj.glider_2d.parametric:
-                    test = Gui.Control.showDialog(self.tool(obj))
+                test = Gui.Control.showDialog(self.tool(obj))
 
     def tool(self, obj):
         return base_tool(obj)

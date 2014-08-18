@@ -27,9 +27,10 @@ from openglider.airfoil import Profile2D
 
 from openglider.glider.in_out import IMPORT_GEOMETRY, EXPORT_3D
 from openglider.utils import consistent_value
-from openglider.vector import norm, rotation_2d, mirror2D_x
+from openglider.vector import norm, normalize, rotation_2d, mirror2D_x
 from openglider.plots.projection import flatten_list
 from openglider.utils.bezier import BezierCurve, SymmetricBezier
+from openglider.utils import sign
 
 
 class Glider(object):
@@ -305,29 +306,44 @@ class Glider_2D(object):
 
 #-----------------------------------------!!!!!!!!!!!!!!!!!!!!!!!!-------------------------------------
 #-----------------------------------------!!!!!!!!!!!!!!!!!!!!!!!!-------------------------------------
-    def arc_values(self, num=50):
+    def arc_pos(self, num=50):
         dist = numpy.array(self.cell_dist_interpolation).T[0] #array of scalars
         arc_arr = [self.arc(0.5)]
         length_arr = [0.]
         for i in numpy.linspace(0.5 + 1 / num, 1, num):
             arc_arr.append(self.arc(i))
             length_arr.append(length_arr[-1] + norm(arc_arr[-2] - arc_arr[-1]))
-        int_func = scipy.interpolate.interp1d(length_arr, numpy.array(arc_arr).T[1])
+        int_func = scipy.interpolate.interp1d(length_arr, numpy.array(arc_arr).T)
         normed_dist = [i / dist[-1] * length_arr[-1] for i in dist]
-        z_pos = [int_func(i) for i in normed_dist]
-        y_pos = [0.]
+        z_pos = [int_func(i)[1] for i in normed_dist]
+        y_pos_temp = [int_func(i)[0] for i in normed_dist]
+        y_pos = [0.] if dist[0] == 0 else [y_pos_temp[0]]
         for i, _ in enumerate(z_pos[1:]):
-            y_pos.append(y_pos[-1] + numpy.sqrt((normed_dist[i+1] - normed_dist[i]) ** 2 - (z_pos[i + 1] - z_pos[i]) ** 2))
-        print(z_pos[-1])
-        print(numpy.array(arc_arr).T[1])
+            direction = sign (y_pos_temp[i + 1] - y_pos_temp[i]) #TODO: replace with a better methode
+            y_pos.append(y_pos[-1] + direction * numpy.sqrt((normed_dist[i+1] - normed_dist[i]) ** 2 - (z_pos[i + 1] - z_pos[i]) ** 2))
         # return numpy.array([int_func(i) for i in normed_dist])
-        return numpy.array(zip(y_pos, z_pos))
+        return numpy.array(zip(y_pos, z_pos)).tolist()
 
+    def arc_pos_angle(self, num=50):
+        arc_pos = self.arc_pos(num=num)
+        arc_pos_copy = copy.copy(arc_pos)
+        if arc_pos[0][0] == 0.:
+            arc_pos = [[-arc_pos[1][0], arc_pos[1][1]]] + arc_pos
+        else:
+            arc_pos = [[0., arc_pos[0][1]]] + arc_pos
+        print(arc_pos)
+        arc_pos = numpy.array(arc_pos)
+        arc_angle = []
+        for i, pos in enumerate(arc_pos[1:-1]):
+            direction = normalize(pos - arc_pos[i]) + normalize(pos - arc_pos[i + 2])
+            arc_angle.append(numpy.arctan2(*direction))
+        temp = arc_pos[-1] - arc_pos[-2]
+        arc_angle.append(- numpy.arctan2(temp[1], temp[0]))
+        return arc_pos_copy, arc_angle
 
     def shape(self, num=30):
         """ribs, front, back"""
         return self.interactive_shape(num)[:-1]
-
 
     def interactive_shape(self, num=30):
         front_int = self.front.interpolate_3d(num=num)
@@ -401,7 +417,7 @@ class Glider_2D(object):
 
         # TODO airfoil, ballooning, arc-------
         from openglider.airfoil import Profile2D
-        airfoil = Profile2D.compute_naca()
+        airfoil = glider.ribs[0].profile_2d
         glide = 8.
         #--------------------------------------
 
@@ -409,16 +425,23 @@ class Glider_2D(object):
         dist = [i[0] for i in self.cell_dist_interpolation]
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
+        arc_pos, arc_angle = self.arc_pos_angle(num=num)
+        print(arc_angle)
+        print(len(arc_pos), len(arc_angle))
         if dist[0] != 0.:
             # adding the mid cell
             dist = [-dist[0]] + dist
+            arc_pos = [[-arc_pos[0][0], arc_pos[0][1]]] + arc_pos
+            arc_angle = [-arc_angle[0]] + arc_angle
         for i, pos in enumerate(dist):
             fr = front_int(pos)
             ba = back_int(pos)
+            ar = arc_pos[i]
             ribs.append(Rib(
                 profile_2d=airfoil,
-                startpoint= numpy.array([-fr[1], fr[0], 0.]),
+                startpoint= numpy.array([-fr[1], ar[0], ar[1]]),
                 chord=norm(fr - ba),
+                arcang = arc_angle[i],
                 glide=glide
                 ))
         for i, rib in enumerate(ribs[1:]):
@@ -430,6 +453,5 @@ if __name__ == "__main__":
     a = Glider.import_geometry("../../tests/demokite.ods")
     b = Glider_2D.fit_glider(a)
     b.interactive_shape()
-    print(b.arc_values())
 
 
