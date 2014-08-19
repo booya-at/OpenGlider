@@ -148,6 +148,8 @@ class Glider(object):
             last_pos = rib.pos[1:]
 
             x += width * (rib.pos[1] > 0)  # x-value
+            if x == 0:
+                last_pos = numpy.array([0., 0.])
             y_front = -rib.pos[0] + rib.chord * rib.startpos
             y_back = -rib.pos[0] + rib.chord * (rib.startpos - 1)
             front.append([x, y_front])
@@ -282,6 +284,7 @@ class Glider(object):
     def glide(self, glide):
         for rib in self.ribs:
             rib.glide = glide
+    
 
 
 class Glider_2D(object):
@@ -304,9 +307,8 @@ class Glider_2D(object):
             "cell_dist": self.cell_dist
         }
 
-#-----------------------------------------!!!!!!!!!!!!!!!!!!!!!!!!-------------------------------------
-#-----------------------------------------!!!!!!!!!!!!!!!!!!!!!!!!-------------------------------------
     def arc_pos(self, num=50):
+        # calculating the transformed arc
         dist = numpy.array(self.cell_dist_interpolation).T[0] #array of scalars
         arc_arr = [self.arc(0.5)]
         length_arr = [0.]
@@ -321,25 +323,46 @@ class Glider_2D(object):
         for i, _ in enumerate(z_pos[1:]):
             direction = sign (y_pos_temp[i + 1] - y_pos_temp[i]) #TODO: replace with a better methode
             y_pos.append(y_pos[-1] + direction * numpy.sqrt((normed_dist[i+1] - normed_dist[i]) ** 2 - (z_pos[i + 1] - z_pos[i]) ** 2))
-        # return numpy.array([int_func(i) for i in normed_dist])
+        # return the list of the arc positions and a scale factor to transform back to the real span
         return numpy.array(zip(y_pos, z_pos)).tolist()
+
 
     def arc_pos_angle(self, num=50):
         arc_pos = self.arc_pos(num=num)
         arc_pos_copy = copy.copy(arc_pos)
+        dist = numpy.array(self.cell_dist_interpolation).T[0]
+        # calculating the rotation of the ribs
         if arc_pos[0][0] == 0.:
             arc_pos = [[-arc_pos[1][0], arc_pos[1][1]]] + arc_pos
         else:
             arc_pos = [[0., arc_pos[0][1]]] + arc_pos
-        print(arc_pos)
         arc_pos = numpy.array(arc_pos)
         arc_angle = []
+        rot = rotation_2d(-numpy.pi / 2)
         for i, pos in enumerate(arc_pos[1:-1]):
-            direction = normalize(pos - arc_pos[i]) + normalize(pos - arc_pos[i + 2])
+            direction = rot.dot(normalize(pos - arc_pos[i])) + rot.dot(normalize(arc_pos[i + 2] - pos))
             arc_angle.append(numpy.arctan2(*direction))
         temp = arc_pos[-1] - arc_pos[-2]
         arc_angle.append(- numpy.arctan2(temp[1], temp[0]))
-        return arc_pos_copy, arc_angle
+
+        # transforming the start_pos back to the original distribution
+        arc_pos = numpy.array(arc_pos_copy)
+        if arc_pos_copy[0][0] != 0.:
+            arc_pos_copy = [[0., arc_pos_copy[0][1]]] + arc_pos_copy
+        arc_pos_copy = numpy.array(arc_pos_copy)
+        arc_normed_length = 0.
+        # recalc actuall length
+        for i, pos in enumerate(arc_pos_copy[1:]):
+            arc_normed_length += norm(arc_pos_copy[i] - pos)
+        trans = - numpy.array(arc_pos_copy[0])
+        scal = dist[-1] / arc_normed_length
+        # first translate the middle point to [0, 0]
+        arc_pos += trans
+        #scale to the original distribution
+        arc_pos *= scal
+        arc_pos = arc_pos.tolist()
+
+        return arc_pos, arc_angle
 
     def shape(self, num=30):
         """ribs, front, back"""
@@ -394,13 +417,16 @@ class Glider_2D(object):
         back_bezier = SymmetricBezier.fit(mirror_x(back), numpoints=numpoints)
         arc_bezier = SymmetricBezier.fit(mirror_x(arc), numpoints=numpoints)
 
-        front[0][0] = 0  # for midribs
-        rib_pos = [[p[0], i / (len(front) - 1)] for i, p in enumerate(front)]
-        rib_distribution = BezierCurve.fit(rib_pos, numpoints=numpoints+2)
-        cell_num = len(rib_pos) * 2
 
-        #cell_pos = [point[0], i / len for i, point in enumerate(front)]
-        # TODO cell num funktioniert noch nicht!!
+        cell_num = len(glider.cells) * 2
+        if glider.ribs[0].pos[1] < 0:
+            cell_num -= 1
+        front[0][0] = 0  # for midribs
+        start = (2 - (cell_num % 2)) / cell_num
+        const_arr = [0.] + numpy.linspace(start, 1, len(front) - 1).tolist()
+        rib_pos = [0.] + [p[0] for p in front[1:]]
+        print(zip(rib_pos, const_arr))
+        rib_distribution = BezierCurve.fit(zip(rib_pos, const_arr), numpoints=numpoints + 3)
         gl2d = cls(front=front_bezier,
                    back=back_bezier,
                    cell_dist=rib_distribution,
@@ -419,6 +445,7 @@ class Glider_2D(object):
         from openglider.airfoil import Profile2D
         airfoil = glider.ribs[0].profile_2d
         glide = 8.
+        aoa = numpy.deg2rad(13.)
         #--------------------------------------
 
         from openglider.glider import Rib, Cell
@@ -426,13 +453,12 @@ class Glider_2D(object):
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
         arc_pos, arc_angle = self.arc_pos_angle(num=num)
-        print(arc_angle)
-        print(len(arc_pos), len(arc_angle))
         if dist[0] != 0.:
             # adding the mid cell
             dist = [-dist[0]] + dist
             arc_pos = [[-arc_pos[0][0], arc_pos[0][1]]] + arc_pos
             arc_angle = [-arc_angle[0]] + arc_angle
+
         for i, pos in enumerate(dist):
             fr = front_int(pos)
             ba = back_int(pos)
@@ -442,7 +468,8 @@ class Glider_2D(object):
                 startpoint= numpy.array([-fr[1], ar[0], ar[1]]),
                 chord=norm(fr - ba),
                 arcang = arc_angle[i],
-                glide=glide
+                glide=glide,
+                aoa = aoa
                 ))
         for i, rib in enumerate(ribs[1:]):
             cells.append(Cell(ribs[i], rib, []))

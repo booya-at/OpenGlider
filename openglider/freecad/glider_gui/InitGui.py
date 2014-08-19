@@ -2,7 +2,7 @@ import FreeCADGui as Gui
 
 Gui.addIconPath(FreeCAD.getHomePath() + "Mod/glider_gui/icons")
 
-from objects import CreateGlider, Shape_Tool, Airfoil_Tool, Arc_Tool
+from tools import CreateGlider, Shape_Tool, Airfoil_Tool, Arc_Tool
 
 Gui.addCommand('CreateGlider', CreateGlider())
 Gui.addCommand('Shape_Tool', Shape_Tool())
