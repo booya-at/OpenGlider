@@ -284,7 +284,6 @@ class Glider(object):
     def glide(self, glide):
         for rib in self.ribs:
             rib.glide = glide
-    
 
 
 class Glider_2D(object):
@@ -408,10 +407,11 @@ class Glider_2D(object):
         # todo: create glider2d from glider obj (fit bezier)
         def mirror_x(polyline):
             mirrored = [[-p[0], p[1]] for p in polyline[1:]]
-            start = polyline[0][0] < 0
+            start = glider.has_center_cell
             return mirrored[::-1] + polyline[start:]
 
         front, back = glider.shape_simple
+        print(mirror_x(front))
         arc = [rib.pos[1:] for rib in glider.ribs]
         front_bezier = SymmetricBezier.fit(mirror_x(front), numpoints=numpoints)
         back_bezier = SymmetricBezier.fit(mirror_x(back), numpoints=numpoints)
@@ -425,7 +425,6 @@ class Glider_2D(object):
         start = (2 - (cell_num % 2)) / cell_num
         const_arr = [0.] + numpy.linspace(start, 1, len(front) - 1).tolist()
         rib_pos = [0.] + [p[0] for p in front[1:]]
-        print(zip(rib_pos, const_arr))
         rib_distribution = BezierCurve.fit(zip(rib_pos, const_arr), numpoints=numpoints + 3)
         gl2d = cls(front=front_bezier,
                    back=back_bezier,
