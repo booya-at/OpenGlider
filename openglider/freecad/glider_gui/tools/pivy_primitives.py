@@ -7,7 +7,9 @@ color_dict ={
     "white": (1., 1., 1.),
     "gray": (0.5, 0.5, 0.5),
     "red": (1., 0., 0.),
-    "blue": (0., 0., 1.)
+    "blue": (0., 0., 1.),
+    "green": (0., 1., 1.),
+    "yellow": (0., 1., 0.)
 }
 
 def None_func():
@@ -199,7 +201,7 @@ class Line(object):
 
 
 class Marker(coin.SoSeparator):
-    def __init__(self, points, color="black"):
+    def __init__(self, points=[], color="black"):
         super(Marker, self).__init__()
         self.marker = coin.SoMarkerSet()
         self.marker.markerIndex = coin.SoMarkerSet.CIRCLE_FILLED_9_9
@@ -241,7 +243,9 @@ class Spline(Line):
 
 
 def vector3D(vec):
-    if not isinstance(vec[0], (list, tuple, numpy.ndarray)):
+    if len(vec) == 0:
+        return(vec)
+    elif not isinstance(vec[0], (list, tuple, numpy.ndarray)):
         if len(vec) == 3:
             return vec
         elif len(vec) == 2:

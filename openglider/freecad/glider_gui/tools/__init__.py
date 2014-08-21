@@ -1,7 +1,7 @@
 import FreeCAD
 import FreeCADGui as Gui
 from _glider import OGGlider, OGGliderVP
-from _tools import shape_tool, base_point_tool, base_tool, arc_tool
+from _tools import shape_tool, base_point_tool, base_tool, arc_tool, aoa_tool
 
 
 class BaseCommand(object):
@@ -66,8 +66,18 @@ class Airfoil_Tool(BaseCommand):
         return base_point_tool(obj)
 
 
+class Aoa_Tool(BaseCommand):
+    def GetResources(self):
+        return {'Pixmap': 'glider_change_profile.svg', 'MenuText': 'base', 'ToolTip': 'base'}
+
+    def tool(self, obj):
+        return aoa_tool(obj)
+
+
 def check_glider(obj):
     if "glider_instance" in obj.PropertiesList and "glider_2d" in obj.PropertiesList:
         return True
     else:
         return False
+
+

@@ -291,13 +291,14 @@ class Glider_2D(object):
         a glider 2D object used for gui inputs
     """
 
-    def __init__(self, front=None, back=None, cell_dist=None, arc=None, cell_num=21, parametric=False):
+    def __init__(self, front=None, back=None, cell_dist=None, arc=None, aoa=None, cell_num=21, parametric=False):
         self.parametric = parametric    #set to False if you change glider 3d manually
         self.cell_num = cell_num  # updates cell pos
         self.front = front or SymmetricBezier()
         self.back = back or SymmetricBezier()
         self.cell_dist = cell_dist or BezierCurve()
         self.arc = arc or BezierCurve()
+        self.aoa = aoa or BezierCurve()
 
     def __json__(self):
         return {
@@ -407,20 +408,20 @@ class Glider_2D(object):
         # todo: create glider2d from glider obj (fit bezier)
         def mirror_x(polyline):
             mirrored = [[-p[0], p[1]] for p in polyline[1:]]
-            start = glider.has_center_cell
-            return mirrored[::-1] + polyline[start:]
+            return mirrored[::-1] + polyline[glider.has_center_cell:]
 
         front, back = glider.shape_simple
-        print(mirror_x(front))
         arc = [rib.pos[1:] for rib in glider.ribs]
+        aoa = [[front[i][0], rib.aoa_relative] for i, rib in enumerate(glider.ribs)]
+
         front_bezier = SymmetricBezier.fit(mirror_x(front), numpoints=numpoints)
         back_bezier = SymmetricBezier.fit(mirror_x(back), numpoints=numpoints)
         arc_bezier = SymmetricBezier.fit(mirror_x(arc), numpoints=numpoints)
+        aoa_bezier = SymmetricBezier.fit(mirror_x(aoa), numpoints=numpoints)
 
-
-        cell_num = len(glider.cells) * 2
-        if glider.ribs[0].pos[1] < 0:
-            cell_num -= 1
+        cell_num = len(glider.cells) * 2 - glider.has_center_cell
+        # if glider.has_center_cell:
+        #     cell_num -= 1
         front[0][0] = 0  # for midribs
         start = (2 - (cell_num % 2)) / cell_num
         const_arr = [0.] + numpy.linspace(start, 1, len(front) - 1).tolist()
@@ -431,6 +432,7 @@ class Glider_2D(object):
                    cell_dist=rib_distribution,
                    cell_num=cell_num,
                    arc=arc_bezier,
+                   aoa=aoa_bezier,
                    parametric=True)
         return gl2d
 
@@ -452,6 +454,7 @@ class Glider_2D(object):
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
         arc_pos, arc_angle = self.arc_pos_angle(num=num)
+        aoa = self.aoa.interpolate_3d(num=num)
         if dist[0] != 0.:
             # adding the mid cell
             dist = [-dist[0]] + dist
@@ -464,11 +467,11 @@ class Glider_2D(object):
             ar = arc_pos[i]
             ribs.append(Rib(
                 profile_2d=airfoil,
-                startpoint= numpy.array([-fr[1], ar[0], ar[1]]),
+                startpoint=numpy.array([-fr[1], ar[0], ar[1]]),
                 chord=norm(fr - ba),
-                arcang = arc_angle[i],
+                arcang=arc_angle[i],
                 glide=glide,
-                aoa = aoa
+                aoa=aoa(pos)[1]
                 ))
         for i, rib in enumerate(ribs[1:]):
             cells.append(Cell(ribs[i], rib, []))

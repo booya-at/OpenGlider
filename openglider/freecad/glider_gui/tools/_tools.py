@@ -39,6 +39,8 @@ class base_tool(object):
         Gui.activeDocument().activeView().viewTop()
         self.view = Gui.ActiveDocument.ActiveView
         self.scene = self.view.getSceneGraph()
+        self.nav_bak = self.view.getNavigationType()
+        self.view.setNavigationType('Gui::TouchpadNavigationStyle')
 
         # form is the widget that appears in the task panel,
         self.form = []
@@ -56,11 +58,13 @@ class base_tool(object):
         self.obj.ViewObject.Visibility = True
         self.scene.removeChild(self.task_separator)
         Gui.Control.closeDialog()
+        self.view.setNavigationType(self.nav_bak)
 
     def reject(self):
         self.obj.ViewObject.Visibility = True
         self.scene.removeChild(self.task_separator)
         Gui.Control.closeDialog()
+        self.view.setNavigationType(self.nav_bak)
 
     def setup_widget(self):
         pass
@@ -344,30 +348,96 @@ class base_point_tool(base_tool):
         return [fr + pos * (ba - fr) for fr, ba in numpy.array(self.ribs)]
 
     def setup_cb(self):
+        print("blaassdkj")
         self.point_preview_cb = self.view.addEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.point_preview)
-        self.add_point_cb = self.view.addEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.point_add)
+        self.add_point_cb = self.view.addEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.add_point)
+
+    def remove_cb(self):
+        if self.point_preview_cb:
+            self.view.removeEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.point_preview_cb)
+        if self.add_point_cb:
+            self.view.removeEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.add_point_cb)
 
     def point_preview(self, event_callback):        
         event = event_callback.getEvent()
+        self.temp_point.removeAllChildren()
         if type(event) == coin.SoLocation2Event:
-            self.temp_point.removeAllChildren()
-            pos = event.getPosition()
             self.current_point = None
-            for point in self.help_line(self.Qhl_pos.value() / 100):
+            pos = event.getPosition()
+            if event.wasCtrlDown():
+                check_points = self.__point_list
+                color = "green"
+            else:
+                check_points = self.help_line(self.Qhl_pos.value() / 100)
+                color = "red"
+            for point in check_points:
                 s = self.view.getPointOnScreen(point[0], point[1], 0.)
                 if (abs(s[0] - pos[0]) ** 2 + abs(s[1] - pos[1]) ** 2) < (15 ** 2) and point[0] >= 0:
                     self.current_point = point
-                    self.temp_point.addChild(Marker([point], color="red"))
+                    self.temp_point.addChild(Marker([point], color=color))
+                    break
 
     def update_point_list(self):
         self.vis_point_list.removeAllChildren()
-        self.vis_point_list.addChild(Marker(self.__point_list))
+        if len(self.__point_list) > 0:
+            self.vis_point_list.addChild(Marker(self.__point_list))
 
-    def point_add(self, event_callback):
+    def add_point(self, event_callback):
         event = event_callback.getEvent()
         pos = event.getPosition()
-        if self.current_point is not None:
-            self.__point_list.append(self.current_point)
-            self.update_point_list()
+        if self.current_point is not None and event.getState():
+            if event.wasCtrlDown(): # deleting current point
+                print(self.current_point in self.__point_list)
+                try:
+                    self.__point_list.remove(self.current_point)
+                    self.current_point = None
+                    self.temp_point.removeAllChildren()
+                    self.update_point_list()
+                except ValueError:
+                    print("whats wrong here???")
+            else: # adding a point
+                print("add point")
+                self.__point_list.append(self.current_point)
+                self.update_point_list()
 
 
+
+    def accept(self):
+        self.remove_cb()
+        super(base_point_tool, self).accept()
+
+    def reject(self):
+        self.remove_cb()
+        super(base_point_tool, self).reject()
+
+
+class aoa_tool(base_tool):
+    def __init__(self, obj):
+        super(aoa_tool, self).__init__(obj)
+        self.scale = numpy.array([1., 5.])
+        self.aoa_cpc = ControlPointContainer(vector3D(numpy.array(self.glider_2d.aoa.controlpoints) * self.scale))
+        self.shape = coin.SoSeparator()
+        self.aoa_spline = Line([])
+        self.ribs, self.front, self.back = self.glider_2d.shape()
+
+        self.aoa_cpc.on_drag.append(self.update_aoa)
+        self.setup_pivy()
+        self.aoa_cpc.set_edit_mode(self.view)
+
+    def setup_pivy(self):
+        self.task_separator.addChild(self.aoa_cpc)
+        self.task_separator.addChild(self.shape)
+        self.task_separator.addChild(self.aoa_spline.object)
+        self.update_aoa()
+        self.draw_shape()
+
+    def draw_shape(self):
+        self.shape.removeAllChildren()
+        self.shape.addChild(Line(self.front, color="gray").object)
+        self.shape.addChild(Line(self.back, color="gray").object)
+        for rib in self.ribs:
+            self.shape.addChild(Line(rib, color="gray").object)
+
+    def update_aoa(self):
+        self.glider_2d.aoa.controlpoints = (numpy.array([i[:-1] for i in self.aoa_cpc.control_point_list]) / self.scale).tolist()
+        self.aoa_spline.update(self.glider_2d.aoa.get_sequence(num=20).T * self.scale)
