@@ -13,7 +13,7 @@
    height="64px"
    id="svg3799"
    version="1.1"
-   inkscape:version="0.48.4 r9939"
+   inkscape:version="0.48.3.1 r9886"
    sodipodi:docname="glider_workbench.svg">
   <defs
      id="defs3801">
@@ -136,10 +136,10 @@
      inkscape:snap-center="true"
      showguides="true"
      inkscape:guide-bbox="true"
-     inkscape:window-width="1920"
-     inkscape:window-height="1056"
+     inkscape:window-width="1366"
+     inkscape:window-height="719"
      inkscape:window-x="0"
-     inkscape:window-y="24"
+     inkscape:window-y="29"
      inkscape:window-maximized="1"
      inkscape:snap-nodes="true">
     <sodipodi:guide
@@ -159,7 +159,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -168,7 +168,7 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer">
     <rect
-       style="fill:#0079ff;fill-opacity:1;stroke:none"
+       style="fill:#ffbf00;fill-opacity:1;stroke:none"
        id="rect3849"
        width="63.856945"
        height="63.856945"

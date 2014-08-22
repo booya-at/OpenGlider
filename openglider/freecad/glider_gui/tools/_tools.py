@@ -14,8 +14,8 @@ input_field = QtGui.QFormLayout.FieldRole
 # TODO: 
 #   -merge-tool
 #       -airfoil
-#       -ballooning
-#       -aoa
+#       -ballooning         
+#       -aoa                xx
 #       -zrot
 #   -airfoil-tool
 #   -ballooning-tool
@@ -25,6 +25,8 @@ input_field = QtGui.QFormLayout.FieldRole
 #   -design-tool
 #   -minirips-tool
 #   -etc...
+
+
 
 
 class base_tool(object):
@@ -386,7 +388,7 @@ class base_point_tool(base_tool):
         event = event_callback.getEvent()
         pos = event.getPosition()
         if self.current_point is not None and event.getState():
-            if event.wasCtrlDown(): # deleting current point
+            if event.wasCtrlDown(): # deleting current point TODO: not working yet
                 print(self.current_point in self.__point_list)
                 try:
                     self.__point_list.remove(self.current_point)
@@ -413,10 +415,25 @@ class base_point_tool(base_tool):
 
 class aoa_tool(base_tool):
     def __init__(self, obj):
+        #TODO:
+        # -maybe create a abase class for this kind of inputs. 
+        #       so that the z-rot-tool can erb from this
+
+        # BASE-VALUE-TOOL
+        # -coord system that can be scaled(drag the y-axis-arrow)
+        # -values on the y axis (SoText2())
+        # -values of the ribs (release drag)
+
+        # AOA-TOOL
+        # -add a spinbox for the glideratio
+        # -show the absolute value of the angle (release drag)
+        # -switcher to change between relativ absolute inputs
+
         super(aoa_tool, self).__init__(obj)
         self.scale = numpy.array([1., 5.])
         self.aoa_cpc = ControlPointContainer(vector3D(numpy.array(self.glider_2d.aoa.controlpoints) * self.scale))
         self.shape = coin.SoSeparator()
+        self.coords = coin.SoSeparator()
         self.aoa_spline = Line([])
         self.ribs, self.front, self.back = self.glider_2d.shape()
 
@@ -425,9 +442,11 @@ class aoa_tool(base_tool):
         self.aoa_cpc.set_edit_mode(self.view)
 
     def setup_pivy(self):
+        self.aoa_cpc.control_points[-1].constraint = lambda pos: [self.glider_2d.span / 2, pos[1], pos[2]]
         self.task_separator.addChild(self.aoa_cpc)
         self.task_separator.addChild(self.shape)
         self.task_separator.addChild(self.aoa_spline.object)
+        self.task_separator.addChild(self.coords)
         self.update_aoa()
         self.draw_shape()
 
@@ -441,3 +460,46 @@ class aoa_tool(base_tool):
     def update_aoa(self):
         self.glider_2d.aoa.controlpoints = (numpy.array([i[:-1] for i in self.aoa_cpc.control_point_list]) / self.scale).tolist()
         self.aoa_spline.update(self.glider_2d.aoa.get_sequence(num=20).T * self.scale)
+        self.coords.removeAllChildren()
+        max_x = max([i[0] for i in self.aoa_cpc.control_point_list])
+        max_y = max([i[1] for i in self.aoa_cpc.control_point_list]) 
+        self.coords.addChild(Line([[0, 0], [0., max_y]]).object)
+        self.coords.addChild(Line([[0, 0], [max_x, 0.]]).object)
+
+
+    def accept(self):
+        self.aoa_cpc.unset_edit_mode()
+        self.obj.glider_2d = self.glider_2d
+        self.glider_2d.glider_3d(self.obj.glider_instance)
+        super(aoa_tool, self).accept()
+
+    def reject(self):
+        self.aoa_cpc.unset_edit_mode()
+        super(aoa_tool, self).reject()
+
+
+class base_merge_tool(base_tool):
+    # imagine you have a list of input data. (profiles, ballooning, etc...). this tool should provide a methode to distribute this
+    # input data to the ribs. 
+    pass
+
+
+class ballooning_mege(base_merge_tool):
+    pass
+
+
+class airfoil_merge(base_merge_tool):
+    pass
+
+
+class airfoil_tool(base_tool):
+    # glider 2d can store airfoils. ( no need to use them on the glider...) this tool lets you change the airfoil.
+    # changeable values: thickness, camber
+    # checkox to fit the airfoil with bezier and edit manually (controllpoints will be stored in glider_2d)
+    # create a new airfoil with bezier splines...
+    pass
+
+
+class ballooning(base_tool):
+    # similar to airfoil_tool. Maybe a parent class makes sense.
+    pass

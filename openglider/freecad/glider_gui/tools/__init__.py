@@ -4,6 +4,17 @@ from _glider import OGGlider, OGGliderVP
 from _tools import shape_tool, base_point_tool, base_tool, arc_tool, aoa_tool
 
 
+#ICONS:
+# the openglider implementation in freecad will be splitted into 3 parts. each will have a consistent icon color-sheme:
+# (colors can be found in openglider/freecad/glidergui/icons/freecad-color.gpl)
+# to use this with inkscape: ln -s ..../openglider/freecad/glidergui/icons/freecad-color.gpl .../.config/inkscape/palettes/
+
+#   -import export                                          -?
+#   -construction (shape, arc, lines, aoa, ...)             -blue
+#   -simulation                                             -yellow
+#   -optimisation                                           -red
+
+
 class BaseCommand(object):
     def __init__(self):
         pass
@@ -43,7 +54,7 @@ class CreateGlider(BaseCommand):
 
 class Shape_Tool(BaseCommand):
     def GetResources(self):
-        return {'Pixmap': 'glider_change_shape.svg', 'MenuText': 'base', 'ToolTip': 'base'}
+        return {'Pixmap': 'shape_tool.svg', 'MenuText': 'base', 'ToolTip': 'base'}
 
     def tool(self, obj):
         return shape_tool(obj)
@@ -51,7 +62,7 @@ class Shape_Tool(BaseCommand):
 
 class Arc_Tool(BaseCommand):
     def GetResources(self):
-        return {'Pixmap': 'glider_profile_compare.svg', 'MenuText': 'base', 'ToolTip': 'base'}
+        return {'Pixmap': 'arc_tool.svg', 'MenuText': 'base', 'ToolTip': 'base'}
 
     def tool(self, obj):
         print("jojojo")
@@ -60,7 +71,7 @@ class Arc_Tool(BaseCommand):
 
 class Airfoil_Tool(BaseCommand):
     def GetResources(self):
-        return {'Pixmap': 'glider_change_profile.svg', 'MenuText': 'base', 'ToolTip': 'base'}
+        return {'Pixmap': 'airfoil_tool.svg', 'MenuText': 'base', 'ToolTip': 'base'}
 
     def tool(self, obj):
         return base_point_tool(obj)
@@ -68,7 +79,7 @@ class Airfoil_Tool(BaseCommand):
 
 class Aoa_Tool(BaseCommand):
     def GetResources(self):
-        return {'Pixmap': 'glider_change_profile.svg', 'MenuText': 'base', 'ToolTip': 'base'}
+        return {'Pixmap': 'aoa_tool.svg', 'MenuText': 'base', 'ToolTip': 'base'}
 
     def tool(self, obj):
         return aoa_tool(obj)

@@ -403,6 +403,10 @@ class Glider_2D(object):
             integrated_depth.append(integrated_depth[-1] + 1. / (front_int(i)[1] - back_int(i)[1]))
         return zip(l, [i / integrated_depth[-1] for i in integrated_depth])
 
+    @property
+    def span(self):
+        return self.cell_dist_interpolation[-1][0] * 2
+
     @classmethod
     def fit_glider(cls, glider, numpoints=3):
         # todo: create glider2d from glider obj (fit bezier)
@@ -454,6 +458,8 @@ class Glider_2D(object):
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
         arc_pos, arc_angle = self.arc_pos_angle(num=num)
+        aoa_cp = self.aoa.controlpoints
+        self.aoa.controlpoints = [[p[0] / aoa_cp[-1][0] * dist[-1], p[1]] for p in aoa_cp]
         aoa = self.aoa.interpolate_3d(num=num)
         if dist[0] != 0.:
             # adding the mid cell
