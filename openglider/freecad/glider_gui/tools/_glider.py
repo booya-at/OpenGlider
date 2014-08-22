@@ -1,10 +1,17 @@
 from __future__ import division
-import openglider
+import os
+
 from pivy import coin
 import FreeCAD
+
+
+import openglider
 from pivy_primitives import Line
 
-importpath = "/home/q/tmp/OpenGlider/tests/demokite.ods"
+importpath = os.path.join(
+    os.path.abspath(os.path.dirname(os.path.dirname(openglider.__file__))),
+    'tests/demokite.ods'
+)
 
 
 class OGBaseObject(object):
