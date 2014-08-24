@@ -484,7 +484,7 @@ class base_merge_tool(base_tool):
     pass
 
 
-class ballooning_mege(base_merge_tool):
+class ballooning_merge(base_merge_tool):
     pass
 
 
@@ -502,4 +502,9 @@ class airfoil_tool(base_tool):
 
 class ballooning(base_tool):
     # similar to airfoil_tool. Maybe a parent class makes sense.
+    pass
+
+
+class line_tool(base_tool):
+    # very nice tool :-)
     pass
