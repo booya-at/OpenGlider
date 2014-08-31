@@ -19,7 +19,7 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import division
-from functions import proj_force, proj_to_surface, vec_length
+from .functions import proj_force, proj_to_surface, vec_length
 from openglider.utils.cache import cached_property, CachedObject
 from openglider.vector import normalize, norm
 from openglider.lines import line_types

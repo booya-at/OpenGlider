@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
-from cache import recursive_getattr
+from .cache import recursive_getattr
 
 def sign(val):
     val = float(val)

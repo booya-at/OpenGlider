@@ -1,9 +1,8 @@
 import json
 import time
 import numpy
-from objects import objects
+from .objects import objects
 import openglider
-import numpy
 
 __ALL__ = ['dumps', 'dump', 'loads', 'load']
 

@@ -50,8 +50,9 @@ class BasicProfile2D(Polygon2D):
     def __call__(self, xval):
         return self.profilepoint(xval)
 
-    def align(self, (x, y)):
+    def align(self, p):
         """Align a point (x, y) on the airfoil. x: (0,1), y: (-1,1)"""
+        x, y = p
         p1, __ = self.profilepoint(x)
         p2, __ = self.profilepoint(x)
         return p1 + (1 + y) / 2 * (p2 - p1)

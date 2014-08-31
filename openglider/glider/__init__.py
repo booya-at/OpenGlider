@@ -1,9 +1,8 @@
 
 
-from glider import Glider
-from glider import Glider_2D
-from rib import Rib, MiniRib
-from cell import Cell
-import rib_elements
-import cell_elements
-import ballooning
+from .glider import Glider, Glider_2D
+from .rib import Rib, MiniRib
+from .cell import Cell
+from . import rib_elements
+from . import cell_elements
+from . import ballooning

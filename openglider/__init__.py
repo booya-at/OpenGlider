@@ -21,12 +21,12 @@ __version__ = '0.01dev'
 __author__ = 'Booya'
 
 #import numpy
-import glider
-import airfoil
-import lines
-import vector
-import jsonify
-import plots
+from . import glider
+from . import airfoil
+from . import lines
+from . import vector
+from . import jsonify
+from . import plots
 #import input
 #from graphics import Line, Point, graphics
 #from openglider.utils.Ballooning import Ballooning

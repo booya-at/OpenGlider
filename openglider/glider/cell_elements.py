@@ -24,11 +24,10 @@ from openglider.plots.projection import flatten_list
 
 
 class DiagonalRib(object):
-    def __init__(self, (left_1, left_1_height), (left_2, left_2_height),
-                 (right_1, right_1_height), (right_2, right_2_height), cell_no):
+    def __init__(self, left_1, left_2, right_1, right_2, cell_no):
         # Attributes
-        self.attributes = [[[left_1, left_1_height], [left_2, left_2_height]],
-                           [[right_1, right_1_height], [right_2, right_2_height]]]
+        self.attributes = [[left_1, left_2],
+                           [right_1, right_2]]
         self.cell = cell_no
 
     def get_3d(self, glider):

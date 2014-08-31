@@ -21,10 +21,11 @@ import svgwrite
 
 from openglider.airfoil import get_x_value
 from openglider.plots.marks import triangle, line
-import projection
+from . import projection
+from . import marks
 # from openglider.glider import Glider
 # from openglider.glider.cell import Cell
-from cuts import cuts
+from .cuts import cuts
 from .part import PlotPart
 from openglider.vector import PolyLine2D, depth
 
