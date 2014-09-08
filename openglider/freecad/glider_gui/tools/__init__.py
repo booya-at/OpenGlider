@@ -1,7 +1,7 @@
 import FreeCAD
 import FreeCADGui as Gui
 from _glider import OGGlider, OGGliderVP
-from _tools import shape_tool, base_point_tool, base_tool, arc_tool, aoa_tool
+from _tools import shape_tool, base_point_tool, base_tool, arc_tool, aoa_tool, airfoil_tool
 
 
 #ICONS:
@@ -74,7 +74,7 @@ class Airfoil_Tool(BaseCommand):
         return {'Pixmap': 'airfoil_tool.svg', 'MenuText': 'base', 'ToolTip': 'base'}
 
     def tool(self, obj):
-        return base_point_tool(obj)
+        return airfoil_tool(obj)
 
 
 class Aoa_Tool(BaseCommand):

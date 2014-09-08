@@ -1,20 +1,22 @@
 from __future__ import division
+
 from PySide import QtCore, QtGui
 from pivy import coin
 import numpy
-import FreeCADGui as Gui
 import FreeCAD
-from pivy_primitives import Line, vector3D, ControlPointContainer, Marker
+import FreeCADGui as Gui
+
 from openglider.glider.glider import Glider_2D
 from openglider.utils.bezier import fitbezier
+from pivy_primitives import Line, vector3D, ControlPointContainer, Marker
 
 text_field = QtGui.QFormLayout.LabelRole
 input_field = QtGui.QFormLayout.FieldRole
 
-# TODO: 
+# TODO:
 #   -merge-tool
 #       -airfoil
-#       -ballooning         
+#       -ballooning
 #       -aoa                xx
 #       -zrot
 #   -airfoil-tool
@@ -27,9 +29,8 @@ input_field = QtGui.QFormLayout.FieldRole
 #   -etc...
 
 
-
-
 class base_tool(object):
+
     def __init__(self, obj, widget_name="base_widget"):
         self.obj = obj
         if self.obj.glider_2d.parametric:
@@ -76,6 +77,7 @@ class base_tool(object):
 
 
 class shape_tool(base_tool):
+
     def __init__(self, obj):
         super(shape_tool, self).__init__(obj, widget_name="shape tool")
 
@@ -135,7 +137,6 @@ class shape_tool(base_tool):
         self.Qnum_back.setMinimum(2)
         self.Qnum_front.setMinimum(2)
         self.Qnum_dist.setMinimum(1)
-
 
         self.layout.setWidget(1, text_field, QtGui.QLabel("manual shape edit"))
         self.layout.setWidget(1, input_field, self.Qmanual_edit)
@@ -222,6 +223,7 @@ class shape_tool(base_tool):
 
 
 class arc_tool(base_tool):
+
     def __init__(self, obj):
         """adds a symmetric spline to the scene"""
         super(arc_tool, self).__init__(obj, widget_name="arc_tool")
@@ -229,7 +231,7 @@ class arc_tool(base_tool):
         self.arc_cpc = ControlPointContainer(self.glider_2d.arc.controlpoints)
         self.Qmanual_edit = QtGui.QCheckBox(self.base_widget)
         self.Qnum_arc = QtGui.QSpinBox(self.base_widget)
-        self.Qcalc_real =QtGui.QPushButton(self.base_widget)
+        self.Qcalc_real = QtGui.QPushButton(self.base_widget)
         self.shape = coin.SoSeparator()
         self.task_separator.addChild(self.shape)
 
@@ -290,17 +292,18 @@ class arc_tool(base_tool):
 
 
 class base_point_tool(base_tool):
+
     def __init__(self, obj):
         # allow helper curves
         # callback for point visualization (only when mouse near a cutting point)
         super(base_point_tool, self).__init__(obj, widget_name="airfoil tool")
 
-        #save the shape as it will not be changed in this task
+        # save the shape as it will not be changed in this task
         self.ribs, self.front, self.back = self.glider_2d.shape()
         self.xpos = [i[0] for i in self.front]
         self.current_point = None
 
-        #adding some pivy containers
+        # adding some pivy containers
         self.shape = coin.SoSeparator()
         self.helper_line = coin.SoSeparator()
         self.temp_point = coin.SoSeparator()
@@ -308,7 +311,7 @@ class base_point_tool(base_tool):
         self.__point_list = []  # glider 2d should store these points (overwrite update_point_list)
         self.setup_pivy()
 
-        #qt gui stuff
+        # qt gui stuff
         self.Qhelper_lines = QtGui.QWidget()
         self.Qhl_layout = QtGui.QFormLayout(self.Qhelper_lines)
         self.Qhl_pos = QtGui.QDoubleSpinBox(self.Qhelper_lines)
@@ -360,19 +363,20 @@ class base_point_tool(base_tool):
         if self.add_point_cb:
             self.view.removeEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.add_point_cb)
 
-    def point_preview(self, event_callback):        
+    def point_preview(self, event_callback, force=False):
         event = event_callback.getEvent()
         self.temp_point.removeAllChildren()
-        if type(event) == coin.SoLocation2Event:
+        if type(event) == coin.SoLocation2Event or force:
             self.current_point = None
             pos = event.getPosition()
             if event.wasCtrlDown():
                 check_points = self.__point_list
                 color = "green"
             else:
-                check_points = self.help_line(self.Qhl_pos.value() / 100)
+                check_points = [i.tolist() for i in self.help_line(self.Qhl_pos.value() / 100)]
                 color = "red"
             for point in check_points:
+                print(type(point))
                 s = self.view.getPointOnScreen(point[0], point[1], 0.)
                 if (abs(s[0] - pos[0]) ** 2 + abs(s[1] - pos[1]) ** 2) < (15 ** 2) and point[0] >= 0:
                     self.current_point = point
@@ -388,21 +392,21 @@ class base_point_tool(base_tool):
         event = event_callback.getEvent()
         pos = event.getPosition()
         if self.current_point is not None and event.getState():
-            if event.wasCtrlDown(): # deleting current point TODO: not working yet
-                print(self.current_point in self.__point_list)
+            if event.wasCtrlDown():  # deleting current point TODO: not working yet
+                print(self.current_point)
                 try:
                     self.__point_list.remove(self.current_point)
                     self.current_point = None
                     self.temp_point.removeAllChildren()
                     self.update_point_list()
+                    self.point_preview(event_callback, force=True)
                 except ValueError:
                     print("whats wrong here???")
-            else: # adding a point
+            else:  # adding a point
                 print("add point")
                 self.__point_list.append(self.current_point)
+                print(self.__point_list)
                 self.update_point_list()
-
-
 
     def accept(self):
         self.remove_cb()
@@ -414,9 +418,10 @@ class base_point_tool(base_tool):
 
 
 class aoa_tool(base_tool):
+
     def __init__(self, obj):
-        #TODO:
-        # -maybe create a abase class for this kind of inputs. 
+        # TODO:
+        # -maybe create a abase class for this kind of inputs.
         #       so that the z-rot-tool can erb from this
 
         # BASE-VALUE-TOOL
@@ -462,10 +467,9 @@ class aoa_tool(base_tool):
         self.aoa_spline.update(self.glider_2d.aoa.get_sequence(num=20).T * self.scale)
         self.coords.removeAllChildren()
         max_x = max([i[0] for i in self.aoa_cpc.control_point_list])
-        max_y = max([i[1] for i in self.aoa_cpc.control_point_list]) 
+        max_y = max([i[1] for i in self.aoa_cpc.control_point_list])
         self.coords.addChild(Line([[0, 0], [0., max_y]]).object)
         self.coords.addChild(Line([[0, 0], [max_x, 0.]]).object)
-
 
     def accept(self):
         self.aoa_cpc.unset_edit_mode()
@@ -480,8 +484,20 @@ class aoa_tool(base_tool):
 
 class base_merge_tool(base_tool):
     # imagine you have a list of input data. (profiles, ballooning, etc...). this tool should provide a methode to distribute this
-    # input data to the ribs. 
-    pass
+    # input data to the ribs.
+    # all data list
+    # selected data = data to distribute
+
+    def __init__(self, obj):
+        super(base_merge_tool, self).__init__(obj)
+        self.dist_list = []
+
+    def setup_widget(self):
+        # 1 show a list of all possibilities (selectabel) (spinbox)
+        # 2 button to include one of thise items
+        # 3 in a second list (items in a table)
+        # 4 wich is sortable (button up button down)
+        pass
 
 
 class ballooning_merge(base_merge_tool):
@@ -492,12 +508,74 @@ class airfoil_merge(base_merge_tool):
     pass
 
 
+from openglider.airfoil import Profile2D
+
+
 class airfoil_tool(base_tool):
-    # glider 2d can store airfoils. ( no need to use them on the glider...) this tool lets you change the airfoil.
-    # changeable values: thickness, camber
-    # checkox to fit the airfoil with bezier and edit manually (controllpoints will be stored in glider_2d)
-    # create a new airfoil with bezier splines...
-    pass
+
+    def __init__(self, obj):
+        super(airfoil_tool, self).__init__(obj, widget_name="selection")
+        # base_widget
+        self.QList_View = QtGui.QListWidget(self.base_widget)
+        self.delete_button = QtGui.QPushButton("delete", self.base_widget)
+        self.Qnew_button = QtGui.QPushButton("new", self.base_widget)
+
+        self.Qairfoil_widget = QtGui.QWidget()
+        self.Qairfoil_layout = QtGui.QFormLayout(self.Qairfoil_widget)
+        self.Qimport_button = QtGui.QPushButton("import airfoil", self.Qairfoil_widget)
+        self.Qnaca_button = QtGui.QPushButton("create naca", self.Qairfoil_widget)
+        self.Qfit_button = QtGui.QPushButton("fit airfoil", self.Qairfoil_widget)
+
+        self.setup_widget()
+        # glider 2d can store airfoils. ( no need to use them on the glider...) this tool lets you change the airfoil.
+        # changeable values: thickness, camber
+        # checkox to fit the airfoil with bezier and edit manually (controllpoints will be stored in glider_2d)
+        # create a new airfoil with bezier splines...
+
+    def setup_widget(self):
+        # airfoil widget
+        self.form.insert(0, self.Qairfoil_widget)
+        self.Qairfoil_widget.setWindowTitle("airfoil")
+        self.Qairfoil_layout.addWidget(self.Qimport_button)
+        self.Qairfoil_layout.addWidget(self.Qnaca_button)
+        self.Qairfoil_layout.addWidget(self.Qfit_button)
+
+        # selection widget
+        self.layout.addWidget(self.QList_View)
+        self.QList_View.addItem(QAirfoil_item(self.QList_View, Profile2D.compute_naca()))
+        self.QList_View.addItem(QAirfoil_item(self.QList_View, Profile2D.compute_naca(1212)))
+        self.QList_View.setCurrentRow(0)
+        self.layout.addWidget(self.Qnew_button)
+        self.layout.addWidget(self.delete_button)
+        self.QList_View.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
+
+        self.Qairfoil_widget.connect(self.Qimport_button, QtCore.SIGNAL('clicked()'), self.import_file_dialog)
+        self.base_widget.connect(self.Qnew_button, QtCore.SIGNAL('clicked()'), self.create_airfoil)
+
+    def import_file_dialog(self):
+        filename = QtGui.QFileDialog.getOpenFileName(
+            parent=None,
+            caption="abc",
+            directory='~',
+            filter='*.dat',
+            selectedFilter='*.dat')
+
+    def create_airfoil(self):
+        # j = 0             !!!Do this with glider_2d airfoil list, or let it be!!!
+        # airfoil_names = [i.airfoil.name for i in self.QList_View.
+        # for name in airfoil_names:
+        #     if "new" in name:
+        #         j += 1
+
+        airfoil = Profile2D(name="new")
+        self.QList_View.addItem(QAirfoil_item(self.QList_View, airfoil))
+
+
+class QAirfoil_item(QtGui.QListWidgetItem):
+    def __init__(self, QtListWidget, airfoil):
+        self.airfoil = airfoil
+        super(QAirfoil_item, self).__init__(QtListWidget)
+        self.setText(self.airfoil.name)
 
 
 class ballooning(base_tool):

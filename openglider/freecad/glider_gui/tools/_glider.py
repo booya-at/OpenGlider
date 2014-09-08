@@ -8,10 +8,12 @@ import FreeCAD
 import openglider
 from pivy_primitives import Line
 
+
 importpath = os.path.join(
     os.path.abspath(os.path.dirname(os.path.dirname(openglider.__file__))),
     'tests/demokite.ods'
 )
+print(openglider.__file__)
 
 
 class OGBaseObject(object):
@@ -125,3 +127,9 @@ class OGGliderVP(OGBaseVP):
 
     def getIcon(self):
         return FreeCAD.getHomePath() + "Mod/glider_gui/icons/glider_import.svg"
+
+    def __getstate__(self):
+        return None
+
+    def __setstate__(self, state):
+        return None
