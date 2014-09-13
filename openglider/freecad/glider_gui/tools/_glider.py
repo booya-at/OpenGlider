@@ -6,13 +6,11 @@ import FreeCAD
 
 
 import openglider
+from openglider.glider import Glider, Glider_2D
 from pivy_primitives import Line
 
 
-importpath = os.path.join(
-    os.path.abspath(os.path.dirname(os.path.dirname(openglider.__file__))),
-    'tests/demokite.ods'
-)
+importpath = '/home/lo/projects/OpenGlider/tests/demokite.ods'
 print(openglider.__file__)
 
 
@@ -51,8 +49,8 @@ class OGGlider(OGBaseObject):
             "App::PropertyPythonObject", "glider_instance", "object", "glider_instance")
         obj.addProperty(
             "App::PropertyPythonObject", "glider_2d", "object", "parametric glider")
-        obj.glider_instance = openglider.glider.Glider.import_geometry(path=importpath)
-        obj.glider_2d = openglider.glider.Glider_2D()
+        obj.glider_instance = Glider.import_geometry(path=importpath)
+        obj.glider_2d = Glider_2D()
         super(OGGlider, self).__init__(obj)
 
 

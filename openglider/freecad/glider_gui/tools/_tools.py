@@ -6,7 +6,8 @@ import numpy
 import FreeCAD
 import FreeCADGui as Gui
 
-from openglider.glider.glider import Glider_2D
+from openglider.glider import Glider_2D
+from openglider.glider.glider_2d import ParaFoil
 from openglider.utils.bezier import fitbezier
 from pivy_primitives import Line, vector3D, ControlPointContainer, Marker
 
@@ -29,6 +30,7 @@ input_field = QtGui.QFormLayout.FieldRole
 #   -etc...
 
 
+
 class base_tool(object):
 
     def __init__(self, obj, widget_name="base_widget"):
@@ -43,9 +45,12 @@ class base_tool(object):
         self.view = Gui.ActiveDocument.ActiveView
         self.scene = self.view.getSceneGraph()
         self.nav_bak = self.view.getNavigationType()
-        self.view.setNavigationType('Gui::TouchpadNavigationStyle')
 
-        # form is the widget that appears in the task panel,
+        # self.view.setNavigationType('Gui::TouchpadNavigationStyle')
+        # disable the rotation function
+        # first get the widget where the scene ives in
+
+        # form is the widget that appears in the task panel
         self.form = []
 
         self.base_widget = QtGui.QWidget()
@@ -508,7 +513,6 @@ class airfoil_merge(base_merge_tool):
     pass
 
 
-from openglider.airfoil import Profile2D
 
 
 class airfoil_tool(base_tool):
@@ -517,40 +521,69 @@ class airfoil_tool(base_tool):
         super(airfoil_tool, self).__init__(obj, widget_name="selection")
         # base_widget
         self.QList_View = QtGui.QListWidget(self.base_widget)
-        self.delete_button = QtGui.QPushButton("delete", self.base_widget)
+        self.Qdelete_button = QtGui.QPushButton("delete", self.base_widget)
         self.Qnew_button = QtGui.QPushButton("new", self.base_widget)
+        self.Qairfoil_name = QtGui.QLineEdit()
 
         self.Qairfoil_widget = QtGui.QWidget()
+        self.Qmanual_edit = QtGui.QCheckBox(self.Qairfoil_widget)
         self.Qairfoil_layout = QtGui.QFormLayout(self.Qairfoil_widget)
         self.Qimport_button = QtGui.QPushButton("import airfoil", self.Qairfoil_widget)
         self.Qnaca_button = QtGui.QPushButton("create naca", self.Qairfoil_widget)
         self.Qfit_button = QtGui.QPushButton("fit airfoil", self.Qairfoil_widget)
 
+        self.airfoil_sep = coin.SoSeparator()
+        self.spline_sep = coin.SoSeparator()
+        self.upper_spline = coin.SoSeparator()
+        self.lower_spline = coin.SoSeparator()
+        self.ctrl_upper = None
+        self.ctrl_lower = None
+        self.upper_cpc = ControlPointContainer()
+        self.lower_cpc = ControlPointContainer()
+
+
         self.setup_widget()
-        # glider 2d can store airfoils. ( no need to use them on the glider...) this tool lets you change the airfoil.
+        self.setup_pivy()
+        # glider 2d can store airfoils. ( no need to use them on the glider...)
+        # this tool lets you change the airfoil.
         # changeable values: thickness, camber
-        # checkox to fit the airfoil with bezier and edit manually (controllpoints will be stored in glider_2d)
+        # checkox to fit the airfoil with bezier and edit manually 
+        # (controllpoints will be stored in glider_2d)
         # create a new airfoil with bezier splines...
+
 
     def setup_widget(self):
         # airfoil widget
         self.form.insert(0, self.Qairfoil_widget)
         self.Qairfoil_widget.setWindowTitle("airfoil")
+        self.Qairfoil_layout.addWidget(self.Qairfoil_name)
         self.Qairfoil_layout.addWidget(self.Qimport_button)
         self.Qairfoil_layout.addWidget(self.Qnaca_button)
         self.Qairfoil_layout.addWidget(self.Qfit_button)
+        self.Qairfoil_layout.addWidget(self.Qmanual_edit)
 
         # selection widget
         self.layout.addWidget(self.QList_View)
-        self.QList_View.addItem(QAirfoil_item(self.QList_View, Profile2D.compute_naca()))
-        self.QList_View.addItem(QAirfoil_item(self.QList_View, Profile2D.compute_naca(1212)))
+        for profile in self.glider_2d.profiles:
+            self.QList_View.addItem(QAirfoil_item(profile))
         self.QList_View.setCurrentRow(0)
         self.layout.addWidget(self.Qnew_button)
-        self.layout.addWidget(self.delete_button)
+        self.layout.addWidget(self.Qdelete_button)
         self.QList_View.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
 
         self.Qairfoil_widget.connect(self.Qimport_button, QtCore.SIGNAL('clicked()'), self.import_file_dialog)
         self.base_widget.connect(self.Qnew_button, QtCore.SIGNAL('clicked()'), self.create_airfoil)
+        self.base_widget.connect(self.Qdelete_button, QtCore.SIGNAL('clicked()'), self.delete_airfoil)
+        self.base_widget.connect(self.QList_View, QtCore.SIGNAL('currentRowChanged(int)'), self.update_selection)
+        self.Qmanual_edit.stateChanged.connect(self.spline_edit)
+        self.Qairfoil_name.textChanged.connect(self.update_name)
+        
+
+    def setup_pivy(self):
+        self.task_separator.addChild(self.airfoil_sep)
+        self.task_separator.addChild(self.spline_sep)
+        self.update_selection()
+        Gui.SendMsgToActiveView("ViewFit")
 
     def import_file_dialog(self):
         filename = QtGui.QFileDialog.getOpenFileName(
@@ -559,22 +592,99 @@ class airfoil_tool(base_tool):
             directory='~',
             filter='*.dat',
             selectedFilter='*.dat')
+        print(filename)
+        self.QList_View.addItem(QAirfoil_item(ParaFoil.import_from_dat(filename[0])))
 
     def create_airfoil(self):
-        # j = 0             !!!Do this with glider_2d airfoil list, or let it be!!!
-        # airfoil_names = [i.airfoil.name for i in self.QList_View.
-        # for name in airfoil_names:
-        #     if "new" in name:
-        #         j += 1
+        j = 0
+        for index in xrange(self.QList_View.count()):
+            name = self.QList_View.item(index).text()
+            if "airfoil" in name:
+                j += 1
+        airfoil = ParaFoil.compute_naca(4412)
+        airfoil.name = "airfoil" + str(j)
+        self.QList_View.addItem(QAirfoil_item(airfoil))
 
-        airfoil = Profile2D(name="new")
-        self.QList_View.addItem(QAirfoil_item(self.QList_View, airfoil))
+    @property
+    def current_airfoil(self):
+        if self.QList_View.currentItem() is not None:
+            return self.QList_View.currentItem().airfoil
+        return None
+
+    def delete_airfoil(self):
+        a = self.QList_View.currentRow()
+        self.QList_View.takeItem(a)
+
+    def update_selection(self, *args):
+        if self.QList_View.currentItem():
+            self.Qairfoil_name.setText(self.QList_View.currentItem().text())
+            self.update_airfoil()
+
+    def update_name(self, *args):
+        name = self.Qairfoil_name.text()
+        self.QList_View.currentItem().airfoil.name = name
+        self.QList_View.currentItem().setText(name)
+
+    def update_airfoil(self, *args):
+        self.airfoil_sep.removeAllChildren()
+        self.airfoil_sep.addChild(Line(vector3D(self.current_airfoil)).object)
+
+    def spline_edit(self):
+        if self.upper_cpc.is_edit and self.lower_cpc.is_edit:
+            self.unset_edit_mode()
+        else:
+            self.set_edit_mode()
+
+    def set_edit_mode(self):
+        if self.current_airfoil is not None:
+            self.spline_sep.removeAllChildren()
+            self.upper_cpc.set_control_points(self.current_airfoil.upper_spline.controlpoints)
+            self.lower_cpc.set_control_points(self.current_airfoil.lower_spline.controlpoints)
+            self.upper_cpc.set_edit_mode(self.view)
+            self.lower_cpc.set_edit_mode(self.view)
+            self.spline_sep.addChild(self.upper_cpc)
+            self.spline_sep.addChild(self.lower_cpc)
+            self.spline_sep.addChild(self.lower_spline)
+            self.spline_sep.addChild(self.upper_spline)
+            self.upper_cpc.on_drag.append(self.update_upper_spline)
+            self.lower_cpc.on_drag.append(self.update_lower_spline)
+            self.update_upper_spline()
+            self.update_lower_spline()
+
+    def update_upper_spline(self):
+        self.upper_spline.removeAllChildren()
+        self.current_airfoil.upper_spline.controlpoints =[i[:-1] for i in self.upper_cpc.control_point_list]
+        self.upper_spline.addChild(Line(vector3D(self.current_airfoil.upper_spline.get_sequence().T)).object)
+        self.upper_spline.addChild(Line(vector3D(self.current_airfoil.upper_spline.controlpoints), color="gray").object)
+
+    def update_lower_spline(self):
+        self.lower_spline.removeAllChildren()
+        self.current_airfoil.lower_spline.controlpoints =[i[:-1] for i in self.lower_cpc.control_point_list]
+        self.lower_spline.addChild(Line(vector3D(self.current_airfoil.lower_spline.get_sequence().T)).object)
+        self.lower_spline.addChild(Line(vector3D(self.current_airfoil.lower_spline.controlpoints), color="gray").object)
+
+
+    def unset_edit_mode(self):
+        self.upper_cpc.on_drag = []
+        self.lower_cpc.on_drag = []
+        self.spline_sep.removeAllChildren()
+        self.upper_cpc.unset_edit_mode()
+        self.lower_cpc.unset_edit_mode()
+
+    def accept(self):
+        self.unset_edit_mode()
+        profiles = []
+        for index in xrange(self.QList_View.count()):
+            profiles.append(self.QList_View.item(index).airfoil)
+        self.glider_2d.profiles = profiles
+        self.obj.glider_2d = self.glider_2d
+        super(airfoil_tool, self).accept()
 
 
 class QAirfoil_item(QtGui.QListWidgetItem):
-    def __init__(self, QtListWidget, airfoil):
+    def __init__(self, airfoil):
         self.airfoil = airfoil
-        super(QAirfoil_item, self).__init__(QtListWidget)
+        super(QAirfoil_item, self).__init__()
         self.setText(self.airfoil.name)
 
 

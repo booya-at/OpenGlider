@@ -1,5 +1,6 @@
 import FreeCAD
 import FreeCADGui as Gui
+
 from _glider import OGGlider, OGGliderVP
 from _tools import shape_tool, base_point_tool, base_tool, arc_tool, aoa_tool, airfoil_tool
 

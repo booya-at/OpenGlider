@@ -217,9 +217,9 @@ def visual_test_airfoil():
     show()
 
 if __name__ == "__main__":
-    plot_test()
-    graphics_test()
-    visual_test_dipol()
+    # plot_test()
+    # graphics_test()
+    # visual_test_dipol()
     visual_test_airfoil()
 
 # dot([x[j], y[i]], pan.v_inf)

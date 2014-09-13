@@ -1,6 +1,8 @@
 from pivy import coin
-from openglider.utils.bezier import BezierCurve
 import numpy
+
+from openglider.utils.bezier import BezierCurve
+
 
 color_dict ={
     "black": (0, 0, 0),
@@ -80,7 +82,9 @@ class ControlPoint(coin.SoSeparator):
 class ControlPointContainer(coin.SoSeparator):
     def __init__(self, points=None):
         super(ControlPointContainer, self).__init__()
-        self.control_points = [ControlPoint(*point) for point in points]
+        self.control_points = []
+        if points is not None:
+            self.control_points = [ControlPoint(*point) for point in points]
         for cp in self.control_points:
             self.addChild(cp)
 
