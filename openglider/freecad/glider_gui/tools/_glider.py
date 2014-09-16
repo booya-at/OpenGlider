@@ -10,7 +10,9 @@ from openglider.glider import Glider, Glider_2D
 from pivy_primitives import Line
 
 
-importpath = '/home/lo/projects/OpenGlider/tests/demokite.ods'
+
+importpath = os.path.join(
+os.path.abspath(os.path.dirname(os.path.dirname(openglider.__file__))), 'tests/demokite.ods')
 print(openglider.__file__)
 
 
