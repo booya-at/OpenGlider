@@ -3,13 +3,14 @@ import time
 import numpy
 from .objects import objects
 import openglider
+from openglider.utils import recursive_getattr
 
 __ALL__ = ['dumps', 'dump', 'loads', 'load']
 
 # Main json-export routine.
 # Maybe at some point it can become necessary to de-reference classes with _module also,
 # because of same-name-elements....
-
+# For the time given, we're alright
 
 class Encoder(json.JSONEncoder):
     def default(self, obj):
@@ -26,16 +27,22 @@ class Encoder(json.JSONEncoder):
 
 
 def object_hook(dct):
-    #print("jo")
     if '_type' in dct and '_module' in dct:
+        _module = dct['_module'].split('.')
         _type = dct['_type']
         if _type in objects:
-            try:
-                return objects[_type](**dct['data'])
-            except TypeError as e:
-                raise TypeError(e.message + " in element: {}".format(_type))
+            obj = objects[_type]
+            # TODO: add allowed_modules['_module']
         else:
             raise LookupError("No element of type {} found (module: {})".format(_type, dct['_module']))
+
+        try:
+            # use the __from_json__ function if present. __init__ otherwise
+            deserializer = getattr(obj, '__from_json__', obj)
+            return deserializer(**dct['data'])
+        except TypeError as e:
+            raise TypeError(e.message + " in element: {} ({})".format(_type, deserializer))
+
     else:
         return dct
 

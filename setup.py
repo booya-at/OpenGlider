@@ -17,18 +17,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-
-
 from distutils.core import setup
 import setuptools
 import os
+
 import openglider
 
-
-
-from distutils.core import setup
-import setuptools
-import os
+with open('requires.txt', 'r') as req_file:
+    requires = [l.strip() for l in req_file.readlines()]
 
 packages, package_data = [], {}
 # This is all copied 1:1 from django-project as i dont know any better way to do this
@@ -72,13 +68,12 @@ root_dir = os.path.dirname(__file__)
 setup(
     name='OpenGlider',
     version=openglider.__version__,
-    #version='0.01dev',
     packages=packages,
     package_data=package_data,
     #include_package_data=True,
     license='GPL-v3',
     long_description=open('README.md').read(),
-    requires=['numpy', 'dxfwrite', 'ezodf2', 'scipy', 'svgwrite', 'matplotlib'],
+    requires=requires,
     author='Booya',
     url='www.openglider.org'
 )

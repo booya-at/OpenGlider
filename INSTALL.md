@@ -8,9 +8,9 @@ To Install the python package, first you have to clone the repository:
   ```
 Then it must be linked into python-packages Folder:
   ```
-  ln -s /path/to/python-packages/openglider /path/to/openglider-git/openglider
+  python setup.py develop
   ```
-Alternatively run the setup.py (sadly ```git pull```'s will not update your version like this...)
+Alternatively do a static install
   ```
   python2 setup.py install
   ```

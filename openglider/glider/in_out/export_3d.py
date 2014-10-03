@@ -43,24 +43,27 @@ def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6):
     return True
 
 
-def export_json(glider, path=None, midribs=0, numpoints=50, wake_panels=1, wake_length=0.2, *other):
+def export_json(glider, path, numpoints=None, midribs=0, wake_panels=1, wake_length=0.2, *other):
     """
     export json geometry file for panelmethod calculation
     """
-    import json  # TODO
 
-    class node():
-        def __init__(self, p, is_wake=False):
+    class Node():
+        def __init__(self, p, n_id=None, is_wake=False):
             self.point = numpy.array(p)
+            self.n_id = n_id
 
         def __json__(self):
             return self.point.tolist()
 
-    class panel():
+    class Panel():
         def __init__(self, nodes):
             self.nodes = nodes
-            self.node_nos = [None, None, None, None]
-            self.neighbours = None
+            self.neighbours = [None, None, None, None]
+
+        @property
+        def node_nos(self):
+            return [node.n_id for node in self.nodes]
 
         @property
         def is_wake(self):
@@ -88,8 +91,11 @@ def export_json(glider, path=None, midribs=0, numpoints=50, wake_panels=1, wake_
     glider = glider.copy_complete()
     if numpoints is not None:
         glider.profile_numpoints = numpoints
+    else:
+        numpoints = glider.profile_numpoints
+
     v_inf = numpy.array([numpy.sin(glide_alpha), 0, numpy.cos(glide_alpha)])
-    node_ribs = [[node(p) for p in rib[1:]] for rib in glider.return_ribs(midribs)]
+    node_ribs = [[Node(p) for p in rib[1:]] for rib in glider.return_ribs(midribs)]
     nodes_flat = []
 
     panel_ribs = []
@@ -97,24 +103,42 @@ def export_json(glider, path=None, midribs=0, numpoints=50, wake_panels=1, wake_
 
     # Generate Wake
     for rib in node_ribs:
-        rib += [node(rib[-1].point + v_inf * (i + 1) / wake_panels * wake_length, is_wake=True) for i in
+        rib += [Node(rib[-1].point + v_inf * (i + 1) / wake_panels * wake_length, is_wake=True) for i in
                 range(wake_panels)]
-        nodes_flat += rib
+        # append to flat-list and >>calculate<< index
+        for p in rib:
+            p.n_id = len(nodes_flat)
+            nodes_flat.append(p)
 
     # Generate Panels
     for left_rib, right_rib in zip(node_ribs[:-1], node_ribs[1:]):
-        pan = panel([left_rib[-wake_panels], right_rib[-wake_panels], right_rib[0], left_rib[0]])
+        pan = Panel([left_rib[-wake_panels], right_rib[-wake_panels], right_rib[0], left_rib[0]])
         panel_rib = [pan]
         panels.append(pan)
         for i in range(len(left_rib) - 1):
-            pan = panel([left_rib[i], right_rib[i], right_rib[i + 1], left_rib[i + 1]])
+            pan = Panel([left_rib[i], right_rib[i], right_rib[i + 1], left_rib[i + 1]])
             panels.append(pan)
             panel_rib.append(pan)
         panel_ribs.append(panel_rib)
 
-    for pan in panels:
-        pan.get_neighbours(panels)
-        pan.node_nos = [nodes_flat.index if tha_node is not None else None for tha_node in pan.nodes]
+    def opposite(index):
+        if index > numpoints:
+            return numpoints-(index-numpoints)
+        else:
+            return 2*numpoints - index
+    for i, row in enumerate(panel_ribs):
+        for j, panel in enumerate(row):
+            if i > 0:
+                panel.neighbours[0] = panel_ribs[i-1][j]
+            #else:
+            #    panel.neighbours[0] = row[2*numpoints-j-1]
+
+            if j < 2*numpoints - 1:
+                pass
+
+    #for pan in panels:
+    #    pan.get_neighbours(panels)
+    #    pan.node_nos = [nodes_flat.index if tha_node is not None else None for tha_node in pan.nodes]
 
     print(panels)
 
