@@ -61,10 +61,14 @@ class TestGlider(GliderTestClass):
         path = self.file('.inp').name
         self.glider.export_3d(path, midribs=1)
 
-    @unittest.skip('too slow')
+    #@unittest.skip('too slow')
     def test_export_json(self):
         path = self.file('.json').name
-        self.glider.export_3d(path=path, midribs=2)  #numpoints=10)
+        data = self.glider.export_3d(path=path, midribs=2, numpoints=10, wake_panels=3, wake_length=0.9)
+        with open(path, "w") as outfile:
+            import openglider.jsonify as jsonify
+            jsonify.dump(data, outfile)
+            print(outfile)
 
     def test_export_plots(self):
         path = self.file('.svg').name

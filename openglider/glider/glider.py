@@ -66,7 +66,7 @@ class Glider(object):
 
     def export_3d(self, path="", *args, **kwargs):
         filetype = path.split(".")[-1]
-        EXPORT_3D[filetype](self, path, *args, **kwargs)
+        return EXPORT_3D[filetype](self, path, *args, **kwargs)
 
     def return_ribs(self, num=0):
         if not self.cells:

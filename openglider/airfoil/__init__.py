@@ -287,67 +287,24 @@ class Profile2D(BasicProfile2D):
             name += "_" + str(newthick) + "%"
         self.__init__(new, name)
 
+    @property
+    def camber_line(self):
+        xvals = sorted(set(map(abs, self.x_values)))
+        return numpy.array([self.profilepoint(i, 0.) for i in xvals])
+
     #@cached_property('self')
     @property
     def camber(self, *xvals):
-        """return the camber of the airfoil for certain x-values or if nothing supplied, camber-line"""
-        if not xvals:
-            xvals = sorted(set(map(abs, self.x_values)))
-        return numpy.array([self.profilepoint(i, 0.) for i in xvals])
+        """return the maximum camber of the airfoil"""
+        return max([p[1] for p in self.camber_line])
 
     @camber.setter
     def camber(self, newcamber):
         """Set maximal camber to the new value"""
-        now = self.camber
-        factor = newcamber / max(now[:, 1]) - 1
-        now = dict(now)
+        old_camber = self.camber
+        factor = newcamber / old_camber - 1
+        now = dict(self.camber_line)
         self.__init__([i + [0, now[i[0]] * factor] for i in self.data])
-
-
-# TODO: PYXFOIL INTEGRATION INSTEAD OF THIS or xflr5-python?
-class XFoil(Profile2D):
-    """XFoil Calculation airfoil based on Profile2D"""
-
-    def __init__(self, data=None):
-        Profile2D.__init__(self, data)
-        self._xvalues = self.x_values
-        self._calcvalues = []
-
-    def _change(self):
-        """Check if something changed in coordinates"""
-        checkval = self._xvalues == self.x_values
-        if not isinstance(checkval, bool):
-            checkval = checkval.all()
-        return checkval
-
-    def _calc(self, angles):
-
-        resfile = "/tmp/result.dat"
-        pfile = "/tmp/calc_pfile.dat"
-        #cfile = Calcfile(angles, resfile)
-
-        self.export(pfile)
-        #status = os.system("xfoil " + pfile + " <" + cfile + " > /tmp/log.dat")
-        #if status == 0:
-        #    result = Impresults(resfile)
-        #    for i in result:
-        #        self._calcvalues[i] = result[i]
-        #    os.system("rm " + resfile)
-        #os.system("rm " + pfile + " " + cfile)
-        #return True
-
-    def _get(self, angle, exact=1):
-        if self._change():
-            self._calcvalues = {}
-            self._xvalues = self.x_values[:]
-        print(self._calcvalues)
-        #calcangles = XValues(angle, self._calcvalues)
-        #print("ho!" + str(calcangles))
-        #if len(calcangles) > 0:
-        #    erg = self._calc(calcangles)
-        #    print("soso")
-        #    return erg
-        ##self._calcvalues=[1,2]
 
 
 class Profile3D(PolyLine):
