@@ -48,6 +48,15 @@ class Glider(object):
                 }
 
     @classmethod
+    def __from_json__(cls, cells, ribs, lineset):
+        for cell in cells:
+            if isinstance(cell.rib1, int):
+                cell.rib1 = ribs[cell.rib1]
+            if isinstance(cell.rib2, int):
+                cell.rib2 = ribs[cell.rib2]
+        return cls(cells, lineset=lineset)
+
+    @classmethod
     def import_geometry(cls, path, filetype=None):
         if not filetype:
             filetype = path.split(".")[-1]
@@ -55,16 +64,9 @@ class Glider(object):
         IMPORT_GEOMETRY[filetype](path, glider=glider)
         return glider
 
-    def export_geometry(self, path="", filetype=None):
-        #if not filetype:
-        #    filetype = path.split(".")[-1]
-        #EXPORT_GEOMETRY[filetype](self, path)
-        pass
-
-    def export_3d(self, path="", filetype=None, midribs=0, numpoints=None, floatnum=6):
-        if not filetype:
-            filetype = path.split(".")[-1]
-        EXPORT_3D[filetype](self, path, midribs, numpoints, floatnum)
+    def export_3d(self, path="", *args, **kwargs):
+        filetype = path.split(".")[-1]
+        return EXPORT_3D[filetype](self, path, *args, **kwargs)
 
     def return_ribs(self, num=0):
         if not self.cells:

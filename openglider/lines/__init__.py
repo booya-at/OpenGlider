@@ -172,3 +172,12 @@ class LineSet():
             'nodes': nodes,
             'v_inf': self.v_inf.tolist()
         }
+
+    @classmethod
+    def __from_json__(cls, lines, nodes, v_inf):
+        for line in lines:
+            if isinstance(line.upper_node, int):
+                line.upper_node = nodes[line.upper_node]
+            if isinstance(line.lower_node, int):
+                line.lower_node = nodes[line.lower_node]
+        return cls(lines, v_inf)
