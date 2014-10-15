@@ -2,7 +2,8 @@ import FreeCAD
 import FreeCADGui as Gui
 
 from _glider import OGGlider, OGGliderVP
-from _tools import shape_tool, base_point_tool, base_tool, arc_tool, aoa_tool, airfoil_tool
+from _tools import (shape_tool, base_tool, ballooning_tool,
+                    arc_tool, aoa_tool, airfoil_tool, line_tool)
 
 
 #ICONS:
@@ -43,7 +44,7 @@ class BaseCommand(object):
 
 class CreateGlider(BaseCommand):
     def GetResources(self):
-        return {'Pixmap': "glider_import.svg", 'MenuText': 'glider', 'ToolTip': 'glider'}
+        return {'Pixmap': "new_glider.svg", 'MenuText': 'glider', 'ToolTip': 'glider'}
 
     def Activated(self):
         a = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Glider")
@@ -55,7 +56,7 @@ class CreateGlider(BaseCommand):
 
 class Shape_Tool(BaseCommand):
     def GetResources(self):
-        return {'Pixmap': 'shape_tool.svg', 'MenuText': 'base', 'ToolTip': 'base'}
+        return {'Pixmap': 'shape_tool.svg', 'MenuText': 'Shape', 'ToolTip': 'Shape'}
 
     def tool(self, obj):
         return shape_tool(obj)
@@ -63,27 +64,43 @@ class Shape_Tool(BaseCommand):
 
 class Arc_Tool(BaseCommand):
     def GetResources(self):
-        return {'Pixmap': 'arc_tool.svg', 'MenuText': 'base', 'ToolTip': 'base'}
+        return {'Pixmap': 'arc_tool.svg', 'MenuText': 'Arc', 'ToolTip': 'Arc'}
 
     def tool(self, obj):
         print("jojojo")
         return arc_tool(obj)
 
 
+class Aoa_Tool(BaseCommand):
+    def GetResources(self):
+        return {'Pixmap': 'aoa_tool.svg', 'MenuText': 'Aoa', 'ToolTip': 'Aoa'}
+
+    def tool(self, obj):
+        return aoa_tool(obj)
+
+
 class Airfoil_Tool(BaseCommand):
     def GetResources(self):
-        return {'Pixmap': 'airfoil_tool.svg', 'MenuText': 'base', 'ToolTip': 'base'}
+        return {'Pixmap': 'airfoil_tool.svg', 'MenuText': 'Airfoil', 'ToolTip': 'Airfoil'}
 
     def tool(self, obj):
         return airfoil_tool(obj)
 
 
-class Aoa_Tool(BaseCommand):
+class Ballooning_Tool(BaseCommand):
     def GetResources(self):
-        return {'Pixmap': 'aoa_tool.svg', 'MenuText': 'base', 'ToolTip': 'base'}
+        return {'Pixmap': 'ballooning_tool.svg', 'MenuText': 'Ballooning', 'ToolTip': 'Ballooning'}
 
     def tool(self, obj):
-        return aoa_tool(obj)
+        return ballooning_tool(obj)
+
+
+class Line_Tool(BaseCommand):
+    def GetResources(self):
+        return {'Pixmap': 'line_tool.svg', 'MenuText': 'Lines', 'ToolTip': 'Lines'}
+
+    def tool(self, obj):
+        return line_tool(obj)
 
 
 def check_glider(obj):

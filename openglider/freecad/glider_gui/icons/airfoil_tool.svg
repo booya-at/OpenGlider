@@ -14,8 +14,8 @@
    height="64px"
    id="svg3799"
    version="1.1"
-   inkscape:version="0.48.4 r9939"
-   sodipodi:docname="glider_import_profile.svg">
+   inkscape:version="0.48.3.1 r9886"
+   sodipodi:docname="airfoil_tool.svg">
   <defs
      id="defs3801">
     <inkscape:path-effect
@@ -284,10 +284,10 @@
      inkscape:snap-center="true"
      showguides="true"
      inkscape:guide-bbox="true"
-     inkscape:window-width="1301"
-     inkscape:window-height="744"
-     inkscape:window-x="65"
-     inkscape:window-y="24"
+     inkscape:window-width="1366"
+     inkscape:window-height="715"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
      inkscape:window-maximized="1">
     <sodipodi:guide
        orientation="1,0"
@@ -322,7 +322,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -331,7 +331,7 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer">
     <path
-       style="fill:#0079ff;stroke:#000000;stroke-width:1.36901223999999999px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="fill:#0079ff;stroke:#0079ff;stroke-width:1.36901224000000021px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0.54901962999999998"
        d="M 2.2895262,14.379953 C 8.3350639,6.6932009 16.87877,4.9046005 29.354958,12.239305 c 18.659006,10.969559 31.869726,48.492431 31.869726,48.492431 0,0 -29.208646,-11.303649 -46.741497,-24.939812 C 5.4882287,28.796103 -1.0645378,18.644566 2.2895262,14.379953 z"
        id="path9394"
        inkscape:connector-curvature="0"

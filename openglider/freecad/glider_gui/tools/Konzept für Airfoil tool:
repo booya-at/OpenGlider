@@ -24,12 +24,15 @@ Konzept für Airfoil tool:
 5. import airfoil:
 	holt sich neues airfoil und setzt im QAirfoil
 	object die coordinaten und den namen
-6. naca:
+6. naca:														wers braucht soll sichs selber machen:-)
 	ganz einfach im QAirfoil ein naca
 	berechnen (classmethode)
-7. fit airfoil:
+7. fit airfoil: 
+fit methode ist nicht so gut wie sei eigentlich sein könnte. 
+Aber da sie beim Profil eigentlich nicht so viel Sinn macht lassen wir des besser so.
+
 	eventuell vorher ein profil mit 
-	konstanten stücken erzeugen. 
+	konstanten stücken erzeugen. (funktioniert nicht gut!!!)
 	Bzw cos verteilung
 	zuerst dem profile 2d eine fit airfoil methode 
 	geben und diese werte als attribute 
@@ -37,5 +40,29 @@ Konzept für Airfoil tool:
 	dann mit pivy das gefittete profil 
 	zeichnen und die controllpunkte ausgeben					xxxxxx
 8. anzahl an controllpunkten veränderlich 
-	machen (unterseite, oberseite)
+	machen (unterseite, oberseite)								sollte relativ einfach sein
+																aber wie?
 9. eigentlich fertig
+
+
+
+Konzept für Balloning_tool:
+
+1. allgemein:
+
+	Ballooning ordnet jedem Punkt auf der Profiloberseite und jedem Punkt auf der Profilunterseite einen "Balloning-wert" zu. Die Funktion muss eindeutig sein.
+
+	Möglichkeiten:
+
+		1. Direkte Vorgabe der Punkte -> Viel arbeit, nicht parametrisch
+		2. mittels einer Funktion y(x) -> Schwierig weil verschiedene funktionsbereiche
+		3. mittels Splines: eine Spline ist zu wenig, weil keine geraden strecken gemacht werden können
+		4. mittels polyline: kombination aus splines und line -> aufpassen dass die Spline nicht mehrdeutige werte liefert,
+			aufpassen dass die Spline (falls erwünscht) stetig diffbar ist (keine ecken)
+
+		????
+
+
+Konzep für Leinen tool:
+	
+	

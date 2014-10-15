@@ -44,8 +44,6 @@ class base_tool(object):
         self.obj.ViewObject.Visibility = False
         Gui.activeDocument().activeView().viewTop()
         self.view = Gui.ActiveDocument.ActiveView
-        self.scene = self.view.getSceneGraph()
-        self.nav_bak = self.view.getNavigationType()
 
         # self.view.setNavigationType('Gui::TouchpadNavigationStyle')
         # disable the rotation function
@@ -61,6 +59,8 @@ class base_tool(object):
 
         # scene container
         self.task_separator = coin.SoSeparator()
+
+        self.task_separator.addChild(self.camera)
         self.scene.addChild(self.task_separator)
 
     def accept(self):
@@ -81,6 +81,18 @@ class base_tool(object):
     def add_pivy(self):
         pass
 
+    @property
+    def scene(self):
+        return self.view.getSceneGraph()
+
+    @property
+    def camera(self):
+        return self.view.getCameraNode()
+
+    @property
+    def nav_bak(self):
+        return self.view.getNavigationType()
+
 
 class shape_tool(base_tool):
 
@@ -89,17 +101,17 @@ class shape_tool(base_tool):
 
         # scene components
         self.shape = coin.SoSeparator()
-        self.front_cpc = ControlPointContainer(vector3D(self.glider_2d.front.controlpoints))
-        self.back_cpc = ControlPointContainer(vector3D(self.glider_2d.back.controlpoints))
-        self.rib_pos_cpc = ControlPointContainer(vector3D(self.glider_2d.cell_dist_controlpoints))
+        self.front_cpc = ControlPointContainer(vector3D(self.glider_2d.front.controlpoints), self.view)
+        self.back_cpc = ControlPointContainer(vector3D(self.glider_2d.back.controlpoints), self.view)
+        self.rib_pos_cpc = ControlPointContainer(vector3D(self.glider_2d.cell_dist_controlpoints), self.view)
 
         # form components
-        self.Qmanual_edit = QtGui.QCheckBox(self.base_widget)
+        # self.Qmanual_edit = QtGui.QCheckBox(self.base_widget)
         self.Qnum_front = QtGui.QSpinBox(self.base_widget)
         self.Qnum_back = QtGui.QSpinBox(self.base_widget)
         self.Qnum_dist = QtGui.QSpinBox(self.base_widget)
         self.Qnum_cells = QtGui.QSpinBox(self.base_widget)
-        self.Qcheck1 = QtGui.QCheckBox(self.base_widget)
+        # self.Qcheck1 = QtGui.QCheckBox(self.base_widget)
         self.Qset_const = QtGui.QPushButton(self.base_widget)
 
         self.setup_widget()
@@ -110,15 +122,15 @@ class shape_tool(base_tool):
         self.glider_2d.glider_3d(self.obj.glider_instance)
         self.obj.glider_2d = self.glider_2d
         self.obj.ViewObject.Proxy.updateData()
-        self.back_cpc.unset_edit_mode()
-        self.front_cpc.unset_edit_mode()
-        self.rib_pos_cpc.unset_edit_mode()
+        self.back_cpc.remove_callbacks()
+        self.front_cpc.remove_callbacks()
+        self.rib_pos_cpc.remove_callbacks()
         super(shape_tool, self).accept()
 
     def reject(self):
-        self.back_cpc.unset_edit_mode()
-        self.front_cpc.unset_edit_mode()
-        self.rib_pos_cpc.unset_edit_mode()
+        self.back_cpc.remove_callbacks()
+        self.front_cpc.remove_callbacks()
+        self.rib_pos_cpc.remove_callbacks()
         super(shape_tool, self).reject()
 
     def setup_widget(self):
@@ -126,8 +138,8 @@ class shape_tool(base_tool):
         self.Qnum_front.setValue(len(self.glider_2d.front.controlpoints))
         self.Qnum_back.setValue(len(self.glider_2d.back.controlpoints))
         self.Qnum_dist.setValue(len(self.glider_2d.cell_dist_controlpoints))
-        self.base_widget.connect(self.Qmanual_edit, QtCore.SIGNAL('stateChanged(int)'), self.line_edit)
-        self.base_widget.connect(self.Qcheck1, QtCore.SIGNAL('stateChanged(int)'), self.rib_edit)
+        # self.base_widget.connect(self.Qmanual_edit, QtCore.SIGNAL('stateChanged(int)'), self.line_edit)
+        # self.base_widget.connect(self.Qcheck1, QtCore.SIGNAL('stateChanged(int)'), self.rib_edit)
         self.base_widget.connect(self.Qnum_cells, QtCore.SIGNAL('valueChanged(int)'), self.update_num_cells)
         self.base_widget.connect(self.Qset_const, QtCore.SIGNAL('clicked()'), self.update_const)
         self.base_widget.connect(self.Qnum_dist, QtCore.SIGNAL('valueChanged(int)'), self.update_num_dist)
@@ -144,14 +156,14 @@ class shape_tool(base_tool):
         self.Qnum_front.setMinimum(2)
         self.Qnum_dist.setMinimum(1)
 
-        self.layout.setWidget(1, text_field, QtGui.QLabel("manual shape edit"))
-        self.layout.setWidget(1, input_field, self.Qmanual_edit)
+        # self.layout.setWidget(1, text_field, QtGui.QLabel("manual shape edit"))
+        # self.layout.setWidget(1, input_field, self.Qmanual_edit)
         self.layout.setWidget(2, text_field, QtGui.QLabel("front num_points"))
         self.layout.setWidget(2, input_field, self.Qnum_front)
         self.layout.setWidget(3, text_field, QtGui.QLabel("back num_points"))
         self.layout.setWidget(3, input_field, self.Qnum_back)
-        self.layout.setWidget(4, text_field, QtGui.QLabel("manual cell pos"))
-        self.layout.setWidget(4, input_field, self.Qcheck1)
+        # self.layout.setWidget(4, text_field, QtGui.QLabel("manual cell pos"))
+        # self.layout.setWidget(4, input_field, self.Qcheck1)
         self.layout.setWidget(5, text_field, QtGui.QLabel("num_cells"))
         self.layout.setWidget(5, input_field, self.Qnum_cells)
         self.layout.setWidget(6, text_field, QtGui.QLabel("dist num_points"))
@@ -182,25 +194,25 @@ class shape_tool(base_tool):
 
     def update_num_dist(self, val):
         self.glider_2d.cell_dist.numpoints = val + 2
-        self.rib_pos_cpc.set_control_points(vector3D(self.glider_2d.cell_dist._controlpoints[1:-1]))
+        self.rib_pos_cpc.control_pos = vector3D(self.glider_2d.cell_dist._controlpoints[1:-1])
         self.update_shape()
 
     def update_num_front(self, val):
         self.glider_2d.front.numpoints = val
-        self.front_cpc.set_control_points(vector3D(self.glider_2d.front.controlpoints))
+        self.front_cpc.control_pos = vector3D(self.glider_2d.front.controlpoints)
         self.update_shape()
 
     def update_num_back(self, val):
         self.glider_2d.back.numpoints = val
-        self.back_cpc.set_control_points(vector3D(self.glider_2d.back.controlpoints))
+        self.back_cpc.control_pos = vector3D(self.glider_2d.back.controlpoints)
         self.update_shape()
 
     def update_data_back(self):
-        self.back_cpc.control_points[-1].set_x(self.front_cpc.control_points[-1].x)
+        self.back_cpc.control_points[-1].set_x(self.front_cpc.control_points[-1].pos[0])
         self.update_shape()
 
     def update_data_front(self):
-        self.front_cpc.control_points[-1].set_x(self.back_cpc.control_points[-1].x)
+        self.front_cpc.control_points[-1].set_x(self.back_cpc.control_points[-1].pos[0])
         self.update_shape()
 
     def update_num_cells(self, val):
@@ -210,13 +222,13 @@ class shape_tool(base_tool):
     def update_const(self):
         const_dist = self.glider_2d.depth_integrated()
         self.glider_2d.cell_dist.controlpoints = fitbezier(const_dist, self.glider_2d.cell_dist._bezierbase)
-        self.rib_pos_cpc.set_control_points(self.glider_2d.cell_dist_controlpoints)
+        self.rib_pos_cpc.control_pos = self.glider_2d.cell_dist_controlpoints
         self.update_shape()
 
     def update_shape(self, arg=None, num=30):
-        self.glider_2d.front.controlpoints = [i[:-1] for i in self.front_cpc.control_point_list]
-        self.glider_2d.back.controlpoints = [i[:-1] for i in self.back_cpc.control_point_list]
-        self.glider_2d.cell_dist_controlpoints = [i[:-1] for i in self.rib_pos_cpc.control_point_list]
+        self.glider_2d.front.controlpoints = [i[:-1] for i in self.front_cpc.control_pos]
+        self.glider_2d.back.controlpoints = [i[:-1] for i in self.back_cpc.control_pos]
+        self.glider_2d.cell_dist_controlpoints = [i[:-1] for i in self.rib_pos_cpc.control_pos]
         self.shape.removeAllChildren()
         ribs, front, back, dist_line = self.glider_2d.interactive_shape(num=15)
         self.shape.addChild(Line(front).object)
@@ -234,10 +246,10 @@ class arc_tool(base_tool):
         """adds a symmetric spline to the scene"""
         super(arc_tool, self).__init__(obj, widget_name="arc_tool")
 
-        self.arc_cpc = ControlPointContainer(self.glider_2d.arc.controlpoints)
-        self.Qmanual_edit = QtGui.QCheckBox(self.base_widget)
+        self.arc_cpc = ControlPointContainer(self.glider_2d.arc.controlpoints, self.view)
+        # self.Qmanual_edit = QtGui.QCheckBox(self.base_widget)
         self.Qnum_arc = QtGui.QSpinBox(self.base_widget)
-        self.Qcalc_real = QtGui.QPushButton(self.base_widget)
+        # self.Qcalc_real = QtGui.QPushButton(self.base_widget)
         self.shape = coin.SoSeparator()
         self.task_separator.addChild(self.shape)
 
@@ -251,14 +263,14 @@ class arc_tool(base_tool):
         self.Qnum_arc.setValue(len(self.glider_2d.arc.controlpoints))
         self.glider_2d.arc.numpoints = self.Qnum_arc.value()
 
-        self.layout.setWidget(1, text_field, QtGui.QLabel("manual arc edit"))
-        self.layout.setWidget(1, input_field, self.Qmanual_edit)
+        # self.layout.setWidget(1, text_field, QtGui.QLabel("manual arc edit"))
+        # self.layout.setWidget(1, input_field, self.Qmanual_edit)
         self.layout.setWidget(2, text_field, QtGui.QLabel("arc num_points"))
         self.layout.setWidget(2, input_field, self.Qnum_arc)
-        self.layout.setWidget(3, text_field, QtGui.QLabel("calculate real arc"))
-        self.layout.setWidget(3, input_field, self.Qcalc_real)
+        # self.layout.setWidget(3, text_field, QtGui.QLabel("calculate real arc"))
+        # self.layout.setWidget(3, input_field, self.Qcalc_real)
 
-        self.base_widget.connect(self.Qmanual_edit, QtCore.SIGNAL("stateChanged(int)"), self.set_edit)
+        # self.base_widget.connect(self.Qmanual_edit, QtCore.SIGNAL("stateChanged(int)"), self.set_edit)
         self.base_widget.connect(self.Qnum_arc, QtCore.SIGNAL("valueChanged(int)"), self.update_num)
 
     def setup_pivy(self):
@@ -268,12 +280,12 @@ class arc_tool(base_tool):
         self.shape.addChild(Line(self.glider_2d.arc.get_sequence(num=30).T, color="red").object)
         self.shape.addChild(Line(self.glider_2d.arc_pos()).object)
 
-    def set_edit(self, *arg):
-        self.arc_cpc.set_edit_mode(self.view)
+    # def set_edit(self, *arg):
+    #     self.arc_cpc.set_edit_mode(self.view)
 
     def update_spline(self):
         self.shape.removeAllChildren()
-        self.glider_2d.arc.controlpoints = [i[:-1] for i in self.arc_cpc.control_point_list]
+        self.glider_2d.arc.controlpoints = [i[:-1] for i in self.arc_cpc.control_pos]
         self.shape.addChild(Line(self.glider_2d.arc.get_sequence(num=30).T, color="red").object)
 
     def update_real_arc(self):
@@ -281,18 +293,18 @@ class arc_tool(base_tool):
 
     def update_num(self, *arg):
         self.glider_2d.arc.numpoints = self.Qnum_arc.value()
-        self.arc_cpc.set_control_points(self.glider_2d.arc.controlpoints)
+        self.arc_cpc.control_pos = self.glider_2d.arc.controlpoints
         self.update_spline()
 
     def accept(self):
         self.obj.glider_2d = self.glider_2d
         self.glider_2d.glider_3d(self.obj.glider_instance)
-        self.arc_cpc.unset_edit_mode()
+        self.arc_cpc.remove_callbacks()
         self.obj.ViewObject.Proxy.updateData()
         super(arc_tool, self).accept()
 
     def reject(self):
-        self.arc_cpc.unset_edit_mode()
+        self.arc_cpc.remove_callbacks()
         super(arc_tool, self).reject()
 
 
@@ -441,7 +453,7 @@ class aoa_tool(base_tool):
 
         super(aoa_tool, self).__init__(obj)
         self.scale = numpy.array([1., 5.])
-        self.aoa_cpc = ControlPointContainer(vector3D(numpy.array(self.glider_2d.aoa.controlpoints) * self.scale))
+        self.aoa_cpc = ControlPointContainer(vector3D(numpy.array(self.glider_2d.aoa.controlpoints) * self.scale), self.view)
         self.shape = coin.SoSeparator()
         self.coords = coin.SoSeparator()
         self.aoa_spline = Line([])
@@ -449,7 +461,6 @@ class aoa_tool(base_tool):
 
         self.aoa_cpc.on_drag.append(self.update_aoa)
         self.setup_pivy()
-        self.aoa_cpc.set_edit_mode(self.view)
 
     def setup_pivy(self):
         self.aoa_cpc.control_points[-1].constraint = lambda pos: [self.glider_2d.span / 2, pos[1], pos[2]]
@@ -468,22 +479,22 @@ class aoa_tool(base_tool):
             self.shape.addChild(Line(rib, color="gray").object)
 
     def update_aoa(self):
-        self.glider_2d.aoa.controlpoints = (numpy.array([i[:-1] for i in self.aoa_cpc.control_point_list]) / self.scale).tolist()
+        self.glider_2d.aoa.controlpoints = (numpy.array([i[:-1] for i in self.aoa_cpc.control_pos]) / self.scale).tolist()
         self.aoa_spline.update(self.glider_2d.aoa.get_sequence(num=20).T * self.scale)
         self.coords.removeAllChildren()
-        max_x = max([i[0] for i in self.aoa_cpc.control_point_list])
-        max_y = max([i[1] for i in self.aoa_cpc.control_point_list])
+        max_x = max([i[0] for i in self.aoa_cpc.control_pos])
+        max_y = max([i[1] for i in self.aoa_cpc.control_pos])
         self.coords.addChild(Line([[0, 0], [0., max_y]]).object)
         self.coords.addChild(Line([[0, 0], [max_x, 0.]]).object)
 
     def accept(self):
-        self.aoa_cpc.unset_edit_mode()
+        self.aoa_cpc.remove_callbacks()
         self.obj.glider_2d = self.glider_2d
         self.glider_2d.glider_3d(self.obj.glider_instance)
         super(aoa_tool, self).accept()
 
     def reject(self):
-        self.aoa_cpc.unset_edit_mode()
+        self.aoa_cpc.remove_callbacks()
         super(aoa_tool, self).reject()
 
 
@@ -513,8 +524,6 @@ class airfoil_merge(base_merge_tool):
     pass
 
 
-
-
 class airfoil_tool(base_tool):
 
     def __init__(self, obj):
@@ -536,20 +545,12 @@ class airfoil_tool(base_tool):
         self.lower_spline = coin.SoSeparator()
         self.ctrl_upper = None
         self.ctrl_lower = None
-        self.upper_cpc = ControlPointContainer()
-        self.lower_cpc = ControlPointContainer()
+        self.upper_cpc = None
+        self.lower_cpc = None
         self.previous_foil = None
-
-
+        self.is_edit = False
         self.setup_widget()
         self.setup_pivy()
-        # glider 2d can store airfoils. ( no need to use them on the glider...)
-        # this tool lets you change the airfoil.
-        # changeable values: thickness, camber
-        # checkox to fit the airfoil with bezier and edit manually 
-        # (controllpoints will be stored in glider_2d)
-        # create a new airfoil with bezier splines...
-
 
     def setup_widget(self):
         # airfoil widget
@@ -569,13 +570,13 @@ class airfoil_tool(base_tool):
         self.layout.addWidget(self.Qdelete_button)
         self.QList_View.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
 
+        #connections
         self.Qimport_button.clicked.connect(self.import_file_dialog)
         self.Qnew_button.clicked.connect(self.create_airfoil)
         self.Qdelete_button.clicked.connect(self.delete_airfoil)
         self.QList_View.currentRowChanged.connect(self.update_selection)
         self.Qairfoil_name.textChanged.connect(self.update_name)
         self.Qfit_button.clicked.connect(self.spline_edit)
-        
 
     def setup_pivy(self):
         self.task_separator.addChild(self.airfoil_sep)
@@ -586,11 +587,10 @@ class airfoil_tool(base_tool):
     def import_file_dialog(self):
         filename = QtGui.QFileDialog.getOpenFileName(
             parent=None,
-            caption="abc",
+            caption="import airfoil",
             directory='~',
             filter='*.dat',
             selectedFilter='*.dat')
-        print(filename)
         self.QList_View.addItem(QAirfoil_item(ParaFoil.import_from_dat(filename[0])))
 
     def create_airfoil(self):
@@ -643,18 +643,19 @@ class airfoil_tool(base_tool):
 
     def set_edit_mode(self):
         if self.current_airfoil is not None:
+            self.is_edit = True
             self.airfoil_sep.removeAllChildren()
             self.spline_sep.removeAllChildren()
-            self.upper_cpc.set_control_points(self.current_airfoil.upper_spline.controlpoints)
-            self.lower_cpc.set_control_points(self.current_airfoil.lower_spline.controlpoints)
+            self.upper_cpc = ControlPointContainer(view=self.view)
+            self.lower_cpc = ControlPointContainer(view=self.view)
+            self.upper_cpc.control_pos = self.current_airfoil.upper_spline.controlpoints
+            self.lower_cpc.control_pos = self.current_airfoil.lower_spline.controlpoints
             self.upper_cpc.control_points[-1].fix = True
             self.lower_cpc.control_points[-1].fix = True
             self.lower_cpc.control_points[0].fix = True
             self.upper_cpc.control_points[0].fix = True
-            self.upper_cpc.set_edit_mode(self.view)
-            self.lower_cpc.set_edit_mode(self.view)
-            self.lower_cpc.control_points[-1].set_pos([1., 0., 0.])
-            self.upper_cpc.control_points[0].set_pos([1., 0., 0.])
+            self.lower_cpc.control_points[-1].pos = [1., 0., 0.]
+            self.upper_cpc.control_points[0].pos = [1., 0., 0.]
             self.spline_sep.addChild(self.upper_cpc)
             self.spline_sep.addChild(self.lower_cpc)
             self.spline_sep.addChild(self.lower_spline)
@@ -687,33 +688,35 @@ class airfoil_tool(base_tool):
     def _update_upper_spline(self, num=20):
         self.upper_spline.removeAllChildren()
         self.lower_spline.removeAllChildren()
-        self.current_airfoil.upper_spline.controlpoints =[i[:-1] for i in self.upper_cpc.control_point_list]
+        self.current_airfoil.upper_spline.controlpoints =[i[:-1] for i in self.upper_cpc.control_pos]
         direction = normalize(self.current_airfoil.upper_spline.controlpoints[-2])
         radius = norm(self.current_airfoil.lower_spline.controlpoints[1])
         new_point = - numpy.array(direction) * radius
         self.current_airfoil.lower_spline.controlpoints[1] = new_point
-        self.lower_cpc.control_points[1].set_pos(vector3D(new_point))
+        self.lower_cpc.control_points[1].pos = vector3D(new_point)
         self._draw_spline(num)
 
     def _update_lower_spline(self, num=20):
         self.lower_spline.removeAllChildren()
         self.upper_spline.removeAllChildren()
-        self.current_airfoil.lower_spline.controlpoints =[i[:-1] for i in self.lower_cpc.control_point_list]
+        self.current_airfoil.lower_spline.controlpoints =[i[:-1] for i in self.lower_cpc.control_pos]
         direction = normalize(self.current_airfoil.lower_spline.controlpoints[1])
         radius = norm(self.current_airfoil.upper_spline.controlpoints[-2])
         new_point = -numpy.array(direction) * radius
         self.current_airfoil.upper_spline.controlpoints[-2] = new_point
-        self.upper_cpc.control_points[-2].set_pos(vector3D(new_point))
+        self.upper_cpc.control_points[-2].pos = vector3D(new_point)
         self._draw_spline(num)
 
     def unset_edit_mode(self):
-        self.upper_cpc.on_drag = []
-        self.lower_cpc.on_drag = []
-        self.upper_cpc.drag_release = []
-        self.lower_cpc.drag_release = []
-        self.spline_sep.removeAllChildren()
-        self.upper_cpc.unset_edit_mode()
-        self.lower_cpc.unset_edit_mode()
+        if self.is_edit:
+            self.upper_cpc.on_drag = []
+            self.lower_cpc.on_drag = []
+            self.upper_cpc.drag_release = []
+            self.lower_cpc.drag_release = []
+            self.spline_sep.removeAllChildren()
+            self.upper_cpc.remove_callbacks()
+            self.lower_cpc.remove_callbacks()
+            self.is_edit = False
 
     def accept(self):
         self.unset_edit_mode()
@@ -725,10 +728,6 @@ class airfoil_tool(base_tool):
         self.obj.glider_2d = self.glider_2d
         super(airfoil_tool, self).accept()
 
-    @property
-    def is_edit(self):
-        return self.upper_cpc.is_edit and self.lower_cpc.is_edit
-
 
 class QAirfoil_item(QtGui.QListWidgetItem):
     def __init__(self, airfoil):
@@ -737,11 +736,20 @@ class QAirfoil_item(QtGui.QListWidgetItem):
         self.setText(self.airfoil.name)
 
 
-class ballooning(base_tool):
-    # similar to airfoil_tool. Maybe a parent class makes sense.
-    pass
+class ballooning_tool(base_tool):
+    def __init__(self, obj):
+        super(ballooning_tool, self).__init__(obj)
+        pass
+
+class QBallooning_item(QtGui.QListWidgetItem):
+    def __init__(self, ballooning):
+        self.ballooning = ballooning
+        super(QBallooning_item, self).__init__()
+        self.setText(self.ballooning.name)
+        # not ready yet
 
 
 class line_tool(base_tool):
-    # very nice tool :-)
-    pass
+    def __init__(self, obj):
+        super(line_tool, self).__init__(obj)
+        pass

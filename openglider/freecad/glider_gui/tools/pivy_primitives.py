@@ -1,12 +1,14 @@
 from pivy import coin
+from pivy.gui import soqt
+import FreeCADGui as Gui
+from random import random
 import numpy
 
-from openglider.utils.bezier import BezierCurve
 
-
-color_dict ={
+COLORS ={
     "black": (0, 0, 0),
     "white": (1., 1., 1.),
+    "grey": (0.5, 0.5, 0.5),
     "gray": (0.5, 0.5, 0.5),
     "red": (1., 0., 0.),
     "blue": (0., 0., 1.),
@@ -14,157 +16,149 @@ color_dict ={
     "yellow": (0., 1., 0.)
 }
 
-def None_func():
-    pass
+COL_STD = COLORS["black"]
+COL_OVR = COLORS["red"]
+COL_SEL = COLORS["yellow"]
 
-#-------------------------BEGIN-BASE-Object-----------------------#
+
 class ControlPoint(coin.SoSeparator):
-    lock = None
+    lock = False
     def __init__(self, x=0, y=0, z=0):
         super(ControlPoint, self).__init__()
-        self.x = 0.
-        self.y = 0.
-        self.z = 0.
         self.marker = coin.SoMarkerSet()
-        self.marker.markerIndex = coin.SoMarkerSet.CROSS_5_5
         self.mat = coin.SoMaterial()
-        self.mat.diffuseColor.setValue(0., 0., 0.)
         self.coordinate = coin.SoCoordinate3()
-        self.set_pos([x, y, z])
-        self.switch = coin.SoSwitch()
-        self.addChild(self.coordinate)
-        self.addChild(self.switch)
-        self.addChild(self.mat)
-        self.addChild(self.marker)
-
-        self.mouse_over = False
+        self.setup_coin(x, y, z)
         self.fix = False
 
+    def setup_coin(self, x, y, z):
+        self.mat.setName("mat")
+        self.marker.markerIndex = coin.SoMarkerSet.CIRCLE_FILLED_9_9
+        self.mat.diffuseColor.setValue(*COL_STD)
+        self.addChild(self.coordinate)
+        self.addChild(self.mat)
+        self.addChild(self.marker)
+        self.pos = [x, y, z]
+
+    @property
+    def pos(self):
+        return [i for i in self.coordinate.point.getValues()[0].getValue()]
+
+    @pos.setter
+    def pos(self, new_pos):
+        pos = self.constraint(new_pos)
+        self.coordinate.point.setValue(pos[0], pos[1], pos[2])
+
     def set_x(self, new_x):
-        self.x = self.constraint([new_x, 0., 0.])[0]
-        self.coordinate.point.setValue(self.x, self.y, self.z)
+        pos = self.pos
+        pos[0] = self.constraint([new_x, 0., 0.])[0]
+        self.coordinate.point.setValue(*pos)
 
     def set_y(self, new_y):
-        self.y = self.constraint([0., new_y, 0.])[1]
-        self.coordinate.point.setValue(self.x, self.y, self.z)
+        pos = self.pos
+        pos[1] = self.constraint([0., new_y, 0.])[1]
+        self.coordinate.point.setValue(*pos)
 
     def set_z(self, new_z):
-        self.z = self.constraint([0., 0., new_z])[2]
-        self.coordinate.point.setValue(self.x, self.y, self.z)
+        pos = self.pos
+        pos[2] = self.constraint([0., 0., new_z])[2]
+        self.coordinate.point.setValue(*pos)
 
-    def set_pos(self, new_pos):
-        self.x, self.y, self.z = self.constraint(new_pos)
-        self.coordinate.point.setValue(self.x, self.y, self.z)
-
-    def set_edit_mode(self):
-        if not self.fix:
-            self.marker.markerIndex = coin.SoMarkerSet.CIRCLE_FILLED_9_9
-
-    def unset_edit_mode(self):
-        self.marker.markerIndex = coin.SoMarkerSet.CROSS_5_5
-
-    def set_mouse_over(self):
+    def set_edit(self):
+        print(ControlPoint.lock)
         if not ControlPoint.lock:
-            self.mouse_over = True
-            self.mat.diffuseColor.setValue(0, 0, 1)
             ControlPoint.lock = True
+            self.mat.diffuseColor.setValue(*COL_SEL)
 
-    def unset_mouse_over(self):
-        self.mouse_over = False
-        self.mat.diffuseColor.setValue(0, 0, 0)
+    def unset_edit(self):
         ControlPoint.lock = False
+        self.mat.diffuseColor.setValue(*COL_STD)
 
-    def constraint(self, pos):
+    @property
+    def is_edit(self):
+        return self.mat.diffuseColor == COL_SEL
+
+    def constraint(self, new_pos):
         "overwrite for special behavior"
-        return [pos[0], pos[1], 0.]
+        return new_pos
 
 
 class ControlPointContainer(coin.SoSeparator):
-    def __init__(self, points=None):
+    def __init__(self, points=None, view=None):
         super(ControlPointContainer, self).__init__()
         self.control_points = []
         if points is not None:
-            self.control_points = [ControlPoint(*point) for point in points]
-        for cp in self.control_points:
-            self.addChild(cp)
-
-        self.view = None
-        self.highlite_main = None
+            for point in points:
+                cp = ControlPoint(*point)
+                self.control_points.append(cp)
+                self.addChild(cp)
+        self.view = view
+        self._current_point = None
         self.drag = None
-        self.drag_check = False
-        self.current_point = None
+        self.old_mouse_pos = None
+        self.new_mouse_pos = None
         self.on_drag = []
         self.drag_start = []
         self.drag_release = []
-        self.is_edit = False
+        self.highlite_main = self.view.addEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.highlight_cb)
+        self.drag_main = self.view.addEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.drag_main_cb)
 
     @property
-    def control_point_list(self):
-        return [[i.x, i.y, i.z] for i in self.control_points]
-
-    def set_edit_mode(self, view):
-        if not self.is_edit:
-            self.is_edit = True
-            self.view = view
-            for pt in self.control_points:
-                pt.set_edit_mode()
-            self.highlite_main = self.view.addEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.highlight_cb)
-            self.drag_main = self.view.addEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.drag_main_cb)
-            self.exit = self.view.addEventCallbackPivy(coin.SoKeyboardEvent.getClassTypeId(), self.exit_cb)
-        else:
-            self.unset_edit_mode()
-
-    def unset_edit_mode(self):
-        if self.is_edit:
-            self.is_edit = False
-            self.view.removeEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.highlite_main)
-            self.view.removeEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.drag_main)
-            self.view.removeEventCallbackPivy(coin.SoKeyboardEvent.getClassTypeId(), self.exit)
-            for pt in self.control_points:
-                pt.unset_edit_mode()
-            self.view = None
-
-    def exit_cb(self, event_callback):
-        event = event_callback.getEvent()
-        if event.getKey() == 65307:
-            self.unset_edit_mode()
-
-    def set_control_points(self, points):
+    def control_pos(self):
+        return [i.pos for i in self.control_points]
+    
+    @control_pos.setter
+    def control_pos(self, points):
+        print(points)
         self.control_points = [ControlPoint(*point) for point in points]
         self.removeAllChildren()
         for i in self.control_points:
-            if self.is_edit:
-                i.set_edit_mode()
             self.addChild(i)
 
-    def highlight_cb(self, event_callback):
-        event = event_callback.getEvent()
-        pos = event.getPosition()
-        #-------------HIGHLIGHT----------------#
-        if not self.drag:
-            if type(event) == coin.SoLocation2Event:
-                self.current_point = None
-                for point in self.control_points:
-                    s = self.view.getPointOnScreen(point.x, point.y, point.z)
-                    if (abs(s[0] - pos[0]) ** 2 + abs(s[1] - pos[1]) ** 2) < (15 ** 2):
-                        if not point.mouse_over:
-                            point.set_mouse_over()
-                        if point.mouse_over and not point.fix:
-                            self.current_point = point
-                    else:
-                        if point.mouse_over:
-                            point.unset_mouse_over()
+    @property
+    def current_point(self):
+        return self._current_point
 
-    #---------INITDRAG---------------------#
+    @current_point.setter
+    def current_point(self, cp):
+        if cp != self._current_point:
+            if self.current_point is not None:
+                self._current_point.unset_edit()
+            self._current_point = cp
+            if self._current_point is not None:
+                self._current_point.set_edit()
+
+    def highlight_cb(self, event_callback):
+        if self.drag is None:
+            event = event_callback.getEvent()
+            pos = event.getPosition()
+            ray_pick = coin.SoRayPickAction(self.view.getViewer().getViewportRegion())
+            ray_pick.setPoint(coin.SbVec2s(*pos))
+            ray_pick.setRadius(10)
+            ray_pick.setPickAll(True) 
+            ray_pick.apply(self.view.getSceneGraph())
+            picked_point = ray_pick.getPickedPointList()
+            for point in picked_point:
+                path = point.getPath()
+                length = path.getLength()
+                point = path.getNode(length - 2)
+                point = filter(lambda ctrl: ctrl.getNodeId() == point.getNodeId(), self.control_points)
+                if point != []:
+                    self.current_point = point[0]
+                    break
+            else:
+                self.current_point = None
+
+        #---------INITDRAG---------------------#
     def drag_main_cb(self, event_callback):
         event = event_callback.getEvent()
-        if self.current_point is not None and not self.drag_check and event.getState():
-            self.drag_check = True
+        if self.current_point is not None and event.getState():
+            pos = event.getPosition()
+            self.old_mouse_pos = self.view.getPoint(*pos)
             self.drag = self.view.addEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.drag_cb)
             for foo in self.drag_start:
                 foo()
-        elif self.drag is not None and self.drag_check:
-            self.drag_check = False
+        elif self.drag is not None:
             self.view.removeEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.drag)
             self.drag = None
             for foo in self.drag_release:
@@ -173,15 +167,23 @@ class ControlPointContainer(coin.SoSeparator):
     def drag_cb(self, event_callback):
         event = event_callback.getEvent()
         pos = event.getPosition()
-        if type(event) == coin.SoLocation2Event:
-            self.current_point.set_pos(self.view.getPoint(pos[0], pos[1]))
-            for foo in self.on_drag:
-                foo()
+        if type(event) == coin.SoLocation2Event and self.current_point:
+            if not self.current_point.fix:
+                factor = 0.2 if event.wasCtrlDown() else 1.
+                self.new_mouse_pos = self.view.getPoint(*pos)
+                scaled_pos = [(i-j)* factor + k for i, j, k in zip(self.new_mouse_pos, self.old_mouse_pos, self.current_point.pos)]
+                if event.wasShiftDown():
+                    scaled_pos = [round(i, 1) for i in self.new_mouse_pos]
+                self.current_point.pos = scaled_pos
+                self.old_mouse_pos = self.new_mouse_pos
+                for foo in self.on_drag:
+                    foo()
 
-class highlight_point(coin.SoSeparator):
-    def __init__(self):
-        super(highlight_point, self).__init__()
-        pass
+    def remove_callbacks(self):
+        if self.highlite_main:
+            self.view.removeEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.highlite_main)
+        if self.drag_main:
+            self.view.removeEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.drag_main)
 
 
 class Line(object):
@@ -191,7 +193,7 @@ class Line(object):
         self.data = coin.SoCoordinate3()
         self.color = coin.SoMaterial()
         self.points = vector3D(points)
-        self.color.diffuseColor = color_dict[color]
+        self.color.diffuseColor = COLORS[color]
         self.update()
         self.object.addChild(self.color)
         self.object.addChild(self.data)
@@ -212,7 +214,7 @@ class Marker(coin.SoSeparator):
         self.data = coin.SoCoordinate3()
         self.color = coin.SoMaterial()
         self.points = vector3D(points)
-        self.color.diffuseColor = color_dict[color]
+        self.color.diffuseColor = COLORS[color]
         self.update()
         self.addChild(self.color)
         self.addChild(self.data)
@@ -262,6 +264,4 @@ def vector3D(vec):
 
 if __name__ == "__main__":
     print(vector3D([[0, 1], [2, 3]]))
-
-
 
