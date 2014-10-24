@@ -15,7 +15,7 @@ from pivy_primitives import Line
 #     os.path.abspath(os.path.dirname(os.path.dirname(openglider.__file__))), 'tests/demokite.ods')
 #     print(openglider.__file__)
 # except Exception:
-importpath = "/home/lo/projects/OpenGlider/tests/demokite.ods"
+importpath = "/home/lorenz/projects/OpenGlider/tests/demokite.ods"
 
 
 

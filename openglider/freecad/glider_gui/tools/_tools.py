@@ -42,8 +42,8 @@ class base_tool(object):
             print('fit the glider')
             self.glider_2d = Glider_2D.fit_glider(self.obj.glider_instance)
         self.obj.ViewObject.Visibility = False
-        Gui.activeDocument().activeView().viewTop()
         self.view = Gui.ActiveDocument.ActiveView
+        self.view.viewTop()
 
         # self.view.setNavigationType('Gui::TouchpadNavigationStyle')
         # disable the rotation function
@@ -59,8 +59,6 @@ class base_tool(object):
 
         # scene container
         self.task_separator = coin.SoSeparator()
-
-        self.task_separator.addChild(self.camera)
         self.scene.addChild(self.task_separator)
 
     def accept(self):
@@ -84,10 +82,6 @@ class base_tool(object):
     @property
     def scene(self):
         return self.view.getSceneGraph()
-
-    @property
-    def camera(self):
-        return self.view.getCameraNode()
 
     @property
     def nav_bak(self):

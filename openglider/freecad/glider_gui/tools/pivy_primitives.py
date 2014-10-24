@@ -132,11 +132,12 @@ class ControlPointContainer(coin.SoSeparator):
         if self.drag is None:
             event = event_callback.getEvent()
             pos = event.getPosition()
-            ray_pick = coin.SoRayPickAction(self.view.getViewer().getViewportRegion())
+            render_manager = self.view.getViewer().getSoRenderManager()
+            ray_pick = coin.SoRayPickAction(render_manager.getViewportRegion())
             ray_pick.setPoint(coin.SbVec2s(*pos))
             ray_pick.setRadius(10)
             ray_pick.setPickAll(True) 
-            ray_pick.apply(self.view.getSceneGraph())
+            ray_pick.apply(render_manager.getSceneGraph())
             picked_point = ray_pick.getPickedPointList()
             for point in picked_point:
                 path = point.getPath()
