@@ -240,7 +240,7 @@ class ParaFoil(Profile2D):
     def apply_splines(self, num=70):
         upper = self.upper_spline.get_sequence(num)
         lower = self.lower_spline.get_sequence(num)
-        self.data = numpy.cocanate(upper, lower[1:])
+        self.data = numpy.array(upper.tolist() + lower[1:].tolist())
 
     def make_smooth_dist(self, points, num=70, dist=None, upper=True):
         # make array [[lenght, x, y], ...]
