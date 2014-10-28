@@ -10,7 +10,7 @@ from openglider.glider import Glider_2D
 from openglider.glider.glider_2d import ParaFoil
 from openglider.utils.bezier import fitbezier
 from openglider.vector import norm, normalize
-from pivy_primitives import Line, vector3D, ControlPointContainer, Marker
+from pivy_primitives import Line, vector3D, ControlPointContainer, Marker, Spline
 
 text_field = QtGui.QFormLayout.LabelRole
 input_field = QtGui.QFormLayout.FieldRole
@@ -271,7 +271,7 @@ class arc_tool(base_tool):
         self.arc_cpc.on_drag.append(self.update_spline)
         self.arc_cpc.drag_release.append(self.update_real_arc)
         self.task_separator.addChild(self.arc_cpc)
-        self.shape.addChild(Line(self.glider_2d.arc.get_sequence(num=30).T, color="red").object)
+        self.shape.addChild(Line(self.glider_2d.arc.get_sequence_new(num=30), color="red").object)
         self.shape.addChild(Line(self.glider_2d.arc_pos()).object)
 
     # def set_edit(self, *arg):
@@ -280,7 +280,7 @@ class arc_tool(base_tool):
     def update_spline(self):
         self.shape.removeAllChildren()
         self.glider_2d.arc.controlpoints = [i[:-1] for i in self.arc_cpc.control_pos]
-        self.shape.addChild(Line(self.glider_2d.arc.get_sequence(num=30).T, color="red").object)
+        self.shape.addChild(Line(self.glider_2d.arc.get_sequence_new(num=30), color="red").object)
 
     def update_real_arc(self):
         self.shape.addChild(Line(self.glider_2d.arc_pos()).object)
@@ -746,4 +746,12 @@ class QBallooning_item(QtGui.QListWidgetItem):
 class line_tool(base_tool):
     def __init__(self, obj):
         super(line_tool, self).__init__(obj)
-        pass
+        self.cpc = ControlPointContainer([[i,i,0]for i in range(10)], self.view)
+        self.line_sep = coin.SoSeparator()
+        self.task_separator.addChild(self.cpc)
+        self.task_separator.addChild(self.line_sep)
+        self.cpc.on_drag.append(self.update_line)
+
+    def update_line(self):
+        self.line_sep.removeAllChildren()
+        self.line_sep.addChild(Spline(self.cpc.control_pos, 50).object)

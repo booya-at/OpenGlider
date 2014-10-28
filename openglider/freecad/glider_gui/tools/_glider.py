@@ -9,15 +9,8 @@ import openglider
 from openglider.glider import Glider, Glider_2D
 from pivy_primitives import Line
 
-
-# try:
-#     importpath = os.path.join(
-#     os.path.abspath(os.path.dirname(os.path.dirname(openglider.__file__))), 'tests/demokite.ods')
-#     print(openglider.__file__)
-# except Exception:
-importpath = "/home/lorenz/projects/OpenGlider/tests/demokite.ods"
-
-
+importpath = os.path.join(os.path.dirname( __file__ ), '..', 'demokite.ods')
+print(importpath)
 
 class OGBaseObject(object):
     def __init__(self, obj):

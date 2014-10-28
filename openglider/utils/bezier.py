@@ -20,10 +20,13 @@
 
 from __future__ import division
 
+import pyximport; pyximport.install()
 import numpy
 from scipy.misc import comb
 import scipy.interpolate
 from scipy.optimize import bisect as findroot
+
+import bezier_ext
 
 from openglider.utils.cache import cached_property, CachedObject
 from openglider.vector import mirror2D_x, norm
@@ -45,16 +48,7 @@ class BezierCurve(CachedObject):
         return {'controlpoints': [p.tolist() for p in self.controlpoints]}
 
     def __call__(self, value):
-        if 0 <= value <= 1:
-            val = numpy.zeros(len(self.controlpoints[0]))
-            for i, point in enumerate(self._controlpoints):
-                try:
-                    val += point * self._bezierbase[i](value)
-                except:
-                    raise Exception("fehler: {}, {}, {}".format(val.__class__, point.__class__, fakt.__class__))
-            return val
-        else:
-            ValueError("value must be in the range (0,1) for xvalues use xpoint-function")
+        return bezier_ext.get_bezier_point(self._controlpoints, value)
 
     @property
     def numpoints(self):
@@ -96,12 +90,13 @@ class BezierCurve(CachedObject):
         return bezier
 
     def interpolation(self, num=100):
-        x = []
-        y = []
-        for i in range(num):
-            point = self(i / (num - 1))
-            x.append(point[0])
-            y.append(point[1])
+        # x = []
+        # y = []
+        # for i in range(num):
+        #     point = self(i / (num - 1))
+        #     x.append(point[0])
+        #     y.append(point[1])
+        x, y = self.get_sequence_new(num).T
         return scipy.interpolate.interp1d(x, y)
 
     def interpolate_3d(self, num=100, which=0, bounds_error=False):
@@ -117,6 +112,9 @@ class BezierCurve(CachedObject):
             point = self(i / (num - 1))
             data.append(point)
         return numpy.transpose(data)
+
+    def get_sequence_new(self, num=50):
+        return bezier_ext.get_bezier_sequence(numpy.asfarray(self._controlpoints), num)
 
     def get_length(self, num):
         seq = self.get_sequence(num=num)
@@ -223,9 +221,9 @@ def fitbezier(points, base=bernsteinbase(3), start=True, end=True):
         return numpy.array(solution)
 
 if __name__ == "__main__":
-    a = BezierCurve([[0,0], [10,10], [20,20]])
+    a = BezierCurve([[-1,0], [10,10], [20,20]])
+    print(a.get_sequence_new(num=10))
     print(a.get_sequence(num=10))
-
     # a.numpoints = 4
     # print(a.controlpoints)
     # print(BezierCurve.fit([[0,0],[10,4],[20,0]]).controlpoints)

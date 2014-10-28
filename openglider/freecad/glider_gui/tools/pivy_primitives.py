@@ -2,6 +2,7 @@ from pivy import coin
 from pivy.gui import soqt
 import FreeCADGui as Gui
 from random import random
+from openglider.utils.bezier import BezierCurve
 import numpy
 
 
@@ -65,7 +66,6 @@ class ControlPoint(coin.SoSeparator):
         self.coordinate.point.setValue(*pos)
 
     def set_edit(self):
-        print(ControlPoint.lock)
         if not ControlPoint.lock:
             ControlPoint.lock = True
             self.mat.diffuseColor.setValue(*COL_SEL)
@@ -109,7 +109,6 @@ class ControlPointContainer(coin.SoSeparator):
     
     @control_pos.setter
     def control_pos(self, points):
-        print(points)
         self.control_points = [ControlPoint(*point) for point in points]
         self.removeAllChildren()
         for i in self.control_points:
@@ -129,7 +128,7 @@ class ControlPointContainer(coin.SoSeparator):
                 self._current_point.set_edit()
 
     def highlight_cb(self, event_callback):
-        if self.drag is None:
+        if not ControlPoint.lock or self.current_point is not None:
             event = event_callback.getEvent()
             pos = event.getPosition()
             render_manager = self.view.getViewer().getSoRenderManager()
@@ -156,11 +155,13 @@ class ControlPointContainer(coin.SoSeparator):
         if self.current_point is not None and event.getState():
             pos = event.getPosition()
             self.old_mouse_pos = self.view.getPoint(*pos)
-            self.drag = self.view.addEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.drag_cb)
+            self.drag = self.view.addEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.drag_cb) 
+            self.view.removeEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.highlite_main)
             for foo in self.drag_start:
                 foo()
         elif self.drag is not None:
             self.view.removeEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.drag)
+            self.highlite_main = self.view.addEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.highlight_cb)
             self.drag = None
             for foo in self.drag_release:
                 foo()
@@ -170,11 +171,13 @@ class ControlPointContainer(coin.SoSeparator):
         pos = event.getPosition()
         if type(event) == coin.SoLocation2Event and self.current_point:
             if not self.current_point.fix:
-                factor = 0.2 if event.wasCtrlDown() else 1.
                 self.new_mouse_pos = self.view.getPoint(*pos)
-                scaled_pos = [(i-j)* factor + k for i, j, k in zip(self.new_mouse_pos, self.old_mouse_pos, self.current_point.pos)]
-                if event.wasShiftDown():
+                if event.wasCtrlDown():
+                    scaled_pos = [(i-j)* 0.2 + k for i, j, k in zip(self.new_mouse_pos, self.old_mouse_pos, self.current_point.pos)]
+                elif event.wasShiftDown():
                     scaled_pos = [round(i, 1) for i in self.new_mouse_pos]
+                else:
+                    scaled_pos = self.new_mouse_pos
                 self.current_point.pos = scaled_pos
                 self.old_mouse_pos = self.new_mouse_pos
                 for foo in self.on_drag:
@@ -228,25 +231,18 @@ class Marker(coin.SoSeparator):
         self.data.point.setValues(0, len(self.points), self.points)
 
 
+
 class Spline(Line):
     def __init__(self, control_points, num=50):
         self.bezier_curve = BezierCurve(controlpoints=control_points)
-        self.num_points = num
-        super(Spline, self).__init__(self.bezier_curve.get_sequence(num))
+        self.num = num
+        points = self.bezier_curve.get_sequence_new(num)
+        super(Spline, self).__init__(points)
 
-    def update(self, points=None):
-        if points is not None:
-            self.bezier_curve.controlpoints = vector3D(points)
-        super(Spline, self).update(points=[self.bezier_curve(i * 1. / (self.num - 1)) for i in range(self.num)])
-
-    @property
-    def num(self):
-        return self.num_points
-
-    @num.setter
-    def num(self, num):
-        self.numpoints = num
-        self.update(self.bezier_curve.controlpoints)
+    # def update(self, points=None):
+    #     if points is not None:
+    #         self.bezier_curve.controlpoints = vector3D(points)
+    #     super(Spline, self).update(points=[self.bezier_curve(i * 1. / (self.num - 1)) for i in range(self.num)])
 
 
 def vector3D(vec):

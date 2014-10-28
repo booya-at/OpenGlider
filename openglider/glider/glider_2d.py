@@ -238,8 +238,8 @@ class ParaFoil(Profile2D):
         return BezierCurve.fit(lower_smooth, numpoints=control_num)
 
     def apply_splines(self, num=70):
-        upper = self.upper_spline.get_sequence(num).T
-        lower = self.lower_spline.get_sequence(num).T
+        upper = self.upper_spline.get_sequence_new(num)
+        lower = self.lower_spline.get_sequence_new(num)
         self.data = numpy.array(upper.tolist() + lower[1:].tolist())
 
     def make_smooth_dist(self, points, num=70, dist=None, upper=True):
@@ -268,9 +268,9 @@ if __name__ == "__main__":
     a = ParaFoil.compute_naca()
     import openglider.graphics as g
     g.Graphics3D([
-        g.Line(a.upper_spline.get_sequence().T),
+        g.Line(a.upper_spline.get_sequence_new()),
         g.Line(a.upper_spline.controlpoints),
-        g.Line(a.lower_spline.get_sequence().T),
+        g.Line(a.lower_spline.get_sequence_new()),
         g.Line(a.lower_spline.controlpoints),
         g.Point(a.data)
         ])
