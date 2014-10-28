@@ -36,7 +36,7 @@ class BasicCell(CachedObject):
             for i in range(len(self.prof1.data)):  # Arc -> phi(bal) -> r  # oder so...
                 diff = self.prof1[i] - self.prof2[i]
                 if ballooning and self.ballooning_radius[i] > 0.:
-                    if not arc_argument:
+                    if arc_argument:
                         # edited some bad math errors 
                         # d = 0.5 - math.sin(self.ballooning_phi[i] * (y_value- 0.5)) / math.sin(self.ballooning_phi[i])
                         d = 0.5 - math.sin(self.ballooning_phi[i] * (1 - 2 *  y_value)) / math.sin(self.ballooning_phi[i]) / 2
