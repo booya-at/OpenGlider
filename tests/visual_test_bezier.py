@@ -53,7 +53,7 @@ class TestMarks(unittest.TestCase):
             Red,
             Line(curve),
             Green,
-            Line(numpy.transpose(lower.get_sequence(num=100))),
+            Line(lower.get_sequence(num=100)),
             Line(lower._controlpoints)
             ])
 

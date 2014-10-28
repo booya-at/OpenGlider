@@ -236,7 +236,7 @@ class Spline(Line):
     def __init__(self, control_points, num=50):
         self.bezier_curve = BezierCurve(controlpoints=control_points)
         self.num = num
-        points = self.bezier_curve.get_sequence_new(num)
+        points = self.bezier_curve.get_sequence(num)
         super(Spline, self).__init__(points)
 
     # def update(self, points=None):

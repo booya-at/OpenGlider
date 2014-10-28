@@ -56,11 +56,12 @@ class TestCell(unittest.TestCase):
         self.cell2 = Cell(self.rib2, self.rib3)
 
 
-    def test_show_cell(self, num=10):
+    def test_show_cell(self, num=20):
         #print(self.rib1.profile_2d.x_values)
-        ribs = [self.cell1.midrib(x*1./num) for x in range(num)]
+        print(self.cell1.ballooning_phi)
+        ribs = [self.cell1.midrib(x*1./num, arc_argument=False) for x in range(num)]
         ribs += [self.cell2.midrib(x*1./num) for x in range(num)]
-        Graph.Graphics([Graph.Line(x.data) for x in ribs]+[Graph.Line(self.rib1.profile_3d.data)])
+        Graph.Graphics([Graph.Line(x.data) for x in ribs]+[Graph.Line(self.rib3.profile_3d.data)])
 
     def test_mirror(self):
         cell1 = self.cell2
@@ -73,3 +74,7 @@ class TestCell(unittest.TestCase):
                         Graph.Line(cell2.prof2.data),
                         Graph.Green] +
                        [Graph.Line([p, p+normvector]) for p, normvector in zip(cell2.prof2.data, cell2.basic_cell.normvectors)])
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

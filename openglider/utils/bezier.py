@@ -90,20 +90,14 @@ class BezierCurve(CachedObject):
         return bezier
 
     def interpolation(self, num=100):
-        # x = []
-        # y = []
-        # for i in range(num):
-        #     point = self(i / (num - 1))
-        #     x.append(point[0])
-        #     y.append(point[1])
-        x, y = self.get_sequence_new(num).T
+        x, y = self.get_sequence(num).T
         return scipy.interpolate.interp1d(x, y)
 
     def interpolate_3d(self, num=100, which=0, bounds_error=False):
         """
         Return scipy interpolation
         """
-        data = self.get_sequence(num)
+        data = self.get_sequence(num).T
         return scipy.interpolate.interp1d(data[which], data, bounds_error=bounds_error)
 
     def get_sequence(self, num=50):
@@ -111,10 +105,7 @@ class BezierCurve(CachedObject):
         for i in range(num):
             point = self(i / (num - 1))
             data.append(point)
-        return numpy.transpose(data)
-
-    def get_sequence_new(self, num=50):
-        return bezier_ext.get_bezier_sequence(numpy.asfarray(self._controlpoints), num)
+        return numpy.array(data)
 
     def get_length(self, num):
         seq = self.get_sequence(num=num)
@@ -222,8 +213,7 @@ def fitbezier(points, base=bernsteinbase(3), start=True, end=True):
 
 if __name__ == "__main__":
     a = BezierCurve([[-1,0], [10,10], [20,20]])
-    print(a.get_sequence_new(num=10))
-    print(a.get_sequence(num=10))
+    BezierCurve.fit([[0,0], [1,1], [2,0]])
     # a.numpoints = 4
     # print(a.controlpoints)
     # print(BezierCurve.fit([[0,0],[10,4],[20,0]]).controlpoints)

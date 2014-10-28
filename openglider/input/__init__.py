@@ -227,7 +227,7 @@ class MplBezier(ControlPointContainer):
     def updatedata(self, event=None):
         self.line_plot.set_xdata([point.x_value for point in self.controlpoints])
         self.line_plot.set_ydata([point.y_value for point in self.controlpoints])
-        x, y = self.bezier_curve.get_sequence(num=50)
+        x, y = self.bezier_curve.get_sequence(num=50).T
         self.bezier_plot.set_xdata(x)
         self.bezier_plot.set_ydata(y)
         for widget, subplots in self.widgets:

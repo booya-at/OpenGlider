@@ -15,20 +15,6 @@ def choose(int n, int k):
 def bernsteinbase(int d, int n, double x):
     return choose(d - 1, n) * (x ** n) * ((1 - x) ** (d - 1 - n))
 
-def get_bezier_sequence(ctrl_pts, int num):
-    i_end = len(ctrl_pts)
-    j_end = len(ctrl_pts[0])
-    pos = numpy.linspace(0, 1, num)
-    out_arr = numpy.zeros([num, j_end])
-
-    for k_i, k in enumerate(pos):
-        for i in range(i_end):
-            fac = bernsteinbase(i_end, i, k)
-            for j in range(j_end):
-                out_arr[k_i, j] += fac * ctrl_pts[i][j]
-
-    return out_arr
-
 def get_bezier_point(ctrl_pts, double x):
     i_end = len(ctrl_pts)
     j_end = len(ctrl_pts[0])

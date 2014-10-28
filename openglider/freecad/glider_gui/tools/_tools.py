@@ -271,7 +271,7 @@ class arc_tool(base_tool):
         self.arc_cpc.on_drag.append(self.update_spline)
         self.arc_cpc.drag_release.append(self.update_real_arc)
         self.task_separator.addChild(self.arc_cpc)
-        self.shape.addChild(Line(self.glider_2d.arc.get_sequence_new(num=30), color="red").object)
+        self.shape.addChild(Line(self.glider_2d.arc.get_sequence(num=30), color="red").object)
         self.shape.addChild(Line(self.glider_2d.arc_pos()).object)
 
     # def set_edit(self, *arg):
@@ -280,7 +280,7 @@ class arc_tool(base_tool):
     def update_spline(self):
         self.shape.removeAllChildren()
         self.glider_2d.arc.controlpoints = [i[:-1] for i in self.arc_cpc.control_pos]
-        self.shape.addChild(Line(self.glider_2d.arc.get_sequence_new(num=30), color="red").object)
+        self.shape.addChild(Line(self.glider_2d.arc.get_sequence(num=30), color="red").object)
 
     def update_real_arc(self):
         self.shape.addChild(Line(self.glider_2d.arc_pos()).object)
@@ -474,7 +474,7 @@ class aoa_tool(base_tool):
 
     def update_aoa(self):
         self.glider_2d.aoa.controlpoints = (numpy.array([i[:-1] for i in self.aoa_cpc.control_pos]) / self.scale).tolist()
-        self.aoa_spline.update(self.glider_2d.aoa.get_sequence(num=20).T * self.scale)
+        self.aoa_spline.update(self.glider_2d.aoa.get_sequence(num=20) * self.scale)
         self.coords.removeAllChildren()
         max_x = max([i[0] for i in self.aoa_cpc.control_pos])
         max_y = max([i[1] for i in self.aoa_cpc.control_pos])
@@ -675,9 +675,9 @@ class airfoil_tool(base_tool):
 
     def _draw_spline(self, num):
         self.upper_spline.addChild(Line(vector3D(self.current_airfoil.upper_spline.controlpoints), color="gray").object)
-        self.upper_spline.addChild(Line(vector3D(self.current_airfoil.upper_spline.get_sequence(num).T)).object)
+        self.upper_spline.addChild(Line(vector3D(self.current_airfoil.upper_spline.get_sequence(num))).object)
         self.lower_spline.addChild(Line(vector3D(self.current_airfoil.lower_spline.controlpoints), color="gray").object)
-        self.lower_spline.addChild(Line(vector3D(self.current_airfoil.lower_spline.get_sequence(num).T)).object)
+        self.lower_spline.addChild(Line(vector3D(self.current_airfoil.lower_spline.get_sequence(num))).object)
 
     def _update_upper_spline(self, num=20):
         self.upper_spline.removeAllChildren()
