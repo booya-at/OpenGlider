@@ -20,7 +20,11 @@
 
 from __future__ import division
 
-import pyximport; pyximport.install()
+try:
+    import pyximport
+    pyximport.install()
+except ImportError:
+    pass
 import numpy
 from scipy.misc import comb
 import scipy.interpolate
@@ -29,26 +33,42 @@ from scipy.optimize import bisect as findroot
 import bezier_ext
 
 from openglider.utils.cache import cached_property, CachedObject
-from openglider.vector import mirror2D_x, norm
+from openglider.vector import mirror2D_x, norm, HashedList
 
 __ALL = ['BezierCurve']
 
 
-class BezierCurve(CachedObject):
+class BezierCurve(HashedList):
     def __init__(self, controlpoints=None):
-        """Bezier Curve represantative
-        http://en.wikipedia.org/wiki/Bezier_curve#Generalization"""
+        """
+        Bezier Curve represantative
+        http://en.wikipedia.org/wiki/Bezier_curve#Generalization
+        """
         #self._BezierBase = self._BezierFunction = self._controlpoints = None
-        self._controlpoints = None
-        if controlpoints is None:
-            controlpoints = [[0, 0], [1, 10], [2, 0]]
-        self.controlpoints = controlpoints
+        super(BezierCurve, self).__init__(controlpoints)
 
     def __json__(self):
         return {'controlpoints': [p.tolist() for p in self.controlpoints]}
 
     def __call__(self, value):
-        return bezier_ext.get_bezier_point(self._controlpoints, value)
+        return bezier_ext.get_bezier_point(self.controlpoints, value)
+
+    def call(self, value):
+        num = len(self.controlpoints)
+        dim = len(self.controlpoints[0])
+        if 0 <= value <= 1:
+            val = numpy.zeros(dim)
+            for i, point in enumerate(self.controlpoints):
+                fakt = choose(i - 1, num) * (value ** num) * ((1 - value) ** (i - 1 - num))
+                #fakt = base[i](value)
+                try:
+                    val += point * fakt
+                except:
+                    raise Exception("fehler: {}, {}, {}".format(val.__class__, point.__class__, fakt.__class__))
+            return val
+        else:
+            ValueError("value must be in the range (0,1) for xvalues use xpoint-function")
+
 
     @property
     def numpoints(self):
@@ -63,17 +83,18 @@ class BezierCurve(CachedObject):
             base = bernsteinbase(num_ctrl)
             self._controlpoints = fitbezier([self(i) for i in numpy.linspace(0, 1, num_points)], base)
 
-    @cached_property('numpoints')
+    #@cached_property('self')
+    @property
     def _bezierbase(self):
-        return bernsteinbase(len(self._controlpoints))
+        return bernsteinbase(len(self.controlpoints))
 
     @property
     def controlpoints(self):
-            return self._controlpoints
+           return self._data
 
     @controlpoints.setter
     def controlpoints(self, points):
-        self._controlpoints = [numpy.array(p) for p in points]
+       self.data = points
 
     def xpoint(self, x):
         root = findroot(lambda x2: self.__call__(x2)[0] - x, 0, 1)
@@ -150,6 +171,18 @@ def bernsteinbase(d):
 
     return [bsf(i) for i in range(d)]
 
+def choose(n, k):
+    if 0 <= k <= n:
+        ntok = 1
+        ktok = 1
+        for t in xrange(1, min(k, n - k) + 1):
+            ntok *= n
+            ktok *= t
+            n -= 1
+        return ntok // ktok
+    else:
+        return 0
+
 
 def bezierfunction(points, base=None):
     """"""
@@ -212,8 +245,23 @@ def fitbezier(points, base=bernsteinbase(3), start=True, end=True):
         return numpy.array(solution)
 
 if __name__ == "__main__":
+    #BezierCurve.fit([[0,0], [1,1], [2,0]])
+    import time
+    import random
+    import cProfile
+
     a = BezierCurve([[-1,0], [10,10], [20,20]])
-    BezierCurve.fit([[0,0], [1,1], [2,0]])
+
+    count = 10000
+    t1=time.time()
+    for i in range(count):
+        a(random.random())
+    t2 = time.time()
+    for i in range(count):
+        a.call(random.random())
+    t3 = time.time()
+    print("faktor", (t3-t2)/(t2-t1))
+    cProfile.run("a.call(random.random())")
     # a.numpoints = 4
     # print(a.controlpoints)
     # print(BezierCurve.fit([[0,0],[10,4],[20,0]]).controlpoints)
