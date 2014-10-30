@@ -188,7 +188,7 @@ class Glider(object):
 
     @profile_numpoints.setter
     def profile_numpoints(self, numpoints):
-        xvalues = Profile2D.calculate_x_values(numpoints)
+        xvalues = Profile2D.cos_distribution(numpoints)
         for rib in self.ribs:
             rib.profile_2d.x_values = xvalues
 

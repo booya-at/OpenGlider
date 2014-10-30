@@ -21,6 +21,7 @@ import tempfile
 import unittest
 import sys
 import os
+import json
 from openglider.plots import flatten_glider
 
 try:
@@ -66,9 +67,8 @@ class TestGlider(GliderTestClass):
         path = self.file('.json').name
         data = self.glider.export_3d(path=path, midribs=2, numpoints=10, wake_panels=3, wake_length=0.9)
         with open(path, "w") as outfile:
-            import openglider.jsonify as jsonify
-            jsonify.dump(data, outfile)
             print(outfile)
+            json.dump(data, outfile, indent=2)
 
     def test_export_plots(self):
         path = self.file('.svg').name

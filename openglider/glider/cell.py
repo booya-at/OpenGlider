@@ -1,23 +1,26 @@
 import copy
 import math
-import numpy
 import itertools
+
+import numpy
+
 from openglider.airfoil import Profile3D
 from openglider.glider.ballooning import arsinc
 from openglider.utils import consistent_value
 from openglider.vector import norm, normalize, HashedList
-from openglider.glider.rib import Rib
 from openglider.utils.cache import cached_property, CachedObject
 
 
 class BasicCell(CachedObject):
+    """
+    A very simple cell without any extras like midribs, diagonals,..
+    """
     def __init__(self, prof1=None, prof2=None, ballooning=None, name="unnamed_cell"):
         self.prof1 = prof1 or Profile3D()
         self.prof2 = prof2 or Profile3D()
 
         if not ballooning is None:
             self.ballooning_phi = ballooning  # ballooning arcs -> property in cell
-        self._normvectors = None
         self.name = name
 
     def point_basic_cell(self, y=0, ik=0):
@@ -99,8 +102,6 @@ class Cell(CachedObject):
     def __init__(self, rib1, rib2, miniribs=None):
         self._ribs = [rib1, rib2]
         self._miniribs = miniribs or []
-        #self.x_values = rib1.profile_2d.x_values
-        #self._basic_cell = BasicCell(rib1.profile_3d, rib2.profile_3d, ballooning=self.ballooning_phi)
 
     def __json__(self):
         return {"rib1": self.rib1,
@@ -114,12 +115,15 @@ class Cell(CachedObject):
         """
         self._miniribs.append(minirib)
 
-    @cached_property('rib1.profile_3d', 'rib2.profile_3d')
+    @cached_property('rib1.profile_3d', 'rib2.profile_3d', 'ballooning_phi')
     def basic_cell(self):
         return BasicCell(self.rib1.profile_3d, self.rib2.profile_3d, self.ballooning_phi)
 
     @cached_property('_miniribs', '_ribs')
     def rib_profiles_3d(self):
+        """
+        Get all the ribs 3d-profiles, including miniribs
+        """
         midrib_profiles = [self._make_profile3d_from_minirib(mrib)
                            for mrib in self._miniribs]
         rib_profiles = [rib.profile_3d for rib in self._ribs]

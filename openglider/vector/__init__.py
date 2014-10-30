@@ -427,10 +427,12 @@ class PolyLine2D(PolyLine):
         normvectors.append(rotate(self.data[-1] - self.data[-2]))
         return normvectors
 
-
-    def shift(self, vector):
-        if len(vector) == 2:
-            self.data += vector
+    def move(self, vector):
+        """
+        Move the whole line
+        """
+        assert len(vector) == 2
+        self.data += vector
 
     def add_stuff(self, amount):
         """

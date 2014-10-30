@@ -52,7 +52,7 @@ class PlotPart():
     def shift(self, vector):
         for layer in self.layer_dict.itervalues():
             for vectorlist in layer:
-                vectorlist.shift(vector)
+                vectorlist.move(vector)
 
     def return_layer_svg(self, layer, scale=1):
         """

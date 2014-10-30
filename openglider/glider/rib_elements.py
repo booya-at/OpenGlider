@@ -53,8 +53,10 @@ class RigidFoil(object):
 
 
 class GibusArcs(object):
+    """
+    A Reinforcement, in the shape of an arc, to reinforce attachment points
+    """
     def __init__(self, rib, position, size=0.2):
-        """A Reinforcement, in the shape of an arc, to reinforce attachment points"""
         self.rib = rib
         self.pos = position
         self.size = size
@@ -129,7 +131,7 @@ class RibHole(object):
     def get_flattened(self, num=20):
         p1 = self.rib.profile_2d.profilepoint(self.pos)[1]
         p2 = self.rib.profile_2d.profilepoint(-self.pos)[1]
-        return polygon(p1, p2, num=num, size=self.size, is_center=False)[0]
+        return polygon(p1, p2, num=num, scale=self.size, is_center=False)[0]
 
 
 class Mylar(object):
