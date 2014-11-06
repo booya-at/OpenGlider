@@ -20,10 +20,11 @@
 
 from __future__ import division
 
-
 import numpy
+from scipy.misc import comb
 import scipy.interpolate
 from scipy.optimize import bisect as findroot
+
 
 from openglider.utils.cache import cached_property, CachedObject
 from openglider.vector import mirror2D_x, norm, HashedList
@@ -53,7 +54,6 @@ class BezierCurve(HashedList):
                 out_arr[j] += fac * self._data[i][j]
         return out_arr
 
-
     def call(self, value):
         num = len(self.controlpoints)
         dim = len(self.controlpoints[0])
@@ -69,6 +69,7 @@ class BezierCurve(HashedList):
             return val
         else:
             ValueError("value must be in the range (0,1) for xvalues use xpoint-function")
+
 
     @property
     def numpoints(self):
@@ -86,7 +87,7 @@ class BezierCurve(HashedList):
     #@cached_property('self')
     @property
     def _bezierbase(self):
-        return bernsteinbase(len(self.controlpoints))
+        return bernsteinbase(len(self._data))
 
     @property
     def controlpoints(self):
@@ -107,7 +108,7 @@ class BezierCurve(HashedList):
     @classmethod
     def fit(cls, data, numpoints=3):
         bezier = cls([[0,0] for __ in range(numpoints)])
-        bezier.controlpoints = numpy.array(fitbezier(data, bezier._bezierbase))
+        bezier._data = numpy.array(fitbezier(data, bezier._bezierbase))
         return bezier
 
     def interpolation(self, num=100):
@@ -160,15 +161,21 @@ class SymmetricBezier(BezierCurve):
             base = bernsteinbase(num_ctrl)
             self._data = fitbezier([self(i) for i in numpy.linspace(0, 1, num_points)], base)
 
+    @classmethod
+    def fit(cls, data, numpoints=3):
+        return super(SymmetricBezier, cls).fit(data, numpoints=numpoints*2)
+
+
 
 ##############################FUNCTIONS
 
 def _bernsteinbase(d, n, x):
     return choose(d - 1, n) * (x ** n) * ((1 - x) ** (d - 1 - n))
 
+
 def bernsteinbase(d):
     def bsf(n):
-        return lambda x: _bernsteinbase(d, n, x)
+        return lambda x: comb(d - 1, n) * (x ** n) * ((1 - x) ** (d - 1 - n))
 
     return [bsf(i) for i in range(d)]
 
@@ -199,7 +206,6 @@ def bezierfunction(points, base=None):
         return val
 
     return func
-
 
 
 def fitbezier(points, base=bernsteinbase(3), start=True, end=True):
@@ -252,7 +258,7 @@ if __name__ == "__main__":
     import random
     import cProfile
 
-    a = BezierCurve([[-1,0], [10,10], [20,20]])
+    a = SymmetricBezier.fit([[-3,0], [-2,1], [-1,0.5], [1,0.5], [2,1], [3,0]])
 
     count = 10000
     t1=time.time()
