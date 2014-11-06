@@ -20,13 +20,10 @@
 
 from __future__ import division
 
-import pyximport; pyximport.install()
+# import pyximport; pyximport.install()
 import numpy
-from scipy.misc import comb
 import scipy.interpolate
 from scipy.optimize import bisect as findroot
-
-import bezier_ext
 
 from openglider.utils.cache import cached_property, CachedObject
 from openglider.vector import mirror2D_x, norm
@@ -48,7 +45,14 @@ class BezierCurve(CachedObject):
         return {'controlpoints': [p.tolist() for p in self.controlpoints]}
 
     def __call__(self, value):
-        return bezier_ext.get_bezier_point(self._controlpoints, value)
+        i_end = len(self._controlpoints)
+        j_end = len(self._controlpoints[0])
+        out_arr = numpy.zeros([j_end])
+        for i in range(i_end):
+            fac = _bernsteinbase(i_end, i, value)
+            for j in range(j_end):
+                out_arr[j] += fac * self._controlpoints[i][j]
+        return out_arr
 
     @property
     def numpoints(self):
@@ -143,10 +147,12 @@ class SymmetricBezier(BezierCurve):
 
 ##############################FUNCTIONS
 
+def _bernsteinbase(d, n, x):
+    return choose(d - 1, n) * (x ** n) * ((1 - x) ** (d - 1 - n))
 
 def bernsteinbase(d):
     def bsf(n):
-        return lambda x: comb(d - 1, n) * (x ** n) * ((1 - x) ** (d - 1 - n))
+        return lambda x: _bernsteinbase(d, n, x)
 
     return [bsf(i) for i in range(d)]
 
@@ -165,6 +171,19 @@ def bezierfunction(points, base=None):
         return val
 
     return func
+
+
+def choose(n, k):
+    if 0 <= k <= n:
+        ntok = 1
+        ktok = 1
+        for t in xrange(1, min(k, n - k) + 1):
+            ntok *= n
+            ktok *= t
+            n -= 1
+        return ntok // ktok
+    else:
+        return 0
 
 
 def fitbezier(points, base=bernsteinbase(3), start=True, end=True):

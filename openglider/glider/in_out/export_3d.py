@@ -6,8 +6,8 @@ from openglider.vector import normalize, norm
 # from openglider.graphics import Graphics3D, Line
 
 
-def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6):
-    other = glider.copy_complete()
+def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6, copy=True):
+    other = glider.copy_complete() if copy else glider
     if numpoints:
         other.profile_numpoints = numpoints
     ribs = other.return_ribs(midribs)
@@ -41,7 +41,6 @@ def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6):
         for polygon in panels:
             outfile.write("f {0} {1} {2}//{0} {1} {2}\n".format(*polygon))
     return True
-
 
 def export_json(glider, path, numpoints, midribs=0, wake_panels=1, wake_length=0.2, *other):
     """

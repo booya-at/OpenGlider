@@ -3,7 +3,8 @@ import FreeCADGui as Gui
 
 from _glider import OGGlider, OGGliderVP
 from _tools import (shape_tool, base_tool, ballooning_tool,
-                    arc_tool, aoa_tool, airfoil_tool, line_tool)
+                    arc_tool, aoa_tool, airfoil_tool, base_point_tool)
+from line_tool import line_tool
 
 
 #ICONS:
@@ -93,6 +94,13 @@ class Ballooning_Tool(BaseCommand):
 
     def tool(self, obj):
         return ballooning_tool(obj)
+
+class Attach_Tool(BaseCommand):
+    def GetResources(self):
+        return {'Pixmap': 'attach_tool.svg', 'MenuText': 'Attachmentpoints', 'ToolTip': 'Attachmentpoints'}
+
+    def tool(self, obj):
+        return base_point_tool(obj)
 
 
 class Line_Tool(BaseCommand):

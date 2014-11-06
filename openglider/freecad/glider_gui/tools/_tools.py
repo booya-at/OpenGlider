@@ -6,7 +6,7 @@ import numpy
 import FreeCAD
 import FreeCADGui as Gui
 
-from openglider.glider import Glider_2D
+from openglider.glider import Glider_2D, AttachmentPoint
 from openglider.glider.glider_2d import ParaFoil
 from openglider.utils.bezier import fitbezier
 from openglider.vector import norm, normalize
@@ -59,6 +59,7 @@ class base_tool(object):
 
         # scene container
         self.task_separator = coin.SoSeparator()
+        self.task_separator.setName("task_seperator")
         self.scene.addChild(self.task_separator)
 
     def accept(self):
@@ -311,7 +312,7 @@ class base_point_tool(base_tool):
 
         # save the shape as it will not be changed in this task
         self.ribs, self.front, self.back = self.glider_2d.shape()
-        self.xpos = [i[0] for i in self.front]
+        self.xpos = [i[0] for i in self.front if i[0]>=0.]
         self.current_point = None
 
         # adding some pivy containers
@@ -319,7 +320,6 @@ class base_point_tool(base_tool):
         self.helper_line = coin.SoSeparator()
         self.temp_point = coin.SoSeparator()
         self.vis_point_list = coin.SoSeparator()
-        self.__point_list = []  # glider 2d should store these points (overwrite update_point_list)
         self.setup_pivy()
 
         # qt gui stuff
@@ -334,6 +334,7 @@ class base_point_tool(base_tool):
         self.task_separator.addChild(self.temp_point)
         self.task_separator.addChild(self.vis_point_list)
         self.draw_shape()
+        self.update_point_list()
         self.update_helper_line()
         self.setup_cb()
 
@@ -381,32 +382,30 @@ class base_point_tool(base_tool):
             self.current_point = None
             pos = event.getPosition()
             if event.wasCtrlDown():
-                check_points = self.__point_list
+                check_points = self.glider_2d.attachment_points
                 color = "green"
             else:
                 check_points = [i.tolist() for i in self.help_line(self.Qhl_pos.value() / 100)]
                 color = "red"
-            for point in check_points:
-                print(type(point))
+            for i, point in enumerate(check_points):
                 s = self.view.getPointOnScreen(point[0], point[1], 0.)
                 if (abs(s[0] - pos[0]) ** 2 + abs(s[1] - pos[1]) ** 2) < (15 ** 2) and point[0] >= 0:
-                    self.current_point = point
+                    self.current_point = (point, i)
                     self.temp_point.addChild(Marker([point], color=color))
                     break
 
     def update_point_list(self):
         self.vis_point_list.removeAllChildren()
-        if len(self.__point_list) > 0:
-            self.vis_point_list.addChild(Marker(self.__point_list))
+        if len(self.glider_2d._attachment_points) > 0:
+            self.vis_point_list.addChild(Marker(self.glider_2d.attachment_points))
 
     def add_point(self, event_callback):
         event = event_callback.getEvent()
         pos = event.getPosition()
         if self.current_point is not None and event.getState():
             if event.wasCtrlDown():  # deleting current point TODO: not working yet
-                print(self.current_point)
                 try:
-                    self.__point_list.remove(self.current_point)
+                    self.glider_2d._attachment_points.pop(self.current_point[1])
                     self.current_point = None
                     self.temp_point.removeAllChildren()
                     self.update_point_list()
@@ -415,12 +414,19 @@ class base_point_tool(base_tool):
                     print("whats wrong here???")
             else:  # adding a point
                 print("add point")
-                self.__point_list.append(self.current_point)
-                print(self.__point_list)
+                self.add_attachment_point(self.current_point[0])
                 self.update_point_list()
+
+    def add_attachment_point(self, pos):
+        x, y = pos
+        rib_nr = self.xpos.index(x)
+        pos = float(self.Qhl_pos.value())
+        ap = AttachmentPoint(rib_nr, pos)
+        self.glider_2d._attachment_points.append(ap)
 
     def accept(self):
         self.remove_cb()
+        self.obj.glider_2d = self.glider_2d
         super(base_point_tool, self).accept()
 
     def reject(self):
@@ -741,17 +747,3 @@ class QBallooning_item(QtGui.QListWidgetItem):
         super(QBallooning_item, self).__init__()
         self.setText(self.ballooning.name)
         # not ready yet
-
-
-class line_tool(base_tool):
-    def __init__(self, obj):
-        super(line_tool, self).__init__(obj)
-        self.cpc = ControlPointContainer([[i,i,0]for i in range(10)], self.view)
-        self.line_sep = coin.SoSeparator()
-        self.task_separator.addChild(self.cpc)
-        self.task_separator.addChild(self.line_sep)
-        self.cpc.on_drag.append(self.update_line)
-
-    def update_line(self):
-        self.line_sep.removeAllChildren()
-        self.line_sep.addChild(Spline(self.cpc.control_pos, 50).object)

@@ -1,6 +1,7 @@
 from pivy import coin
 from pivy.gui import soqt
 import FreeCADGui as Gui
+import FreeCAD as App
 from random import random
 from openglider.utils.bezier import BezierCurve
 import numpy
@@ -209,6 +210,27 @@ class Line(object):
         self.data.point.setValue(0, 0, 0)
         self.data.point.setValues(0, len(self.points), self.points)
 
+class Line1(coin.SoSeparator):
+    def __init__(self, points, color="black"):
+        self.ls = coin.SoLineSet()
+        self.data = coin.SoCoordinate3()
+        self.color = coin.SoMaterial()
+        self.points = vector3D(points)
+        self.color.diffuseColor = COLORS[color]
+        self.update()
+        self.addChild(self.color)
+        self.addChild(self.data)
+        self.addChild(self.ls)
+
+    def update(self, points=None):
+        if points is not None:
+            self.points = vector3D(points)
+        self.data.point.setValue(0, 0, 0)
+        self.data.point.setValues(0, len(self.points), self.points)
+
+    def set_color(self, color):
+        self.color.diffuseColor = COLORS[color]
+
 
 class Marker(coin.SoSeparator):
     def __init__(self, points=[], color="black"):
@@ -217,9 +239,8 @@ class Marker(coin.SoSeparator):
         self.marker.markerIndex = coin.SoMarkerSet.CIRCLE_FILLED_9_9
         self.data = coin.SoCoordinate3()
         self.color = coin.SoMaterial()
-        self.points = vector3D(points)
         self.color.diffuseColor = COLORS[color]
-        self.update()
+        self.update(points)
         self.addChild(self.color)
         self.addChild(self.data)
         self.addChild(self.marker)
@@ -229,6 +250,17 @@ class Marker(coin.SoSeparator):
             self.points = vector3D(points)
         self.data.point.setValue(0, 0, 0)
         self.data.point.setValues(0, len(self.points), self.points)
+
+    def set_color(self, color):
+        self.color.diffuseColor = COLORS[color]
+
+    @property
+    def pos(self):
+        return self.data.point.values()
+
+    @pos.setter
+    def pos(self, value):
+        self.update(value)
 
 
 
@@ -248,7 +280,7 @@ class Spline(Line):
 def vector3D(vec):
     if len(vec) == 0:
         return(vec)
-    elif not isinstance(vec[0], (list, tuple, numpy.ndarray)):
+    elif not isinstance(vec[0], (list, tuple, numpy.ndarray, App.Vector)):
         if len(vec) == 3:
             return vec
         elif len(vec) == 2:

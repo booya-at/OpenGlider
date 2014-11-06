@@ -17,7 +17,8 @@ class Glider_2D(object):
     def __init__(self,
                  front=None,    back=None,      cell_dist=None,
                  arc=None,      aoa=None,       cell_num=21,
-                 profiles=None, balls=None,      parametric=False):
+                 profiles=None, balls=None,      parametric=False,
+                 attachment_points=None):
         self.parametric = parametric    #set to False if you change glider 3d manually
         self.cell_num = cell_num  # updates cell pos
         self.front = front or SymmetricBezier()
@@ -27,6 +28,9 @@ class Glider_2D(object):
         self.aoa = aoa or BezierCurve()
         self.profiles = profiles or []
         self.balls = balls or []
+        self.lines = None
+        self.line_knots = None
+        self._attachment_points = attachment_points or []
 
     def __json__(self):
         return {
@@ -176,8 +180,7 @@ class Glider_2D(object):
         cells = []
 
 
-        # TODO airfoil, ballooning, arc-------
-        from openglider.airfoil import Profile2D
+        # TODO airfoil, ballooning-------
         airfoil = glider.ribs[0].profile_2d
         glide = 8.
         aoa = numpy.deg2rad(13.)
@@ -213,6 +216,28 @@ class Glider_2D(object):
             cells.append(Cell(ribs[i], rib, []))
             glider.cells = cells
 
+    @property
+    def attachment_points(self):
+        arr = []
+        _, front, back = self.shape()
+        xpos = [i[0] for i in front if i[0]>=0.]
+        for a_p in self._attachment_points:
+            pos = a_p.pos / 100.
+            i = a_p.rib
+            if i < len(xpos):
+                x = xpos[i]
+                j = i + len(front) - len(xpos)
+                chord = back[j][1] - front[j][1]
+                y = front[j][1] + pos * chord
+                arr.append([x, y])
+        return arr
+
+
+        # set up the lines here
+        # the data for the attachment_points is only stored in glider_2d
+        # make a new lineset from the 2d lines 
+        # and append it to the glider
+
 
 class ParaFoil(Profile2D):
     #TODO make new fit bezier methode to set the second x value of the controllpoints to zero.
@@ -220,6 +245,8 @@ class ParaFoil(Profile2D):
                  upper_spline=None, lower_spline=None):
         super(ParaFoil, self).__init__(data=data, name=name,
                                        normalize_root=normalize_root)
+        self.close()
+        self.normalize()
         self.upper_spline = upper_spline or self.fit_upper()
         self.lower_spline = lower_spline or self.fit_lower()
 
@@ -262,6 +289,10 @@ class ParaFoil(Profile2D):
             return points
         return [interpolation(i) for i in dist]
 
+class AttachmentPoint(object):
+    def __init__(self, rib, pos):
+        self.rib = rib
+        self.pos = pos
 
 
 if __name__ == "__main__":
