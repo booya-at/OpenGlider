@@ -61,7 +61,7 @@ class BasicProfile2D(Polygon2D):
         pass  # Maybe split up profilepoint function
 
     @staticmethod
-    def calculate_x_values(numpoints):
+    def cos_distribution(numpoints):
         """return cosinus distributed x-values"""
         numpoints -= numpoints % 2
         xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 - math.sin(math.pi * x))
@@ -218,7 +218,7 @@ class Profile2D(BasicProfile2D):
         p = int((naca % 1000) / 100) * 0.1  # second digit: Maximum Thickness position
         t = (naca % 100) * 0.01  # last two digits: Maximum Thickness(%)
         x_values = [1-math.sin((x * 1. / (numpoints-1)) * math.pi / 2) for x in range(numpoints)]
-        #x_values = self.calculate_x_values(numpoints)
+        #x_values = self.cos_distribution(numpoints)
 
         upper = []
         lower = []
@@ -268,13 +268,13 @@ class Profile2D(BasicProfile2D):
     @numpoints.setter
     def numpoints(self, num):
         """Set airfoil to cosinus-Distributed XValues"""
-        self.x_values = self.calculate_x_values(num)
+        self.x_values = self.cos_distribution(num)
 
     #todo: cached
     #@cached_property('self')
     @property
     def thickness(self):
-        """with no arg the max thick is returned"""
+        """return the maximum sickness (Sic!) of an airfoil"""
         xvals = sorted(set(map(abs, self.x_values)))
         return max([self.profilepoint(-i)[1][1] - self.profilepoint(i)[1][1] for i in xvals])
 

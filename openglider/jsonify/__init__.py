@@ -27,6 +27,9 @@ class Encoder(json.JSONEncoder):
 
 
 def object_hook(dct):
+    """
+    Return the de-serialized object
+    """
     if '_type' in dct and '_module' in dct:
         _module = dct['_module'].split('.')
         _type = dct['_type']

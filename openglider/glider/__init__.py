@@ -1,5 +1,3 @@
-
-
 from .glider import Glider
 from .glider_2d import Glider_2D, AttachmentPoint
 from .rib import Rib, MiniRib

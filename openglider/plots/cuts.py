@@ -71,10 +71,10 @@ def cut_2(inner_lists, outer_left, outer_right, amount, num_folds=2):
     new_left, new_right = openglider.vector.PolyLine2D(), openglider.vector.PolyLine2D()
 
     for i in range(num_folds):
-        left_this = left_piece if i%2 else left_piece_mirrored
-        right_this = right_piece if i%2 else right_piece_mirrored
-        left_this.shift(last_left-left_this[0])
-        right_this.shift(last_right-right_this[0])
+        left_this = left_piece if i % 2 else left_piece_mirrored
+        right_this = right_piece if i % 2 else right_piece_mirrored
+        left_this.move(last_left-left_this[0])
+        right_this.move(last_right-right_this[0])
         new_left += left_this
         new_right += right_this
         last_left, last_right = new_left.data[-1], new_right.data[-1]

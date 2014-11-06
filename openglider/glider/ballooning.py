@@ -154,7 +154,7 @@ from openglider.utils import config
 def interpolate_asinc(numpoints=1000, phi0=0, phi1=numpy.pi):
     """Set Global Interpolation Function arsinc"""
     global arsinc
-    print("interpolating")
+    #print("interpolating")
     (x, y) = ([], [])
     for i in range(numpoints + 1):
         phi = phi1 + (i * 1. / numpoints) * (phi0 - phi1)  # reverse for interpolation (increasing x_values)
@@ -162,5 +162,5 @@ def interpolate_asinc(numpoints=1000, phi0=0, phi1=numpy.pi):
         y.append(phi)
     arsinc = interp1d(x, y)
 
-# TODO: Do only when needed!
+# TODO: Do only when needed (singleton?)!
 interpolate_asinc(config['asinc_interpolation_points'])

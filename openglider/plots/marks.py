@@ -1,22 +1,22 @@
 import math
 from openglider.vector import rotation_2d, PolyLine2D
 
-sign_size = 0.8
+scale = 0.8
 
 
-def polygon(p1, p2, rotation=False, num=3, size=sign_size, is_center=False):
+def polygon(p1, p2, rotation=False, num=3, scale=scale, is_center=False):
     """Polygon"""
     if not is_center:
         center = (p1+p2)/2
     else:
         center = p1
-    diff = (p2-center) * size
+    diff = (p2-center) * scale
 
     return [PolyLine2D([center + rotation_2d(math.pi*2*i/num+rotation).dot(diff) for i in range(num+1)])]
 
 
-def triangle(p1, p2, size=sign_size):
-    return polygon(p1, p2, num=3, size=size)
+def triangle(p1, p2, scale=scale):
+    return polygon(p1, p2, num=3, scale=scale)
 
 
 def line(p1, p2, rotation=False):
