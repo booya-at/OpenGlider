@@ -96,12 +96,6 @@ class Line(CachedObject):
     #TODO: cached properties?
     def __init__(self, number, lower_node, upper_node, vinf, line_type=line_types.liros, target_length=None):
         """Line Class:
-        Note:
-            -for easier use the lines have it's nodes directly as variables!!!
-            -when you set some parameter of a node always use the node
-                dict and don't forget to update the lines.
-            -when you get parameters of nodes, you can the take them from
-                the node dict or from the nodes stored in the line.
             """
         self.number = number
         self.type = line_type  # type of line

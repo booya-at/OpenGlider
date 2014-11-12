@@ -1,4 +1,4 @@
-Konzept für Airfoil tool:
+Konzept fuer Airfoil tool:
 
 0. glider 2d bekommt ein airfoil attribut. Eine Liste die alle airfoils speichert
 (fitten vorerst weglassen und stattdessen ein std profil verwenden)
@@ -14,9 +14,9 @@ Konzept für Airfoil tool:
 2.75 doppelte namen vermeiden oder vielleicht ist es
 	eh egal? oder erst beim speichern in glider 2d 
 	schauen dass nix doppelt ist ???							????
-3.ausgewähltes profil anzeigen:
-	attribut current airfoil hinzufügen
-	funktion update airfoil hinzufügen							xxxx
+3.ausgewaehltes profil anzeigen:
+	attribut current airfoil hinzufuegen
+	funktion update airfoil hinzufuegen							xxxx
 4. speichern:
 	beim abbrechen nichts machen,
 	beim speichern glider2d liste erneuern und
@@ -28,41 +28,41 @@ Konzept für Airfoil tool:
 	ganz einfach im QAirfoil ein naca
 	berechnen (classmethode)
 7. fit airfoil: 
-fit methode ist nicht so gut wie sei eigentlich sein könnte. 
+fit methode ist nicht so gut wie sei eigentlich sein koennte. 
 Aber da sie beim Profil eigentlich nicht so viel Sinn macht lassen wir des besser so.
 
 	eventuell vorher ein profil mit 
-	konstanten stücken erzeugen. (funktioniert nicht gut!!!)
+	konstanten stuecken erzeugen. (funktioniert nicht gut!!!)
 	Bzw cos verteilung
 	zuerst dem profile 2d eine fit airfoil methode 
 	geben und diese werte als attribute 
 	nehmen (mitspeichern)
 	dann mit pivy das gefittete profil 
 	zeichnen und die controllpunkte ausgeben					xxxxxx
-8. anzahl an controllpunkten veränderlich 
+8. anzahl an controllpunkten veraenderlich 
 	machen (unterseite, oberseite)								sollte relativ einfach sein
 																aber wie?
 9. eigentlich fertig
 
 
 
-Konzept für Balloning_tool:
+Konzept fuer Balloning_tool:
 
 1. allgemein:
 
 	Ballooning ordnet jedem Punkt auf der Profiloberseite und jedem Punkt auf der Profilunterseite einen "Balloning-wert" zu. Die Funktion muss eindeutig sein.
 
-	Möglichkeiten:
+	Moeglichkeiten:
 
 		1. Direkte Vorgabe der Punkte -> Viel arbeit, nicht parametrisch
 		2. mittels einer Funktion y(x) -> Schwierig weil verschiedene funktionsbereiche
-		3. mittels Splines: eine Spline ist zu wenig, weil keine geraden strecken gemacht werden können
+		3. mittels Splines: eine Spline ist zu wenig, weil keine geraden strecken gemacht werden koennen
 		4. mittels polyline: kombination aus splines und line -> aufpassen dass die Spline nicht mehrdeutige werte liefert,
-			aufpassen dass die Spline (falls erwünscht) stetig diffbar ist (keine ecken)
+			aufpassen dass die Spline (falls erwuenscht) stetig diffbar ist (keine ecken)
 
 		????
 
 
-Konzep für Leinen tool:
+Konzep fuer Leinen tool:
 	
 	

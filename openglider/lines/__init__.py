@@ -160,6 +160,11 @@ class LineSet():
     def copy(self):
         return copy.deepcopy(self)
 
+    @classmethod
+    def from_2d(cls, lines, points):
+        pass
+
+
     def __json__(self):
         new = self.copy()
         nodes = list(new.nodes)
@@ -181,3 +186,7 @@ class LineSet():
             if isinstance(line.lower_node, int):
                 line.lower_node = nodes[line.lower_node]
         return cls(lines, v_inf)
+
+if __name__ == "__main__":
+    a = LineSet()
+    help(Node)

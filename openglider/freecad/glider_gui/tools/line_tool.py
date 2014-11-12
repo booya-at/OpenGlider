@@ -1,5 +1,6 @@
 from __future__ import division
 
+from openglider.glider.glider_2d import lw_att_point, up_att_point, batch_point, _line
 from _tools import base_tool, input_field, text_field, QtGui
 from pivy_primitives_new_new import Line, Marker, Container, coin
 from pivy_primitives import vector3D
@@ -7,32 +8,51 @@ from pivy_primitives import vector3D
 class line_tool(base_tool):
     def __init__(self, obj):
         super(line_tool, self).__init__(obj, widget_name="line tool")
-
-        # als erstes die listen wo des zeug gespeichert wird
-        self.point_list = []  #da kommen alle punkte rein
-        self.line_list = []  #da kommen alle leinen eini
-
         # jetzt des ganze qt zeugs:
         # 1: ein switcher der zwischen aufhaengepunkten und anderen umschaltet
-        self.toggle_tool = QtGui.QPushButton(self.base_widget)
         #2: ein weiteres form widget
-        self.tool_widget = QtGui.QWidget()
+        self.tool_widget = QtGui.QStackedWidget()
+        self.attach_x_val = QtGui.QDoubleSpinBox()
+        self.attach_y_val = QtGui.QDoubleSpinBox()
+        self.attach_z_val = QtGui.QDoubleSpinBox()
         self.tool_layout = QtGui.QFormLayout(self.tool_widget)
         self.setup_widget()
 
         self.shape = Container()
+        self.shape.selection_changed = self.selection_changed
         self.setup_pivy()
 
-
     def setup_widget(self):
-        self.tool_widget.setWindowTitle("toolz")
+        self.tool_widget.setWindowTitle("object properties")
         self.form.append(self.tool_widget)
 
-        self.toggle_tool.clicked.connect(self.change_tool)
-        self.layout.setWidget(1, text_field, QtGui.QLabel("switch tha tool"))
-        self.layout.setWidget(1, input_field, self.toggle_tool)
+        for spinbox in [self.attach_x_val, self.attach_y_val, self.attach_z_val]:
+            spinbox.setMaximum(10.)
+            spinbox.setMinimum(-10.)
 
-        self.tool_layout.setWidget(1, text_field, QtGui.QLabel("check out"))
+        temp_wid = QtGui.QWidget()
+        temp_lay = QtGui.QHBoxLayout(temp_wid)
+        temp_lay.addWidget(self.attach_x_val)
+        temp_lay.addWidget(self.attach_y_val)
+        temp_lay.addWidget(self.attach_z_val)
+        self.layout.setWidget(1, input_field, temp_wid)
+
+        self.none_widget = QtGui.QWidget()
+        self.line_widget = QtGui.QWidget()
+        self.attachment_widget = QtGui.QWidget()
+
+        self.line_layout = QtGui.QFormLayout(self.line_widget)
+        self.none_layout = QtGui.QFormLayout(self.none_widget)
+
+        self.target_length = QtGui.QDoubleSpinBox()
+        self.line_layout.setWidget(0, text_field, QtGui.QLabel("target length: "))
+        self.line_layout.setWidget(0, input_field, self.target_length)
+
+        self.target_length.valueChanged.connect(self.update_target_length)
+
+        self.tool_widget.addWidget(self.none_widget)
+        self.tool_widget.addWidget(self.line_widget)
+        self.tool_widget.setCurrentWidget(self.none_widget)
 
     def setup_pivy(self):
         self.shape.setName("shape")
@@ -45,6 +65,30 @@ class line_tool(base_tool):
             coin.SoKeyboardEvent.getClassTypeId(), self.line_cb)
         self.add_point = self.view.addEventCallbackPivy(
             coin.SoKeyboardEvent.getClassTypeId(), self.point_cb)
+
+
+
+    def selection_changed(self):
+        # je nach dem welches widget grad selektiert ist
+        # soll er ein widget einblenden.
+        # wenn mehrere elemente oder keinen ausgewaehlt ist dann nichts auswaehlen
+        if len(self.shape.select_object) == 1:
+            obj = self.shape.select_object[0]
+            if isinstance(obj, ConnectionLine):
+                self.tool_widget.setCurrentWidget(self.line_widget)
+                self.target_length.setValue(obj.target_length)
+            else:
+                self.tool_widget.setCurrentWidget(self.none_widget)
+        else:
+            self.tool_widget.setCurrentWidget(self.none_widget)
+
+    def update_target_length(self, *args):
+        try:
+            l = float(self.target_length.value())
+            self.shape.select_object[0].target_length = l
+        except Exception:
+            pass
+
 
     def line_cb(self, event_callback):
         # press g to move an entity
@@ -75,13 +119,30 @@ class line_tool(base_tool):
         self.shape.addChild(Line(front))
         self.shape.addChild(Line(back))
         self.shape.addChildren(map(Line, ribs))
-        att_pos = map(vector3D, self.glider_2d.attachment_points)
-        self.shape.addChildren(map(Attachment_Marker, att_pos))
+        for i in self.glider_2d.lineset.points:
+            if isinstance(i, up_att_point):
+                coord = i.get_2d(self.glider_2d)
+                obj = Attachment_Marker(vector3D(coord))
+                obj.temp_2d = i
+                self.shape.addChild(obj)
+            elif isinstance(i, (batch_point, lw_att_point)):
+                obj = LineMarker(vector3D(i.pos))
+                obj.temp_2d = i
+                self.shape.addChild(obj)
+        for i in self.glider_2d.lineset.lines:
+            m1 = self.get_marker(i.point1)
+            m2 = self.get_marker(i.point2)
+            target_length = i.target_length
+            obj = ConnectionLine(m1, m2)
+            obj.target_length = target_length
+            self.shape.addChild(obj)
 
-
-    def change_tool(self, *arg):
-        # switching between attachmentpoints and buendlepunkte
-        pass
+    def get_marker(self, obj_2d):
+        for i in self.shape.objects:
+            if isinstance(i, LineMarker):
+                if i.temp_2d == obj_2d:
+                    return i
+        return False
 
     def remove_all_callbacks(self):
         if self.add_line:
@@ -91,8 +152,66 @@ class line_tool(base_tool):
             self.view.removeEventCallbackPivy(
                 coin.SoKeyboardEvent.getClassTypeId(), self.add_point)
 
+    @property
+    def lower_attachment_points(self):
+        """find all the points that are once attached"""
+        once = []
+        twice = []
+        for obj in self.shape.objects:
+            if isinstance(obj, ConnectionLine):
+                for i in [obj.marker1, obj.marker2]:
+                    if not isinstance(i, Attachment_Marker):
+                        if i not in twice:
+                            if i not in once:
+                                once.append(i)
+                            else:
+                                once.remove(i)
+                                twice.append(i)
+        return once
+
+    @property
+    def line_is_selected(self):
+        #at the moment multiselection isn't supported
+        return (len(self.shape.objects) == 1 and
+            isinstance(self.shape.objects[0], ConnectionLine))
+
 
     def accept(self):
+        """glider 2d will recive the 2d information
+            the attachmentpoints are already stored.
+            the other points are stored into the batch_points list
+        """
+        lines = []
+        points = []
+
+        la = self.lower_attachment_points
+        la_pos = [self.attach_x_val.value(),
+                  self.attach_y_val.value(),
+                  self.attach_z_val.value()]
+        for obj in self.shape.objects:
+            # add the 2d objects to the graphical objects
+            if obj in la:
+                obj.temp_2d = lw_att_point(obj.pos, la_pos)
+                points.append(obj.temp_2d)
+
+            elif isinstance(obj, Attachment_Marker):
+                # allready stored 2d data
+                points.append(obj.temp_2d)
+
+            elif isinstance(obj, LineMarker):
+                obj.temp_2d = batch_point(obj.pos)
+                points.append(obj.temp_2d)
+
+        for obj in self.shape.objects:
+            if isinstance(obj, ConnectionLine):
+                l = _line(obj.marker1.temp_2d, obj.marker2.temp_2d)
+                l.target_length = obj.target_length
+                lines.append(l)
+
+
+        self.glider_2d.lineset.lines = lines
+        self.glider_2d.lineset.points = points
+
         self.shape.unregister()
         self.remove_all_callbacks()
         self.obj.glider_2d = self.glider_2d
@@ -115,6 +234,8 @@ class line_tool(base_tool):
 class LineMarker(Marker):
     def __init__(self, pos):
         super(LineMarker, self).__init__([pos], dynamic=True)
+        self.temp_2d = None
+        self.force = 1.
 
     @property
     def pos(self):
@@ -124,8 +245,11 @@ class LineMarker(Marker):
     def pos(self, pos):
         self.points = [pos]
 
-
 class Attachment_Marker(LineMarker):
+    def __init__(self, pos):
+        super(Attachment_Marker, self).__init__(pos)
+        self.force = 1.
+
     def drag(self, *arg):
         pass
 
@@ -137,6 +261,8 @@ class ConnectionLine(Line):
         self.marker2 = marker2
         self.marker1.on_drag.append(self.update_Line)
         self.marker2.on_drag.append(self.update_Line)
+        self.drawstyle.lineWidth = 2.
+        self.target_length = 1.
 
     def update_Line(self):
         self.points = [self.marker1.pos, self.marker2.pos]

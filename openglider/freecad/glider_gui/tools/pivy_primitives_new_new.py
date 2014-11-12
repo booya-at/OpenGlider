@@ -90,8 +90,10 @@ class Marker(Object3D):
 class Line(Object3D):
     def __init__(self, points, dynamic=False):
         super(Line, self).__init__(dynamic)
+        self.drawstyle = coin.SoDrawStyle()
         self.line = coin.SoLineSet()
         self.points = points
+        self.addChild(self.drawstyle)
         self.addChild(self.line)
 
 
@@ -133,6 +135,10 @@ class Container(coin.SoSeparator):
             else:
                 self.select_object.append(obj)
         self.ColorSelected()
+        self.selection_changed()
+
+    def selection_changed():
+        pass
 
     def ColorSelected(self):
         for obj in self.select_object:

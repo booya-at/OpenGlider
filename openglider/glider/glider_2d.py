@@ -9,16 +9,16 @@ from openglider.utils import sign
 from openglider.airfoil import Profile2D
 
 
-class Glider_2D(object):
+class Glider_2D(dict):
     """
-        a glider 2D object used for gui inputs
+        a glider 2D object used for gui input
     """
 
     def __init__(self,
                  front=None,    back=None,      cell_dist=None,
                  arc=None,      aoa=None,       cell_num=21,
-                 profiles=None, balls=None,      parametric=False,
-                 attachment_points=None):
+                 profiles=None, balls=None,     parametric=False,
+                 attachment_points=None,  lineset=None):
         self.parametric = parametric    #set to False if you change glider 3d manually
         self.cell_num = cell_num  # updates cell pos
         self.front = front or SymmetricBezier()
@@ -30,13 +30,14 @@ class Glider_2D(object):
         self.balls = balls or []
         self.lines = None
         self.line_knots = None
-        self._attachment_points = attachment_points or []
+        self.lineset = lineset or _lineset([], [])
 
     def __json__(self):
         return {
             "front": self.front,
             "back": self.back,
-            "cell_dist": self.cell_dist
+            "cell_dist": self.cell_dist,
+
         }
 
     def arc_pos(self, num=50):
@@ -215,23 +216,30 @@ class Glider_2D(object):
         for i, rib in enumerate(ribs[1:]):
             cells.append(Cell(ribs[i], rib, []))
             glider.cells = cells
+        glider.close_rib()
+
+# glider lineset from 2d:
+# 1 get the attachment point and harnessattach point in 3d
+# 2 create nodes from them
+# 3 create the lines and the lineset
 
     @property
     def attachment_points(self):
+        """coordinates of the attachment_points"""
         arr = []
         _, front, back = self.shape()
         xpos = [i[0] for i in front if i[0]>=0.]
-        for a_p in self._attachment_points:
-            pos = a_p.pos / 100.
-            i = a_p.rib
-            if i < len(xpos):
-                x = xpos[i]
-                j = i + len(front) - len(xpos)
-                chord = back[j][1] - front[j][1]
-                y = front[j][1] + pos * chord
-                arr.append([x, y])
+        for a_p in self.lineset.points:
+            if isinstance(a_p, up_att_point):
+                pos = a_p._pos / 100.
+                i = a_p.rib
+                if i < len(xpos):
+                    x = xpos[i]
+                    j = i + len(front) - len(xpos)
+                    chord = back[j][1] - front[j][1]
+                    y = front[j][1] + pos * chord
+                    arr.append([x, y])
         return arr
-
 
         # set up the lines here
         # the data for the attachment_points is only stored in glider_2d
@@ -289,11 +297,55 @@ class ParaFoil(Profile2D):
             return points
         return [interpolation(i) for i in dist]
 
-class AttachmentPoint(object):
-    def __init__(self, rib, pos):
-        self.rib = rib
-        self.pos = pos
 
+#######################################line objects######################################
+
+class lw_att_point(object):
+    """lower attachment point"""
+    def __init__(self, pos, pos3d):
+        self.pos = pos
+        self.pos3d = pos3d
+
+
+class up_att_point(object):
+    """stores the 2d data of an attachment point"""
+    def __init__(self, rib, pos, force = 1.):
+        self.rib = rib
+        self._pos = pos # value from 0...100
+        self.force = force
+
+    def get_2d(self, glider): 
+        _, front, back = glider.shape()
+        xpos = [i[0] for i in front if i[0]>=0.]
+        pos = self._pos / 100.
+        if self.rib < len(xpos):
+            x = xpos[self.rib]
+            j = self.rib + len(front) - len(xpos)
+            chord = back[j][1] - front[j][1]
+            y = front[j][1] + pos * chord
+            return x,y
+
+    @property
+    def pos_3d(self, glider):
+        # get rib from glider
+        # get x, y , z value of rib pos
+        pass
+
+
+class batch_point(object):
+    def __init__(self, pos):
+        self.pos = pos  #pos = 2d coordinates
+
+
+class _lineset(list):
+    def __init__(self, line_list, point_list):
+        self.lines = line_list
+        self.points = point_list
+
+class _line(object):
+    def __init__(self, point1, point2):
+        self.point1 = point1
+        self.point2 = point2
 
 if __name__ == "__main__":
     a = ParaFoil.compute_naca()
