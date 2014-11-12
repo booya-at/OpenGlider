@@ -110,6 +110,12 @@ class OGGliderVP(OGBaseVP):
                 sep.addChild(vertexproperty)
                 sep.addChild(mesh)
                 self.vis_glider.addChild(sep)
+        self.vis_lines.removeAllChildren()
+        for line in glider.lineset.lines:
+            self.vis_lines.addChild(Line(line.get_line_points()).object)
+
+
+
 
     def onChanged(self, vp, prop):
         self.updateData()

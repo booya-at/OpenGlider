@@ -2,7 +2,7 @@ from __future__ import division
 
 from openglider.glider.glider_2d import lw_att_point, up_att_point, batch_point, _line
 from _tools import base_tool, input_field, text_field, QtGui
-from pivy_primitives_new_new import Line, Marker, Container, coin
+from pivy_primitives_new_new import Line, Marker, Container, coin, COLORS
 from pivy_primitives import vector3D
 
 class line_tool(base_tool):
@@ -12,9 +12,6 @@ class line_tool(base_tool):
         # 1: ein switcher der zwischen aufhaengepunkten und anderen umschaltet
         #2: ein weiteres form widget
         self.tool_widget = QtGui.QStackedWidget()
-        self.attach_x_val = QtGui.QDoubleSpinBox()
-        self.attach_y_val = QtGui.QDoubleSpinBox()
-        self.attach_z_val = QtGui.QDoubleSpinBox()
         self.tool_layout = QtGui.QFormLayout(self.tool_widget)
         self.setup_widget()
 
@@ -26,32 +23,47 @@ class line_tool(base_tool):
         self.tool_widget.setWindowTitle("object properties")
         self.form.append(self.tool_widget)
 
-        for spinbox in [self.attach_x_val, self.attach_y_val, self.attach_z_val]:
-            spinbox.setMaximum(10.)
-            spinbox.setMinimum(-10.)
-
         temp_wid = QtGui.QWidget()
         temp_lay = QtGui.QHBoxLayout(temp_wid)
-        temp_lay.addWidget(self.attach_x_val)
-        temp_lay.addWidget(self.attach_y_val)
-        temp_lay.addWidget(self.attach_z_val)
         self.layout.setWidget(1, input_field, temp_wid)
 
         self.none_widget = QtGui.QWidget()
         self.line_widget = QtGui.QWidget()
-        self.attachment_widget = QtGui.QWidget()
+        self.lw_att_wid = QtGui.QWidget()
+        self.up_att_wid = QtGui.QWidget()
 
+        self.up_att_lay = QtGui.QFormLayout(self.up_att_wid)
+        self.lw_att_lay = QtGui.QFormLayout(self.lw_att_wid)
         self.line_layout = QtGui.QFormLayout(self.line_widget)
         self.none_layout = QtGui.QFormLayout(self.none_widget)
 
         self.target_length = QtGui.QDoubleSpinBox()
         self.line_layout.setWidget(0, text_field, QtGui.QLabel("target length: "))
         self.line_layout.setWidget(0, input_field, self.target_length)
-
         self.target_length.valueChanged.connect(self.update_target_length)
 
+        self.attach_x_val = QtGui.QDoubleSpinBox()
+        self.attach_y_val = QtGui.QDoubleSpinBox()
+        self.attach_z_val = QtGui.QDoubleSpinBox()
+
+        for spinbox in [self.attach_x_val, self.attach_y_val, self.attach_z_val]:
+            spinbox.setMaximum(10.)
+            spinbox.setMinimum(-10.)
+            spinbox.valueChanged.connect(self.update_lw_att_pos)
+
+        self.lw_att_lay.addWidget(self.attach_x_val)
+        self.lw_att_lay.addWidget(self.attach_y_val)
+        self.lw_att_lay.addWidget(self.attach_z_val)
+
+        self.up_att_force = QtGui.QDoubleSpinBox()
+        self.up_att_lay.setWidget(0, text_field, QtGui.QLabel("force"))
+        self.up_att_lay.setWidget(0, input_field, self.up_att_force)
+        self.up_att_force.valueChanged.connect(self.update_up_att_force)
+       
         self.tool_widget.addWidget(self.none_widget)
         self.tool_widget.addWidget(self.line_widget)
+        self.tool_widget.addWidget(self.lw_att_wid)
+        self.tool_widget.addWidget(self.up_att_wid)
         self.tool_widget.setCurrentWidget(self.none_widget)
 
     def setup_pivy(self):
@@ -74,9 +86,21 @@ class line_tool(base_tool):
         # wenn mehrere elemente oder keinen ausgewaehlt ist dann nichts auswaehlen
         if len(self.shape.select_object) == 1:
             obj = self.shape.select_object[0]
-            if isinstance(obj, ConnectionLine):
+            if (isinstance(obj, ConnectionLine) and not
+                (isinstance(obj.marker1, Upper_Att_Marker) or
+                 isinstance(obj.marker2, Upper_Att_Marker))):
                 self.tool_widget.setCurrentWidget(self.line_widget)
                 self.target_length.setValue(obj.target_length)
+            elif isinstance(obj, Lower_Att_Marker):
+                self.tool_widget.setCurrentWidget(self.lw_att_wid)
+                x, y, z = obj.pos3D
+                self.attach_x_val.setValue(x)
+                self.attach_y_val.setValue(y)
+                self.attach_z_val.setValue(z)
+            elif isinstance(obj, Upper_Att_Marker):
+                self.tool_widget.setCurrentWidget(self.up_att_wid)
+                self.up_att_force.setValue(obj.force)
+
             else:
                 self.tool_widget.setCurrentWidget(self.none_widget)
         else:
@@ -87,8 +111,22 @@ class line_tool(base_tool):
             l = float(self.target_length.value())
             self.shape.select_object[0].target_length = l
         except Exception:
-            pass
+            print(Exception)
 
+    def update_lw_att_pos(self, *args):
+        try:
+            x = self.attach_x_val.value()
+            y = self.attach_y_val.value()
+            z = self.attach_z_val.value()
+            self.shape.select_object[0].pos3D = [x,y,z]
+        except Exception:
+            print(Exception)
+
+    def update_up_att_force(self, *args):
+        try:
+            self.shape.select_object[0].force = self.up_att_force.value()
+        except Exception:
+            print(Exception)
 
     def line_cb(self, event_callback):
         # press g to move an entity
@@ -100,18 +138,30 @@ class line_tool(base_tool):
             if len(objs) == 2:
                 if (isinstance(objs[0], LineMarker) and
                     isinstance(objs[1], LineMarker)):
-                    line =ConnectionLine(objs[0], objs[1])
+                    line = ConnectionLine(objs[0], objs[1])
                     self.shape.addChild(line)
+            elif len(objs) == 1:
+                if (isinstance(objs[0], LineMarker)):
+                    marker2 = self.point_cb(event_callback, force=True)
+                    if marker2:
+                        line = ConnectionLine(objs[0], marker2)
+                        self.shape.addChild(line)
+                        self.shape.Select(marker2)
+                        self.shape.selection_changed()
 
-    def point_cb(self, event_callback):
+    def point_cb(self, event_callback, force=False):
         event = event_callback.getEvent()
-        if (event.getKey() == ord("a") and
-            event.getState() == 1):
+        if ((event.getKey() == ord("a") or force) and
+            (event.getState() == 1 or event.wasCtrlDown())):
             pos = event.getPosition()
             pos3D = self.view.getPoint(*pos)
             pos3D[-1] = 0.
-            point = LineMarker(pos3D)
+            if event.wasCtrlDown():
+                point = Lower_Att_Marker(pos3D)
+            else:
+                point = LineMarker(pos3D)
             self.shape.addChild(point)
+            return(point)
 
     def draw_shape(self):
         ribs, front, back = map(vector3D, self.glider_2d.shape())
@@ -122,16 +172,23 @@ class line_tool(base_tool):
         for i in self.glider_2d.lineset.points:
             if isinstance(i, up_att_point):
                 coord = i.get_2d(self.glider_2d)
-                obj = Attachment_Marker(vector3D(coord))
+                obj = Upper_Att_Marker(vector3D(coord))
                 obj.temp_2d = i
+                obj.force = i.force
                 self.shape.addChild(obj)
-            elif isinstance(i, (batch_point, lw_att_point)):
+            elif isinstance(i, batch_point):
                 obj = LineMarker(vector3D(i.pos))
                 obj.temp_2d = i
                 self.shape.addChild(obj)
+            elif isinstance(i, lw_att_point):
+                obj = Lower_Att_Marker(vector3D(i.pos))
+                obj.pos3D = i.pos3D
+                obj.temp_2d = i
+                self.shape.addChild(obj)
+            
         for i in self.glider_2d.lineset.lines:
-            m1 = self.get_marker(i.point1)
-            m2 = self.get_marker(i.point2)
+            m1 = self.get_marker(i.lower_point)
+            m2 = self.get_marker(i.upper_point)
             target_length = i.target_length
             obj = ConnectionLine(m1, m2)
             obj.target_length = target_length
@@ -153,23 +210,6 @@ class line_tool(base_tool):
                 coin.SoKeyboardEvent.getClassTypeId(), self.add_point)
 
     @property
-    def lower_attachment_points(self):
-        """find all the points that are once attached"""
-        once = []
-        twice = []
-        for obj in self.shape.objects:
-            if isinstance(obj, ConnectionLine):
-                for i in [obj.marker1, obj.marker2]:
-                    if not isinstance(i, Attachment_Marker):
-                        if i not in twice:
-                            if i not in once:
-                                once.append(i)
-                            else:
-                                once.remove(i)
-                                twice.append(i)
-        return once
-
-    @property
     def line_is_selected(self):
         #at the moment multiselection isn't supported
         return (len(self.shape.objects) == 1 and
@@ -184,18 +224,15 @@ class line_tool(base_tool):
         lines = []
         points = []
 
-        la = self.lower_attachment_points
-        la_pos = [self.attach_x_val.value(),
-                  self.attach_y_val.value(),
-                  self.attach_z_val.value()]
         for obj in self.shape.objects:
             # add the 2d objects to the graphical objects
-            if obj in la:
-                obj.temp_2d = lw_att_point(obj.pos, la_pos)
+            if isinstance(obj, Lower_Att_Marker):
+                obj.temp_2d = lw_att_point(obj.pos, obj.pos3D)
                 points.append(obj.temp_2d)
 
-            elif isinstance(obj, Attachment_Marker):
+            elif isinstance(obj, Upper_Att_Marker):
                 # allready stored 2d data
+                obj.temp_2d.force = obj.force
                 points.append(obj.temp_2d)
 
             elif isinstance(obj, LineMarker):
@@ -211,7 +248,8 @@ class line_tool(base_tool):
 
         self.glider_2d.lineset.lines = lines
         self.glider_2d.lineset.points = points
-
+        
+        self.glider_2d.glider_3d(self.obj.glider_instance)
         self.shape.unregister()
         self.remove_all_callbacks()
         self.obj.glider_2d = self.glider_2d
@@ -219,7 +257,6 @@ class line_tool(base_tool):
 
     def reject(self):
         self.shape.unregister()
-        self.remove_cb()
         self.remove_all_callbacks()
         super(line_tool, self).reject()
 
@@ -232,10 +269,9 @@ class line_tool(base_tool):
 
 
 class LineMarker(Marker):
-    def __init__(self, pos):
-        super(LineMarker, self).__init__([pos], dynamic=True)
+    def __init__(self, pos, std_col="black", ovr_col="red", sel_col="yellow"):
+        super(LineMarker, self).__init__([pos], dynamic=True,  std_col=std_col, ovr_col=ovr_col, sel_col=sel_col)
         self.temp_2d = None
-        self.force = 1.
 
     @property
     def pos(self):
@@ -245,13 +281,30 @@ class LineMarker(Marker):
     def pos(self, pos):
         self.points = [pos]
 
-class Attachment_Marker(LineMarker):
+
+class Upper_Att_Marker(LineMarker):
     def __init__(self, pos):
-        super(Attachment_Marker, self).__init__(pos)
+        super(Upper_Att_Marker, self).__init__(pos, std_col="blue")
         self.force = 1.
 
     def drag(self, *arg):
         pass
+
+    def delete(self):
+        pass
+
+class Lower_Att_Marker(LineMarker):
+    def __init__(self, pos):
+        super(Lower_Att_Marker, self).__init__(pos, std_col="green")
+        self.pos3D = [0, 0, 0]
+
+    @property
+    def pos(self):
+        return(self.points[0])
+
+    @pos.setter
+    def pos(self, pos):
+        self.points = [pos]
 
 
 class ConnectionLine(Line):
@@ -262,7 +315,7 @@ class ConnectionLine(Line):
         self.marker1.on_drag.append(self.update_Line)
         self.marker2.on_drag.append(self.update_Line)
         self.drawstyle.lineWidth = 2.
-        self.target_length = 1.
+        self.target_length = None
 
     def update_Line(self):
         self.points = [self.marker1.pos, self.marker2.pos]
@@ -284,3 +337,7 @@ class ConnectionLine(Line):
         p = [[pi[0], pi[1], pi[2] -0.001] for pi in points]
         self.data.point.setValue(0, 0, 0)
         self.data.point.setValues(0, len(p), p)
+
+    def check_dependency(self):
+        if self.marker1._delete or self.marker2._delete:
+            self.delete()

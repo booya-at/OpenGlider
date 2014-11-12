@@ -10,9 +10,6 @@ COLORS = {
     "yellow": (0., 1., 0.)
 }
 
-COL_STD = COLORS["black"]
-COL_OVR = COLORS["red"]
-COL_SEL = COLORS["yellow"]
 
 
 
@@ -24,11 +21,14 @@ COL_SEL = COLORS["yellow"]
 class Object3D(coin.SoSeparator):
     """addiditional to coin this list stores all the geometry"""
     # point, line, polygon
-    def __init__(self, dynamic=False):
+    def __init__(self, dynamic=False, std_col="black", ovr_col="red", sel_col="yellow"):
         super(Object3D, self).__init__()
+        self._sel_color = COLORS[sel_col]
+        self._ovr_color = COLORS[ovr_col]
+        self._std_color = COLORS[std_col]
         self.data = coin.SoCoordinate3()
         self.color = coin.SoMaterial()
-        self.color.diffuseColor = COL_STD
+        self.color.diffuseColor = self._std_color
         self.addChild(self.color)
         self.addChild(self.data)
         self.start_pos = None
@@ -36,6 +36,7 @@ class Object3D(coin.SoSeparator):
         self.on_drag = []
         self.on_drag_release = []
         self.on_drag_start = []
+        self._delete = False
 
     @property
     def points(self):
@@ -47,16 +48,16 @@ class Object3D(coin.SoSeparator):
         self.data.point.setValues(0, len(points), points)
 
     def set_mouse_over(self):
-        self.color.diffuseColor = COL_OVR
+        self.color.diffuseColor = self._ovr_color
 
     def unset_mouse_over(self):
-        self.color.diffuseColor = COL_STD
+        self.color.diffuseColor = self._std_color
 
     def select(self):
-        self.color.diffuseColor = COL_SEL
+        self.color.diffuseColor = self._sel_color
 
     def unselect(self):
-        self.color.diffuseColor = COL_STD
+        self.color.diffuseColor = self._std_color
 
     def drag(self, mouse_coords, fact=1.):
         pts = self.points
@@ -72,15 +73,17 @@ class Object3D(coin.SoSeparator):
     def drag_objects(self):
         return [self]
 
-    @property
     def delete(self):
-        self.objects.remove(self)
         self.removeAllChildren()
+        self._delete = True
+
+    def check_dependency(self):
+        pass
 
 
 class Marker(Object3D):
-    def __init__(self, points, dynamic=False):
-        super(Marker, self).__init__(dynamic=dynamic)
+    def __init__(self, points, dynamic=False, std_col="black", ovr_col="red", sel_col="yellow"):
+        super(Marker, self).__init__(dynamic, std_col, ovr_col, sel_col)
         self.marker = coin.SoMarkerSet()
         self.marker.markerIndex = coin.SoMarkerSet.CIRCLE_FILLED_9_9
         self.points = points
@@ -88,8 +91,8 @@ class Marker(Object3D):
 
 
 class Line(Object3D):
-    def __init__(self, points, dynamic=False):
-        super(Line, self).__init__(dynamic)
+    def __init__(self, points, dynamic=False, std_col="black", ovr_col="red", sel_col="yellow"):
+        super(Line, self).__init__(dynamic, std_col, ovr_col, sel_col)
         self.drawstyle = coin.SoDrawStyle()
         self.line = coin.SoLineSet()
         self.points = points
@@ -223,6 +226,13 @@ class Container(coin.SoSeparator):
                 self.drag = self.view.addEventCallbackPivy(
                     coin.SoEvent.getClassTypeId(), self.drag_cb)
 
+    def delete_cb(self, event_callback):
+        event = event_callback.getEvent()
+        # get all drag objects, every selected object can add some drag objects
+        # but the eventhandler is not allowed to call the drag twice on an object
+        if event.getKey() == ord("x"):
+            self.removeSelected()
+
     def register(self, view):
         self.view = view
         self.mouse_over = self.view.addEventCallbackPivy(
@@ -231,6 +241,8 @@ class Container(coin.SoSeparator):
             coin.SoMouseButtonEvent.getClassTypeId(), self.select_cb)
         self.grab = self.view.addEventCallbackPivy(
             coin.SoKeyboardEvent.getClassTypeId(), self.grab_cb)
+        self.delete = self.view.addEventCallbackPivy(
+            coin.SoKeyboardEvent.getClassTypeId(), self.delete_cb)
 
     def unregister(self):
         self.view.removeEventCallbackPivy(
@@ -239,6 +251,24 @@ class Container(coin.SoSeparator):
             coin.SoMouseButtonEvent.getClassTypeId(), self.select)
         self.view.removeEventCallbackPivy(
             coin.SoKeyboardEvent.getClassTypeId(), self.grab)
+        self.view.removeEventCallbackPivy(
+            coin.SoKeyboardEvent.getClassTypeId(), self.delete)
+
+    def removeSelected(self):
+        temp = []
+        for i in self.select_object:
+            i.delete()
+        for i in self.objects:
+            i.check_dependency()    #dependency length max = 1
+        for i in self.objects:
+            if i._delete:
+                temp.append(i)
+        self.select_object = []
+        self.over_object = None
+        for i in temp:
+            self.objects.remove(i)
+            self.removeChild(i)
+        self.selection_changed()
 
     def removeAllChildren(self):
         print("i was called")
@@ -246,6 +276,7 @@ class Container(coin.SoSeparator):
             i.delete()
         self.objects = []
         super(Container, self).removeAllChildren()
+
 
 
 from openglider.utils.bezier import BezierCurve, SymmetricBezier

@@ -3,10 +3,12 @@ import copy
 
 import scipy.interpolate
 import numpy
+
 from openglider.vector import norm, normalize, rotation_2d, mirror2D_x
 from openglider.utils.bezier import BezierCurve, SymmetricBezier
 from openglider.utils import sign
 from openglider.airfoil import Profile2D
+from openglider.lines import Node, Line, LineSet
 
 
 class Glider_2D(dict):
@@ -18,7 +20,7 @@ class Glider_2D(dict):
                  front=None,    back=None,      cell_dist=None,
                  arc=None,      aoa=None,       cell_num=21,
                  profiles=None, balls=None,     parametric=False,
-                 attachment_points=None,  lineset=None):
+                 attachment_points=None,  lineset=None, v_inf=None):
         self.parametric = parametric    #set to False if you change glider 3d manually
         self.cell_num = cell_num  # updates cell pos
         self.front = front or SymmetricBezier()
@@ -31,6 +33,7 @@ class Glider_2D(dict):
         self.lines = None
         self.line_knots = None
         self.lineset = lineset or _lineset([], [])
+        self.v_inf = v_inf or [10., 0., 1.]
 
     def __json__(self):
         return {
@@ -218,10 +221,39 @@ class Glider_2D(dict):
             glider.cells = cells
         glider.close_rib()
 
-# glider lineset from 2d:
-# 1 get the attachment point and harnessattach point in 3d
-# 2 create nodes from them
-# 3 create the lines and the lineset
+
+        # lines have to be sorted!!!
+        # lower node ->upper node
+        # first got the lowest points (lw-att)
+        # now get the connected lines
+        # get the other point (change the nodes if necesarry)
+        # setting up the lines!
+        lines = []
+        lowest = [i for i in self.lineset.points if isinstance(i, lw_att_point)]
+        for i in lowest:
+            self.sort_lines(i)
+        for i in self.lineset.points:
+            n = None
+            if isinstance(i, up_att_point):
+                print(i.pos3D(glider))
+                n = Node(node_type=2, position_vector=numpy.array(i.pos3D(glider)))
+                print(i.force)
+                n.force = numpy.array([0., 0., i.force])
+            elif isinstance(i, lw_att_point):
+                n = Node(node_type=0, position_vector=numpy.array(i.pos3D))
+            elif isinstance(i, batch_point):
+                n = Node(node_type=1)
+            if n:
+                i.temp_node = n     #storing the nodes to remember them with the lines
+        for i, l in enumerate(self.lineset.lines):
+            lower = l.lower_point.temp_node
+            upper = l.upper_point.temp_node
+            line = Line(number=i, lower_node=lower, upper_node=upper, vinf=self.v_inf, target_length=l.target_length)
+            lines.append(line)
+        glider.lineset = LineSet(lines, self.v_inf)
+        glider.lineset.calc_geo()
+        glider.lineset.calc_sag()
+
 
     @property
     def attachment_points(self):
@@ -245,6 +277,20 @@ class Glider_2D(dict):
         # the data for the attachment_points is only stored in glider_2d
         # make a new lineset from the 2d lines 
         # and append it to the glider
+
+    #########LINE SORTING...###############
+
+    def sort_lines(self, lower_att):
+        for line in self.lineset.lines:
+            if line.lower_point == lower_att and not line.is_sorted:
+                line.is_sorted = True
+                self.sort_lines(line.upper_point)
+            elif line.upper_point == lower_att and not line.is_sorted:
+                temp = line.lower_point
+                line.lower_point = line.upper_point
+                line.upper_point = temp
+                line.is_sorted = True
+                self.sort_lines(line.upper_point)
 
 
 class ParaFoil(Profile2D):
@@ -302,9 +348,9 @@ class ParaFoil(Profile2D):
 
 class lw_att_point(object):
     """lower attachment point"""
-    def __init__(self, pos, pos3d):
+    def __init__(self, pos, pos3D):
         self.pos = pos
-        self.pos3d = pos3d
+        self.pos3D = pos3D
 
 
 class up_att_point(object):
@@ -314,8 +360,8 @@ class up_att_point(object):
         self._pos = pos # value from 0...100
         self.force = force
 
-    def get_2d(self, glider): 
-        _, front, back = glider.shape()
+    def get_2d(self, glider_2d):
+        _, front, back = glider_2d.shape()
         xpos = [i[0] for i in front if i[0]>=0.]
         pos = self._pos / 100.
         if self.rib < len(xpos):
@@ -325,11 +371,10 @@ class up_att_point(object):
             y = front[j][1] + pos * chord
             return x,y
 
-    @property
-    def pos_3d(self, glider):
-        # get rib from glider
-        # get x, y , z value of rib pos
-        pass
+    def pos3D(self, glider):
+        rib = glider.ribs[self.rib]
+        return rib.profile_3d[rib.profile_2d.profilepoint(self._pos / 100)[0]]
+
 
 
 class batch_point(object):
@@ -343,9 +388,12 @@ class _lineset(list):
         self.points = point_list
 
 class _line(object):
-    def __init__(self, point1, point2):
-        self.point1 = point1
-        self.point2 = point2
+    def __init__(self, lower_point, upper_point):
+        self.lower_point = lower_point
+        self.upper_point = upper_point
+        self.target_length = None
+        self.is_sorted = False
+
 
 if __name__ == "__main__":
     a = ParaFoil.compute_naca()
