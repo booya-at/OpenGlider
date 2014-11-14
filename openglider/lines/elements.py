@@ -64,7 +64,7 @@ class SagMatrix():
         infl_list = []
         vec = line.diff_vector_projected
         for u in upper_lines:
-            infl = line.force_projected * numpy.dot(vec, u.diff_vector_projected)
+            infl = u.force_projected * numpy.dot(vec, u.diff_vector_projected)
             infl_list.append(infl)
         sum_infl = sum(infl_list)
         for k in range(len(upper_lines)):
@@ -218,7 +218,7 @@ class Node(object):
 
     def calc_force_infl(self, vec):
         v = numpy.array(vec)
-        return normalize(self.vec - v) / proj_force(self.force, self.vec - v)
+        return normalize(self.vec - v) * proj_force(self.force, self.vec - v)
 
     def calc_proj_vec(self, v_inf):
         self.vec_proj = proj_to_surface(self.vec, v_inf)
