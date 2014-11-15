@@ -66,7 +66,6 @@ class panel_methode_2d():
             for wake in self.wake_panels:
                 d_0 = self._douplet_const(self.panel_mids[i], wake)
                 self.mat_douplet_cooef[i][0] -= d_0
-                print(self.mat_douplet_cooef[i][0])
                 self.mat_douplet_cooef[i][-1] += d_0 
 
     def create_bc_vec(self):
@@ -135,6 +134,16 @@ class panel_methode_2d():
             stream.append(copy(p))
             if p[0] > abbortx:
                 return stream
+        return stream
+
+    def potentialline(self, point=[0., 0.5], dist=0.1, steps=10):
+        p = numpy.array(point)
+        stream = [copy(p)]
+        for i in range(steps):
+            vect = vector.normalize(self.global_velocity(p))
+            vect = numpy.array([vect[1], -vect[0]])
+            p += vect * dist
+            stream.append(copy(p))
         return stream
 
 
@@ -228,9 +237,11 @@ def graphics_test():
         dip = pan.douplet[i]
         arrows.append([mid, mid + normal * cp / 30])
     arrows = numpy.array(arrows)
-    stream = [pan.streamline(point=[-0.1, i], dist=0.01, steps=100) for i in numpy.linspace(-0.2,0.2,20)]
+    stream = [pan.streamline(point=[-0.1, i], dist=0.02, steps=50) for i in numpy.linspace(-0.2,0.2,20)]
+    pot = [pan.potentialline(point=p, dist=0.02, steps=50) for p in pan.panel_mids[::5]]
     Graphics3D(
         map(Line, stream) + 
+        map(Line, pot) +
         map(Line, pan.panel) +
         # [Line(pan.airfoil)] + 
         # [Line(arrows[:, 1])]+

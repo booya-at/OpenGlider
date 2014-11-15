@@ -1,0 +1,24 @@
+TEST_INPUT_FILE_1
+
+NODES
+#   n_nr	TYP		x		y		z			fx			fy			fz      
+	0		0		0.		0.		0.			None		None		None
+	1		1		None	None	None		None		None 		None
+	2		2		0.0		0.		1.5			0			0 			100
+	3		2		0.0		1.		1.5			0			0 			0.1
+	4		2		0.0		2.		1.5			0			0 			0.1
+
+LINES
+#   l_nr    LOWER 	UPPER	LENGTH	TYP
+	0		0		1		0.5		liros
+	1		1		2		None	liros
+	2		1		3		None	liros
+	3		1		4		None	liros
+
+LINEPAR
+#	TYP		CW		B		STRETCH
+	liros	1.		0.1		0.1
+
+CALCPAR
+#	GEOSTEPS		SAGSTEPS		ITER		SPEED		GLIDE
+	2				10				10			10			4

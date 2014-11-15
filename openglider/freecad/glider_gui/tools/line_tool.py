@@ -242,7 +242,9 @@ class line_tool(base_tool):
         for obj in self.shape.objects:
             if isinstance(obj, ConnectionLine):
                 l = _line(obj.marker1.temp_2d, obj.marker2.temp_2d)
-                l.target_length = obj.target_length
+                if not (isinstance(obj.marker1, Upper_Att_Marker) or
+                        isinstance(obj.marker2, Upper_Att_Marker)):
+                    l.target_length = obj.target_length
                 lines.append(l)
 
 
@@ -315,7 +317,7 @@ class ConnectionLine(Line):
         self.marker1.on_drag.append(self.update_Line)
         self.marker2.on_drag.append(self.update_Line)
         self.drawstyle.lineWidth = 2.
-        self.target_length = None
+        self.target_length = 1.
 
     def update_Line(self):
         self.points = [self.marker1.pos, self.marker2.pos]
