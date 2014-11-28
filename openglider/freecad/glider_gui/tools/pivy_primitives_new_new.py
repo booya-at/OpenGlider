@@ -13,11 +13,6 @@ COLORS = {
 
 
 
-# changes:
-# make a container for all the points instead of classmethode of the 3d objects
-# a container is a SoSeperator and has a over_object list and a selected_obj list
-
-
 class Object3D(coin.SoSeparator):
     """addiditional to coin this list stores all the geometry"""
     # point, line, polygon

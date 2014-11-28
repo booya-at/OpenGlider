@@ -1,7 +1,7 @@
 import json
 import time
 import numpy
-from .objects import objects
+from openglider.jsonify.objects import objects
 import openglider
 from openglider.utils import recursive_getattr
 

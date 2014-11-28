@@ -11,16 +11,16 @@ from openglider.airfoil import Profile2D
 from openglider.lines import Node, Line, LineSet
 
 
-class Glider_2D(dict):
+class Glider_2D(object):
     """
         a glider 2D object used for gui input
     """
 
     def __init__(self,
-                 front=None,    back=None,      cell_dist=None,
-                 arc=None,      aoa=None,       cell_num=21,
-                 profiles=None, balls=None,     parametric=False,
-                 attachment_points=None,  lineset=None, v_inf=None):
+                 parametric=False, front=None,    back=None,
+                 cell_dist=None,  cell_num=21, arc=None,
+                 aoa=None, profiles=None, balls=None, lineset=None, 
+                 v_inf=None):
         self.parametric = parametric    #set to False if you change glider 3d manually
         self.cell_num = cell_num  # updates cell pos
         self.front = front or SymmetricBezier()
@@ -30,18 +30,26 @@ class Glider_2D(dict):
         self.aoa = aoa or BezierCurve()
         self.profiles = profiles or []
         self.balls = balls or []
-        self.lines = None
-        self.line_knots = None
         self.lineset = lineset or _lineset([], [])
-        self.v_inf = v_inf or [10., 0., 1.]
+        self.v_inf = v_inf or [5., 0., 1.]
 
     def __json__(self):
         return {
+            "parametric": self.parametric,
             "front": self.front,
             "back": self.back,
             "cell_dist": self.cell_dist,
-
+            "cell_num": self.cell_num,
+            "arc": self.arc,
+            "aoa": self.aoa,
+            "profiles": self.profiles,
+            "balls": self.balls,
+            "line_set": self.lineset
         }
+
+    @classmethod
+    def __from_json__(cls, parametric, front, back, cell_dist, cell_num, arc, aoa, profiles, balls, line_set):
+        return cls(parametric, front, back, cell_dist, cell_num, arc, aoa, profiles, balls, line_set)
 
     def arc_pos(self, num=50):
         # calculating the transformed arc
@@ -105,6 +113,7 @@ class Glider_2D(dict):
         return self.interactive_shape(num)[:-1]
 
     def interactive_shape(self, num=30):
+        print(self.front.controlpoints)
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
         dist_line = self.cell_dist_interpolation
@@ -235,9 +244,7 @@ class Glider_2D(dict):
         for i in self.lineset.points:
             n = None
             if isinstance(i, up_att_point):
-                print(i.pos3D(glider))
                 n = Node(node_type=2, position_vector=numpy.array(i.pos3D(glider)))
-                print(i.force)
                 n.force = numpy.array([0., 0., i.force])
             elif isinstance(i, lw_att_point):
                 n = Node(node_type=0, position_vector=numpy.array(i.pos3D))
@@ -351,6 +358,19 @@ class lw_att_point(object):
     def __init__(self, pos, pos3D):
         self.pos = pos
         self.pos3D = pos3D
+        self.nr = None
+
+    def __json__(self):
+        return{
+            "pos": self.pos,
+            "pos3D": self.pos3D,
+            "nr": self.nr}
+
+    @classmethod
+    def __from_json__(cls, pos, pos3D, nr):
+        p = cls(pos, pos3D)
+        p.nr = nr
+        return p
 
 
 class up_att_point(object):
@@ -359,6 +379,7 @@ class up_att_point(object):
         self.rib = rib
         self._pos = pos # value from 0...100
         self.force = force
+        self.nr = None
 
     def get_2d(self, glider_2d):
         _, front, back = glider_2d.shape()
@@ -372,20 +393,68 @@ class up_att_point(object):
             return x,y
 
     def pos3D(self, glider):
-        rib = glider.ribs[self.rib]
+        rib = glider.ribs[self.rib + 1]
         return rib.profile_3d[rib.profile_2d.profilepoint(self._pos / 100)[0]]
 
+    def __json__(self):
+        return{
+            "pos": float(self._pos),
+            "force": self.force,
+            "rib": self.rib,
+            "nr": self.nr}
+
+    @classmethod
+    def __from_json__(cls, pos, force, rib, nr):
+        p = cls(rib, pos, force)
+        p.nr = nr
+        return(p)
 
 
 class batch_point(object):
     def __init__(self, pos):
         self.pos = pos  #pos = 2d coordinates
+        self.nr = None
+
+    def __json__(self):
+        return{
+            "pos": self.pos,
+            "nr" : self.nr
+            }
+
+    @classmethod
+    def __from_json__(cls, pos, nr):
+        p = cls(pos)
+        p.nr = nr
+        return(p)
 
 
-class _lineset(list):
+
+class _lineset(object):
     def __init__(self, line_list, point_list):
         self.lines = line_list
         self.points = point_list
+
+    def __json__(self):
+        for i, p in enumerate(self.points):
+            p.nr = i
+        return{
+            "lines": self.lines,
+            "points": self.points
+        }
+
+    @classmethod
+    def __from_json__(cls, lines, points):
+        ls = cls(lines, points)
+        p = ls.points
+        p = sorted(p, key = lambda pt: pt.nr)
+        for line in ls.lines:
+            line.upper_point = p[line.upper_point]
+            line.lower_point = p[line.lower_point]
+        for p in ls.points:
+            p.nr = None
+        print(ls.lines[0].upper_point)
+        return ls
+
 
 class _line(object):
     def __init__(self, lower_point, upper_point):
@@ -393,6 +462,19 @@ class _line(object):
         self.upper_point = upper_point
         self.target_length = None
         self.is_sorted = False
+
+    def __json__(self):
+        return{
+            "lower_point": self.lower_point.nr,
+            "upper_point": self.upper_point.nr,
+            "target_length": self.target_length,
+        }
+
+    @classmethod
+    def __from_json__(cls, lower_point, upper_point, target_length):
+        l = cls(lower_point, upper_point)
+        l.target_length = target_length or None
+        return l
 
 
 if __name__ == "__main__":

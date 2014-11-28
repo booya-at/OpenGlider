@@ -112,7 +112,10 @@ class OGGliderVP(OGBaseVP):
                 self.vis_glider.addChild(sep)
         self.vis_lines.removeAllChildren()
         for line in glider.lineset.lines:
-            self.vis_lines.addChild(Line(line.get_line_points()).object)
+            points = line.get_line_points()
+            self.vis_glider.addChild(Line([[i[0], -i[1], i[2]] for i in points]).object)
+            self.vis_lines.addChild(Line(points).object)
+
 
 
 

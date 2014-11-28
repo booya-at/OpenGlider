@@ -227,7 +227,7 @@ class line_tool(base_tool):
         for obj in self.shape.objects:
             # add the 2d objects to the graphical objects
             if isinstance(obj, Lower_Att_Marker):
-                obj.temp_2d = lw_att_point(obj.pos, obj.pos3D)
+                obj.temp_2d = lw_att_point(list(obj.pos), obj.pos3D)
                 points.append(obj.temp_2d)
 
             elif isinstance(obj, Upper_Att_Marker):
@@ -236,7 +236,7 @@ class line_tool(base_tool):
                 points.append(obj.temp_2d)
 
             elif isinstance(obj, LineMarker):
-                obj.temp_2d = batch_point(obj.pos)
+                obj.temp_2d = batch_point(list(obj.pos))
                 points.append(obj.temp_2d)
 
         for obj in self.shape.objects:

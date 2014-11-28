@@ -44,6 +44,10 @@ class BezierCurve(HashedList):
     def __json__(self):
         return {'controlpoints': [p.tolist() for p in self.controlpoints]}
 
+    @classmethod
+    def __from_json__(cls, controlpoints):
+        return cls(controlpoints)
+
     def __call__(self, value):
         i_end = len(self._data)
         j_end = len(self._data[0])
@@ -141,6 +145,12 @@ class SymmetricBezier(BezierCurve):
     def __init__(self, controlpoints=None, mirror=None):
         self._mirror = mirror or mirror2D_x
         super(SymmetricBezier, self).__init__(controlpoints=controlpoints)
+
+    @classmethod
+    def __from_json__(cls, controlpoints):
+        sm = cls()
+        sm.controlpoints = controlpoints
+        return sm
 
     @property
     def controlpoints(self):

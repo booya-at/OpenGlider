@@ -3,7 +3,7 @@ import FreeCADGui as Gui
 
 from _glider import OGGlider, OGGliderVP
 from _tools import (shape_tool, base_tool, ballooning_tool,
-                    arc_tool, aoa_tool, airfoil_tool)
+                    arc_tool, aoa_tool, airfoil_tool, export_2d, import_2d)
 from attach_tool import attach_tool
 from line_tool import line_tool
 
@@ -24,7 +24,7 @@ class BaseCommand(object):
         pass
 
     def GetResources(self):
-        """return {'Pixmap': '.svg', 'MenuText': 'Text', 'ToolTip': 'Text'}"""
+        return {'Pixmap': '.svg', 'MenuText': 'Text', 'ToolTip': 'Text'}
         pass
 
     def IsActive(self):
@@ -42,6 +42,79 @@ class BaseCommand(object):
 
     def tool(self, obj):
         return base_tool(obj)
+
+
+class Gl2d_Export(object):
+    def __init__(self):
+        pass
+
+    def GetResources(self):
+        return {'Pixmap': 'gl2d_export.svg', 'MenuText': 'Export 2D', 'ToolTip': 'Export 2D'}
+        pass
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument is None:
+            return False
+        else:
+            return True
+
+    def Activated(self):
+        proceed = False
+        obj = Gui.Selection.getSelection()
+        if len(obj) > 0:
+            obj = obj[0]
+            if check_glider(obj):
+                proceed = True
+        if proceed:
+            export_2d(obj)
+
+
+class Gl2d_Import(object):
+    def __init__(self):
+        pass
+
+    def GetResources(self):
+        return {'Pixmap': 'gl2d_import.svg', 'MenuText': 'Import 2D', 'ToolTip': 'Import 2D'}
+        pass
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument is None:
+            return False
+        else:
+            return True
+
+    def Activated(self):
+        proceed = False
+        obj = Gui.Selection.getSelection()
+        if len(obj) > 0:
+            obj = obj[0]
+            if check_glider(obj):
+                proceed = True
+        if proceed:
+            import_2d(obj)
+
+
+class Pattern_Tool(object):
+    def __init__(self):
+        pass
+
+    def GetResources(self):
+        return {'Pixmap': 'pattern_tool.svg', 'MenuText': 'unwrap glider', 'ToolTip': 'unwrap glider'}
+        pass
+
+    def IsActive(self):
+        if FreeCAD.ActiveDocument is None:
+            return False
+        else:
+            return True
+
+    def Activated(self):
+        proceed = False
+        obj = Gui.Selection.getSelection()
+        if len(obj) > 0:
+            obj = obj[0]
+            if check_glider(obj):
+                proceed = True
 
 
 class CreateGlider(BaseCommand):

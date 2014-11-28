@@ -6,6 +6,7 @@ import numpy
 import FreeCAD
 import FreeCADGui as Gui
 
+from openglider.jsonify import dump, load
 from openglider.glider.glider_2d import Glider_2D
 from openglider.glider.glider_2d import ParaFoil
 from openglider.utils.bezier import fitbezier
@@ -30,6 +31,27 @@ input_field = QtGui.QFormLayout.FieldRole
 #   -minirips-tool
 #   -etc...
 
+def export_2d(glider):
+    filename = QtGui.QFileDialog.getSaveFileName(
+        parent=None,
+        caption="export glider",
+        directory='~')
+    with open(filename[0], 'w') as exportfile:
+        dump(glider.glider_2d, exportfile)
+    print "vorm export: "
+    print glider.glider_2d.front.controlpoints
+
+def import_2d(glider):
+    filename = QtGui.QFileDialog.getOpenFileName(
+        parent=None,
+        caption="import glider",
+        directory='~')
+    with open(filename[0], 'r') as importfile:
+        glider.glider_2d = load(importfile)["data"]
+        glider.glider_2d.glider_3d(glider.glider_instance)
+        glider.ViewObject.Proxy.updateData()
+    print "nach import: "
+    print glider.glider_2d.front.controlpoints
 
 
 class base_tool(object):
@@ -38,6 +60,7 @@ class base_tool(object):
         self.obj = obj
         if self.obj.glider_2d.parametric:
             self.glider_2d = self.obj.glider_2d
+            print(self.glider_2d)
         else:
             print('fit the glider')
             self.glider_2d = Glider_2D.fit_glider(self.obj.glider_instance)
