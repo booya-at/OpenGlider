@@ -36,22 +36,20 @@ def export_2d(glider):
         parent=None,
         caption="export glider",
         directory='~')
-    with open(filename[0], 'w') as exportfile:
-        dump(glider.glider_2d, exportfile)
-    print "vorm export: "
-    print glider.glider_2d.front.controlpoints
+    if filename[0] != "":
+        with open(filename[0], 'w') as exportfile:
+            dump(glider.glider_2d, exportfile)
 
 def import_2d(glider):
     filename = QtGui.QFileDialog.getOpenFileName(
         parent=None,
         caption="import glider",
         directory='~')
-    with open(filename[0], 'r') as importfile:
-        glider.glider_2d = load(importfile)["data"]
-        glider.glider_2d.glider_3d(glider.glider_instance)
-        glider.ViewObject.Proxy.updateData()
-    print "nach import: "
-    print glider.glider_2d.front.controlpoints
+    if filename[0] != "":
+        with open(filename[0], 'r') as importfile:
+            glider.glider_2d = load(importfile)["data"]
+            glider.glider_2d.glider_3d(glider.glider_instance)
+            glider.ViewObject.Proxy.updateData()
 
 class base_tool(object):
 
@@ -482,7 +480,8 @@ class airfoil_tool(base_tool):
             directory='~',
             filter='*.dat',
             selectedFilter='*.dat')
-        self.QList_View.addItem(QAirfoil_item(ParaFoil.import_from_dat(filename[0])))
+        if filename[0] != "":
+            self.QList_View.addItem(QAirfoil_item(ParaFoil.import_from_dat(filename[0])))
 
     def create_airfoil(self):
         j = 0

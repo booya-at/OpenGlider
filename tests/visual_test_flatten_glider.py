@@ -20,6 +20,7 @@
 import os
 import random
 import sys
+import unittest
 from openglider.plots import flattened_cell
 
 try:
@@ -100,3 +101,6 @@ class TestGlider_Flatten(GliderTestClass):
         openglider.graphics.Graphics3D([openglider.graphics.Line(l) for l in layers['OUTER_CUTS']]+
                                        [openglider.graphics.Red]+
                                        [openglider.graphics.Line(l) for l in layers['SEWING_MARKS']])
+
+if __name__ == '__main__':
+    unittest.main(verbosity=2)

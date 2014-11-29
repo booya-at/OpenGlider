@@ -250,7 +250,6 @@ class line_tool(base_tool):
 
         self.glider_2d.lineset.lines = lines
         self.glider_2d.lineset.points = points
-        
         self.glider_2d.glider_3d(self.obj.glider_instance)
         self.shape.unregister()
         self.remove_all_callbacks()

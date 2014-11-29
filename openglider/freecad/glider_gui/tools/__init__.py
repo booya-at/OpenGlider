@@ -120,20 +120,19 @@ class Pattern_Tool(object):
             pattern_doc = FreeCAD.newDocument()
             from Draft import makeWire
             flat_glider = flatten_glider(obj.glider_instance)
+            print flat_glider
             max_last = [0, 0]
-            for i, part in enumerate(flat_glider):
-                part.shift([max_last[0] - part.min_x + 0.2, max_last[1] - part.max_y])
-                max_last[0] = part.max_x
+            draw_area = flat_glider.values()[0]
+            for da in flat_glider.values()[1:]:
+                draw_area.insert(da)
+            for i, part in enumerate(draw_area.parts):
+                print(part)
                 grp = pattern_doc.addObject("App::DocumentObjectGroup","Panel_" + str(i))
                 layer_dict = part.layer_dict
                 for layer in layer_dict:
                     for j, line in enumerate(layer_dict[layer]):
                         a = makeWire(map(Pattern_Tool.fcvec, line), face=False)
                         grp.addObject(a)
-                        
- 
- 
- 
 
 
     @staticmethod

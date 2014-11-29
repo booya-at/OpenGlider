@@ -113,7 +113,6 @@ class Glider_2D(object):
         return self.interactive_shape(num)[:-1]
 
     def interactive_shape(self, num=30):
-        print(self.front.controlpoints)
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
         dist_line = self.cell_dist_interpolation
@@ -245,22 +244,26 @@ class Glider_2D(object):
         lowest = [i for i in self.lineset.points if isinstance(i, lw_att_point)]
         for i in lowest:
             self.sort_lines(i)
+        self.delete_not_connected(glider)
         for i in self.lineset.points:
             n = None
             if isinstance(i, up_att_point):
-                n = Node(node_type=2, position_vector=numpy.array(i.pos3D(glider)))
+                pos3d = i.pos3D(glider)
+                n = Node(node_type=2, position_vector=numpy.array(pos3d))
                 n.force = numpy.array([0., 0., i.force])
             elif isinstance(i, lw_att_point):
                 n = Node(node_type=0, position_vector=numpy.array(i.pos3D))
             elif isinstance(i, batch_point):
                 n = Node(node_type=1)
-            if n:
-                i.temp_node = n     #storing the nodes to remember them with the lines
+            i.temp_node = n     #storing the nodes to remember them with the lines
         for i, l in enumerate(self.lineset.lines):
             lower = l.lower_point.temp_node
             upper = l.upper_point.temp_node
-            line = Line(number=i, lower_node=lower, upper_node=upper, vinf=self.v_inf, target_length=l.target_length)
-            lines.append(line)
+            if lower and upper:
+                line = Line(number=i, lower_node=lower, upper_node=upper, vinf=self.v_inf, target_length=l.target_length)
+                lines.append(line)
+            else:
+                remove_lines.append(l)
         glider.lineset = LineSet(lines, self.v_inf)
         glider.lineset.calc_geo()
         glider.lineset.calc_sag()
@@ -269,20 +272,7 @@ class Glider_2D(object):
     @property
     def attachment_points(self):
         """coordinates of the attachment_points"""
-        arr = []
-        _, front, back = self.shape()
-        xpos = [i[0] for i in front if i[0]>=0.]
-        for a_p in self.lineset.points:
-            if isinstance(a_p, up_att_point):
-                pos = a_p._pos / 100.
-                i = a_p.rib
-                if i < len(xpos):
-                    x = xpos[i]
-                    j = i + len(front) - len(xpos)
-                    chord = back[j][1] - front[j][1]
-                    y = front[j][1] + pos * chord
-                    arr.append([x, y])
-        return arr
+        return [a_p.get_2d(self) for a_p in self.lineset.points if isinstance(a_p, up_att_point)]
 
         # set up the lines here
         # the data for the attachment_points is only stored in glider_2d
@@ -293,16 +283,36 @@ class Glider_2D(object):
 
     def sort_lines(self, lower_att):
         for line in self.lineset.lines:
+            temp = False
             if line.lower_point == lower_att and not line.is_sorted:
                 line.is_sorted = True
                 self.sort_lines(line.upper_point)
+                temp = True
             elif line.upper_point == lower_att and not line.is_sorted:
                 temp = line.lower_point
                 line.lower_point = line.upper_point
                 line.upper_point = temp
                 line.is_sorted = True
                 self.sort_lines(line.upper_point)
+                temp = True
 
+    def delete_not_connected(self, glider):
+        temp = []
+        temp_new = []
+        for line in self.lineset.lines:
+            if isinstance(line.upper_point, up_att_point):
+                if line.upper_point.pos3D(glider) is False:
+                    temp.append(line)
+                    self.lineset.points.remove(line.upper_point)
+        while len(temp) != 0:
+            for i in temp:
+                conn_up_lines = [j for j in self.lineset.lines if (j.lower_point == i.lower_point and j != i)]
+                conn_lo_lines = [j for j in self.lineset.lines if (j.upper_point == i.lower_point and j != i)]
+                if len(conn_up_lines) == 0:
+                    self.lineset.points.remove(i.lower_point)
+                    self.lineset.lines.remove(i)
+                    temp_new += conn_lo_lines
+            temp = temp_new
 
 class ParaFoil(Profile2D):
     #TODO make new fit bezier methode to set the second x value of the controllpoints to zero.
@@ -387,7 +397,7 @@ class up_att_point(object):
 
     def get_2d(self, glider_2d):
         _, front, back = glider_2d.shape()
-        xpos = [i[0] for i in front if i[0]>=0.]
+        xpos = numpy.unique([i[0] for i in front if i[0]>=0.])
         pos = self._pos / 100.
         if self.rib < len(xpos):
             x = xpos[self.rib]
@@ -397,8 +407,14 @@ class up_att_point(object):
             return x,y
 
     def pos3D(self, glider):
-        rib = glider.ribs[self.rib + 1]
-        return rib.profile_3d[rib.profile_2d.profilepoint(self._pos / 100)[0]]
+        pos = self.rib
+        if glider.has_center_cell:
+            pos += 1
+        try:
+            rib = glider.ribs[pos]
+            return rib.profile_3d[rib.profile_2d.profilepoint(self._pos / 100)[0]]
+        except IndexError:
+            return False
 
     def __json__(self):
         return{
@@ -456,7 +472,6 @@ class _lineset(object):
             line.lower_point = p[line.lower_point]
         for p in ls.points:
             p.nr = None
-        print(ls.lines[0].upper_point)
         return ls
 
 
