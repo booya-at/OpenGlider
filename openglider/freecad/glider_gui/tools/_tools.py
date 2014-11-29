@@ -53,7 +53,6 @@ def import_2d(glider):
     print "nach import: "
     print glider.glider_2d.front.controlpoints
 
-
 class base_tool(object):
 
     def __init__(self, obj, widget_name="base_widget"):

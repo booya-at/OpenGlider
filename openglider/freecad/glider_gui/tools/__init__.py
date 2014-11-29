@@ -6,6 +6,7 @@ from _tools import (shape_tool, base_tool, ballooning_tool,
                     arc_tool, aoa_tool, airfoil_tool, export_2d, import_2d)
 from attach_tool import attach_tool
 from line_tool import line_tool
+from openglider.plots import flatten_glider
 
 
 #ICONS:
@@ -115,6 +116,29 @@ class Pattern_Tool(object):
             obj = obj[0]
             if check_glider(obj):
                 proceed = True
+        if proceed:
+            pattern_doc = FreeCAD.newDocument()
+            from Draft import makeWire
+            flat_glider = flatten_glider(obj.glider_instance)
+            max_last = [0, 0]
+            for i, part in enumerate(flat_glider):
+                part.shift([max_last[0] - part.min_x + 0.2, max_last[1] - part.max_y])
+                max_last[0] = part.max_x
+                grp = pattern_doc.addObject("App::DocumentObjectGroup","Panel_" + str(i))
+                layer_dict = part.layer_dict
+                for layer in layer_dict:
+                    for j, line in enumerate(layer_dict[layer]):
+                        a = makeWire(map(Pattern_Tool.fcvec, line), face=False)
+                        grp.addObject(a)
+                        
+ 
+ 
+ 
+
+
+    @staticmethod
+    def fcvec(vec):
+        return FreeCAD.Vector(vec[0], vec[1], 0.)
 
 
 class CreateGlider(BaseCommand):

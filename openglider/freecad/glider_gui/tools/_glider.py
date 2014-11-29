@@ -48,6 +48,8 @@ class OGGlider(OGBaseObject):
         obj.addProperty(
             "App::PropertyPythonObject", "glider_2d", "object", "parametric glider")
         obj.glider_instance = Glider.import_geometry(path=importpath)
+        print(obj.glider_instance.cells[0].panels[0].cut_front)
+        print(obj.glider_instance.cells[0].panels[0].cut_back)
         obj.glider_2d = Glider_2D()
         super(OGGlider, self).__init__(obj)
 

@@ -105,8 +105,9 @@ def flatten_glider(glider):
                           PolyLine2D([left_bal[front_left]])]
             part_text = []
 
-            for attachment_point in filter(lambda p: p.rib is cell.rib1, glider.attachment_points):
-                pass
+########## wieder einkommentieren
+            # for attachment_point in filter(lambda p: p.rib is cell.rib1, glider.attachment_points):
+            #     pass
 
 
 
@@ -132,10 +133,12 @@ def flatten_glider(glider):
 
         rib_marks = []
 
+############# wieder ein kommentieren
+
         #####################marks for attachment-points##################################
-        attachment_points = filter(lambda p: p.rib == rib, glider.attachment_points)
-        for point in attachment_points:
-            rib_marks += sewing_config["marks"]["attachment-point"](*return_points(point.rib_pos))
+#        attachment_points = filter(lambda p: p.rib == rib, glider.attachment_points)
+#        for point in attachment_points:
+#            rib_marks += sewing_config["marks"]["attachment-point"](*return_points(point.rib_pos))
 
         #####################marks for panel-cuts#########################################
         rib_cuts = set()

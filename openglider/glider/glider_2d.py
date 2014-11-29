@@ -200,6 +200,8 @@ class Glider_2D(object):
         #--------------------------------------
 
         from openglider.glider import Rib, Cell
+        from openglider.glider.cell_elements import Panel
+
         dist = [i[0] for i in self.cell_dist_interpolation]
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
@@ -226,7 +228,9 @@ class Glider_2D(object):
                 aoa=aoa(pos)[1]
                 ))
         for i, rib in enumerate(ribs[1:]):
-            cells.append(Cell(ribs[i], rib, []))
+            cell = Cell(ribs[i], rib, [])
+            cell.panels = [Panel([-1, -1, 3, 0.012], [1, 1, 3, 0.012], i)]
+            cells.append(cell)
             glider.cells = cells
         glider.close_rib()
 
