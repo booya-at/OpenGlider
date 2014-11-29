@@ -25,8 +25,10 @@ from openglider.glider.rib_elements import AttachmentPoint
 from openglider.lines import Line, Node, LineSet
 
 
-__author__ = 'simon'
-import ezodf
+try:
+    import ezodf2 as ezodf
+except ImportError:
+    import ezodf
 from openglider.glider.ballooning import BallooningBezier
 from openglider.airfoil import Profile2D
 #from openglider.glider import Glider
