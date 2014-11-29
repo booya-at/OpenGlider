@@ -89,8 +89,10 @@ class TestGlider_Flatten(GliderTestClass):
 
     def test_flattened_glider(self):
         parts = openglider.plots.flatten_glider(self.glider)
+        all = parts['panels']
+        all.insert(parts['ribs'])
         layers = {}
-        for part in parts.parts:
+        for part in all.parts:
             for name, layer in part.layer_dict.iteritems():
                 layers.setdefault(name, [])
                 layers[name] += layer

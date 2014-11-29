@@ -1,7 +1,7 @@
 OpenGlider
 ==========
 
-[![Build Status](https://travis-ci.org/hiaselhans/OpenGlider.png?branch=master)](https://travis-ci.org/hiaselhans/OpenGlider)
+[![Build Status](https://travis-ci.org/hiaselhans/OpenGlider.svg?branch=master)](https://travis-ci.org/hiaselhans/OpenGlider)
 
 
 someday, hopefully this is open source paraglider design software

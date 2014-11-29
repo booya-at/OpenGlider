@@ -79,19 +79,19 @@ class DrawingArea():
         self.parts = parts or []
 
     @classmethod
-    def create_raster(cls, parts, distance_x=0.1, distance_y=0.1):
+    def create_raster(cls, parts, distance_x=0.2, distance_y=0.1):
         area = cls()
         last_x = 0.
         last_y = 0.
-        next_y = []
-        for row in parts:
-            for part in row:
+        next_x = []
+        for col in parts:
+            for part in col:
                 part.move([last_x - part.min_x, last_y - part.min_y])
                 area.parts.append(part)
-                last_x = part.max_x + distance_x
-                next_y.append(part.max_y)
-            last_y = max(next_y) + distance_y
-            last_x = 0.
+                last_y = part.max_y + distance_y
+                next_x.append(part.max_x)
+            last_x = max(next_x) + distance_x
+            last_y = 0.
 
         return area
 
@@ -110,3 +110,20 @@ class DrawingArea():
     @property
     def max_y(self):
         return min([part.max_y for part in self.parts])
+
+    @property
+    def bbox(self):
+        return [[self.min_x, self.min_y], [self.max_x, self.min_y],
+                [self.max_x, self.max_x], [self.min_x, self.max_y]]
+
+    def move(self, vector):
+        for part in self.parts:
+            part.move(vector)
+
+    def insert(self, other, position=None):
+        assert isinstance(other, DrawingArea)
+
+        x = self.max_x - other.min_x + 0.2
+        y = 0 - other.min_y
+        other.move([x,y])
+        self.parts += other.parts

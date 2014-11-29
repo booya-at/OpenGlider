@@ -75,12 +75,12 @@ def flattened_cell(cell):
 
 
 def flatten_glider(glider):
-    # assert isinstance(glider, Glider)
+    plots = {}
 
     ########### Panels
     parts = []
     xvalues = glider.profile_x_values
-    #cuts = openglider.plots.cuts
+
     for cell in glider.cells:
         cell_parts = []
         left_bal, left, right, right_bal = flattened_cell(cell)
@@ -88,6 +88,8 @@ def flatten_glider(glider):
         right_out = right_bal.copy()
         left_out.add_stuff(-sewing_config["allowance_general"])
         right_out.add_stuff(sewing_config["allowance_general"])
+        left_out.check()
+        right_out.check()
         for panel in cell.panels:
             front_left = get_x_value(xvalues, panel.cut_front[0])
             back_left = get_x_value(xvalues, panel.cut_back[0])
@@ -121,10 +123,12 @@ def flatten_glider(glider):
             }))
         parts.append(cell_parts)
 
-    panels = DrawingArea.create_raster(parts)
+    plots['panels'] = DrawingArea.create_raster(parts)
+
 
     ##################################RIBS###########################
     #################################################################
+    parts = []
     for i, rib in enumerate(glider.ribs[glider.has_center_cell:-1]):
         rib_no = i + glider.has_center_cell
         profile = rib.profile_2d.copy()
@@ -168,20 +172,20 @@ def flatten_glider(glider):
         parts.append(PlotPart({"OUTER_CUTS": [profile_outer],
                                "SEWING_MARKS": [profile] + rib_marks}))
 
-    return panels
+    plots['ribs'] = DrawingArea.create_raster([parts])
+
+    return plots
 
 
-def create_svg(partlist, path):
+def create_svg(drawing_area, path):
     drawing = svgwrite.Drawing()
     # partlist = [partlist[1]]
     max_last = [0, 0]
-    for part in partlist:
+    for part in drawing_area.parts:
         part_group = svgwrite.container.Group()
-        part.move([max_last[0] - part.min_x + 0.2, max_last[1] - part.max_y])
 
         for layer_name, layer_config in sewing_config["layers"].iteritems():
             if layer_name in part.layer_dict:
-                max_last[0] = part.max_x
                 lines = part.return_layer_svg(layer_name, scale=sewing_config["scale"])
                 for line in lines:
                     element = svgwrite.shapes.Polyline(line, **layer_config)
