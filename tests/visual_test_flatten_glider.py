@@ -86,3 +86,15 @@ class TestGlider_Flatten(GliderTestClass):
                                         openglider.graphics.Line(mirrored_left.data),
                                         openglider.graphics.Line(mirrored_right.data)
                                         ])
+
+    def test_flattened_glider(self):
+        parts = openglider.plots.flatten_glider(self.glider)
+        layers = {}
+        for part in parts.parts:
+            for name, layer in part.layer_dict.iteritems():
+                layers.setdefault(name, [])
+                layers[name] += layer
+
+        openglider.graphics.Graphics3D([openglider.graphics.Line(l) for l in layers['OUTER_CUTS']]+
+                                       [openglider.graphics.Red]+
+                                       [openglider.graphics.Line(l) for l in layers['SEWING_MARKS']])

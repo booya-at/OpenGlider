@@ -23,7 +23,6 @@ class PlotPart():
 
     def max_min_function(self, _func, i):
         func = lambda thalist: _func(thalist, key=lambda p: p[i])[i]
-        #val_list = map(lambda layer: func(map()))
 
     @property
     def max_x(self):
@@ -45,11 +44,19 @@ class PlotPart():
         min_y = lambda thalist: min(thalist, key=lambda point: point[1])[1]
         return min(map(lambda layer: min(map(min_y, layer)), self.layer_dict.itervalues()))
 
+    @property
+    def width(self):
+        return self.max_x -self.min_x
+
+    @property
+    def height(self):
+        return self.max_y - self.min_y
+
     def rotate(self, angle):
         for layer in self.layer_dict.itervalues():
             layer.rotate(angle)
 
-    def shift(self, vector):
+    def move(self, vector):
         for layer in self.layer_dict.itervalues():
             for vectorlist in layer:
                 vectorlist.move(vector)
@@ -65,3 +72,41 @@ class PlotPart():
             return new
         else:
             return None
+
+
+class DrawingArea():
+    def __init__(self, parts=None):
+        self.parts = parts or []
+
+    @classmethod
+    def create_raster(cls, parts, distance_x=0.1, distance_y=0.1):
+        area = cls()
+        last_x = 0.
+        last_y = 0.
+        next_y = []
+        for row in parts:
+            for part in row:
+                part.move([last_x - part.min_x, last_y - part.min_y])
+                area.parts.append(part)
+                last_x = part.max_x + distance_x
+                next_y.append(part.max_y)
+            last_y = max(next_y) + distance_y
+            last_x = 0.
+
+        return area
+
+    @property
+    def min_x(self):
+        return min([part.min_x for part in self.parts])
+
+    @property
+    def max_x(self):
+        return max([part.max_x for part in self.parts])
+
+    @property
+    def min_y(self):
+        return min([part.min_y for part in self.parts])
+
+    @property
+    def max_y(self):
+        return min([part.max_y for part in self.parts])

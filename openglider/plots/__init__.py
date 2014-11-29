@@ -26,7 +26,7 @@ from . import marks
 # from openglider.glider import Glider
 # from openglider.glider.cell import Cell
 from .cuts import cuts
-from .part import PlotPart
+from .part import PlotPart, DrawingArea
 from openglider.vector import PolyLine2D, depth
 
 
@@ -76,10 +76,13 @@ def flattened_cell(cell):
 
 def flatten_glider(glider):
     # assert isinstance(glider, Glider)
+
+    ########### Panels
     parts = []
     xvalues = glider.profile_x_values
     #cuts = openglider.plots.cuts
     for cell in glider.cells:
+        cell_parts = []
         left_bal, left, right, right_bal = flattened_cell(cell)
         left_out = left_bal.copy()
         right_out = right_bal.copy()
@@ -105,17 +108,20 @@ def flatten_glider(glider):
                           PolyLine2D([left_bal[front_left]])]
             part_text = []
 
-########## wieder einkommentieren
+            # wieder einkommentieren
             # for attachment_point in filter(lambda p: p.rib is cell.rib1, glider.attachment_points):
             #     pass
 
 
 
 
-            parts.append(PlotPart({"OUTER_CUTS": part_cuts,
+            cell_parts.append(PlotPart({"OUTER_CUTS": part_cuts,
                                    "SEWING_MARKS": part_marks,
                                    #"TEXT": part_text
             }))
+        parts.append(cell_parts)
+
+    panels = DrawingArea.create_raster(parts)
 
     ##################################RIBS###########################
     #################################################################
@@ -162,7 +168,7 @@ def flatten_glider(glider):
         parts.append(PlotPart({"OUTER_CUTS": [profile_outer],
                                "SEWING_MARKS": [profile] + rib_marks}))
 
-    return parts
+    return panels
 
 
 def create_svg(partlist, path):
@@ -171,7 +177,7 @@ def create_svg(partlist, path):
     max_last = [0, 0]
     for part in partlist:
         part_group = svgwrite.container.Group()
-        part.shift([max_last[0] - part.min_x + 0.2, max_last[1] - part.max_y])
+        part.move([max_last[0] - part.min_x + 0.2, max_last[1] - part.max_y])
 
         for layer_name, layer_config in sewing_config["layers"].iteritems():
             if layer_name in part.layer_dict:

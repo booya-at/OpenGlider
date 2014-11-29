@@ -27,7 +27,7 @@ try:
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
     import openglider
-
+import openglider.glider
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
 importpath = testfolder + '/demokite.ods'

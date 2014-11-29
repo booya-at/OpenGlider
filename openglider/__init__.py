@@ -20,22 +20,3 @@
 __version__ = '0.01dev'
 __author__ = 'Booya'
 
-#import numpy
-from . import glider
-from . import airfoil
-from . import lines
-from . import vector
-from . import jsonify
-from . import plots
-#import input
-#from graphics import Line, Point, graphics
-#from openglider.utils.Ballooning import Ballooning
-
-
-#def test12(*arg):
-#    print("len: ",len(arg),arg)
-
-#test12("jojo","kk")
-#test12([1,2,3])
-#test12(["J","O","K"])
-
