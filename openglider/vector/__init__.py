@@ -387,7 +387,7 @@ class PolyLine2D(PolyLine):
 
         if len(cutlist) > 0:
             # sort by distance
-            cutlist.sort(key=lambda x: x[2])
+            cutlist.sort(key=lambda x: x[2]**2)
             #print(cutlist[0])
             return cutlist[0][0:2]
         else:
@@ -450,17 +450,27 @@ class PolyLine2D(PolyLine):
             third = self.data[i + 1]
             d1 = third - second
             d2 = second - first
-            newlist.append(second + self.normvectors[i] * amount / d1.dot(d2) * numpy.sqrt(d1.dot(d1) * d2.dot(d2)))
+            cosphi = d1.dot(d2) / numpy.sqrt(d1.dot(d1) * d2.dot(d2))
+            if cosphi > 0.9999:
+                newlist.append(second + self.normvectors[i] * amount / cosphi)
+            else:
+                a = first+self.normvectors[i-1]*amount
+                b = second+self.normvectors[i]*amount
+                c = third + self.normvectors[i+1]*amount
+                newlist.append(cut(a, b, b, c)[0])
         newlist.append(third + self.normvectors[i + 1] * amount)
         self.data = newlist
 
     def mirror(self, p1, p2):
+        """
+        Mirror against a line through p1 and p2
+        """
         normvector = normalize(numpy.array(p1-p2).dot([[0, -1], [1, 0]]))
         self.data = [point - 2*normvector.dot(point-p1)*normvector for point in self.data]
 
     def rotate(self, angle, startpoint=None):
         """
-        Rotate around a (non)given startpoint counter-clockwise
+        Rotate counter-clockwise around a (non)given startpoint
         """
         rotation_matrix = rotation_2d(angle)
         new_data = []
@@ -480,6 +490,7 @@ class Polygon2D(PolyLine2D):
     def close(self):
         """
         Close the endings of the polygon using a cut.
+        Return: success
         """
         try:
             thacut = cut(self.data[0], self.data[1], self.data[-2], self.data[-1])
@@ -508,7 +519,7 @@ class Polygon2D(PolyLine2D):
         # using ray-casting-algorithm
         cuts = self.cut(point, self.centerpoint, break_if_found=False, cut_only_positive=True)
         return bool(len(cuts) % 2)
-        # alternative: winding number
+        # todo: alternative: winding number
 
 
 class Layer(object):
@@ -554,5 +565,8 @@ class Layer(object):
     @normvector.setter
     def normvector(self, normvector):
         #assert isinstance(normvector, np.ndarray)
-        self.v1 = numpy.array([0, -normvector[3], normvector[2]])
+        # todo: fix // write test
+        self.v1 = numpy.array([1,1,1])
+        self.v1 = self.v1 - self.v1 * normvector
+        #self.v1 = numpy.array([0, -normvector[3], normvector[2]])
         self.v2 = numpy.cross(self.v1, normvector)

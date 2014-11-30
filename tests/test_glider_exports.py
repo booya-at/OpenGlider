@@ -79,10 +79,10 @@ class TestGlider(GliderTestClass):
 
     def test_export_glider_json(self):
         from openglider import jsonify
-        path = self.file('.json')
-        jsonify.dump(self.glider, path)
-        path.seek(0)
-        glider = jsonify.load(path)['data']
+        file = self.file('.json')
+        jsonify.dump(self.glider, file)
+        file.seek(0)
+        glider = jsonify.load(file)['data']
         self.assertEqualGlider(glider)
 
 

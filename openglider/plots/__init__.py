@@ -23,11 +23,9 @@ from openglider.airfoil import get_x_value
 from openglider.plots.marks import triangle, line
 from . import projection
 from . import marks
-# from openglider.glider import Glider
-# from openglider.glider.cell import Cell
 from .cuts import cuts
 from .part import PlotPart, DrawingArea
-from openglider.vector import PolyLine2D, depth
+from openglider.vector import PolyLine2D
 
 
 # Sign configuration
@@ -179,8 +177,6 @@ def flatten_glider(glider):
 
 def create_svg(drawing_area, path):
     drawing = svgwrite.Drawing()
-    # partlist = [partlist[1]]
-    max_last = [0, 0]
     for part in drawing_area.parts:
         part_group = svgwrite.container.Group()
 
@@ -190,7 +186,7 @@ def create_svg(drawing_area, path):
                 for line in lines:
                     element = svgwrite.shapes.Polyline(line, **layer_config)
                     part_group.add(element)
-            drawing.add(part_group)
+        drawing.add(part_group)
 
     with open(path, "w") as output_file:
         return drawing.write(output_file)

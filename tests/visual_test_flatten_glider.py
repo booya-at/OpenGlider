@@ -98,8 +98,8 @@ class TestGlider_Flatten(GliderTestClass):
                 layers.setdefault(name, [])
                 layers[name] += layer
 
-        openglider.graphics.Graphics3D([openglider.graphics.Line(l) for l in layers['OUTER_CUTS']]+
-                                       [openglider.graphics.Red]+
+        openglider.graphics.Graphics3D([openglider.graphics.Line(l) for l in layers['OUTER_CUTS']] +
+                                       [openglider.graphics.Red] +
                                        [openglider.graphics.Line(l) for l in layers['SEWING_MARKS']])
 
 if __name__ == '__main__':

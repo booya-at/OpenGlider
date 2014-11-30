@@ -104,10 +104,10 @@ class panel_methode_2d():
         for i in range(self.length):
             self.pressure[i] = 1 - self.velocity[i] ** 2 / self.q_inf ** 2
 
-    def global_velocity(self, point=[0., 0.5]):
+    def global_velocity(self, point=None):
         dx = 0.
         dy = 0.
-        x, y = point
+        x, y = point or [0., 0.5]
         diff = 0.00000000000001
         for i, pan in enumerate(self.panel):
             dx += self.douplet[i] * (self._douplet_const([x + diff, y], pan) -

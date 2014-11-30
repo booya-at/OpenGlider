@@ -29,8 +29,7 @@ or
 
 Next step is to create a glider, import a geometry file and modify::
 
-    >>>glider=openglider.Glider()
-    >>>glider.import_geometry("tests/demokite.ods")
+    >>>glider=openglider.Glider.import_geometry("tests/demokite.ods")
     >>>for rib in glider.ribs:
     ...    rib.aoa_relative += 3
     ...
@@ -42,15 +41,23 @@ Then, show the glider::
     >>>polygons, points = glider.return_polygons(midribs=4)
     >>>graphics.Graphics(map(graphics.Polygon, polygons), points)
 
-Export obj file for openfoam::
+Export obj file for openfoam, and also json for future needs::
 
     >>>glider.export_3d('/tmp/teil.obj')
+    >>>import openglider.jsonify
+    >>>with open('/tmp/myglider.json', 'w') as myfile:
+    ...     openglider.jsonify.dump(glider, myfile)
+
+Which is to import the whole glider at a later point::
+
+    >>>import openglider.jsonify
+    >>>with open('/tmp/myglider.json') as myfile:
+    ...     openglider.jsonify.load(myfile)['data']
 
 If you are not yet familiar with python, here is some places to start:
 
-codeacademy_
-
-`dive into python`_
+    * codeacademy_
+    * `dive into python`_
 
 
 

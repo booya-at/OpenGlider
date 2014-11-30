@@ -22,7 +22,7 @@ import tempfile
 from openglider.jsonify import load
 from openglider.plots import create_svg, flatten_glider, flattened_cell
 from openglider.glider.cell_elements import Panel
-from openglider.graphics import Line, Graphics2D, Red
+from openglider.graphics import Line, Graphics2D, Red, Graphics3D
 
 class TestGlider(unittest.TestCase):
     def setUp(self):
@@ -50,7 +50,7 @@ class TestGlider(unittest.TestCase):
             layers.setdefault(name, [])
             layers[name] += layer
 
-        Graphics2D([Line(l) for l in layers['OUTER_CUTS']] + 
+        Graphics3D([Line(l) for l in layers['OUTER_CUTS']] +
                    [Line(l) for l in layers['SEWING_MARKS']])
 
 if __name__ == '__main__':
