@@ -24,8 +24,8 @@ from openglider.plots.marks import triangle, line
 from . import projection
 from . import marks
 from .cuts import cuts
+from openglider.vector.polyline import PolyLine2D
 from .part import PlotPart, DrawingArea
-from openglider.vector import PolyLine2D
 
 
 # Sign configuration
@@ -177,6 +177,8 @@ def flatten_glider(glider):
 
 def create_svg(drawing_area, path):
     drawing = svgwrite.Drawing()
+    # svg is shifted downwards
+    drawing_area.move([0, -drawing_area.max_y])
     for part in drawing_area.parts:
         part_group = svgwrite.container.Group()
 

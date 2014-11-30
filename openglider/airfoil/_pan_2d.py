@@ -5,7 +5,10 @@ from random import random
 
 import openglider.vector as vector
 from openglider.airfoil import Profile2D
-import pyximport; pyximport.install()
+import pyximport;
+from openglider.vector.functions import norm, normalize
+
+pyximport.install()
 from openglider.airfoil._pan_2d_ext import C_douplet_const
 
 numpy.set_printoptions(precision=3)
@@ -129,7 +132,7 @@ class panel_methode_2d():
         p = numpy.array(point)
         stream = [copy(p)]
         for i in range(steps):
-            vect = vector.normalize(self.global_velocity(p))
+            vect = normalize(self.global_velocity(p))
             p += vect * dist
             stream.append(copy(p))
             if p[0] > abbortx:
@@ -140,7 +143,7 @@ class panel_methode_2d():
         p = numpy.array(point)
         stream = [copy(p)]
         for i in range(steps):
-            vect = vector.normalize(self.global_velocity(p))
+            vect = normalize(self.global_velocity(p))
             vect = numpy.array([vect[1], -vect[0]])
             p += vect * dist
             stream.append(copy(p))
@@ -170,9 +173,9 @@ class panel_methode_2d():
         for i in range(self.length):
             self.panel.append(numpy.array([self.airfoil[i], self.airfoil[i + 1]]))
             self.panel_mids.append((self.airfoil[i] + self.airfoil[i + 1]) / 2)
-            self.half_lenghts.append(vector.norm(self.airfoil[i] - self.airfoil[i + 1]) / 2)
+            self.half_lenghts.append(norm(self.airfoil[i] - self.airfoil[i + 1]) / 2)
             self.panel_tangentials.append(self.panel[-1][1] - self.panel[-1][0])
-            self.panel_normals.append(vector.normalize([-self.panel_tangentials[-1][1], self.panel_tangentials[-1][0]]))
+            self.panel_normals.append(normalize([-self.panel_tangentials[-1][1], self.panel_tangentials[-1][0]]))
         for i in range(self.wake_numpoints - 1):
             self.wake_panels.append(numpy.array([self.wake[i], self.wake[i + 1]]))
 
@@ -181,9 +184,9 @@ class panel_methode_2d():
 def _douplet_const(point_j, panel):
     point_i_1, point_i_2 = panel
     t = point_i_2 - point_i_1
-    n_ = vector.normalize([t[1], -t[0]])
+    n_ = normalize([t[1], -t[0]])
     pn, s0 = numpy.linalg.solve(numpy.transpose(numpy.array([n_, t])), -point_i_1 + point_j)
-    l = vector.norm(t)
+    l = norm(t)
     if pn == 0:
         return (0)
     else:

@@ -3,8 +3,10 @@ Develop
 
 There is a lot to do, including:
     * Creating good code
+    * Improving the existing code
     * Writing documentation
     * Run and write unittests
+    * Create civil airships using needle and cloth
 
 Code Conventions
 ----------------

@@ -10,7 +10,7 @@ from openglider.jsonify import dump, load
 from openglider.glider.glider_2d import Glider_2D
 from openglider.glider.glider_2d import ParaFoil
 from openglider.utils.bezier import fitbezier
-from openglider.vector import norm, normalize
+from openglider.vector.functions import norm, normalize
 from pivy_primitives import Line, vector3D, ControlPointContainer, Marker, Spline
 
 text_field = QtGui.QFormLayout.LabelRole

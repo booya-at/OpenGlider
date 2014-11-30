@@ -20,9 +20,8 @@
 
 from __future__ import division
 from numpy import dot
-from openglider.vector import norm
 import numpy
-
+from openglider.vector.functions import norm
 
 
 def proj_force(force, vec):

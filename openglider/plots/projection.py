@@ -19,7 +19,8 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import numpy
 
-from openglider.vector import normalize, norm, PolyLine2D
+from openglider.vector.functions import norm, normalize
+from openglider.vector.polyline import PolyLine2D
 
 
 def point2d(p1_3d, p1_2d, p2_3d, p2_2d, point_3d):

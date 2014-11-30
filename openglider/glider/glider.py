@@ -26,8 +26,8 @@ from openglider.airfoil import Profile2D
 
 from openglider.glider.in_out import IMPORT_GEOMETRY, EXPORT_3D
 from openglider.utils import consistent_value
-from openglider.vector import norm, rotation_2d
 from openglider.plots.projection import flatten_list
+from openglider.vector.functions import norm, rotation_2d
 
 
 class Glider(object):

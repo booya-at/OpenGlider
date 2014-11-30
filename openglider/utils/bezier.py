@@ -26,8 +26,9 @@ import scipy.interpolate
 from scipy.optimize import bisect as findroot
 
 
-from openglider.utils.cache import cached_property, CachedObject
-from openglider.vector import mirror2D_x, norm, HashedList
+from openglider.utils.cache import cached_property, CachedObject, HashedList
+from openglider.vector import mirror2D_x
+from openglider.vector.functions import norm
 
 __ALL = ['BezierCurve']
 

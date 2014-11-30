@@ -7,8 +7,8 @@ import numpy
 from openglider.airfoil import Profile3D
 from openglider.glider.ballooning import arsinc
 from openglider.utils import consistent_value
-from openglider.vector import norm, normalize, HashedList
-from openglider.utils.cache import cached_property, CachedObject
+from openglider.utils.cache import cached_property, CachedObject, HashedList
+from openglider.vector.functions import norm, normalize
 
 
 class BasicCell(CachedObject):
@@ -225,7 +225,6 @@ class Cell(CachedObject):
         balloon = [self.rib1.ballooning[i] + self.rib2.ballooning[i] for i in x_values]
         return HashedList([arsinc(1. / (1+bal)) if bal > 0 else 0 for bal in balloon])
 
-    #TODO: check for usages
     @property
     def ribs(self):
         return [self.rib1, self.rib2]

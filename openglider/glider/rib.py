@@ -2,10 +2,10 @@ import copy
 import math
 import numpy
 from openglider.airfoil import Profile2D, Profile3D, get_x_value
-from openglider.utils.cache import cached_property, CachedObject
+from openglider.utils.cache import cached_property, CachedObject, HashedList
 from openglider.utils.bezier import BezierCurve
-from openglider.vector import rotation_3d, HashedList
 from openglider.glider.ballooning import BallooningBezier
+from openglider.vector.functions import rotation_3d
 
 
 class Rib(CachedObject):

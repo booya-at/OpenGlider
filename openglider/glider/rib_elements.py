@@ -20,7 +20,8 @@
 #from openglider import Profile2D
 from openglider.lines import Node
 from openglider.plots.marks import polygon
-from openglider.vector import cut, PolyLine2D
+from openglider.vector.functions import cut
+from openglider.vector.polyline import PolyLine2D
 
 
 class RigidFoil(object):

@@ -1,5 +1,6 @@
 import numpy
-from openglider.vector import norm, normalize, PolyLine2D
+from openglider.vector.functions import norm, normalize
+from openglider.vector.polyline import PolyLine2D
 
 text_vectors = {
     "1": [[0.2, 0.5], [0.6, 1.], [0.6, 0.]],

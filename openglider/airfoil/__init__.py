@@ -22,8 +22,11 @@ import math
 import os
 import numpy
 
-from openglider.utils.cache import cached_property
-from openglider.vector import normalize, norm, PolyLine2D, PolyLine, Polygon2D, HashedList, Layer, norm_squared
+from openglider.utils.cache import cached_property, HashedList
+from openglider.vector import Layer
+from openglider.vector.functions import norm, norm_squared, normalize
+from openglider.vector.polygon import Polygon2D
+from openglider.vector.polyline import PolyLine, PolyLine2D
 
 
 def get_x_value(x_value_list, x):
@@ -198,17 +201,6 @@ class Profile2D(BasicProfile2D):
         """Reset airfoil To Root-Values"""
         self.data = self._rootprof.data
 
-    # TODO: redo and move to polygon2d
-    @cached_property('self')
-    def area(self):
-        """Return the area occupied by the airfoil"""
-        area = 0
-        last = self.data[0]
-        for this in self.data[1:]:
-            diff = this - last
-            area += abs(diff[0] * last[1] + 0.5 * diff[0] * diff[1])
-        return area
-
     @classmethod
     def compute_naca(cls, naca=1234, numpoints=100):
         """Compute and return a four-digit naca-airfoil"""
@@ -253,7 +245,6 @@ class Profile2D(BasicProfile2D):
         i = self.noseindex
         return [-vector[0] for vector in self.data[:i]] + \
                [vector[0] for vector in self.data[i:]]
-        #return self.data[:i, 0] * -1. + self.data[i:, 0]
 
     @x_values.setter
     def x_values(self, xval):

@@ -1,4 +1,4 @@
-from openglider.vector import PolyLine2D
+from openglider.vector.polyline import PolyLine2D
 
 
 class PlotPart():
@@ -21,8 +21,9 @@ class PlotPart():
     def __getitem__(self, item):
         return self.layer_dict[item]
 
-    def max_min_function(self, _func, i):
-        func = lambda thalist: _func(thalist, key=lambda p: p[i])[i]
+    @staticmethod
+    def max_min_function(_func, i):
+        return lambda thalist: _func(thalist, key=lambda p: p[i])[i]
 
     @property
     def max_x(self):
@@ -109,7 +110,7 @@ class DrawingArea():
 
     @property
     def max_y(self):
-        return min([part.max_y for part in self.parts])
+        return max([part.max_y for part in self.parts])
 
     @property
     def bbox(self):

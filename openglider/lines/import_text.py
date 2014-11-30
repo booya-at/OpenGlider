@@ -22,10 +22,12 @@
 from functions import *
 from elements import Line, Node
 from openglider.lines import LineSet
-from openglider.vector import normalize
 
 
 # IMPORT TEXT FILE#################
+from openglider.vector.functions import normalize
+
+
 def import_lines(path):
     key_dict = {
         "NODES": [8, store_nodes, []],  # 8 tab-seperated values
