@@ -3,7 +3,6 @@ from __future__ import division
 from PySide import QtCore, QtGui
 from pivy import coin
 import numpy
-import FreeCAD
 import FreeCADGui as Gui
 
 from openglider.jsonify import dump, load
@@ -11,7 +10,7 @@ from openglider.glider.glider_2d import Glider_2D
 from openglider.glider.glider_2d import ParaFoil
 from openglider.utils.bezier import fitbezier
 from openglider.vector import norm, normalize
-from pivy_primitives import Line, vector3D, ControlPointContainer, Marker, Spline
+from pivy_primitives import Line, vector3D, ControlPointContainer
 
 text_field = QtGui.QFormLayout.LabelRole
 input_field = QtGui.QFormLayout.FieldRole
@@ -521,6 +520,7 @@ class airfoil_tool(base_tool):
 
     def update_airfoil(self, *args):
         self.airfoil_sep.removeAllChildren()
+        print(self.current_airfoil)
         self.airfoil_sep.addChild(Line(vector3D(self.current_airfoil)).object)
 
     def spline_edit(self):
@@ -624,16 +624,3 @@ class QAirfoil_item(QtGui.QListWidgetItem):
         self.airfoil = airfoil
         super(QAirfoil_item, self).__init__()
         self.setText(self.airfoil.name)
-
-
-class ballooning_tool(base_tool):
-    def __init__(self, obj):
-        super(ballooning_tool, self).__init__(obj)
-        pass
-
-class QBallooning_item(QtGui.QListWidgetItem):
-    def __init__(self, ballooning):
-        self.ballooning = ballooning
-        super(QBallooning_item, self).__init__()
-        self.setText(self.ballooning.name)
-        # not ready yet

@@ -104,10 +104,10 @@ class panel_methode_2d():
         for i in range(self.length):
             self.pressure[i] = 1 - self.velocity[i] ** 2 / self.q_inf ** 2
 
-    def global_velocity(self, point=None):
+    def global_velocity(self, point):
         dx = 0.
         dy = 0.
-        x, y = point or [0., 0.5]
+        x, y = point
         diff = 0.00000000000001
         for i, pan in enumerate(self.panel):
             dx += self.douplet[i] * (self._douplet_const([x + diff, y], pan) -
@@ -228,7 +228,7 @@ def graphics_test():
     arf = Profile2D.compute_naca(1010, numpoints=70)
     arf.close()
     arf.normalize()
-    pan = panel_methode_2d(arf.data, aoa=5 * numpy.pi / 180, wake_length=3, wake_numpoints=50)
+    pan = panel_methode_2d(arf.data, aoa=20 * numpy.pi / 180, wake_length=3, wake_numpoints=50)
     arrows = []
     for i in range(pan.length):
         mid = pan.panel_mids[i]
@@ -237,11 +237,11 @@ def graphics_test():
         dip = pan.douplet[i]
         arrows.append([mid, mid + normal * cp / 30])
     arrows = numpy.array(arrows)
-    stream = [pan.streamline(point=[-0.1, i], dist=0.02, steps=50) for i in numpy.linspace(-0.2,0.2,20)]
-    pot = [pan.potentialline(point=p, dist=0.02, steps=50) for p in pan.panel_mids[::5]]
+    stream = [pan.streamline(point=[-0.1, i], dist=0.01, steps=100) for i in numpy.linspace(-0.2,0.2,20)]
+    # pot = [pan.potentialline(point=p, dist=0.02, steps=50) for p in pan.panel_mids[::5]]
     Graphics3D(
+        # map(Line, pot) +
         map(Line, stream) + 
-        map(Line, pot) +
         map(Line, pan.panel) +
         # [Line(pan.airfoil)] + 
         # [Line(arrows[:, 1])]+
@@ -269,7 +269,7 @@ def visual_test_dipol(dup=_douplet_const):
     contourf(X, Y, z, levels = linspace(z.min(), z.max(), len(x)), ls = '-', cmap=cm.winter, origin="lower")
     show()
 
-def visual_test_airfoil(dup=_c_douplet_const, num=70):
+def visual_test_airfoil(num=70):
 
     arf = Profile2D.import_from_dat("../../tests/testprofile.dat")
     arf.numpoints = num
@@ -289,9 +289,10 @@ def visual_test_airfoil(dup=_c_douplet_const, num=70):
     contourf(X, Y, z, levels = linspace(z.min(), z.max(), len(x)), ls = '-', cmap=cm.winter, origin="lower")
     show()
 
+
 if __name__ == "__main__":
     # text_test()
     # plot_test()
     graphics_test()
-    # visual_test_dipol(dup=_c_douplet_const)
+    # visual_test_dipol()
     # visual_test_airfoil()

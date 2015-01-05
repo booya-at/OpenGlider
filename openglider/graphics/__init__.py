@@ -182,28 +182,31 @@ def draw_glider(glider, num=0, mirror=True, panels=True):
 
 if __name__ == "__main__":
     #from IPython.qt.console.console_widget import ConsoleWidget
+    Graphics3D([Red, Polygon([[0.,0,0], [1.,0,0], [1.,1,0], [0.,1,0]]),
+                Blue, Polygon([[0.,0,1], [1.,0,1], [1.,1,1], [0.,1,1]])])
 
-    qApp = QtGui.QApplication(sys.argv)
-    graph = Graphics([Polygon([[0., 0., 0.],
-                               [0., 1., 1.],
-                               [2., 1., 0.]])], show=False)
-    graph2 = Graphics([Red, Polygon([[-1., -2., -3.],
-                                     [0., 0., 0.],
-                                     [-1., -1., -1.]])], show=False)
+    def test1():
+        qApp = QtGui.QApplication(sys.argv)
+        graph = Graphics([Polygon([[0., 0., 0.],
+                                   [0., 1., 1.],
+                                   [2., 1., 0.]])], show=False)
+        graph2 = Graphics([Red, Polygon([[-1., -2., -3.],
+                                         [0., 0., 0.],
+                                         [-1., -1., -1.]])], show=False)
 
-    widget = GraphicsWidget(graph, graph2)
-    widget2 = GraphicsWidget(graph2, graph)
-    #console = ConsoleWidget()
-    graph.redraw()
-    graph2.redraw()
-    window = ApplicationWindow([widget, widget2])
-    buttons = ButtonWidget({"jo": window.close})
-    window.add_widgets(buttons)
-    window.show()
-    widget.show()
-    widget2.show()
-    #widget.render_interactor.Initialize()
-    #widget.render_interactor.Start()
-    #widget2.render_interactor.Initialize()
-    #widget2.render_interactor.Start()
-    sys.exit(qApp.exec_())
+        widget = GraphicsWidget(graph, graph2)
+        widget2 = GraphicsWidget(graph2, graph)
+        #console = ConsoleWidget()
+        graph.redraw()
+        graph2.redraw()
+        window = ApplicationWindow([widget, widget2])
+        buttons = ButtonWidget({"jo": window.close})
+        window.add_widgets(buttons)
+        window.show()
+        widget.show()
+        widget2.show()
+        #widget.render_interactor.Initialize()
+        #widget.render_interactor.Start()
+        #widget2.render_interactor.Initialize()
+        #widget2.render_interactor.Start()
+        sys.exit(qApp.exec_())

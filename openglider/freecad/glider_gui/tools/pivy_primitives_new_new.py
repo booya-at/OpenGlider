@@ -14,8 +14,6 @@ COLORS = {
 
 
 class Object3D(coin.SoSeparator):
-    """addiditional to coin this list stores all the geometry"""
-    # point, line, polygon
     def __init__(self, dynamic=False, std_col="black", ovr_col="red", sel_col="yellow"):
         super(Object3D, self).__init__()
         self._sel_color = COLORS[sel_col]

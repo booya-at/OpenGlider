@@ -108,13 +108,18 @@ class BallooningBezier(Ballooning):
         if not points:
             points = [[[0, 0], [0.1, 0], [0.2, 0.14], [0.8, 0.14], [0.9, 0], [1, 0]],
                       [[0, 0], [0.1, 0], [0.2, 0.14], [0.8, 0.14], [0.9, 0], [1, 0]]]
-        self.upbez = BezierCurve(points[0])
-        self.lowbez = BezierCurve(points[1])
-        Ballooning.__init__(self, self.upbez.interpolation(), self.lowbez.interpolation())
+        self.upper_spline = BezierCurve(points[0])
+        self.lower_spline = BezierCurve(points[1])
+        Ballooning.__init__(self, self.upper_spline.interpolation(), self.lower_spline.interpolation())
 
     def __json__(self):
-        return {"points": [[p.tolist() for p in self.upbez.controlpoints],
-                           [p.tolist() for p in self.lowbez.controlpoints]]}
+        return {"points": [[p.tolist() for p in self.upper_spline.controlpoints],
+                           [p.tolist() for p in self.lower_spline.controlpoints]]}
+    @property
+    def points(self):
+        upper = list(self.upper_spline.get_sequence())
+        lower = map(lambda x: [x[0], -x[1]], self.lower_spline.get_sequence()[::-1])
+        return upper + lower
 
     def __mul__(self, other):  # TODO: Check consistency
         """Multiplication of BezierBallooning"""
@@ -122,8 +127,8 @@ class BallooningBezier(Ballooning):
         return Ballooning.__mul__(self, other)
         #self.upper = temp.upper
         #self.lower = temp.lower
-        #self.upbez.fit(numpy.transpose([self.upper.x, self.upper.y]))
-        #self.lowbez.fit(numpy.transpose([self.lower.x, self.lower.y]))
+        #self.upper_spline.fit(numpy.transpose([self.upper.x, self.upper.y]))
+        #self.lower_spline.fit(numpy.transpose([self.lower.x, self.lower.y]))
 
     @property
     def numpoints(self):
@@ -131,20 +136,20 @@ class BallooningBezier(Ballooning):
 
     @numpoints.setter
     def numpoints(self, numpoints):
-        Ballooning.__init__(self, self.upbez.interpolation(numpoints), self.lowbez.interpolation(numpoints))
+        Ballooning.__init__(self, self.upper_spline.interpolation(numpoints), self.lower_spline.interpolation(numpoints))
 
     @property
     def controlpoints(self):
-        return self.upbez.controlpoints, self.lowbez.controlpoints
+        return self.upper_spline.controlpoints, self.lower_spline.controlpoints
 
     @controlpoints.setter
     def controlpoints(self, controlpoints):
         upper, lower = controlpoints
         if upper is not None:
-            self.upbez.controlpoints = upper
+            self.upper_spline.controlpoints = upper
         if lower is not None:
-            self.lowbez.controlpoints = lower
-        Ballooning.__init__(self, self.upbez.interpolation(), self.lowbez.interpolation())
+            self.lower_spline.controlpoints = lower
+        Ballooning.__init__(self, self.upper_spline.interpolation(), self.lower_spline.interpolation())
 
 
 global arsinc

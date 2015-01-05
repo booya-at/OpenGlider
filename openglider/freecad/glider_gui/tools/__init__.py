@@ -2,8 +2,9 @@ import FreeCAD
 import FreeCADGui as Gui
 
 from _glider import OGGlider, OGGliderVP
-from _tools import (shape_tool, base_tool, ballooning_tool,
+from _tools import (shape_tool, base_tool,
                     arc_tool, aoa_tool, airfoil_tool, export_2d, import_2d)
+from ballooning_tool import ballooning_tool
 from attach_tool import attach_tool
 from line_tool import line_tool
 from openglider.plots import flatten_glider
