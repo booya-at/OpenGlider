@@ -34,13 +34,3 @@ def proj_force(force, vec):
 
 def proj_to_surface(vec, n_vec):
     return vec - numpy.array(n_vec) * dot(n_vec, vec) / dot(n_vec, n_vec)
-
-
-def vec_length(point_list):
-    l = 0
-    pl = numpy.array(point_list)
-    p0 = pl[0]
-    for i in pl[1:]:
-        l += norm(p0 - i)
-        p0 = i
-    return l

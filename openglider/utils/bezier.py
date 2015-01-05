@@ -139,7 +139,7 @@ class BezierCurve(HashedList):
         out = 0.
         for i, s in enumerate(seq[1:]):
             out += norm(s - seq[i])
-        return(out)
+        return out
 
 
 class SymmetricBezier(BezierCurve):

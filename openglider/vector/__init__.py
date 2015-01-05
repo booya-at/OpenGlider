@@ -40,6 +40,7 @@ def arrtype(arg):
     ##equivalent numpy.rank?
 
     # TODO: Room for improvement here!
+    # todo: remove!
 
     if depth(arg) == 2:
         if len(arg) == 2:
@@ -61,6 +62,7 @@ def arrtype(arg):
     else:
         return 0
 
+
 def mirror_func(direction=None):
     if direction is None:
         direction = [1., 0., 0.]
@@ -81,6 +83,7 @@ def mirror_func(direction=None):
                 [-2 * x * z, -2 * y * z, 1 - 2 * z ** 2]
             ]
         )
+
     def mirror(vec):
         if isinstance(vec[0], (numpy.ndarray, list, tuple)):
             return numpy.array([mirror(i) for i in vec]).tolist()
@@ -91,6 +94,7 @@ def mirror_func(direction=None):
 
 mirror2D_x = mirror_func(direction=[1., 0.])
 mirror_x = mirror_func(direction=[1., 0., 0.])
+
 
 class Layer(object):
     def __init__(self, p0, v1, v2):
