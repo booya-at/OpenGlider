@@ -69,7 +69,7 @@ def cut_2(inner_lists, outer_left, outer_right, amount, num_folds=2):
 
     # mirror to (p1-p2) -> p'=p-2*(p.normvector)
     last_left, last_right = left_start[0], right_start[0]
-    new_left, new_right = PolyLine2D(), PolyLine2D()
+    new_left, new_right = PolyLine2D(None), PolyLine2D(None)
 
     for i in range(num_folds):
         left_this = left_piece if i % 2 else left_piece_mirrored

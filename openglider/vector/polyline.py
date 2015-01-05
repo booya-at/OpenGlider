@@ -6,7 +6,7 @@ from openglider.vector.functions import norm, normalize, rangefrom, rotation_2d,
 
 
 class PolyLine(HashedList):
-    def __init__(self, data=None, name=None):
+    def __init__(self, data, name=None):
         super(PolyLine, self).__init__(data, name)
 
     def __getitem__(self, ik):
@@ -37,6 +37,13 @@ class PolyLine(HashedList):
                 # case2: ik>len(self.data) -> k += difference
                 k = ik % 1 + max(0, int(ik) - len(self.data) + 2)
             return self.data[i] + k * (self.data[i + 1] - self.data[i])
+
+    def __mul__(self, other):
+        """Scale"""
+        assert len(other) == 2
+        new = self.copy()
+        new.scale(*other)
+        return new
 
     def point(self, x):
         """List.point(x) is the same as List[x]"""
@@ -98,7 +105,7 @@ class PolyLine(HashedList):
 
 
 class PolyLine2D(PolyLine):
-    def __init__(self, data=None, name=None):
+    def __init__(self, data, name=None):
         self._normvectors = None
         super(PolyLine2D, self).__init__(data, name)
 
@@ -115,7 +122,7 @@ class PolyLine2D(PolyLine):
         for i in rangefrom(len(self)-2, startpoint):
             try:
                 thacut = cut(self[i], self[i+1], p1, p2)
-                if 0 < thacut[1] <= 1 or (thacut[1]==0 and i==0):
+                if 0 < thacut[1] <= 1 or (thacut[1] == 0 and i == 0):
                     yield i+thacut[1]
             except numpy.linalg.LinAlgError:
                 continue
@@ -247,12 +254,12 @@ class PolyLine2D(PolyLine):
 
     def rotate(self, angle, startpoint=None):
         """
-        Rotate counter-clockwise around a (non)given startpoint
+        Rotate counter-clockwise around a (non)given startpoint [rad]
         """
         rotation_matrix = rotation_2d(angle)
         new_data = []
         for point in self.data:
-            if not startpoint is None:
+            if startpoint is not None:
                 new_data.append(startpoint + rotation_matrix.dot(point - startpoint))
             else:
                 new_data.append(rotation_matrix.dot(point))

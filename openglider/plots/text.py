@@ -50,12 +50,13 @@ text_vectors = {
 
 
 def get_text_vector(text, p1, p2, height=1):
-    diff = (p2-p1)/len(text)
+    width = (p2-p1)/len(text)
     p0 = p1.copy()
-    x, y = normalize([diff.dot([1, 0]), diff.dot([0, 1])])
-    rot = numpy.array([[x, -y], [y, x]]) * norm(diff) * [1, height]
+    x, y = normalize([width.dot([1, 0]), width.dot([0, 1])])
+    rot = numpy.array([[x, -y], [y, x]]) * norm(width) * [1, height]
     vectors = []
     for letter in text.upper():
-        vectors.append(PolyLine2D(map(lambda p: p0 + rot.dot(p), text_vectors[letter])))
-        p0 += diff
+        vectors.append(
+            PolyLine2D([p0 + rot.dot(p) for p in text_vectors[letter]]))
+        p0 += width
     return vectors

@@ -30,6 +30,7 @@ except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
     import openglider
 from openglider.plots import flatten_glider, create_svg
+from openglider import jsonify
 from test_glider import GliderTestClass
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
@@ -67,7 +68,6 @@ class TestGlider(GliderTestClass):
         path = self.file('.json').name
         data = self.glider.export_3d(path=path, midribs=2, numpoints=10, wake_panels=3, wake_length=0.9)
         with open(path, "w") as outfile:
-            print(outfile)
             json.dump(data, outfile, indent=2)
 
     def test_export_plots(self):
@@ -78,12 +78,17 @@ class TestGlider(GliderTestClass):
         create_svg(all, path)
 
     def test_export_glider_json(self):
-        from openglider import jsonify
         file = self.file('.json')
         jsonify.dump(self.glider, file)
         file.seek(0)
         glider = jsonify.load(file)['data']
         self.assertEqualGlider(glider)
+
+    def test_export_glider_json2(self):
+        path = self.file('.json').name
+        with open(path, "w") as outfile:
+            jsonify.dump(self.glider, outfile)
+
 
 
 

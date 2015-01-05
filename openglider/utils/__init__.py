@@ -29,8 +29,7 @@ def consistent_value(elements, attribute):
     vals = [recursive_getattr(element, attribute) for element in elements]
     if vals[1:] == vals[:-1]:
         return vals[0]
-    else:
-        return None
+
 
 
 import os

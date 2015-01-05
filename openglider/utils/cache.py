@@ -110,7 +110,7 @@ class HashedList(CachedObject):
     """
     Hashed List to use cached properties
     """
-    def __init__(self, data=None, name=None):
+    def __init__(self, data, name=None):
         self._data = None
         self._hash = None
         self.data = data
@@ -153,7 +153,7 @@ class HashedList(CachedObject):
 
     @data.setter
     def data(self, data):
-        if not data is None:
+        if data is not None:
             self._data = numpy.array(data)
             #self._data = [np.array(vector) for vector in data]  # 1,5*execution time
             self._hash = None
