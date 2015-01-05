@@ -5,10 +5,10 @@ import itertools
 import numpy
 
 from openglider.airfoil import Profile3D
-from openglider.glider.ballooning import arsinc
+from openglider.glider.ballooning import Ballooning
 from openglider.utils import consistent_value
-from openglider.vector import norm, normalize, HashedList
-from openglider.utils.cache import cached_property, CachedObject
+from openglider.utils.cache import cached_property, CachedObject, HashedList
+from openglider.vector.functions import norm, normalize
 
 
 class BasicCell(CachedObject):
@@ -165,9 +165,10 @@ class Cell(CachedObject):
             for c in cells:
                 newval = lnew / l / bl if bl != 0 else 1
                 if newval < 1.:
-                    c.ballooning_phi.append(arsinc(newval))  # B/L NEW 1 / (bl * l / lnew)
+                    c.ballooning_phi.append(Ballooning.arcsinc(newval))  # B/L NEW 1 / (bl * l / lnew)
                 else:
-                    c.ballooning_phi.append(arsinc(1.))
+                    #c.ballooning_phi.append(Ballooning.arcsinc(1.))
+                    c.ballooning_phi.append(0.)
                     #raise ValueError("mull")
         return cells
 
@@ -223,9 +224,8 @@ class Cell(CachedObject):
     def ballooning_phi(self):
         x_values = self.rib1.profile_2d.x_values
         balloon = [self.rib1.ballooning[i] + self.rib2.ballooning[i] for i in x_values]
-        return HashedList([arsinc(1. / (1+bal)) if bal > 0 else 0 for bal in balloon])
+        return HashedList([Ballooning.arcsinc(1. / (1+bal)) if bal > 0 else 0 for bal in balloon])
 
-    #TODO: check for usages
     @property
     def ribs(self):
         return [self.rib1, self.rib2]

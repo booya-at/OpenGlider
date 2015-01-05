@@ -4,11 +4,12 @@ import copy
 import scipy.interpolate
 import numpy
 
-from openglider.vector import norm, normalize, rotation_2d, mirror2D_x
+from openglider.vector import mirror2D_x
 from openglider.utils.bezier import BezierCurve, SymmetricBezier
 from openglider.utils import sign
 from openglider.airfoil import Profile2D
 from openglider.lines import Node, Line, LineSet
+from openglider.vector.functions import norm, normalize, rotation_2d
 
 
 class Glider_2D(object):

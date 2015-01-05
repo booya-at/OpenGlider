@@ -18,8 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import math
-import openglider.vector
 
+from openglider.vector.functions import normalize, rotation_2d
+from openglider.vector.polyline import PolyLine2D
 
 ###############CUTS####################
 # Check doc/drawings 7-9 for sketches
@@ -30,7 +31,7 @@ def cut_1(inner_lists, outer_left, outer_right, amount):
     """
     p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
     p2 = inner_lists[-1][0][inner_lists[-1][1]]
-    normvector = openglider.vector.normalize(openglider.vector.rotation_2d(math.pi/2).dot(p1-p2))
+    normvector = normalize(rotation_2d(math.pi/2).dot(p1-p2))
 
     newlist = []
     leftcut = outer_left.cut(p1, p2, inner_lists[0][1])  # p1,p2,startpoint
@@ -52,7 +53,7 @@ def cut_2(inner_lists, outer_left, outer_right, amount, num_folds=2):
     """
     p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
     p2 = inner_lists[-1][0][inner_lists[-1][1]]
-    normvector = openglider.vector.normalize(openglider.vector.rotation_2d(math.pi/2).dot(p1-p2))
+    normvector = normalize(rotation_2d(math.pi/2).dot(p1-p2))
 
     left_start = outer_left.cut(p1, p2, inner_lists[0][1])
     right_start = outer_right.cut(p1, p2, inner_lists[-1][1])
@@ -68,7 +69,7 @@ def cut_2(inner_lists, outer_left, outer_right, amount, num_folds=2):
 
     # mirror to (p1-p2) -> p'=p-2*(p.normvector)
     last_left, last_right = left_start[0], right_start[0]
-    new_left, new_right = openglider.vector.PolyLine2D(), openglider.vector.PolyLine2D()
+    new_left, new_right = PolyLine2D(None), PolyLine2D(None)
 
     for i in range(num_folds):
         left_this = left_piece if i % 2 else left_piece_mirrored
@@ -90,7 +91,7 @@ def cut_3(inner_lists, outer_left, outer_right, amount):
     # Continue Parallel
     p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
     p2 = inner_lists[-1][0][inner_lists[-1][1]]
-    normvector = openglider.vector.normalize(openglider.vector.rotation_2d(math.pi/2).dot(p1-p2))
+    normvector = normalize(rotation_2d(math.pi/2).dot(p1-p2))
 
     leftcut = outer_left.cut(p1, p2, inner_lists[0][1])
     rightcut = outer_right.cut(p1, p2, inner_lists[-1][1])

@@ -12,6 +12,7 @@ from openglider.utils.bezier import fitbezier
 from openglider.vector import norm, normalize
 from pivy_primitives import Line, vector3D, ControlPointContainer
 
+
 text_field = QtGui.QFormLayout.LabelRole
 input_field = QtGui.QFormLayout.FieldRole
 

@@ -22,8 +22,9 @@
 import vtk
 import numpy
 
-from openglider.vector import depth, norm, normalize
+from openglider.vector import depth
 # Quick graphics lib to imitate mathematicas graphics functions
+from openglider.vector.functions import norm, normalize
 
 
 def tofloat(lst):

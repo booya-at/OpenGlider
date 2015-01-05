@@ -4,6 +4,7 @@ import random
 import sys
 import unittest
 import openglider.vector
+from openglider.vector.polygon import Polygon2D
 
 try:
     import openglider
@@ -27,7 +28,7 @@ class ProfileTest(unittest.TestCase):
     def test_allowance(self):
         prof = self.profile.copy()
         prof.add_stuff(random.random()*0.1)
-        prof = openglider.vector.Polygon2D(prof.data)
+        prof = Polygon2D(prof.data)
         prof.close()
         openglider.graphics.Graphics([openglider.graphics.Line(prof.data),
                                       openglider.graphics.Line(self.profile.data)])

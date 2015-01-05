@@ -19,13 +19,12 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import svgwrite
 
+from openglider.vector.polyline import PolyLine2D
 from openglider.airfoil import get_x_value
-from openglider.plots.marks import triangle, line
-from . import projection
-from . import marks
-from .cuts import cuts
-from .part import PlotPart, DrawingArea
-from openglider.vector import PolyLine2D
+from openglider.plots import projection, marks
+from openglider.plots.cuts import cuts
+from openglider.plots.part import PlotPart, DrawingArea
+from openglider.plots.text import get_text_vector
 
 
 # Sign configuration
@@ -79,7 +78,7 @@ def flatten_glider(glider):
     parts = []
     xvalues = glider.profile_x_values
 
-    for cell in glider.cells:
+    for cell_no, cell in enumerate(glider.cells):
         cell_parts = []
         left_bal, left, right, right_bal = flattened_cell(cell)
         left_out = left_bal.copy()
@@ -88,7 +87,7 @@ def flatten_glider(glider):
         right_out.add_stuff(sewing_config["allowance_general"])
         left_out.check()
         right_out.check()
-        for panel in cell.panels:
+        for part_no, panel in enumerate(cell.panels):
             front_left = get_x_value(xvalues, panel.cut_front[0])
             back_left = get_x_value(xvalues, panel.cut_back[0])
             front_right = get_x_value(xvalues, panel.cut_front[1])
@@ -106,7 +105,13 @@ def flatten_glider(glider):
             part_marks = [left_bal[front_left:back_left] +
                           right_bal[front_right:back_right:-1] +
                           PolyLine2D([left_bal[front_left]])]
-            part_text = []
+
+            part_text = get_text_vector("cell_{}_part{}".format(cell_no, part_no),
+                                        left_bal[front_left],
+                                        right_bal[front_right])
+
+            # panel.cut_front[3]
+
 
             # wieder einkommentieren
             # for attachment_point in filter(lambda p: p.rib is cell.rib1, glider.attachment_points):
@@ -117,7 +122,7 @@ def flatten_glider(glider):
 
             cell_parts.append(PlotPart({"OUTER_CUTS": part_cuts,
                                    "SEWING_MARKS": part_marks,
-                                   #"TEXT": part_text
+                                   "TEXT": part_text
             }))
         parts.append(cell_parts)
 
@@ -141,12 +146,12 @@ def flatten_glider(glider):
 
         rib_marks = []
 
-############# wieder ein kommentieren
+        ############# wieder ein kommentieren
 
         #####################marks for attachment-points##################################
-#        attachment_points = filter(lambda p: p.rib == rib, glider.attachment_points)
-#        for point in attachment_points:
-#            rib_marks += sewing_config["marks"]["attachment-point"](*return_points(point.rib_pos))
+        # attachment_points = filter(lambda p: p.rib == rib, glider.attachment_points)
+        # for point in attachment_points:
+        #     rib_marks += sewing_config["marks"]["attachment-point"](*return_points(point.rib_pos))
 
         #####################marks for panel-cuts#########################################
         rib_cuts = set()
@@ -177,6 +182,8 @@ def flatten_glider(glider):
 
 def create_svg(drawing_area, path):
     drawing = svgwrite.Drawing()
+    # svg is shifted downwards
+    drawing_area.move([0, -drawing_area.max_y])
     for part in drawing_area.parts:
         part_group = svgwrite.container.Group()
 

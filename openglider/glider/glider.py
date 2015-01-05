@@ -26,30 +26,33 @@ from openglider.airfoil import Profile2D
 
 from openglider.glider.in_out import IMPORT_GEOMETRY, EXPORT_3D
 from openglider.utils import consistent_value
-from openglider.vector import norm, rotation_2d
 from openglider.plots.projection import flatten_list
+from openglider.vector.functions import norm, rotation_2d
 
 
 class Glider(object):
-    def __init__(self, cells=None, attachment_points=None, lineset=None):
+    def __init__(self, cells=None, attachment_points=None, lineset=None,
+                 diagonal_ribs=None):
         self.cells = cells or []
         self.lineset = lineset
+        self.diagonal_ribs = diagonal_ribs or []
 
     def __json__(self):
         new = self.copy()
         ribs = new.ribs[:]
         # de-reference Ribs not to store too much data
-        for cell in new.cells:
+        for cell in new.cells + new.diagonal_ribs:
             cell.rib1 = ribs.index(cell.rib1)
             cell.rib2 = ribs.index(cell.rib2)
         return {"cells": new.cells,
                 "ribs": ribs,
-                "lineset": self.lineset
+                "lineset": self.lineset,
+                "diagonal_ribs": new.diagonal_ribs
                 }
 
     @classmethod
-    def __from_json__(cls, cells, ribs, lineset):
-        for cell in cells:
+    def __from_json__(cls, cells, ribs, lineset, diagonal_ribs):
+        for cell in cells + diagonal_ribs:
             if isinstance(cell.rib1, int):
                 cell.rib1 = ribs[cell.rib1]
             if isinstance(cell.rib2, int):
@@ -194,6 +197,7 @@ class Glider(object):
 
     @property
     def profile_x_values(self):
+        return self.ribs[0].profile_2d.x_values
         return consistent_value(self.ribs, 'profile_2d.x_values')
 
     @profile_x_values.setter

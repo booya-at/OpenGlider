@@ -1,3 +1,6 @@
+import copy
+import numpy
+
 config = {"caching": True, 'verbose': False}
 
 cache_instances = []
@@ -101,3 +104,61 @@ def hash_attributes(class_instance, hashlist):
     if value == -1:
         value = -2
     return value
+
+
+class HashedList(CachedObject):
+    """
+    Hashed List to use cached properties
+    """
+    def __init__(self, data, name=None):
+        self._data = None
+        self._hash = None
+        self.data = data
+        try:  # TODO: whats that?
+            if name or not self.name:
+                raise AttributeError
+        except AttributeError:
+            self.name = name
+
+    def __json__(self):
+        return {"data": self.data.tolist(), "name": self.name}
+
+    def __getitem__(self, item):
+        return self.data.__getitem__(item)
+
+    def __setitem__(self, key, value):
+        self.data.__setitem__(key, numpy.array(value))
+        self._hash = None
+
+    def __hash__(self):
+        if self._hash is None:
+            self._hash = hash(str(self.data))
+        return self._hash
+
+    def __len__(self):
+        return len(self.data)
+
+    def __iter__(self):
+        return self.data.__iter__()
+
+    def __str__(self):
+        return self.data.__str__()
+
+    def __repr__(self):
+        return super(HashedList, self).__repr__() + " (name: {})".format(self.name)
+
+    @property
+    def data(self):
+        return self._data
+
+    @data.setter
+    def data(self, data):
+        if data is not None:
+            self._data = numpy.array(data)
+            #self._data = [np.array(vector) for vector in data]  # 1,5*execution time
+            self._hash = None
+        else:
+            self._data = data
+
+    def copy(self):
+        return copy.deepcopy(self)

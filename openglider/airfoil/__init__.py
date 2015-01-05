@@ -22,8 +22,11 @@ import math
 import os
 import numpy
 
-from openglider.utils.cache import cached_property
-from openglider.vector import normalize, norm, PolyLine2D, PolyLine, Polygon2D, HashedList, Layer, norm_squared
+from openglider.utils.cache import cached_property, HashedList
+from openglider.vector import Layer
+from openglider.vector.functions import norm, norm_squared, normalize
+from openglider.vector.polygon import Polygon2D
+from openglider.vector.polyline import PolyLine, PolyLine2D
 
 
 def get_x_value(x_value_list, x):
@@ -38,27 +41,40 @@ def get_x_value(x_value_list, x):
 
 class BasicProfile2D(Polygon2D):
     """Basic airfoil Class, not to do much"""
-    ####rootprof gleich mitspeichern!!
-    def __init__(self, data=None, name=None):
+    def __init__(self, data, name=None):
         self.noseindex = None
         super(BasicProfile2D, self).__init__(data, name)
 
     def __mul__(self, other):
         fakt = numpy.array([1, float(other)])
-        return self.__class__(self.data * fakt)
+        return super(BasicProfile2D, self).__mul__(fakt)
 
     def __call__(self, xval):
-        return self.profilepoint(xval)
+        xval = float(xval)
+        if xval < 0.:       # LOWER
+            i = 1
+            xval = -xval
+            while self[i][0] >= xval and i < len(self):
+                i += 1
+            i -= 1
+        elif xval == 0:     # NOSE
+            i = self.noseindex - 1
+        else:               # UPPER
+            i = len(self) - 2
+            while self[i][0] > xval and i > 1:
+                i -= 1
+                # Determine k-value
+        k = -(self[i][0] - xval) / (self[i + 1][0] - self[i][0])
+
+        return i + k
 
     def align(self, p):
         """Align a point (x, y) on the airfoil. x: (0,1), y: (-1,1)"""
         x, y = p
-        p1, __ = self.profilepoint(x)
-        p2, __ = self.profilepoint(x)
-        return p1 + (1 + y) / 2 * (p2 - p1)
+        upper = self[self(-x)]
+        lower = self[self(x)]
 
-    def _x(self, xval):
-        pass  # Maybe split up profilepoint function
+        return lower + (upper-lower) * (y + 1)/2
 
     @staticmethod
     def cos_distribution(numpoints):
@@ -67,40 +83,15 @@ class BasicProfile2D(Polygon2D):
         xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 - math.sin(math.pi * x))
         return [xtemp(i/numpoints) for i in range(numpoints+1)]
 
-    @staticmethod
-    def get_from_x_value(x_value_list, x):
-        """
-        Get position of x in a list of x_values
-        zb get_x_value([1,2,3],1.5)=0.5
-        """
-        for i in range(len(x_value_list) - 1):
-            if x_value_list[i + 1] >= x or i == len(x_value_list) - 2:
-                return i - (x_value_list[i] - x) / (x_value_list[i + 1] - x_value_list[i])
-
     def profilepoint(self, xval, h=-1.):
         # TODO: schlecht, i+k als return weg und verwenden von get_from_x_value...
         """Get airfoil Point for x-value (<0:upper side) optional: height (-1:lower,1:upper), possibly mapped"""
         if not h == -1:  # middlepoint
-            p1 = self.profilepoint(xval)[1]
-            p2 = self.profilepoint(-xval)[1]
+            p1 = self[self(xval)]
+            p2 = self[self(-xval)]
             return p1 + (1. + h) / 2 * (p2 - p1)
         else:  # Main Routine
-            xval = float(xval)
-            if xval < 0.:       # LOWER
-                i = 1
-                xval = -xval
-                while self[i][0] >= xval and i < len(self):
-                    i += 1
-                i -= 1
-            elif xval == 0:     # NOSE
-                i = self.noseindex - 1
-            else:               # UPPER
-                i = len(self) - 2
-                while self[i][0] > xval and i > 1:
-                    i -= 1
-                    # Determine k-value
-            k = -(self[i][0] - xval) / (self[i + 1][0] - self[i][0])
-            return i + k, self[i + k]
+            return self[self(xval)]
 
     def normalize(self):
         """
@@ -110,11 +101,10 @@ class BasicProfile2D(Polygon2D):
             *De-rotate airfoil
             *Reset its length to 1
         """
-        #to normalize do: put nose to (0,0), rotate to fit (1,0), normalize to (1,0)
         p1 = self.data[0]
 
         nose = self.data[self.noseindex]
-        diff = p1 - nose
+        diff = p1 - nose  # put nose to (0,0)
         sin_sq = diff.dot([0, -1]) / norm_squared(diff)  # Angle: a.b=|a|*|b|*sin(alpha)
         cos_sq = diff.dot([1, 0]) / norm_squared(diff)
         matrix = numpy.array([[cos_sq, -sin_sq], [sin_sq, cos_sq]])  # de-rotate and scale
@@ -123,7 +113,7 @@ class BasicProfile2D(Polygon2D):
     @HashedList.data.setter
     def data(self, data):
         HashedList.data.fset(self, data)
-        if not data is None:
+        if data is not None:
             i = 0
             while data[i + 1][0] < data[i][0] and i < len(data):
                 i += 1
@@ -133,12 +123,7 @@ class BasicProfile2D(Polygon2D):
 class Profile2D(BasicProfile2D):
     """Profile2D: 2 Dimensional Standard airfoil representative in OpenGlider"""
     #############Initialisation###################
-    def __init__(self, data=None, name=None, normalize_root=True):
-        if not data is None and len(data) > 2:
-            # Filter name
-            if isinstance(data[0][0], str):
-                name = data[0][0]
-                data = data[1:]
+    def __init__(self, data, name=None, normalize_root=True):
         self._rootprof = BasicProfile2D(data, name)  # keep a copy
         super(Profile2D, self).__init__(data, name=name)
         if normalize_root and data is not None:
@@ -189,26 +174,6 @@ class Profile2D(BasicProfile2D):
                 out.write("\n" + str(i[0]) + "\t" + str(i[1]))
         return pfad
 
-    def rootpoint(self, xval, h=-1):
-        """Get airfoil Point for x-value (<0:upper side) optional: height (-1:lower,1:upper);
-        use root-airfoil (highest res)"""
-        return self._rootprof.profilepoint(xval, h)
-
-    def reset(self):
-        """Reset airfoil To Root-Values"""
-        self.data = self._rootprof.data
-
-    # TODO: redo and move to polygon2d
-    @cached_property('self')
-    def area(self):
-        """Return the area occupied by the airfoil"""
-        area = 0
-        last = self.data[0]
-        for this in self.data[1:]:
-            diff = this - last
-            area += abs(diff[0] * last[1] + 0.5 * diff[0] * diff[1])
-        return area
-
     @classmethod
     def compute_naca(cls, naca=1234, numpoints=100):
         """Compute and return a four-digit naca-airfoil"""
@@ -246,20 +211,23 @@ class Profile2D(BasicProfile2D):
                           mean_camber - thickness_this * costheta])
         return cls(upper + lower[::-1][1:], name="NACA_" + str(naca))
 
-    #todo: cached??
+    def reset(self):
+        """Reset airfoil To Root-Values"""
+        self.data = self._rootprof.data
+
+    #@cached_property('self')
     @property
     def x_values(self):
         """Get XValues of airfoil. upper side neg, lower positive"""
         i = self.noseindex
         return [-vector[0] for vector in self.data[:i]] + \
                [vector[0] for vector in self.data[i:]]
-        #return self.data[:i, 0] * -1. + self.data[i:, 0]
 
     @x_values.setter
     def x_values(self, xval):
         """Set X-Values of airfoil to defined points."""
         ###standard-value: root-prof xvalues
-        self.data = [self._rootprof(x)[1] for x in xval]
+        self.data = [self._rootprof[self._rootprof(x)] for x in xval]
 
     @property
     def numpoints(self):
@@ -276,14 +244,14 @@ class Profile2D(BasicProfile2D):
     def thickness(self):
         """return the maximum sickness (Sic!) of an airfoil"""
         xvals = sorted(set(map(abs, self.x_values)))
-        return max([self.profilepoint(-i)[1][1] - self.profilepoint(i)[1][1] for i in xvals])
+        return max([self[self(-i)][1] - self[self(i)][1] for i in xvals])
 
     @thickness.setter
     def thickness(self, newthick):
         factor = float(newthick / self.thickness)
         new = [point * [1., factor] for point in self.data]
         name = self.name
-        if not name is None:
+        if name is not None:
             name += "_" + str(newthick) + "%"
         self.__init__(new, name)
 
@@ -308,11 +276,6 @@ class Profile2D(BasicProfile2D):
 
 
 class Profile3D(PolyLine):
-    def __init__(self, profile=None, name="Profile3d"):
-        super(Profile3D, self).__init__(profile, name)
-        self._normvectors = self._tangents = None
-        self._diff = self._xvekt = self._yvekt = None
-        self.xvect = self.yvect = None
 
     @cached_property('self')
     def noseindex(self):
@@ -327,7 +290,10 @@ class Profile3D(PolyLine):
         return noseindex
 
     @cached_property('self')
-    def projection(self):
+    def projection_layer(self):
+        """
+        Projection Layer of profile_3d
+        """
         p1 = self.data[0]
         diff = [p - p1 for p in self.data]
 
@@ -339,30 +305,28 @@ class Profile3D(PolyLine):
             yvect = yvect + sign * (diff[i] - xvect * xvect.dot(diff[i]))
 
         yvect = normalize(yvect)
-        print(xvect, yvect)
         return Layer(self.data[self.noseindex], xvect, yvect)
 
     def flatten(self):
         """Flatten the airfoil and return a 2d-Representative"""
-        projection = self.projection
-        return Profile2D([projection.projection(p) for p in self.data], name=self.name + "_flattened")
-        #return Profile2D([[-self.xvect.dot(i), self.yvect.dot(i)] for i in self._diff], name=self.name + "_flattened")
-        ###find x-y projection-layer first
+        layer = self.projection_layer
+        return Profile2D([layer.projection(p) for p in self.data],
+                         name=self.name or '' + "_flattened")
 
-    @property
+    @cached_property('self')
     def normvectors(self):
-        if not self._normvectors:
-            self.projection()
-            profnorm = numpy.cross(self.xvect, self.yvect)
-            func = lambda x: normalize(numpy.cross(x, profnorm))
-            vectors = [func(self.data[1] - self.data[0])]
-            for i in range(1, len(self.data) - 1):
-                vectors.append(func(
-                    normalize(self.data[i + 1] - self.data[i]) +
-                    normalize(self.data[i] - self.data[i - 1])))
-            vectors.append(func(self.data[-1] - self.data[-2]))
-            self._normvectors = vectors
-        return self._normvectors
+        layer = self.projection_layer
+        profnorm = layer.normvector
+        get_normvector = lambda x: normalize(numpy.cross(x, profnorm))
+
+        vectors = [get_normvector(self.data[1] - self.data[0])]
+        for i in range(1, len(self.data) - 1):
+            vectors.append(get_normvector(
+                normalize(self.data[i + 1] - self.data[i]) +
+                normalize(self.data[i] - self.data[i - 1])))
+        vectors.append(get_normvector(self.data[-1] - self.data[-2]))
+
+        return vectors
 
     @property
     def tangents(self):

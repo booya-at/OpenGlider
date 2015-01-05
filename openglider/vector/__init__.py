@@ -17,12 +17,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-import copy
+
 import numpy
 
-from openglider.utils import sign
-from openglider.utils.cache import cached_property, CachedObject
-
+from openglider.vector.functions import norm, norm_squared, normalize
+from openglider.vector.polyline import PolyLine, PolyLine2D
+from openglider.vector.polygon import Polygon2D
 
 def depth(arg):
     try:
@@ -40,6 +40,7 @@ def arrtype(arg):
     ##equivalent numpy.rank?
 
     # TODO: Room for improvement here!
+    # todo: remove!
 
     if depth(arg) == 2:
         if len(arg) == 2:
@@ -62,68 +63,6 @@ def arrtype(arg):
         return 0
 
 
-def norm(vector):
-    """
-    Norm-Function for n-dimensional vectors
-    """
-    return numpy.sqrt(numpy.vdot(vector, vector))
-
-def norm_squared(vector):
-    """
-    Norm_squared
-    """
-    return numpy.vdot(vector, vector)
-
-
-def normalize(vector):
-    """
-    Normalize n-dimensional vectors
-    """
-    leng = norm_squared(vector)
-    if leng > 0:
-        return vector / norm(vector)
-    raise ValueError("Cannot normalize a vector of length Zero")
-
-
-def rangefrom(maxl, startpoint=0):
-    """
-    yield iterative, similar to range() but surrounding a certain startpoint
-    """
-    j = 1
-    if 0 <= startpoint <= maxl:
-        yield startpoint
-    while startpoint - j >= 0 or startpoint + j <= maxl:
-        if startpoint + j <= maxl:
-            yield startpoint + j
-        if maxl >= startpoint - j >= 0:
-            yield startpoint - j
-        j += 1
-
-
-def rotation_3d(angle, axis=None):
-    """
-    3D-Rotation Matrix for (angle[rad],[axis(x,y,z)])
-    """
-    if axis is None:
-        axis = [1, 0, 0]
-    # see http://en.wikipedia.org/wiki/SO%284%29#The_Euler.E2.80.93Rodrigues_formula_for_3D_rotations"""
-    a = numpy.cos(angle / 2)
-    (b, c, d) = -normalize(axis) * numpy.sin(angle / 2)
-    return numpy.array([[a ** 2 + b ** 2 - c ** 2 - d ** 2, 2 * (b * c - a * d), 2 * (b * d + a * c)],
-                     [2 * (b * c + a * d), a ** 2 + c ** 2 - b ** 2 - d ** 2, 2 * (c * d - a * b)],
-                     [2 * (b * d - a * c), 2 * (c * d + a * b), a ** 2 + d ** 2 - b ** 2 - c ** 2]])
-
-#def Rotation_3D_Wiki(angle,axis=[1,0,0]):
-#see http://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle for reference.
-#    (x,y,z)=normalize(axis)
-
-
-def rotation_2d(angle):
-    """
-    Return a 2D-Rotation-Matrix
-    """
-    return numpy.array([[numpy.cos(angle), numpy.sin(angle)], [-numpy.sin(angle), numpy.cos(angle)]])
-
 def mirror_func(direction=None):
     if direction is None:
         direction = [1., 0., 0.]
@@ -144,6 +83,7 @@ def mirror_func(direction=None):
                 [-2 * x * z, -2 * y * z, 1 - 2 * z ** 2]
             ]
         )
+
     def mirror(vec):
         if isinstance(vec[0], (numpy.ndarray, list, tuple)):
             return numpy.array([mirror(i) for i in vec]).tolist()
@@ -154,372 +94,6 @@ def mirror_func(direction=None):
 
 mirror2D_x = mirror_func(direction=[1., 0.])
 mirror_x = mirror_func(direction=[1., 0., 0.])
-
-def cut(p1, p2, p3, p4):
-    """
-    2D-Linear Cut; Solves the linear system: p1+k*(p2-p1)==p3+l*(p4-p3)
-
-    :returns: (point(x, y), k, l)
-    """
-    """ |p2x-p1x -(p4x-p3x)|*|k|==|p3x-p1x|"""
-    """ |p2y-p1y -(p4y-p3y)|*|l|==|p3y-p1y|"""
-    matrix = [[p2[0] - p1[0], p3[0] - p4[0]],
-              [p2[1] - p1[1], p3[1] - p4[1]]]
-    rhs = [p3[0] - p1[0], p3[1] - p1[1]]
-    (k, l) = numpy.linalg.solve(matrix, rhs)
-    return p1 + k * (p2 - p1), k, l
-
-
-class HashedList(CachedObject):
-    """
-    Hashed List to use cached properties
-    """
-    def __init__(self, data=None, name=None):
-        self._data = None
-        self._hash = None
-        self.data = data
-        try:  # TODO: whats that?
-            if name or not self.name:
-                raise AttributeError
-        except AttributeError:
-            self.name = name
-
-    def __json__(self):
-        return {"data": self.data.tolist(), "name": self.name}
-
-    def __getitem__(self, item):
-        return self.data.__getitem__(item)
-
-    def __setitem__(self, key, value):
-        self.data.__setitem__(key, numpy.array(value))
-        self._hash = None
-
-    def __hash__(self):
-        if self._hash is None:
-            self._hash = hash(str(self.data))
-        return self._hash
-
-    def __len__(self):
-        return len(self.data)
-
-    def __iter__(self):
-        return self.data.__iter__()
-
-    def __str__(self):
-        return self.data.__str__()
-
-    def __repr__(self):
-        return super(HashedList, self).__repr__() + " (name: {})".format(self.name)
-
-    @property
-    def data(self):
-        return self._data
-
-    @data.setter
-    def data(self, data):
-        if not data is None:
-            self._data = numpy.array(data)
-            #self._data = [np.array(vector) for vector in data]  # 1,5*execution time
-            self._hash = None
-        else:
-            self._data = data
-
-    def copy(self):
-        return copy.deepcopy(self)
-
-
-class PolyLine(HashedList):
-    def __init__(self, data=None, name=None):
-        super(PolyLine, self).__init__(data, name)
-
-    def __getitem__(self, ik):
-        if isinstance(ik, int) and 0 <= ik < len(self):  # easiest case
-            return self.data[ik]
-        elif isinstance(ik, slice):  # example: list[1.2:5.5:1]
-            start = ik.start if ik.start is not None else 0
-            stop = ik.stop if ik.stop is not None else len(self)-1
-            if ik.step is not None and ik.step < 0:
-                start, stop = stop, start
-            step = sign(stop - start)
-            if step > 0:
-                start_round = max(int(start) + 1, 0)
-                stop_round = min(int(stop) + (1 if stop % 1 > 0 else 0), len(self) - 1)
-            else:
-                start_round = min(int(start) - (0 if start % 1 > 0 else 1), len(self) - 1)
-                stop_round = max(int(stop), 0)
-            values = [start] + range(start_round, stop_round, step) + [stop]
-            #print(values, ik.start, ik.stop, ik.step, step, start_round, stop_round)
-            return self.__class__([self[i] for i in values])
-        else:
-            if ik < 0:
-                k = ik
-                i = 0
-            else:
-                i = min(int(ik), len(self.data) - 2)  # Upper Limit for i
-                # case1: 0<ik<len -> k=ik%1;
-                # case2: ik>len(self.data) -> k += difference
-                k = ik % 1 + max(0, int(ik) - len(self.data) + 2)
-            return self.data[i] + k * (self.data[i + 1] - self.data[i])
-
-    def point(self, x):
-        """List.point(x) is the same as List[x]"""
-        return self[x]
-
-    def get(self, start, stop):
-        start2 = start - start % 1 + 1
-        stop2 = stop - stop % 1
-        data = self.data[start2:stop2]
-        return numpy.concatenate([[self[start]], data, [self[stop]]])
-
-    def extend(self, start, length):
-        if length == 0:
-            return start
-        direction = sign(length)
-        length = abs(length)
-        next_value = start - start % 1 + (direction > 0)
-        difference = norm(self[start] - self[next_value])
-        length -= difference
-        #
-        while length > 0:
-            if (next_value > len(self) and direction > 0) or (next_value < 0 and direction < 0):
-                break
-            start = next_value
-            next_value += direction
-            difference = norm(self[next_value] - self[start])
-            length -= difference
-            # Length is smaller than zero
-        length = length
-        return next_value + direction * length * abs(next_value - start) / difference
-
-    def get_length(self, first=0, second=None):
-        """
-        Get the (normative) Length of a Part of the Vectorlist.
-        """
-        if not second:
-            second = len(self) - 1
-        direction = sign(float(second - first))
-        length = 0
-        next_value = int(first - first % 1 + (direction > 0))
-        # Just to fasten up
-        if next_value > len(self) and direction < 0:
-            next_value = len(self)
-        elif next_value < 0 < direction:
-            next_value = 0
-        while next_value * direction < second * direction:
-            length += norm(self[next_value] - self[first])
-            first = next_value
-            next_value += direction
-            # Fasten up aswell
-            if (next_value > len(self) and direction > 0) or (next_value < 0 and direction < 0):
-                break
-        return length + norm(self[second] - self[first])
-
-    def scale(self, x, y=None):
-        if y is None:
-            y = x
-        self.data *= [x, y]
-
-
-class PolyLine2D(PolyLine):
-    def __init__(self, data=None, name=None):
-        self._normvectors = None
-        super(PolyLine2D, self).__init__(data, name)
-
-    def __add__(self, other):  # this is python default behaviour for lists
-        if other.__class__ is self.__class__:
-            if self.data is not None:
-                return self.__class__(numpy.append(self.data, other.data, axis=0), self.name)
-            else:
-                return other.copy()
-        else:
-            raise ValueError("cannot append: ", self.__class__, other.__class__)
-
-    def new_cut(self, p1, p2, startpoint=0):
-        for i in rangefrom(len(self)-2, startpoint):
-            try:
-                thacut = cut(self[i], self[i+1], p1, p2)
-                if 0 < thacut[1] <= 1 or (thacut[1]==0 and i==0):
-                    yield i+thacut[1]
-            except numpy.linalg.LinAlgError:
-                continue
-
-
-    # TODO: make a iterator
-    def cut(self, p1, p2, startpoint=0, break_if_found=True,
-            cut_only_positive=False, cut_only_in_between=False):
-        """
-        Cut with two points given, returns (point, position_in_list, k [*(p2-p1)])
-        """
-        startpoint = int(startpoint)
-        cutlist = []
-
-        for i in rangefrom(len(self) - 2, startpoint):
-            try:
-                thacut = cut(self[i], self[i + 1], p1, p2)  # point, i, k
-            except numpy.linalg.linalg.LinAlgError:
-                continue
-            if (0 <= thacut[1] < 1 and
-                    (not cut_only_positive or thacut[2] >= 0) and
-                    (not cut_only_in_between or thacut[2] <= 1.)):
-                cutlist.append((thacut[0], i + thacut[1], thacut[2]))
-                if break_if_found:
-                    return cutlist[0]
-
-        if len(cutlist) > 0:
-            return cutlist
-
-        # Nothing found yet? Shit, so, check start and end of line
-        # Beginning
-        try:
-            temp = cut(self[0], self[1], p1, p2)
-            if temp[1] <= 0:
-                cutlist.append([temp[0], temp[1], norm(self[0] - self[1]) * temp[1]])
-        except numpy.linalg.linalg.LinAlgError:
-            pass
-        # End
-        try:
-            i = len(self) - 1
-            temp = cut(self[i], self[i + 1], p1, p2)
-            if temp[1] > 0:
-                cutlist.append([temp[0], i + temp[1], norm(self[i] - self[i + 1]) * temp[1]])
-        except numpy.linalg.linalg.LinAlgError:
-            pass
-
-        if len(cutlist) > 0:
-            # sort by distance
-            cutlist.sort(key=lambda x: x[2]**2)
-            #print(cutlist[0])
-            return cutlist[0][0:2]
-        else:
-            #graphics([Line(self.data), Line([p1,p2])])  # DEBUG
-            raise ArithmeticError("no cuts discovered for p1:" + str(p1) + " p2:" + str(p2) + str(self[0]))
-                                  #str(cut(self[0], self[1], p1, p2)))
-
-    def check(self):  # TODO: IMPROVE (len = len(self.data), len-=,...)
-        """
-        Check for mistakes in the array, such as for the moment: self-cuttings,..
-        """
-        for i in range(len(self.data) - 3):
-            if i > len(self.data) - 4:
-                break
-            for j in range(i + 2, len(self.data) - 2):
-                if j > len(self.data) - 3:
-                    break
-                try:
-                    temp = cut(self.data[i], self.data[i + 1], self.data[j], self.data[j + 1])
-                    if 0 < temp[1] < 1. and 0 < temp[2] < 1.:
-                        #self.data = self.data[:i] + [temp[0]] + self.data[j + 1:]
-                        self.data = numpy.concatenate([self.data[:i], [temp[0]], self.data[j+1:]])
-                except numpy.linalg.linalg.LinAlgError:
-                    continue
-
-    @cached_property('self')
-    def normvectors(self):
-        """
-        Return Normvectors to the List-Line, heading rhs
-        """
-        rotate = lambda x: normalize(x).dot([[0, -1], [1, 0]])
-        normvectors = [rotate(self.data[1] - self.data[0])]
-        for j in range(1, len(self.data) - 1):
-            normvectors.append(
-                #rotate(normalize(self.data[j + 1] - self.data[j]) + normalize(self.data[j] - self.data[j - 1])))
-                rotate(self.data[j + 1] - self.data[j - 1]))
-        normvectors.append(rotate(self.data[-1] - self.data[-2]))
-        return normvectors
-
-    def move(self, vector):
-        """
-        Move the whole line
-        """
-        assert len(vector) == 2
-        self.data += vector
-
-    def add_stuff(self, amount):
-        """
-        Shift the whole line for a given amount (->Sewing allowance)
-        """
-        # cos(vectorangle(a,b)) = (a1 b1+a2 b2)/Sqrt[(a1^2+a2^2) (b1^2+b2^2)]
-        newlist = []
-        second = self.data[0]
-        third = self.data[1]
-        newlist.append(second + self.normvectors[0] * amount)
-        i = 0
-        for i in range(1, len(self.data) - 1):
-            first = second
-            second = third
-            third = self.data[i + 1]
-            d1 = third - second
-            d2 = second - first
-            cosphi = d1.dot(d2) / numpy.sqrt(d1.dot(d1) * d2.dot(d2))
-            if cosphi > 0.9999:
-                newlist.append(second + self.normvectors[i] * amount / cosphi)
-            else:
-                a = first+self.normvectors[i-1]*amount
-                b = second+self.normvectors[i]*amount
-                c = third + self.normvectors[i+1]*amount
-                newlist.append(cut(a, b, b, c)[0])
-        newlist.append(third + self.normvectors[i + 1] * amount)
-        self.data = newlist
-
-    def mirror(self, p1, p2):
-        """
-        Mirror against a line through p1 and p2
-        """
-        normvector = normalize(numpy.array(p1-p2).dot([[0, -1], [1, 0]]))
-        self.data = [point - 2*normvector.dot(point-p1)*normvector for point in self.data]
-
-    def rotate(self, angle, startpoint=None):
-        """
-        Rotate counter-clockwise around a (non)given startpoint
-        """
-        rotation_matrix = rotation_2d(angle)
-        new_data = []
-        for point in self.data:
-            if not startpoint is None:
-                new_data.append(startpoint + rotation_matrix.dot(point - startpoint))
-            else:
-                new_data.append(rotation_matrix.dot(point))
-        self.data = new_data
-
-
-class Polygon2D(PolyLine2D):
-    @property
-    def isclosed(self):
-        return self.data[0] == self.data[-1]
-
-    def close(self):
-        """
-        Close the endings of the polygon using a cut.
-        Return: success
-        """
-        try:
-            thacut = cut(self.data[0], self.data[1], self.data[-2], self.data[-1])
-            if thacut[1] <= 1 and 0 <= thacut[2]:
-                self.data[0] = thacut[0]
-                self.data[-1] = thacut[0]
-                return True
-        except ArithmeticError:
-            return False
-
-    #@cached-property(self)
-    @property
-    def centerpoint(self):
-        """
-        Return the average point of the polygon.
-        """
-        return sum(self.data) / len(self.data)
-
-    def contains_point(self, point):
-        """
-        Check if a Polygon contains a point or not.
-        reference: http://en.wikipedia.org/wiki/Point_in_polygon
-
-        :returns: boolean
-        """
-        # using ray-casting-algorithm
-        cuts = self.cut(point, self.centerpoint, break_if_found=False, cut_only_positive=True)
-        return bool(len(cuts) % 2)
-        # todo: alternative: winding number
 
 
 class Layer(object):
@@ -570,3 +144,4 @@ class Layer(object):
         self.v1 = self.v1 - self.v1 * normvector
         #self.v1 = numpy.array([0, -normvector[3], normvector[2]])
         self.v2 = numpy.cross(self.v1, normvector)
+

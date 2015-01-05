@@ -4,7 +4,7 @@ import os
 import math
 import numpy
 from openglider.glider import Glider
-from openglider.vector import normalize
+from openglider.vector.functions import normalize
 
 if len(sys.argv) >= 4:
     inputfile = os.path.abspath(sys.argv[1])

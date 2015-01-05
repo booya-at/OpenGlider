@@ -20,6 +20,7 @@
 import math
 import os
 import sys
+from openglider.vector.functions import norm
 
 try:
     import openglider
@@ -27,7 +28,6 @@ except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 from openglider import glider
 import openglider.graphics
-from openglider.vector import norm
 
 testfolder = os.path.dirname(os.path.abspath(__file__))
 

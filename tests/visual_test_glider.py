@@ -92,7 +92,7 @@ class TestGlider(GliderTestClass):
         for i in range(num):
             cell = self.glider.cells[random.randint(0, len(self.glider.cells) - 1)]
             prof = cell.midrib(random.random())
-            prof.projection()
+            prof.projection_layer()
             data += [prof.data,
                      [prof.data[0], prof.data[0] + prof.xvect],
                      [prof.data[0], prof.data[0] + prof.yvect]]

@@ -20,7 +20,8 @@
 #from openglider import Profile2D
 from openglider.lines import Node
 from openglider.plots.marks import polygon
-from openglider.vector import cut, PolyLine2D
+from openglider.vector.functions import cut
+from openglider.vector.polyline import PolyLine2D
 
 
 class RigidFoil(object):
@@ -28,7 +29,14 @@ class RigidFoil(object):
         self.rib = rib
         self.start = start
         self.end = end
+        self.distance = distance
         self.func = lambda x: distance
+
+    def __json__(self):
+        return {'rib': self.rib,
+                'start': self.start,
+                'end': self.end,
+                'distance': self.distance}
 
     def get_3d(self, glider):
         ######NEEDED??
@@ -62,6 +70,11 @@ class GibusArcs(object):
         self.size = size
         self.size_abs = False
 
+    def __json__(self):
+        return {'rib': self.rib,
+                'position': self.pos,
+                'size': self.size}
+
     def get_3d(self, num_points=10):
         # create circle with center on the point
         gib_arc = self.get_flattened(num_points=num_points)
@@ -79,7 +92,7 @@ class GibusArcs(object):
         gib_arc = [[], []]  # first, second
         circle = polygon(point_1, point_2, num=num_points, is_center=True)[0][1:]
         is_second_run = False
-        print(circle)
+        #print(circle)
         for i in range(len(circle)):
             #print(airfoil.contains_point(circle[i]))
             if profile.contains_point(circle[i]) or \
@@ -91,7 +104,7 @@ class GibusArcs(object):
         # Cut first and last
         gib_arc = gib_arc[1] + gib_arc[0]  # [secondlist] + [firstlist]
         gib_arc[0], start2, __ = profile.cut(gib_arc[0], gib_arc[1], start)
-        print(gib_arc)
+        #print(gib_arc)
         gib_arc[-1], stop, __ = profile.cut(gib_arc[-2], gib_arc[-1], start)
         # Append Profile_List
         gib_arc += profile.get(start2, stop).tolist()

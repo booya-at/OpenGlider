@@ -2,8 +2,8 @@ import math
 import numpy
 from dxfwrite import DXFEngine as dxf
 
-from openglider.vector import normalize, norm
 # from openglider.graphics import Graphics3D, Line
+from openglider.vector.functions import norm, normalize
 
 
 def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6, copy=True):

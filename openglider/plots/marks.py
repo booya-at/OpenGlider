@@ -1,5 +1,7 @@
 import math
-from openglider.vector import rotation_2d, PolyLine2D
+
+from openglider.vector.functions import rotation_2d
+from openglider.vector.polyline import PolyLine2D
 
 scale = 0.8
 

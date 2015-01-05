@@ -1,7 +1,7 @@
 import numpy
 import vtk
 from functions import _isintlist
-from openglider.vector import norm
+from openglider.vector.functions import norm
 
 
 class GraphicObject(object):

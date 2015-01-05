@@ -1,10 +1,14 @@
-from openglider.vector import PolyLine2D
+import copy
+from openglider.vector.polyline import PolyLine2D
 
 
 class PlotPart():
     def __init__(self, layer_dict=None):
         self._layer_dict = {}
         self.layer_dict = layer_dict or {}
+
+    def copy(self):
+        return copy.deepcopy(self)
 
     @property
     def layer_dict(self):
@@ -21,8 +25,9 @@ class PlotPart():
     def __getitem__(self, item):
         return self.layer_dict[item]
 
-    def max_min_function(self, _func, i):
-        func = lambda thalist: _func(thalist, key=lambda p: p[i])[i]
+    @staticmethod
+    def max_min_function(_func, i):
+        return lambda thalist: _func(thalist, key=lambda p: p[i])[i]
 
     @property
     def max_x(self):
@@ -54,12 +59,34 @@ class PlotPart():
 
     def rotate(self, angle):
         for layer in self.layer_dict.itervalues():
-            layer.rotate(angle)
+            for polyline in layer:
+                polyline.rotate(angle)
 
     def move(self, vector):
         for layer in self.layer_dict.itervalues():
             for vectorlist in layer:
                 vectorlist.move(vector)
+
+    def move_to(self, vector):
+        self.move([vector[0] - self.min_x, vector[1] - self.min_y])
+
+    def intersects(self, other):
+        """
+        Tells whether this parts intersects with the other part
+        """
+        if self.max_x < other.min_x:
+            return False
+        if self.min_x > other.max_x:
+            return False
+        if self.max_y < other.min_y:
+            return False
+        if self.min_y > other.max_y:
+            return False
+        return True
+
+    @property
+    def area(self):
+        return self.width * self.height
 
     def return_layer_svg(self, layer, scale=1):
         """
@@ -109,7 +136,7 @@ class DrawingArea():
 
     @property
     def max_y(self):
-        return min([part.max_y for part in self.parts])
+        return max([part.max_y for part in self.parts])
 
     @property
     def bbox(self):

@@ -77,18 +77,3 @@ def loads(obj):
 
 def load(fp):
     return json.load(fp, object_hook=object_hook)
-
-
-if __name__ == "__main__":
-    from openglider import airfoil
-    a = airfoil.Profile2D.compute_naca(1234)
-    glide = openglider.glider.Glider.import_geometry("../../tests/demokite.ods")
-    #print(dumps(a))
-    jj = dumps(glide)
-    glide2 = loads(jj)
-    with open("/tmp/glider.json", 'w') as exportfile:
-        dump(glide, exportfile)
-
-    #print(loads("{'_type': Profile2D, 'data': [[1,2],[2,3]]"))
-    print(glide2)
-    #draw_glider(glide2['data'])

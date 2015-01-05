@@ -48,7 +48,7 @@ class TestProfile(unittest.TestCase):
 
     def test_profilepoint(self):
         x = random.random() * random.randint(-1, 1)
-        self.assertAlmostEqual(abs(x), self.prof.profilepoint(x)[1][0])
+        self.assertAlmostEqual(abs(x), self.prof.profilepoint(x)[0])
 
     def test_multiplication(self):
         factor = random.random()

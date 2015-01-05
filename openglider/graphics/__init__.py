@@ -88,7 +88,7 @@ class Graphics(object):
         self.data.GetCellData().SetScalars(self.colours)
 
         mapper = vtk.vtkPolyDataMapper()
-        mapper.SetInput(self.data)
+        mapper.SetInputData(self.data)
         self.actor.SetMapper(mapper)
 
     def show(self):

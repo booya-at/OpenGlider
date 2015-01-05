@@ -19,11 +19,12 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import division
-from .functions import proj_force, proj_to_surface, vec_length
+from .functions import proj_force, proj_to_surface
 from openglider.utils.cache import cached_property, CachedObject
-from openglider.vector import normalize, norm
 from openglider.lines import line_types
 import numpy
+from openglider.vector import PolyLine
+from openglider.vector.functions import norm, normalize
 
 
 class SagMatrix():
@@ -94,7 +95,8 @@ class SagMatrix():
 
 class Line(CachedObject):
     #TODO: cached properties?
-    def __init__(self, number, lower_node, upper_node, vinf, line_type=line_types.liros, target_length=None):
+    def __init__(self, number, lower_node, upper_node, vinf,
+                 line_type=line_types.liros, target_length=None):
         """Line Class:
             """
         self.number = number
@@ -139,11 +141,10 @@ class Line(CachedObject):
 
     @cached_property('lower_node.vec', 'upper_node.vec', 'v_inf', 'sag_par_1', 'sag_par_2')
     def length_with_sag(self):
-        if self.sag_par_1 and self.sag_par_2:
-            return vec_length(self.get_line_points(numpoints=100))
-        else:
-            print('Sag not yet calculated!')
-            return self.length_no_sag
+        if self.sag_par_1 is None or self.sag_par_2 is None:
+            raise ValueError('Sag not yet calculated!')
+
+        return PolyLine(self.get_line_points(numpoints=100)).get_length()
 
     def get_stretched_length(self, force=50):
         """Get the total line-length for production using a given stretch"""

@@ -23,10 +23,45 @@ __author__ = 'simon'
 
 import numpy
 from scipy.interpolate import interp1d
+
 from openglider.utils.bezier import BezierCurve
+from openglider.utils import config
+
+
+class ArcSinc:
+    def __init__(self, numpoints=config['asinc_interpolation_points']):
+        self.start = 0.
+        self.end = numpy.pi
+        self.arsinc = None
+        self.interpolate(numpoints)
+
+    def __call__(self, val):
+        if self.arsinc is None:
+            self.interpolate()
+        return self.arsinc(val)
+
+    def interpolate(self, numpoints):
+        x, y = [], []
+
+        for i in range(numpoints + 1):
+            phi = self.end + (i * 1. / numpoints) * (self.start - self.end)  # reverse for interpolation (increasing x_values)
+            x.append(numpy.sinc(phi / numpy.pi))
+            y.append(phi)
+
+        self.arsinc = interp1d(x, y)
+
+    @property
+    def numpoints(self):
+        return len(self.arsinc.x)
+
+    @numpoints.setter
+    def numpoints(self, numpoints):
+        self.interpolate(numpoints)
 
 
 class Ballooning(object):
+    arcsinc = ArcSinc()
+
     def __init__(self, f_upper, f_lower):
         self.upper = f_upper
         self.lower = f_lower
@@ -64,16 +99,13 @@ class Ballooning(object):
     def copy(self):
         return Ballooning(self.upper, self.lower)
 
-    @staticmethod
-    def phi(*baloon):
+    @classmethod
+    def phi(cls, *baloon):
         """
         Return the angle of the piece of cake.
         b/l=R*phi/(R*Sin(phi)) -> Phi=arsinc(l/b)
         """
-        global arsinc
-        if not arsinc:
-            interpolate_asinc()
-        return arsinc(baloon)
+        return cls.arcsinc(baloon)
 
     def mapx(self, xvals):
         return [self[i] for i in xvals]
@@ -152,20 +184,3 @@ class BallooningBezier(Ballooning):
         Ballooning.__init__(self, self.upper_spline.interpolation(), self.lower_spline.interpolation())
 
 
-global arsinc
-from openglider.utils import config
-
-
-def interpolate_asinc(numpoints=1000, phi0=0, phi1=numpy.pi):
-    """Set Global Interpolation Function arsinc"""
-    global arsinc
-    #print("interpolating")
-    (x, y) = ([], [])
-    for i in range(numpoints + 1):
-        phi = phi1 + (i * 1. / numpoints) * (phi0 - phi1)  # reverse for interpolation (increasing x_values)
-        x.append(numpy.sinc(phi / numpy.pi))
-        y.append(phi)
-    arsinc = interp1d(x, y)
-
-# TODO: Do only when needed (singleton?)!
-interpolate_asinc(config['asinc_interpolation_points'])
