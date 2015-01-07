@@ -1,6 +1,6 @@
 from __future__ import division
 
-from openglider.glider.glider_2d import lw_att_point, up_att_point, batch_point, _line
+from openglider.glider.glider_2d import lower_attachment_point, up_att_point, batch_point, _line
 from _tools import base_tool, input_field, text_field, QtGui
 from pivy_primitives_new_new import Line, Marker, Container, coin, COLORS
 from pivy_primitives import vector3D
@@ -177,10 +177,10 @@ class line_tool(base_tool):
                 obj.force = i.force
                 self.shape.addChild(obj)
             elif isinstance(i, batch_point):
-                obj = LineMarker(vector3D(i.pos))
+                obj = LineMarker(vector3D(i.pos_2d))
                 obj.temp_2d = i
                 self.shape.addChild(obj)
-            elif isinstance(i, lw_att_point):
+            elif isinstance(i, lower_attachment_point):
                 obj = Lower_Att_Marker(vector3D(i.pos))
                 obj.pos3D = i.pos3D
                 obj.temp_2d = i
@@ -227,7 +227,7 @@ class line_tool(base_tool):
         for obj in self.shape.objects:
             # add the 2d objects to the graphical objects
             if isinstance(obj, Lower_Att_Marker):
-                obj.temp_2d = lw_att_point(list(obj.pos), obj.pos3D)
+                obj.temp_2d = lower_attachment_point(list(obj.pos), obj.pos3D)
                 points.append(obj.temp_2d)
 
             elif isinstance(obj, Upper_Att_Marker):

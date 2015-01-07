@@ -74,7 +74,8 @@ def flattened_cell(cell):
 def flatten_glider(glider):
     plots = {}
 
-    ########### Panels
+    # Panels!
+
     parts = []
     xvalues = glider.profile_x_values
 
@@ -106,16 +107,19 @@ def flatten_glider(glider):
                           right_bal[front_right:back_right:-1] +
                           PolyLine2D([left_bal[front_left]])]
 
-            part_text = get_text_vector("cell_{}_part{}".format(cell_no, part_no),
+            part_text = get_text_vector(" cell_{}_part{} ".format(cell_no, part_no+1),
                                         left_bal[front_left],
-                                        right_bal[front_right])
+                                        right_bal[front_right],
+                                        height=0.8)
 
-            # panel.cut_front[3]
+            part_marks.append(PolyLine2D([left_bal[front_left],
+                                          right_bal[front_right]]))
 
-
-            # wieder einkommentieren
-            # for attachment_point in filter(lambda p: p.rib is cell.rib1, glider.attachment_points):
-            #     pass
+            # add marks for
+            # - Attachment Points
+            # - periodic indicators
+            for attachment_point in filter(lambda p: p.rib is cell.rib1, glider.attachment_points):
+                pass
 
 
 
@@ -141,6 +145,7 @@ def flatten_glider(glider):
         profile_outer.add_stuff(0.01)
 
         def return_points(x_value):
+            "Return points for sewing marks"
             ik = get_x_value(xvalues, x_value)
             return profile[ik], profile_outer[ik]
 
@@ -148,12 +153,12 @@ def flatten_glider(glider):
 
         ############# wieder ein kommentieren
 
-        #####################marks for attachment-points##################################
-        # attachment_points = filter(lambda p: p.rib == rib, glider.attachment_points)
-        # for point in attachment_points:
-        #     rib_marks += sewing_config["marks"]["attachment-point"](*return_points(point.rib_pos))
+        # marks for attachment-points
+        attachment_points = filter(lambda p: p.rib == rib, glider.attachment_points)
+        for point in attachment_points:
+            rib_marks += sewing_config["marks"]["attachment-point"](*return_points(point.rib_pos))
 
-        #####################marks for panel-cuts#########################################
+        # marks for panel-cuts
         rib_cuts = set()
         if rib_no > 0:
             for panel in glider.cells[rib_no - 1].panels:
@@ -167,7 +172,7 @@ def flatten_glider(glider):
         for cut in rib_cuts:
             rib_marks += sewing_config["marks"]["panel-cut"](*return_points(cut))
 
-        #####################general marks################################################
+        # general marks
 
         #add text, entry, holes
 

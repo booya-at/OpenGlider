@@ -24,21 +24,22 @@ from openglider.plots.projection import flatten_list
 
 
 class DiagonalRib(object):
-    def __init__(self, left_1, left_2, right_1, right_2, rib1, rib2):
+    def __init__(self, left_front, left_back, right_front, right_back, rib1, rib2):
         # Attributes
-        self.attributes = [[left_1, left_2],  # front (x,h) / back (x,h)
-                           [right_1, right_2]]
+        self.left_front = left_front
+        self.left_back = left_back
+        self.right_front = right_front
+        self.right_back = right_back
         self.rib1 = rib1
         self.rib2 = rib2
 
     def __json__(self):
-        return {'left_1': self.attributes[0][0],
-                'left_2': self.attributes[0][1],
-                'right_1': self.attributes[1][0],
-                'right_2': self.attributes[1][1],
+        return {'left_front': self.left_front,
+                'left_back': self.left_back,
+                'right_front': self.right_front,
+                'right_back': self.right_back,
                 'rib1': self.rib1,
                 'rib2': self.rib2}
-
 
     def get_3d(self):
         """
@@ -56,8 +57,8 @@ class DiagonalRib(object):
             else:
                 return [rib.align(p + [0]) for p in (cut_front, cut_back)]
 
-        left = get_list(self.rib1, *self.attributes[0])
-        right = get_list(self.rib1, *self.attributes[1])
+        left = get_list(self.rib1, self.left_front, self.left_back)
+        right = get_list(self.rib1, self.right_front, self.right_back)
 
         return left, right
 
@@ -81,13 +82,6 @@ class TensionStrapSimple(DiagonalRib):
                                                  (left + width, -1),
                                                  (right - width, -1),
                                                  (right + width, -1), cell_no)
-
-    def get_flattened(self, glider, ribs_flattened):
-        ## Draw signs into airfoil (just one)
-
-        ## Return Length
-
-        pass
 
 
 class Panel(object):
@@ -124,9 +118,6 @@ class Panel(object):
             ribs.append(self.cell.midrib(y).get(front, back))
             # todo: return polygon-data
         return ribs
-
-    def get_flattened(self, glider):
-        pass
 
 
 

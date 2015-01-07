@@ -49,14 +49,15 @@ text_vectors = {
 }
 
 
-def get_text_vector(text, p1, p2, height=1):
+def get_text_vector(text, p1, p2, height=1, space=0.2):
     width = (p2-p1)/len(text)
-    p0 = p1.copy()
     x, y = normalize([width.dot([1, 0]), width.dot([0, 1])])
     rot = numpy.array([[x, -y], [y, x]]) * norm(width) * [1, height]
+    p0 = p1.copy() + rot.dot([0, (1-height)/2 + space])
     vectors = []
     for letter in text.upper():
-        vectors.append(
-            PolyLine2D([p0 + rot.dot(p) for p in text_vectors[letter]]))
+        if letter != " ":
+            vectors.append(
+                PolyLine2D([p0 + rot.dot(p) for p in text_vectors[letter]]))
         p0 += width
     return vectors

@@ -121,8 +121,9 @@ class BasicProfile2D(Polygon2D):
 
 
 class Profile2D(BasicProfile2D):
-    """Profile2D: 2 Dimensional Standard airfoil representative in OpenGlider"""
-    #############Initialisation###################
+    """
+    Profile2D: 2 Dimensional Standard airfoil representative
+    """
     def __init__(self, data, name=None, normalize_root=True):
         self._rootprof = BasicProfile2D(data, name)  # keep a copy
         super(Profile2D, self).__init__(data, name=name)
@@ -130,7 +131,21 @@ class Profile2D(BasicProfile2D):
             self._rootprof.normalize()
             self.reset()
 
+    def __json__(self):
+        return {'rootprof': self._rootprof,
+                'data': self.data,
+                'name': self.name}
+
+    @classmethod
+    def __from_json__(cls, rootprof, data, name):
+        profile = cls(data, name)
+        profile._rootprof = rootprof
+        return profile
+
     def __add__(self, other, conservative=False):
+        """
+        Mix 2 Profiles
+        """
         if other.__class__ == self.__class__:
             #use the one with more points
             if self.numpoints > other.numpoints or conservative:
@@ -152,6 +167,9 @@ class Profile2D(BasicProfile2D):
 
     @classmethod
     def import_from_dat(cls, path):
+        """
+        Import an airfoil from a '.dat' file
+        """
         profile = []
         name = 'imported from {}'.format(path)
         with open(path, "r") as p_file:
@@ -165,7 +183,7 @@ class Profile2D(BasicProfile2D):
 
     def export(self, pfad):
         """
-        Export airfoil in .dat Format
+        Export airfoil to .dat Format
         """
         with open(pfad, "w") as out:
             if self.name:
@@ -276,17 +294,16 @@ class Profile2D(BasicProfile2D):
 
 
 class Profile3D(PolyLine):
-
     @cached_property('self')
     def noseindex(self):
         p0 = self.data[0]
-        max = 0
+        max_dist = 0
         noseindex = 0
         for i, p1 in enumerate(self.data):
             diff = norm(p1 - p0)
-            if diff > max:
+            if diff > max_dist:
                 noseindex = i
-                max = diff
+                max_dist = diff
         return noseindex
 
     @cached_property('self')

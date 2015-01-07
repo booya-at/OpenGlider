@@ -1,8 +1,8 @@
 import tempfile
+from openglider.airfoil.parametric import ParametricProfile2D
 
 from openglider.glider import Cell, Rib, Glider
 from openglider.glider.ballooning import BallooningBezier
-from openglider.glider.glider_2d import ParaFoil
 from openglider.graphics import Graphics3D, Polygon, Line
 from openglider.glider.in_out.export_3d import export_obj
 
@@ -12,7 +12,7 @@ path = "/tmp/cell.obj"
 ar = 0.1 
 
 bal = BallooningBezier()
-profile = ParaFoil.compute_naca(2412)
+profile = ParametricProfile2D.compute_naca(2412)
 
 rib0 = Rib(profile, bal, [0, -ar/2*3, 0], 1, 0., 0., 0., 999999.)
 rib1 = Rib(profile, bal, [0, -ar/2, 0], 1, 0., 0., 0., 999999.)

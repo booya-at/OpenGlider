@@ -139,7 +139,7 @@ class Glider(object):
     @property
     def shape_simple(self):
         """
-        Simple shape representation for spline inputs
+        Simple (rectangular) shape representation for spline inputs
         """
         last_pos = numpy.array([0, 0])  # y,z
         front = []
@@ -162,7 +162,7 @@ class Glider(object):
     @property
     def shape(self):
         """
-        Projected Shape of the glider (as it would lie on the ground)
+        Projected Shape of the glider (as it would lie on the ground - flattened)
         """
         rot = rotation_2d(numpy.pi / 2)
         front, back = flatten_list(self.get_spanwise(0), self.get_spanwise(1))

@@ -51,7 +51,7 @@ class TestBezier(unittest.TestCase):
         self.assertAlmostEqual(self.bezier.xpoint(1.)[1], 1)
 
     def test_length(self):
-        self.bezier.controlpoints = [[0,0],[2,0]]
+        self.bezier.controlpoints = [[0, 0], [2, 0]]
         self.assertAlmostEqual(self.bezier.get_length(10), 2.)
 
 

@@ -4,17 +4,20 @@ import copy
 import scipy.interpolate
 import numpy
 
+from openglider.airfoil.parametric import ParametricProfile2D
+from openglider.glider.rib_elements import AttachmentPoint
 from openglider.vector import mirror2D_x
 from openglider.utils.bezier import BezierCurve, SymmetricBezier
 from openglider.utils import sign
-from openglider.airfoil import Profile2D
 from openglider.lines import Node, Line, LineSet
 from openglider.vector.functions import norm, normalize, rotation_2d
-
+from openglider.glider.rib import Rib
+from openglider.glider.cell import Cell
+from openglider.glider.cell_elements import Panel
 
 class Glider_2D(object):
     """
-        a glider 2D object used for gui input
+    A parametric (2D) Glider object used for gui input
     """
 
     def __init__(self,
@@ -30,8 +33,8 @@ class Glider_2D(object):
         self.arc = arc or BezierCurve()
         self.aoa = aoa or BezierCurve()
         self.profiles = profiles or []
-        self.balls = balls or []
-        self.lineset = lineset or _lineset([], [])
+        self.balls = balls or []  # ?
+        self.lineset = lineset or LineSet2D([], [])
         self.v_inf = v_inf or [5., 0., 1.]
 
     def __json__(self):
@@ -103,27 +106,23 @@ class Glider_2D(object):
         scal = dist[-1] / arc_normed_length
         # first translate the middle point to [0, 0]
         arc_pos += trans
-        #scale to the original distribution
+        # scale to the original distribution
         arc_pos *= scal
         arc_pos = arc_pos.tolist()
 
         return arc_pos, arc_angle
 
     def shape(self, num=30):
-        """ribs, front, back"""
-        return self.interactive_shape(num)[:-1]
-
-    def interactive_shape(self, num=30):
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
         dist_line = self.cell_dist_interpolation
         dist = [i[0] for i in dist_line]
-        front = map(front_int, dist)
-        front = mirror2D_x(front)[::-1] + front
-        back = map(back_int, dist)
+        front_line = [front_int(x) for x in dist]
+        front = mirror2D_x(front_line)[::-1] + front_line
+        back = [back_int(x) for x in dist]
         back = mirror2D_x(back)[::-1] + back
         ribs = zip(front, back)
-        return [ribs, front, back, dist_line]
+        return [ribs, front, back]
 
     @property
     def cell_dist_controlpoints(self):
@@ -154,7 +153,9 @@ class Glider_2D(object):
 
     @classmethod
     def fit_glider(cls, glider, numpoints=3):
-        # todo: create glider2d from glider obj (fit bezier)
+        """
+        Create a parametric model from glider
+        """
         def mirror_x(polyline):
             mirrored = [[-p[0], p[1]] for p in polyline[1:]]
             return mirrored[::-1] + polyline[glider.has_center_cell:]
@@ -169,23 +170,21 @@ class Glider_2D(object):
         aoa_bezier = SymmetricBezier.fit(mirror_x(aoa), numpoints=numpoints)
 
         cell_num = len(glider.cells) * 2 - glider.has_center_cell
-        # if glider.has_center_cell:
-        #     cell_num -= 1
+
         front[0][0] = 0  # for midribs
-        start = (2 - (cell_num % 2)) / cell_num
+        start = (2 - glider.has_center_cell) / cell_num
         const_arr = [0.] + numpy.linspace(start, 1, len(front) - 1).tolist()
         rib_pos = [0.] + [p[0] for p in front[1:]]
         rib_pos_int = scipy.interpolate.interp1d(rib_pos, [rib_pos, const_arr])
         rib_distribution = [rib_pos_int(i) for i in numpy.linspace(0, rib_pos[-1], 30)]
-        rib_distribution = BezierCurve.fit(rib_distribution, numpoints=numpoints + 3)
-        gl2d = cls(front=front_bezier,
+        rib_distribution = BezierCurve.fit(rib_distribution, numpoints=numpoints+3)
+        return cls(front=front_bezier,
                    back=back_bezier,
                    cell_dist=rib_distribution,
                    cell_num=cell_num,
                    arc=arc_bezier,
                    aoa=aoa_bezier,
                    parametric=True)
-        return gl2d
 
     def glider_3d(self, glider, num=50):
         """returns a new glider from parametric values"""
@@ -199,10 +198,9 @@ class Glider_2D(object):
         aoa = numpy.deg2rad(13.)
         #--------------------------------------
 
-        from openglider.glider import Rib, Cell
-        from openglider.glider.cell_elements import Panel
 
-        dist = [i[0] for i in self.cell_dist_interpolation]
+
+        dist = [node[0] for node in self.cell_dist_interpolation]
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
         arc_pos, arc_angle = self.arc_pos_angle(num=num)
@@ -215,21 +213,21 @@ class Glider_2D(object):
             arc_pos = [[-arc_pos[0][0], arc_pos[0][1]]] + arc_pos
             arc_angle = [-arc_angle[0]] + arc_angle
 
-        for i, pos in enumerate(dist):
-            fr = front_int(pos)
-            ba = back_int(pos)
-            ar = arc_pos[i]
+        for node, pos in enumerate(dist):
+            front = front_int(pos)
+            back = back_int(pos)
+            arc = arc_pos[node]
             ribs.append(Rib(
                 profile_2d=airfoil,
-                startpoint=numpy.array([-fr[1], ar[0], ar[1]]),
-                chord=norm(fr - ba),
-                arcang=arc_angle[i],
+                startpoint=numpy.array([-front[1], arc[0], arc[1]]),
+                chord=norm(front - back),
+                arcang=arc_angle[node],
                 glide=glide,
                 aoa=aoa(pos)[1]
                 ))
-        for i, rib in enumerate(ribs[1:]):
-            cell = Cell(ribs[i], rib, [])
-            cell.panels = [Panel([-1, -1, 3, 0.012], [1, 1, 3, 0.012], i)]
+        for node, rib in enumerate(ribs[1:]):
+            cell = Cell(ribs[node], rib, [])
+            cell.panels = [Panel([-1, -1, 3, 0.012], [1, 1, 3, 0.012], node)]
             cells.append(cell)
             glider.cells = cells
         glider.close_rib()
@@ -237,38 +235,30 @@ class Glider_2D(object):
 
         # lines have to be sorted!!!
         # lower node ->upper node
-        # first got the lowest points (lw-att)
+        lines = []
+        # first get the lowest points (lw-att)
+        lowest = [node for node in self.lineset.points if isinstance(node, lower_attachment_point)]
         # now get the connected lines
         # get the other point (change the nodes if necesarry)
-        # setting up the lines!
-        lines = []
-        lowest = [i for i in self.lineset.points if isinstance(i, lw_att_point)]
-        for i in lowest:
-            self.sort_lines(i)
+        for node in lowest:
+            self.sort_lines(node)
         self.delete_not_connected(glider)
-        for i in self.lineset.points:
-            n = None
-            if isinstance(i, up_att_point):
-                pos3d = i.pos3D(glider)
-                n = Node(node_type=2, position_vector=numpy.array(pos3d))
-                n.force = numpy.array([0., 0., i.force])
-            elif isinstance(i, lw_att_point):
-                n = Node(node_type=0, position_vector=numpy.array(i.pos3D))
-            elif isinstance(i, batch_point):
-                n = Node(node_type=1)
-            i.temp_node = n     #storing the nodes to remember them with the lines
-        for i, l in enumerate(self.lineset.lines):
+        for node in self.lineset.points:
+            node.temp_node = node.get_node(glider)  # store the nodes to remember them with the lines
+        # set up the lines!
+        for line_no, l in enumerate(self.lineset.lines):
             lower = l.lower_point.temp_node
             upper = l.upper_point.temp_node
             if lower and upper:
-                line = Line(number=i, lower_node=lower, upper_node=upper, vinf=self.v_inf, target_length=l.target_length)
+                line = Line(number=line_no, lower_node=lower, upper_node=upper,
+                            vinf=self.v_inf, target_length=l.target_length)
                 lines.append(line)
             else:
                 remove_lines.append(l)
+
         glider.lineset = LineSet(lines, self.v_inf)
         glider.lineset.calc_geo()
         glider.lineset.calc_sag()
-
 
     @property
     def attachment_points(self):
@@ -284,18 +274,15 @@ class Glider_2D(object):
 
     def sort_lines(self, lower_att):
         for line in self.lineset.lines:
-            temp = False
             if line.lower_point == lower_att and not line.is_sorted:
                 line.is_sorted = True
                 self.sort_lines(line.upper_point)
-                temp = True
             elif line.upper_point == lower_att and not line.is_sorted:
                 temp = line.lower_point
                 line.lower_point = line.upper_point
                 line.upper_point = temp
                 line.is_sorted = True
                 self.sort_lines(line.upper_point)
-                temp = True
 
     def delete_not_connected(self, glider):
         temp = []
@@ -315,65 +302,15 @@ class Glider_2D(object):
                     temp_new += conn_lo_lines
             temp = temp_new
 
-class ParaFoil(Profile2D):
-    #TODO make new fit bezier methode to set the second x value of the controllpoints to zero.
-    def __init__(self, data=None, name=None, normalize_root=True,
-                 upper_spline=None, lower_spline=None):
-        super(ParaFoil, self).__init__(data=data, name=name,
-                                       normalize_root=normalize_root)
-        self.close()
-        self.normalize()
-        self.upper_spline = upper_spline or self.fit_upper()
-        self.lower_spline = lower_spline or self.fit_lower()
-
-    def fit_upper(self, num=100, dist=None, control_num=6):
-        if self.data is None:
-            return BezierCurve()
-        upper = self.data[:self.noseindex + 1]
-        upper_smooth = self.make_smooth_dist(upper, num, dist)
-        return BezierCurve.fit(upper_smooth, numpoints=control_num)
-
-    def fit_lower(self, num=100, dist=None, control_num=6):
-        if self.data is None:
-            return BezierCurve()
-        lower = self.data[self.noseindex:]
-        lower_smooth = self.make_smooth_dist(lower, num, dist, upper=False)
-        return BezierCurve.fit(lower_smooth, numpoints=control_num)
-
-    def apply_splines(self, num=70):
-        upper = self.upper_spline.get_sequence(num)
-        lower = self.lower_spline.get_sequence(num)
-        self.data = numpy.array(upper.tolist() + lower[1:].tolist())
-
-    def make_smooth_dist(self, points, num=70, dist=None, upper=True):
-        # make array [[lenght, x, y], ...]
-        length = [0]
-        for i, point in enumerate(points[1:]):
-            length.append(length[-1] + norm(point - points[i]))
-        interpolation = scipy.interpolate.interp1d(length, numpy.array(points).T)
-        if dist == "const":
-            dist = numpy.linspace(0, length[-1], num)
-        elif dist == "sin":
-            if upper:
-                dist = [numpy.sin(i) * length[-1] for i in numpy.linspace(0, numpy.pi / 2, num)]
-            else:
-                dist = [abs(1 - numpy.sin(i)) * length[-1] for i in numpy.linspace(0, numpy.pi / 2, num)]
-        elif dist == "hardcore":
-            # berechne kruemmung in den punkten
-            pass
-        else:
-            return points
-        return [interpolation(i) for i in dist]
-
 
 #######################################line objects######################################
 
-class lw_att_point(object):
+class lower_attachment_point(object):
     """lower attachment point"""
-    def __init__(self, pos, pos3D):
+    def __init__(self, pos, pos3D, nr=None):
         self.pos = pos
         self.pos3D = pos3D
-        self.nr = None
+        self.nr = nr
 
     def __json__(self):
         return{
@@ -387,77 +324,79 @@ class lw_att_point(object):
         p.nr = nr
         return p
 
+    def get_node(self, glider):
+        return Node(node_type=0, position_vector=numpy.array(self.pos3D))
+
 
 class up_att_point(object):
     """stores the 2d data of an attachment point"""
-    def __init__(self, rib, pos, force = 1.):
-        self.rib = rib
-        self._pos = pos # value from 0...100
+    def __init__(self, rib_no, pos, force=1., nr=None):
+        self.rib_no = rib_no
+        self.position = pos  # value from 0...100
         self.force = force
-        self.nr = None
+        self.nr = nr
 
     def get_2d(self, glider_2d):
         _, front, back = glider_2d.shape()
-        xpos = numpy.unique([i[0] for i in front if i[0]>=0.])
-        pos = self._pos / 100.
-        if self.rib < len(xpos):
-            x = xpos[self.rib]
-            j = self.rib + len(front) - len(xpos)
+        xpos = numpy.unique([i[0] for i in front if i[0] >= 0.])
+        pos = self.position / 100.
+        if self.rib_no < len(xpos):
+            x = xpos[self.rib_no]
+            j = self.rib_no + len(front) - len(xpos)
             chord = back[j][1] - front[j][1]
             y = front[j][1] + pos * chord
             return x,y
 
     def pos3D(self, glider):
-        pos = self.rib
+        pos = self.rib_no
         if glider.has_center_cell:
             pos += 1
         try:
             rib = glider.ribs[pos]
-            return rib.profile_3d[rib.profile_2d.profilepoint(self._pos / 100)[0]]
+            return rib.profile_3d[rib.profile_2d.profilepoint(self.position / 100)[0]]
         except IndexError:
             return False
 
+    def get_node(self, glider):
+        return AttachmentPoint(glider.ribs[self.rib_no], None, self.position/100)
+
     def __json__(self):
         return{
-            "pos": float(self._pos),
+            "pos": float(self.position),
             "force": self.force,
-            "rib": self.rib,
+            "rib_no": self.rib_no,
             "nr": self.nr}
 
     @classmethod
     def __from_json__(cls, pos, force, rib, nr):
         p = cls(rib, pos, force)
         p.nr = nr
-        return(p)
+        return p
 
 
 class batch_point(object):
-    def __init__(self, pos):
-        self.pos = pos  #pos = 2d coordinates
-        self.nr = None
+    def __init__(self, pos_2d, nr=None):
+        self.pos_2d = pos_2d  # pos => 2d coordinates
+        self.nr = nr
 
     def __json__(self):
         return{
-            "pos": self.pos,
-            "nr" : self.nr
+            "pos_2d": self.pos_2d,
+            "nr": self.nr
             }
 
-    @classmethod
-    def __from_json__(cls, pos, nr):
-        p = cls(pos)
-        p.nr = nr
-        return(p)
+    def get_node(self, glider):
+        return Node(node_type=1)
 
 
-
-class _lineset(object):
+class LineSet2D(object):
     def __init__(self, line_list, point_list):
         self.lines = line_list
         self.points = point_list
 
     def __json__(self):
-        for i, p in enumerate(self.points):
-            p.nr = i
+        for i, point in enumerate(self.points):
+            point.nr = i
         return{
             "lines": self.lines,
             "points": self.points
@@ -465,15 +404,15 @@ class _lineset(object):
 
     @classmethod
     def __from_json__(cls, lines, points):
-        ls = cls(lines, points)
-        p = ls.points
-        p = sorted(p, key = lambda pt: pt.nr)
-        for line in ls.lines:
-            line.upper_point = p[line.upper_point]
-            line.lower_point = p[line.lower_point]
-        for p in ls.points:
-            p.nr = None
-        return ls
+        lineset = cls(lines, points)
+        points = lineset.points
+        points.sort(key=lambda point: point.nr)
+        for line in lineset.lines:
+            line.upper_point = points[line.upper_point]
+            line.lower_point = points[line.lower_point]
+        for points in lineset.points:
+            points.nr = None
+        return lineset
 
 
 class _line(object):
@@ -498,7 +437,7 @@ class _line(object):
 
 
 if __name__ == "__main__":
-    a = ParaFoil.compute_naca()
+    a = ParametricProfile2D.compute_naca()
     import openglider.graphics as g
     g.Graphics3D([
         g.Line(a.upper_spline.get_sequence()),

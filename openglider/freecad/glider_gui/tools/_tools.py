@@ -4,10 +4,10 @@ from PySide import QtCore, QtGui
 from pivy import coin
 import numpy
 import FreeCADGui as Gui
+from openglider.airfoil.parametric import ParametricProfile2D
 
 from openglider.jsonify import dump, load
 from openglider.glider.glider_2d import Glider_2D
-from openglider.glider.glider_2d import ParaFoil
 from openglider.utils.bezier import fitbezier
 from openglider.vector import norm, normalize
 from pivy_primitives import Line, vector3D, ControlPointContainer
@@ -245,7 +245,8 @@ class shape_tool(base_tool):
         self.glider_2d.back.controlpoints = [i[:-1] for i in self.back_cpc.control_pos]
         self.glider_2d.cell_dist_controlpoints = [i[:-1] for i in self.rib_pos_cpc.control_pos]
         self.shape.removeAllChildren()
-        ribs, front, back, dist_line = self.glider_2d.interactive_shape(num=15)
+        ribs, front, back = self.glider_2d.shape(num=15)
+        dist_line = self.glider_2d.cell_dist_interpolation
         self.shape.addChild(Line(front).object)
         self.shape.addChild(Line(back).object)
         for rib in ribs:
@@ -481,7 +482,7 @@ class airfoil_tool(base_tool):
             filter='*.dat',
             selectedFilter='*.dat')
         if filename[0] != "":
-            self.QList_View.addItem(QAirfoil_item(ParaFoil.import_from_dat(filename[0])))
+            self.QList_View.addItem(QAirfoil_item(ParametricProfile2D.import_from_dat(filename[0])))
 
     def create_airfoil(self):
         j = 0
@@ -489,7 +490,7 @@ class airfoil_tool(base_tool):
             name = self.QList_View.item(index).text()
             if "airfoil" in name:
                 j += 1
-        airfoil = ParaFoil.compute_naca(4412)
+        airfoil = ParametricProfile2D.compute_naca(4412)
         airfoil.name = "airfoil" + str(j)
         new_item = QAirfoil_item(airfoil)
         self.QList_View.addItem(new_item)

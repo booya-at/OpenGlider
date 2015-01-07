@@ -121,6 +121,8 @@ class HashedList(CachedObject):
             self.name = name
 
     def __json__(self):
+        # attrs = self.__init__.func_code.co_varnames
+        # return {key: getattr(self, key) for key in attrs if key != 'self'}
         return {"data": self.data.tolist(), "name": self.name}
 
     def __getitem__(self, item):
