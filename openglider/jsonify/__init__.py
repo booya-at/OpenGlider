@@ -14,10 +14,8 @@ __ALL__ = ['dumps', 'dump', 'loads', 'load']
 
 class Encoder(json.JSONEncoder):
     def default(self, obj):
-        if isinstance(obj, (list, dict, str, unicode, int, float, bool, type(None))):
-            return super(Encoder, self).default(obj)
-        elif isinstance(obj, numpy.ndarray):
-            return super(Encoder, self).default(obj.tolist())
+        if isinstance(obj, numpy.ndarray):
+            return obj.tolist()
         elif hasattr(obj, "__json__"):
             return {"_type": obj.__class__.__name__,
                     "_module": obj.__class__.__module__,
