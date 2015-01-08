@@ -3,6 +3,7 @@ import math
 import random
 import sys
 import unittest
+from openglider.airfoil.parametric import BezierProfile2D
 import openglider.vector
 from openglider.vector.polygon import Polygon2D
 
@@ -32,3 +33,11 @@ class ProfileTest(unittest.TestCase):
         prof.close()
         openglider.graphics.Graphics([openglider.graphics.Line(prof.data),
                                       openglider.graphics.Line(self.profile.data)])
+
+    def test_fit(self):
+        profile2 = BezierProfile2D(self.profile.data)
+        profile2.apply_splines()
+        profile2.move([0,2])
+        openglider.graphics.Graphics([openglider.graphics.Line(self.profile.data),
+                                      openglider.graphics.Red,
+                                      openglider.graphics.Line(profile2.data)])

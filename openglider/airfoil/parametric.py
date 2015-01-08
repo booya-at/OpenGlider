@@ -5,12 +5,12 @@ from openglider.utils.bezier import BezierCurve
 from openglider.vector import norm
 
 
-class ParametricProfile2D(Profile2D):
+class BezierProfile2D(Profile2D):
     # TODO make new fit bezier method to set the second x value of the
     # controllpoints to zero.
     def __init__(self, data=None, name=None, normalize_root=True,
                  upper_spline=None, lower_spline=None):
-        super(ParametricProfile2D, self).__init__(data=data, name=name,
+        super(BezierProfile2D, self).__init__(data=data, name=name,
                                        normalize_root=normalize_root)
         self.close()
         self.normalize()
@@ -18,29 +18,29 @@ class ParametricProfile2D(Profile2D):
         self.lower_spline = lower_spline or self.fit_lower()
 
     def __json__(self):
-        dct = super(ParametricProfile2D, self).__json__()
+        dct = super(BezierProfile2D, self).__json__()
         dct.update({'upper_spline': self.upper_spline,
                     'lower_spline': self.lower_spline})
         return dct
 
     @classmethod
     def __from_json__(cls, rootprof, data, name, upper_spline, lower_spline):
-        profile = super(ParametricProfile2D, cls).__from_json__(
+        profile = super(BezierProfile2D, cls).__from_json__(
             rootprof, data, name)
         profile.upper_spline = upper_spline
         profile.lower_spline = lower_spline
         return profile
 
     def fit_upper(self, num=100, dist=None, control_num=6):
-        #upper = self.data[:self.noseindex + 1]
-        #upper_smooth = self.make_smooth_dist(upper, num, dist)
-        upper_smooth = [self[self(x)] for x in numpy.linspace(0., 1., num=num)]
+        upper = self.data[:self.noseindex + 1]
+        upper_smooth = self.make_smooth_dist(upper, num, dist)
+        #upper_smooth = [self[self(x)] for x in numpy.linspace(-1., 0., num=num)]
         return BezierCurve.fit(upper_smooth, numpoints=control_num)
 
     def fit_lower(self, num=100, dist=None, control_num=6):
-        #lower = self.data[self.noseindex:]
-        lower_smooth = [self[self(x)] for x in numpy.linspace(-1., 0., num=num)]
-        #lower_smooth = self.make_smooth_dist(lower, num, dist, upper=False)
+        lower = self.data[self.noseindex:]
+        lower_smooth = self.make_smooth_dist(lower, num, dist, upper=False)
+        #lower_smooth = [self[self(x)] for x in numpy.linspace(0., 1., num=num)]
         return BezierCurve.fit(lower_smooth, numpoints=control_num)
 
     def fit_region(self, start, stop, num_points, control_points):

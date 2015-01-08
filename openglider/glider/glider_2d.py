@@ -4,7 +4,7 @@ import copy
 import scipy.interpolate
 import numpy
 
-from openglider.airfoil.parametric import ParametricProfile2D
+from openglider.airfoil.parametric import BezierProfile2D
 from openglider.glider.rib_elements import AttachmentPoint
 from openglider.vector import mirror2D_x
 from openglider.utils.bezier import BezierCurve, SymmetricBezier
@@ -358,7 +358,9 @@ class up_att_point(object):
             return False
 
     def get_node(self, glider):
-        return AttachmentPoint(glider.ribs[self.rib_no], None, self.position/100)
+        node = AttachmentPoint(glider.ribs[self.rib_no], None, self.position/100)
+        node.get_position()
+        return node
 
     def __json__(self):
         return{
@@ -437,7 +439,7 @@ class _line(object):
 
 
 if __name__ == "__main__":
-    a = ParametricProfile2D.compute_naca()
+    a = BezierProfile2D.compute_naca()
     import openglider.graphics as g
     g.Graphics3D([
         g.Line(a.upper_spline.get_sequence()),

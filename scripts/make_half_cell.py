@@ -1,5 +1,5 @@
 import tempfile
-from openglider.airfoil.parametric import ParametricProfile2D
+from openglider.airfoil.parametric import BezierProfile2D
 
 from openglider.glider import Cell, Rib, Glider
 from openglider.glider.ballooning import BallooningBezier
@@ -12,7 +12,7 @@ path = "/tmp/cell.obj"
 ar = 0.1 
 
 bal = BallooningBezier()
-profile = ParametricProfile2D.compute_naca(2412)
+profile = BezierProfile2D.compute_naca(2412)
 
 rib0 = Rib(profile, bal, [0, -ar/2*3, 0], 1, 0., 0., 0., 999999.)
 rib1 = Rib(profile, bal, [0, -ar/2, 0], 1, 0., 0., 0., 999999.)

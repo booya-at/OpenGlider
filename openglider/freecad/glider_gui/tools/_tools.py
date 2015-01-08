@@ -4,7 +4,7 @@ from PySide import QtCore, QtGui
 from pivy import coin
 import numpy
 import FreeCADGui as Gui
-from openglider.airfoil.parametric import ParametricProfile2D
+from openglider.airfoil.parametric import BezierProfile2D
 
 from openglider.jsonify import dump, load
 from openglider.glider.glider_2d import Glider_2D
@@ -482,7 +482,7 @@ class airfoil_tool(base_tool):
             filter='*.dat',
             selectedFilter='*.dat')
         if filename[0] != "":
-            self.QList_View.addItem(QAirfoil_item(ParametricProfile2D.import_from_dat(filename[0])))
+            self.QList_View.addItem(QAirfoil_item(BezierProfile2D.import_from_dat(filename[0])))
 
     def create_airfoil(self):
         j = 0
@@ -490,7 +490,7 @@ class airfoil_tool(base_tool):
             name = self.QList_View.item(index).text()
             if "airfoil" in name:
                 j += 1
-        airfoil = ParametricProfile2D.compute_naca(4412)
+        airfoil = BezierProfile2D.compute_naca(4412)
         airfoil.name = "airfoil" + str(j)
         new_item = QAirfoil_item(airfoil)
         self.QList_View.addItem(new_item)
