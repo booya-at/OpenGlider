@@ -345,7 +345,7 @@ class up_att_point(object):
             j = self.rib_no + len(front) - len(xpos)
             chord = back[j][1] - front[j][1]
             y = front[j][1] + pos * chord
-            return x,y
+            return x, y
 
     def pos3D(self, glider):
         pos = self.rib_no
@@ -358,7 +358,8 @@ class up_att_point(object):
             return False
 
     def get_node(self, glider):
-        node = AttachmentPoint(glider.ribs[self.rib_no], None, self.position/100)
+        node = AttachmentPoint(glider.ribs[self.rib_no], None,
+                               self.position/100, [0, 0, self.force])
         node.get_position()
         return node
 

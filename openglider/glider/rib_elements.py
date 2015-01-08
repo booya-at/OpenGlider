@@ -114,16 +114,18 @@ class GibusArcs(object):
 
 # Node from lines
 class AttachmentPoint(Node):
-    def __init__(self, rib, number, rib_pos, node_type=2):
-        super(AttachmentPoint, self).__init__(node_type=node_type)
+    def __init__(self, rib, number, rib_pos, force=None):
+        super(AttachmentPoint, self).__init__(node_type=2)
         self.rib = rib
         self.rib_pos = rib_pos
         self.number = number
+        self.force = force
 
     def __json__(self):
         return {"rib": self.rib,
                 "number": self.number,
-                "rib_pos": self.rib_pos}
+                "rib_pos": self.rib_pos,
+                "force": self.force}
 
     def get_position(self):
         self.vec = self.rib.profile_3d[self.rib.profile_2d(self.rib_pos)]
