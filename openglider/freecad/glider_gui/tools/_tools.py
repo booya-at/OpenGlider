@@ -7,7 +7,7 @@ import FreeCADGui as Gui
 from openglider.airfoil.parametric import BezierProfile2D
 
 from openglider.jsonify import dump, load
-from openglider.glider.glider_2d import Glider_2D
+from openglider.glider.glider_2d import Glider2D
 from openglider.utils.bezier import fitbezier
 from openglider.vector import norm, normalize
 from pivy_primitives import Line, vector3D, ControlPointContainer
@@ -60,7 +60,7 @@ class base_tool(object):
             print(self.glider_2d)
         else:
             print('fit the glider')
-            self.glider_2d = Glider_2D.fit_glider(self.obj.glider_instance)
+            self.glider_2d = Glider2D.fit_glider(self.obj.glider_instance)
         self.obj.ViewObject.Visibility = False
         self.view = Gui.ActiveDocument.ActiveView
         self.view.viewTop()

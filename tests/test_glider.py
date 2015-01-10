@@ -18,33 +18,15 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import random
-import os
-import sys
 import unittest
 
-try:
-    import openglider
-except ImportError:
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
-    import openglider
+from common import *
 import openglider.glider
 
-testfolder = os.path.dirname(os.path.abspath(__file__))
-importpath = testfolder + '/demokite.ods'
 
-class GliderTestClass(unittest.TestCase):
+class GliderTestClass(TestCase):
     def setUp(self, complete=True):
-        self.glider = openglider.glider.Glider.import_geometry(path=importpath)
-
-    def assertEqualGlider(self, glider):
-        self.assertEqual(len(self.glider.ribs), len(glider.ribs))
-        self.assertEqual(len(self.glider.cells), len(glider.cells))
-        for rib_1, rib_2 in zip(self.glider.ribs, glider.ribs):
-            # test profile_3d this should include align, profile,...
-            for xyz_1, xyz_2 in zip(rib_1.profile_3d, rib_2.profile_3d):
-                for _p1, _p2 in zip(xyz_1, xyz_2):
-                    self.assertAlmostEqual(_p1, _p2)
-        # todo: expand test: lines, diagonals,...
+        self.glider = self.import_glider()
 
 
 class TestGlider(GliderTestClass):

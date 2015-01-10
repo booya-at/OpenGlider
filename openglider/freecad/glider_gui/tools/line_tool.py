@@ -1,9 +1,10 @@
 from __future__ import division
 
-from openglider.glider.glider_2d import lower_attachment_point, up_att_point, batch_point, _line
+from openglider.glider.glider_2d import lower_attachment_point, up_att_point, batch_point, Line2D
 from _tools import base_tool, input_field, text_field, QtGui
 from pivy_primitives_new_new import Line, Marker, Container, coin, COLORS
 from pivy_primitives import vector3D
+
 
 class line_tool(base_tool):
     def __init__(self, obj):
@@ -161,7 +162,7 @@ class line_tool(base_tool):
             else:
                 point = LineMarker(pos3D)
             self.shape.addChild(point)
-            return(point)
+            return point
 
     def draw_shape(self):
         ribs, front, back = map(vector3D, self.glider_2d.shape())
@@ -171,7 +172,7 @@ class line_tool(base_tool):
         self.shape.addChildren(map(Line, ribs))
         for i in self.glider_2d.lineset.points:
             if isinstance(i, up_att_point):
-                coord = i.get_2d(self.glider_2d)
+                coord = self.glider_2d.shape_point(i.rib_no, i.position/100)
                 obj = Upper_Att_Marker(vector3D(coord))
                 obj.temp_2d = i
                 obj.force = i.force
@@ -241,7 +242,7 @@ class line_tool(base_tool):
 
         for obj in self.shape.objects:
             if isinstance(obj, ConnectionLine):
-                l = _line(obj.marker1.temp_2d, obj.marker2.temp_2d)
+                l = Line2D(obj.marker1.temp_2d, obj.marker2.temp_2d)
                 if not (isinstance(obj.marker1, Upper_Att_Marker) or
                         isinstance(obj.marker2, Upper_Att_Marker)):
                     l.target_length = obj.target_length
@@ -276,7 +277,7 @@ class LineMarker(Marker):
 
     @property
     def pos(self):
-        return(self.points[0])
+        return self.points[0]
 
     @pos.setter
     def pos(self, pos):
@@ -301,7 +302,7 @@ class Lower_Att_Marker(LineMarker):
 
     @property
     def pos(self):
-        return(self.points[0])
+        return self.points[0]
 
     @pos.setter
     def pos(self, pos):

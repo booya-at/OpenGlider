@@ -1,6 +1,7 @@
 import FreeCADGui as Gui
 
-Gui.addIconPath(FreeCAD.getHomePath() + "Mod/glider_gui/icons")
+Gui.addIconPath(os.path.join(FreeCAD.getHomePath() + "Mod/glider_gui/icons"))
+#Gui.addIconPath(FreeCAD.ConfigGet("UserAppData") + "/Mod/glider_gui/icons")
 
 from tools import (Gl2d_Export, Gl2d_Import, CreateGlider, Shape_Tool,
                    Airfoil_Tool, Arc_Tool, Aoa_Tool,

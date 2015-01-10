@@ -22,7 +22,7 @@ class MplSymmetricBezier(MplBezier):
 
 
 def shapeinput(glider):
-    front, back = glider.shape
+    front, back = glider.shape_flattened
     control_front = [ControlPoint(p) for p in fitbezier(front)]
     control_back = [ControlPoint(p) for p in fitbezier(back)]
     control_front[0].locked_y = True

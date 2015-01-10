@@ -6,7 +6,7 @@ import FreeCAD
 
 
 import openglider
-from openglider.glider import Glider, Glider_2D
+from openglider.glider import Glider, Glider2D
 from pivy_primitives import Line
 
 importpath = os.path.join(os.path.dirname( __file__ ), '..', 'demokite.ods')
@@ -50,7 +50,7 @@ class OGGlider(OGBaseObject):
         obj.glider_instance = Glider.import_geometry(path=importpath)
         print(obj.glider_instance.cells[0].panels[0].cut_front)
         print(obj.glider_instance.cells[0].panels[0].cut_back)
-        obj.glider_2d = Glider_2D()
+        obj.glider_2d = Glider2D()
         super(OGGlider, self).__init__(obj)
 
 

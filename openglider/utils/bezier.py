@@ -75,7 +75,6 @@ class BezierCurve(HashedList):
         else:
             ValueError("value must be in the range (0,1) for xvalues use xpoint-function")
 
-
     @property
     def numpoints(self):
         try:
@@ -190,6 +189,7 @@ def bernsteinbase(d):
 
     return [bsf(i) for i in range(d)]
 
+
 def choose(n, k):
     if 0 <= k <= n:
         ntok = 1
@@ -220,8 +220,10 @@ def bezierfunction(points, base=None):
 
 
 def fitbezier(points, base=bernsteinbase(3), start=True, end=True):
-    """Fit to a given set of points with a certain number of spline-points (default=3)
-    if start (/ end) is True, the first (/ last) point of the Curve is included"""
+    """
+    Fit to a given set of points with a certain number of spline-points (default=3)
+    if start (/ end) is True, the first (/ last) point of the Curve is included
+    """
     matrix = numpy.matrix(
         [[base[column](row * 1. / (len(points) - 1)) for column in range(len(base))] for row in range(len(points))])
     if not start and not end:
@@ -263,24 +265,24 @@ def fitbezier(points, base=bernsteinbase(3), start=True, end=True):
             solution.append(points[-1])
         return numpy.array(solution)
 
-if __name__ == "__main__":
-    #BezierCurve.fit([[0,0], [1,1], [2,0]])
-    import time
-    import random
-    import cProfile
-
-    a = SymmetricBezier.fit([[-3,0], [-2,1], [-1,0.5], [1,0.5], [2,1], [3,0]])
-
-    count = 10000
-    t1=time.time()
-    for i in range(count):
-        a(random.random())
-    t2 = time.time()
-    for i in range(count):
-        a.call(random.random())
-    t3 = time.time()
-    print("faktor", (t3-t2)/(t2-t1))
-    cProfile.run("a.call(random.random())")
-    # a.numpoints = 4
-    # print(a.controlpoints)
-    # print(BezierCurve.fit([[0,0],[10,4],[20,0]]).controlpoints)
+# if __name__ == "__main__":
+#     #BezierCurve.fit([[0,0], [1,1], [2,0]])
+#     import time
+#     import random
+#     import cProfile
+#
+#     a = SymmetricBezier.fit([[-3,0], [-2,1], [-1,0.5], [1,0.5], [2,1], [3,0]])
+#
+#     count = 10000
+#     t1=time.time()
+#     for i in range(count):
+#         a(random.random())
+#     t2 = time.time()
+#     for i in range(count):
+#         a.call(random.random())
+#     t3 = time.time()
+#     print("faktor", (t3-t2)/(t2-t1))
+#     cProfile.run("a.call(random.random())")
+#     # a.numpoints = 4
+#     # print(a.controlpoints)
+#     # print(BezierCurve.fit([[0,0],[10,4],[20,0]]).controlpoints)

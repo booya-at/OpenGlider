@@ -19,20 +19,17 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
 import random
-import sys
-import os
-from openglider.glider import ballooning
 
-try:
-    import openglider
-except ImportError:
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
-    import openglider
+from common import openglider
+from openglider.glider import ballooning
 
 
 class TestBallooningBezier(unittest.TestCase):
     def setUp(self):
-        self.ballooning = ballooning.BallooningBezier()
+        d_x = random.random() + 0.1
+        upper = [[d_x*i, random.random()*10] for i in range(10)]
+        lower = [[d_x*i, random.random()*10] for i in range(10)]
+        self.ballooning = ballooning.BallooningBezier([upper, lower])
 
     def test_multiplication(self):
         for i in range(100):

@@ -164,7 +164,6 @@ class LineSet():
     def from_2d(cls, lines, points):
         pass
 
-
     def __json__(self):
         new = self.copy()
         nodes = list(new.nodes)

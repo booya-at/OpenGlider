@@ -31,8 +31,7 @@ from openglider.vector.functions import norm, rotation_2d
 
 
 class Glider(object):
-    def __init__(self, cells=None, attachment_points=None, lineset=None,
-                 diagonal_ribs=None):
+    def __init__(self, cells=None, lineset=None, diagonal_ribs=None):
         self.cells = cells or []
         self.lineset = lineset
         self.diagonal_ribs = diagonal_ribs or []
@@ -160,7 +159,7 @@ class Glider(object):
         return front, back
 
     @property
-    def shape(self):
+    def shape_flattened(self):
         """
         Projected Shape of the glider (as it would lie on the ground - flattened)
         """
@@ -213,13 +212,6 @@ class Glider(object):
             return 2 * span - self.cells[0].span
         else:
             return 2 * span
-            # span = 0.
-            # front = self.get_spanwise()
-            # last = front[0] * [0, 0, 1]  # centerrib only halfed
-            # for this in front[1:]:
-            #     span += norm((this - last) * [0, 1, 1])
-            #     last = this
-            #return 2 * span
 
     @span.setter
     def span(self, span):
@@ -287,3 +279,8 @@ class Glider(object):
     def glide(self, glide):
         for rib in self.ribs:
             rib.glide = glide
+
+    @property
+    def v_inf(self):
+        angle = numpy.arctan(1/self.glide)
+        return numpy.array([-numpy.cos(angle), 0, numpy.sin(angle)])

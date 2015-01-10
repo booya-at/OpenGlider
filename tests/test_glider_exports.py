@@ -22,70 +22,60 @@ import unittest
 import sys
 import os
 import json
-from openglider.plots import flatten_glider
 
-try:
-    import openglider
-except ImportError:
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
-    import openglider
+from common import *
 from openglider.plots import flatten_glider, create_svg
 from openglider import jsonify
 from test_glider import GliderTestClass
 
-testfolder = os.path.dirname(os.path.abspath(__file__))
-
 
 class TestGlider(GliderTestClass):
-    def file(self, suffix):
-        file = tempfile.NamedTemporaryFile(suffix=suffix)
-        return file
+    def tempfile(self, suffix):
+        return tempfile.NamedTemporaryFile(suffix=suffix)
 
     @unittest.skip('obsolete')
     def test_import_export_ods(self):
-        path = self.file('.ods').name
+        path = self.tempfile('.ods').name
         self.glider.export_geometry(path)
         #new_glider = glider.Glider()
         #self.assertTrue(new_glider.import_from_file(path))
         #self.assertEqual(new_glider, self.glider)
 
     def test_export_obj(self):
-        path = self.file('.obj').name
+        path = self.tempfile('.obj').name
         self.glider.export_3d(path, midribs=5)
 
     @unittest.skip('this hangs')
     def test_export_dxf(self):
-        path = self.file('.dxf').name
+        path = self.tempfile('.dxf').name
         self.glider.export_3d(path, midribs=5)
 
-    #@unittest.skip('')
     def test_export_apame(self):
-        path = self.file('.inp').name
+        path = self.tempfile('.inp').name
         self.glider.export_3d(path, midribs=1)
 
-    #@unittest.skip('too slow')
     def test_export_json(self):
-        path = self.file('.json').name
+        path = self.tempfile('.json').name
         data = self.glider.export_3d(path=path, midribs=2, numpoints=10, wake_panels=3, wake_length=0.9)
         with open(path, "w") as outfile:
             json.dump(data, outfile, indent=2)
 
     def test_export_plots(self):
-        path = self.file('.svg').name
+        path = self.tempfile('.svg').name
         plots = flatten_glider(self.glider)
         all = plots['panels']
         all.insert(plots['ribs'])
         create_svg(all, path)
 
     def test_export_glider_json(self):
-        file = self.file('.json')
+        file = self.tempfile('.json')
         jsonify.dump(self.glider, file)
         file.seek(0)
         glider = jsonify.load(file)['data']
-        self.assertEqualGlider(glider)
+        self.assertEqualGlider(self.glider, glider)
 
     def test_export_glider_json2(self):
-        path = self.file('.json').name
+        path = self.tempfile('.json').name
         with open(path, "w") as outfile:
             jsonify.dump(self.glider, outfile)
 
