@@ -209,7 +209,7 @@ class Glider2D(object):
         glider = glider or Glider()
         ribs = []
         cells = []
-
+        print("Jojo")
 
         # TODO airfoil, ballooning-------
         airfoil = self.profiles[0]

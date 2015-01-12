@@ -84,7 +84,6 @@ class BasicProfile2D(Polygon2D):
         return [xtemp(i/numpoints) for i in range(numpoints+1)]
 
     def profilepoint(self, xval, h=-1.):
-        # TODO: schlecht, i+k als return weg und verwenden von get_from_x_value...
         """Get airfoil Point for x-value (<0:upper side) optional: height (-1:lower,1:upper), possibly mapped"""
         if not h == -1:  # middlepoint
             p1 = self[self(xval)]
@@ -146,6 +145,7 @@ class Profile2D(BasicProfile2D):
         """
         Mix 2 Profiles
         """
+        # TODO: set rootprof aswell
         if other.__class__ == self.__class__:
             #use the one with more points
             if self.numpoints > other.numpoints or conservative:
@@ -161,6 +161,10 @@ class Profile2D(BasicProfile2D):
                 first.x_values = second.x_values
             first.data = first.data + second.data * numpy.array([0, 1])
             return first
+
+    def __imul__(self, other):
+        self._rootprof *= other
+        return super(Profile2D, self).__imul__(other)
 
     def __eq__(self, other):
         return numpy.allclose(self.data, other.data)

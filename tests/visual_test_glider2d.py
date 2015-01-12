@@ -3,6 +3,8 @@ from common import *
 
 from visual_test_glider import TestGlider
 
+__ALL__ = ['GliderTestCase2D']
+
 
 class GliderTestCase2D(TestCase):
     def setUp(self):

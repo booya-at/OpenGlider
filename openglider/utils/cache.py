@@ -114,11 +114,7 @@ class HashedList(CachedObject):
         self._data = None
         self._hash = None
         self.data = data
-        try:  # TODO: whats that?
-            if name or not self.name:
-                raise AttributeError
-        except AttributeError:
-            self.name = name
+        self.name = name or getattr(self, name, None)
 
     def __json__(self):
         # attrs = self.__init__.func_code.co_varnames
