@@ -114,7 +114,7 @@ class HashedList(CachedObject):
         self._data = None
         self._hash = None
         self.data = data
-        self.name = name or getattr(self, name, None)
+        self.name = name or getattr(self, 'name', None)
 
     def __json__(self):
         # attrs = self.__init__.func_code.co_varnames
