@@ -48,6 +48,7 @@ class PolyLine(HashedList):
         """Scale self"""
         assert len(other) == 2
         self.scale(*other)
+        return self
 
     def point(self, x):
         """List.point(x) is the same as List[x]"""

@@ -70,6 +70,9 @@ class TestProfile(unittest.TestCase):
         other = self.prof*0.5 + other*0.5
         self.assertTrue(self.prof == other)
 
+    def test_mul(self):
+        self.prof *= 0
+
     def test_thickness(self):
         val = random.random()
         thickness = self.prof.thickness
