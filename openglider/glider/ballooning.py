@@ -17,9 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-
-
-__author__ = 'simon'
+import copy
 
 import numpy
 from scipy.interpolate import interp1d
@@ -66,6 +64,10 @@ class Ballooning(object):
         self.upper = f_upper
         self.lower = f_lower
 
+    def __json__(self):
+        return {'f_upper': self.upper,
+                'f_lower': self.lower}
+
     def __getitem__(self, xval):
         """Get Ballooning Value (%) for a certain XValue"""
         if -1 <= xval < 0:
@@ -97,7 +99,7 @@ class Ballooning(object):
         return Ballooning(up, low)
 
     def copy(self):
-        return Ballooning(self.upper, self.lower)
+        return copy.deepcopy(self)
 
     @classmethod
     def phi(cls, *baloon):

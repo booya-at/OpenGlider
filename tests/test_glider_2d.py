@@ -15,9 +15,6 @@ class GliderTestCase2D(TestCase):
         self.glider2d = Glider2D.fit_glider(glider)
         self.assertEqualGlider(glider, self.glider2d.glider_3d(), precision=1)
 
-    def assertEqualGlider2D(self, glider1, glider2):
-        self.assertEqual(glider1.cell_num, glider2.cell_num)
-
     @unittest.skip('')
     def test_create_glider(self):
         glider = self.glider2d.glider_3d()

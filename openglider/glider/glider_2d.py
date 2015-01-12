@@ -237,7 +237,7 @@ class Glider2D(object):
             back = back_int(pos)
             arc = arc_pos[rib_no]
             ribs.append(Rib(
-                profile_2d=airfoil,
+                profile_2d=airfoil.copy(),
                 startpoint=numpy.array([-front[1], arc[0], arc[1]]),
                 chord=norm(front - back),
                 arcang=arc_angle[rib_no],
