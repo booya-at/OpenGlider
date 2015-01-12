@@ -43,11 +43,9 @@ class TestGlider(GliderTestClass):
         openglider.graphics.Graphics([openglider.graphics.Line(cell.rib1.profile_3d.data),
                                       openglider.graphics.Line(cell.rib2.profile_3d.data)])
 
-    def test_show_3d_green(self, num=5, thaglider=None):
-        if thaglider is None:
-            left = self.glider.copy()
-        else:
-            left = thaglider.copy()
+    @staticmethod
+    def show_glider(glider, num=5):
+        left = glider.copy()
         right = left.copy()
         right.mirror()
         polygons, points = left.return_polygons(num)
@@ -116,17 +114,20 @@ class TestGlider(GliderTestClass):
         for i, rib in enumerate(glider.ribs):
             rib.profile_2d = rib.profile_2d + brakeprof * (3 * i / len(glider.ribs))
 
-        self.test_show_3d_green(thaglider=glider)
+        self.show_glider(glider)
+
+    def test_show_glider(self):
+        self.show_glider(self.glider)
 
     @unittest.skip('notyet')
     def test_export_json(self):
         #path = os.tmpfile()
         path = os.tmpnam() + ".json"
         self.glider.export_3d(path)
-        import custom_json
+        import openglider.jsonify
 
         file = open(path, "r")
-        data = custom_json.load(file)
+        data = openglider.jsonify.load(file)
         print(data["panels"])
         print(data["nodes"])
         graphics.Graphics([graphics.Polygon(panel["node_no"]) for panel in data["panels"] if not panel["is_wake"]],

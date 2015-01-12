@@ -176,7 +176,10 @@ def flatten_glider(glider):
 
         #add text, entry, holes
 
-        profile_outer.close()
+        try:
+            profile_outer.close()
+        except:
+            raise LookupError("ahah {}/{}".format(i, rib.profile_2d))
         parts.append(PlotPart({"OUTER_CUTS": [profile_outer],
                                "SEWING_MARKS": [profile] + rib_marks}))
 

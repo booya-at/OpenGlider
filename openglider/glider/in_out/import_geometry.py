@@ -229,16 +229,15 @@ def read_elements(sheet, keyword, len_data=2):
     return elements
 
 
-
-
 def merge(factor, container):
     k = factor % 1
-    i = int(factor - k)
+    i = int(factor // 1)
     first = container[i]
     if k > 0:
         second = container[i + 1]
         return first * (1 - k) + second * k
-    return first
+    else:
+        return first.copy()
 
 
 def import_xls():
