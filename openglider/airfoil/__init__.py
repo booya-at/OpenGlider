@@ -45,9 +45,9 @@ class BasicProfile2D(Polygon2D):
         self.noseindex = None
         super(BasicProfile2D, self).__init__(data, name)
 
-    def __mul__(self, other):
+    def __imul__(self, other):
         fakt = numpy.array([1, float(other)])
-        return super(BasicProfile2D, self).__mul__(fakt)
+        return super(BasicProfile2D, self).__imul__(fakt)
 
     def __call__(self, xval):
         xval = float(xval)

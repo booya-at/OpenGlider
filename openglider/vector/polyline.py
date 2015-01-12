@@ -40,9 +40,8 @@ class PolyLine(HashedList):
 
     def __mul__(self, other):
         """Scale"""
-        assert len(other) == 2
         new = self.copy()
-        new.scale(*other)
+        new *= other
         return new
 
     def __imul__(self, other):
