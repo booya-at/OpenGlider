@@ -83,6 +83,13 @@ class BasicProfile2D(Polygon2D):
         xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 - math.sin(math.pi * x))
         return [xtemp(i/numpoints) for i in range(numpoints+1)]
 
+    @staticmethod
+    def cos_2_distribution(numpoints):
+        """return cosinus distributed x-values"""
+        numpoints -= numpoints % 2
+        xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 + math.cos(2 * math.pi * x)) / 2
+        return [xtemp(i/numpoints) for i in range(numpoints+1)]
+
     def profilepoint(self, xval, h=-1.):
         """Get airfoil Point for x-value (<0:upper side) optional: height (-1:lower,1:upper), possibly mapped"""
         if not h == -1:  # middlepoint
