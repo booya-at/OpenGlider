@@ -24,10 +24,10 @@ from openglider.airfoil import Profile2D
 from test_vector import *
 
 
-
 class TestProfile(unittest.TestCase):
     def setUp(self):
         self.prof = Profile2D.import_from_dat(import_dir + "/testprofile.dat")
+        self.prof.normalize()
 
     def test_numpoints(self):
         num = random.randint(4, 500)
@@ -36,7 +36,7 @@ class TestProfile(unittest.TestCase):
 
     def test_export(self):
         path = "/tmp/prof.dat"
-        self.prof.export(path)
+        self.prof.export_dat(path)
 
     def test_profilepoint(self):
         x = random.random() * random.randint(-1, 1)
@@ -61,14 +61,10 @@ class TestProfile(unittest.TestCase):
         prof = Profile2D.compute_naca(naca=m+p+thickness, numpoints=numpoints)
         self.assertAlmostEqual(prof.thickness*100, thickness, 0)
 
-    def test_compare(self):
-        other = self.prof.copy()
-        self.assertTrue(self.prof == other)
-
     def test_add(self):
         other = self.prof.copy()
-        other = self.prof*0.5 + other*0.5
-        self.assertTrue(self.prof == other)
+        other = self.prof + other
+        self.assertAlmostEqual(2*self.prof.thickness, other.thickness)
 
     def test_mul(self):
         self.prof *= 0

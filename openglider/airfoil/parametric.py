@@ -8,10 +8,9 @@ from openglider.vector import norm
 class BezierProfile2D(Profile2D):
     # TODO make new fit bezier method to set the second x value of the
     # controllpoints to zero.
-    def __init__(self, data=None, name=None, normalize_root=True,
+    def __init__(self, data=None, name=None,
                  upper_spline=None, lower_spline=None):
-        super(BezierProfile2D, self).__init__(data=data, name=name,
-                                       normalize_root=normalize_root)
+        super(BezierProfile2D, self).__init__(data=data, name=name)
         self.close()
         self.normalize()
         self.upper_spline = upper_spline or self.fit_upper()
@@ -48,6 +47,7 @@ class BezierProfile2D(Profile2D):
         return BezierCurve.fit(smoothened, numpoints=num_points)
 
     def fit_profile(self, num_points, control_points):
+        # todo: classmethod
         self.upper_spline = self.fit_region(-1., 0., num_points, control_points)
         self.lower_spline = self.fit_region(0., 1., num_points, control_points)
 

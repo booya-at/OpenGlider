@@ -39,15 +39,17 @@ def get_x_value(x_value_list, x):
             return i - (x_value_list[i] - x) / (x_value_list[i + 1] - x_value_list[i])
 
 
-class BasicProfile2D(Polygon2D):
-    """Basic airfoil Class, not to do much"""
+class Profile2D(Polygon2D):
+    """
+    Profile2D: 2 Dimensional Standard airfoil representative
+    """
     def __init__(self, data, name=None):
         self.noseindex = None
-        super(BasicProfile2D, self).__init__(data, name)
+        super(Profile2D, self).__init__(data, name)
 
     def __imul__(self, other):
         fakt = numpy.array([1, float(other)])
-        return super(BasicProfile2D, self).__imul__(fakt)
+        return super(Profile2D, self).__imul__(fakt)
 
     def __call__(self, xval):
         xval = float(xval)
@@ -76,22 +78,11 @@ class BasicProfile2D(Polygon2D):
 
         return lower + (upper-lower) * (y + 1)/2
 
-    @staticmethod
-    def cos_distribution(numpoints):
-        """return cosinus distributed x-values"""
-        numpoints -= numpoints % 2
-        xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 - math.sin(math.pi * x))
-        return [xtemp(i/numpoints) for i in range(numpoints+1)]
-
-    @staticmethod
-    def cos_2_distribution(numpoints):
-        """return cosinus distributed x-values"""
-        numpoints -= numpoints % 2
-        xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 + math.cos(2 * math.pi * x)) / 2
-        return [xtemp(i/numpoints) for i in range(numpoints+1)]
-
     def profilepoint(self, xval, h=-1.):
-        """Get airfoil Point for x-value (<0:upper side) optional: height (-1:lower,1:upper), possibly mapped"""
+        """
+        Get airfoil Point for x-value (<0:upper side)
+        optional: height (-1:lower,1:upper)
+        """
         if not h == -1:  # middlepoint
             p1 = self[self(xval)]
             p2 = self[self(-xval)]
@@ -125,56 +116,23 @@ class BasicProfile2D(Polygon2D):
                 i += 1
             self.noseindex = i
 
-
-class Profile2D(BasicProfile2D):
-    """
-    Profile2D: 2 Dimensional Standard airfoil representative
-    """
-    def __init__(self, data, name=None, normalize_root=True):
-        self._rootprof = BasicProfile2D(data, name)  # keep a copy
-        super(Profile2D, self).__init__(data, name=name)
-        if normalize_root and data is not None:
-            self._rootprof.normalize()
-            self.reset()
-
-    def __json__(self):
-        return {'rootprof': self._rootprof,
-                'data': self.data,
-                'name': self.name}
-
-    @classmethod
-    def __from_json__(cls, rootprof, data, name):
-        profile = cls(data, name)
-        profile._rootprof = rootprof
-        return profile
-
     def __add__(self, other, conservative=False):
         """
         Mix 2 Profiles
         """
-        # TODO: set rootprof aswell
-        if other.__class__ == self.__class__:
-            #use the one with more points
-            if self.numpoints > other.numpoints or conservative:
-                # Conservative means to always use this profiles xvalue
-                # (new = this + other)
-                first = other.copy()
-                second = self
+        first = self.copy()
+        first += other
+        return first
+
+    def __iadd__(self, other):
+        for i, point in enumerate(self.data):
+            if i > self.noseindex:
+                x = point[0]
             else:
-                first = self.copy()
-                second = other
+                x = -point[0]
 
-            if not numpy.array_equal(first.x_values, second.x_values):
-                first.x_values = second.x_values
-            first.data = first.data + second.data * numpy.array([0, 1])
-            return first
-
-    def __imul__(self, other):
-        self._rootprof *= other
-        return super(Profile2D, self).__imul__(other)
-
-    def __eq__(self, other):
-        return numpy.allclose(self.data, other.data)
+            point[1] += other[other(x)][1]
+        return self
 
     @classmethod
     def import_from_dat(cls, path):
@@ -192,7 +150,7 @@ class Profile2D(BasicProfile2D):
                     name = line
         return cls(profile, name)
 
-    def export(self, pfad):
+    def export_dat(self, pfad):
         """
         Export airfoil to .dat Format
         """
@@ -240,9 +198,19 @@ class Profile2D(BasicProfile2D):
                           mean_camber - thickness_this * costheta])
         return cls(upper + lower[::-1][1:], name="NACA_" + str(naca))
 
-    def reset(self):
-        """Reset airfoil To Root-Values"""
-        self.data = self._rootprof.data
+    @staticmethod
+    def cos_distribution(numpoints):
+        """return cosinus distributed x-values"""
+        numpoints -= numpoints % 2
+        xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 - math.sin(math.pi * x))
+        return [xtemp(i/numpoints) for i in range(numpoints+1)]
+
+    @staticmethod
+    def cos_2_distribution(numpoints):
+        """return cosinus distributed x-values"""
+        numpoints -= numpoints % 2
+        xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 + math.cos(2 * math.pi * x)) / 2
+        return [xtemp(i/numpoints) for i in range(numpoints+1)]
 
     #@cached_property('self')
     @property
@@ -255,17 +223,15 @@ class Profile2D(BasicProfile2D):
     @x_values.setter
     def x_values(self, xval):
         """Set X-Values of airfoil to defined points."""
-        ###standard-value: root-prof xvalues
-        self.data = [self._rootprof[self._rootprof(x)] for x in xval]
+        self.data = [self[self(x)] for x in xval]
 
     @property
     def numpoints(self):
         return len(self.data)
 
     @numpoints.setter
-    def numpoints(self, num):
-        """Set airfoil to cosinus-Distributed XValues"""
-        self.x_values = self.cos_distribution(num)
+    def numpoints(self, numpoints):
+        self.x_values = self.cos_distribution(numpoints)
 
     #todo: cached
     #@cached_property('self')
@@ -291,7 +257,7 @@ class Profile2D(BasicProfile2D):
 
     #@cached_property('self')
     @property
-    def camber(self, *xvals):
+    def camber(self):
         """return the maximum camber of the airfoil"""
         return max([p[1] for p in self.camber_line])
 
@@ -301,7 +267,7 @@ class Profile2D(BasicProfile2D):
         old_camber = self.camber
         factor = newcamber / old_camber - 1
         now = dict(self.camber_line)
-        self.__init__([i + [0, now[i[0]] * factor] for i in self.data])
+        self.data = [i + [0, now[i[0]] * factor] for i in self.data]
 
 
 class Profile3D(PolyLine):
