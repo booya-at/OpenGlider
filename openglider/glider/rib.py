@@ -67,7 +67,7 @@ class Rib(CachedObject):
     @cached_property('self')
     def profile_3d(self):
         if self.profile_2d.data is not None:
-            return Profile3D(map(self.align, self.profile_2d.data), name="profile3d (rib: {})".format(self.name))
+            return Profile3D([self.align(p) for p in self.profile_2d.data], name="profile3d (rib: {})".format(self.name))
         else:
             raise ValueError("no 2d-profile present fortharib at rib {}".format(
                 self.name))

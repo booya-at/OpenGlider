@@ -41,7 +41,7 @@ class LineSet():
 
     @property
     def lowest_lines(self):
-        return filter(lambda line: line.lower_node.type == 0, self.lines)
+        return [line for line in self.lines if line.lower_node.type == 0]
 
     @property
     def nodes(self):
@@ -119,10 +119,10 @@ class LineSet():
                 line_lower.force = norm(proj_force(force, normalize(vec)))
 
     def get_upper_conected_lines(self, node):
-        return filter(lambda line: line.lower_node is node, self.lines)
+        return [line for line in self.lines if line.lower_node is node]
 
     def get_lower_connected_lines(self, node):
-        return filter(lambda line: line.upper_node is node, self.lines)
+        return [line for line in self.lines if line.upper_node is node]
 
     def get_connected_lines(self, node):
         return self.get_upper_conected_lines(node) + self.get_lower_connected_lines(node)

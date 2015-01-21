@@ -102,9 +102,10 @@ def import_ods(filename, glider):
     glider.close_rib()
 
     ######################################LINESET######################################################
-    attachment_points = map(lambda args: AttachmentPoint(glider.ribs[args[0]], args[1], args[2]), read_elements(sheets[2], "AHP", len_data=2))
+    attachment_points = [AttachmentPoint(glider.ribs[args[0]], args[1], args[2]) for args in read_elements(sheets[2], "AHP", len_data=2)]
     attachment_points.sort(key=lambda element: element.number)
     attachment_points_lower = get_lower_aufhaengepunkte(glider.data)
+
     for p in attachment_points:
         p.force = numpy.array([0, 0, 10])
         p.get_position()
@@ -114,12 +115,12 @@ def import_ods(filename, glider):
     glider.lineset.calc_sag()
 
     ####################################PANELS##########################################################
-    cuts = map(lambda cut: cut+[1, glider.data["Designzugabe"]], read_elements(sheets[1], "DESIGNO"))
-    cuts += map(lambda cut: cut+[1, glider.data["Designzugabe"]], read_elements(sheets[1], "DESIGNM"))
-    cuts += map(lambda cut: cut+[2, glider.data["EKzugabe"]], read_elements(sheets[1], "EKV"))
-    cuts += map(lambda cut: cut+[2, glider.data["EKzugabe"]], read_elements(sheets[1], "EKH"))
+    cuts = [cut+[1, glider.data["Designzugabe"]] for cut in read_elements(sheets[1], "DESIGNO")]
+    cuts += [cut+[1, glider.data["Designzugabe"]] for cut in read_elements(sheets[1], "DESIGNM")]
+    cuts += [cut+[2, glider.data["EKzugabe"]] for cut in read_elements(sheets[1], "EKV")]
+    cuts += [cut+[2, glider.data["EKzugabe"]] for cut in read_elements(sheets[1], "EKH")]
     for i, cell in enumerate(glider.cells):  # cut = [cell_no, x_left, x_right, cut_type, amount_add]
-        cuts_this = filter(lambda cut: cut[0] == i, cuts)
+        cuts_this = [cut for cut in cuts if cut[0] == i]
         cuts_this.sort(key=lambda cut: cut[1])
         cuts_this.sort(key=lambda cut: cut[2])
         # Insert leading-/trailing-edge
@@ -151,7 +152,7 @@ def transpose_columns(sheet=ezodf.Table(), columnswidth=2):
     #if num % columnswidth > 0:
     #    raise ValueError("irregular columnswidth")
     result = []
-    for col in range(num / columnswidth):
+    for col in range(int(num / columnswidth)):
         columns = range(col * columnswidth, (col + 1) * columnswidth)
         element = []
         i = 0
