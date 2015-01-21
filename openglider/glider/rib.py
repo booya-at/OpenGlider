@@ -14,23 +14,16 @@ class Rib(CachedObject):
         optional: name, absolute aoa (bool), startposition"""
     hashlist = ('aoa_absolute', 'glide', 'arcang', 'zrot', 'chord', 'pos', 'profile_2d')  # pos
 
-    def __init__(self, profile_2d=None,
-                 ballooning=None,
-                 startpoint=None,
-                 chord=1.,
-                 arcang=0, aoa=0, zrot=0,
-                 glide=1, name="unnamed rib", aoa_abs=False, startpos=0.):
+    def __init__(self, profile_2d=None, ballooning=None, startpoint=None,
+                 chord=1., arcang=0, aoa_absolute=0, zrot=0, glide=1,
+                 name="unnamed rib", startpos=0.):
         self.startpos = startpos
         # TODO: Startpos > Set Rotation Axis in Percent
         self.name = name
         self.profile_2d = profile_2d or Profile2D()
         self.ballooning = ballooning or BallooningBezier()
         self.glide = glide
-        self._aoa = (0, 0)
-        if aoa_abs:
-            self.aoa_absolute = aoa
-        else:
-            self.aoa_relative = aoa
+        self.aoa_absolute = aoa_absolute
         self.arcang = arcang
         self.zrot = zrot
         self.pos = startpoint  # or HashedList([0, 0, 0])
@@ -42,11 +35,10 @@ class Rib(CachedObject):
                 "startpoint": self.pos.tolist(),
                 "chord": self.chord,
                 "arcang": self.arcang,
-                "aoa": self._aoa[0],
+                "aoa_absolute": self.aoa_absolute,
                 "zrot": self.zrot,
                 "glide": self.glide,
-                "name": self.name,
-                "aoa_abs": not self._aoa[1]}
+                "name": self.name}
 
     def align(self, point):
         if len(point) == 2:
@@ -56,35 +48,21 @@ class Rib(CachedObject):
         raise ValueError("Can only Align one single 2D or 3D-Point")
 
     @property
-    def aoa_absolute(self):
-        if not self._aoa[1]:
-            return self._aoa[0]
-        else:
-            return self._aoa[0] - self.__aoa_diff(self.arcang, self.glide)
-
-    @aoa_absolute.setter
-    def aoa_absolute(self, aoa):
-        self._aoa = (aoa, False)
-
-    @property
     def aoa_relative(self):
-        if self._aoa[1]:
-            return self._aoa[0]
-        else:
-            return self._aoa[0] + self.__aoa_diff(self.arcang, self.glide)
+        return self.aoa_absolute + self.__aoa_diff(self.arcang, self.glide)
 
     @aoa_relative.setter
     def aoa_relative(self, aoa):
-        self._aoa = (aoa, True)
+        self.aoa_absolute = aoa - self.__aoa_diff(self.arcang, self.glide)
 
     @cached_property('profile_3d')
     def normvectors(self):
         return map(lambda x: self.rotation_matrix.dot([x[0], x[1], 0]), self.profile_2d.normvectors)
 
-    @cached_property('arcang', 'glide', 'zrot', '_aoa')
+    @cached_property('arcang', 'glide', 'zrot', 'aoa_absolute')
     def rotation_matrix(self):
         zrot = numpy.arctan(self.arcang) / self.glide * self.zrot
-        return rotation_rib(self.aoa_absolute, self.arcang, zrot)
+        return rib_rotation(self.aoa_absolute, self.arcang, zrot)
 
     @cached_property('self')
     def profile_3d(self):
@@ -142,8 +120,10 @@ class MiniRib():
             return 1
 
 
-def rotation_rib(aoa, arc, zrot):
-    """Rotation Matrix for Ribs, aoa, arcwide-angle and glidewise angle in radians"""
+def rib_rotation(aoa, arc, zrot):
+    """
+    Rotation Matrix for Ribs, aoa, arcwide-angle and glidewise angle in radians
+    """
     # Rotate Arcangle, rotate from lying to standing (x-z)
     rot = rotation_3d(-arc + math.pi / 2, [-1, 0, 0])
     axis = rot.dot([0, 0, 1])

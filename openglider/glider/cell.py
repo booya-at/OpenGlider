@@ -100,7 +100,8 @@ class BasicCell(CachedObject):
 
 class Cell(CachedObject):
     def __init__(self, rib1, rib2, miniribs=None):
-        self._ribs = [rib1, rib2]
+        self.rib1 = rib1
+        self.rib2 = rib2
         self._miniribs = miniribs or []
 
     def __json__(self):
@@ -119,15 +120,16 @@ class Cell(CachedObject):
     def basic_cell(self):
         return BasicCell(self.rib1.profile_3d, self.rib2.profile_3d, self.ballooning_phi)
 
-    @cached_property('_miniribs', '_ribs')
+    @cached_property('_miniribs', 'rib1', 'rib2')
     def rib_profiles_3d(self):
         """
         Get all the ribs 3d-profiles, including miniribs
         """
-        midrib_profiles = [self._make_profile3d_from_minirib(mrib)
-                           for mrib in self._miniribs]
-        rib_profiles = [rib.profile_3d for rib in self._ribs]
-        return [rib_profiles[0]] + midrib_profiles + [rib_profiles[1]]
+        profiles = [self.rib1.profile_3d]
+        profiles += [self._make_profile3d_from_minirib(mrib) for mrib in self._miniribs]
+        profiles += [self.rib2.profile_3d]
+
+        return profiles
 
     def _make_profile3d_from_minirib(self, minirib):
         # self.basic_cell.prof1 = self.prof1
@@ -137,7 +139,7 @@ class Cell(CachedObject):
         shape_without_ballooning = self.basic_cell.midrib(minirib.y_value,
                                                                       True).data
         points = []
-        for xval, with_bal, without_bal in itertools.izip(
+        for xval, with_bal, without_bal in zip(
                 self.x_values, shape_with_ballooning, shape_without_ballooning):
                 fakt = minirib.function(xval)  # factor ballooned/unb. (0-1)
                 point = without_bal + fakt * (with_bal - without_bal)
@@ -146,19 +148,19 @@ class Cell(CachedObject):
 
     @cached_property('rib_profiles_3d')
     def _child_cells(self):
-        """get all the child cells within the current cell,
-         defined by the miniribs
+        """
+        get all the sub-cells within the current cell,
+        (separated by miniribs)
         """
         cells = []
-        for leftrib, rightrib in\
-                itertools.izip(self.rib_profiles_3d[:-1], self.rib_profiles_3d[1:]):
+        for leftrib, rightrib in zip(self.rib_profiles_3d[:-1], self.rib_profiles_3d[1:]):
             cells.append(BasicCell(leftrib, rightrib, ballooning=[]))
         if not self._miniribs:
             return cells
         ballooning = [self.rib1.ballooning[x] + self.rib2.ballooning[x] for x in self.x_values]
         #for i in range(len(first.data)):
         for index, (bl, left_point, right_point) in enumerate(itertools.izip(
-            ballooning, self._ribs[0].profile_3d.data, self._ribs[1].profile_3d.data
+            ballooning, self.rib1.profile_3d.data, self.rib2.profile_3d.data
         )):
             l = norm(right_point - left_point)  # L
             lnew = sum([norm(c.prof1.data[index] - c.prof2.data[index]) for c in cells])  # L-NEW
@@ -173,20 +175,8 @@ class Cell(CachedObject):
         return cells
 
     @property
-    def rib1(self):
-        return self._ribs[0]
-
-    @rib1.setter
-    def rib1(self, rib):
-        self._ribs[0] = rib
-
-    @property
-    def rib2(self):
-        return self._ribs[1]
-
-    @rib2.setter
-    def rib2(self, rib):
-        self._ribs[1] = rib
+    def ribs(self):
+        return [self.rib1, self.rib2]
 
     @property
     def _yvalues(self):

@@ -242,7 +242,7 @@ class Glider2D(object):
                 chord=norm(front - back),
                 arcang=arc_angle[rib_no],
                 glide=glide,
-                aoa=aoa_int(pos)[1]
+                aoa_absolute=aoa_int(pos)[1]
                 ))
         for rib_no, rib in enumerate(ribs[1:]):
             cell = Cell(ribs[rib_no], rib, [])

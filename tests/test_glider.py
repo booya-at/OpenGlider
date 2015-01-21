@@ -51,8 +51,8 @@ class TestGlider(GliderTestClass):
     def test_aspectratio(self):
         ar = random.random() * 10
         area_bak = self.glider.area
-        self.glider.aspect_ratio = ar
-        self.glider.aspect_ratio = ar  # -> Do it twice and its precise
+        for i in range(5):
+            self.glider.aspect_ratio = ar  # -> Do some times and its precise
         self.assertAlmostEqual(area_bak, self.glider.area)
         self.assertAlmostEqual(ar, self.glider.aspect_ratio, 3)
 

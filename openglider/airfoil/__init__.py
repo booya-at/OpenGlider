@@ -200,14 +200,19 @@ class Profile2D(Polygon2D):
 
     @staticmethod
     def cos_distribution(numpoints):
-        """return cosinus distributed x-values"""
+        """
+        return cosinus distributed x-values
+        """
         numpoints -= numpoints % 2
         xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 - math.sin(math.pi * x))
         return [xtemp(i/numpoints) for i in range(numpoints+1)]
 
     @staticmethod
     def cos_2_distribution(numpoints):
-        """return cosinus distributed x-values"""
+        """
+        return cosinus distributed x-values
+        double-cosinus -> neat distribution at nose and trailing edge
+        """
         numpoints -= numpoints % 2
         xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 + math.cos(2 * math.pi * x)) / 2
         return [xtemp(i/numpoints) for i in range(numpoints+1)]

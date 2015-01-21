@@ -40,7 +40,7 @@ class TestRib(unittest.TestCase):
                        startpoint=[random.random(), random.random(), random.random()],
                        chord=random.random(),
                        arcang=random.random(),
-                       aoa=random.random(),
+                       aoa_absolute=random.random(),
                        glide=random.random()*10)
 
 
