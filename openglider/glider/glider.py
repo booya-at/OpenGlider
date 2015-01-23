@@ -127,6 +127,7 @@ class Glider(object):
         other2.mirror()
         other2.cells[-1].rib2 = other.cells[0].rib1
         other2.cells = other2.cells + other.cells
+        other2.lineset2 = other.lineset
         return other2
 
     def scale(self, faktor):
