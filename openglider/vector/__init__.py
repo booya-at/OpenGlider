@@ -85,10 +85,10 @@ def mirror_func(direction=None):
         )
 
     def mirror(vec):
-        if isinstance(vec[0], (numpy.ndarray, list, tuple)):
-            return numpy.array([mirror(i) for i in vec]).tolist()
-        else:
+        if len(vec) == 2 and not isinstance(vec[0], (numpy.ndarray, list, tuple)):
             return numpy.dot(vec, mirrormat).tolist()
+        else:
+            return numpy.array([mirror(i) for i in vec]).tolist()
 
     return mirror
 

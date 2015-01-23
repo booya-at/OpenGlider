@@ -156,7 +156,7 @@ class HashedList(CachedObject):
             #self._data = [np.array(vector) for vector in data]  # 1,5*execution time
             self._hash = None
         else:
-            self._data = data
+            self._data = []
 
     def copy(self):
         return copy.deepcopy(self)

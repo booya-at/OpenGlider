@@ -116,10 +116,12 @@ class PolyLine2D(PolyLine):
 
     def __add__(self, other):  # this is python default behaviour for lists
         if other.__class__ is self.__class__:
-            if self.data is not None:
-                return self.__class__(numpy.append(self.data, other.data, axis=0), self.name)
-            else:
+            if len(self.data) == 0:
                 return other.copy()
+            elif len(other.data) == 0:
+                return self.copy()
+            else:
+                return self.__class__(numpy.append(self.data, other.data, axis=0), self.name)
         else:
             raise ValueError("cannot append: ", self.__class__, other.__class__)
 

@@ -95,7 +95,7 @@ class BezierCurve(HashedList):
 
     @property
     def controlpoints(self):
-           return self._data
+        return self._data
 
     @controlpoints.setter
     def controlpoints(self, points):
@@ -158,7 +158,7 @@ class SymmetricBezier(BezierCurve):
 
     @controlpoints.setter
     def controlpoints(self, controlpoints):
-        self._data = numpy.array(self._mirror(controlpoints)[::-1] + controlpoints)
+        self.data = numpy.array(self._mirror(controlpoints)[::-1] + controlpoints)
 
     @property
     def numpoints(self):
