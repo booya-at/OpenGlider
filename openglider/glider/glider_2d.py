@@ -25,7 +25,7 @@ class Glider2D(object):
                  parametric=False, front=None,    back=None,
                  cell_dist=None,  cell_num=21, arc=None,
                  aoa=None, profiles=None, balls=None, lineset=None, 
-                 v_inf=None):
+                 v_inf=None, glide=8):
         self.parametric = parametric    #set to False if you change glider 3d manually
         self.cell_num = cell_num  # updates cell pos
         self.front = front or SymmetricBezier()
@@ -37,6 +37,7 @@ class Glider2D(object):
         self.balls = balls or []  # ?
         self.lineset = lineset or LineSet2D([], [])
         self.v_inf = v_inf or [5., 0., 1.]
+        self.glide = glide
 
     def __json__(self):
         return {
@@ -202,6 +203,7 @@ class Glider2D(object):
                    arc=arc_bezier,
                    aoa=aoa_bezier,
                    profiles=profiles,
+                   glide=glider.glide,
                    parametric=True)
 
     def glider_3d(self, glider=None, num=50):
@@ -213,10 +215,10 @@ class Glider2D(object):
 
         # TODO airfoil, ballooning-------
         airfoil = self.profiles[0]
-        glide = 8.
         aoa_int = numpy.deg2rad(13.)
         #--------------------------------------
 
+        glide = self.glide
         x_values = [rib_no[0] for rib_no in self.cell_dist_interpolation]
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
@@ -244,6 +246,7 @@ class Glider2D(object):
                 glide=glide,
                 aoa_absolute=aoa_int(pos)[1]
                 ))
+            ribs[-1].aoa_relative = aoa_int(pos)[1]
         for rib_no, rib in enumerate(ribs[1:]):
             cell = Cell(ribs[rib_no], rib, [])
             cell.panels = [Panel([-1, -1, 3, 0.012], [1, 1, 3, 0.012], rib_no)]

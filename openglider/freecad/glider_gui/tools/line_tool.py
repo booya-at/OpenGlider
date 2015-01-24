@@ -24,6 +24,8 @@ class line_tool(base_tool):
         self.tool_widget.setWindowTitle("object properties")
         self.form.append(self.tool_widget)
 
+        self.add_doc()
+
         temp_wid = QtGui.QWidget()
         temp_lay = QtGui.QHBoxLayout(temp_wid)
         self.layout.setWidget(1, input_field, temp_wid)
@@ -66,6 +68,13 @@ class line_tool(base_tool):
         self.tool_widget.addWidget(self.lw_att_wid)
         self.tool_widget.addWidget(self.up_att_wid)
         self.tool_widget.setCurrentWidget(self.none_widget)
+
+    def add_doc(self):
+        self.layout.addWidget(QtGui.QLabel("g...grap element and move it"))
+        self.layout.addWidget(QtGui.QLabel("l...create line from 2 points"))
+        self.layout.addWidget(QtGui.QLabel("a...add a new point"))
+        self.layout.addWidget(QtGui.QLabel("x...delete a point or a line"))
+        self.layout.addWidget(QtGui.QLabel("cltr...multiselection"))
 
     def setup_pivy(self):
         self.shape.setName("shape")

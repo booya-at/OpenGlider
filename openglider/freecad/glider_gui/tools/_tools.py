@@ -279,14 +279,9 @@ class arc_tool(base_tool):
         self.Qnum_arc.setValue(len(self.glider_2d.arc.controlpoints))
         self.glider_2d.arc.numpoints = self.Qnum_arc.value()
 
-        # self.layout.setWidget(1, text_field, QtGui.QLabel("manual arc edit"))
-        # self.layout.setWidget(1, input_field, self.Qmanual_edit)
-        self.layout.setWidget(2, text_field, QtGui.QLabel("arc num_points"))
-        self.layout.setWidget(2, input_field, self.Qnum_arc)
-        # self.layout.setWidget(3, text_field, QtGui.QLabel("calculate real arc"))
-        # self.layout.setWidget(3, input_field, self.Qcalc_real)
+        self.layout.setWidget(0, text_field, QtGui.QLabel("arc num_points"))
+        self.layout.setWidget(0, input_field, self.Qnum_arc)
 
-        # self.base_widget.connect(self.Qmanual_edit, QtCore.SIGNAL("stateChanged(int)"), self.set_edit)
         self.base_widget.connect(self.Qnum_arc, QtCore.SIGNAL("valueChanged(int)"), self.update_num)
 
     def setup_pivy(self):
@@ -327,20 +322,6 @@ class arc_tool(base_tool):
 class aoa_tool(base_tool):
 
     def __init__(self, obj):
-        # TODO:
-        # -maybe create a abase class for this kind of inputs.
-        #       so that the z-rot-tool can erb from this
-
-        # BASE-VALUE-TOOL
-        # -coord system that can be scaled(drag the y-axis-arrow)
-        # -values on the y axis (SoText2())
-        # -values of the ribs (release drag)
-
-        # AOA-TOOL
-        # -add a spinbox for the glideratio
-        # -show the absolute value of the angle (release drag)
-        # -switcher to change between relativ absolute inputs
-
         super(aoa_tool, self).__init__(obj)
         self.scale = numpy.array([1., 5.])
         self.aoa_cpc = ControlPointContainer(vector3D(numpy.array(self.glider_2d.aoa.controlpoints) * self.scale), self.view)
@@ -349,7 +330,10 @@ class aoa_tool(base_tool):
         self.aoa_spline = Line([])
         self.ribs, self.front, self.back = self.glider_2d.shape()
 
+        self.QGlide = QtGui.QDoubleSpinBox(self.base_widget)
+
         self.aoa_cpc.on_drag.append(self.update_aoa)
+        self.setup_widget()
         self.setup_pivy()
 
     def setup_pivy(self):
@@ -360,6 +344,11 @@ class aoa_tool(base_tool):
         self.task_separator.addChild(self.coords)
         self.update_aoa()
         self.draw_shape()
+
+    def setup_widget(self):
+        self.QGlide.setValue(self.glider_2d.glide)
+        self.layout.setWidget(0, text_field, QtGui.QLabel("glidenumber"))
+        self.layout.setWidget(0, input_field, self.QGlide)
 
     def draw_shape(self):
         self.shape.removeAllChildren()
@@ -379,6 +368,7 @@ class aoa_tool(base_tool):
 
     def accept(self):
         self.aoa_cpc.remove_callbacks()
+        self.glider_2d.glide = self.QGlide.value()
         self.obj.glider_2d = self.glider_2d
         self.glider_2d.glider_3d(self.obj.glider_instance)
         super(aoa_tool, self).accept()
