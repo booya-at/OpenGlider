@@ -23,9 +23,8 @@ objects = {"Glider": openglider.glider.Glider,
            ################################Glider2D############################
            "Glider2D": openglider.glider.Glider2D,
            "LineSet2D": openglider.glider.glider_2d.LineSet2D,
-           "lw_att_point": openglider.glider.glider_2d.lower_attachment_point,
+           "lower_attachment_point": openglider.glider.glider_2d.lower_attachment_point,
            "up_att_point": openglider.glider.glider_2d.up_att_point,
            "batch_point": openglider.glider.glider_2d.batch_point,
-           "_lineset": openglider.glider.glider_2d.LineSet2D,
-           "_line": openglider.glider.glider_2d.Line2D,
+           "Line2D": openglider.glider.glider_2d.Line2D,
            }

@@ -74,6 +74,7 @@ class line_tool(base_tool):
         self.layout.addWidget(QtGui.QLabel("l...create line from 2 points"))
         self.layout.addWidget(QtGui.QLabel("a...add a new point"))
         self.layout.addWidget(QtGui.QLabel("x...delete a point or a line"))
+        self.layout.addWidget(QtGui.QLabel("cltr + a...attachment point"))
         self.layout.addWidget(QtGui.QLabel("cltr...multiselection"))
 
     def setup_pivy(self):

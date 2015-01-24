@@ -272,7 +272,6 @@ class Glider2D(object):
 
 
 #######################################line objects######################################
-
 class lower_attachment_point(object):
     """lower attachment point"""
     def __init__(self, pos, pos3D, nr=None):
@@ -298,9 +297,9 @@ class lower_attachment_point(object):
 
 class up_att_point(object):
     """stores the 2d data of an attachment point"""
-    def __init__(self, rib_no, pos, force=1., nr=None):
+    def __init__(self, rib_no, position, force=1., nr=None):
         self.rib_no = rib_no
-        self.position = pos  # value from 0...100
+        self.position = position  # value from 0...100
         self.force = force
         self.nr = nr
 
@@ -349,8 +348,9 @@ class LineSet2D(object):
         self.points = point_list
 
     def __json__(self):
-        lines = [copy.deepcopy(line) for line in self.lines]
+        lines = [copy.copy(line) for line in self.lines]
         points = self.points
+        print(self.points)
         for line in lines:
             line.upper_point = points.index(line.upper_point)
             line.lower_point = points.index(line.lower_point)
@@ -425,10 +425,10 @@ class LineSet2D(object):
 
 
 class Line2D(object):
-    def __init__(self, lower_point, upper_point, target_lenth=None):
+    def __init__(self, lower_point, upper_point, target_length=None):
         self.lower_point = lower_point
         self.upper_point = upper_point
-        self.target_length = target_lenth
+        self.target_length = target_length
         self.is_sorted = False
 
     def __json__(self):
