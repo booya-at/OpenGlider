@@ -118,22 +118,11 @@ class OGGliderVP(OGBaseVP):
             self.vis_glider.addChild(Line([[i[0], -i[1], i[2]] for i in points]).object)
             self.vis_lines.addChild(Line(points).object)
 
-
-
-
-
     def onChanged(self, vp, prop):
         self.updateData()
 
-
-    def update_lines(self):
-        self.vis_lines.removeAllChildren()
-        for l in self.glider_instance.lineset.lines:
-            sep = Line(l.get_line_points()).object
-            self.vis_lines.addChild(sep)
-
     def getIcon(self):
-        return FreeCAD.getHomePath() + "Mod/glider_gui/icons/glider_import.svg"
+        return str(FreeCAD.getHomePath() + "Mod/glider_gui/icons/glider_import.svg")
 
     def __getstate__(self):
         return None
