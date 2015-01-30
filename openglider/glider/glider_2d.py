@@ -70,7 +70,7 @@ class Glider2D(object):
             direction = sign (y_pos_temp[i + 1] - y_pos_temp[i]) #TODO: replace with a better methode
             y_pos.append(y_pos[-1] + direction * numpy.sqrt((normed_dist[i+1] - normed_dist[i]) ** 2 - (z_pos[i + 1] - z_pos[i]) ** 2))
         # return the list of the arc positions and a scale factor to transform back to the real span
-        return numpy.array(zip(y_pos, z_pos)).tolist()
+        return list(zip(y_pos, z_pos))
 
     def arc_pos_angle(self, num=50):
         arc_pos = self.arc_pos(num=num)
