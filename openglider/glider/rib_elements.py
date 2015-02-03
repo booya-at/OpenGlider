@@ -83,11 +83,12 @@ class GibusArcs(object):
     def get_flattened(self, ribs_2d=None, num_points=10):
         # get center point
         profile = self.rib.profile_2d
-        start, point_1 = profile.profilepoint(self.pos)
+        start = profile(self.pos)
+        point_1 = profile[start]
         if self.size_abs:
             point_2 = point_1 + [self.size, 0]
         else:
-            __, point_2 = profile.profilepoint(self.pos + self.size)
+            point_2 = profile.profilepoint(self.pos + self.size)
 
         gib_arc = [[], []]  # first, second
         circle = polygon(point_1, point_2, num=num_points, is_center=True)[0][1:]
@@ -103,11 +104,11 @@ class GibusArcs(object):
                 is_second_run = True
         # Cut first and last
         gib_arc = gib_arc[1] + gib_arc[0]  # [secondlist] + [firstlist]
-        gib_arc[0], start2, __ = profile.cut(gib_arc[0], gib_arc[1], start)
+        start2 = profile.new_cut(gib_arc[0], gib_arc[1], start)
         #print(gib_arc)
-        gib_arc[-1], stop, __ = profile.cut(gib_arc[-2], gib_arc[-1], start)
+        stop = profile.new_cut(gib_arc[-2], gib_arc[-1], start)
         # Append Profile_List
-        gib_arc += profile.get(start2, stop).tolist()
+        gib_arc += profile.get(start2.next(), stop.next()).tolist()
 
         return gib_arc
 
@@ -141,11 +142,12 @@ class RibHole(object):
 
     def get_3d(self, num=20):
         hole = self.get_flattened(num=num)
+        print("aha", [p for p in hole])
         return [self.rib.align([p[0], p[1], 0]) for p in hole]
 
     def get_flattened(self, num=20):
-        p1 = self.rib.profile_2d.profilepoint(self.pos)[1]
-        p2 = self.rib.profile_2d.profilepoint(-self.pos)[1]
+        p1 = self.rib.profile_2d.profilepoint(self.pos)
+        p2 = self.rib.profile_2d.profilepoint(-self.pos)
         return polygon(p1, p2, num=num, scale=self.size, is_center=False)[0]
 
 

@@ -22,12 +22,12 @@ import copy
 import numpy
 from scipy.interpolate import interp1d
 
+import openglider
 from openglider.utils.bezier import BezierCurve
-from openglider.utils import config
 
 
 class ArcSinc:
-    def __init__(self, numpoints=config['asinc_interpolation_points']):
+    def __init__(self, numpoints=openglider.config['asinc_interpolation_points']):
         self.start = 0.
         self.end = numpy.pi
         self.arsinc = None

@@ -125,7 +125,7 @@ class PolyLine2D(PolyLine):
         else:
             raise ValueError("cannot append: ", self.__class__, other.__class__)
 
-    def new_cut(self, p1, p2, startpoint=0, extrapolate=False):
+    def new_cut(self, p1, p2, startpoint=0, extrapolate=False, cut_only_positive=False):
         """
         Iterate over all cuts with the line p1p2
         if extrapolate is true, cuts will be exceeding the lists length
@@ -138,11 +138,13 @@ class PolyLine2D(PolyLine):
                                    i == len(self)-1 and thacut[1] > 0
 
                 if good_cut or extrapolate and extrapolated_cut:
+                    if cut_only_positive and thacut[2] < 0:
+                        continue
                     yield i+thacut[1]
             except numpy.linalg.LinAlgError:
                 continue
 
-    # TODO: make a iterator
+    # TODO: Get Rid of this
     def cut(self, p1, p2, startpoint=0, break_if_found=True,
             cut_only_positive=False, cut_only_in_between=False):
         """

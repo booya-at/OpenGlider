@@ -36,7 +36,7 @@ __ALL = ['BezierCurve']
 class BezierCurve(HashedList):
     def __init__(self, controlpoints=None):
         """
-        Bezier Curve represantative
+        Bezier Curve representative
         http://en.wikipedia.org/wiki/Bezier_curve#Generalization
         """
         #self._BezierBase = self._BezierFunction = self._controlpoints = None

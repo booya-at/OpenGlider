@@ -1,7 +1,7 @@
 import copy
 import numpy
 
-config = {"caching": True, 'verbose': False}
+import openglider
 
 cache_instances = []
 
@@ -39,7 +39,7 @@ def cached_property(*hashlist):
             cache_instances.append(self)
 
         def __get__(self, parentclass, type=None):
-            if not config["caching"]:
+            if not openglider.config["caching"]:
                 return self.function(parentclass)
             else:
                 dahash = hash_attributes(parentclass, self.hashlist)
@@ -92,7 +92,7 @@ def hash_attributes(class_instance, hashlist):
         try:
             thahash = hash(el)
         except TypeError:  # Lists p.e.
-            if config['verbose']:
+            if openglider.config['debug']:
                 print("bad cache: "+str(class_instance.__name__)+" attribute: "+attribute)
             try:
                 thahash = hash(frozenset(el))

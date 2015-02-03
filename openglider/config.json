@@ -1,1 +1,5 @@
-{"asinc_interpolation_points": 1000}
+{
+  "asinc_interpolation_points": 1000,
+  "caching": true,
+  "debug": false
+}

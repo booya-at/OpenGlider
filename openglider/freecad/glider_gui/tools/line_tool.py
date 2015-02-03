@@ -1,6 +1,6 @@
 from __future__ import division
 
-from openglider.glider.glider_2d import lower_attachment_point, up_att_point, batch_point, Line2D
+from openglider.glider.glider_2d import LowerNode2D, UpperNode2D, BatchNode2D, Line2D
 from _tools import base_tool, input_field, text_field, QtGui
 from pivy_primitives_new_new import Line, Marker, Container, coin, COLORS
 from pivy_primitives import vector3D
@@ -181,17 +181,17 @@ class line_tool(base_tool):
         self.shape.addChild(Line(back))
         self.shape.addChildren(map(Line, ribs))
         for i in self.glider_2d.lineset.points:
-            if isinstance(i, up_att_point):
+            if isinstance(i, UpperNode2D):
                 coord = self.glider_2d.shape_point(i.rib_no, i.position/100)
                 obj = Upper_Att_Marker(vector3D(coord))
                 obj.temp_2d = i
                 obj.force = i.force
                 self.shape.addChild(obj)
-            elif isinstance(i, batch_point):
+            elif isinstance(i, BatchNode2D):
                 obj = LineMarker(vector3D(i.pos_2d))
                 obj.temp_2d = i
                 self.shape.addChild(obj)
-            elif isinstance(i, lower_attachment_point):
+            elif isinstance(i, LowerNode2D):
                 obj = Lower_Att_Marker(vector3D(i.pos))
                 obj.pos3D = i.pos3D
                 obj.temp_2d = i
@@ -238,7 +238,7 @@ class line_tool(base_tool):
         for obj in self.shape.objects:
             # add the 2d objects to the graphical objects
             if isinstance(obj, Lower_Att_Marker):
-                obj.temp_2d = lower_attachment_point(list(obj.pos), obj.pos3D)
+                obj.temp_2d = LowerNode2D(list(obj.pos), obj.pos3D)
                 points.append(obj.temp_2d)
 
             elif isinstance(obj, Upper_Att_Marker):
@@ -247,7 +247,7 @@ class line_tool(base_tool):
                 points.append(obj.temp_2d)
 
             elif isinstance(obj, LineMarker):
-                obj.temp_2d = batch_point(list(obj.pos))
+                obj.temp_2d = BatchNode2D(list(obj.pos))
                 points.append(obj.temp_2d)
 
         for obj in self.shape.objects:

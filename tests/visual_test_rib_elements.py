@@ -1,14 +1,10 @@
 import random
-import sys
-import os
+import unittest
 
 from visual_test_glider import GliderTestClass
+import common
 
-try:
-    import openglider
-except ImportError:
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
-    import openglider
+import openglider
 from openglider.glider.rib_elements import RibHole, RigidFoil, GibusArcs, Mylar
 import openglider.graphics as Graph
 
@@ -28,3 +24,7 @@ class TestRibElements(GliderTestClass):
         thalist = hole.get_3d()
         Graph.Graphics([Graph.Line(self.glider.ribs[rib_no].profile_3d.data),
                         Graph.Polygon(thalist)])
+
+
+if __name__ == '__main__':
+    unittest.main()
