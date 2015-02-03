@@ -48,7 +48,7 @@ def import_2d(glider):
     if filename[0] != "":
         with open(filename[0], 'r') as importfile:
             glider.glider_2d = load(importfile)["data"]
-            glider.glider_2d.glider_3d(glider.glider_instance)
+            glider.glider_2d.get_glider_3d(glider.glider_instance)
             glider.ViewObject.Proxy.updateData()
 
 class base_tool(object):
@@ -60,7 +60,7 @@ class base_tool(object):
             print(self.glider_2d)
         else:
             print('fit the glider')
-            self.glider_2d = Glider2D.fit_glider(self.obj.glider_instance)
+            self.glider_2d = Glider2D.fit_glider_3d(self.obj.glider_instance)
         self.obj.ViewObject.Visibility = False
         self.view = Gui.ActiveDocument.ActiveView
         self.view.viewTop()
@@ -134,7 +134,7 @@ class shape_tool(base_tool):
         Gui.SendMsgToActiveView("ViewFit")
 
     def accept(self):
-        self.glider_2d.glider_3d(self.obj.glider_instance)
+        self.glider_2d.get_glider_3d(self.obj.glider_instance)
         self.obj.glider_2d = self.glider_2d
         self.obj.ViewObject.Proxy.updateData()
         self.back_cpc.remove_callbacks()
@@ -289,7 +289,7 @@ class arc_tool(base_tool):
         self.arc_cpc.drag_release.append(self.update_real_arc)
         self.task_separator.addChild(self.arc_cpc)
         self.shape.addChild(Line(self.glider_2d.arc.get_sequence(num=30), color="red").object)
-        self.shape.addChild(Line(self.glider_2d.arc_pos()).object)
+        self.shape.addChild(Line(self.glider_2d.get_arc_positions()).object)
 
     # def set_edit(self, *arg):
     #     self.arc_cpc.set_edit_mode(self.view)
@@ -300,7 +300,7 @@ class arc_tool(base_tool):
         self.shape.addChild(Line(self.glider_2d.arc.get_sequence(num=30), color="red").object)
 
     def update_real_arc(self):
-        self.shape.addChild(Line(self.glider_2d.arc_pos()).object)
+        self.shape.addChild(Line(self.glider_2d.get_arc_positions()).object)
 
     def update_num(self, *arg):
         self.glider_2d.arc.numpoints = self.Qnum_arc.value()
@@ -309,7 +309,7 @@ class arc_tool(base_tool):
 
     def accept(self):
         self.obj.glider_2d = self.glider_2d
-        self.glider_2d.glider_3d(self.obj.glider_instance)
+        self.glider_2d.get_glider_3d(self.obj.glider_instance)
         self.arc_cpc.remove_callbacks()
         self.obj.ViewObject.Proxy.updateData()
         super(arc_tool, self).accept()
@@ -370,7 +370,7 @@ class aoa_tool(base_tool):
         self.aoa_cpc.remove_callbacks()
         self.glider_2d.glide = self.QGlide.value()
         self.obj.glider_2d = self.glider_2d
-        self.glider_2d.glider_3d(self.obj.glider_instance)
+        self.glider_2d.get_glider_3d(self.obj.glider_instance)
         super(aoa_tool, self).accept()
 
     def reject(self):

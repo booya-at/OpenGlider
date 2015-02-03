@@ -18,9 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import tempfile
-import unittest
-import sys
-import os
 import json
 
 from common import *
@@ -30,16 +27,13 @@ from test_glider import GliderTestClass
 
 
 class TestGlider(GliderTestClass):
-    def tempfile(self, suffix):
-        return tempfile.NamedTemporaryFile(suffix=suffix)
+    def tempfile(self, suffix, **kwargs):
+        return tempfile.NamedTemporaryFile(suffix=suffix, mode='w+', encoding='utf-8', **kwargs)
 
     @unittest.skip('obsolete')
     def test_import_export_ods(self):
         path = self.tempfile('.ods').name
         self.glider.export_geometry(path)
-        #new_glider = glider.Glider()
-        #self.assertTrue(new_glider.import_from_file(path))
-        #self.assertEqual(new_glider, self.glider)
 
     def test_export_obj(self):
         path = self.tempfile('.obj').name
@@ -68,10 +62,10 @@ class TestGlider(GliderTestClass):
         create_svg(all, path)
 
     def test_export_glider_json(self):
-        file = self.tempfile('.json')
-        jsonify.dump(self.glider, file)
-        file.seek(0)
-        glider = jsonify.load(file)['data']
+        with self.tempfile('.json') as tmp:
+            jsonify.dump(self.glider, tmp)
+            tmp.seek(0)
+            glider = jsonify.load(tmp)['data']
         self.assertEqualGlider(self.glider, glider)
 
     def test_export_glider_json2(self):

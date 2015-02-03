@@ -1,8 +1,8 @@
 import numpy
+
 from openglider.utils import sign
 from openglider.utils.cache import cached_property, HashedList
-from openglider.vector.functions import norm, normalize, rangefrom, rotation_2d, \
-    cut
+from openglider.vector.functions import norm, normalize, rangefrom, rotation_2d, cut
 
 
 class PolyLine(HashedList):
@@ -24,7 +24,7 @@ class PolyLine(HashedList):
             else:
                 start_round = min(int(start) - (0 if start % 1 > 0 else 1), len(self) - 1)
                 stop_round = max(int(stop), 0)
-            values = [start] + range(start_round, stop_round, step) + [stop]
+            values = [start] + list(range(start_round, stop_round, step)) + [stop]
             #print(values, ik.start, ik.stop, ik.step, step, start_round, stop_round)
             return self.__class__([self[i] for i in values])
         else:

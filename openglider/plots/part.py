@@ -17,9 +17,10 @@ class PlotPart():
     @layer_dict.setter
     def layer_dict(self, layer_dict):
         assert isinstance(layer_dict, dict)
-        for layer in layer_dict.iteritems():
-            if not isinstance(layer, PolyLine2D):
-                layer = PolyLine2D(layer)
+        for name, layer in layer_dict.items():
+            for line in layer:
+                if not isinstance(line, PolyLine2D):
+                    line = PolyLine2D(layer)
         self._layer_dict = layer_dict
 
     def __getitem__(self, item):
@@ -32,22 +33,22 @@ class PlotPart():
     @property
     def max_x(self):
         max_x = lambda thalist: max(thalist, key=lambda point: point[0])[0] if len(thalist) > 0 else None
-        return max(map(lambda layer: max(map(max_x, layer)), self.layer_dict.itervalues()))
+        return max(map(lambda layer: max(map(max_x, layer)), self.layer_dict.values()))
 
     @property
     def max_y(self):
         max_y = lambda thalist: max(thalist, key=lambda point: point[1])[1]
-        return max(map(lambda layer: max(map(max_y, layer)), self.layer_dict.itervalues()))
+        return max(map(lambda layer: max(map(max_y, layer)), self.layer_dict.values()))
 
     @property
     def min_x(self):
         min_x = lambda thalist: min(thalist, key=lambda point: point[0])[0]
-        return min(x for x in map(lambda layer: min(map(min_x, layer)), self.layer_dict.itervalues()) if x is not None)
+        return min(x for x in map(lambda layer: min(map(min_x, layer)), self.layer_dict.values()) if x is not None)
 
     @property
     def min_y(self):
         min_y = lambda thalist: min(thalist, key=lambda point: point[1])[1]
-        return min(map(lambda layer: min(map(min_y, layer)), self.layer_dict.itervalues()))
+        return min(map(lambda layer: min(map(min_y, layer)), self.layer_dict.values()))
 
     @property
     def width(self):
@@ -58,12 +59,12 @@ class PlotPart():
         return self.max_y - self.min_y
 
     def rotate(self, angle):
-        for layer in self.layer_dict.itervalues():
+        for layer in self.layer_dict.values():
             for polyline in layer:
                 polyline.rotate(angle)
 
     def move(self, vector):
-        for layer in self.layer_dict.itervalues():
+        for layer in self.layer_dict.values():
             for vectorlist in layer:
                 vectorlist.move(vector)
 

@@ -1,9 +1,7 @@
 import json
 import time
-import numpy
 from openglider.jsonify.objects import objects
 import openglider
-from openglider.utils import recursive_getattr
 
 __ALL__ = ['dumps', 'dump', 'loads', 'load']
 
@@ -12,9 +10,10 @@ __ALL__ = ['dumps', 'dump', 'loads', 'load']
 # because of same-name-elements....
 # For the time given, we're alright
 
+
 class Encoder(json.JSONEncoder):
     def default(self, obj):
-        if isinstance(obj, numpy.ndarray):
+        if obj.__class__.__module__ == 'numpy':
             return obj.tolist()
         elif hasattr(obj, "__json__"):
             return {"_type": obj.__class__.__name__,
@@ -42,7 +41,7 @@ def object_hook(dct):
             deserializer = getattr(obj, '__from_json__', obj)
             return deserializer(**dct['data'])
         except TypeError as e:
-            raise TypeError(e.message + " in element: {} ({})".format(_type, deserializer))
+            raise TypeError("{} in element: {} ({})".format(e, _type, deserializer))
 
     else:
         return dct

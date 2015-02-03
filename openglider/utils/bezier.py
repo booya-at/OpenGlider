@@ -119,12 +119,12 @@ class BezierCurve(HashedList):
         x, y = self.get_sequence(num).T
         return scipy.interpolate.interp1d(x, y)
 
-    def interpolate_3d(self, num=100, which=0, bounds_error=False):
+    def interpolate_3d(self, num=100, axis=0, bounds_error=False):
         """
-        Return scipy interpolation
+        Return scipy interpolation for a given axis (x=0, y=1
         """
         data = self.get_sequence(num).T
-        return scipy.interpolate.interp1d(data[which], data, bounds_error=bounds_error)
+        return scipy.interpolate.interp1d(data[axis], data, bounds_error=bounds_error)
 
     def get_sequence(self, num=50):
         data = []

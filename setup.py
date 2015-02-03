@@ -60,11 +60,15 @@ for dirpath, dirnames, filenames in os.walk(og_dir):
         while '.'.join(parts) not in packages:
             relative_path.append(parts.pop())
         relative_path.reverse()
-        path = os.path.join(*relative_path)
+        if relative_path:
+            path = os.path.join(*relative_path)
+        else:
+            path = ""
         package_files = package_data.setdefault('.'.join(parts), [])
         package_files.extend([os.path.join(path, f) for f in filenames])
 
-package_data["openglider"].append('config.json')
+package_data[""] = ['config.json']
+print(package_data, packages)
 setup(
     name='OpenGlider',
     version=openglider.__version__,

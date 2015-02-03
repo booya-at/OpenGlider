@@ -21,7 +21,6 @@ from openglider.glider.cell import Cell
 from openglider.glider.cell_elements import Panel
 from openglider.glider.rib import Rib
 from openglider.glider.rib_elements import AttachmentPoint
-#from openglider.lines import Line, Node, LineSet
 from openglider.lines import Line, Node, LineSet
 
 
@@ -33,6 +32,67 @@ from openglider.glider.ballooning import BallooningBezier
 from openglider.airfoil import Profile2D
 #from openglider.glider import Glider
 import numpy
+
+
+def import_ods_2d(cls, filename):
+    ods = ezodf.opendoc(filename)
+    sheets = ods.sheets
+    profiles = [Profile2D(profile) for profile in transpose_columns(sheets[3])]
+
+    balloonings_temp = transpose_columns(sheets[4])
+    balloonings = []
+    for baloon in balloonings_temp:
+        upper = [[0, 0]] + baloon[:7] + [[1, 0]]
+        lower = [[0, 0]] + [[i[0], -1 * i[1]] for i in baloon[8:15]] + [[1, 0]]
+        balloonings.append(BallooningBezier([upper, lower]))
+
+    data = {}
+    datasheet = sheets[-1]
+    assert isinstance(datasheet, ezodf.Sheet)
+    for i in range(datasheet.nrows()):
+        data[datasheet.get_cell([i, 0]).value] = datasheet.get_cell([i, 1]).value
+
+    glide = data["GLEITZAHL"]
+
+    front = []
+    back = []
+    cell_distribution = []
+    aoa = []
+    arc = []
+
+    main = sheets[0]
+    x = y = z = span_last = alpha = 0.
+
+    for i in range(1, main.nrows()):
+        line = [main.get_cell([i, j]).value for j in range(main.ncols())]
+        if not line[0]:
+            break  # skip empty line
+
+        chord = line[1]  # Rib-Chord
+        span = line[2]  # spanwise-length (flat)
+        x = line[3]  # x-value -> front/back (ribwise)
+        y += numpy.cos(alpha) * (span - span_last)  # y-value -> spanwise
+        z -= numpy.sin(alpha) * (span - span_last)  # z-axis -> up/down
+
+        aoa.append([y,line[5] * numpy.pi / 180])
+        arc.append([y, z])
+        front.append([y,-x])
+        back.append([y,-x-chord])
+        cell_distribution.append([y,i-1])
+
+        profile_merge = line[8]
+        ballooning_merge = line[9]
+
+        zrot = line[7] * numpy.pi / 180
+
+        alpha += line[4] * numpy.pi / 180  # angle after the rib
+        span_last = span
+
+
+
+    return cls()
+
+
 
 
 def import_ods(filename, glider):

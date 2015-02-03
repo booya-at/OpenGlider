@@ -195,7 +195,7 @@ def create_svg(drawing_area, path):
     for part in drawing_area.parts:
         part_group = svgwrite.container.Group()
 
-        for layer_name, layer_config in sewing_config["layers"].iteritems():
+        for layer_name, layer_config in sewing_config["layers"].items():
             if layer_name in part.layer_dict:
                 lines = part.return_layer_svg(layer_name, scale=sewing_config["scale"])
                 for line in lines:
