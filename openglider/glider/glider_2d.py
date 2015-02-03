@@ -72,8 +72,6 @@ class Glider2D(object):
         _positions = [arc_curve.extend(0, x/x_values[-1]*arc_curve_length) for x in x_values]
         positions = PolyLine2D([arc_curve[p] for p in _positions])
         # rescale
-        factor = x_values[-1]/positions.get_length()
-        positions.scale(factor)
         return positions
 
     def get_arc_angles(self, arc_curve=None):
@@ -233,7 +231,10 @@ class Glider2D(object):
         x_values = [rib_no[0] for rib_no in self.cell_dist_interpolation]
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
-        arc_pos = list(self.get_arc_positions(num=num))
+        arc_pos = self.get_arc_positions(num=num)
+        factor = x_values[-1]/arc_pos.get_length()
+        arc_pos.scale(factor)
+        arc_pos = list(arc_pos)
         arc_angles = self.get_arc_angles()
         aoa_cp = self.aoa.controlpoints
         aoa_x_factor = x_values[-1] / aoa_cp[-1][0]

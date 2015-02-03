@@ -55,12 +55,7 @@ class base_tool(object):
 
     def __init__(self, obj, widget_name="base_widget"):
         self.obj = obj
-        if self.obj.glider_2d.parametric:
-            self.glider_2d = self.obj.glider_2d
-            print(self.glider_2d)
-        else:
-            print('fit the glider')
-            self.glider_2d = Glider2D.fit_glider_3d(self.obj.glider_instance)
+        self.glider_2d = self.obj.glider_2d
         self.obj.ViewObject.Visibility = False
         self.view = Gui.ActiveDocument.ActiveView
         self.view.viewTop()

@@ -9,7 +9,7 @@ import pyximport;
 from openglider.vector.functions import norm, normalize
 
 pyximport.install()
-from openglider.airfoil._pan_2d_ext import C_douplet_const
+from openglider.airfoil.pan_2d_ext import C_douplet_const
 
 numpy.set_printoptions(precision=3)
 numpy.set_printoptions(suppress=True)
@@ -295,7 +295,7 @@ def visual_test_airfoil(num=70):
 
 if __name__ == "__main__":
     # text_test()
-    # plot_test()
-    graphics_test()
+    plot_test()
+    # graphics_test()
     # visual_test_dipol()
     # visual_test_airfoil()

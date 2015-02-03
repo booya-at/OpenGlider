@@ -7,6 +7,7 @@ import FreeCAD
 
 import openglider
 from openglider.glider import Glider, Glider2D
+from openglider.jsonify import load
 from pivy_primitives import Line
 
 importpath = os.path.join(os.path.dirname( __file__ ), '..', 'demokite.ods')
@@ -47,10 +48,10 @@ class OGGlider(OGBaseObject):
             "App::PropertyPythonObject", "glider_instance", "object", "glider_instance")
         obj.addProperty(
             "App::PropertyPythonObject", "glider_2d", "object", "parametric glider")
-        obj.glider_instance = Glider.import_geometry(path=importpath)
-        print(obj.glider_instance.cells[0].panels[0].cut_front)
-        print(obj.glider_instance.cells[0].panels[0].cut_back)
-        obj.glider_2d = Glider2D()
+        print(str(FreeCAD.getHomePath()) + "/Mod/glider_gui/glider2d.json")
+        with open(str(FreeCAD.getHomePath()) + "Mod/glider_gui/glider2d.json", 'r') as importfile:
+            obj.glider_2d = load(importfile)["data"]
+        obj.glider_instance = obj.glider_2d.get_glider_3d()
         super(OGGlider, self).__init__(obj)
 
 
