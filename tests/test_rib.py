@@ -21,13 +21,11 @@ import unittest
 import random
 import sys
 import os
+
+import common
+import openglider
 from openglider.glider.rib import Rib
 
-try:
-    import openglider
-except ImportError:
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
-    import openglider
 
 
 class TestRib(unittest.TestCase):

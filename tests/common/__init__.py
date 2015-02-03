@@ -5,7 +5,13 @@ import unittest
 try:
     import openglider
 except ImportError:
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
+    def stepup(path, num):
+        if num == 0:
+            return path
+        else:
+            return stepup(os.path.dirname(path), num-1)
+    sys.path.append(stepup(__file__,3))
+    print(sys.path)
     import openglider
 
 import openglider.glider

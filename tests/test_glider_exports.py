@@ -28,7 +28,10 @@ from test_glider import GliderTestClass
 
 class TestGlider(GliderTestClass):
     def tempfile(self, suffix, **kwargs):
-        return tempfile.NamedTemporaryFile(suffix=suffix, mode='w+', encoding='utf-8', **kwargs)
+        if sys.version.startswith('3'):
+            kwargs["mode"] = 'w+'
+            kwargs["encoding"] = 'utf-8'
+        return tempfile.NamedTemporaryFile(suffix=suffix, **kwargs)
 
     @unittest.skip('obsolete')
     def test_import_export_ods(self):
