@@ -64,7 +64,7 @@ for dirpath, dirnames, filenames in os.walk(og_dir):
         package_files = package_data.setdefault('.'.join(parts), [])
         package_files.extend([os.path.join(path, f) for f in filenames])
 
-root_dir = os.path.dirname(__file__)
+package_data["openglider"].append('config.json')
 setup(
     name='OpenGlider',
     version=openglider.__version__,
@@ -73,7 +73,7 @@ setup(
     #include_package_data=True,
     license='GPL-v3',
     long_description=open('README.md').read(),
-    requires=requires,
+    install_requires=requires,
     author='Booya',
     url='www.openglider.org'
 )

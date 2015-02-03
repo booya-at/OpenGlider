@@ -7,7 +7,7 @@ try:
     sip.setapi('QTime', 2)
     sip.setapi('QUrl', 2)
     sip.setapi('QVariant', 2)
-except ValueError, e:
+except ValueError as e:
     raise RuntimeError('Could not set API version (%s): did you import PyQt4 directly?' % e)
 from PyQt4 import QtGui, QtCore
 

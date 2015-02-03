@@ -121,7 +121,7 @@ class Pattern_Tool(object):
             pattern_doc = FreeCAD.newDocument()
             from Draft import makeWire
             flat_glider = flatten_glider(obj.glider_instance)
-            print flat_glider
+            print(flat_glider)
             max_last = [0, 0]
             draw_area = flat_glider.values()[0]
             for da in flat_glider.values()[1:]:
