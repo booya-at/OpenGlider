@@ -1,16 +1,13 @@
 from __future__ import division
-import copy
 
 import scipy.interpolate
 import numpy
 
 from openglider.airfoil.parametric import BezierProfile2D
 from openglider.glider import Glider
-from openglider.glider.rib_elements import AttachmentPoint
+from openglider.glider.glider_2d.lines import LineSet2D, UpperNode2D
 from openglider.vector import mirror2D_x
 from openglider.utils.bezier import BezierCurve, SymmetricBezier
-from openglider.utils import sign
-from openglider.lines import Node, Line, LineSet
 from openglider.vector.polyline import PolyLine2D
 from openglider.vector.functions import norm, normalize, rotation_2d
 from openglider.glider.rib import Rib
@@ -61,7 +58,7 @@ class Glider2D(object):
     @property
     def v_inf(self):
         angle = numpy.arctan(1/self.glide)
-        return numpy.array([-numpy.cos(angle), 0 , numpy.sin(angle)]) * self.speed
+        return numpy.array([-numpy.cos(angle), 0, numpy.sin(angle)]) * self.speed
 
     def get_arc_positions(self, num=50):
         # calculating y/z values vor the arc-curve
@@ -119,7 +116,7 @@ class Glider2D(object):
         return zip(front, back)
 
     def shape_point(self, rib_no, x):
-        ribs = self.ribs()
+        ribs = list(self.ribs())
         rib = ribs[rib_no]
         return rib[0] + x * (rib[1] - rib[0])
 
@@ -168,7 +165,27 @@ class Glider2D(object):
     @property
     def attachment_points(self):
         """coordinates of the attachment_points"""
-        return [a_p.get_2d(self) for a_p in self.lineset.nodes if isinstance(a_p, up_att_point)]
+        return [a_p.get_2d(self) for a_p in self.lineset.nodes if isinstance(a_p, UpperNode2D)]
+
+    def merge_ballooning(self, factor):
+        k = factor % 1
+        i = int(factor // 1)
+        first = self.balloonings[i]
+        if k > 0:
+            second = self.balloonings[i + 1]
+            return first * (1 - k) + second * k
+        else:
+            return first.copy()
+
+    def merge_profile(self, factor):
+        k = factor % 1
+        i = int(factor // 1)
+        first = self.profiles[i]
+        if k > 0:
+            second = self.profiles[i + 1]
+            return first * (1 - k) + second * k
+        else:
+            return first.copy()
 
     @classmethod
     def fit_glider_3d(cls, glider, numpoints=3):
@@ -227,19 +244,26 @@ class Glider2D(object):
         aoa_int = numpy.deg2rad(13.)
         #--------------------------------------
 
-        glide = self.glide
+        span = self.front.controlpoints[-1][0]
+        self.set_span(span)
+
         x_values = [rib_no[0] for rib_no in self.cell_dist_interpolation]
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
-        arc_pos = self.get_arc_positions(num=num)
-        factor = x_values[-1]/arc_pos.get_length()
-        arc_pos.scale(factor)
-        arc_pos = list(arc_pos)
+
+        _arc_pos = self.get_arc_positions(num=num)
+        _arc_scale_factor = x_values[-1]/_arc_pos.get_length()
+        _arc_pos.scale(_arc_scale_factor)
+        arc_pos = list(_arc_pos)
+
         arc_angles = self.get_arc_angles()
-        aoa_cp = self.aoa.controlpoints
-        aoa_x_factor = x_values[-1] / aoa_cp[-1][0]
-        self.aoa.controlpoints = [[p[0] * aoa_x_factor, p[1]] for p in aoa_cp]
+
+        #aoa_cp = self.aoa.controlpoints
+        #aoa_x_factor = x_values[-1] / aoa_cp[-1][0]
+        #self.aoa.controlpoints = [[p[0] * aoa_x_factor, p[1]] for p in aoa_cp]
+
         aoa_int = self.aoa.interpolate_3d(num=num)
+        #merge_curve_profile = self.profile_merge_curve.interpolate_3d(num=num)
 
         if x_values[0] != 0.:
             # adding the mid cell
@@ -253,12 +277,13 @@ class Glider2D(object):
             arc = arc_pos[rib_no]
             ribs.append(Rib(
                 profile_2d=airfoil.copy(),
+                #profile_2d=self.merge_profile(merge_curve_profile(pos)),
                 startpoint=numpy.array([-front[1], arc[0], arc[1]]),
                 chord=norm(front - back),
                 arcang=arc_angles[rib_no],
-                glide=glide,
+                glide=self.glide,
                 aoa_absolute=aoa_int(pos)[1]
-                ))
+            ))
             ribs[-1].aoa_relative = aoa_int(pos)[1]
         for rib_no, rib in enumerate(ribs[1:]):
             cell = Cell(ribs[rib_no], rib, [])
@@ -272,190 +297,3 @@ class Glider2D(object):
         glider.lineset.calc_sag()
 
         return glider
-
-
-        # set up the lines here
-        # the data for the attachment_points is only stored in glider_2d
-        # make a new lineset from the 2d lines 
-        # and append it to the glider
-
-
-#######################################line objects######################################
-class lower_attachment_point(object):
-    """lower attachment point"""
-    def __init__(self, pos, pos3D, nr=None):
-        self.pos = pos
-        self.pos3D = pos3D
-        self.nr = nr
-
-    def __json__(self):
-        return{
-            "pos": self.pos,
-            "pos3D": self.pos3D,
-            "nr": self.nr}
-
-    @classmethod
-    def __from_json__(cls, pos, pos3D, nr):
-        p = cls(pos, pos3D)
-        p.nr = nr
-        return p
-
-    def get_node(self, glider):
-        return Node(node_type=0, position_vector=numpy.array(self.pos3D))
-
-
-class up_att_point(object):
-    """stores the 2d data of an attachment point"""
-    def __init__(self, rib_no, position, force=1., nr=None):
-        self.rib_no = rib_no
-        self.position = position  # value from 0...100
-        self.force = force
-        self.nr = nr
-
-    def __json__(self):
-        return {'rib_no': self.rib_no,
-                'position': self.position,
-                'force': self.force,
-                'nr': self.nr}
-
-    def get_2d(self, glider_2d):
-        _, front, back = glider_2d.shape()
-        xpos = numpy.unique([i[0] for i in front if i[0] >= 0.])
-        pos = self.position / 100.
-        if self.rib_no < len(xpos):
-            x = xpos[self.rib_no]
-            j = self.rib_no + len(front) - len(xpos)
-            chord = back[j][1] - front[j][1]
-            y = front[j][1] + pos * chord
-            return x, y
-
-    def get_node(self, glider):
-        node = AttachmentPoint(glider.ribs[self.rib_no], None,
-                               self.position/100, [0, 0, self.force])
-        node.get_position()
-        return node
-
-
-class batch_point(object):
-    def __init__(self, pos_2d, nr=None):
-        self.pos_2d = pos_2d  # pos => 2d coordinates
-        self.nr = nr
-
-    def __json__(self):
-        return{
-            "pos_2d": self.pos_2d,
-            "nr": self.nr
-            }
-
-    def get_node(self, glider):
-        return Node(node_type=1)
-
-
-class LineSet2D(object):
-    def __init__(self, line_list, node_list):
-        self.lines = line_list
-        self.nodes = node_list
-
-    def __json__(self):
-        lines = [copy.copy(line) for line in self.lines]
-        nodes = self.nodes
-        print(self.nodes)
-        for line in lines:
-            line.upper_point = nodes.index(line.upper_point)
-            line.lower_point = nodes.index(line.lower_point)
-        return {"lines": lines,
-                "nodes": nodes
-                }
-
-    @classmethod
-    def __from_json__(cls, lines, nodes):
-        lineset = cls(lines, nodes)
-        nodes = lineset.nodes
-        for line in lineset.lines:
-            if isinstance(line.upper_point, int):
-                line.upper_point = nodes[line.upper_point]
-            if isinstance(line.lower_point, int):
-                line.lower_point = nodes[line.lower_point]
-        return lineset
-
-    def return_lineset(self, glider):
-        lines = []
-        # first get the lowest points (lw-att)
-        lowest = [node for node in self.nodes if isinstance(node, lower_attachment_point)]
-        # now get the connected lines
-        # get the other point (change the nodes if necesarry)
-        for node in lowest:
-            self.sort_lines(node)
-        self.delete_not_connected(glider)
-        for node in self.nodes:
-            node.temp_node = node.get_node(glider)  # store the nodes to remember them with the lines
-        # set up the lines!
-        for line_no, line in enumerate(self.lines):
-            lower = line.lower_point.temp_node
-            upper = line.upper_point.temp_node
-            if lower and upper:
-                line = Line(number=line_no, lower_node=lower, upper_node=upper,
-                            vinf=glider.v_inf, target_length=line.target_length)
-                lines.append(line)
-
-        return LineSet(lines, glider.v_inf)
-
-    def sort_lines(self, lower_att):
-        """
-        Recursive sorting of lines (check direction)
-        """
-        for line in self.lines:
-            if not line.is_sorted:
-                if lower_att == line.upper_point:
-                    line.lower_point, line.upper_point = line.upper_point, line.lower_point
-                if lower_att == line.lower_point:
-                    line.is_sorted = True
-                    self.sort_lines(line.upper_point)
-
-    def delete_not_connected(self, glider):
-        temp = []
-        temp_new = []
-        for line in self.lines:
-            if isinstance(line.upper_point, up_att_point):
-                if line.upper_point.rib_no >= len(glider.ribs):
-                    temp.append(line)
-                    self.nodes.remove(line.upper_point)
-
-        while temp:
-            for line in temp:
-                conn_up_lines = [j for j in self.lines if (j.lower_point == line.lower_point and j != line)]
-                conn_lo_lines = [j for j in self.lines if (j.upper_point == line.lower_point and j != line)]
-                if len(conn_up_lines) == 0:
-                    self.nodes.remove(line.lower_point)
-                    self.lines.remove(line)
-                    temp_new += conn_lo_lines
-                temp.remove(line)
-            temp = temp_new
-
-
-class Line2D(object):
-    def __init__(self, lower_node, upper_node, target_length=None):
-        self.lower_node = lower_node
-        self.upper_node = upper_node
-        self.target_length = target_length
-        self.is_sorted = False
-
-    def __json__(self):
-        return{
-            "lower_node": self.lower_node,
-            "upper_node": self.upper_node,
-            "target_length": self.target_length,
-        }
-
-
-
-if __name__ == "__main__":
-    a = BezierProfile2D.compute_naca()
-    import openglider.graphics as g
-    g.Graphics3D([
-        g.Line(a.upper_spline.get_sequence()),
-        g.Line(a.upper_spline.controlpoints),
-        g.Line(a.lower_spline.get_sequence()),
-        g.Line(a.lower_spline.controlpoints),
-        g.Point(a.data)
-        ])

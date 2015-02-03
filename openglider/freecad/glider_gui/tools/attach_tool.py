@@ -5,7 +5,7 @@ import numpy
 from _tools import base_tool, input_field, text_field
 from pivy_primitives import Line, Marker, coin
 from PySide import QtGui, QtCore
-from openglider.glider.glider_2d import up_att_point
+from openglider.glider.glider_2d import UpperNode2D
 
 
 
@@ -124,7 +124,7 @@ class attach_tool(base_tool):
         x, y = pos
         rib_nr = self.xpos.index(x)
         pos = float(self.Qhl_pos.value())
-        ap = up_att_point(rib_nr, pos)
+        ap = UpperNode2D(rib_nr, pos)
         self.glider_2d.lineset.points.append(ap)
 
     def accept(self):
