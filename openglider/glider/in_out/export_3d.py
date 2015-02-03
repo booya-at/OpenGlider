@@ -245,7 +245,7 @@ def export_apame(glider, path="", midribs=0, numpoints=None, *other):
     for i in range(len(ribs) - 1):
         for j in range(other.profile_numpoints):
             # COUNTER-CLOCKWISE!
-            outfile.write(u"1 {0!s}\t{1!s}\t{2!s}\t{3!s}\n".format(
+            outfile.write("1 {0!s}\t{1!s}\t{2!s}\t{3!s}\n".format(
                 i * len(ribs[0]) + j + 1,
                 (i + 1) * len(ribs[0]) + j + 1,
                 (i + 1) * len(ribs[0]) + j + 2,
