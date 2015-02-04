@@ -30,13 +30,3 @@ def consistent_value(elements, attribute):
     if vals[1:] == vals[:-1]:
         return vals[0]
 
-
-
-import os
-import json
-with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.json')) as configfile:
-    print("Reading config")
-    config = json.load(configfile)
-
-
-

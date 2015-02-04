@@ -64,8 +64,7 @@ def rotation_2d(angle):
 def cut(p1, p2, p3, p4):
     """
     2D-Linear Cut; Solves the linear system: p1+k*(p2-p1)==p3+l*(p4-p3)
-
-    :returns: (point(x, y), k, l)
+    Returns (point(x, y), k, l)
     """
     """ |p2x-p1x -(p4x-p3x)|*|k|==|p3x-p1x|"""
     """ |p2y-p1y -(p4y-p3y)|*|l|==|p3y-p1y|"""

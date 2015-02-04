@@ -16,10 +16,10 @@ class BasicCell(CachedObject):
     A very simple cell without any extras like midribs, diagonals,..
     """
     def __init__(self, prof1=None, prof2=None, ballooning=None, name="unnamed_cell"):
-        self.prof1 = prof1 or Profile3D()
-        self.prof2 = prof2 or Profile3D()
+        self.prof1 = prof1 or Profile3D([])
+        self.prof2 = prof2 or Profile3D([])
 
-        if not ballooning is None:
+        if ballooning is not None:
             self.ballooning_phi = ballooning  # ballooning arcs -> property in cell
         self.name = name
 

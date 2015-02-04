@@ -19,4 +19,4 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 __version__ = '0.01dev'
 __author__ = 'Booya'
-
+from .utils.config import config

@@ -34,16 +34,18 @@ def cut_1(inner_lists, outer_left, outer_right, amount):
     normvector = normalize(rotation_2d(math.pi/2).dot(p1-p2))
 
     newlist = []
-    leftcut = outer_left.cut(p1, p2, inner_lists[0][1])  # p1,p2,startpoint
-    newlist.append(leftcut[0])
-    newlist.append(leftcut[0]+normvector*amount)
+    leftcut_index = next(outer_left.new_cut(p1, p2, inner_lists[0][1], extrapolate=True))  # p1,p2,startpoint
+    leftcut = outer_left[leftcut_index]
+    newlist.append(leftcut)
+    newlist.append(leftcut+normvector*amount)
     for thislist in inner_lists:
         newlist.append(thislist[0][thislist[1]] + normvector*amount)
-    rightcut = outer_right.cut(p1, p2, inner_lists[-1][1])
-    newlist.append(rightcut[0]+normvector*amount)
-    newlist.append(rightcut[0])
+    rightcut_index = next(outer_right.new_cut(p1, p2, inner_lists[-1][1], extrapolate=True))
+    rightcut = outer_right[rightcut_index]
+    newlist.append(rightcut+normvector*amount)
+    newlist.append(rightcut)
 
-    return newlist, leftcut[1], rightcut[1]
+    return newlist, leftcut_index, rightcut_index
 
 
 # OPEN-ENTRY Style
@@ -55,20 +57,25 @@ def cut_2(inner_lists, outer_left, outer_right, amount, num_folds=2):
     p2 = inner_lists[-1][0][inner_lists[-1][1]]
     normvector = normalize(rotation_2d(math.pi/2).dot(p1-p2))
 
-    left_start = outer_left.cut(p1, p2, inner_lists[0][1])
-    right_start = outer_right.cut(p1, p2, inner_lists[-1][1])
-    left_end = outer_left.cut(p1-normvector*amount, p2-normvector*amount, inner_lists[0][1])
-    right_end = outer_right.cut(p1-normvector*amount, p2-normvector*amount, inner_lists[-1][1])
+    left_start_index = next(outer_left.new_cut(p1, p2, inner_lists[0][1], extrapolate=True))
+    right_start_index = next(outer_right.new_cut(p1, p2, inner_lists[-1][1], extrapolate=True))
+    left_end_index = next(outer_left.new_cut(p1-normvector*amount, p2-normvector*amount, inner_lists[0][1], extrapolate=True))
+    right_end_index = next(outer_right.new_cut(p1-normvector*amount, p2-normvector*amount, inner_lists[-1][1], extrapolate=True))
 
-    left_piece = outer_left[left_end[1]:left_start[1]]
-    right_piece = outer_right[right_end[1]:right_start[1]]
+    left_start = outer_left[left_start_index]
+    left_end = outer_left[left_end_index]
+    right_start = outer_right[right_start_index]
+    right_end = outer_right[right_end_index]
+
+    left_piece = outer_left[left_end_index:left_start_index]
+    right_piece = outer_right[right_end_index:right_start_index]
     left_piece_mirrored = left_piece[::-1]
     right_piece_mirrored = right_piece[::-1]
     left_piece_mirrored.mirror(p1, p2)
     right_piece_mirrored.mirror(p1, p2)
 
     # mirror to (p1-p2) -> p'=p-2*(p.normvector)
-    last_left, last_right = left_start[0], right_start[0]
+    last_left, last_right = left_start, right_start
     new_left, new_right = PolyLine2D(None), PolyLine2D(None)
 
     for i in range(num_folds):
@@ -80,7 +87,7 @@ def cut_2(inner_lists, outer_left, outer_right, amount, num_folds=2):
         new_right += right_this
         last_left, last_right = new_left.data[-1], new_right.data[-1]
 
-    return new_left+new_right[::-1], left_start[1], right_start[1]
+    return new_left+new_right[::-1], left_start_index, right_start_index
 
 
 # TRAILING-EDGE Style
@@ -93,15 +100,19 @@ def cut_3(inner_lists, outer_left, outer_right, amount):
     p2 = inner_lists[-1][0][inner_lists[-1][1]]
     normvector = normalize(rotation_2d(math.pi/2).dot(p1-p2))
 
-    leftcut = outer_left.cut(p1, p2, inner_lists[0][1])
-    rightcut = outer_right.cut(p1, p2, inner_lists[-1][1])
+    leftcut_index = next(outer_left.new_cut(p1, p2, inner_lists[0][1], extrapolate=True))
+    leftcut = outer_left[leftcut_index]
+    rightcut_index = next(outer_right.new_cut(p1, p2, inner_lists[-1][1], extrapolate=True))
+    rightcut = outer_right[rightcut_index]
 
-    leftcut_2 = outer_left.cut(p1-normvector*amount, p2-normvector*amount, inner_lists[0][1])
-    rightcut_2 = outer_right.cut(p1-normvector*amount, p2-normvector*amount, inner_lists[-1][1])
-    diff = (leftcut[0]-leftcut_2[0] + rightcut[0] - rightcut_2[0])/2
+    leftcuts_2 = outer_left.new_cut(p1-normvector*amount, p2-normvector*amount, inner_lists[0][1], extrapolate=True)
+    leftcut_2 = outer_left[next(leftcuts_2)]
+    rightcuts_2 = outer_right.new_cut(p1-normvector*amount, p2-normvector*amount, inner_lists[-1][1], extrapolate=True)
+    rightcut_2 = outer_right[next(rightcuts_2)]
+    diff = (leftcut-leftcut_2 + rightcut - rightcut_2)/2
 
-    newlist = [leftcut[0], leftcut[0]+diff, rightcut[0]+diff, rightcut[0]]
+    newlist = [leftcut, leftcut+diff, rightcut+diff, rightcut]
 
-    return newlist, leftcut[1], rightcut[1]
+    return newlist, leftcut_index, rightcut_index
 
 cuts = [cut_1, cut_2, cut_3]
