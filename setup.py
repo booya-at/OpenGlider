@@ -67,7 +67,7 @@ for dirpath, dirnames, filenames in os.walk(og_dir):
         package_files = package_data.setdefault('.'.join(parts), [])
         package_files.extend([os.path.join(path, f) for f in filenames])
 
-package_data[""] = ['config.json']
+package_data["openglider"] += ['config.json']
 print(package_data, packages)
 setup(
     name='OpenGlider',

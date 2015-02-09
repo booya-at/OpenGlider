@@ -15,7 +15,7 @@ except ImportError:
     import openglider
 
 import openglider.glider
-from openglider.glider.glider_2d import Glider2D
+from openglider.glider.glider_2d import Glider2D, import_ods_2d
 
 import_dir = os.path.dirname(os.path.abspath(__file__))
 test_dir = os.path.dirname(import_dir)
@@ -26,6 +26,10 @@ class TestCase(unittest.TestCase):
     @classmethod
     def import_glider(cls):
         return openglider.glider.Glider.import_geometry(path=demokite)
+
+    @classmethod
+    def import_glider_2d(cls):
+        return Glider2D.import_ods(path=demokite)
 
     def assertEqualGlider(self, glider1, glider2, precision=None):
         self.assertEqual(len(glider1.ribs), len(glider2.ribs))

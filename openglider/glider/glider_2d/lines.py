@@ -18,12 +18,6 @@ class LowerNode2D(object):
             "pos3D": self.pos3D,
             "nr": self.nr}
 
-    @classmethod
-    def __from_json__(cls, pos, pos3D, nr):
-        p = cls(pos, pos3D)
-        p.nr = nr
-        return p
-
     def get_node(self, glider):
         return Node(node_type=0, position_vector=numpy.array(self.pos3D))
 
@@ -76,31 +70,37 @@ class BatchNode2D(object):
 
 
 class LineSet2D(object):
-    def __init__(self, line_list, node_list):
+    def __init__(self, line_list):
         self.lines = line_list
-        self.nodes = node_list
 
     def __json__(self):
         lines = [copy.copy(line) for line in self.lines]
         nodes = self.nodes
-        print(self.nodes)
         for line in lines:
-            line.upper_point = nodes.index(line.upper_point)
-            line.lower_point = nodes.index(line.lower_point)
+            line.upper_node = nodes.index(line.upper_node)
+            line.lower_node = nodes.index(line.lower_node)
         return {"lines": lines,
-                "nodes": nodes
-        }
+                "nodes": nodes}
 
     @classmethod
     def __from_json__(cls, lines, nodes):
-        lineset = cls(lines, nodes)
+        lineset = cls(lines)
         nodes = lineset.nodes
         for line in lineset.lines:
-            if isinstance(line.upper_point, int):
-                line.upper_point = nodes[line.upper_point]
-            if isinstance(line.lower_point, int):
-                line.lower_point = nodes[line.lower_point]
+            if isinstance(line.upper_node, int):
+                line.upper_node = nodes[line.upper_node]
+            if isinstance(line.lower_node, int):
+                line.lower_node = nodes[line.lower_node]
         return lineset
+
+    @property
+    def nodes(self):
+        nodes = set()
+        for line in self.lines:
+            nodes.add(line.upper_node)
+            nodes.add(line.lower_node)
+
+        return list(nodes)
 
     def return_lineset(self, glider):
         lines = []
@@ -115,8 +115,8 @@ class LineSet2D(object):
             node.temp_node = node.get_node(glider)  # store the nodes to remember them with the lines
         # set up the lines!
         for line_no, line in enumerate(self.lines):
-            lower = line.lower_point.temp_node
-            upper = line.upper_point.temp_node
+            lower = line.lower_node.temp_node
+            upper = line.upper_node.temp_node
             if lower and upper:
                 line = Line(number=line_no, lower_node=lower, upper_node=upper,
                             vinf=glider.v_inf, target_length=line.target_length)
@@ -130,27 +130,27 @@ class LineSet2D(object):
         """
         for line in self.lines:
             if not line.is_sorted:
-                if lower_att == line.upper_point:
-                    line.lower_point, line.upper_point = line.upper_point, line.lower_point
-                if lower_att == line.lower_point:
+                if lower_att == line.upper_node:
+                    line.lower_node, line.upper_node = line.upper_node, line.lower_node
+                if lower_att == line.lower_node:
                     line.is_sorted = True
-                    self.sort_lines(line.upper_point)
+                    self.sort_lines(line.upper_node)
 
     def delete_not_connected(self, glider):
         temp = []
         temp_new = []
         for line in self.lines:
-            if isinstance(line.upper_point, UpperNode2D):
-                if line.upper_point.rib_no >= len(glider.ribs):
+            if isinstance(line.upper_node, UpperNode2D):
+                if line.upper_node.rib_no >= len(glider.ribs):
                     temp.append(line)
-                    self.nodes.remove(line.upper_point)
+                    self.nodes.remove(line.upper_node)
 
         while temp:
             for line in temp:
-                conn_up_lines = [j for j in self.lines if (j.lower_point == line.lower_point and j != line)]
-                conn_lo_lines = [j for j in self.lines if (j.upper_point == line.lower_point and j != line)]
+                conn_up_lines = [j for j in self.lines if (j.lower_node == line.lower_node and j != line)]
+                conn_lo_lines = [j for j in self.lines if (j.upper_node == line.lower_node and j != line)]
                 if len(conn_up_lines) == 0:
-                    self.nodes.remove(line.lower_point)
+                    self.nodes.remove(line.lower_node)
                     self.lines.remove(line)
                     temp_new += conn_lo_lines
                 temp.remove(line)

@@ -1,15 +1,20 @@
+from __future__ import division
+
 import ezodf
 import numpy
+import scipy.interpolate
 
 from openglider.airfoil import Profile2D
 from openglider.glider.ballooning import BallooningBezier
-from openglider.glider.glider_2d import UpperNode2D
-from openglider.lines import Node, Line, LineSet
+from openglider.utils.bezier import BezierCurve, SymmetricBezier
+
+from .lines import UpperNode2D, LowerNode2D, BatchNode2D, Line2D, LineSet2D
 
 
-def import_ods_2d(cls, filename):
+def import_ods_2d(cls, filename, numpoints=4):
     ods = ezodf.opendoc(filename)
     sheets = ods.sheets
+
     profiles = [Profile2D(profile) for profile in transpose_columns(sheets[3])]
 
     balloonings_temp = transpose_columns(sheets[4])
@@ -25,8 +30,6 @@ def import_ods_2d(cls, filename):
     for i in range(datasheet.nrows()):
         data[datasheet.get_cell([i, 0]).value] = datasheet.get_cell([i, 1]).value
 
-    glide = data["GLEITZAHL"]
-
     front = []
     back = []
     cell_distribution = []
@@ -38,7 +41,7 @@ def import_ods_2d(cls, filename):
     main = sheets[0]
     x = y = z = span_last = alpha = 0.
 
-    for i in range(1, main.nrows()):
+    for i in range(1, main.nrows()+1):
         line = [main.get_cell([i, j]).value for j in range(main.ncols())]
         if not line[0]:
             break  # skip empty line
@@ -49,48 +52,63 @@ def import_ods_2d(cls, filename):
         y += numpy.cos(alpha) * (span - span_last)  # y-value -> spanwise
         z -= numpy.sin(alpha) * (span - span_last)  # z-axis -> up/down
 
-        aoa.append([y,line[5] * numpy.pi / 180])
+        aoa.append([span, line[5] * numpy.pi / 180])
         arc.append([y, z])
-        front.append([y,-x])
-        back.append([y,-x-chord])
-        cell_distribution.append([y,i-1])
+        front.append([span, -x])
+        back.append([span, -x-chord])
+        cell_distribution.append([span, i-1])
 
-        profile_merge.append(line[8])
-        ballooning_merge.append(line[9])
+        profile_merge.append([span, line[8]])
+        ballooning_merge.append([span, line[9]])
 
         zrot = line[7] * numpy.pi / 180
 
         alpha += line[4] * numpy.pi / 180  # angle after the rib
         span_last = span
 
-    attachment_points = [UpperNode2D(args[0], args[1], args[2]) for args in read_elements(sheets[2], "AHP", len_data=2)]
-    attachment_points.sort(key=lambda element: element.number)
-    #attachment_points_lower = get_lower_aufhaengepunkte(glider.data)
+    # rib_no, id, pos, force
+    attachment_points = [UpperNode2D(args[0], 100*args[2], args[3], args[1]) for args in read_elements(sheets[2], "AHP", len_data=3)]
+    attachment_points.sort(key=lambda element: element.nr)
 
-    for p in attachment_points:
-        p.force = numpy.array([0, 0, 10])
-        p.get_position()
+    has_center_cell = not front[0][0] == 0
+    cell_no = (len(front)-1)*2 + has_center_cell
 
-    #glider.lineset = tolist_lines(sheets[6], attachment_points_lower, attachment_points)
-    #glider.lineset.calc_geo()
-    #glider.lineset.calc_sag()
+    def symmetric_fit(data):
+        mirrored = [[-p[0], p[1]] for p in data[1:]][::-1] + data
+        return SymmetricBezier.fit(mirrored, numpoints=numpoints)
 
-    return cls()
+    start = (2 - has_center_cell) / cell_no
 
+    const_arr = [0.] + numpy.linspace(start, 1, len(front) - (not has_center_cell)).tolist()
+    rib_pos = [0.] + [p[0] for p in front[not has_center_cell:]]
+    rib_pos_int = scipy.interpolate.interp1d(rib_pos, [rib_pos, const_arr])
+    rib_distribution = [rib_pos_int(i) for i in numpy.linspace(0, rib_pos[-1], 30)]
+
+    rib_distribution = BezierCurve.fit(rib_distribution, numpoints=numpoints+3)
+
+    attachment_points_lower = get_lower_aufhaengepunkte(data)
+    return cls(front=symmetric_fit(front),
+               back=symmetric_fit(back),
+               cell_dist=rib_distribution,
+               cell_num=cell_no,
+               arc=symmetric_fit(arc),
+               aoa=symmetric_fit(aoa),
+               profiles=profiles,
+               lineset=tolist_lines(sheets[6], attachment_points_lower, attachment_points),
+               speed=data.get("SPEED", 0),
+               glide=data.get("GLEITZAHL", 10))
 
 
 def get_lower_aufhaengepunkte(data):
     aufhaengepunkte = {}
     xyz = {"X": 0, "Y": 1, "Z": 2}
     for key in data:
-        if not key is None and "AHP" in key:
+        if key is not None and "AHP" in key:
             pos = int(key[4])
-            if pos not in aufhaengepunkte:
-                aufhaengepunkte[pos] = [None, None, None]
+            aufhaengepunkte.setdefault(pos, [0, 0, 0])
             aufhaengepunkte[pos][xyz[key[3].upper()]] = data[key]
-    for node in aufhaengepunkte:
-        aufhaengepunkte[node] = Node(0, numpy.array(aufhaengepunkte[node]))
-    return aufhaengepunkte
+    return {nr: LowerNode2D([0, 0], pos, nr)
+            for nr, pos in aufhaengepunkte.items()}
 
 
 def transpose_columns(sheet=ezodf.Table(), columnswidth=2):
@@ -117,51 +135,51 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
     num_cols = sheet.ncols()
     linelist = []
     current_nodes = [None for i in range(num_cols)]
-    i = j = 0
+    i = j = level = 0
     count = 0
 
     while i < num_rows:
         val = sheet.get_cell([i, j]).value
-        if j == 0:  # first floor
+        if j == 0:  # first (line-)floor
             if val is not None:
                 current_nodes = [attachment_points_lower[int(sheet.get_cell([i, j]).value)]] + \
                                 [None for __ in range(num_cols)]
             j += 1
         elif j+2 < num_cols:
-            if val is None:
+            if val is None:  # ?
                 j += 2
             else:
                 lower = current_nodes[j//2]
-                #print(lower)
-                if j + 4 >= num_cols or sheet.get_cell([i, j+2]).value is None:  # gallery
+
+                # gallery
+                if j + 4 >= num_cols or sheet.get_cell([i, j+2]).value is None:
 
                     upper = attachment_points_upper[int(val-1)]
                     line_length = None
                     i += 1
                     j = 0
+                # other line
                 else:
-                    upper = Node(node_type=1)
+                    upper = BatchNode2D([0, 0])
                     current_nodes[j//2+1] = upper
                     line_length = sheet.get_cell([i, j]).value
                     j += 2
+
                 linelist.append(
-                    Line(number=count, lower_node=lower, upper_node=upper, vinf=numpy.array([10,0,0]), target_length=line_length))  #line_type=sheet.get_cell
+                    Line2D(lower, upper, target_length=line_length)) # line_type=sheet.get_cell
                 count += 1
-                #print("made line", linelist[-1].init_length)
-                #print(upper, lower)
+
         elif j+2 >= num_cols:
             j = 0
             i += 1
-
-    #print(len(linelist))
-    return LineSet(linelist, v_inf=numpy.array([10,0,0]))
+    return LineSet2D(linelist)
 
 
 def read_elements(sheet, keyword, len_data=2):
     """
     Return rib/cell_no for the element + data
     """
-    #print("jo")
+
     elements = []
     j = 0
     while j < sheet.ncols():

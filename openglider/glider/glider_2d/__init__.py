@@ -16,7 +16,7 @@ from openglider.glider.cell import Cell
 from openglider.glider.cell_elements import Panel
 
 from .lines import LowerNode2D, Line2D, LineSet2D, BatchNode2D, UpperNode2D
-
+from .import_ods import import_ods_2d
 
 class Glider2D(object):
     """
@@ -58,6 +58,10 @@ class Glider2D(object):
             "glide": self.glide
         }
 
+    @classmethod
+    def import_ods(cls, path):
+        return import_ods_2d(cls, path)
+
     @property
     def v_inf(self):
         angle = numpy.arctan(1/self.glide)
@@ -68,7 +72,6 @@ class Glider2D(object):
         x_values = numpy.array(self.cell_dist_interpolation).T[0] #array of scalars
         arc_curve = PolyLine2D([self.arc(i) for i in numpy.linspace(0.5, 1, num)])  # Symmetric-Bezier-> start from 0.5
         arc_curve_length = arc_curve.get_length()
-
         _positions = [arc_curve.extend(0, x/x_values[-1]*arc_curve_length) for x in x_values]
         positions = PolyLine2D([arc_curve[p] for p in _positions])
         # rescale
@@ -127,10 +130,14 @@ class Glider2D(object):
         """
         rescale BezierCurves
         """
-        for attr in 'back', 'front', 'cell_dist', 'aoa':
-            el = getattr(self, attr)
+        def set_span(attribute):
+            el = getattr(self, attribute)
+            assert el is not None, "Not a Beziercurve: {}".format(attribute)
             factor = span/el.controlpoints[-1][0]
             el.controlpoints = [[p[0]*factor, p[1]] for p in el.controlpoints]
+
+        for attr in 'back', 'front', 'cell_dist', 'aoa':
+            set_span(attr)
 
     @property
     def cell_dist_controlpoints(self):
@@ -233,14 +240,13 @@ class Glider2D(object):
                    profiles=profiles,
                    glide=glider.glide,
                    speed=10,
-                   lineset=LineSet2D([],[]))
+                   lineset=LineSet2D([]))
 
     def get_glider_3d(self, glider=None, num=50):
         """returns a new glider from parametric values"""
         glider = glider or Glider()
         ribs = []
         cells = []
-        print("Jojo")
 
         # TODO airfoil, ballooning-------
         airfoil = self.profiles[0]

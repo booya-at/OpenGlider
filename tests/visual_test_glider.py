@@ -109,7 +109,7 @@ class TestGlider(GliderTestClass):
         brake = BezierCurve([[0., 0.], [1., 0.], [1., -0.2]])
         num = 60
         brakeprof = openglider.airfoil.Profile2D([brake(i / num) for i in reversed(range(num + 1))][:-1] +
-                                                 [brake(i / num) for i in range(num + 1)], normalize_root=False)
+                                                 [brake(i / num) for i in range(num + 1)])
 
         for i, rib in enumerate(glider.ribs):
             rib.profile_2d = rib.profile_2d + brakeprof * (3 * i / len(glider.ribs))
