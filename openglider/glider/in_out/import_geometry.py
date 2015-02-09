@@ -49,7 +49,7 @@ def import_ods(filename, glider):
     for baloon in balloonings_temp:
         upper = [[0, 0]] + baloon[:7] + [[1, 0]]
         lower = [[0, 0]] + [[i[0], -1 * i[1]] for i in baloon[8:15]] + [[1, 0]]
-        balloonings.append(BallooningBezier([upper, lower]))
+        balloonings.append(BallooningBezier(upper, lower))
 
     # Data
     data = {}

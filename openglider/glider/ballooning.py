@@ -77,7 +77,7 @@ class Ballooning(object):
             #return -self.lower.xpoint(xval)[1]
             return self.lower(xval)
         else:
-            ValueError("Ballooning only between -1 and 1")
+            raise ValueError("Ballooning only between -1 and 1")
 
     def __call__(self, arg):
         """Get Ballooning Arc (phi) for a certain XValue"""
@@ -138,17 +138,16 @@ class Ballooning(object):
 
 
 class BallooningBezier(Ballooning):
-    def __init__(self, points=None):
-        if not points:
-            points = [[[0, 0], [0.1, 0], [0.2, 0.14], [0.8, 0.14], [0.9, 0], [1, 0]],
-                      [[0, 0], [0.1, 0], [0.2, 0.14], [0.8, 0.14], [0.9, 0], [1, 0]]]
-        self.upper_spline = BezierCurve(points[0])
-        self.lower_spline = BezierCurve(points[1])
+    def __init__(self, upper=None, lower=None):
+        upper = upper or [[0, 0], [0.1, 0], [0.2, 0.14], [0.8, 0.14], [0.9, 0], [1, 0]]
+        lower = lower or [[0, 0], [0.1, 0], [0.2, 0.14], [0.8, 0.14], [0.9, 0], [1, 0]]
+        self.upper_spline = BezierCurve(upper)
+        self.lower_spline = BezierCurve(lower)
         Ballooning.__init__(self, self.upper_spline.interpolation(), self.lower_spline.interpolation())
 
     def __json__(self):
-        return {"points": [[p.tolist() for p in self.upper_spline.controlpoints],
-                           [p.tolist() for p in self.lower_spline.controlpoints]]}
+        return {"upper": [p.tolist() for p in self.upper_spline.controlpoints],
+                "lower": [p.tolist() for p in self.lower_spline.controlpoints]}
     @property
     def points(self):
         upper = list(self.upper_spline.get_sequence())

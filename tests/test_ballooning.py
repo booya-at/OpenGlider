@@ -26,13 +26,14 @@ from openglider.glider import ballooning
 
 class TestBallooningBezier(unittest.TestCase):
     def setUp(self):
-        d_x = random.random() + 0.1
-        upper = [[d_x*i, random.random()*10] for i in range(10)]
-        lower = [[d_x*i, random.random()*10] for i in range(10)]
-        self.ballooning = ballooning.BallooningBezier([upper, lower])
+        num = random.randint(10, 30)
+        x_values = [i/(num-1) for i in range(num)]
+        upper = [[x, random.random()*10] for x in x_values]
+        lower = [[x, random.random()*10] for x in x_values]
+        self.ballooning = ballooning.BallooningBezier(upper, lower)
 
     def test_multiplication(self):
-        for i in range(100):
+        for i in range(10000):
             factor = random.random()
             temp = self.ballooning * factor
             val = random.random()
