@@ -1,6 +1,10 @@
 from __future__ import division
 
-import ezodf
+try:
+    import ezodf2 as ezodf
+except ImportError:
+    import ezodf
+
 import numpy
 import scipy.interpolate
 
