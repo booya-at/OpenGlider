@@ -1,23 +1,24 @@
-
+import random
 import sys
 import os
 import unittest
 import numpy
+from openglider.vector import PolyLine
 
 try:
     import openglider
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
     import openglider
-from openglider.graphics import Graphics2D, Graphics, Line, Green, Red
+from openglider.graphics import Graphics2D, Graphics, Line, Green, Red, Blue
 import openglider.airfoil
 from openglider.utils.bezier import BezierCurve, SymmetricBezier
 
 
-class TestMarks(unittest.TestCase):
+class TestBezier(unittest.TestCase):
     def setUp(self):
-        self.curve = BezierCurve()
         self.points = [[0., 0.], [0.5, 0.5], [1., 0.]]
+        self.curve = BezierCurve(self.points)
         self.profile = openglider.airfoil.Profile2D.compute_naca(9012, numpoints=100)
 
     def test_bezier_fit(self):
@@ -56,6 +57,21 @@ class TestMarks(unittest.TestCase):
             Line(lower.get_sequence(num=100)),
             Line(lower._controlpoints)
             ])
+
+    def test_scale_bezier(self):
+        curve1 = self.curve.get_sequence()
+        factor = 1+random.random()
+        curve2 = PolyLine(curve1)
+        curve2.scale(factor)
+        curve3 = self.curve.copy()
+        curve3.controlpoints = [[p[0]*factor, -p[1]*factor] for p in curve3.controlpoints]
+        Graphics([
+            Line(curve1),
+            Red,
+            Line(curve3.get_sequence()),
+            Blue,
+            Line(curve2)
+        ])
 
 
 if __name__ == "__main__":

@@ -34,6 +34,7 @@ def import_ods_2d(cls, filename, numpoints=4):
     for i in range(datasheet.nrows()):
         data[datasheet.get_cell([i, 0]).value] = datasheet.get_cell([i, 1]).value
 
+    # All Lists
     front = []
     back = []
     cell_distribution = []
@@ -42,19 +43,21 @@ def import_ods_2d(cls, filename, numpoints=4):
     profile_merge = []
     ballooning_merge = []
 
-    main = sheets[0]
-    x = y = z = span_last = alpha = 0.
-
-    for i in range(1, main.nrows()+1):
-        line = [main.get_cell([i, j]).value for j in range(main.ncols())]
+    y = z = span_last = alpha = 0.
+    main_sheet = sheets[0]
+    assert isinstance(main_sheet, ezodf.Sheet)
+    for i in range(1, main_sheet.nrows()+1):
+        line = [main_sheet.get_cell([i, j]).value for j in range(main_sheet.ncols())]
         if not line[0]:
             break  # skip empty line
+        # Index, Choord, Span(x_2d), Front(y_2d=x_3d), d_alpha(next), aoa,
+        chord = line[1]
+        span = line[2]
+        x = line[3]
+        y += numpy.cos(alpha) * (span - span_last)
+        z -= numpy.sin(alpha) * (span - span_last)
 
-        chord = line[1]  # Rib-Chord
-        span = line[2]  # spanwise-length (flat)
-        x = line[3]  # x-value -> front/back (ribwise)
-        y += numpy.cos(alpha) * (span - span_last)  # y-value -> spanwise
-        z -= numpy.sin(alpha) * (span - span_last)  # z-axis -> up/down
+        alpha += line[4] * numpy.pi / 180  # angle after the rib
 
         aoa.append([span, line[5] * numpy.pi / 180])
         arc.append([y, z])
@@ -67,7 +70,6 @@ def import_ods_2d(cls, filename, numpoints=4):
 
         zrot = line[7] * numpy.pi / 180
 
-        alpha += line[4] * numpy.pi / 180  # angle after the rib
         span_last = span
 
     # rib_no, id, pos, force
@@ -78,7 +80,8 @@ def import_ods_2d(cls, filename, numpoints=4):
     cell_no = (len(front)-1)*2 + has_center_cell
 
     def symmetric_fit(data):
-        mirrored = [[-p[0], p[1]] for p in data[1:]][::-1] + data
+        not_from_center = data[0][0] == 0
+        mirrored = [[-p[0], p[1]] for p in data[not_from_center:]][::-1] + data
         return SymmetricBezier.fit(mirrored, numpoints=numpoints)
 
     start = (2 - has_center_cell) / cell_no
@@ -91,6 +94,7 @@ def import_ods_2d(cls, filename, numpoints=4):
     rib_distribution = BezierCurve.fit(rib_distribution, numpoints=numpoints+3)
 
     attachment_points_lower = get_lower_aufhaengepunkte(data)
+
     return cls(front=symmetric_fit(front),
                back=symmetric_fit(back),
                cell_dist=rib_distribution,
@@ -98,6 +102,9 @@ def import_ods_2d(cls, filename, numpoints=4):
                arc=symmetric_fit(arc),
                aoa=symmetric_fit(aoa),
                profiles=profiles,
+               profile_merge_curve=symmetric_fit(profile_merge),
+               balloonings=balloonings,
+               ballooning_merge_curve=symmetric_fit(ballooning_merge),
                lineset=tolist_lines(sheets[6], attachment_points_lower, attachment_points),
                speed=data.get("SPEED", 0),
                glide=data.get("GLEITZAHL", 10))

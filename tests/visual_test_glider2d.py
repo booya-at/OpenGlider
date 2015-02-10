@@ -18,5 +18,4 @@ class GliderTestCase2D(TestCase):
 
     def test_show_glider(self):
         glider3d = self.glider2d.get_glider_3d()
-        #print([rib.pos for rib in glider3d.ribs])
         TestGlider.show_glider(glider3d)

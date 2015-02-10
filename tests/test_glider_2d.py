@@ -1,9 +1,8 @@
 import unittest
 
-
 from common import *
 from openglider import jsonify
-from openglider.glider import Glider2D
+from openglider.glider.glider_2d import Glider2D
 
 
 class GliderTestCase2D(TestCase):
@@ -12,13 +11,16 @@ class GliderTestCase2D(TestCase):
 
     def test_fit(self):
         glider_3d = self.import_glider()
-        self.assertEqualGlider(glider_3d, self.glider2d.get_glider_3d(), precision=0)
+        self.assertEqualGlider2D(Glider2D.fit_glider_3d(glider_3d), self.glider2d)
 
-    #@unittest.skip('')
     def test_create_glider(self):
         glider = self.glider2d.get_glider_3d()
+        self.assertAlmostEqual(glider.span, self.glider2d.span)
 
     def test_export(self):
         exp = jsonify.dumps(self.glider2d)
         imp = jsonify.loads(exp)['data']
         self.assertEqualGlider2D(self.glider2d, imp)
+
+if __name__ == '__main__':
+    unittest.main()

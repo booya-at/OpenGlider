@@ -148,6 +148,7 @@ class BallooningBezier(Ballooning):
     def __json__(self):
         return {"upper": [p.tolist() for p in self.upper_spline.controlpoints],
                 "lower": [p.tolist() for p in self.lower_spline.controlpoints]}
+
     @property
     def points(self):
         upper = list(self.upper_spline.get_sequence())
