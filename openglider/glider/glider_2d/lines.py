@@ -85,7 +85,6 @@ class LineSet2D(object):
     @classmethod
     def __from_json__(cls, lines, nodes):
         lineset = cls(lines)
-        nodes = lineset.nodes
         for line in lineset.lines:
             if isinstance(line.upper_node, int):
                 line.upper_node = nodes[line.upper_node]

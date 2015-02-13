@@ -17,5 +17,7 @@ class GliderTestCase2D(TestCase):
         self.assertEqualGlider(self.glider, self.glider2d.get_glider_3d(), precision=1)
 
     def test_show_glider(self):
+        print(self.glider2d.cell_num)
+        self.glider2d.cell_num += 15
         glider3d = self.glider2d.get_glider_3d()
         TestGlider.show_glider(glider3d)

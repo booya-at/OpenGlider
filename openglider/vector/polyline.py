@@ -61,6 +61,9 @@ class PolyLine(HashedList):
         return numpy.concatenate([[self[start]], data, [self[stop]]])
 
     def extend(self, start, length):
+        """
+        Move from a starting point for a given length in direction of the line
+        """
         if length == 0:
             return start
         direction = sign(length)
@@ -84,7 +87,7 @@ class PolyLine(HashedList):
         """
         Get the (normative) Length of a Part of the Vectorlist.
         """
-        if not second:
+        if second is None:
             second = len(self) - 1
         direction = sign(float(second - first))
         length = 0

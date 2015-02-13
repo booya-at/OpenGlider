@@ -276,15 +276,10 @@ class Glider2D(object):
         back_int = self.back.interpolate_3d(num=num)
         profile_merge_curve = self.profile_merge_curve.interpolate_3d(num=num)
         ballooning_merge_curve = self.ballooning_merge_curve.interpolate_3d(num=num)
+        aoa_int = self.aoa.interpolate_3d(num=num)
 
         arc_pos = list(self.get_arc_positions(num=num))
-        #_arc_scale_factor = x_values[-1]/_arc_pos.get_length()
-        #_arc_pos.scale(_arc_scale_factor)
-        #arc_pos = list(_arc_pos)
-
         arc_angles = self.get_arc_angles()
-
-        aoa_int = self.aoa.interpolate_3d(num=num)
 
         if x_values[0] != 0.:
             # adding the mid cell
