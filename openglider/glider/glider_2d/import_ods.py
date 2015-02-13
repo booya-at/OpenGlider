@@ -73,7 +73,7 @@ def import_ods_2d(cls, filename, numpoints=4):
         span_last = span
 
     # rib_no, id, pos, force
-    attachment_points = [UpperNode2D(args[0], 100*args[2], args[3], args[1]) for args in read_elements(sheets[2], "AHP", len_data=3)]
+    attachment_points = [UpperNode2D(args[0], args[2], args[3], args[1]) for args in read_elements(sheets[2], "AHP", len_data=3)]
     attachment_points.sort(key=lambda element: element.nr)
 
     has_center_cell = not front[0][0] == 0
