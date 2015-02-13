@@ -180,7 +180,7 @@ class line_tool(base_tool):
         self.shape.addChild(Line(front))
         self.shape.addChild(Line(back))
         self.shape.addChildren(map(Line, ribs))
-        for i in self.glider_2d.lineset.points:
+        for i in self.glider_2d.lineset.nodes:
             if isinstance(i, UpperNode2D):
                 coord = self.glider_2d.shape_point(i.rib_no, i.position/100)
                 obj = Upper_Att_Marker(vector3D(coord))
@@ -198,8 +198,8 @@ class line_tool(base_tool):
                 self.shape.addChild(obj)
             
         for i in self.glider_2d.lineset.lines:
-            m1 = self.get_marker(i.lower_point)
-            m2 = self.get_marker(i.upper_point)
+            m1 = self.get_marker(i.lower_node)
+            m2 = self.get_marker(i.upper_node)
             target_length = i.target_length
             obj = ConnectionLine(m1, m2)
             obj.target_length = target_length
@@ -260,7 +260,7 @@ class line_tool(base_tool):
 
 
         self.glider_2d.lineset.lines = lines
-        self.glider_2d.lineset.points = points
+        self.glider_2d.lineset.nodes = points
         self.glider_2d.get_glider_3d(self.obj.glider_instance)
         self.shape.unregister()
         self.remove_all_callbacks()

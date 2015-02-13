@@ -108,7 +108,7 @@ class attach_tool(base_tool):
         if self.current_point is not None and event.getState():
             if event.wasCtrlDown():  # deleting current point TODO: not working yet
                 try:
-                    self.glider_2d.lineset.points.pop(self.current_point[1])
+                    self.glider_2d.lineset.nodes.pop(self.current_point[1])
                     self.current_point = None
                     self.temp_point.removeAllChildren()
                     self.update_point_list()
@@ -125,7 +125,7 @@ class attach_tool(base_tool):
         rib_nr = self.xpos.index(x)
         pos = float(self.Qhl_pos.value())
         ap = UpperNode2D(rib_nr, pos)
-        self.glider_2d.lineset.points.append(ap)
+        self.glider_2d.lineset.nodes.append(ap)
 
     def accept(self):
         self.remove_cb()
