@@ -16,14 +16,15 @@ from openglider.glider.cell import Cell
 from openglider.glider.cell_elements import Panel
 
 from .lines import LowerNode2D, Line2D, LineSet2D, BatchNode2D, UpperNode2D
-
+from .import_ods import import_ods_2d
 
 class Glider2D(object):
     """
     A parametric (2D) Glider object used for gui input
     """
-    def __init__(self, front, back, cell_dist, cell_num, arc,
-                 aoa, profiles, lineset,
+    def __init__(self, front, back, cell_dist, cell_num,
+                 arc, aoa, profiles, profile_merge_curve,
+                 balloonings, ballooning_merge_curve, lineset,
                  speed, glide):
         self.front = front
         self.back = back
@@ -32,6 +33,9 @@ class Glider2D(object):
         self.arc = arc
         self.aoa = aoa
         self.profiles = profiles or []
+        self.profile_merge_curve = profile_merge_curve
+        self.balloonings = balloonings or []
+        self.ballooning_merge_curve = ballooning_merge_curve
         self.lineset = lineset or LineSet2D([], [])
         self.speed = speed
         self.glide = glide
@@ -53,10 +57,17 @@ class Glider2D(object):
             "arc": self.arc,
             "aoa": self.aoa,
             "profiles": self.profiles,
+            "profile_merge_curve": self.profile_merge_curve,
+            "balloonings": self.balloonings,
+            "ballooning_merge_curve": self.ballooning_merge_curve,
             "lineset": self.lineset,
             "speed": self.speed,
             "glide": self.glide
         }
+
+    @classmethod
+    def import_ods(cls, path):
+        return import_ods_2d(cls, path)
 
     @property
     def v_inf(self):
@@ -68,7 +79,6 @@ class Glider2D(object):
         x_values = numpy.array(self.cell_dist_interpolation).T[0] #array of scalars
         arc_curve = PolyLine2D([self.arc(i) for i in numpy.linspace(0.5, 1, num)])  # Symmetric-Bezier-> start from 0.5
         arc_curve_length = arc_curve.get_length()
-
         _positions = [arc_curve.extend(0, x/x_values[-1]*arc_curve_length) for x in x_values]
         positions = PolyLine2D([arc_curve[p] for p in _positions])
         # rescale
@@ -127,10 +137,20 @@ class Glider2D(object):
         """
         rescale BezierCurves
         """
-        for attr in 'back', 'front', 'cell_dist', 'aoa':
-            el = getattr(self, attr)
+        def set_span(attribute):
+            el = getattr(self, attribute)
+            assert el is not None, "Not a Beziercurve: {}".format(attribute)
             factor = span/el.controlpoints[-1][0]
             el.controlpoints = [[p[0]*factor, p[1]] for p in el.controlpoints]
+
+        for attr in 'back', 'front', 'cell_dist', 'aoa':
+            set_span(attr)
+
+        arc_pos = self.get_arc_positions()
+        arc_length = arc_pos.get_length() + arc_pos[0][0]  # add center cell
+        factor = span/arc_length
+        self.arc.controlpoints = [[p[0]*factor, p[1]*factor]
+                                  for p in self.arc.controlpoints]
 
     @property
     def cell_dist_controlpoints(self):
@@ -222,6 +242,10 @@ class Glider2D(object):
         profile_dist = BezierCurve.fit([[i, i] for i in range(len(profiles))],
                                        numpoints=numpoints)
 
+        balloonings = [rib.ballooning for rib in glider.ribs]
+        ballooning_dist = BezierCurve.fit([[i, i] for i in range(len(balloonings))],
+                                       numpoints=numpoints)
+
         # TODO: lineset
 
         return cls(front=front_bezier,
@@ -231,21 +255,18 @@ class Glider2D(object):
                    arc=arc_bezier,
                    aoa=aoa_bezier,
                    profiles=profiles,
+                   profile_merge_curve=profile_dist,
+                   balloonings=balloonings,
+                   ballooning_merge_curve=ballooning_dist,
                    glide=glider.glide,
                    speed=10,
-                   lineset=LineSet2D([],[]))
+                   lineset=LineSet2D([]))
 
     def get_glider_3d(self, glider=None, num=50):
         """returns a new glider from parametric values"""
         glider = glider or Glider()
         ribs = []
         cells = []
-        print("Jojo")
-
-        # TODO airfoil, ballooning-------
-        airfoil = self.profiles[0]
-        aoa_int = numpy.deg2rad(13.)
-        #--------------------------------------
 
         span = self.front.controlpoints[-1][0]
         self.set_span(span)
@@ -253,20 +274,17 @@ class Glider2D(object):
         x_values = [rib_no[0] for rib_no in self.cell_dist_interpolation]
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
+        profile_merge_curve = self.profile_merge_curve.interpolate_3d(num=num)
+        ballooning_merge_curve = self.ballooning_merge_curve.interpolate_3d(num=num)
 
-        _arc_pos = self.get_arc_positions(num=num)
-        _arc_scale_factor = x_values[-1]/_arc_pos.get_length()
-        _arc_pos.scale(_arc_scale_factor)
-        arc_pos = list(_arc_pos)
+        arc_pos = list(self.get_arc_positions(num=num))
+        #_arc_scale_factor = x_values[-1]/_arc_pos.get_length()
+        #_arc_pos.scale(_arc_scale_factor)
+        #arc_pos = list(_arc_pos)
 
         arc_angles = self.get_arc_angles()
 
-        #aoa_cp = self.aoa.controlpoints
-        #aoa_x_factor = x_values[-1] / aoa_cp[-1][0]
-        #self.aoa.controlpoints = [[p[0] * aoa_x_factor, p[1]] for p in aoa_cp]
-
         aoa_int = self.aoa.interpolate_3d(num=num)
-        #merge_curve_profile = self.profile_merge_curve.interpolate_3d(num=num)
 
         if x_values[0] != 0.:
             # adding the mid cell
@@ -278,9 +296,10 @@ class Glider2D(object):
             front = front_int(pos)
             back = back_int(pos)
             arc = arc_pos[rib_no]
+
             ribs.append(Rib(
-                profile_2d=airfoil.copy(),
-                #profile_2d=self.merge_profile(merge_curve_profile(pos)),
+                profile_2d=self.merge_profile(profile_merge_curve(abs(pos))[1]),
+                ballooning=self.merge_ballooning(ballooning_merge_curve(abs(pos))[1]),
                 startpoint=numpy.array([-front[1], arc[0], arc[1]]),
                 chord=norm(front - back),
                 arcang=arc_angles[rib_no],
@@ -288,15 +307,16 @@ class Glider2D(object):
                 aoa_absolute=aoa_int(pos)[1]
             ))
             ribs[-1].aoa_relative = aoa_int(pos)[1]
+
         for rib_no, rib in enumerate(ribs[1:]):
             cell = Cell(ribs[rib_no], rib, [])
             cell.panels = [Panel([-1, -1, 3, 0.012], [1, 1, 3, 0.012], rib_no)]
             cells.append(cell)
             glider.cells = cells
+
         glider.close_rib()
 
         glider.lineset = self.lineset.return_lineset(glider)
         glider.lineset.calc_geo()
         glider.lineset.calc_sag()
-
         return glider

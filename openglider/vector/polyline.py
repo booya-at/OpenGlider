@@ -107,6 +107,7 @@ class PolyLine(HashedList):
         if y is None:
             y = x
         self.data *= [x, y]
+        return self
 
 
 class PolyLine2D(PolyLine):
@@ -265,8 +266,11 @@ class PolyLine2D(PolyLine):
         """
         Mirror against a line through p1 and p2
         """
+        p1 = numpy.array(p1)
+        p2 = numpy.array(p2)
         normvector = normalize(numpy.array(p1-p2).dot([[0, -1], [1, 0]]))
         self.data = [point - 2*normvector.dot(point-p1)*normvector for point in self.data]
+        return self
 
     def rotate(self, angle, startpoint=None):
         """

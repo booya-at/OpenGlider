@@ -18,12 +18,6 @@ class LowerNode2D(object):
             "pos3D": self.pos3D,
             "nr": self.nr}
 
-    @classmethod
-    def __from_json__(cls, pos, pos3D, nr):
-        p = cls(pos, pos3D)
-        p.nr = nr
-        return p
-
     def get_node(self, glider):
         return Node(node_type=0, position_vector=numpy.array(self.pos3D))
 
@@ -76,24 +70,21 @@ class BatchNode2D(object):
 
 
 class LineSet2D(object):
-    def __init__(self, line_list, node_list):
+    def __init__(self, line_list):
         self.lines = line_list
-        self.nodes = node_list
 
     def __json__(self):
         lines = [copy.copy(line) for line in self.lines]
         nodes = self.nodes
-        print(self.nodes)
         for line in lines:
             line.upper_node = nodes.index(line.upper_node)
             line.lower_node = nodes.index(line.lower_node)
         return {"lines": lines,
-                "nodes": nodes
-        }
+                "nodes": nodes}
 
     @classmethod
     def __from_json__(cls, lines, nodes):
-        lineset = cls(lines, nodes)
+        lineset = cls(lines)
         nodes = lineset.nodes
         for line in lineset.lines:
             if isinstance(line.upper_node, int):
@@ -101,6 +92,15 @@ class LineSet2D(object):
             if isinstance(line.lower_node, int):
                 line.lower_node = nodes[line.lower_node]
         return lineset
+
+    @property
+    def nodes(self):
+        nodes = set()
+        for line in self.lines:
+            nodes.add(line.upper_node)
+            nodes.add(line.lower_node)
+
+        return list(nodes)
 
     def return_lineset(self, glider):
         lines = []
