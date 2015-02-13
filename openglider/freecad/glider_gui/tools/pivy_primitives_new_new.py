@@ -11,14 +11,16 @@ COLORS = {
 }
 
 
-
-
 class Object3D(coin.SoSeparator):
-    def __init__(self, dynamic=False, std_col="black", ovr_col="red", sel_col="yellow"):
+    std_col = "black"
+    ovr_col = "red"
+    sel_col = "yellow"
+
+    def __init__(self, dynamic=False):
         super(Object3D, self).__init__()
-        self._sel_color = COLORS[sel_col]
-        self._ovr_color = COLORS[ovr_col]
-        self._std_color = COLORS[std_col]
+        self._sel_color = COLORS[self.sel_col]
+        self._ovr_color = COLORS[self.ovr_col]
+        self._std_color = COLORS[self.std_col]
         self.data = coin.SoCoordinate3()
         self.color = coin.SoMaterial()
         self.color.diffuseColor = self._std_color
@@ -75,8 +77,8 @@ class Object3D(coin.SoSeparator):
 
 
 class Marker(Object3D):
-    def __init__(self, points, dynamic=False, std_col="black", ovr_col="red", sel_col="yellow"):
-        super(Marker, self).__init__(dynamic, std_col, ovr_col, sel_col)
+    def __init__(self, points, dynamic=False):
+        super(Marker, self).__init__(dynamic)
         self.marker = coin.SoMarkerSet()
         self.marker.markerIndex = coin.SoMarkerSet.CIRCLE_FILLED_9_9
         self.points = points
@@ -84,8 +86,8 @@ class Marker(Object3D):
 
 
 class Line(Object3D):
-    def __init__(self, points, dynamic=False, std_col="black", ovr_col="red", sel_col="yellow"):
-        super(Line, self).__init__(dynamic, std_col, ovr_col, sel_col)
+    def __init__(self, points, dynamic=False):
+        super(Line, self).__init__(dynamic)
         self.drawstyle = coin.SoDrawStyle()
         self.line = coin.SoLineSet()
         self.points = points

@@ -126,10 +126,15 @@ class Glider2D(object):
         dist = [i[0] for i in dist_line]
         front = [front_int(x) for x in dist]
         back = [back_int(x) for x in dist]
+        if self.cell_num % 2:
+            front.insert(0, [-front[0][0], front[0][1]])
+            back.insert(0, [-back[0][0], back[0][1]])
+
         return zip(front, back)
 
     def shape_point(self, rib_no, x):
         ribs = list(self.ribs())
+        print(rib_no, len(self.ribs()))
         rib = ribs[rib_no]
         return rib[0] + x * (rib[1] - rib[0])
 

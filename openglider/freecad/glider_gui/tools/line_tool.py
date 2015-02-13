@@ -147,12 +147,12 @@ class line_tool(base_tool):
             event.getState() == 1):
             objs = self.shape.select_object
             if len(objs) == 2:
-                if (isinstance(objs[0], LineMarker) and
-                    isinstance(objs[1], LineMarker)):
+                if (isinstance(objs[0], NodeMarker) and
+                    isinstance(objs[1], NodeMarker)):
                     line = ConnectionLine(objs[0], objs[1])
                     self.shape.addChild(line)
             elif len(objs) == 1:
-                if (isinstance(objs[0], LineMarker)):
+                if (isinstance(objs[0], NodeMarker)):
                     marker2 = self.point_cb(event_callback, force=True)
                     if marker2:
                         line = ConnectionLine(objs[0], marker2)
@@ -170,7 +170,7 @@ class line_tool(base_tool):
             if event.wasCtrlDown():
                 point = Lower_Att_Marker(pos3D)
             else:
-                point = LineMarker(pos3D)
+                point = NodeMarker(pos3D)
             self.shape.addChild(point)
             return point
 
@@ -180,21 +180,20 @@ class line_tool(base_tool):
         self.shape.addChild(Line(front))
         self.shape.addChild(Line(back))
         self.shape.addChildren(map(Line, ribs))
-        for i in self.glider_2d.lineset.nodes:
-            if isinstance(i, UpperNode2D):
-                coord = self.glider_2d.shape_point(i.rib_no, i.position/100)
-                obj = Upper_Att_Marker(vector3D(coord))
-                obj.temp_2d = i
-                obj.force = i.force
+        for node in self.glider_2d.lineset.nodes:
+            if isinstance(node, UpperNode2D):
+                # coord = self.glider_2d.shape_point(node.rib_no, node.position/100)
+                pos = node.get_2d(self.glider_2d)
+                obj = Upper_Att_Marker(node, pos)
+                obj.force = node.force
                 self.shape.addChild(obj)
-            elif isinstance(i, BatchNode2D):
-                obj = LineMarker(vector3D(i.pos_2d))
-                obj.temp_2d = i
+            elif isinstance(node, BatchNode2D):
+                obj = NodeMarker(node)
                 self.shape.addChild(obj)
-            elif isinstance(i, LowerNode2D):
-                obj = Lower_Att_Marker(vector3D(i.pos))
-                obj.pos3D = i.pos3D
-                obj.temp_2d = i
+            elif isinstance(node, LowerNode2D):
+                obj = Lower_Att_Marker(vector3D(node.pos))
+                obj.pos3D = node.pos3D
+                obj.node = node
                 self.shape.addChild(obj)
             
         for i in self.glider_2d.lineset.lines:
@@ -207,8 +206,8 @@ class line_tool(base_tool):
 
     def get_marker(self, obj_2d):
         for i in self.shape.objects:
-            if isinstance(i, LineMarker):
-                if i.temp_2d == obj_2d:
+            if isinstance(i, NodeMarker):
+                if i.node == obj_2d:
                     return i
         return False
 
@@ -238,21 +237,21 @@ class line_tool(base_tool):
         for obj in self.shape.objects:
             # add the 2d objects to the graphical objects
             if isinstance(obj, Lower_Att_Marker):
-                obj.temp_2d = LowerNode2D(list(obj.pos), obj.pos3D)
-                points.append(obj.temp_2d)
+                obj.node = LowerNode2D(list(obj.pos), obj.pos3D)
+                points.append(obj.node)
 
             elif isinstance(obj, Upper_Att_Marker):
                 # allready stored 2d data
-                obj.temp_2d.force = obj.force
-                points.append(obj.temp_2d)
+                obj.node.force = obj.force
+                points.append(obj.node)
 
-            elif isinstance(obj, LineMarker):
-                obj.temp_2d = BatchNode2D(list(obj.pos))
-                points.append(obj.temp_2d)
+            elif isinstance(obj, NodeMarker):
+                obj.node = BatchNode2D(list(obj.pos))
+                points.append(obj.node)
 
         for obj in self.shape.objects:
             if isinstance(obj, ConnectionLine):
-                l = Line2D(obj.marker1.temp_2d, obj.marker2.temp_2d)
+                l = Line2D(obj.marker1.node, obj.marker2.node)
                 if not (isinstance(obj.marker1, Upper_Att_Marker) or
                         isinstance(obj.marker2, Upper_Att_Marker)):
                     l.target_length = obj.target_length
@@ -273,17 +272,16 @@ class line_tool(base_tool):
         super(line_tool, self).reject()
 
 
-# wird die position einer leine veraendert so muessen nur die zwei marker positionen aus denen
-# die leine besteht veraendert werden. Diesen Markern wurde eine funktion gegeben, die die position
-# der leinen beim verschieben mitveraendert. Der Marker bleibt somit zimlich gleich zur
-# usrprungsklasse, die Connection-line muss das drag verhalten neu implementiren.
-# des haut gut hin!!!
 
+class NodeMarker(Marker):
+    std_col = "black"
+    ovr_col = "red"
+    sel_col = "yellow"
 
-class LineMarker(Marker):
-    def __init__(self, pos, std_col="black", ovr_col="red", sel_col="yellow"):
-        super(LineMarker, self).__init__([pos], dynamic=True,  std_col=std_col, ovr_col=ovr_col, sel_col=sel_col)
-        self.temp_2d = None
+    def __init__(self, node):
+        pos = node.pos_2D
+        super(NodeMarker, self).__init__([pos], dynamic=True)
+        self.node = node
 
     @property
     def pos(self):
@@ -294,7 +292,9 @@ class LineMarker(Marker):
         self.points = [pos]
 
 
-class Upper_Att_Marker(LineMarker):
+class Upper_Att_Marker(NodeMarker):
+    std_col = "blue"
+
     def __init__(self, pos):
         super(Upper_Att_Marker, self).__init__(pos, std_col="blue")
         self.force = 1.
@@ -305,9 +305,12 @@ class Upper_Att_Marker(LineMarker):
     def delete(self):
         pass
 
-class Lower_Att_Marker(LineMarker):
+
+class Lower_Att_Marker(NodeMarker):
+    std_col = "green"
+
     def __init__(self, pos):
-        super(Lower_Att_Marker, self).__init__(pos, std_col="green")
+        super(Lower_Att_Marker, self).__init__(pos)
         self.pos3D = [0, 0, 0]
 
     @property

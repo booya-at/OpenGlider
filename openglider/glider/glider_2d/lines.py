@@ -7,39 +7,39 @@ from openglider.lines import Node, Line, LineSet
 
 class LowerNode2D(object):
     """lower attachment point"""
-    def __init__(self, pos, pos3D, nr=None):
-        self.pos = pos
-        self.pos3D = pos3D
+    def __init__(self, pos_2D, pos_3D, nr=None):
+        self.pos_2D = pos_2D
+        self.pos_3D = pos_3D
         self.nr = nr
 
     def __json__(self):
         return{
-            "pos": self.pos,
-            "pos3D": self.pos3D,
+            "pos_2D": self.pos_2D,
+            "pos_3D": self.pos_3D,
             "nr": self.nr}
 
     def get_node(self, glider):
-        return Node(node_type=0, position_vector=numpy.array(self.pos3D))
+        return Node(node_type=0, position_vector=numpy.array(self.pos_3D))
 
 
 class UpperNode2D(object):
     """stores the 2d data of an attachment point"""
-    def __init__(self, rib_no, position, force=1., nr=None):
+    def __init__(self, rib_no, rib_pos, force=1., nr=None):
         self.rib_no = rib_no
-        self.position = position  # value from 0...100
+        self.rib_pos = rib_pos  # value from 0...1
         self.force = force
         self.nr = nr
 
     def __json__(self):
         return {'rib_no': self.rib_no,
-                'position': self.position,
+                'rib_pos': self.rib_pos,
                 'force': self.force,
                 'nr': self.nr}
 
     def get_2d(self, glider_2d):
         _, front, back = glider_2d.shape()
         xpos = numpy.unique([i[0] for i in front if i[0] >= 0.])
-        pos = self.position / 100.
+        pos = self.rib_pos
         if self.rib_no < len(xpos):
             x = xpos[self.rib_no]
             j = self.rib_no + len(front) - len(xpos)
@@ -49,19 +49,19 @@ class UpperNode2D(object):
 
     def get_node(self, glider):
         node = AttachmentPoint(glider.ribs[self.rib_no], None,
-                               self.position/100, [0, 0, self.force])
+                               self.rib_pos, [0, 0, self.force])
         node.get_position()
         return node
 
 
 class BatchNode2D(object):
-    def __init__(self, pos_2d, nr=None):
-        self.pos_2d = pos_2d  # pos => 2d coordinates
+    def __init__(self, pos_2D, nr=None):
+        self.pos_2D = pos_2D  # pos => 2d coordinates
         self.nr = nr
 
     def __json__(self):
         return{
-            "pos_2d": self.pos_2d,
+            "pos_2D": self.pos_2D,
             "nr": self.nr
         }
 

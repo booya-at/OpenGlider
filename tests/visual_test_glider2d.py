@@ -21,3 +21,6 @@ class GliderTestCase2D(TestCase):
         self.glider2d.cell_num += 15
         glider3d = self.glider2d.get_glider_3d()
         TestGlider.show_glider(glider3d)
+
+if __name__ == '__main__':
+    unittest.main()
