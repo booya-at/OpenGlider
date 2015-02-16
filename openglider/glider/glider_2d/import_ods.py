@@ -106,7 +106,7 @@ def import_ods_2d(cls, filename, numpoints=4):
                balloonings=balloonings,
                ballooning_merge_curve=symmetric_fit(ballooning_merge),
                lineset=tolist_lines(sheets[6], attachment_points_lower, attachment_points),
-               speed=data.get("SPEED", 0),
+               speed=data.get("GESCHWINDIGKEIT", 10),
                glide=data.get("GLEITZAHL", 10))
 
 
