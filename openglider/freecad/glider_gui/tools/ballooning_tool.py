@@ -102,7 +102,6 @@ class ballooning_tool(base_tool):
 
     def update_ballooning(self, *args):
         self.ballooning_sep.removeAllChildren()
-        print(self.current_ballooning.points)
         self.ballooning_sep.addChild(Line(vector3D(self.current_ballooning.points)).object)
 
     def spline_edit(self):

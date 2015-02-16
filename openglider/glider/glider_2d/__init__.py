@@ -126,7 +126,7 @@ class Glider2D(object):
         ribs = zip(front, back)
         return [ribs, front, back]
 
-    def ribs(self, num=30):
+    def ribs(self, num=30):         #property
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
         dist_line = self.cell_dist_interpolation
@@ -199,7 +199,6 @@ class Glider2D(object):
     @property
     def attachment_points(self):
         """coordinates of the attachment_points"""
-        print([i.rib_no for i in self.lineset.nodes if isinstance(i, UpperNode2D)])
         return [a_p.get_2d(self) for a_p in self.lineset.nodes if isinstance(a_p, UpperNode2D)]
 
     def merge_ballooning(self, factor):
@@ -292,8 +291,6 @@ class Glider2D(object):
 
         arc_pos = list(self.get_arc_positions(num=num))
         arc_angles = self.get_arc_angles()
-        print(arc_pos)
-        print(arc_angles)
 
         if x_values[0] != 0.:
             # adding the mid cell
@@ -325,7 +322,12 @@ class Glider2D(object):
 
         glider.close_rib()
 
-        glider.lineset = self.lineset.return_lineset(glider)
+        glider.lineset = self.lineset.return_lineset(glider, self.v_inf)
         glider.lineset.calc_geo()
         glider.lineset.calc_sag()
         return glider
+
+    @property
+    def v_inf(self):
+        angle = numpy.arctan(1/self.glide)
+        return self.speed * numpy.array([numpy.cos(angle), 0, numpy.sin(angle)])

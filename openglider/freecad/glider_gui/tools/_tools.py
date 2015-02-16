@@ -1,8 +1,10 @@
 from __future__ import division
 
+from copy import deepcopy
+import numpy
 from PySide import QtCore, QtGui
 from pivy import coin
-import numpy
+import FreeCAD as App
 import FreeCADGui as Gui
 from openglider.airfoil.parametric import BezierProfile2D
 
@@ -55,7 +57,7 @@ class base_tool(object):
 
     def __init__(self, obj, widget_name="base_widget"):
         self.obj = obj
-        self.glider_2d = self.obj.glider_2d
+        self.glider_2d = deepcopy(self.obj.glider_2d)
         self.obj.ViewObject.Visibility = False
         self.view = Gui.ActiveDocument.ActiveView
         self.view.viewTop()
@@ -129,7 +131,12 @@ class shape_tool(base_tool):
         Gui.SendMsgToActiveView("ViewFit")
 
     def accept(self):
-        self.glider_2d.get_glider_3d(self.obj.glider_instance)
+        try:
+            self.glider_2d.get_glider_3d(self.obj.glider_instance)
+        except Exception as e:
+            App.Console.PrintError(e)
+            self.glider_2d.get_glider_3d(self.obj.glider_instance)
+            return
         self.obj.glider_2d = self.glider_2d
         self.obj.ViewObject.Proxy.updateData()
         self.back_cpc.remove_callbacks()
@@ -507,7 +514,6 @@ class airfoil_tool(base_tool):
 
     def update_airfoil(self, *args):
         self.airfoil_sep.removeAllChildren()
-        print(self.current_airfoil)
         self.airfoil_sep.addChild(Line(vector3D(self.current_airfoil)).object)
 
     def spline_edit(self):

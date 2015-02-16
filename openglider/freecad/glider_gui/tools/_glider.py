@@ -2,13 +2,13 @@ from __future__ import division
 import os
 
 from pivy import coin
-import FreeCAD
+import FreeCAD as App
 
 
 import openglider
 from openglider.glider import Glider, Glider2D
 from openglider.jsonify import load
-from pivy_primitives import Line
+from pivy_primitives_new_new import Line
 
 importpath = os.path.join(os.path.dirname( __file__ ), '..', 'demokite.ods')
 print(importpath)
@@ -44,12 +44,10 @@ class OGBaseVP(object):
 
 class OGGlider(OGBaseObject):
     def __init__(self, obj):
-        obj.addProperty(
-            "App::PropertyPythonObject", "glider_instance", "object", "glider_instance")
-        obj.addProperty(
-            "App::PropertyPythonObject", "glider_2d", "object", "parametric glider")
-        print(str(FreeCAD.getHomePath()) + "/Mod/glider_gui/glider2d.json")
-        with open(str(FreeCAD.getHomePath()) + "Mod/glider_gui/glider2d.json", 'r') as importfile:
+        obj.addProperty("App::PropertyPythonObject", "glider_instance", "object", "glider_instance")
+        obj.addProperty("App::PropertyPythonObject", "glider_2d", "object", "parametric glider")
+        print(str(App.getHomePath()) + "/Mod/glider_gui/glider2d.json")
+        with open(str(App.getHomePath()) + "Mod/glider_gui/glider2d.json", 'r') as importfile:
             obj.glider_2d = load(importfile)["data"]
         obj.glider_instance = obj.glider_2d.get_glider_3d()
         super(OGGlider, self).__init__(obj)
@@ -57,12 +55,12 @@ class OGGlider(OGBaseObject):
 
 class OGGliderVP(OGBaseVP):
     def __init__(self, view_obj):
-        view_obj.addProperty(
-            "App::PropertyInteger", "num_ribs", "accuracy", "num_ribs")
-        view_obj.addProperty(
-            "App::PropertyInteger", "profile_num", "accuracy", "profile_num")
+        view_obj.addProperty("App::PropertyInteger", "num_ribs", "accuracy", "num_ribs")
+        view_obj.addProperty("App::PropertyInteger", "profile_num", "accuracy", "profile_num")
+        view_obj.addProperty("App::PropertyInteger", "line_num", "accuracy", "line_num")
         view_obj.num_ribs = 0
-        view_obj.profile_num = 13        
+        view_obj.profile_num = 13
+        view_obj.line_num = 5    
         self.vis_glider = coin.SoSeparator()
         self.vis_lines = coin.SoSeparator()
         self.material = coin.SoMaterial()
@@ -81,8 +79,12 @@ class OGGliderVP(OGBaseVP):
 
     def updateData(self, fp=None, prop=None):
         if prop in ["num_ribs", "profile_num", None]:
-            self.update_glider(midribs=self.view_obj.num_ribs, profile_numpoints=self.view_obj.profile_num)
-        # self.update_lines()
+            numpoints= self.view_obj.profile_num
+            if numpoints < 5:
+                numpoints = 5
+            self.update_glider(midribs=self.view_obj.num_ribs, profile_numpoints=numpoints)
+        if prop in ["line_num", None]:
+            self.update_lines(self.view_obj.line_num)
 
     def update_glider(self, midribs=0, profile_numpoints=20):
         self.vis_glider.removeAllChildren()
@@ -113,17 +115,19 @@ class OGGliderVP(OGBaseVP):
                 sep.addChild(vertexproperty)
                 sep.addChild(mesh)
                 self.vis_glider.addChild(sep)
+
+    def update_lines(self, num=3):
         self.vis_lines.removeAllChildren()
-        for line in glider.lineset.lines:
-            points = line.get_line_points()
-            self.vis_glider.addChild(Line([[i[0], -i[1], i[2]] for i in points]).object)
-            self.vis_lines.addChild(Line(points).object)
+        for line in self.glider_instance.lineset.lines:
+            points = line.get_line_points(numpoints=num)
+            self.vis_glider.addChild(Line([[i[0], -i[1], i[2]] for i in points], dynamic=False))
+            self.vis_lines.addChild(Line(points, dynamic=False))
 
     def onChanged(self, vp, prop):
         self.updateData()
 
     def getIcon(self):
-        return str(FreeCAD.getHomePath() + "Mod/glider_gui/icons/glider_import.svg")
+        return str(App.getHomePath() + "Mod/glider_gui/icons/glider_import.svg")
 
     def __getstate__(self):
         return None

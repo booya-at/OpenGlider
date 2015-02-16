@@ -5,8 +5,7 @@ from _glider import OGGlider, OGGliderVP
 from _tools import (shape_tool, base_tool,
                     arc_tool, aoa_tool, airfoil_tool, export_2d, import_2d)
 from ballooning_tool import ballooning_tool
-from attach_tool import attach_tool
-from line_tool import line_tool
+from _line_tool import line_tool
 from openglider.plots import flatten_glider
 
 
@@ -121,13 +120,11 @@ class Pattern_Tool(object):
             pattern_doc = FreeCAD.newDocument()
             from Draft import makeWire
             flat_glider = flatten_glider(obj.glider_instance)
-            print(flat_glider)
             max_last = [0, 0]
             draw_area = flat_glider.values()[0]
             for da in flat_glider.values()[1:]:
                 draw_area.insert(da)
             for i, part in enumerate(draw_area.parts):
-                print(part)
                 grp = pattern_doc.addObject("App::DocumentObjectGroup","Panel_" + str(i))
                 layer_dict = part.layer_dict
                 for layer in layer_dict:
@@ -166,7 +163,6 @@ class Arc_Tool(BaseCommand):
         return {'Pixmap': 'arc_tool.svg', 'MenuText': 'Arc', 'ToolTip': 'Arc'}
 
     def tool(self, obj):
-        print("jojojo")
         return arc_tool(obj)
 
 
@@ -192,14 +188,6 @@ class Ballooning_Tool(BaseCommand):
 
     def tool(self, obj):
         return ballooning_tool(obj)
-
-class Attach_Tool(BaseCommand):
-    def GetResources(self):
-        return {'Pixmap': 'attach_tool.svg', 'MenuText': 'Attachmentpoints', 'ToolTip': 'Attachmentpoints'}
-
-    def tool(self, obj):
-        return attach_tool(obj)
-
 
 class Line_Tool(BaseCommand):
     def GetResources(self):

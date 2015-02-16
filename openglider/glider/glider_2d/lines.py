@@ -102,7 +102,7 @@ class LineSet2D(object):
 
         return list(nodes)
 
-    def return_lineset(self, glider):
+    def return_lineset(self, glider, v_inf):
         lines = []
         # first get the lowest points (lw-att)
         lowest = [node for node in self.nodes if isinstance(node, LowerNode2D)]
@@ -119,10 +119,10 @@ class LineSet2D(object):
             upper = line.upper_node.temp_node
             if lower and upper:
                 line = Line(number=line_no, lower_node=lower, upper_node=upper,
-                            vinf=glider.v_inf, target_length=line.target_length)
+                            vinf=v_inf, target_length=line.target_length)
                 lines.append(line)
 
-        return LineSet(lines, glider.v_inf)
+        return LineSet(lines, v_inf)
 
     def sort_lines(self, lower_att):
         """

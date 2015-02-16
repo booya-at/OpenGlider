@@ -280,8 +280,3 @@ class Glider(object):
     def glide(self, glide):
         for rib in self.ribs:
             rib.glide = glide
-
-    @property
-    def v_inf(self):
-        angle = numpy.arctan(1/self.glide)
-        return numpy.array([-numpy.cos(angle), 0, numpy.sin(angle)])

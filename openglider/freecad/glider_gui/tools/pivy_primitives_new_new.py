@@ -1,4 +1,5 @@
 from pivy import coin
+import FreeCAD as App
 
 COLORS = {
     "black": (0, 0, 0),
@@ -32,6 +33,11 @@ class Object3D(coin.SoSeparator):
         self.on_drag_release = []
         self.on_drag_start = []
         self._delete = False
+
+    def set_color(self, col):
+        self.std_col = col
+        self._std_color = COLORS[self.std_col]
+        self.color.diffuseColor = self._std_color
 
     @property
     def points(self):
@@ -266,7 +272,6 @@ class Container(coin.SoSeparator):
         self.selection_changed()
 
     def removeAllChildren(self):
-        print("i was called")
         for i in self.objects:
             i.delete()
         self.objects = []
@@ -327,6 +332,20 @@ class SymmetricSpline(Container):
     def update_spline(self):
         self.bez.controlpoints = self.marker_points
         self.line.points = self.bez.get_sequence(50)
+
+
+def vector3D(vec):
+    if len(vec) == 0:
+        return(vec)
+    elif not isinstance(vec[0], (list, tuple, numpy.ndarray, App.Vector)):
+        if len(vec) == 3:
+            return vec
+        elif len(vec) == 2:
+            return numpy.array(vec).tolist() + [0.]
+        else:
+            print("something wrong with this list: ", vec)
+    else:
+        return [vector3D(i) for i in vec]
 
 if __name__ == "__main__":
     import FreeCADGui as Gui
