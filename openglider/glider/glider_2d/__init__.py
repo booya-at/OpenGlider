@@ -292,6 +292,8 @@ class Glider2D(object):
         arc_pos = list(self.get_arc_positions(num=num))
         arc_angles = self.get_arc_angles()
 
+        profile_x_values = self.profiles[0].x_values
+
         if x_values[0] != 0.:
             # adding the mid cell
             x_values = [-x_values[0]] + x_values
@@ -302,9 +304,11 @@ class Glider2D(object):
             front = front_int(pos)
             back = back_int(pos)
             arc = arc_pos[rib_no]
+            profile = self.merge_profile(profile_merge_curve(abs(pos))[1])
+            profile.x_values = profile_x_values
 
             ribs.append(Rib(
-                profile_2d=self.merge_profile(profile_merge_curve(abs(pos))[1]),
+                profile_2d=profile,
                 ballooning=self.merge_ballooning(ballooning_merge_curve(abs(pos))[1]),
                 startpoint=numpy.array([-front[1], arc[0], arc[1]]),
                 chord=norm(front - back),
