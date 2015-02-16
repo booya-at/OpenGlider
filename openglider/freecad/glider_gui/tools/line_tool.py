@@ -104,7 +104,7 @@ class line_tool(base_tool):
                 self.target_length.setValue(obj.target_length)
             elif isinstance(obj, Lower_Att_Marker):
                 self.tool_widget.setCurrentWidget(self.lw_att_wid)
-                x, y, z = obj.pos3D
+                x, y, z = obj.pos_3D
                 self.attach_x_val.setValue(x)
                 self.attach_y_val.setValue(y)
                 self.attach_z_val.setValue(z)
@@ -129,7 +129,7 @@ class line_tool(base_tool):
             x = self.attach_x_val.value()
             y = self.attach_y_val.value()
             z = self.attach_z_val.value()
-            self.shape.select_object[0].pos3D = [x,y,z]
+            self.shape.select_object[0].pos_3D = [x,y,z]
         except Exception:
             print(Exception)
 
@@ -165,12 +165,12 @@ class line_tool(base_tool):
         if ((event.getKey() == ord("a") or force) and
             (event.getState() == 1 or event.wasCtrlDown())):
             pos = event.getPosition()
-            pos3D = self.view.getPoint(*pos)
-            pos3D[-1] = 0.
+            pos_3D = self.view.getPoint(*pos)
+            pos_3D[-1] = 0.
             if event.wasCtrlDown():
-                point = Lower_Att_Marker(pos3D)
+                point = Lower_Att_Marker(pos_3D)
             else:
-                point = NodeMarker(pos3D)
+                point = NodeMarker(pos_3D)
             self.shape.addChild(point)
             return point
 
@@ -191,8 +191,8 @@ class line_tool(base_tool):
                 obj = NodeMarker(node)
                 self.shape.addChild(obj)
             elif isinstance(node, LowerNode2D):
-                obj = Lower_Att_Marker(vector3D(node.pos))
-                obj.pos3D = node.pos3D
+                obj = Lower_Att_Marker(node, vector3D(node.pos))
+                obj.pos_3D = node.pos_3D
                 obj.node = node
                 self.shape.addChild(obj)
             
@@ -237,7 +237,7 @@ class line_tool(base_tool):
         for obj in self.shape.objects:
             # add the 2d objects to the graphical objects
             if isinstance(obj, Lower_Att_Marker):
-                obj.node = LowerNode2D(list(obj.pos), obj.pos3D)
+                obj.node = LowerNode2D(list(obj.pos), obj.pos_3D)
                 points.append(obj.node)
 
             elif isinstance(obj, Upper_Att_Marker):
@@ -278,8 +278,8 @@ class NodeMarker(Marker):
     ovr_col = "red"
     sel_col = "yellow"
 
-    def __init__(self, node):
-        pos = node.pos_2D
+    def __init__(self, node, pos=None):
+        pos = pos or node.pos_2D
         super(NodeMarker, self).__init__([pos], dynamic=True)
         self.node = node
 
@@ -295,8 +295,8 @@ class NodeMarker(Marker):
 class Upper_Att_Marker(NodeMarker):
     std_col = "blue"
 
-    def __init__(self, pos):
-        super(Upper_Att_Marker, self).__init__(pos, std_col="blue")
+    def __init__(self, node, pos):
+        super(Upper_Att_Marker, self).__init__(node, pos)
         self.force = 1.
 
     def drag(self, *arg):
@@ -309,9 +309,9 @@ class Upper_Att_Marker(NodeMarker):
 class Lower_Att_Marker(NodeMarker):
     std_col = "green"
 
-    def __init__(self, pos):
-        super(Lower_Att_Marker, self).__init__(pos)
-        self.pos3D = [0, 0, 0]
+    def __init__(self, node, pos):
+        super(Lower_Att_Marker, self).__init__(node, pos)
+        self.pos_3D = [0, 0, 0]
 
     @property
     def pos(self):

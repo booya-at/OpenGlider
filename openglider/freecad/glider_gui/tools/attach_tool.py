@@ -18,6 +18,7 @@ class attach_tool(base_tool):
         # save the shape as it will not be changed in this task
         self.ribs, self.front, self.back = self.glider_2d.shape()
         self.xpos = numpy.unique([i[0] for i in self.front if i[0]>=0.]).tolist()
+        self.attachment_points
         self.current_point = None
 
         # adding some pivy containers

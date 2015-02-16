@@ -37,12 +37,13 @@ class UpperNode2D(object):
                 'nr': self.nr}
 
     def get_2d(self, glider_2d):
-        _, front, back = glider_2d.shape()
+        _, front, back = glider_2d.shape()                          # rib numbering convention???
         xpos = numpy.unique([i[0] for i in front if i[0] >= 0.])
         pos = self.rib_pos
-        if self.rib_no < len(xpos):
-            x = xpos[self.rib_no]
-            j = self.rib_no + len(front) - len(xpos)
+        if self.rib_no <= len(xpos):
+            rib_no = self.rib_no - 1
+            x = xpos[rib_no]
+            j = rib_no + len(front) - len(xpos)
             chord = back[j][1] - front[j][1]
             y = front[j][1] + pos * chord
             return x, y
