@@ -154,7 +154,7 @@ class Glider2D(object):
             factor = span/el.controlpoints[-1][0]
             el.controlpoints = [[p[0]*factor, p[1]] for p in el.controlpoints]
 
-        for attr in 'back', 'front', 'cell_dist', 'aoa':
+        for attr in 'back', 'front', 'cell_dist', 'aoa', 'profile_merge_curve', 'ballooning_merge_curve':
             set_span(attr)
 
         arc_pos = self.get_arc_positions()
@@ -304,7 +304,8 @@ class Glider2D(object):
             front = front_int(pos)
             back = back_int(pos)
             arc = arc_pos[rib_no]
-            profile = self.merge_profile(profile_merge_curve(abs(pos))[1])
+            factor = profile_merge_curve(abs(pos))[1]
+            profile = self.merge_profile(factor)
             profile.x_values = profile_x_values
 
             ribs.append(Rib(
