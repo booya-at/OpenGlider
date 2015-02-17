@@ -202,6 +202,7 @@ class Glider2D(object):
         return [a_p.get_2d(self) for a_p in self.lineset.nodes if isinstance(a_p, UpperNode2D)]
 
     def merge_ballooning(self, factor):
+        factor = max(0, min(len(self.balloonings)-1, factor))
         k = factor % 1
         i = int(factor // 1)
         first = self.balloonings[i]
@@ -212,6 +213,7 @@ class Glider2D(object):
             return first.copy()
 
     def merge_profile(self, factor):
+        factor = max(0, min(len(self.profiles)-1, factor))
         k = factor % 1
         i = int(factor // 1)
         first = self.profiles[i]
