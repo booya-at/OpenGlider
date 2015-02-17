@@ -134,11 +134,10 @@ class AttachmentPoint(Node):
 
 
 class RibHole(object):
-    def __init__(self, rib, pos, size=0.5, numpoints=20):
+    def __init__(self, rib, pos, size=0.5):
         self.rib = rib
         self.pos = pos
         self.size = size
-        self.numpoints = numpoints
 
     def get_3d(self, num=20):
         hole = self.get_flattened(num=num)

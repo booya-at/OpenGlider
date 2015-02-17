@@ -21,25 +21,24 @@ from __future__ import division
 
 from openglider.airfoil import get_x_value
 from openglider.plots.projection import flatten_list
+from openglider.vector import norm
 
 
 class DiagonalRib(object):
-    def __init__(self, left_front, left_back, right_front, right_back, rib1, rib2):
+    def __init__(self, cell, left_front, left_back, right_front, right_back):
         # Attributes
         self.left_front = left_front
         self.left_back = left_back
         self.right_front = right_front
         self.right_back = right_back
-        self.rib1 = rib1
-        self.rib2 = rib2
+        self.cell = cell
 
     def __json__(self):
         return {'left_front': self.left_front,
                 'left_back': self.left_back,
                 'right_front': self.right_front,
                 'right_back': self.right_back,
-                'rib1': self.rib1,
-                'rib2': self.rib2}
+                'cell': self.cell}
 
     def get_3d(self):
         """
@@ -57,8 +56,8 @@ class DiagonalRib(object):
             else:
                 return [rib.align(p + [0]) for p in (cut_front, cut_back)]
 
-        left = get_list(self.rib1, self.left_front, self.left_back)
-        right = get_list(self.rib1, self.right_front, self.right_back)
+        left = get_list(self.cell.rib1, self.left_front, self.left_back)
+        right = get_list(self.cell.rib2, self.right_front, self.right_back)
 
         return left, right
 
@@ -72,16 +71,30 @@ class DiagonalRib(object):
 
 
 class DoubleDiagonalRib():
-    pass
+    pass  # TODO
 
 
-class TensionStrapSimple(DiagonalRib):
-    def __init__(self, left, right, width, cell_no):
+class TensionStrap(DiagonalRib):
+    def __init__(self, cell, left, right, width):
         width /= 2
-        super(TensionStrapSimple, self).__init__((left - width, -1),
+        super(TensionStrap, self).__init__(cell, (left - width, -1),
                                                  (left + width, -1),
                                                  (right - width, -1),
-                                                 (right + width, -1), cell_no)
+                                                 (right + width, -1))
+
+class TensionStrapSimple():
+    def __init__(self, cell, left, right):
+        self.cell = cell
+        self.left = left
+        self.right = right
+
+    def get_length(self):
+        rib1 = self.cell.rib1
+        rib2 = self.cell.rib2
+        left = rib1.profile_3d[rib1.profile_2d(self.left)]
+        right = rib1.profile_3d[rib1.profile_2d(self.right)]
+
+        return norm(left - right)
 
 
 class Panel(object):

@@ -1,4 +1,5 @@
 from __future__ import division
+from openglider.glider.rib_elements import RibHole
 
 try:
     import ezodf2 as ezodf
@@ -31,8 +32,9 @@ def import_ods_2d(cls, filename, numpoints=4):
     data = {}
     datasheet = sheets[-1]
     assert isinstance(datasheet, ezodf.Sheet)
-    for i in range(datasheet.nrows()):
-        data[datasheet.get_cell([i, 0]).value] = datasheet.get_cell([i, 1]).value
+    for row in datasheet.rows():
+        if len(row) > 1:
+            data[row[0].value] = row[1].value
 
     # All Lists
     front = []
@@ -68,13 +70,26 @@ def import_ods_2d(cls, filename, numpoints=4):
         profile_merge.append([span, line[8]])
         ballooning_merge.append([span, line[9]])
 
-        zrot = line[7] * numpy.pi / 180
+        # zrot = line[7] * numpy.pi / 180
 
         span_last = span
 
-    # rib_no, id, pos, force
+    # Attachment points: rib_no, id, pos, force
     attachment_points = [UpperNode2D(args[0], args[2], args[3], args[1]) for args in read_elements(sheets[2], "AHP", len_data=3)]
     attachment_points.sort(key=lambda element: element.nr)
+    attachment_points_lower = get_lower_aufhaengepunkte(data)
+
+    # RIB HOLES
+    #RibHole(rib, pos, size)
+    rib_holes = [{"rib": res[0], "pos": res[1], "size": res[2]} for res in read_elements(sheets[2], "QUERLOCH", len_data=2)]
+
+    # CUTS
+    def get_cuts(name, target_name):
+        return [{"rib": res[0], "left": res[1], "right": res[2], "type": "entry"}
+                for res in read_elements(sheets[1], "EKV", len_data=2)]
+    cuts = get_cuts("EKV", "entry") + get_cuts("EKH", "entry")
+    cuts += get_cuts("DESIGNM", "cut") + get_cuts("DESIGNO", "cut")
+
 
     has_center_cell = not front[0][0] == 0
     cell_no = (len(front)-1)*2 + has_center_cell
@@ -93,14 +108,13 @@ def import_ods_2d(cls, filename, numpoints=4):
 
     rib_distribution = BezierCurve.fit(rib_distribution, numpoints=numpoints+3)
 
-    attachment_points_lower = get_lower_aufhaengepunkte(data)
-
     return cls(front=symmetric_fit(front),
                back=symmetric_fit(back),
                cell_dist=rib_distribution,
                cell_num=cell_no,
                arc=symmetric_fit(arc),
                aoa=symmetric_fit(aoa),
+               #rib_elements={"cuts": cuts},
                profiles=profiles,
                profile_merge_curve=symmetric_fit(profile_merge),
                balloonings=balloonings,
