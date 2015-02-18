@@ -33,13 +33,30 @@ from openglider.vector.functions import norm
 __ALL = ['BezierCurve']
 
 
+class _BernsteinFactory():
+    def __init__(self):
+        self.bases = {}
+
+    def __call__(self, degree):
+        if degree not in self.bases:
+            def bsf(n):
+                return lambda x: choose(degree - 1, n) * (x ** n) * ((1 - x) ** (degree - 1 - n))
+
+            self.bases[degree] = [bsf(i) for i in range(degree)]
+
+        return self.bases[degree]
+
+BernsteinBase = _BernsteinFactory()
+
+
 class BezierCurve(HashedList):
+    basefactory = BernsteinBase
+
     def __init__(self, controlpoints=None):
         """
         Bezier Curve representative
         http://en.wikipedia.org/wiki/Bezier_curve#Generalization
         """
-        #self._BezierBase = self._BezierFunction = self._controlpoints = None
         super(BezierCurve, self).__init__(controlpoints)
 
     def __json__(self):
@@ -49,7 +66,7 @@ class BezierCurve(HashedList):
     def __from_json__(cls, controlpoints):
         return cls(controlpoints)
 
-    def __call__(self, value):
+    def call(self, value):
         i_end = len(self._data)
         j_end = len(self._data[0])
         out_arr = numpy.zeros([j_end])
@@ -59,21 +76,15 @@ class BezierCurve(HashedList):
                 out_arr[j] += fac * self._data[i][j]
         return out_arr
 
-    def call(self, value):
-        num = len(self.controlpoints)
+    def __call__(self, value):
         dim = len(self.controlpoints[0])
-        if 0 <= value <= 1:
-            val = numpy.zeros(dim)
-            for i, point in enumerate(self.controlpoints):
-                fakt = choose(i - 1, num) * (value ** num) * ((1 - value) ** (i - 1 - num))
-                #fakt = base[i](value)
-                try:
-                    val += point * fakt
-                except:
-                    raise Exception("fehler: {}, {}, {}".format(val.__class__, point.__class__, fakt.__class__))
-            return val
-        else:
-            ValueError("value must be in the range (0,1) for xvalues use xpoint-function")
+        assert 0 <= value <= 1, "value must be in the range (0,1), not {}".format(value)
+
+        val = numpy.zeros(dim)
+        base = self.basefactory(self.numpoints)
+        for i, point in enumerate(self.controlpoints):
+            val += point * base[i](value)
+        return val
 
     @property
     def numpoints(self):
@@ -85,13 +96,8 @@ class BezierCurve(HashedList):
     @numpoints.setter
     def numpoints(self, num_ctrl, num_points=50):
         if not num_ctrl == self.numpoints:
-            base = bernsteinbase(num_ctrl)
-            self._controlpoints = fitbezier([self(i) for i in numpy.linspace(0, 1, num_points)], base)
-
-    #@cached_property('self')
-    @property
-    def _bezierbase(self):
-        return bernsteinbase(len(self._data))
+            data = [self(i) for i in numpy.linspace(0, 1, num_points)]
+            self.controlpoints = self.fit(data, num_ctrl).data
 
     @property
     def controlpoints(self):
@@ -109,15 +115,67 @@ class BezierCurve(HashedList):
         root = findroot(lambda y2: self.__call__(y2)[1] - y, 0, 1)
         return self.__call__(root)
 
-    @classmethod
-    def fit(cls, data, numpoints=3):
-        bezier = cls([[0,0] for __ in range(numpoints)])
-        bezier._data = numpy.array(fitbezier(data, bezier._bezierbase))
-        return bezier
+    # @classmethod
+    # def fit_(cls, data, numpoints=3):
+    #     bezier = cls([[0,0] for __ in range(numpoints)])
+    #     bezier._data = numpy.array(fitbezier(data, bezier._bezierbase))
+    #     return bezier
 
-    def interpolation(self, num=100):
+    @classmethod
+    def fit(cls, points, numpoints, start=True, end=True):
+        """
+        Fit to a given set of points with a certain number of spline-points (default=3)
+        if start (/ end) is True, the first (/ last) point of the Curve is included
+        """
+        base = cls.basefactory(numpoints)
+        matrix = numpy.matrix(
+            [[base[column](row * 1. / (len(points) - 1))
+                for column in range(len(base))]
+                    for row in range(len(points))])
+
+        if not start and not end:
+            matrix = numpy.linalg.pinv(matrix)
+            out = numpy.array(matrix * points)
+            return out
+        else:
+            A1 = numpy.array(matrix)
+            A2 = []
+            points2 = []
+            points1 = numpy.array(points)
+            solution = []
+
+            if start:
+                # add first column to A2 and remove first column of A1
+                A2.append(A1[:, 0])
+                A1 = A1[:, 1:]
+                points2.append(points[0])
+                points1 = points1[1:]
+
+            if end:
+                # add last column to A2 and remove last column of A1
+                A2.append(A1[:, -1])
+                A1 = A1[:, :-1]
+                points2.append(points[-1])
+                points1 = points[:-1]
+            A1_inv = numpy.linalg.inv(numpy.dot(A1.T, A1))
+            A2 = numpy.array(A2).T
+            points1 = numpy.array(points).T
+            points2 = numpy.array(points2).T
+            for dim, point in enumerate(points1):
+                rhs1 = numpy.array(A1.T.dot(point))
+                rhs2 = numpy.array((A1.T.dot(A2)).dot(points2[dim])).T
+                solution.append(numpy.array(A1_inv.dot(rhs1 - rhs2)))
+            solution = numpy.matrix(solution).T.tolist()
+            if start:
+                solution.insert(0, points[0])
+            if end:
+                solution.append(points[-1])
+
+        return cls(solution)
+
+    def interpolation(self, num=100, **kwargs):
         x, y = self.get_sequence(num).T
-        return scipy.interpolate.interp1d(x, y)
+        return scipy.interpolate.interp1d(x, y, **kwargs)
 
     def interpolate_3d(self, num=100, axis=0, bounds_error=False):
         """
@@ -168,8 +226,8 @@ class SymmetricBezier(BezierCurve):
     def numpoints(self, num_ctrl, num_points=50):
         if not num_ctrl == self.numpoints:
             num_ctrl *= 2
-            base = bernsteinbase(num_ctrl)
-            self._data = fitbezier([self(i) for i in numpy.linspace(0, 1, num_points)], base)
+            data = [self(i) for i in numpy.linspace(0, 1, num_points)]
+            self._data = BezierCurve.fit(data, num_ctrl).data
 
     @classmethod
     def fit(cls, data, numpoints=3):
@@ -178,16 +236,8 @@ class SymmetricBezier(BezierCurve):
 
 
 ##############################FUNCTIONS
-
 def _bernsteinbase(d, n, x):
     return choose(d - 1, n) * (x ** n) * ((1 - x) ** (d - 1 - n))
-
-
-def bernsteinbase(d):
-    def bsf(n):
-        return lambda x: comb(d - 1, n) * (x ** n) * ((1 - x) ** (d - 1 - n))
-
-    return [bsf(i) for i in range(d)]
 
 
 def choose(n, k):
@@ -203,23 +253,7 @@ def choose(n, k):
         return 0
 
 
-def bezierfunction(points, base=None):
-    """"""
-    if not base:
-        base = bernsteinbase(len(points))
-
-    def func(x):
-        val = numpy.zeros(len(points[0]))
-        for i in range(len(points)):
-            fakt = base[i](x)
-            v = numpy.array(points[i]) * fakt
-            val += v
-        return val
-
-    return func
-
-
-def fitbezier(points, base=bernsteinbase(3), start=True, end=True):
+def fitbezier(points, base=BernsteinBase(3), start=True, end=True):
     """
     Fit to a given set of points with a certain number of spline-points (default=3)
     if start (/ end) is True, the first (/ last) point of the Curve is included

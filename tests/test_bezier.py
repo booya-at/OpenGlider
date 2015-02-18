@@ -19,6 +19,7 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
 import random
+import time
 
 from common import openglider
 import openglider.utils.bezier as bezier
@@ -35,16 +36,28 @@ class TestBezier(unittest.TestCase):
         self.assertAlmostEqual(self.bezier(val)[1], self.bezier(val)[1])
 
     def test_fit(self):
-        to_fit = [[0, 0], [1, 1], [2, 0]]
-        self.bezier = bezier.BezierCurve.fit(to_fit, numpoints=3)
-        self.assertAlmostEqual(self.bezier.controlpoints[0][0], 0)
-        self.assertAlmostEqual(self.bezier.controlpoints[0][1], 0)
-        self.assertGreater(self.bezier(0.5)[1], 0)
-        self.assertAlmostEqual(self.bezier.xpoint(1.)[1], 1)
+        num = len(self.bezier.controlpoints)
+        to_fit = self.bezier.get_sequence()
+        bezier2 = bezier.BezierCurve.fit(to_fit, numpoints=num)
+        for p1, p2 in zip(self.bezier.controlpoints, bezier2.controlpoints):
+            self.assertAlmostEqual(p1[0], p2[0], 0)
+            self.assertAlmostEqual(p1[1], p2[1], 0)
 
     def test_length(self):
         self.bezier.controlpoints = [[0, 0], [2, 0]]
         self.assertAlmostEqual(self.bezier.get_length(10), 2.)
+
+    def test_speed(self, num=100):
+        time1 = time.time()
+        for _ in range(num):
+            self.bezier.controlpoints[0][1] = random.random()
+            [self.bezier(i/(num-1)) for i in range(num)]
+        time2 = time.time()
+        for _ in range(num):
+            self.bezier.controlpoints[0][1] = random.random()
+            [self.bezier.call(i/(num-1)) for i in range(num)]
+        print("call", time.time()-time2)
+        print("__call__", time2-time1)
 
 
 

@@ -49,13 +49,12 @@ class TestBezier(unittest.TestCase):
     def test_symmetric_bezier_fit(self):
         curve = [[x,numpy.cos(x)] for x in numpy.linspace(-1,1,30)]
         lower = SymmetricBezier.fit(curve, numpoints=5)
-        print(lower._controlpoints)
         Graphics([
             Red,
             Line(curve),
             Green,
             Line(lower.get_sequence(num=100)),
-            Line(lower._controlpoints)
+            Line(lower.controlpoints)
             ])
 
     def test_scale_bezier(self):

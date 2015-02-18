@@ -10,7 +10,7 @@ from openglider.airfoil.parametric import BezierProfile2D
 
 from openglider.jsonify import dump, load
 from openglider.glider.glider_2d import Glider2D
-from openglider.utils.bezier import fitbezier
+from openglider.utils.bezier import BezierCurve
 from openglider.vector import norm, normalize
 from pivy_primitives import Line, vector3D, ControlPointContainer
 
@@ -238,7 +238,7 @@ class shape_tool(base_tool):
 
     def update_const(self):
         const_dist = self.glider_2d.depth_integrated()
-        self.glider_2d.cell_dist.controlpoints = fitbezier(const_dist, self.glider_2d.cell_dist._bezierbase)
+        self.glider_2d.cell_dist = BezierCurve.fit(const_dist)
         self.rib_pos_cpc.control_pos = self.glider_2d.cell_dist_controlpoints
         self.update_shape()
 
