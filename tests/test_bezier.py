@@ -17,6 +17,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import division
+
 import unittest
 import random
 import time
@@ -27,8 +29,17 @@ import openglider.utils.bezier as bezier
 
 class TestBezier(unittest.TestCase):
     def setUp(self):
-        controlpoints = [[i, random.random()] for i in range(5)]
+        controlpoints = [[i, random.random()] for i in range(15)]
         self.bezier = bezier.BezierCurve(controlpoints)
+
+    def test_consistency(self):
+        numpoints = 200
+        data = [i/numpoints for i in range(numpoints+1)]
+        for val in data:
+            p1= self.bezier.call(val)
+            p2=self.bezier(val)
+            self.assertAlmostEqual(p1[0], p2[0], 0)
+            self.assertAlmostEqual(p1[1], p2[1], 0)
 
     def test_get_value(self):
         val = random.random()

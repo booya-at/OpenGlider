@@ -77,12 +77,12 @@ class BezierCurve(HashedList):
         return out_arr
 
     def __call__(self, value):
-        dim = len(self.controlpoints[0])
+        dim = len(self.data[0])
         assert 0 <= value <= 1, "value must be in the range (0,1), not {}".format(value)
 
         val = numpy.zeros(dim)
-        base = self.basefactory(self.numpoints)
-        for i, point in enumerate(self.controlpoints):
+        base = self.basefactory(len(self.data))
+        for i, point in enumerate(self.data):
             val += point * base[i](value)
         return val
 
