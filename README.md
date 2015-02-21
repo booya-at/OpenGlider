@@ -55,6 +55,7 @@ While still being in an early status, here is some little screenshots to see the
 ![screenshot testcell with miniribs](docs/screen.png)
 ![screenshot demokite with central minirib](docs/screen2.png)
 ![screenshot demokite plots](docs/screen3.png)
+![plots](docs/plots.svg)
 
 The plan is to build on:
 
