@@ -211,7 +211,7 @@ class shape_tool(base_tool):
 
     def update_num_dist(self, val):
         self.glider_2d.cell_dist.numpoints = val + 2
-        self.rib_pos_cpc.control_pos = vector3D(self.glider_2d.cell_dist._controlpoints[1:-1])
+        self.rib_pos_cpc.control_pos = vector3D(self.glider_2d.cell_dist.controlpoints[1:-1])
         self.update_shape()
 
     def update_num_front(self, val):
@@ -237,8 +237,8 @@ class shape_tool(base_tool):
         self.update_shape()
 
     def update_const(self):
-        const_dist = self.glider_2d.depth_integrated()
-        self.glider_2d.cell_dist = BezierCurve.fit(const_dist)
+        const_dist = list(self.glider_2d.depth_integrated())
+        self.glider_2d.cell_dist = BezierCurve.fit(const_dist, numpoints=self.Qnum_dist.value() + 2)
         self.rib_pos_cpc.control_pos = self.glider_2d.cell_dist_controlpoints
         self.update_shape()
 

@@ -122,7 +122,7 @@ class BezierCurve(HashedList):
     #     return bezier
 
     @classmethod
-    def fit(cls, points, numpoints, start=True, end=True):
+    def fit(cls, points, numpoints=5, start=True, end=True):
         """
         Fit to a given set of points with a certain number of spline-points (default=3)
         if start (/ end) is True, the first (/ last) point of the Curve is included

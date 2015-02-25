@@ -1,0 +1,2459 @@
+{
+    "data": {
+        "_module": "openglider.glider.glider_2d", 
+        "_type": "Glider2D", 
+        "data": {
+            "aoa": {
+                "_module": "openglider.utils.bezier", 
+                "_type": "SymmetricBezier", 
+                "data": {
+                    "controlpoints": [
+                        [
+                            0.1154094320728453, 
+                            0.13505665063858033
+                        ], 
+                        [
+                            1.350059631318304, 
+                            0.14245316982269288
+                        ], 
+                        [
+                            1.426382630999114, 
+                            0.04639546871185303
+                        ], 
+                        [
+                            1.4971126317977905, 
+                            -0.00013251008931547403
+                        ]
+                    ]
+                }
+            }, 
+            "back": {
+                "_module": "openglider.utils.bezier", 
+                "_type": "SymmetricBezier", 
+                "data": {
+                    "controlpoints": [
+                        [
+                            0.4719711244106293, 
+                            -1.0891609191894531
+                        ], 
+                        [
+                            1.2560149431228638, 
+                            -0.9027271270751953
+                        ], 
+                        [
+                            1.4971126317977905, 
+                            -0.6418741345405579
+                        ]
+                    ]
+                }
+            }, 
+            "arc": {
+                "_module": "openglider.utils.bezier", 
+                "_type": "SymmetricBezier", 
+                "data": {
+                    "controlpoints": [
+                        [
+                            0.323663818277775, 
+                            0.3449807485833395
+                        ], 
+                        [
+                            0.9816917404079455, 
+                            0.13294558770814002
+                        ], 
+                        [
+                            1.2725871987227146, 
+                            -0.2794212995136117
+                        ], 
+                        [
+                            1.1880073648129343, 
+                            -0.4721988025299616
+                        ]
+                    ]
+                }
+            }, 
+            "profile_merge_curve": {
+                "_module": "openglider.utils.bezier", 
+                "_type": "SymmetricBezier", 
+                "data": {
+                    "controlpoints": [
+                        [
+                            0.2807592041191535, 
+                            0.0
+                        ], 
+                        [
+                            0.7872881308376262, 
+                            0.0
+                        ], 
+                        [
+                            1.218009580302265, 
+                            0.0
+                        ], 
+                        [
+                            1.4971126317977905, 
+                            0.0
+                        ]
+                    ]
+                }
+            }, 
+            "cell_dist": {
+                "_module": "openglider.utils.bezier", 
+                "_type": "BezierCurve", 
+                "data": {
+                    "controlpoints": [
+                        [
+                            0.0, 
+                            0.0
+                        ], 
+                        [
+                            0.26924294233322144, 
+                            0.13709281384944916
+                        ], 
+                        [
+                            0.5150732398033142, 
+                            0.2658611834049225
+                        ], 
+                        [
+                            0.7784631848335266, 
+                            0.4356011748313904
+                        ], 
+                        [
+                            1.0945309400558472, 
+                            0.6170476078987122
+                        ], 
+                        [
+                            1.4666509628295898, 
+                            0.8213675022125244
+                        ], 
+                        [
+                            1.4971126317977905, 
+                            1.0
+                        ]
+                    ]
+                }
+            }, 
+            "front": {
+                "_module": "openglider.utils.bezier", 
+                "_type": "SymmetricBezier", 
+                "data": {
+                    "controlpoints": [
+                        [
+                            0.15333816409111023, 
+                            0.016754891723394394
+                        ], 
+                        [
+                            1.2590728998184204, 
+                            -0.08344078063964844
+                        ], 
+                        [
+                            1.4971126317977905, 
+                            -0.37100672721862793
+                        ]
+                    ]
+                }
+            }, 
+            "balloonings": [
+                {
+                    "_module": "openglider.glider.ballooning", 
+                    "_type": "BallooningBezier", 
+                    "data": {
+                        "upper": [
+                            [
+                                0.0, 
+                                0.0
+                            ], 
+                            [
+                                0.03, 
+                                0.0
+                            ], 
+                            [
+                                0.0686, 
+                                0.0346398402618658
+                            ], 
+                            [
+                                0.1665, 
+                                0.035
+                            ], 
+                            [
+                                0.185, 
+                                0.035
+                            ], 
+                            [
+                                0.75, 
+                                0.035
+                            ], 
+                            [
+                                0.822, 
+                                0.035
+                            ], 
+                            [
+                                0.9542, 
+                                0.0232259465357338
+                            ], 
+                            [
+                                1.0, 
+                                0.0
+                            ]
+                        ], 
+                        "lower": [
+                            [
+                                0.0, 
+                                0.0
+                            ], 
+                            [
+                                0.0475, 
+                                -0.0
+                            ], 
+                            [
+                                0.0575, 
+                                0.0151666666666667
+                            ], 
+                            [
+                                0.133, 
+                                0.0373333333333333
+                            ], 
+                            [
+                                0.2008, 
+                                0.035
+                            ], 
+                            [
+                                0.75, 
+                                0.035
+                            ], 
+                            [
+                                0.8192, 
+                                0.035
+                            ], 
+                            [
+                                0.9664, 
+                                0.0291983327877796
+                            ], 
+                            [
+                                1.0, 
+                                0.0
+                            ]
+                        ]
+                    }
+                }
+            ], 
+            "speed": 10, 
+            "cell_num": 22, 
+            "glide": 6.5, 
+            "lineset": {
+                "_module": "openglider.glider.glider_2d.lines", 
+                "_type": "LineSet2D", 
+                "data": {
+                    "nodes": [
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 2, 
+                                "nr": null, 
+                                "rib_pos": 0.28, 
+                                "force": 10.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 4, 
+                                "nr": null, 
+                                "rib_pos": 0.55, 
+                                "force": 7.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 7, 
+                                "nr": null, 
+                                "rib_pos": 0.1, 
+                                "force": 9.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    0.7209985852241516, 
+                                    -0.6806260943412781
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    1.6837635040283203, 
+                                    -0.6480550765991211
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "LowerNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    1.7869846820831299, 
+                                    -2.376343011856079
+                                ], 
+                                "pos_3D": [
+                                    0.4, 
+                                    0.3, 
+                                    -1.6
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 5, 
+                                "nr": null, 
+                                "rib_pos": 0.55, 
+                                "force": 7.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 5, 
+                                "nr": 5.0, 
+                                "rib_pos": 0.1, 
+                                "force": 12.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 3, 
+                                "nr": null, 
+                                "rib_pos": 1.0, 
+                                "force": 0.1
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 1, 
+                                "nr": 19.0, 
+                                "rib_pos": 0.77, 
+                                "force": 5.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 2, 
+                                "nr": null, 
+                                "rib_pos": 0.55, 
+                                "force": 9.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    0.2507116496562958, 
+                                    -0.6631087064743042
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    0.38677793741226196, 
+                                    -0.25558915734291077
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 1, 
+                                "nr": 1.0, 
+                                "rib_pos": 0.1, 
+                                "force": 14.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 5, 
+                                "nr": null, 
+                                "rib_pos": 0.79, 
+                                "force": 4.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 5, 
+                                "nr": 11.0, 
+                                "rib_pos": 0.28, 
+                                "force": 9.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 4, 
+                                "nr": null, 
+                                "rib_pos": 0.79, 
+                                "force": 4.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 7, 
+                                "nr": null, 
+                                "rib_pos": 0.28, 
+                                "force": 8.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 1, 
+                                "nr": 13.0, 
+                                "rib_pos": 0.55, 
+                                "force": 9.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    1.1259605884552002, 
+                                    -0.38151025772094727
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 8, 
+                                "nr": null, 
+                                "rib_pos": 0.51, 
+                                "force": 7.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 7, 
+                                "nr": null, 
+                                "rib_pos": 1.0, 
+                                "force": 0.1
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 8, 
+                                "nr": null, 
+                                "rib_pos": 0.1, 
+                                "force": 9.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    0.9323170185089111, 
+                                    -1.281449556350708
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 4, 
+                                "nr": null, 
+                                "rib_pos": 0.1, 
+                                "force": 13.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    1.920997142791748, 
+                                    -0.06174642592668533
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 11, 
+                                "nr": null, 
+                                "rib_pos": 0.72, 
+                                "force": 1.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 11, 
+                                "nr": null, 
+                                "rib_pos": 1.0, 
+                                "force": 0.1
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 5, 
+                                "nr": null, 
+                                "rib_pos": 1.0, 
+                                "force": 0.1
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 8, 
+                                "nr": null, 
+                                "rib_pos": 0.28, 
+                                "force": 8.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 9, 
+                                "nr": null, 
+                                "rib_pos": 1.0, 
+                                "force": 0.1
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    1.4270483255386353, 
+                                    -1.3104526996612549
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 7, 
+                                "nr": null, 
+                                "rib_pos": 0.79, 
+                                "force": 3.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 11, 
+                                "nr": null, 
+                                "rib_pos": 0.32, 
+                                "force": 1.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    1.325243353843689, 
+                                    -1.610445499420166
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 7, 
+                                "nr": 12.0, 
+                                "rib_pos": 0.5, 
+                                "force": 7.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 8, 
+                                "nr": null, 
+                                "rib_pos": 0.79, 
+                                "force": 3.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    2.145313024520874, 
+                                    -0.8566043972969055
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 1, 
+                                "nr": null, 
+                                "rib_pos": 1.0, 
+                                "force": 0.1
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 2, 
+                                "nr": null, 
+                                "rib_pos": 0.1, 
+                                "force": 13.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 2, 
+                                "nr": null, 
+                                "rib_pos": 0.79, 
+                                "force": 5.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "LowerNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    2.6573381423950195, 
+                                    -0.34457942843437195
+                                ], 
+                                "pos_3D": [
+                                    0.2, 
+                                    0.2, 
+                                    -1.8
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    1.122423768043518, 
+                                    -0.6811899542808533
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 1, 
+                                "nr": 7.0, 
+                                "rib_pos": 0.28, 
+                                "force": 11.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    0.7618030309677124, 
+                                    -0.3135588467121124
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 11, 
+                                "nr": null, 
+                                "rib_pos": 0.0, 
+                                "force": 1.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 4, 
+                                "nr": null, 
+                                "rib_pos": 0.28, 
+                                "force": 10.0
+                            }
+                        }
+                    ], 
+                    "lines": [
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 13, 
+                                "lower_node": 12, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 43, 
+                                "lower_node": 12, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 18, 
+                                "lower_node": 11, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 9, 
+                                "lower_node": 11, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 7, 
+                                "lower_node": 44, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 15, 
+                                "lower_node": 44, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 31, 
+                                "lower_node": 34, 
+                                "target_length": 0.5
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 23, 
+                                "lower_node": 34, 
+                                "target_length": 0.6
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 34, 
+                                "lower_node": 5, 
+                                "target_length": 0.5
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 35, 
+                                "lower_node": 42, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 8, 
+                                "lower_node": 23, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 28, 
+                                "lower_node": 23, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 27, 
+                                "lower_node": 31, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 30, 
+                                "lower_node": 31, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 12, 
+                                "lower_node": 25, 
+                                "target_length": 1.1
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 44, 
+                                "lower_node": 25, 
+                                "target_length": 1.1
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 42, 
+                                "lower_node": 37, 
+                                "target_length": 1.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 11, 
+                                "lower_node": 37, 
+                                "target_length": 1.15
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 37, 
+                                "lower_node": 41, 
+                                "target_length": 0.5
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 25, 
+                                "lower_node": 41, 
+                                "target_length": 0.5
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 32, 
+                                "lower_node": 42, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 39, 
+                                "lower_node": 12, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 0, 
+                                "lower_node": 12, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 46, 
+                                "lower_node": 44, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 24, 
+                                "lower_node": 44, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 17, 
+                                "lower_node": 19, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 29, 
+                                "lower_node": 19, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 22, 
+                                "lower_node": 19, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 2, 
+                                "lower_node": 19, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 40, 
+                                "lower_node": 11, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 10, 
+                                "lower_node": 11, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 1, 
+                                "lower_node": 3, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 6, 
+                                "lower_node": 3, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 14, 
+                                "lower_node": 3, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 16, 
+                                "lower_node": 3, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 20, 
+                                "lower_node": 42, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 36, 
+                                "lower_node": 42, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 3, 
+                                "lower_node": 37, 
+                                "target_length": 1.2
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 19, 
+                                "lower_node": 25, 
+                                "target_length": 1.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 21, 
+                                "lower_node": 31, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 38, 
+                                "lower_node": 23, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 4, 
+                                "lower_node": 25, 
+                                "target_length": 0.8
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 45, 
+                                "lower_node": 4, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 33, 
+                                "lower_node": 4, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 26, 
+                                "lower_node": 4, 
+                                "target_length": null
+                            }
+                        }
+                    ]
+                }
+            }, 
+            "profiles": [
+                {
+                    "_module": "openglider.airfoil", 
+                    "_type": "Profile2D", 
+                    "data": {
+                        "data": [
+                            [
+                                1.0, 
+                                0.0
+                            ], 
+                            [
+                                0.99144, 
+                                0.0016
+                            ], 
+                            [
+                                0.97747, 
+                                0.00421
+                            ], 
+                            [
+                                0.96208, 
+                                0.00708
+                            ], 
+                            [
+                                0.94538, 
+                                0.01019
+                            ], 
+                            [
+                                0.92768, 
+                                0.01347
+                            ], 
+                            [
+                                0.90925, 
+                                0.01687
+                            ], 
+                            [
+                                0.89028, 
+                                0.02035
+                            ], 
+                            [
+                                0.87094, 
+                                0.02389
+                            ], 
+                            [
+                                0.85139, 
+                                0.02745
+                            ], 
+                            [
+                                0.83172, 
+                                0.031
+                            ], 
+                            [
+                                0.81197, 
+                                0.03454
+                            ], 
+                            [
+                                0.79217, 
+                                0.03807
+                            ], 
+                            [
+                                0.77237, 
+                                0.04156
+                            ], 
+                            [
+                                0.75256, 
+                                0.04501
+                            ], 
+                            [
+                                0.73277, 
+                                0.04842
+                            ], 
+                            [
+                                0.71299, 
+                                0.05178
+                            ], 
+                            [
+                                0.6932, 
+                                0.05509
+                            ], 
+                            [
+                                0.67341, 
+                                0.05834
+                            ], 
+                            [
+                                0.6536, 
+                                0.06154
+                            ], 
+                            [
+                                0.63378, 
+                                0.06471
+                            ], 
+                            [
+                                0.61395, 
+                                0.06782
+                            ], 
+                            [
+                                0.59408, 
+                                0.07089
+                            ], 
+                            [
+                                0.57421, 
+                                0.07394
+                            ], 
+                            [
+                                0.55436, 
+                                0.07693
+                            ], 
+                            [
+                                0.53452, 
+                                0.07989
+                            ], 
+                            [
+                                0.51473, 
+                                0.08279
+                            ], 
+                            [
+                                0.49496, 
+                                0.08563
+                            ], 
+                            [
+                                0.47524, 
+                                0.08841
+                            ], 
+                            [
+                                0.45558, 
+                                0.09112
+                            ], 
+                            [
+                                0.43599, 
+                                0.09375
+                            ], 
+                            [
+                                0.41648, 
+                                0.09629
+                            ], 
+                            [
+                                0.39709, 
+                                0.09873
+                            ], 
+                            [
+                                0.37785, 
+                                0.10105
+                            ], 
+                            [
+                                0.35877, 
+                                0.10323
+                            ], 
+                            [
+                                0.33989, 
+                                0.10526
+                            ], 
+                            [
+                                0.32128, 
+                                0.10712
+                            ], 
+                            [
+                                0.30297, 
+                                0.10877
+                            ], 
+                            [
+                                0.28503, 
+                                0.11018
+                            ], 
+                            [
+                                0.2675, 
+                                0.11132
+                            ], 
+                            [
+                                0.25041, 
+                                0.11216
+                            ], 
+                            [
+                                0.23383, 
+                                0.11266
+                            ], 
+                            [
+                                0.21778, 
+                                0.1128
+                            ], 
+                            [
+                                0.20228, 
+                                0.11254
+                            ], 
+                            [
+                                0.18734, 
+                                0.11185
+                            ], 
+                            [
+                                0.17298, 
+                                0.11073
+                            ], 
+                            [
+                                0.15917, 
+                                0.10916
+                            ], 
+                            [
+                                0.14594, 
+                                0.10712
+                            ], 
+                            [
+                                0.13327, 
+                                0.10464
+                            ], 
+                            [
+                                0.12118, 
+                                0.10176
+                            ], 
+                            [
+                                0.10971, 
+                                0.09855
+                            ], 
+                            [
+                                0.0989, 
+                                0.09505
+                            ], 
+                            [
+                                0.08877, 
+                                0.09135
+                            ], 
+                            [
+                                0.07936, 
+                                0.08751
+                            ], 
+                            [
+                                0.07069, 
+                                0.08357
+                            ], 
+                            [
+                                0.06273, 
+                                0.07959
+                            ], 
+                            [
+                                0.05547, 
+                                0.07562
+                            ], 
+                            [
+                                0.04888, 
+                                0.07167
+                            ], 
+                            [
+                                0.04291, 
+                                0.06776
+                            ], 
+                            [
+                                0.03752, 
+                                0.06391
+                            ], 
+                            [
+                                0.03266, 
+                                0.06012
+                            ], 
+                            [
+                                0.0283, 
+                                0.05639
+                            ], 
+                            [
+                                0.02441, 
+                                0.05271
+                            ], 
+                            [
+                                0.02094, 
+                                0.04908
+                            ], 
+                            [
+                                0.01786, 
+                                0.04551
+                            ], 
+                            [
+                                0.01513, 
+                                0.04201
+                            ], 
+                            [
+                                0.01273, 
+                                0.03858
+                            ], 
+                            [
+                                0.0106, 
+                                0.03523
+                            ], 
+                            [
+                                0.00875, 
+                                0.03197
+                            ], 
+                            [
+                                0.00713, 
+                                0.02881
+                            ], 
+                            [
+                                0.00572, 
+                                0.02573
+                            ], 
+                            [
+                                0.0045, 
+                                0.02275
+                            ], 
+                            [
+                                0.00347, 
+                                0.01986
+                            ], 
+                            [
+                                0.00259, 
+                                0.01707
+                            ], 
+                            [
+                                0.00185, 
+                                0.01437
+                            ], 
+                            [
+                                0.00124, 
+                                0.01176
+                            ], 
+                            [
+                                0.00077, 
+                                0.00924
+                            ], 
+                            [
+                                0.00041, 
+                                0.00681
+                            ], 
+                            [
+                                0.00016, 
+                                0.00446
+                            ], 
+                            [
+                                5e-05, 
+                                0.00219
+                            ], 
+                            [
+                                0.0, 
+                                0.0
+                            ], 
+                            [
+                                0.00013, 
+                                -0.00217
+                            ], 
+                            [
+                                0.00049, 
+                                -0.00439
+                            ], 
+                            [
+                                0.00106, 
+                                -0.00665
+                            ], 
+                            [
+                                0.00183, 
+                                -0.00893
+                            ], 
+                            [
+                                0.0028, 
+                                -0.01124
+                            ], 
+                            [
+                                0.00398, 
+                                -0.01357
+                            ], 
+                            [
+                                0.00537, 
+                                -0.0159
+                            ], 
+                            [
+                                0.00697, 
+                                -0.01825
+                            ], 
+                            [
+                                0.00878, 
+                                -0.0206
+                            ], 
+                            [
+                                0.01082, 
+                                -0.02295
+                            ], 
+                            [
+                                0.0131, 
+                                -0.0253
+                            ], 
+                            [
+                                0.01562, 
+                                -0.02765
+                            ], 
+                            [
+                                0.01841, 
+                                -0.02999
+                            ], 
+                            [
+                                0.02149, 
+                                -0.03233
+                            ], 
+                            [
+                                0.02487, 
+                                -0.03465
+                            ], 
+                            [
+                                0.02857, 
+                                -0.03696
+                            ], 
+                            [
+                                0.03264, 
+                                -0.03925
+                            ], 
+                            [
+                                0.0371, 
+                                -0.04153
+                            ], 
+                            [
+                                0.04199, 
+                                -0.04378
+                            ], 
+                            [
+                                0.04737, 
+                                -0.04601
+                            ], 
+                            [
+                                0.0533, 
+                                -0.04821
+                            ], 
+                            [
+                                0.05982, 
+                                -0.05036
+                            ], 
+                            [
+                                0.06704, 
+                                -0.05245
+                            ], 
+                            [
+                                0.07503, 
+                                -0.05448
+                            ], 
+                            [
+                                0.08388, 
+                                -0.05645
+                            ], 
+                            [
+                                0.09368, 
+                                -0.05836
+                            ], 
+                            [
+                                0.10451, 
+                                -0.06021
+                            ], 
+                            [
+                                0.11642, 
+                                -0.06197
+                            ], 
+                            [
+                                0.12942, 
+                                -0.06363
+                            ], 
+                            [
+                                0.1435, 
+                                -0.06515
+                            ], 
+                            [
+                                0.15855, 
+                                -0.06653
+                            ], 
+                            [
+                                0.17448, 
+                                -0.06772
+                            ], 
+                            [
+                                0.19114, 
+                                -0.06875
+                            ], 
+                            [
+                                0.20839, 
+                                -0.06957
+                            ], 
+                            [
+                                0.22611, 
+                                -0.0702
+                            ], 
+                            [
+                                0.24417, 
+                                -0.07064
+                            ], 
+                            [
+                                0.2625, 
+                                -0.07089
+                            ], 
+                            [
+                                0.281, 
+                                -0.07095
+                            ], 
+                            [
+                                0.29961, 
+                                -0.07083
+                            ], 
+                            [
+                                0.31832, 
+                                -0.07051
+                            ], 
+                            [
+                                0.3371, 
+                                -0.07001
+                            ], 
+                            [
+                                0.35593, 
+                                -0.06931
+                            ], 
+                            [
+                                0.37483, 
+                                -0.06843
+                            ], 
+                            [
+                                0.39383, 
+                                -0.06735
+                            ], 
+                            [
+                                0.41292, 
+                                -0.06611
+                            ], 
+                            [
+                                0.43214, 
+                                -0.0647
+                            ], 
+                            [
+                                0.45148, 
+                                -0.06315
+                            ], 
+                            [
+                                0.47095, 
+                                -0.06148
+                            ], 
+                            [
+                                0.49053, 
+                                -0.0597
+                            ], 
+                            [
+                                0.51024, 
+                                -0.05783
+                            ], 
+                            [
+                                0.53002, 
+                                -0.0559
+                            ], 
+                            [
+                                0.54987, 
+                                -0.05391
+                            ], 
+                            [
+                                0.56976, 
+                                -0.05189
+                            ], 
+                            [
+                                0.58968, 
+                                -0.0498
+                            ], 
+                            [
+                                0.60964, 
+                                -0.04767
+                            ], 
+                            [
+                                0.62961, 
+                                -0.0455
+                            ], 
+                            [
+                                0.6496, 
+                                -0.04328
+                            ], 
+                            [
+                                0.66961, 
+                                -0.04102
+                            ], 
+                            [
+                                0.68963, 
+                                -0.03871
+                            ], 
+                            [
+                                0.70968, 
+                                -0.03637
+                            ], 
+                            [
+                                0.72973, 
+                                -0.03401
+                            ], 
+                            [
+                                0.74978, 
+                                -0.03161
+                            ], 
+                            [
+                                0.76984, 
+                                -0.02917
+                            ], 
+                            [
+                                0.78991, 
+                                -0.02672
+                            ], 
+                            [
+                                0.80994, 
+                                -0.02426
+                            ], 
+                            [
+                                0.82991, 
+                                -0.02177
+                            ], 
+                            [
+                                0.84982, 
+                                -0.01927
+                            ], 
+                            [
+                                0.86959, 
+                                -0.01678
+                            ], 
+                            [
+                                0.88913, 
+                                -0.0143
+                            ], 
+                            [
+                                0.9083, 
+                                -0.01186
+                            ], 
+                            [
+                                0.92692, 
+                                -0.00947
+                            ], 
+                            [
+                                0.94481, 
+                                -0.00716
+                            ], 
+                            [
+                                0.9617, 
+                                -0.00498
+                            ], 
+                            [
+                                0.97725, 
+                                -0.00296
+                            ], 
+                            [
+                                0.99136, 
+                                -0.00113
+                            ], 
+                            [
+                                1.0, 
+                                0.0
+                            ]
+                        ], 
+                        "name": null
+                    }
+                }, 
+                {
+                    "_module": "openglider.airfoil", 
+                    "_type": "Profile2D", 
+                    "data": {
+                        "data": [
+                            [
+                                1.0, 
+                                0.0
+                            ], 
+                            [
+                                0.99154, 
+                                0.00163
+                            ], 
+                            [
+                                0.97761, 
+                                0.00427
+                            ], 
+                            [
+                                0.96213, 
+                                0.0072
+                            ], 
+                            [
+                                0.94514, 
+                                0.0104
+                            ], 
+                            [
+                                0.92671, 
+                                0.01382
+                            ], 
+                            [
+                                0.90705, 
+                                0.01745
+                            ], 
+                            [
+                                0.88639, 
+                                0.02121
+                            ], 
+                            [
+                                0.86497, 
+                                0.02507
+                            ], 
+                            [
+                                0.84306, 
+                                0.02896
+                            ], 
+                            [
+                                0.82077, 
+                                0.03284
+                            ], 
+                            [
+                                0.79825, 
+                                0.0367
+                            ], 
+                            [
+                                0.77559, 
+                                0.0405
+                            ], 
+                            [
+                                0.75281, 
+                                0.04423
+                            ], 
+                            [
+                                0.72994, 
+                                0.0479
+                            ], 
+                            [
+                                0.70697, 
+                                0.0515
+                            ], 
+                            [
+                                0.6839, 
+                                0.05503
+                            ], 
+                            [
+                                0.66071, 
+                                0.05851
+                            ], 
+                            [
+                                0.6374, 
+                                0.06194
+                            ], 
+                            [
+                                0.61397, 
+                                0.06533
+                            ], 
+                            [
+                                0.59047, 
+                                0.06871
+                            ], 
+                            [
+                                0.56696, 
+                                0.07205
+                            ], 
+                            [
+                                0.54349, 
+                                0.07536
+                            ], 
+                            [
+                                0.52015, 
+                                0.07863
+                            ], 
+                            [
+                                0.49702, 
+                                0.08182
+                            ], 
+                            [
+                                0.47412, 
+                                0.08491
+                            ], 
+                            [
+                                0.45151, 
+                                0.08789
+                            ], 
+                            [
+                                0.42926, 
+                                0.09075
+                            ], 
+                            [
+                                0.40743, 
+                                0.09344
+                            ], 
+                            [
+                                0.38611, 
+                                0.09595
+                            ], 
+                            [
+                                0.3653, 
+                                0.09824
+                            ], 
+                            [
+                                0.34509, 
+                                0.1003
+                            ], 
+                            [
+                                0.32553, 
+                                0.10209
+                            ], 
+                            [
+                                0.30661, 
+                                0.10359
+                            ], 
+                            [
+                                0.28839, 
+                                0.10481
+                            ], 
+                            [
+                                0.27088, 
+                                0.10571
+                            ], 
+                            [
+                                0.2541, 
+                                0.10631
+                            ], 
+                            [
+                                0.23807, 
+                                0.10661
+                            ], 
+                            [
+                                0.2228, 
+                                0.10658
+                            ], 
+                            [
+                                0.20825, 
+                                0.10624
+                            ], 
+                            [
+                                0.19443, 
+                                0.10559
+                            ], 
+                            [
+                                0.18129, 
+                                0.10464
+                            ], 
+                            [
+                                0.16881, 
+                                0.10341
+                            ], 
+                            [
+                                0.15698, 
+                                0.10193
+                            ], 
+                            [
+                                0.14577, 
+                                0.10019
+                            ], 
+                            [
+                                0.13517, 
+                                0.09826
+                            ], 
+                            [
+                                0.12516, 
+                                0.09613
+                            ], 
+                            [
+                                0.11572, 
+                                0.09383
+                            ], 
+                            [
+                                0.10683, 
+                                0.0914
+                            ], 
+                            [
+                                0.09847, 
+                                0.08886
+                            ], 
+                            [
+                                0.09062, 
+                                0.08623
+                            ], 
+                            [
+                                0.08325, 
+                                0.08352
+                            ], 
+                            [
+                                0.07635, 
+                                0.08075
+                            ], 
+                            [
+                                0.06989, 
+                                0.07793
+                            ], 
+                            [
+                                0.06384, 
+                                0.07507
+                            ], 
+                            [
+                                0.05818, 
+                                0.0722
+                            ], 
+                            [
+                                0.05289, 
+                                0.06929
+                            ], 
+                            [
+                                0.04794, 
+                                0.06638
+                            ], 
+                            [
+                                0.04332, 
+                                0.06345
+                            ], 
+                            [
+                                0.039, 
+                                0.06052
+                            ], 
+                            [
+                                0.03498, 
+                                0.05758
+                            ], 
+                            [
+                                0.03122, 
+                                0.05464
+                            ], 
+                            [
+                                0.02773, 
+                                0.05169
+                            ], 
+                            [
+                                0.02449, 
+                                0.04874
+                            ], 
+                            [
+                                0.02148, 
+                                0.0458
+                            ], 
+                            [
+                                0.0187, 
+                                0.04285
+                            ], 
+                            [
+                                0.01615, 
+                                0.0399
+                            ], 
+                            [
+                                0.01381, 
+                                0.03695
+                            ], 
+                            [
+                                0.01168, 
+                                0.034
+                            ], 
+                            [
+                                0.00975, 
+                                0.03105
+                            ], 
+                            [
+                                0.00803, 
+                                0.0281
+                            ], 
+                            [
+                                0.0065, 
+                                0.02516
+                            ], 
+                            [
+                                0.00516, 
+                                0.02223
+                            ], 
+                            [
+                                0.00399, 
+                                0.01933
+                            ], 
+                            [
+                                0.00299, 
+                                0.01645
+                            ], 
+                            [
+                                0.00215, 
+                                0.0136
+                            ], 
+                            [
+                                0.00143, 
+                                0.01079
+                            ], 
+                            [
+                                0.00086, 
+                                0.00803
+                            ], 
+                            [
+                                0.00043, 
+                                0.0053
+                            ], 
+                            [
+                                0.00013, 
+                                0.00263
+                            ], 
+                            [
+                                0.0, 
+                                0.0
+                            ], 
+                            [
+                                2e-05, 
+                                -0.00259
+                            ], 
+                            [
+                                0.00023, 
+                                -0.0052
+                            ], 
+                            [
+                                0.00066, 
+                                -0.00783
+                            ], 
+                            [
+                                0.00132, 
+                                -0.01045
+                            ], 
+                            [
+                                0.00223, 
+                                -0.01306
+                            ], 
+                            [
+                                0.0034, 
+                                -0.01562
+                            ], 
+                            [
+                                0.00482, 
+                                -0.01813
+                            ], 
+                            [
+                                0.00647, 
+                                -0.02059
+                            ], 
+                            [
+                                0.00835, 
+                                -0.02297
+                            ], 
+                            [
+                                0.01044, 
+                                -0.02531
+                            ], 
+                            [
+                                0.01274, 
+                                -0.02758
+                            ], 
+                            [
+                                0.01524, 
+                                -0.0298
+                            ], 
+                            [
+                                0.01794, 
+                                -0.03198
+                            ], 
+                            [
+                                0.02084, 
+                                -0.03413
+                            ], 
+                            [
+                                0.02395, 
+                                -0.03624
+                            ], 
+                            [
+                                0.02726, 
+                                -0.03832
+                            ], 
+                            [
+                                0.03079, 
+                                -0.04036
+                            ], 
+                            [
+                                0.03455, 
+                                -0.0424
+                            ], 
+                            [
+                                0.03856, 
+                                -0.04441
+                            ], 
+                            [
+                                0.04282, 
+                                -0.0464
+                            ], 
+                            [
+                                0.04737, 
+                                -0.04836
+                            ], 
+                            [
+                                0.05222, 
+                                -0.0503
+                            ], 
+                            [
+                                0.0574, 
+                                -0.0522
+                            ], 
+                            [
+                                0.06293, 
+                                -0.05407
+                            ], 
+                            [
+                                0.06886, 
+                                -0.0559
+                            ], 
+                            [
+                                0.0752, 
+                                -0.05767
+                            ], 
+                            [
+                                0.08202, 
+                                -0.05937
+                            ], 
+                            [
+                                0.08935, 
+                                -0.061
+                            ], 
+                            [
+                                0.09726, 
+                                -0.06255
+                            ], 
+                            [
+                                0.10581, 
+                                -0.064
+                            ], 
+                            [
+                                0.11507, 
+                                -0.06535
+                            ], 
+                            [
+                                0.12514, 
+                                -0.06659
+                            ], 
+                            [
+                                0.13608, 
+                                -0.06774
+                            ], 
+                            [
+                                0.14799, 
+                                -0.06879
+                            ], 
+                            [
+                                0.16092, 
+                                -0.06975
+                            ], 
+                            [
+                                0.17489, 
+                                -0.07059
+                            ], 
+                            [
+                                0.18991, 
+                                -0.0713
+                            ], 
+                            [
+                                0.20593, 
+                                -0.07187
+                            ], 
+                            [
+                                0.22285, 
+                                -0.07228
+                            ], 
+                            [
+                                0.24056, 
+                                -0.07249
+                            ], 
+                            [
+                                0.25896, 
+                                -0.07249
+                            ], 
+                            [
+                                0.27792, 
+                                -0.07228
+                            ], 
+                            [
+                                0.29738, 
+                                -0.07184
+                            ], 
+                            [
+                                0.31723, 
+                                -0.07117
+                            ], 
+                            [
+                                0.33741, 
+                                -0.07028
+                            ], 
+                            [
+                                0.35789, 
+                                -0.06916
+                            ], 
+                            [
+                                0.37864, 
+                                -0.06782
+                            ], 
+                            [
+                                0.39968, 
+                                -0.06626
+                            ], 
+                            [
+                                0.42099, 
+                                -0.06447
+                            ], 
+                            [
+                                0.44262, 
+                                -0.0625
+                            ], 
+                            [
+                                0.46456, 
+                                -0.06032
+                            ], 
+                            [
+                                0.48686, 
+                                -0.05798
+                            ], 
+                            [
+                                0.5095, 
+                                -0.05548
+                            ], 
+                            [
+                                0.53252, 
+                                -0.05287
+                            ], 
+                            [
+                                0.55582, 
+                                -0.05017
+                            ], 
+                            [
+                                0.57937, 
+                                -0.04741
+                            ], 
+                            [
+                                0.60305, 
+                                -0.04464
+                            ], 
+                            [
+                                0.62677, 
+                                -0.04189
+                            ], 
+                            [
+                                0.65051, 
+                                -0.03917
+                            ], 
+                            [
+                                0.67426, 
+                                -0.03649
+                            ], 
+                            [
+                                0.69803, 
+                                -0.03385
+                            ], 
+                            [
+                                0.72184, 
+                                -0.03124
+                            ], 
+                            [
+                                0.74563, 
+                                -0.02864
+                            ], 
+                            [
+                                0.76932, 
+                                -0.02603
+                            ], 
+                            [
+                                0.79284, 
+                                -0.0234
+                            ], 
+                            [
+                                0.81617, 
+                                -0.02077
+                            ], 
+                            [
+                                0.83924, 
+                                -0.01817
+                            ], 
+                            [
+                                0.86192, 
+                                -0.0156
+                            ], 
+                            [
+                                0.88402, 
+                                -0.0131
+                            ], 
+                            [
+                                0.90529, 
+                                -0.0107
+                            ], 
+                            [
+                                0.92545, 
+                                -0.00843
+                            ], 
+                            [
+                                0.94427, 
+                                -0.0063
+                            ], 
+                            [
+                                0.96159, 
+                                -0.00435
+                            ], 
+                            [
+                                0.9773, 
+                                -0.00257
+                            ], 
+                            [
+                                0.99143, 
+                                -0.00097
+                            ], 
+                            [
+                                1.0, 
+                                0.0
+                            ]
+                        ], 
+                        "name": null
+                    }
+                }
+            ], 
+            "ballooning_merge_curve": {
+                "_module": "openglider.utils.bezier", 
+                "_type": "SymmetricBezier", 
+                "data": {
+                    "controlpoints": [
+                        [
+                            0.2807592041191535, 
+                            0.0
+                        ], 
+                        [
+                            0.7872881308376262, 
+                            0.0
+                        ], 
+                        [
+                            1.218009580302265, 
+                            0.0
+                        ], 
+                        [
+                            1.4971126317977905, 
+                            0.0
+                        ]
+                    ]
+                }
+            }
+        }
+    }, 
+    "MetaData": {
+        "date_created": "19.02.15 18:52", 
+        "application": "openglider", 
+        "date_modified": "19.02.15 18:52", 
+        "version": "0.01dev", 
+        "author": "obviously, a pilot"
+    }
+}
