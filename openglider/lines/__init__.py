@@ -66,7 +66,7 @@ class LineSet():
                 tangential = self.get_tangential_comp(line, lower_point)
                 line.upper_node.vec = lower_point + tangential * line.init_length
 
-                self.calc_geo(self.get_upper_conected_lines(line.upper_node))
+                self.calc_geo(self.get_upper_connected_lines(line.upper_node))
 
     def calc_sag(self, start=None):
         if start is None:
@@ -84,7 +84,7 @@ class LineSet():
 
     # -----CALCULATE SAG-----#
     def calc_matrix_entries(self, line):
-        up = self.get_upper_conected_lines(line.upper_node)
+        up = self.get_upper_connected_lines(line.upper_node)
         if line.lower_node.type == 0:
             self.mat.insert_type_0_lower(line)
         else:
@@ -102,7 +102,7 @@ class LineSet():
         for line_lower in start_lines:
             vec = line_lower.diff_vector
             if line_lower.upper_node.type != 2:  # not a gallery line
-                lines_upper = self.get_upper_conected_lines(
+                lines_upper = self.get_upper_connected_lines(
                     line_lower.upper_node)
                 self.calc_forces(lines_upper)
                 force = numpy.zeros(3)
@@ -118,14 +118,14 @@ class LineSet():
                 force = line_lower.upper_node.force
                 line_lower.force = norm(proj_force(force, normalize(vec)))
 
-    def get_upper_conected_lines(self, node):
+    def get_upper_connected_lines(self, node):
         return [line for line in self.lines if line.lower_node is node]
 
     def get_lower_connected_lines(self, node):
         return [line for line in self.lines if line.upper_node is node]
 
     def get_connected_lines(self, node):
-        return self.get_upper_conected_lines(node) + self.get_lower_connected_lines(node)
+        return self.get_upper_connected_lines(node) + self.get_lower_connected_lines(node)
 
     def calc_projected_nodes(self):
         for n in self.nodes:
@@ -146,7 +146,7 @@ class LineSet():
         if upper_node.type == 2:
             return [upper_node]
         else:
-            upper_lines = self.get_upper_conected_lines(upper_node)
+            upper_lines = self.get_upper_connected_lines(upper_node)
             result = []
             for upper_line in upper_lines:
                 result += self.get_upper_influence_node(upper_line)
