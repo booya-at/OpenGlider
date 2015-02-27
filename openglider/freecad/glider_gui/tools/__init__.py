@@ -9,6 +9,7 @@ from arc_tool import arc_tool
 from aoa_tool import aoa_tool
 from ballooning_tool import ballooning_tool
 from line_tool import line_tool
+from merge_tool import merge_tool
 from openglider.plots import flatten_glider
 
 
@@ -207,3 +208,10 @@ def check_glider(obj):
         return False
 
 
+class Merge_Tool(BaseCommand):
+    def GetResources(self):
+        return {'Pixmap': 'aoa_tool.svg', 'MenuText': 'Aoa', 'ToolTip': 'Aoa'}
+
+    def tool(self, obj):
+        return merge_tool(obj)
+    

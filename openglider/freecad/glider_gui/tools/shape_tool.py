@@ -4,7 +4,7 @@ from PySide import QtGui, QtCore
 import FreeCAD as App
 import FreeCADGui as Gui
 
-from openglider.utils.bezier import BezierCurve
+from openglider.vector.spline import BezierCurve
 
 from _tools import base_tool, text_field, input_field
 from pivy_primitives import Line, vector3D, ControlPointContainer
