@@ -5,7 +5,7 @@ from PySide import QtGui
 from _tools import base_tool, text_field, input_field
 from pivy_primitives import Line, ControlPointContainer, vector3D
 
-from openglider.utils.spline import BezierCurve, SymmetricBezier
+from openglider.vector.spline import BezierCurve, SymmetricBezier
 
 
 class base_merge_tool(base_tool):
@@ -13,13 +13,13 @@ class base_merge_tool(base_tool):
         super(base_merge_tool, self).__init__(obj)
         self.scale = numpy.array([1., 5.])
         self.bezier_curve = BezierCurve([[0, 0], [1, 1]])
-        self.bezier_cpc = ControlPointContainer()
+        self.bezier_cpc = ControlPointContainer([], self.view)
         self.shape = coin.SoSeparator()
         self.coords = coin.SoSeparator()
         self.expl_curve = Line([])
         self.ribs, self.front, self.back = self.glider_2d.shape()
 
-        self.bezier_curve.on_drag.append(self.update_spline)
+        self.bezier_cpc.on_drag.append(self.update_spline)
         self.setup_widget()
         self.setup_pivy()
 
@@ -28,7 +28,7 @@ class base_merge_tool(base_tool):
         self.task_separator.addChild(self.shape)
         self.task_separator.addChild(self.expl_curve.object)
         self.task_separator.addChild(self.coords)
-        self.update_aoa()
+        self.update_spline()
         self.draw_shape()
 
     def draw_shape(self):

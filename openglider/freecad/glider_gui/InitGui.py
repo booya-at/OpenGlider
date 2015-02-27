@@ -4,7 +4,7 @@ Gui.addIconPath(os.path.join(FreeCAD.getHomePath() + "Mod/glider_gui/icons"))
 #Gui.addIconPath(FreeCAD.ConfigGet("UserAppData") + "/Mod/glider_gui/icons")
 
 from tools import (Gl2d_Export, Gl2d_Import, CreateGlider, Shape_Tool,
-                   Airfoil_Tool, Arc_Tool, Aoa_Tool,
+                   Airfoil_Tool, Arc_Tool, Aoa_Tool, AirfoilMergeTool,
                    Ballooning_Tool, Line_Tool, Pattern_Tool)
 
 
@@ -17,6 +17,7 @@ Gui.addCommand("Ballooning_Tool", Ballooning_Tool())
 Gui.addCommand("Line_Tool", Line_Tool())
 Gui.addCommand("Gl2d_Import", Gl2d_Import())
 Gui.addCommand("Gl2d_Export", Gl2d_Export())
+Gui.addCommand("AirfoilMergeTool", AirfoilMergeTool())
 
 
 Gui.addCommand("Pattern_Tool", Pattern_Tool())
@@ -36,7 +37,8 @@ class gliderWorkbench(Workbench):
         "Airfoil_Tool",
         "Ballooning_Tool",
         "Line_Tool",
-        "Gl2d_Export"]
+        "Gl2d_Export",
+        "AirfoilMergeTool"]
 
     productionbox = [
         "Pattern_Tool"]
