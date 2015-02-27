@@ -24,6 +24,7 @@ from openglider.utils.cache import cached_property
 from openglider.vector import Layer
 from openglider.vector.functions import norm, normalize
 from openglider.vector.polyline import PolyLine
+from openglider.airfoil import Profile2D
 
 
 class Profile3D(PolyLine):
@@ -96,7 +97,3 @@ class Profile3D(PolyLine):
             tangents.append(tangent)
         tangents.append(normalize(third - second))
         return tangents
-
-
-
-
