@@ -10,7 +10,7 @@ from openglider.glider.glider_2d.lines import Line2D, LineSet2D, UpperNode2D, \
 from openglider.vector import mirror2D_x
 from openglider.utils.bezier import BezierCurve, SymmetricBezier
 from openglider.vector.polyline import PolyLine2D
-from openglider.vector.functions import norm, normalize, rotation_2d
+from openglider.vector.functions import norm, normalize
 from openglider.glider.rib import Rib
 from openglider.glider.cell import Cell
 from openglider.glider.cell_elements import Panel

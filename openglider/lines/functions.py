@@ -19,18 +19,19 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import division
-from numpy import dot
 import numpy
-from openglider.vector.functions import norm
+import traceback
 
 
 def proj_force(force, vec):
-    proj = dot(vec, force)
-    if proj <= 0.00001:
+    proj = numpy.dot(vec, force)
+    try:
+        assert proj >= 0.00001
+    except AssertionError as e:
         proj = 0.00001
-        print("Divide by zero!!!")
-    return dot(force, force) / proj
+        traceback.print_exc(e)
+    return numpy.dot(force, force) / proj
 
 
 def proj_to_surface(vec, n_vec):
-    return vec - numpy.array(n_vec) * dot(n_vec, vec) / dot(n_vec, n_vec)
+    return vec - numpy.array(n_vec) * numpy.dot(n_vec, vec) / numpy.dot(n_vec, n_vec)

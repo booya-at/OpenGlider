@@ -50,3 +50,5 @@ nosetests.
 # Doxygen generated Doc
 # Doc/doxygen/*
 docs/sphinx/build/*
+examples
+scripts

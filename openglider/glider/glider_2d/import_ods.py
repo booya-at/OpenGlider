@@ -9,7 +9,7 @@ except ImportError:
 import numpy
 import scipy.interpolate
 
-from openglider.airfoil import Profile2D
+from openglider.airfoil import BezierProfile2D
 from openglider.glider.ballooning import BallooningBezier
 from openglider.utils.bezier import BezierCurve, SymmetricBezier
 
@@ -20,7 +20,7 @@ def import_ods_2d(cls, filename, numpoints=4):
     ods = ezodf.opendoc(filename)
     sheets = ods.sheets
 
-    profiles = [Profile2D(profile) for profile in transpose_columns(sheets[3])]
+    profiles = [BezierProfile2D(profile) for profile in transpose_columns(sheets[3])]
 
     balloonings_temp = transpose_columns(sheets[4])
     balloonings = []
@@ -108,7 +108,7 @@ def import_ods_2d(cls, filename, numpoints=4):
 
     rib_distribution = BezierCurve.fit(rib_distribution, numpoints=numpoints+3)
 
-    return cls(front=symmetric_fit(front),
+    glider_2d = cls(front=symmetric_fit(front),
                back=symmetric_fit(back),
                cell_dist=rib_distribution,
                cell_num=cell_no,
@@ -123,6 +123,9 @@ def import_ods_2d(cls, filename, numpoints=4):
                speed=data.get("GESCHWINDIGKEIT", 10),
                glide=data.get("GLEITZAHL", 10))
 
+    glider_3d = glider_2d.get_glider_3d()
+    glider_2d.lineset.set_default_nodes2d_pos(glider_3d)
+    return glider_2d
 
 def get_lower_aufhaengepunkte(data):
     aufhaengepunkte = {}
