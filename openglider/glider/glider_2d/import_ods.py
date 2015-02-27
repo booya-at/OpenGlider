@@ -126,12 +126,13 @@ def import_ods_2d(cls, filename, numpoints=4):
 
 def get_lower_aufhaengepunkte(data):
     aufhaengepunkte = {}
-    xyz = {"X": 0, "Y": 1, "Z": 2}
+    xyz = {"X": 1, "Y": 0, "Z": 2}
     for key in data:
         if key is not None and "AHP" in key:
             pos = int(key[4])
             aufhaengepunkte.setdefault(pos, [0, 0, 0])
-            aufhaengepunkte[pos][xyz[key[3].upper()]] = data[key]
+            which = key[3].upper()
+            aufhaengepunkte[pos][xyz[which]] = data[key]
     return {nr: LowerNode2D([0, 0], pos, nr)
             for nr, pos in aufhaengepunkte.items()}
 
