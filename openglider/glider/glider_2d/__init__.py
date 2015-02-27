@@ -7,7 +7,6 @@ from openglider.glider import Glider
 from openglider.glider.glider_2d.lines import Line2D, LineSet2D, UpperNode2D, \
                                               LowerNode2D, BatchNode2D
 from openglider.vector import mirror2D_x
-from openglider.vector.spline.bezier import SymmetricBezier
 from openglider.vector.spline import BezierCurve, SymmetricBezier
 from openglider.vector.polyline import PolyLine2D
 from openglider.vector.functions import norm, normalize

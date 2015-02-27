@@ -279,7 +279,6 @@ class Container(coin.SoSeparator):
 
 
 
-from openglider.vector.spline.bezier import SymmetricBezier
 from openglider.vector.spline import BezierCurve, SymmetricBezier
 from openglider.vector import mirror_x
 import numpy

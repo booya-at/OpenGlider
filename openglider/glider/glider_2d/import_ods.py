@@ -10,7 +10,6 @@ import scipy.interpolate
 
 from openglider.airfoil import BezierProfile2D
 from openglider.glider.ballooning import BallooningBezier
-from openglider.vector.spline.bezier import SymmetricBezier
 from openglider.vector.spline import BezierCurve, SymmetricBezier
 
 from .lines import UpperNode2D, LowerNode2D, BatchNode2D, Line2D, LineSet2D

@@ -2,7 +2,6 @@ import openglider.glider
 import openglider.airfoil
 import openglider.lines
 from openglider.vector.spline import BezierCurve, SymmetricBezier
-import openglider.vector.spline.bezier
 import openglider.glider.ballooning
 import openglider.glider.rib_elements
 import openglider.glider.glider_2d
