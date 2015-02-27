@@ -3,20 +3,20 @@ from __future__ import division
 import scipy.interpolate
 import numpy
 
-from openglider.airfoil.parametric import BezierProfile2D
 from openglider.glider import Glider
 from openglider.glider.glider_2d.lines import Line2D, LineSet2D, UpperNode2D, \
                                               LowerNode2D, BatchNode2D
 from openglider.vector import mirror2D_x
-from openglider.utils.bezier import BezierCurve, SymmetricBezier
+from openglider.vector.spline.bezier import SymmetricBezier
+from openglider.vector.spline import BezierCurve, SymmetricBezier
 from openglider.vector.polyline import PolyLine2D
 from openglider.vector.functions import norm, normalize
 from openglider.glider.rib import Rib
 from openglider.glider.cell import Cell
 from openglider.glider.cell_elements import Panel
-
 from .lines import LowerNode2D, Line2D, LineSet2D, BatchNode2D, UpperNode2D
 from .import_ods import import_ods_2d
+
 
 class Glider2D(object):
     """

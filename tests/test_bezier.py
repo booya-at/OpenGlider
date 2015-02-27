@@ -21,16 +21,16 @@ from __future__ import division
 
 import unittest
 import random
-import time
 
-from common import openglider
-import openglider.utils.bezier as bezier
+import time
+from openglider.vector.spline import BezierCurve
+import openglider.vector.spline.bezier as bezier
 
 
 class TestBezier(unittest.TestCase):
     def setUp(self):
         controlpoints = [[i, random.random()] for i in range(15)]
-        self.bezier = bezier.BezierCurve(controlpoints)
+        self.bezier = BezierCurve(controlpoints)
 
     def test_consistency(self):
         numpoints = 200
@@ -49,7 +49,7 @@ class TestBezier(unittest.TestCase):
     def test_fit(self):
         num = len(self.bezier.controlpoints)
         to_fit = self.bezier.get_sequence()
-        bezier2 = bezier.BezierCurve.fit(to_fit, numpoints=num)
+        bezier2 = BezierCurve.fit(to_fit, numpoints=num)
         for p1, p2 in zip(self.bezier.controlpoints, bezier2.controlpoints):
             self.assertAlmostEqual(p1[0], p2[0], 0)
             self.assertAlmostEqual(p1[1], p2[1], 0)

@@ -1,9 +1,11 @@
 import copy
-import math
+
 import numpy
-from openglider.airfoil import Profile2D, Profile3D, get_x_value
-from openglider.utils.cache import cached_property, CachedObject, HashedList
-from openglider.utils.bezier import BezierCurve
+
+import math
+from openglider.airfoil import Profile2D, Profile3D
+from openglider.utils.cache import cached_property, CachedObject
+from openglider.vector.spline import BezierCurve
 from openglider.glider.ballooning import BallooningBezier
 from openglider.vector.functions import rotation_3d
 

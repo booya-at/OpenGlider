@@ -1,4 +1,4 @@
-from openglider.utils.bezier import BezierCurve
+from openglider.vector.spline import BezierCurve
 
 
 class BSplineBasis():

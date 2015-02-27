@@ -1,10 +1,8 @@
-from pivy import coin
-from pivy.gui import soqt
-import FreeCADGui as Gui
-import FreeCAD as App
-from random import random
-from openglider.utils.bezier import BezierCurve
 import numpy
+
+from pivy import coin
+import FreeCAD as App
+from openglider.vector.spline import BezierCurve
 
 
 COLORS ={

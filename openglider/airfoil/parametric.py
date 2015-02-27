@@ -1,7 +1,8 @@
 import numpy
 import scipy.interpolate
+
 from openglider.airfoil import Profile2D
-from openglider.utils.bezier import BezierCurve
+from openglider.vector.spline import BezierCurve
 from openglider.vector import norm
 
 

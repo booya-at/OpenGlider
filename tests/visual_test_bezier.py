@@ -1,9 +1,12 @@
 import random
-import sys
 import os
 import unittest
+
 import numpy
+
+import sys
 from openglider.vector import PolyLine
+
 
 try:
     import openglider
@@ -12,7 +15,8 @@ except ImportError:
     import openglider
 from openglider.graphics import Graphics2D, Graphics, Line, Green, Red, Blue
 import openglider.airfoil
-from openglider.utils.bezier import BezierCurve, SymmetricBezier
+from openglider.vector.spline.bezier import SymmetricBezier
+from openglider.vector.spline import BezierCurve, SymmetricBezier
 
 
 class TestBezier(unittest.TestCase):
