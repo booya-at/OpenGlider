@@ -22,13 +22,12 @@ class BezierProfile2D(Profile2D):
                     'lower_spline': self.lower_spline})
         return dct
 
-    @classmethod
-    def __from_json__(cls, rootprof, data, name, upper_spline, lower_spline):
-        profile = super(BezierProfile2D, cls).__from_json__(
-            rootprof, data, name)
-        profile.upper_spline = upper_spline
-        profile.lower_spline = lower_spline
-        return profile
+    # @classmethod
+    # def __from_json__(cls, data, name, upper_spline, lower_spline):
+    #     # profile = super(BezierProfile2D, cls).__from_json__(data, name)
+    #     profile.upper_spline = upper_spline
+    #     profile.lower_spline = lower_spline
+    #     return profile
 
     def fit_upper(self, num=100, dist=None, control_num=6):
         upper = self.data[:self.noseindex + 1]

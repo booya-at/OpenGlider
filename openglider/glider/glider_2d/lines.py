@@ -125,6 +125,18 @@ class LineSet2D(object):
 
         return LineSet(lines, v_inf)
 
+    def set_default_nodes2d_pos(self, glider):
+        lineset_3d = self.return_lineset(glider, [10,0,0])
+        lineset_3d.calc_geo()
+        line_dict = {line_no: line2d for
+                     line_no, line2d in enumerate(self.lines)}
+
+        for line in lineset_3d.lines:
+            pos_2d = line.upper_node.vec
+            line_dict[line.number].upper_node.pos_2D = [pos_2d[1], pos_2d[2]]
+
+
+
     def sort_lines(self, lower_att):
         """
         Recursive sorting of lines (check direction)

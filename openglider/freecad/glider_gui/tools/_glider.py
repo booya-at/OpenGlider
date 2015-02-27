@@ -11,7 +11,6 @@ from openglider.jsonify import load
 from pivy_primitives_new_new import Line
 
 importpath = os.path.join(os.path.dirname( __file__ ), '..', 'demokite.ods')
-print(importpath)
 
 class OGBaseObject(object):
     def __init__(self, obj):
@@ -46,10 +45,10 @@ class OGGlider(OGBaseObject):
     def __init__(self, obj):
         obj.addProperty("App::PropertyPythonObject", "glider_instance", "object", "glider_instance")
         obj.addProperty("App::PropertyPythonObject", "glider_2d", "object", "parametric glider")
-        print(str(App.getHomePath()) + "/Mod/glider_gui/glider2d.json")
         with open(str(App.getHomePath()) + "Mod/glider_gui/glider2d.json", 'r') as importfile:
             obj.glider_2d = load(importfile)["data"]
         obj.glider_instance = obj.glider_2d.get_glider_3d()
+        obj.Proxy = self
         super(OGGlider, self).__init__(obj)
 
 
@@ -120,7 +119,7 @@ class OGGliderVP(OGBaseVP):
         self.vis_lines.removeAllChildren()
         for line in self.glider_instance.lineset.lines:
             points = line.get_line_points(numpoints=num)
-            self.vis_glider.addChild(Line([[i[0], -i[1], i[2]] for i in points], dynamic=False))
+            self.vis_lines.addChild(Line([[i[0], -i[1], i[2]] for i in points], dynamic=False))
             self.vis_lines.addChild(Line(points, dynamic=False))
 
     def onChanged(self, vp, prop):

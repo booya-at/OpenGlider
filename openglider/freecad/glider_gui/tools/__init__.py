@@ -2,14 +2,17 @@ import FreeCAD
 import FreeCADGui as Gui
 
 from _glider import OGGlider, OGGliderVP
-from _tools import (shape_tool, base_tool,
-                    arc_tool, aoa_tool, airfoil_tool, export_2d, import_2d)
+from _tools import base_tool, export_2d, import_2d
+from airfoil_tool import airfoil_tool
+from shape_tool import shape_tool
+from arc_tool import arc_tool
+from aoa_tool import aoa_tool
 from ballooning_tool import ballooning_tool
-from _line_tool import line_tool
+from line_tool import line_tool
 from openglider.plots import flatten_glider
 
 
-#ICONS:
+# ICONS:
 # the openglider implementation in freecad will be splitted into 3 parts. each will have a consistent icon color-sheme:
 # (colors can be found in openglider/freecad/glidergui/icons/freecad-color.gpl)
 # to use this with inkscape: ln -s ..../openglider/freecad/glidergui/icons/freecad-color.gpl .../.config/inkscape/palettes/
