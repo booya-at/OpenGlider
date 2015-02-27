@@ -15,7 +15,6 @@ except ImportError:
     import openglider
 from openglider.graphics import Graphics2D, Graphics, Line, Green, Red, Blue
 import openglider.airfoil
-from openglider.vector.spline.bezier import SymmetricBezier
 from openglider.vector.spline import BezierCurve, SymmetricBezier
 
 
