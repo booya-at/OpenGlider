@@ -22,24 +22,13 @@ from __future__ import division
 import unittest
 import random
 
-import time
 from openglider.vector.spline import BezierCurve
-import openglider.vector.spline.bezier as bezier
 
 
 class TestBezier(unittest.TestCase):
     def setUp(self):
         controlpoints = [[i, random.random()] for i in range(15)]
         self.bezier = BezierCurve(controlpoints)
-
-    def test_consistency(self):
-        numpoints = 200
-        data = [i/numpoints for i in range(numpoints+1)]
-        for val in data:
-            p1= self.bezier.call(val)
-            p2=self.bezier(val)
-            self.assertAlmostEqual(p1[0], p2[0], 0)
-            self.assertAlmostEqual(p1[1], p2[1], 0)
 
     def test_get_value(self):
         val = random.random()
@@ -57,19 +46,6 @@ class TestBezier(unittest.TestCase):
     def test_length(self):
         self.bezier.controlpoints = [[0, 0], [2, 0]]
         self.assertAlmostEqual(self.bezier.get_length(10), 2.)
-
-    def test_speed(self, num=100):
-        time1 = time.time()
-        for _ in range(num):
-            self.bezier.controlpoints[0][1] = random.random()
-            [self.bezier(i/(num-1)) for i in range(num)]
-        time2 = time.time()
-        for _ in range(num):
-            self.bezier.controlpoints[0][1] = random.random()
-            [self.bezier.call(i/(num-1)) for i in range(num)]
-        print("call", time.time()-time2)
-        print("__call__", time2-time1)
-
 
 
 

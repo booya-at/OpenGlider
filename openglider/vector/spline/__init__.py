@@ -64,13 +64,7 @@ class BezierCurve(HashedList):
     def ypoint(self, y):
         root = findroot(lambda y2: self.__call__(y2)[1] - y, 0, 1)
         return self.__call__(root)
-
-    # @classmethod
-    # def fit_(cls, data, numpoints=3):
-    #     bezier = cls([[0,0] for __ in range(numpoints)])
-    #     bezier._data = numpy.array(fitbezier(data, bezier._bezierbase))
-    #     return bezier
-
+    
     @classmethod
     def fit(cls, points, numpoints=5, start=True, end=True):
         """
