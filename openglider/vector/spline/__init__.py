@@ -1,3 +1,5 @@
+from __future__ import division
+
 import numpy
 import scipy
 from scipy.optimize import bisect as findroot
