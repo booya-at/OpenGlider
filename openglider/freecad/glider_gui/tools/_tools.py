@@ -1,17 +1,13 @@
 from __future__ import division
 
 from copy import deepcopy
-import numpy
-from PySide import QtCore, QtGui
-from pivy import coin
-import FreeCAD as App
-import FreeCADGui as Gui
 
+from PySide import QtGui
+from pivy import coin
+import FreeCADGui as Gui
 from openglider.jsonify import dump, load
+
 # from openglider.glider.glider_2d import Glider2D
-from openglider.utils.bezier import BezierCurve
-from openglider.vector import norm, normalize
-from pivy_primitives import Line, vector3D, ControlPointContainer
 
 
 text_field = QtGui.QFormLayout.LabelRole

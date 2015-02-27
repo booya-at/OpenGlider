@@ -23,7 +23,7 @@ import numpy
 from scipy.interpolate import interp1d
 
 import openglider
-from openglider.utils.bezier import BezierCurve
+from openglider.vector.spline import BezierCurve
 
 
 class ArcSinc:

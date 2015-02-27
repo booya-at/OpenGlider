@@ -18,11 +18,12 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
-import math
 import os
 import random
+
 import sys
-from openglider.utils.bezier import BezierCurve
+from openglider.vector.spline import BezierCurve
+
 
 try:
     import openglider

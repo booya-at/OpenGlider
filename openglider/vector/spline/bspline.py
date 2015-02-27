@@ -1,4 +1,4 @@
-from openglider.utils.bezier import BezierCurve
+from openglider.vector.spline import BezierCurve
 
 
 class BSplineBasis():
@@ -22,8 +22,7 @@ class BSplineBasis():
                 """The basis function for degree = 0 as per eq. 7"""
                 t_this = knots[i]
                 t_next = knots[i+1]
-                out = 1. if (t>=t_this and t< t_next) else 0.
-                return out
+                return t_next > t >= t_this
         else:
 
             def basis_function(t):
