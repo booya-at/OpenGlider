@@ -138,11 +138,12 @@ class Ballooning(object):
 
 
 class BallooningBezier(Ballooning):
-    def __init__(self, upper=None, lower=None):
+    def __init__(self, upper=None, lower=None, name="ballooning"):
         upper = upper or [[0, 0], [0.1, 0], [0.2, 0.14], [0.8, 0.14], [0.9, 0], [1, 0]]
         lower = lower or [[0, 0], [0.1, 0], [0.2, 0.14], [0.8, 0.14], [0.9, 0], [1, 0]]
         self.upper_spline = BezierCurve(upper)
         self.lower_spline = BezierCurve(lower)
+        self.name = name
         Ballooning.__init__(self, self.upper_spline.interpolation(), self.lower_spline.interpolation())
 
     def __json__(self):

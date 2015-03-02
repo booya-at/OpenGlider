@@ -9,7 +9,8 @@ from arc_tool import arc_tool
 from aoa_tool import aoa_tool
 from ballooning_tool import ballooning_tool
 from line_tool import line_tool
-from merge_tool import airfoil_merge_tool
+from merge_tool import airfoil_merge_tool, ballooning_merge_tool
+from panel_methode import panel_tool
 from openglider.plots import flatten_glider
 
 
@@ -54,7 +55,7 @@ class Gl2d_Export(object):
         pass
 
     def GetResources(self):
-        return {'Pixmap': 'gl2d_export.svg', 'MenuText': 'Export 2D', 'ToolTip': 'Export 2D'}
+        return {'Pixmap': 'gl2d_export.svg', 'MenuText': 'export 2D', 'ToolTip': 'export 2D'}
         pass
 
     def IsActive(self):
@@ -79,7 +80,7 @@ class Gl2d_Import(object):
         pass
 
     def GetResources(self):
-        return {'Pixmap': 'gl2d_import.svg', 'MenuText': 'Import 2D', 'ToolTip': 'Import 2D'}
+        return {'Pixmap': 'gl2d_import.svg', 'MenuText': 'import 2D', 'ToolTip': 'import 2D'}
         pass
 
     def IsActive(self):
@@ -156,7 +157,7 @@ class CreateGlider(BaseCommand):
 
 class Shape_Tool(BaseCommand):
     def GetResources(self):
-        return {'Pixmap': 'shape_tool.svg', 'MenuText': 'Shape', 'ToolTip': 'Shape'}
+        return {'Pixmap': 'shape_tool.svg', 'MenuText': 'shape', 'ToolTip': 'shape'}
 
     def tool(self, obj):
         return shape_tool(obj)
@@ -164,7 +165,7 @@ class Shape_Tool(BaseCommand):
 
 class Arc_Tool(BaseCommand):
     def GetResources(self):
-        return {'Pixmap': 'arc_tool.svg', 'MenuText': 'Arc', 'ToolTip': 'Arc'}
+        return {'Pixmap': 'arc_tool.svg', 'MenuText': 'arc', 'ToolTip': 'arc'}
 
     def tool(self, obj):
         return arc_tool(obj)
@@ -172,7 +173,7 @@ class Arc_Tool(BaseCommand):
 
 class Aoa_Tool(BaseCommand):
     def GetResources(self):
-        return {'Pixmap': 'aoa_tool.svg', 'MenuText': 'Aoa', 'ToolTip': 'Aoa'}
+        return {'Pixmap': 'aoa_tool.svg', 'MenuText': 'aoa', 'ToolTip': 'aoa'}
 
     def tool(self, obj):
         return aoa_tool(obj)
@@ -180,25 +181,50 @@ class Aoa_Tool(BaseCommand):
 
 class Airfoil_Tool(BaseCommand):
     def GetResources(self):
-        return {'Pixmap': 'airfoil_tool.svg', 'MenuText': 'Airfoil', 'ToolTip': 'Airfoil'}
+        return {'Pixmap': 'airfoil_tool.svg', 'MenuText': 'airfoil', 'ToolTip': 'airfoil'}
 
     def tool(self, obj):
         return airfoil_tool(obj)
 
 
+class AirfoilMergeTool(BaseCommand):
+    def GetResources(self):
+        return {'Pixmap': 'airfoil_merge_tool.svg', 'MenuText': 'airfoil merge', 'ToolTip': 'airfoil merge'}
+
+    def tool(self, obj):
+        return airfoil_merge_tool(obj)
+
+
 class Ballooning_Tool(BaseCommand):
     def GetResources(self):
-        return {'Pixmap': 'ballooning_tool.svg', 'MenuText': 'Ballooning', 'ToolTip': 'Ballooning'}
+        return {'Pixmap': 'ballooning_tool.svg', 'MenuText': 'ballooning', 'ToolTip': 'ballooning'}
 
     def tool(self, obj):
         return ballooning_tool(obj)
 
+
+class BallooningMergeTool(BaseCommand):
+    def GetResources(self):
+        return {'Pixmap': 'ballooning_merge_tool.svg', 'MenuText': 'ballooning merge', 'ToolTip': 'ballooning merge'}
+
+    def tool(self, obj):
+        return ballooning_merge_tool(obj)
+
+
 class Line_Tool(BaseCommand):
     def GetResources(self):
-        return {'Pixmap': 'line_tool.svg', 'MenuText': 'Lines', 'ToolTip': 'Lines'}
+        return {'Pixmap': 'line_tool.svg', 'MenuText': 'lines', 'ToolTip': 'lines'}
 
     def tool(self, obj):
         return line_tool(obj)
+
+
+class Panel_Tool(BaseCommand):
+    def GetResources(self):
+        return {'Pixmap': 'panel_methode.svg', 'MenuText': 'panelmethode', 'ToolTip': 'panelmethode'}
+
+    def tool(self, obj):
+        return panel_tool(obj)
 
 
 def check_glider(obj):
@@ -206,14 +232,3 @@ def check_glider(obj):
         return True
     else:
         return False
-
-
-class AirfoilMergeTool(BaseCommand):
-    def __init__(self):
-        print("akjdhsdfkljsdfj")
-
-    def GetResources(self):
-        return {'Pixmap': 'aoa_tool.svg', 'MenuText': 'Aoa', 'ToolTip': 'Aoa'}
-
-    def tool(self, obj):
-        return airfoil_merge_tool(obj)

@@ -70,6 +70,10 @@ class Object3D(coin.SoSeparator):
         for i in self.on_drag:
             i()
 
+    def drag_release(self):
+        for i in self.on_drag_release:
+            i()
+
     @property
     def drag_objects(self):
         return [self]
@@ -141,7 +145,7 @@ class Container(coin.SoSeparator):
         self.ColorSelected()
         self.selection_changed()
 
-    def selection_changed():
+    def selection_changed(self):
         pass
 
     def ColorSelected(self):
@@ -196,6 +200,8 @@ class Container(coin.SoSeparator):
                 self.view.removeEventCallbackPivy(
                 coin.SoEvent.getClassTypeId(), self.drag)
                 self.start_pos = None
+                for obj in self.drag_objects:
+                    obj.drag_release()
         elif type(event) == coin.SoLocation2Event:
             fact = 0.3 if event.wasShiftDown() else 1.
             diff = self.cursor_pos(event) - self.start_pos

@@ -50,10 +50,10 @@ def import_2d(glider):
 
 class base_tool(object):
 
-    def __init__(self, obj, widget_name="base_widget"):
+    def __init__(self, obj, widget_name="base_widget", hide=True):
         self.obj = obj
         self.glider_2d = deepcopy(self.obj.glider_2d)
-        self.obj.ViewObject.Visibility = False
+        self.obj.ViewObject.Visibility = not hide
         self.view = Gui.ActiveDocument.ActiveView
         self.view.viewTop()
 
