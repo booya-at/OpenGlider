@@ -30,12 +30,12 @@ def rangefrom(maxl, startpoint=0):
     yield iterative, similar to range() but surrounding a certain startpoint
     """
     j = 1
-    if 0 <= startpoint <= maxl:
+    if 0 <= startpoint < maxl:
         yield startpoint
-    while startpoint - j >= 0 or startpoint + j <= maxl:
-        if startpoint + j <= maxl:
+    while startpoint - j >= 0 or startpoint + j < maxl:
+        if startpoint + j < maxl:
             yield startpoint + j
-        if maxl >= startpoint - j >= 0:
+        if maxl > startpoint - j >= 0:
             yield startpoint - j
         j += 1
 
