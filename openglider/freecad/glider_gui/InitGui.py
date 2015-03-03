@@ -1,12 +1,12 @@
 import FreeCADGui as Gui
 
-Gui.addIconPath(os.path.join(FreeCAD.getHomePath() + "Mod/glider_gui/icons"))
-#Gui.addIconPath(FreeCAD.ConfigGet("UserAppData") + "/Mod/glider_gui/icons")
+#Gui.addIconPath(os.path.join(FreeCAD.getHomePath() + "Mod/glider_gui/icons"))
+Gui.addIconPath(FreeCAD.ConfigGet("UserAppData") + "/Mod/glider_gui/icons")
 
 from tools import (Gl2d_Export, Gl2d_Import, CreateGlider, Shape_Tool,
                    Airfoil_Tool, Arc_Tool, Aoa_Tool, AirfoilMergeTool,
                    Ballooning_Tool, Line_Tool, Pattern_Tool, BallooningMergeTool,
-                   Panel_Tool)
+                   )
 
 
 Gui.addCommand('CreateGlider', CreateGlider())
@@ -22,7 +22,6 @@ Gui.addCommand("AirfoilMergeTool", AirfoilMergeTool())
 Gui.addCommand("BallooningMergeTool", BallooningMergeTool())
 
 
-Gui.addCommand("Panel_Tool", Panel_Tool())
 Gui.addCommand("Pattern_Tool", Pattern_Tool())
 
 
@@ -46,7 +45,7 @@ class gliderWorkbench(Workbench):
 
     productionbox = [
         "Pattern_Tool",
-        "Panel_Tool"]
+        ]
 
 
     def GetClassName(self):
@@ -63,5 +62,13 @@ class gliderWorkbench(Workbench):
 
     def Deactivated(self):
         pass
+
+
+try:
+    from tools import Panel_Tool
+    Gui.addCommand("Panel_Tool", Panel_Tool())
+    gliderWorkbench.productionbox.append("Panel_Tool")
+except ImportError:
+    pass
 
 Gui.addWorkbench(gliderWorkbench())

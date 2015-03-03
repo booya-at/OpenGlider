@@ -5,7 +5,14 @@ from _tools import base_tool, input_field, text_field
 from PPM.pan3d import DirichletDoublet0Source0Case3 as Case
 import PPM
 from pivy_primitives_new_new import Container, Marker, coin, Line
+from . import BaseCommand
 
+class Panel_Tool(BaseCommand):
+    def GetResources(self):
+        return {'Pixmap': 'panel_methode.svg', 'MenuText': 'panelmethode', 'ToolTip': 'panelmethode'}
+
+    def tool(self, obj):
+        return panel_tool(obj)
 
 class panel_tool(base_tool):
     def __init__(self, obj):

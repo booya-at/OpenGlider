@@ -10,7 +10,6 @@ from aoa_tool import aoa_tool
 from ballooning_tool import ballooning_tool
 from line_tool import line_tool
 from merge_tool import airfoil_merge_tool, ballooning_merge_tool
-from panel_methode import panel_tool
 from openglider.plots import flatten_glider
 
 
@@ -217,14 +216,6 @@ class Line_Tool(BaseCommand):
 
     def tool(self, obj):
         return line_tool(obj)
-
-
-class Panel_Tool(BaseCommand):
-    def GetResources(self):
-        return {'Pixmap': 'panel_methode.svg', 'MenuText': 'panelmethode', 'ToolTip': 'panelmethode'}
-
-    def tool(self, obj):
-        return panel_tool(obj)
 
 
 def check_glider(obj):
