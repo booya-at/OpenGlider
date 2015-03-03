@@ -1,9 +1,8 @@
+import FreeCAD as App
 from PySide import QtGui
 import numpy
 
 from _tools import base_tool, input_field, text_field
-from PPM.pan3d import DirichletDoublet0Source0Case3 as Case
-import PPM
 from pivy_primitives_new_new import Container, Marker, coin, Line
 from . import BaseCommand
 
@@ -15,21 +14,32 @@ class Panel_Tool(BaseCommand):
         return panel_tool(obj)
 
 class panel_tool(base_tool):
+    try:
+        PPM = __import__("PPM")
+        pan3d = __import__("PPM.pan3d", globals(), locals(), ["abc"], -1)
+    except ImportError:
+        PPM = None
+
     def __init__(self, obj):
         super(panel_tool, self).__init__(obj, widget_name="Properties", hide=False)
-        self.case = None
-        self.Qrun = QtGui.QPushButton("run")
-        self.Qmidribs = QtGui.QSpinBox()
-        self.Qprofile_points = QtGui.QSpinBox()
-        self.Qstream_points = QtGui.QSpinBox()
-        self.Qstream_radius = QtGui.QDoubleSpinBox()
-        self.Qstream_interval = QtGui.QDoubleSpinBox()
-        self.Qstream_num = QtGui.QSpinBox()
-        self.cpc = Container()
-        self.stream = coin.SoSeparator()
-        self.marker = Marker([[0, 0, 0]], dynamic=True)
-        self.setup_widget()
-        self.setup_pivy()
+        if not self.PPM:
+            self.QWarning = QtGui.QLabel("no panel_methode installed")
+            self.layout.addWidget(self.QWarning)
+        else:
+            print(dir(self.PPM))
+            self.case = None
+            self.Qrun = QtGui.QPushButton("run")
+            self.Qmidribs = QtGui.QSpinBox()
+            self.Qprofile_points = QtGui.QSpinBox()
+            self.Qstream_points = QtGui.QSpinBox()
+            self.Qstream_radius = QtGui.QDoubleSpinBox()
+            self.Qstream_interval = QtGui.QDoubleSpinBox()
+            self.Qstream_num = QtGui.QSpinBox()
+            self.cpc = Container()
+            self.stream = coin.SoSeparator()
+            self.marker = Marker([[0, 0, 0]], dynamic=True)
+            self.setup_widget()
+            self.setup_pivy()
 
     def setup_widget(self):
         self.layout.setWidget(0, text_field, QtGui.QLabel("profile points"))
@@ -58,6 +68,7 @@ class panel_tool(base_tool):
         self.Qstream_radius.setMaximum(2)
         self.Qstream_radius.setMinimum(0)
         self.Qstream_radius.setValue(0.3)
+        self.Qstream_radius.setSingleStep(0.1)
         self.Qstream_interval.setMaximum(1.000)
         self.Qstream_interval.setMinimum(0.00001)
         self.Qstream_interval.setValue(0.1)
@@ -79,6 +90,7 @@ class panel_tool(base_tool):
         self.task_separator.addChild(self.stream)
         self.cpc.addChild(self.marker)
         self.marker.on_drag_release.append(self.update_stream)
+        self.marker.on_drag.append(self.update_stream_fast)
 
     def update_stream(self):
         self.stream.removeAllChildren()
@@ -92,16 +104,22 @@ class panel_tool(base_tool):
                 pts = self.stream_line(p, self.Qstream_interval.value(), self.Qstream_num.value())
                 self.stream.addChild(Line(pts, dynamic=False))
 
+    def update_stream_fast(self):
+        self.stream.removeAllChildren()
+        if self.case:
+            point = list(self.marker.points[0].getValue())
+            pts = self.stream_line(point, 0.05, 20)
+            self.stream.addChild(Line(pts, dynamic=False))
+
     def update_glider(self):
         self.obj.ViewObject.num_ribs = self.Qmidribs.value()
         self.obj.ViewObject.profile_num = self.Qprofile_points.value()
 
     def stream_line(self, point, interval, numpoints):
-        flow_path = self.case.flow_path(PPM.Vector3(*point), interval, numpoints)
+        flow_path = self.case.flow_path(self.PPM.Vector3(*point), interval, numpoints)
         return [[p.x, p.y, p.z] for p in flow_path.values]
 
     def create_panels(self, midribs=0, profile_numpoints=10):
-        import PPM
         glider = self.obj.glider_instance.copy_complete()
         glider.profile_numpoints = profile_numpoints
         ribs = glider.return_ribs(midribs)
@@ -132,8 +150,8 @@ class panel_tool(base_tool):
                 polygons.append(p)
 
     # Panel3-methode
-        self._vertices = [PPM.PanelVector3(*vertex) for vertex in vertices]
-        self._panels = [PPM.Panel3([self._vertices[nr] for nr in pol]) for pol in polygons]
+        self._vertices = [self.PPM.PanelVector3(*vertex) for vertex in vertices]
+        self._panels = [self.PPM.Panel3([self._vertices[nr] for nr in pol]) for pol in polygons]
         _wake_edges = [self._vertices[i] for i in wake_edge]
 
         self.case.panels = self._panels
@@ -141,8 +159,8 @@ class panel_tool(base_tool):
 
     def run(self):
         self.update_glider()
-        self.case = Case()
-        self.case.vinf = PPM.Vector3(10, 0, 3)
+        self.case = self.pan3d.DirichletDoublet0Source0Case3()
+        self.case.vinf = self.PPM.Vector3(10, 0, 3)
         self.create_panels(self.Qmidribs.value(), self.Qprofile_points.value())
         self.case.farfield = 5
         self.case.create_wake(20, 20)
