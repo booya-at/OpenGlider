@@ -134,12 +134,14 @@ class PolyLine2D(PolyLine):
         Iterate over all cuts with the line p1p2
         if extrapolate is true, cuts will be exceeding the lists length
         """
-        for i in rangefrom(len(self)-2, startpoint):
+        for i in rangefrom(len(self)-1, startpoint):
             try:
+                # (x,y), i, k
                 thacut = cut(self[i], self[i+1], p1, p2)
                 good_cut = 0 < thacut[1] <= 1 or thacut[1] == i == 0
-                extrapolated_cut = i == 0 and thacut[1] <= 0 or \
-                                   i == len(self)-1 and thacut[1] > 0
+                extrapolated_front = i == 0 and thacut[1] <= 0
+                extrapolated_back = i == len(self)-2 and thacut[1] > 0
+                extrapolated_cut = extrapolated_front or extrapolated_back
 
                 if good_cut or extrapolate and extrapolated_cut:
                     if cut_only_positive and thacut[2] < 0:
@@ -157,7 +159,7 @@ class PolyLine2D(PolyLine):
         startpoint = int(startpoint)
         cutlist = []
 
-        for i in rangefrom(len(self) - 2, startpoint):
+        for i in rangefrom(len(self) - 1, startpoint):
             try:
                 thacut = cut(self[i], self[i + 1], p1, p2)  # point, i, k
             except numpy.linalg.linalg.LinAlgError:
