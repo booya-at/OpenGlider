@@ -75,7 +75,7 @@ class airfoil_merge_tool(base_merge_tool):
     def __init__(self, obj):
         super(airfoil_merge_tool, self).__init__(obj)
         self.scal = numpy.array([1, 0.2])
-        self.x_grid = [i[0] for i in self.front if i[0] > 0]
+        self.x_grid = [i[0] for i in self.front if i[0] >= 0]
         self.set_end_points()
         self.bezier_curve = self.glider_2d.profile_merge_curve
         self.bezier_curve = BezierCurve([self.scal * i for i in self.bezier_curve.controlpoints])
@@ -123,7 +123,7 @@ class ballooning_merge_tool(base_merge_tool):
     def __init__(self, obj):
         super(ballooning_merge_tool, self).__init__(obj)
         self.scal = numpy.array([1, 0.2])
-        self.x_grid = [i[0] for i in self.front if i[0] > 0]
+        self.x_grid = [i[0] for i in self.front if i[0] >= 0]
         self.set_end_points()
         self.bezier_curve = self.glider_2d.ballooning_merge_curve
         self.bezier_curve = BezierCurve([self.scal * i for i in self.bezier_curve.controlpoints])
