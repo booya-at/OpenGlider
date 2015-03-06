@@ -147,8 +147,12 @@ class Line(CachedObject):
         return PolyLine(self.get_line_points(numpoints=100)).get_length()
 
     def get_stretched_length(self, force=50):
-        """Get the total line-length for production using a given stretch"""
-        return self.length_with_sag * (1 + self.type.stretch * (force - self.force))
+        """
+        Get the total line-length for production using a given stretch
+        length = len_0 * (1 + stretch*force)
+        """
+        factor = self.type.get_stretch_factor(force) / self.type.get_stretch_factor(self.force)
+        return self.length_with_sag * factor
 
     #@cached_property('v_inf', 'type.cw', 'type.thickness')
     @property
