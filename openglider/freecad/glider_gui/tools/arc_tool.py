@@ -30,8 +30,7 @@ class arc_tool(base_tool):
 
         self.layout.setWidget(0, text_field, QtGui.QLabel("arc num_points"))
         self.layout.setWidget(0, input_field, self.Qnum_arc)
-
-        self.base_widget.connect(self.Qnum_arc, QtCore.SIGNAL("valueChanged(int)"), self.update_num)
+        self.Qnum_arc.valueChanged.connect(self.update_num)
 
     def setup_pivy(self):
         self.arc_cpc.on_drag.append(self.update_spline)
