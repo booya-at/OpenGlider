@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/
 from __future__ import division
+import sys
 
 import scipy.interpolate
 
@@ -29,6 +30,7 @@ class LineType():
         self.thickness = thickness
         if stretch_curve[0][0] != 0:
             stretch_curve.insert(0, [0, 0])
+        self.stretch_curve = stretch_curve
         self.stretch_interpolation = scipy.interpolate.interp1d([p[0] for p in stretch_curve],
                                                                 [p[1] for p in stretch_curve],
                                                                 bounds_error=False)
@@ -44,14 +46,14 @@ liros = LineType('liros', 1.1, 0.002, [[100, 1]])
 liros160 = LineType('liros160', 1.1, 0.002, [[100, 1]])
 
 
-cousin12100 = LineType("Cousin 12100", 1.1, 0.0006, [[50, 0.4],
+cousin12100 = LineType("cousin12100", 1.1, 0.0006, [[50, 0.4],
                                                      [100, 0.9],
                                                      [150, 1.3],
                                                      [200, 1.5],
                                                      [250, 1.9]])
 
 
-cousin16140 = LineType("Cousin 16140", 1.1, 0.0007, [[50, 0.75],
+cousin16140 = LineType("cousin16140", 1.1, 0.0007, [[50, 0.75],
                                                      [100, 1.],
                                                      [150, 1.1],
                                                      [200, 1.4],

@@ -95,8 +95,8 @@ class SagMatrix():
 
 class Line(CachedObject):
     #TODO: cached properties?
-    def __init__(self, number, lower_node, upper_node, vinf,
-                 line_type=line_types.liros, target_length=None):
+    def __init__(self, lower_node, upper_node, vinf,
+                 line_type=line_types.liros, target_length=None, number=None):
         """Line Class:
             """
         self.number = number
@@ -208,9 +208,19 @@ class Line(CachedObject):
             'lower_node': self.lower_node,
             'upper_node': self.upper_node,
             'vinf': v_inf,
-            'line_type': self.type,
+            'line_type': self.type.name,
             'target_length': self.target_length
         }
+
+    @classmethod
+    def __from_json__(cls, number, lower_node, upper_node, vinf, line_type, target_length):
+        return cls(lower_node,
+                   upper_node,
+                   vinf,
+                   # TODO: Find elegant solution
+                   getattr(line_types, line_type),
+                   target_length,
+                   number)
 
 
 class Node(object):
