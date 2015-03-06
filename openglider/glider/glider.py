@@ -84,10 +84,11 @@ class Glider(object):
         filetype = path.split(".")[-1]
         return EXPORT_3D[filetype](self, path, *args, **kwargs)
 
-    def return_ribs(self, num=0):
+    def return_ribs(self, num=None):
+        num = num or 0
+        num += 1
         if not self.cells:
             return numpy.array([])
-        num += 1
         #will hold all the points
         ribs = []
         for cell in self.cells:

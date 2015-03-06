@@ -21,5 +21,5 @@ import collections
 
 LineType = collections.namedtuple("LineType", ['name', 'cw', 'thickness', 'stretch'])
 
-liros = LineType('liros', 1.1, 0.002, 0.1)
-liros160 = LineType('liros160', 1.1, 0.002, 0.1)
+liros = LineType('liros', 1.1, 0.002, 0.01)
+liros160 = LineType('liros160', 1.1, 0.002, 0.01)

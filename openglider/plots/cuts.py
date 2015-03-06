@@ -116,3 +116,6 @@ def cut_3(inner_lists, outer_left, outer_right, amount):
     return newlist, leftcut_index, rightcut_index
 
 cuts = [cut_1, cut_2, cut_3]
+cuts_dict = {"DESIGN_CUT": cut_1,
+             "ENTRY_CUT": cut_2,
+             "SYMMETRIC_CUT": cut_3}
