@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*- 
 from __future__ import division
 import numpy
 from pivy import coin
@@ -19,6 +20,7 @@ class aoa_tool(base_tool):
         self.grid = coin.SoSeparator()
         self.aoa_spline = Line([])
         self.ribs, self.front, self.back = self.glider_2d.shape()
+        self.text_scale = self.glider_2d.span / len(self.front) / 30
         self.x_grid = [i[0] for i in self.front]
 
         self.QGlide = QtGui.QDoubleSpinBox(self.base_widget)
@@ -114,7 +116,7 @@ class aoa_tool(base_tool):
             text = coin.SoText2()
             trans = coin.SoTranslation()
             trans.translation = l
-            text.string = str(l[1] * 180 / numpy.pi / self.scale[1])
+            text.string = str(l[1] * 180 / numpy.pi / self.scale[1]) + "°"
             textsep.addChild(trans)
             self.grid.addChild(textsep)
             textsep.addChild(text)
@@ -127,9 +129,9 @@ class aoa_tool(base_tool):
             rot = coin.SoRotationXYZ()
             rot.axis = coin.SoRotationXYZ.Z
             rot.angle.setValue(numpy.pi / 2)
-            scale.scaleFactor = (0.01, 0.01, 0.01)
+            scale.scaleFactor = (self.text_scale, self.text_scale, self.text_scale)
             trans.translation = (i[0], i[1], 0.001)
-            text.string = str(aoa_int(i[0])[1] * 180 / numpy.pi)[:4]
+            text.string = str(aoa_int(i[0])[1] * 180 / numpy.pi)[:6]
             textsep.addChild(trans)
             textsep.addChild(scale)
             textsep.addChild(rot)

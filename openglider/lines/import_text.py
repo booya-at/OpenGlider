@@ -19,8 +19,8 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from functions import *
-from elements import Line, Node
+from openglider.lines.functions import *
+from openglider.lines.elements import Line, Node
 from openglider.lines import LineSet
 
 
@@ -51,12 +51,10 @@ def store_lines(values, thalist, key_dict):
     upper_no = try_convert(values[2], int)
     upper = key_dict["NODES"][2][upper_no]
     lower = key_dict["NODES"][2][lower_no]
-    #print("a",upper.vec)
-    #print("b",lower.vec)
-    l = Line(try_convert(values[0], int), upper_node=upper, lower_node=lower, vinf=[10,0,0])  #line_type=values[4]
-    l.init_length = try_convert(values[3], float)
+    l = Line(number=try_convert(values[0], int), upper_node=upper, lower_node=lower,
+             vinf=[10, 0, 0], target_length=try_convert(values[3], float))
 
-    #l.type = values[4]
+    # l.type = values[4]
     thalist.append(l)
 
 
