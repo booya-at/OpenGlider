@@ -1,9 +1,10 @@
+from __future__ import division
 import FreeCAD as App
 from PySide import QtGui
 import numpy
 
 from _tools import base_tool, input_field, text_field
-from pivy_primitives_new_new import Container, Marker, coin, Line
+from pivy_primitives_new_new import Container, Marker, coin, Line, COLORS
 from . import BaseCommand
 
 class Panel_Tool(BaseCommand):
@@ -21,7 +22,7 @@ class panel_tool(base_tool):
         PPM = None
 
     def __init__(self, obj):
-        super(panel_tool, self).__init__(obj, widget_name="Properties", hide=False)
+        super(panel_tool, self).__init__(obj, widget_name="Properties", hide=True)
         if not self.PPM:
             self.QWarning = QtGui.QLabel("no panel_methode installed")
             self.layout.addWidget(self.QWarning)
@@ -35,8 +36,11 @@ class panel_tool(base_tool):
             self.Qstream_radius = QtGui.QDoubleSpinBox()
             self.Qstream_interval = QtGui.QDoubleSpinBox()
             self.Qstream_num = QtGui.QSpinBox()
+            self.Qmax_val = QtGui.QDoubleSpinBox()
+            self.Qmin_val = QtGui.QDoubleSpinBox()
             self.cpc = Container()
             self.stream = coin.SoSeparator()
+            self.glider_result = coin.SoSeparator()
             self.marker = Marker([[0, 0, 0]], dynamic=True)
             self.setup_widget()
             self.setup_pivy()
@@ -54,11 +58,15 @@ class panel_tool(base_tool):
         self.layout.setWidget(4, input_field, self.Qstream_num)
         self.layout.setWidget(5, text_field, QtGui.QLabel("stream interval"))
         self.layout.setWidget(5, input_field, self.Qstream_interval)
+        self.layout.setWidget(6, text_field, QtGui.QLabel("min_val"))
+        self.layout.setWidget(6, input_field, self.Qmin_val)
+        self.layout.setWidget(7, text_field, QtGui.QLabel("max_val"))
+        self.layout.setWidget(7, input_field, self.Qmax_val)
         self.layout.addWidget(self.Qrun)
 
         self.Qmidribs.setMaximum(5)
         self.Qmidribs.setMinimum(0)
-        self.Qmidribs.setValue(1)
+        self.Qmidribs.setValue(0)
         self.Qprofile_points.setMaximum(50)
         self.Qprofile_points.setMinimum(10)
         self.Qprofile_points.setValue(15)
@@ -73,14 +81,29 @@ class panel_tool(base_tool):
         self.Qstream_interval.setMinimum(0.00001)
         self.Qstream_interval.setValue(0.1)
         self.Qstream_interval.setSingleStep(0.01)
+
         self.Qstream_num.setMaximum(300)
         self.Qstream_num.setMinimum(5)
         self.Qstream_num.setValue(20)
+
+        self.Qmin_val.setMaximum(3)
+        self.Qmin_val.setMinimum(-10)
+        self.Qmin_val.setValue(-3)
+        self.Qmin_val.setSingleStep(0.01)
+
+        self.Qmax_val.setMaximum(10)
+        self.Qmax_val.setMinimum(1)
+        self.Qmax_val.setValue(1)
+        self.Qmax_val.setSingleStep(0.01)
+
 
         self.Qstream_points.valueChanged.connect(self.update_stream)
         self.Qstream_radius.valueChanged.connect(self.update_stream)
         self.Qstream_interval.valueChanged.connect(self.update_stream)
         self.Qstream_num.valueChanged.connect(self.update_stream)
+
+        self.Qmin_val.valueChanged.connect(self.show_glider)
+        self.Qmax_val.valueChanged.connect(self.show_glider)
 
         self.Qrun.clicked.connect(self.run)
 
@@ -88,6 +111,7 @@ class panel_tool(base_tool):
         self.cpc.register(self.view)
         self.task_separator.addChild(self.cpc)
         self.task_separator.addChild(self.stream)
+        self.task_separator.addChild(self.glider_result)
         self.cpc.addChild(self.marker)
         self.marker.on_drag_release.append(self.update_stream)
         self.marker.on_drag.append(self.update_stream_fast)
@@ -160,8 +184,55 @@ class panel_tool(base_tool):
     def run(self):
         self.update_glider()
         self.case = self.pan3d.DirichletDoublet0Source0Case3()
-        self.case.vinf = self.PPM.Vector3(10, 0, 3)
+        alpha = numpy.arctan(1 / self.glider_2d.glide)
+        speed = self.glider_2d.speed
+        self.case.vinf = self.PPM.Vector3(speed * numpy.cos(alpha) , 0, speed * numpy.sin(alpha))
         self.create_panels(self.Qmidribs.value(), self.Qprofile_points.value())
-        self.case.farfield = 5
+        self.case.farfield = 1000000
         self.case.create_wake(20, 20)
         self.case.run()
+        self.show_glider()
+
+    def show_glider(self):
+        self.glider_result.removeAllChildren()
+        verts = []
+        pols = []
+        cols = []
+        index = 0
+        for pan in self._panels:
+            for vert in pan.points:
+                verts.append(list(vert))
+                pols.append(index)
+                index += 1
+            cols.append(pan.cp)
+            pols.append(-1)     # end of pol
+        vertex_property = coin.SoVertexProperty()
+        face_set = coin.SoIndexedFaceSet()
+        for i, col in enumerate(cols):
+            vertex_property.orderedRGBA.set1Value(i, coin.SbColor(self.color(col)).getPackedValue())
+            vertex_property.materialBinding = coin.SoMaterialBinding.PER_FACE
+        vertex_property.vertex.setValues(0, len(verts), verts)
+        face_set.coordIndex.setValues(0, len(pols), pols)
+        self.glider_result.addChild(vertex_property)
+        self.glider_result.addChild(face_set)
+        p1 = numpy.array(list(self.case.pressure_point))
+        f = numpy.array(list(self.case.force))
+        line = Line([p1, p1 + f])
+        self.glider_result.addChild(line)
+
+    def color(self, value):
+        def f(n, i, x):
+            if ((i - 1) / n) < x < (i / n):
+                return (n * x + 1 - i)
+            elif (i / n) <= x < ((i + 1) / n):
+                return  (- n * x + 1 + i)
+            else:
+                return 0
+        max_val=self.Qmax_val.value()
+        min_val=self.Qmin_val.value()
+        red = numpy.array(COLORS["red"])
+        blue = numpy.array(COLORS["blue"])
+        yellow = numpy.array(COLORS["yellow"])
+        white = numpy.array(COLORS["white"])
+        norm_val = (value - min_val) / (max_val - min_val)
+        return list(f(3, 0, norm_val) * red + f(3,1,norm_val) * yellow + f(3,2,norm_val) * white + f(3,3,norm_val) * blue)

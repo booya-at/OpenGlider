@@ -19,10 +19,12 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import division
-from .functions import proj_force, proj_to_surface
-from openglider.utils.cache import cached_property, CachedObject
-from openglider.lines import line_types
+
 import numpy
+
+from openglider.lines import line_types
+from openglider.lines.functions import proj_force, proj_to_surface
+from openglider.utils.cache import cached_property, CachedObject
 from openglider.vector import PolyLine
 from openglider.vector.functions import norm, normalize
 
@@ -144,12 +146,12 @@ class Line(CachedObject):
 
         return PolyLine(self.get_line_points(numpoints=100)).get_length()
 
-    def get_stretched_length(self, force=50):
+    def get_stretched_length(self, pre_load=50):
         """
         Get the total line-length for production using a given stretch
         length = len_0 * (1 + stretch*force)
         """
-        factor = self.type.get_stretch_factor(force) / self.type.get_stretch_factor(self.force)
+        factor = self.type.get_stretch_factor(pre_load) / self.type.get_stretch_factor(self.force)
         return self.length_with_sag * factor
 
     #@cached_property('v_inf', 'type.cw', 'type.thickness')

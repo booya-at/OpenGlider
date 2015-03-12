@@ -17,6 +17,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import division
+
 import copy
 import numpy
 from numpy import dot
@@ -51,10 +53,10 @@ class LineSet():
             nodes.add(line.lower_node)
         return nodes
 
-    def calc_stretch(self):
-        for line in self.lines:
-            pass
-        pass
+    # def calc_stretch(self):
+    #     for line in self.lines:
+    #         pass
+    #     pass
 
     def calc_geo(self, start=None):
         if start is None:
@@ -152,6 +154,16 @@ class LineSet():
                 result += self.get_upper_influence_node(upper_line)
             return result
 
+    def iterate_target_length(self, steps=10, fac=0.5, pre_load=50):
+        '''iterative methode to satisfy the target length'''
+        for i in range(steps):
+            for l in self.lines:
+                if l.target_length is not None:
+                    l.init_length = l.target_length * l.init_length / l.get_stretched_length(pre_load)
+            print("------")
+            self.calc_geo()
+            self.calc_sag()
+
     def sort_lines(self):
         self.lines.sort(key=lambda line: line.number)
         # self.nodes.sort(key=lambda node: node.number)
@@ -185,7 +197,3 @@ class LineSet():
             if isinstance(line.lower_node, int):
                 line.lower_node = nodes[line.lower_node]
         return cls(lines, v_inf)
-
-if __name__ == "__main__":
-    a = LineSet()
-    help(Node)
