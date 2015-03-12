@@ -45,22 +45,44 @@ def Calcfile(aoalist, xfoutput=tempfile.gettempprefix() + '/xfoutput.dat', renum
     print(temporarydict)
     cfile = '/' + temporarydict + '/xfoilcommand.dat'
 
-    xfcommand = open(cfile, 'w')
-    xfcommand.write('plop\ng\n\n')
-    ##define Re-Num
-    xfcommand.write('OPER\nRE\n' + str(renum) + '\n')
-    xfcommand.write('VISC\n')
-    xfcommand.write('PACC\n' + xfoutput + '\n' + xfoutput + '2.dat\n')
-    if isinstance(aoalist, list):
-        for aoa in aoalist:
-            xfcommand.write('ALFA\n')
-            xfcommand.write(str(aoa) + '\n')
-    else:
-        xfcommand.write('ALFA\n')
-        xfcommand.write(str(aoalist) + '\n')
-    xfcommand.write('\nquit')
-    xfcommand.close()
-    return cfile
+    alphas = ["ALFA\n{}".format(alpha) for alpha in aoalist]
+
+    string = """
+    LOAD {airfoil}
+
+    CADD
+    PANEL
+
+    OPER
+    VISC {re_number}
+    PACC
+    {polar_file}
+    {dump_file}
+
+    {alphas}
+
+    quit
+    """
+
+    return string.format(re_number=renum, polar_file=cfile, dump_file="", alphas=alphas)
+
+    # xfcommand = open(cfile, 'w')
+    #
+    # xfcommand.write('plop\ng\n\n')
+    # ##define Re-Num
+    # xfcommand.write('OPER\nRE\n' + str(renum) + '\n')
+    # xfcommand.write('VISC\n')
+    # xfcommand.write('PACC\n' + xfoutput + '\n' + xfoutput + '2.dat\n')
+    # if isinstance(aoalist, list):
+    #     for aoa in aoalist:
+    #         xfcommand.write('ALFA\n')
+    #         xfcommand.write(str(aoa) + '\n')
+    # else:
+    #     xfcommand.write('ALFA\n')
+    #     xfcommand.write(str(aoalist) + '\n')
+    # xfcommand.write('\nquit')
+    # xfcommand.close()
+    # return cfile
 
 
 def Impresults(resfile):
@@ -86,3 +108,10 @@ def Impresults(resfile):
             temp = line
     print(index)
     return erg
+
+
+def calculate_airfoil(airf, aoas):
+    with tempfile.NamedTemporaryFile(suffix=".dat") as outfile:
+        airf.export_dat("/tmp/airfoil.dat")
+        outfile.write(Calcfile(aoas))
+

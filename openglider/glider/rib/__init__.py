@@ -9,16 +9,22 @@ from openglider.vector.spline import BezierCurve
 from openglider.glider.ballooning import BallooningBezier
 from openglider.vector.functions import rotation_3d
 
+from .elements import AttachmentPoint, GibusArcs, RibHole, RigidFoil
+
 
 class Rib(CachedObject):
-    """Openglider Rib Class: contains a airfoil, needs a startpoint, angle (arcwide), angle of attack,
+    """
+    Openglider Rib Class: contains a airfoil, needs a startpoint, angle (arcwide), angle of attack,
         glide-wide rotation and glider ratio.
-        optional: name, absolute aoa (bool), startposition"""
+        optional: name, absolute aoa (bool), startposition
+    """
     hashlist = ('aoa_absolute', 'glide', 'arcang', 'zrot', 'chord', 'pos', 'profile_2d')  # pos
 
     def __init__(self, profile_2d=None, ballooning=None, startpoint=None,
                  chord=1., arcang=0, aoa_absolute=0, zrot=0, glide=1,
-                 name="unnamed rib", startpos=0.):
+                 name="unnamed rib", startpos=0.,
+                 rigidfoils=None,
+                 holes=None):
         self.startpos = startpos
         # TODO: Startpos > Set Rotation Axis in Percent
         self.name = name
@@ -30,6 +36,8 @@ class Rib(CachedObject):
         self.zrot = zrot
         self.pos = startpoint  # or HashedList([0, 0, 0])
         self.chord = chord
+        self.holes = holes or []
+        self.rigidfoils = rigidfoils or []
 
     def __json__(self):
         return {"profile_2d": self.profile_2d,

@@ -1,7 +1,7 @@
 import copy
 import numpy
 
-from openglider.glider.rib_elements import AttachmentPoint
+from openglider.glider.rib import AttachmentPoint
 from openglider.lines import Node, Line, LineSet
 
 

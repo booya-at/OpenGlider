@@ -25,31 +25,29 @@ from openglider.vector.polyline import PolyLine2D
 
 
 class RigidFoil(object):
-    def __init__(self, rib, start=-0.1, end=0.1, distance=0.005):
-        self.rib = rib
+    def __init__(self, start=-0.1, end=0.1, distance=0.005):
         self.start = start
         self.end = end
         self.distance = distance
         self.func = lambda x: distance
 
     def __json__(self):
-        return {'rib': self.rib,
-                'start': self.start,
+        return {'start': self.start,
                 'end': self.end,
                 'distance': self.distance}
 
-    def get_3d(self, glider):
+    def get_3d(self, rib):
         ######NEEDED??
         pass
 
-    def get_length(self):
-        flat = self.get_flattened()
+    def get_length(self, rib):
+        flat = self.get_flattened(rib)
         flat = PolyLine2D(flat)
         flat.check()
         return flat.get_length()
 
-    def get_flattened(self):
-        profile = self.rib.profile_2d
+    def get_flattened(self, rib):
+        profile = rib.profile_2d
         normvectors = PolyLine2D(profile.normvectors)
         __, start = profile.profilepoint(self.start)
         __, end = profile.profilepoint(self.end)
@@ -64,25 +62,23 @@ class GibusArcs(object):
     """
     A Reinforcement, in the shape of an arc, to reinforce attachment points
     """
-    def __init__(self, rib, position, size=0.2):
-        self.rib = rib
+    def __init__(self, position, size=0.2):
         self.pos = position
         self.size = size
         self.size_abs = False
 
     def __json__(self):
-        return {'rib': self.rib,
-                'position': self.pos,
+        return {'position': self.pos,
                 'size': self.size}
 
-    def get_3d(self, num_points=10):
+    def get_3d(self, rib, num_points=10):
         # create circle with center on the point
-        gib_arc = self.get_flattened(num_points=num_points)
-        return [self.rib.align([p[0], p[1], 0]) for p in gib_arc]
+        gib_arc = self.get_flattened(rib, num_points=num_points)
+        return [rib.align([p[0], p[1], 0]) for p in gib_arc]
 
-    def get_flattened(self, ribs_2d=None, num_points=10):
+    def get_flattened(self, rib, num_points=10):
         # get center point
-        profile = self.rib.profile_2d
+        profile = rib.profile_2d
         start = profile(self.pos)
         point_1 = profile[start]
         if self.size_abs:
@@ -134,19 +130,18 @@ class AttachmentPoint(Node):
 
 
 class RibHole(object):
-    def __init__(self, rib, pos, size=0.5):
-        self.rib = rib
+    def __init__(self, pos, size=0.5):
         self.pos = pos
         self.size = size
 
-    def get_3d(self, num=20):
-        hole = self.get_flattened(num=num)
+    def get_3d(self, rib, num=20):
+        hole = self.get_flattened(rib, num=num)
         print("aha", [p for p in hole])
-        return [self.rib.align([p[0], p[1], 0]) for p in hole]
+        return [rib.align([p[0], p[1], 0]) for p in hole]
 
-    def get_flattened(self, num=20):
-        p1 = self.rib.profile_2d.profilepoint(self.pos)
-        p2 = self.rib.profile_2d.profilepoint(-self.pos)
+    def get_flattened(self, rib, num=20):
+        p1 = rib.profile_2d.profilepoint(self.pos)
+        p2 = rib.profile_2d.profilepoint(-self.pos)
         return polygon(p1, p2, num=num, scale=self.size, is_center=False)[0]
 
 

@@ -24,7 +24,16 @@ import scipy.interpolate
 
 
 class LineType():
-    def __init__(self, name, cw, thickness, stretch_curve):
+    def __init__(self, name, cw, thickness, stretch_curve, resistance=None):
+        """
+        Line Type
+        Attributes:
+            - name
+            - cw (usually 1.1)
+            - thickness (in m)
+            - stretch curve: [[force, stretch_in_%],...]
+            - resistance: minimal break strength
+        """
         self.name = name
         self.cw = cw
         self.thickness = thickness
@@ -35,6 +44,8 @@ class LineType():
                                                                 [p[1] for p in stretch_curve],
                                                                 bounds_error=False)
 
+        self.resistance = resistance
+
     def get_stretch_factor(self, force):
         return 1 + self.stretch_interpolation(force) / 100
 
@@ -42,20 +53,3 @@ class LineType():
 
 # SI UNITS -> thickness [m], stretch [N, %]
 
-liros = LineType('liros', 1.1, 0.002, [[100, 1]])
-liros160 = LineType('liros160', 1.1, 0.002, [[100, 1]])
-
-
-cousin12100 = LineType("cousin12100", 1.1, 0.0006, [[50, 0.4],
-                                                     [100, 0.9],
-                                                     [150, 1.3],
-                                                     [200, 1.5],
-                                                     [250, 1.9]])
-
-
-cousin16140 = LineType("cousin16140", 1.1, 0.0007, [[50, 0.75],
-                                                     [100, 1.],
-                                                     [150, 1.1],
-                                                     [200, 1.4],
-                                                     [250, 1.75],
-                                                     [500, 2.75]])

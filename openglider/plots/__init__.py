@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
+import collections
 import svgwrite
 
 from openglider.vector.polyline import PolyLine2D
@@ -36,12 +37,12 @@ sewing_config = {
     "allowance_general": 0.01,
     "scale": 1000,
     "layers":
-        {"OUTER_CUTS": {
+        {"CUTS": {
             "id": 'outer',
             "stroke_width": "1",
             "stroke": "green",
             "fill": "none"},
-         "SEWING_MARKS": {
+         "MARKS": {
              "id": 'marks',
              "stroke_width": "1",
              "stroke": "black",
@@ -76,7 +77,7 @@ def flatten_glider(glider):
 
     # Panels!
 
-    parts = []
+    panels = collections.OrderedDict()
     xvalues = glider.profile_x_values
 
     for cell_no, cell in enumerate(glider.cells):
@@ -124,25 +125,29 @@ def flatten_glider(glider):
 
 
 
-            cell_parts.append(PlotPart({"OUTER_CUTS": part_cuts,
-                                   "SEWING_MARKS": part_marks,
+            cell_parts.append(PlotPart({"CUTS": part_cuts,
+                                   "MARKS": part_marks,
                                    "TEXT": part_text
             }))
-        parts.append(cell_parts)
+        panels[cell] = cell_parts
 
-    plots['panels'] = DrawingArea.create_raster(parts)
 
 
     ##################################RIBS###########################
     #################################################################
-    parts = []
+    ribs = []
     for i, rib in enumerate(glider.ribs[glider.has_center_cell:-1]):
         rib_no = i + glider.has_center_cell
-        profile = rib.profile_2d.copy()
         chord = rib.chord
+
+        profile = rib.profile_2d.copy()
         profile.scale(chord)
+
         profile_outer = profile.copy()
         profile_outer.add_stuff(0.01)
+
+        rib_parts = filter(lambda el: el.rib is rib, glider.rib_elements)
+        print(rib_parts)
 
         def return_points(x_value):
             "Return points for sewing marks"
@@ -174,16 +179,25 @@ def flatten_glider(glider):
 
         # general marks
 
+        # holes
+        for hole in rib.holes:
+            rib_marks += hole.get_2d(rib)
+
+
+
         #add text, entry, holes
 
         try:
             profile_outer.close()
         except:
             raise LookupError("ahah {}/{}".format(i, rib.profile_2d))
-        parts.append(PlotPart({"OUTER_CUTS": [profile_outer],
-                               "SEWING_MARKS": [profile] + rib_marks}))
+        ribs.append(PlotPart({"CUTS": [profile_outer],
+                               "MARKS": [profile] + rib_marks}))
 
-    plots['ribs'] = DrawingArea.create_raster([parts])
+
+
+    plots['panels'] = DrawingArea.create_raster(panels.values())
+    plots['ribs'] = DrawingArea.create_raster([ribs])
 
     return plots
 
