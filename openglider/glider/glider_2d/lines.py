@@ -171,11 +171,12 @@ class LineSet2D(object):
 
 
 class Line2D(object):
-    def __init__(self, lower_node, upper_node, target_length=None):
+    def __init__(self, lower_node, upper_node, target_length=None, line_type=None):
         self.lower_node = lower_node
         self.upper_node = upper_node
         self.target_length = target_length
         self.is_sorted = False
+        self.line_type = line_type # todo: get from name?
 
     def __json__(self):
         return{

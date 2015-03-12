@@ -40,9 +40,8 @@ def import_lines(path):
 def store_nodes(values, thalist, key_dict):
     n = Node(try_convert(values[0], int))
     n.type = try_convert(values[1], int)
-    n.vec = numpy.array(map(lambda x: try_convert(x, float), values[2:5]))
-    n.force = numpy.array(
-        map(lambda x: try_convert(x, float), values[5:8]))
+    n.vec = numpy.array([try_convert(x, float) for x in values[2:5]])
+    n.force = numpy.array([try_convert(x, float) for x in values[5:8]])
     thalist.append(n)
 
 
@@ -83,7 +82,7 @@ def import_file(path, key_dict):
             line = line.replace("\n", "")
             line = line.replace("\t", " ")
             line = line.split(" ")  # [ 'sfsd', '']
-            line = filter(lambda a: a != '', line)  # filter empty elements
+            line = list(filter(lambda a: a != '', line))  # filter empty elements
 
             if len(line) > 0:
                 if line[0] in key_dict:

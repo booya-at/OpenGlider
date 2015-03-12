@@ -1,4 +1,5 @@
 from __future__ import division
+from openglider.utils import recursive_getattr
 
 try:
     import ezodf2 as ezodf
@@ -10,6 +11,7 @@ import scipy.interpolate
 
 from openglider.airfoil import BezierProfile2D
 from openglider.glider.ballooning import BallooningBezier
+from openglider.lines import line_types
 from openglider.vector.spline import BezierCurve, SymmetricBezier
 
 from .lines import UpperNode2D, LowerNode2D, BatchNode2D, Line2D, LineSet2D
@@ -167,7 +169,7 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
     count = 0
 
     while i < num_rows:
-        val = sheet.get_cell([i, j]).value
+        val = sheet.get_cell([i, j]).value # length or node_no
         if j == 0:  # first (line-)floor
             if val is not None:
                 current_nodes = [attachment_points_lower[int(sheet.get_cell([i, j]).value)]] + \
@@ -177,6 +179,10 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
             if val is None:  # ?
                 j += 2
             else:
+                # We have a line
+                line_type_name = sheet.get_cell([i, j+1]).value
+                line_type = recursive_getattr(line_types, line_type_name)
+
                 lower = current_nodes[j//2]
 
                 # gallery
@@ -194,7 +200,7 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
                     j += 2
 
                 linelist.append(
-                    Line2D(lower, upper, target_length=line_length)) # line_type=sheet.get_cell
+                    Line2D(lower, upper, target_length=line_length, line_type=line_type))
                 count += 1
 
         elif j+2 >= num_cols:
