@@ -82,14 +82,14 @@ def import_ods_2d(cls, filename, numpoints=4):
 
     # RIB HOLES
     #RibHole(rib, pos, size)
-    rib_holes = [{"rib": res[0], "pos": res[1], "size": res[2]} for res in read_elements(sheets[2], "QUERLOCH", len_data=2)]
+    rib_holes = [{"ribs": [res[0]], "pos": res[1], "size": res[2]} for res in read_elements(sheets[2], "QUERLOCH", len_data=2)]
 
     # CUTS
     def get_cuts(name, target_name):
-        return [{"rib": res[0], "left": res[1], "right": res[2], "type": "entry"}
-                for res in read_elements(sheets[1], "EKV", len_data=2)]
-    cuts = get_cuts("EKV", "entry") + get_cuts("EKH", "entry")
-    cuts += get_cuts("DESIGNM", "cut") + get_cuts("DESIGNO", "cut")
+        return [{"ribs": [res[0]], "left": res[1], "right": res[2], "type": target_name}
+                for res in read_elements(sheets[1], name, len_data=2)]
+    cuts = get_cuts("EKV", "folded") + get_cuts("EKH", "folded")
+    cuts += get_cuts("DESIGNM", "orthogonal") + get_cuts("DESIGNO", "orthogonal")
 
 
     has_center_cell = not front[0][0] == 0
@@ -115,7 +115,8 @@ def import_ods_2d(cls, filename, numpoints=4):
                cell_num=cell_no,
                arc=symmetric_fit(arc),
                aoa=symmetric_fit(aoa),
-               #rib_elements={"cuts": cuts},
+               elements={"cuts": cuts,
+                         "holes": rib_holes},
                profiles=profiles,
                profile_merge_curve=symmetric_fit(profile_merge),
                balloonings=balloonings,
@@ -181,7 +182,6 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
             else:
                 # We have a line
                 line_type_name = sheet.get_cell([i, j+1]).value
-                line_type = recursive_getattr(line_types, line_type_name)
 
                 lower = current_nodes[j//2]
 
@@ -200,7 +200,7 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
                     j += 2
 
                 linelist.append(
-                    Line2D(lower, upper, target_length=line_length, line_type=line_type))
+                    Line2D(lower, upper, target_length=line_length, line_type=line_type_name))
                 count += 1
 
         elif j+2 >= num_cols:

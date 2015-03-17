@@ -97,7 +97,7 @@ class SagMatrix():
 
 class Line(CachedObject):
     def __init__(self, lower_node, upper_node, vinf,
-                 line_type=line_types.liros.liros, target_length=None, number=None):
+                 line_type=line_types.LineType.get('default'), target_length=None, number=None):
         """
         Line Class
         """
@@ -217,8 +217,7 @@ class Line(CachedObject):
         return cls(lower_node,
                    upper_node,
                    vinf,
-                   # TODO: Find elegant solution
-                   getattr(line_types, line_type),
+                   line_types.LineType.get(line_type),
                    target_length,
                    number)
 

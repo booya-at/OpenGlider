@@ -24,6 +24,8 @@ import scipy.interpolate
 
 
 class LineType():
+    types = {}
+
     def __init__(self, name, cw, thickness, stretch_curve, resistance=None):
         """
         Line Type
@@ -35,6 +37,7 @@ class LineType():
             - resistance: minimal break strength
         """
         self.name = name
+        self.types[name] = self
         self.cw = cw
         self.thickness = thickness
         if stretch_curve[0][0] != 0:
@@ -48,6 +51,13 @@ class LineType():
 
     def get_stretch_factor(self, force):
         return 1 + self.stretch_interpolation(force) / 100
+
+    @classmethod
+    def get(cls, name):
+        try:
+            return cls.types[name]
+        except KeyError:
+            raise KeyError("Line-type {} not found".format(name))
 
 
 

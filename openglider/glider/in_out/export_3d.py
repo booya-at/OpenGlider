@@ -217,13 +217,16 @@ def export_apame(glider, path="", midribs=0, numpoints=None, *other):
     if numpoints:
         other.profile_numpoints = numpoints
     ribs = other.return_ribs(midribs)
+    v_inf = glider.lineset.v_inf
+    speed = norm(v_inf)
+    glide = numpy.arctan(v_inf[2]/v_inf[0])
     # write config
     outfile = open(path, "w")
     outfile.write("APAME input file\nVERSION 3.0\n")
-    outfile.write("AIRSPEED " + str(other.data["GESCHWINDIGKEIT"]) + "\n")
+    outfile.write("AIRSPEED {}\n".format(speed))
     outfile.write(
         "DENSITY 1.225\nPRESSURE 1.013e+005\nMACH 0\nCASE_NUM 1\n")  # TODO: Multiple cases
-    outfile.write(str(math.tan(1 / other.data["GLEITZAHL"])) + "\n0\n")
+    outfile.write(str(math.tan(1 / glide)) + "\n0\n")
     outfile.write("WINGSPAN " + str(other.span) + "\n")
     outfile.write("MAC 2")  # TODO: Mean Choord
     outfile.write("SURFACE " + str(other.area) + "\n")

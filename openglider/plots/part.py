@@ -151,7 +151,11 @@ class DrawingArea():
     def insert(self, other, position=None):
         assert isinstance(other, DrawingArea)
 
-        x = self.max_x - other.min_x + 0.2
+        if self.parts:
+            x0 = self.max_x + 0.2
+        else:
+            x0 = 0
+        x = x0 - other.min_x
         y = 0 - other.min_y
-        other.move([x,y])
+        other.move([x, y])
         self.parts += other.parts

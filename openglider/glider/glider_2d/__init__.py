@@ -2,6 +2,7 @@ from __future__ import division
 
 import scipy.interpolate
 import numpy
+from openglider.airfoil import Profile2D
 
 from openglider.glider import Glider
 from openglider.vector import mirror2D_x
@@ -21,7 +22,7 @@ class Glider2D(object):
     def __init__(self, front, back, cell_dist, cell_num,
                  arc, aoa, profiles, profile_merge_curve,
                  balloonings, ballooning_merge_curve, lineset,
-                 speed, glide, rib_holes=None):
+                 speed, glide, elements=None):
         self.front = front
         self.back = back
         self.cell_num = cell_num  # updates cell pos
@@ -35,7 +36,7 @@ class Glider2D(object):
         self.lineset = lineset or LineSet2D([], [])
         self.speed = speed
         self.glide = glide
-        self.rib_holes = rib_holes or []
+        self.elements = elements or []
 
     @classmethod
     def create_default(cls):
@@ -59,7 +60,8 @@ class Glider2D(object):
             "ballooning_merge_curve": self.ballooning_merge_curve,
             "lineset": self.lineset,
             "speed": self.speed,
-            "glide": self.glide
+            "glide": self.glide,
+            "elements": self.elements
         }
 
     @classmethod
@@ -220,9 +222,35 @@ class Glider2D(object):
         first = self.profiles[i]
         if k > 0:
             second = self.profiles[i + 1]
-            return first * (1 - k) + second * k
+            airfoil = first * (1 - k) + second * k
         else:
-            return first.copy()
+            airfoil = first.copy()
+        return Profile2D(airfoil.data)
+
+    def apply_panels(self, glider_3d):
+        def is_greater(cut_1, cut_2):
+            if cut_1["left"] >= cut_2["left"] and cut_1["right"] >= cut_2["left"]:
+                return True
+            return False
+
+        for cell_no, cell in enumerate(glider_3d.cells):
+            cuts = [cut for cut in self.elements.get("cuts", []) if cell_no in cut["ribs"]]
+            if -1 not in [c["left"] for c in cuts]:
+                cuts.append({"left": -1, "right": -1, "type": "parallel"})
+            if 1 not in [c["left"] for c in cuts]:
+                cuts.append({"left": 1, "right": 1, "type": "parallel"})
+
+            cuts.sort(key=lambda cut: cut["left"])
+            cuts.sort(key=lambda cut: cut["right"])
+
+            cell.panels = []
+            for cut1, cut2 in zip(cuts[:-1], cuts[1:]):
+                if cut1["type"] == cut2["type"] == "folded":
+                    continue
+
+                assert cut2["left"] >= cut1["left"]
+                assert cut2["right"] >= cut1["right"]
+                cell.panels.append(Panel(cut1, cut2))
 
     @classmethod
     def fit_glider_3d(cls, glider, numpoints=3):
@@ -280,7 +308,6 @@ class Glider2D(object):
         """returns a new glider from parametric values"""
         glider = glider or Glider()
         ribs = []
-        cells = []
 
         span = self.front.controlpoints[-1][0]
         self.set_span(span)
@@ -297,6 +324,8 @@ class Glider2D(object):
 
         profile_x_values = self.profiles[0].x_values
 
+        rib_holes = self.elements.get("holes", [])
+
         if x_values[0] != 0.:
             # adding the mid cell
             x_values = [-x_values[0]] + x_values
@@ -311,7 +340,7 @@ class Glider2D(object):
             profile = self.merge_profile(factor)
             profile.x_values = profile_x_values
 
-            rib_holes = [RibHole(ribhole["pos"], ribhole["size"]) for ribhole in self.rib_holes if rib_no in ribhole["ribs"]]
+            this_rib_holes = [RibHole(ribhole["pos"], ribhole["size"]) for ribhole in rib_holes if rib_no in ribhole["ribs"]]
 
             ribs.append(Rib(
                 profile_2d=profile,
@@ -320,17 +349,19 @@ class Glider2D(object):
                 chord=norm(front - back),
                 arcang=arc_angles[rib_no],
                 glide=self.glide,
-                aoa_absolute=aoa_int(pos)[1]
+                aoa_absolute=aoa_int(pos)[1],
+                holes=this_rib_holes
             ))
             ribs[-1].aoa_relative = aoa_int(pos)[1]
 
+        glider.cells = []
         for rib1, rib2 in zip(ribs[:-1], ribs[1:]):
-            cell = Cell(rib1, rib2, [])
-            cell.panels = [Panel([-1, -1, 3, 0.012], [1, 1, 3, 0.012])]
-            cells.append(cell)
-            glider.cells = cells
+            glider.cells.append(Cell(rib1, rib2, []))
 
         glider.close_rib()
+
+        self.apply_panels(glider)
+        #self.apply_holes(glider)
 
         glider.lineset = self.lineset.return_lineset(glider, self.v_inf)
         glider.lineset.calc_geo()

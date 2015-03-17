@@ -140,8 +140,10 @@ class RibHole(object):
         return [rib.align([p[0], p[1], 0]) for p in hole]
 
     def get_flattened(self, rib, num=20):
-        p1 = rib.profile_2d.profilepoint(self.pos)
-        p2 = rib.profile_2d.profilepoint(-self.pos)
+        chord = rib.chord
+        p1 = rib.profile_2d[rib.profile_2d(self.pos)] * chord
+        p2 = rib.profile_2d[rib.profile_2d(-self.pos)] * chord
+
         return polygon(p1, p2, num=num, scale=self.size, is_center=False)[0]
 
 
