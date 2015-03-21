@@ -95,7 +95,7 @@ class Glider(object):
         filetype = path.split(".")[-1]
         return EXPORT_3D[filetype](self, path, *args, **kwargs)
 
-    def return_ribs(self, num=None):
+    def return_ribs(self, num=None, ballooning=True):
         num = num or 0
         num += 1
         if not self.cells:
@@ -104,9 +104,18 @@ class Glider(object):
         ribs = []
         for cell in self.cells:
             for y in range(num):
-                ribs.append(cell.midrib(y * 1. / num).data)
+                ribs.append(cell.midrib(y * 1. / num, ballooning=ballooning).data)
         ribs.append(self.cells[-1].midrib(1.).data)
         return ribs
+
+    def return_average_ribs(self, num=0, num_average=8):
+        glider = self.copy()
+        ribs = [cell.average_rib(num_average) for cell in glider.cells]
+        ribs = [ribs[0]] + ribs + [ribs[-1]]
+        for i in range(len(glider.ribs)):
+            j = i + 1
+            glider.ribs[i].profile_2d = (ribs[i] + ribs[j]) * 0.5
+        return glider.return_ribs(num, ballooning=False)
 
     def return_polygons(self, num=0):
         if not self.cells:

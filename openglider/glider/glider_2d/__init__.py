@@ -36,7 +36,7 @@ class Glider2D(object):
         self.lineset = lineset or LineSet2D([], [])
         self.speed = speed
         self.glide = glide
-        self.elements = elements or []
+        self.elements = elements or {}
 
     @classmethod
     def create_default(cls):

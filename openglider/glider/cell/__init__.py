@@ -4,7 +4,7 @@ import itertools
 
 import numpy
 
-from openglider.airfoil import Profile3D
+from openglider.airfoil import Profile3D, Profile2D
 from openglider.glider.ballooning import Ballooning
 from openglider.utils import consistent_value
 from openglider.utils.cache import cached_property, CachedObject, HashedList
@@ -42,7 +42,6 @@ class BasicCell(CachedObject):
                 diff = self.prof1[i] - self.prof2[i]
                 if ballooning and self.ballooning_radius[i] > 0.:
                     if arc_argument:
-                        # edited some bad math errors
                         # d = 0.5 - math.sin(self.ballooning_phi[i] * (y_value- 0.5)) / math.sin(self.ballooning_phi[i])
                         d = 0.5 - math.sin(self.ballooning_phi[i] * (1 - 2 *  y_value)) / math.sin(self.ballooning_phi[i]) / 2
                         h = math.cos(self.ballooning_phi[i] * (1 - 2 * y_value)) - self.ballooning_cos_phi[i]
@@ -50,10 +49,8 @@ class BasicCell(CachedObject):
                         #h -= self._cosphi[i]  # cosphi2-cosphi
                     else:
                         d = y_value
-                        # bad math start!!!!!!!!!
                         # h = math.sqrt(1 - (norm(diff) * (0.5 - y_value) ** 2 / self.ballooning_radius[i]) ** 2)
                         # h -= self.ballooning_cos_phi[i]  # cosphi2-cosphi
-                        # end of bad math !!!!!!!!!!!
                         h = math.cos(math.asin((2 * d - 1)*math.sin(self.ballooning_phi[i]))) -  math.cos(self.ballooning_phi[i])
                 else:  # Without ballooning
                     d = y_value
@@ -245,3 +242,8 @@ class Cell(CachedObject):
         self.rib2, self.rib1 = self.rib1, self.rib2
         for rib in self.ribs:
             rib.mirror()
+
+    def average_rib(self, num_midribs=8):
+        mid_ribs = [self.midrib(y).flatten() for y in numpy.linspace(0, 1, num_midribs)]
+        print(mid_ribs)
+        return sum(mid_ribs) * (1. / num_midribs)
