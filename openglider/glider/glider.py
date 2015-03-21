@@ -112,7 +112,7 @@ class Glider(object):
         glider = self.copy()
         ribs = [cell.average_rib(num_average) for cell in glider.cells]
         ribs = [ribs[0]] + ribs + [ribs[-1]]
-        for i in range(len(glider.ribs)):
+        for i in range(len(glider.ribs))[1:1]:
             j = i + 1
             glider.ribs[i].profile_2d = (ribs[i] + ribs[j]) * 0.5
         return glider.return_ribs(num, ballooning=False)

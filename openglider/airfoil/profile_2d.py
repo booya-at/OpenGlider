@@ -94,6 +94,7 @@ class Profile2D(Polygon2D):
         cos_sq = diff.dot([1, 0]) / norm_squared(diff)
         matrix = numpy.array([[cos_sq, -sin_sq], [sin_sq, cos_sq]])  # de-rotate and scale
         self.data = numpy.array([matrix.dot(i - nose) for i in self.data])
+        return self
 
     @HashedList.data.setter
     def data(self, data):

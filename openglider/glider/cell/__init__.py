@@ -244,6 +244,7 @@ class Cell(CachedObject):
             rib.mirror()
 
     def average_rib(self, num_midribs=8):
-        mid_ribs = [self.midrib(y).flatten() for y in numpy.linspace(0, 1, num_midribs)]
-        print(mid_ribs)
-        return sum(mid_ribs) * (1. / num_midribs)
+        average_rib = self.midrib(0).flatten().normalize()
+        for y in numpy.linspace(0, 1, num_midribs)[1:]:
+            average_rib += self.midrib(y).flatten().normalize()
+        return average_rib * (1. / num_midribs)
