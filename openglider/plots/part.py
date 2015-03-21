@@ -111,7 +111,7 @@ class DrawingArea():
         area = cls()
         last_x = 0.
         last_y = 0.
-        next_x = []
+        next_x = [0.]
         for col in parts:
             for part in col:
                 part.move([last_x - part.min_x, last_y - part.min_y])

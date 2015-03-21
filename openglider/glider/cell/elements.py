@@ -26,6 +26,9 @@ from openglider.vector import norm
 
 class DiagonalRib(object):
     def __init__(self, left_front, left_back, right_front, right_back):
+        """
+        Cut: (x_value, height)
+        """
         # Attributes
         self.left_front = left_front
         self.left_back = left_back
@@ -47,6 +50,7 @@ class DiagonalRib(object):
         # cell = openglider.glider.cells.Cell()
 
         def get_list(rib, cut_front, cut_back):
+            # Is it at 0 or 1?
             if cut_back[1] == cut_front[1] and cut_front[1] in (-1, 1):
                 side = -cut_front[1]  # -1 -> lower, 1->upper
                 front = rib.profile_2d(cut_front[0] * side)
@@ -60,7 +64,7 @@ class DiagonalRib(object):
 
         return left, right
 
-    def get_flattened(self, cell, ribs_flattened):
+    def get_flattened(self, cell, ribs_flattened=None):
         first, second = self.get_3d(cell)
         left, right = flatten_list(first, second)
         return left, right

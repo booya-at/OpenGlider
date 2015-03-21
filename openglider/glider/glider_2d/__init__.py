@@ -10,7 +10,7 @@ from openglider.vector.spline import BezierCurve, SymmetricBezier
 from openglider.vector.polyline import PolyLine2D
 from openglider.vector.functions import norm, normalize
 from openglider.glider.rib import Rib, RibHole
-from openglider.glider.cell import Cell, Panel
+from openglider.glider.cell import Cell, Panel, DiagonalRib
 from .lines import LowerNode2D, Line2D, LineSet2D, BatchNode2D, UpperNode2D
 from .import_ods import import_ods_2d
 
@@ -252,6 +252,16 @@ class Glider2D(object):
                 assert cut2["right"] >= cut1["right"]
                 cell.panels.append(Panel(cut1, cut2))
 
+    def apply_diagonals(self, glider):
+        for cell_no, cell in enumerate(glider.cells):
+            cell.diagonals = []
+            for diagonal in self.elements.get("diagonals", []):
+                if cell_no in diagonal["cells"]:
+                    dct = diagonal.copy()
+                    dct.pop("cells")
+                    cell.diagonals.append(DiagonalRib(**dct))
+
+
     @classmethod
     def fit_glider_3d(cls, glider, numpoints=3):
         """
@@ -361,6 +371,7 @@ class Glider2D(object):
         glider.close_rib()
 
         self.apply_panels(glider)
+        self.apply_diagonals(glider)
         #self.apply_holes(glider)
 
         glider.lineset = self.lineset.return_lineset(glider, self.v_inf)

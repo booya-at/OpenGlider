@@ -242,6 +242,8 @@ class PolyLine2D(PolyLine):
         assert len(vector) == 2
         self.data += vector
 
+        return self
+
     def add_stuff(self, amount):
         """
         Shift the whole line for a given amount (->Sewing allowance)
@@ -269,6 +271,8 @@ class PolyLine2D(PolyLine):
         newlist.append(third + self.normvectors[i + 1] * amount)
         self.data = newlist
 
+        return self
+
     def mirror(self, p1, p2):
         """
         Mirror against a line through p1 and p2
@@ -277,6 +281,7 @@ class PolyLine2D(PolyLine):
         p2 = numpy.array(p2)
         normvector = normalize(numpy.array(p1-p2).dot([[0, -1], [1, 0]]))
         self.data = [point - 2*normvector.dot(point-p1)*normvector for point in self.data]
+
         return self
 
     def rotate(self, angle, startpoint=None):
@@ -291,3 +296,5 @@ class PolyLine2D(PolyLine):
             else:
                 new_data.append(rotation_matrix.dot(point))
         self.data = new_data
+
+        return self

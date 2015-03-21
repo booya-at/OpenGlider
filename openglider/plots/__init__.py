@@ -37,9 +37,10 @@ sewing_config = {
     "allowance": {
         "parallel": 0.01,
         "orthogonal": 0.01,
-        "folded": 0.01
+        "folded": 0.01,
+        "general": 0.01,
+        "diagonals": 0.01
     },
-    "allowance_general": 0.01,
     "scale": 1000,
     "layers":
         {"CUTS": {
@@ -90,8 +91,8 @@ def flatten_glider(glider, sewing_config=sewing_config):
         left_bal, left, right, right_bal = flattened_cell(cell)
         left_out = left_bal.copy()
         right_out = right_bal.copy()
-        left_out.add_stuff(-sewing_config["allowance_general"])
-        right_out.add_stuff(sewing_config["allowance_general"])
+        left_out.add_stuff(-sewing_config["allowance"]["general"])
+        right_out.add_stuff(sewing_config["allowance"]["general"])
         left_out.check()
         right_out.check()
         for part_no, panel in enumerate(cell.panels):
@@ -102,7 +103,6 @@ def flatten_glider(glider, sewing_config=sewing_config):
 
             amount_front = -panel.cut_front.get("amount", sewing_config["allowance"][panel.cut_front["type"]])
             amount_back = panel.cut_back.get("amount", sewing_config["allowance"][panel.cut_back["type"]])
-            print(amount_back, amount_front)
 
             cut_front = cuts[panel.cut_front["type"]]([[left_bal, front_left],
                                                       [right_bal, front_right]],
@@ -157,7 +157,6 @@ def flatten_glider(glider, sewing_config=sewing_config):
         profile_outer.add_stuff(0.01)
 
         rib_parts = filter(lambda el: el.rib is rib, glider.rib_elements)
-        print(rib_parts)
 
         def return_points(x_value):
             "Return points for sewing marks"
@@ -191,7 +190,6 @@ def flatten_glider(glider, sewing_config=sewing_config):
 
         # holes
         for hole in rib.holes:
-            print(type(hole.get_flattened(rib)))
             rib_marks.append(hole.get_flattened(rib))
 
 
@@ -205,10 +203,47 @@ def flatten_glider(glider, sewing_config=sewing_config):
         ribs.append(PlotPart({"CUTS": [profile_outer],
                                "MARKS": [profile] + rib_marks}))
 
+    dribs = []
+    for cell_no, cell in enumerate(glider.cells):
+        cell_dribs = []
+        for d_no, d_rib in enumerate(cell.diagonals):
+            left, right = d_rib.get_flattened(cell)
+            left_out = left.copy()
+            right_out = right.copy()
+            alw = sewing_config["allowance"]["general"]
+            alw2 = sewing_config["allowance"]["diagonals"]
+            left_out.add_stuff(-alw)
+            right_out.add_stuff(alw)
+
+            cut_front = cuts["parallel"]([[left, 0],
+                                          [right, 0]],
+                                         left_out, right_out, -alw2)
+            cut_back = cuts["parallel"]([[left, len(left)-1],
+                                         [right, len(right)-1]],
+                                        left_out, right_out, alw2)
+            part_cuts = [left_out[cut_front[1]:cut_back[1]] +
+                         PolyLine2D(cut_back[0]) +
+                         right_out[cut_front[2]:cut_back[2]:-1] +
+                         PolyLine2D(cut_front[0])[::-1]]
+            part_marks = [left + right[::-1] +
+                          PolyLine2D([left[0]])]
+
+            text = get_text_vector(" cell_{}_drib_{} ".format(cell_no, d_no),
+                                   left[0], right[0])
+
+            cell_dribs.append(PlotPart({"CUTS": part_cuts,
+                                        "MARKS": part_marks,
+                                        "TEXT": text}))
+
+            # todo: add rib mark
+
+        dribs.append(cell_dribs)
+
 
 
     plots['panels'] = DrawingArea.create_raster(panels.values())
     plots['ribs'] = DrawingArea.create_raster([ribs])
+    plots["dribs"] = DrawingArea.create_raster(dribs)
 
     return plots
 

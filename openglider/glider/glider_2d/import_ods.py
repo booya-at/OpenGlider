@@ -91,6 +91,18 @@ def import_ods_2d(cls, filename, numpoints=4):
     cuts = get_cuts("EKV", "folded") + get_cuts("EKH", "folded")
     cuts += get_cuts("DESIGNM", "orthogonal") + get_cuts("DESIGNO", "orthogonal")
 
+    # Diagonals: center_left, center_right, width_l, width_r, height_l, height_r
+    # height (0,1) -> (-1,1)
+    diagonals = []
+    for res in read_elements(sheets[1], "QR", len_data=6):
+        height1 = res[5]*2-1
+        height2 = res[6]*2-1
+        diagonals.append({"left_front": (res[1]- res[3], height1),
+                          "left_back": (res[1] + res[3], height1),
+                          "right_front": (res[2] - res[4], height2),
+                          "right_back": (res[2] + res[4], height2),
+                          "cells": [res[0]]})
+
 
     has_center_cell = not front[0][0] == 0
     cell_no = (len(front)-1)*2 + has_center_cell
@@ -116,7 +128,8 @@ def import_ods_2d(cls, filename, numpoints=4):
                arc=symmetric_fit(arc),
                aoa=symmetric_fit(aoa),
                elements={"cuts": cuts,
-                         "holes": rib_holes},
+                         "holes": rib_holes,
+                         "diagonals": diagonals},
                profiles=profiles,
                profile_merge_curve=symmetric_fit(profile_merge),
                balloonings=balloonings,
