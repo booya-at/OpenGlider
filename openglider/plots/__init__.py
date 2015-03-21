@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
+import collections
 import svgwrite
 
 from openglider.vector.polyline import PolyLine2D
@@ -33,15 +34,20 @@ sewing_config = {
         "attachment-point": lambda p1, p2: marks.triangle(2 * p1 - p2, p1),  # on the inner-side
         "panel-cut": marks.line
     },
+    "allowance": {
+        "parallel": 0.01,
+        "orthogonal": 0.01,
+        "folded": 0.01
+    },
     "allowance_general": 0.01,
     "scale": 1000,
     "layers":
-        {"OUTER_CUTS": {
+        {"CUTS": {
             "id": 'outer',
             "stroke_width": "1",
             "stroke": "green",
             "fill": "none"},
-         "SEWING_MARKS": {
+         "MARKS": {
              "id": 'marks',
              "stroke_width": "1",
              "stroke": "black",
@@ -71,12 +77,12 @@ def flattened_cell(cell):
     return left_bal, left, right, right_bal
 
 
-def flatten_glider(glider):
+def flatten_glider(glider, sewing_config=sewing_config):
     plots = {}
 
     # Panels!
 
-    parts = []
+    panels = collections.OrderedDict()
     xvalues = glider.profile_x_values
 
     for cell_no, cell in enumerate(glider.cells):
@@ -89,16 +95,21 @@ def flatten_glider(glider):
         left_out.check()
         right_out.check()
         for part_no, panel in enumerate(cell.panels):
-            front_left = get_x_value(xvalues, panel.cut_front[0])
-            back_left = get_x_value(xvalues, panel.cut_back[0])
-            front_right = get_x_value(xvalues, panel.cut_front[1])
-            back_right = get_x_value(xvalues, panel.cut_back[1])
-            cut_front = cuts[panel.cut_front[2] - 1]([[left_bal, front_left],
+            front_left = get_x_value(xvalues, panel.cut_front["left"])
+            back_left = get_x_value(xvalues, panel.cut_back["left"])
+            front_right = get_x_value(xvalues, panel.cut_front["right"])
+            back_right = get_x_value(xvalues, panel.cut_back["right"])
+
+            amount_front = -panel.cut_front.get("amount", sewing_config["allowance"][panel.cut_front["type"]])
+            amount_back = panel.cut_back.get("amount", sewing_config["allowance"][panel.cut_back["type"]])
+            print(amount_back, amount_front)
+
+            cut_front = cuts[panel.cut_front["type"]]([[left_bal, front_left],
                                                       [right_bal, front_right]],
-                                                     left_out, right_out, -panel.cut_front[3])
-            cut_back = cuts[panel.cut_back[2] - 1]([[left_bal, back_left],
+                                                     left_out, right_out, amount_front)
+            cut_back = cuts[panel.cut_back["type"]]([[left_bal, back_left],
                                                     [right_bal, back_right]],
-                                                   left_out, right_out, panel.cut_back[3])
+                                                   left_out, right_out, amount_back)
             part_cuts = [left_out[cut_front[1]:cut_back[1]] +
                          PolyLine2D(cut_back[0]) +
                          right_out[cut_front[2]:cut_back[2]:-1] +
@@ -124,25 +135,29 @@ def flatten_glider(glider):
 
 
 
-            cell_parts.append(PlotPart({"OUTER_CUTS": part_cuts,
-                                   "SEWING_MARKS": part_marks,
+            cell_parts.append(PlotPart({"CUTS": part_cuts,
+                                   "MARKS": part_marks,
                                    "TEXT": part_text
             }))
-        parts.append(cell_parts)
+        panels[cell] = cell_parts
 
-    plots['panels'] = DrawingArea.create_raster(parts)
 
 
     ##################################RIBS###########################
     #################################################################
-    parts = []
+    ribs = []
     for i, rib in enumerate(glider.ribs[glider.has_center_cell:-1]):
         rib_no = i + glider.has_center_cell
-        profile = rib.profile_2d.copy()
         chord = rib.chord
+
+        profile = rib.profile_2d.copy()
         profile.scale(chord)
+
         profile_outer = profile.copy()
         profile_outer.add_stuff(0.01)
+
+        rib_parts = filter(lambda el: el.rib is rib, glider.rib_elements)
+        print(rib_parts)
 
         def return_points(x_value):
             "Return points for sewing marks"
@@ -162,11 +177,11 @@ def flatten_glider(glider):
         rib_cuts = set()
         if rib_no > 0:
             for panel in glider.cells[rib_no - 1].panels:
-                rib_cuts.add(panel.cut_front[1])  # left cell
-                rib_cuts.add(panel.cut_back[1])
+                rib_cuts.add(panel.cut_front["right"])  # left cell
+                rib_cuts.add(panel.cut_back["right"])
         for panel in glider.cells[rib_no].panels:
-            rib_cuts.add(panel.cut_front[0])
-            rib_cuts.add(panel.cut_back[0])
+            rib_cuts.add(panel.cut_front["left"])
+            rib_cuts.add(panel.cut_back["left"])
         rib_cuts.remove(1)
         rib_cuts.remove(-1)
         for cut in rib_cuts:
@@ -174,16 +189,26 @@ def flatten_glider(glider):
 
         # general marks
 
+        # holes
+        for hole in rib.holes:
+            print(type(hole.get_flattened(rib)))
+            rib_marks.append(hole.get_flattened(rib))
+
+
+
         #add text, entry, holes
 
         try:
             profile_outer.close()
         except:
             raise LookupError("ahah {}/{}".format(i, rib.profile_2d))
-        parts.append(PlotPart({"OUTER_CUTS": [profile_outer],
-                               "SEWING_MARKS": [profile] + rib_marks}))
+        ribs.append(PlotPart({"CUTS": [profile_outer],
+                               "MARKS": [profile] + rib_marks}))
 
-    plots['ribs'] = DrawingArea.create_raster([parts])
+
+
+    plots['panels'] = DrawingArea.create_raster(panels.values())
+    plots['ribs'] = DrawingArea.create_raster([ribs])
 
     return plots
 

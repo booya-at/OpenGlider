@@ -26,7 +26,11 @@ from openglider import jsonify
 from test_glider import GliderTestClass
 
 
-class TestGlider(GliderTestClass):
+class TestGlider(TestCase):
+    def setUp(self, a=None):
+        self.glider_2d = self.import_glider_2d()
+        self.glider = self.glider_2d.get_glider_3d()
+
     def tempfile(self, suffix, **kwargs):
         if sys.version.startswith('3'):
             kwargs["mode"] = 'w+'

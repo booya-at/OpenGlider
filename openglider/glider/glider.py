@@ -72,6 +72,17 @@ class Glider(object):
                 cell_element.cell = cells[cell_element.cell]
         return cls(cells, lineset=lineset)
 
+    def __repr__(self):
+        return """
+        {}
+        Span: {}
+        A/R: {}
+        Cells: {}
+        """.format(super(Glider, self).__repr__(),
+                   self.span,
+                   self.aspect_ratio,
+                   len(self.cells))
+
     @classmethod
     def import_geometry(cls, path, filetype=None):
         if not filetype:

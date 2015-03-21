@@ -1,8 +1,10 @@
 import copy
 import numpy
 
-from openglider.glider.rib_elements import AttachmentPoint
+from openglider.glider.rib import AttachmentPoint
 from openglider.lines import Node, Line, LineSet
+from openglider.utils import recursive_getattr
+from openglider.lines import line_types
 
 
 class LowerNode2D(object):
@@ -120,7 +122,8 @@ class LineSet2D(object):
             upper = line.upper_node.temp_node
             if lower and upper:
                 line = Line(number=line_no, lower_node=lower, upper_node=upper,
-                            vinf=v_inf, target_length=line.target_length)
+                            vinf=v_inf, target_length=line.target_length,
+                            line_type=line.line_type)
                 lines.append(line)
 
         return LineSet(lines, v_inf)
@@ -171,15 +174,17 @@ class LineSet2D(object):
 
 
 class Line2D(object):
-    def __init__(self, lower_node, upper_node, target_length=None):
+    def __init__(self, lower_node, upper_node, target_length=None, line_type='default'):
         self.lower_node = lower_node
         self.upper_node = upper_node
         self.target_length = target_length
         self.is_sorted = False
+        self.line_type = line_types.LineType.get(line_type)
 
     def __json__(self):
         return{
             "lower_node": self.lower_node,
             "upper_node": self.upper_node,
             "target_length": self.target_length,
+            "line_type": self.line_type.name
             }

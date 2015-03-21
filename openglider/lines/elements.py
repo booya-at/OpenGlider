@@ -96,11 +96,11 @@ class SagMatrix():
 
 
 class Line(CachedObject):
-    #TODO: cached properties?
     def __init__(self, lower_node, upper_node, vinf,
-                 line_type=line_types.liros, target_length=None, number=None):
-        """Line Class:
-            """
+                 line_type=line_types.LineType.get('default'), target_length=None, number=None):
+        """
+        Line Class
+        """
         self.number = number
         self.type = line_type  # type of line
 
@@ -132,11 +132,9 @@ class Line(CachedObject):
         return normalize(self.upper_node.vec_proj - self.lower_node.vec_proj)
 
     @cached_property('lower_node.vec', 'upper_node.vec', 'v_inf')
-    #@property
     def length_projected(self):
         return norm(self.lower_node.vec_proj - self.upper_node.vec_proj)
 
-    #@cached_property('lower_node.vec', 'upper_node.vec')
     @property
     def length_no_sag(self):
         return norm(self.upper_node.vec - self.lower_node.vec)
@@ -219,8 +217,7 @@ class Line(CachedObject):
         return cls(lower_node,
                    upper_node,
                    vinf,
-                   # TODO: Find elegant solution
-                   getattr(line_types, line_type),
+                   line_types.LineType.get(line_type),
                    target_length,
                    number)
 

@@ -18,6 +18,8 @@ class PolyLine(HashedList):
             if ik.step is not None and ik.step < 0:
                 start, stop = stop, start
             step = sign(stop - start)
+            if step == 0:
+                return self.__class__([self.data[start]])
             if step > 0:
                 start_round = max(int(start) + 1, 0)
                 stop_round = min(int(stop) + (1 if stop % 1 > 0 else 0), len(self) - 1)

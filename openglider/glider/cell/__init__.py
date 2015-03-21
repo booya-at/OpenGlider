@@ -8,7 +8,9 @@ from openglider.airfoil import Profile3D
 from openglider.glider.ballooning import Ballooning
 from openglider.utils import consistent_value
 from openglider.utils.cache import cached_property, CachedObject, HashedList
-from openglider.vector.functions import norm, normalize
+from openglider.vector.functions import normalize
+
+from .elements import *
 
 
 class BasicCell(CachedObject):
@@ -35,12 +37,12 @@ class BasicCell(CachedObject):
         else:                   # somewhere else
             #self._checkxvals()
             midrib = []
-            
+
             for i in range(len(self.prof1.data)):  # Arc -> phi(bal) -> r  # oder so...
                 diff = self.prof1[i] - self.prof2[i]
                 if ballooning and self.ballooning_radius[i] > 0.:
                     if arc_argument:
-                        # edited some bad math errors 
+                        # edited some bad math errors
                         # d = 0.5 - math.sin(self.ballooning_phi[i] * (y_value- 0.5)) / math.sin(self.ballooning_phi[i])
                         d = 0.5 - math.sin(self.ballooning_phi[i] * (1 - 2 *  y_value)) / math.sin(self.ballooning_phi[i]) / 2
                         h = math.cos(self.ballooning_phi[i] * (1 - 2 * y_value)) - self.ballooning_cos_phi[i]
@@ -99,7 +101,7 @@ class BasicCell(CachedObject):
 
 
 class Cell(CachedObject):
-    def __init__(self, rib1, rib2, miniribs=None):
+    def __init__(self, rib1, rib2, miniribs=None, panels=None, ):
         self.rib1 = rib1
         self.rib2 = rib2
         self._miniribs = miniribs or []
@@ -135,15 +137,15 @@ class Cell(CachedObject):
         # self.basic_cell.prof1 = self.prof1
         # self.basic_cell.prof2 = self.prof2
         shape_with_ballooning = self.basic_cell.midrib(minirib.y_value,
-                                                                   True).data
+                                                       True).data
         shape_without_ballooning = self.basic_cell.midrib(minirib.y_value,
-                                                                      True).data
+                                                          True).data
         points = []
         for xval, with_bal, without_bal in zip(
                 self.x_values, shape_with_ballooning, shape_without_ballooning):
-                fakt = minirib.function(xval)  # factor ballooned/unb. (0-1)
-                point = without_bal + fakt * (with_bal - without_bal)
-                points.append(point)
+            fakt = minirib.function(xval)  # factor ballooned/unb. (0-1)
+            point = without_bal + fakt * (with_bal - without_bal)
+            points.append(point)
         return Profile3D(points)
 
     @cached_property('rib_profiles_3d')
@@ -160,7 +162,7 @@ class Cell(CachedObject):
         ballooning = [self.rib1.ballooning[x] + self.rib2.ballooning[x] for x in self.x_values]
         #for i in range(len(first.data)):
         for index, (bl, left_point, right_point) in enumerate(itertools.izip(
-            ballooning, self.rib1.profile_3d.data, self.rib2.profile_3d.data
+                ballooning, self.rib1.profile_3d.data, self.rib2.profile_3d.data
         )):
             l = norm(right_point - left_point)  # L
             lnew = sum([norm(c.prof1.data[index] - c.prof2.data[index]) for c in cells])  # L-NEW

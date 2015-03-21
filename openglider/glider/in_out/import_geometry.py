@@ -18,9 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 from openglider.glider.cell import Cell
-from openglider.glider.cell_elements import Panel
-from openglider.glider.rib import Rib
-from openglider.glider.rib_elements import AttachmentPoint
+from openglider.glider.cell import Panel
+from openglider.glider.rib import Rib, AttachmentPoint
 from openglider.lines import Line, Node, LineSet
 
 
@@ -128,7 +127,7 @@ def import_ods(filename, glider):
         cell.panels = []
         for j in range(len(cuts_this)-1):
             if cuts_this[j][3] != 2 or cuts_this[j+1][3] != 2:  # skip entry
-                cell.panels.append(Panel(cuts_this[j][1:], cuts_this[j+1][1:], i))
+                cell.panels.append(Panel(cuts_this[j][1:], cuts_this[j+1][1:]))
     return glider
 
 
