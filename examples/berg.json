@@ -4,31 +4,31 @@
         "_type": "Glider2D", 
         "data": {
             "aoa": {
-                "_module": "openglider.utils.bezier", 
+                "_module": "openglider.vector.spline", 
                 "_type": "SymmetricBezier", 
                 "data": {
                     "controlpoints": [
                         [
-                            0.5435906309092796, 
-                            0.08923416137695313
+                            0.418220192193985, 
+                            0.1367981731891632
                         ], 
                         [
-                            2.768536890567946, 
-                            0.07992064952850342
+                            2.8541574478149414, 
+                            0.12085619568824768
                         ], 
                         [
-                            4.553668762571925, 
-                            0.08612965941429138
+                            4.537632465362549, 
+                            0.13042137026786804
                         ], 
                         [
                             4.991946697235107, 
-                            0.030248895287513733
+                            0.06984180957078934
                         ]
                     ]
                 }
             }, 
             "back": {
-                "_module": "openglider.utils.bezier", 
+                "_module": "openglider.vector.spline", 
                 "_type": "SymmetricBezier", 
                 "data": {
                     "controlpoints": [
@@ -44,7 +44,7 @@
                 }
             }, 
             "arc": {
-                "_module": "openglider.utils.bezier", 
+                "_module": "openglider.vector.spline", 
                 "_type": "SymmetricBezier", 
                 "data": {
                     "controlpoints": [
@@ -60,7 +60,7 @@
                 }
             }, 
             "profile_merge_curve": {
-                "_module": "openglider.utils.bezier", 
+                "_module": "openglider.vector.spline", 
                 "_type": "SymmetricBezier", 
                 "data": {
                     "controlpoints": [
@@ -84,7 +84,7 @@
                 }
             }, 
             "cell_dist": {
-                "_module": "openglider.utils.bezier", 
+                "_module": "openglider.vector.spline", 
                 "_type": "BezierCurve", 
                 "data": {
                     "controlpoints": [
@@ -120,7 +120,7 @@
                 }
             }, 
             "front": {
-                "_module": "openglider.utils.bezier", 
+                "_module": "openglider.vector.spline", 
                 "_type": "SymmetricBezier", 
                 "data": {
                     "controlpoints": [
@@ -225,7 +225,7 @@
             ], 
             "speed": 10, 
             "cell_num": 32, 
-            "glide": 7.5, 
+            "glide": 8.0, 
             "lineset": {
                 "_module": "openglider.glider.glider_2d.lines", 
                 "_type": "LineSet2D", 
@@ -235,214 +235,10 @@
                             "_module": "openglider.glider.glider_2d.lines", 
                             "_type": "UpperNode2D", 
                             "data": {
-                                "rib_no": 7, 
+                                "rib_no": 13, 
                                 "nr": null, 
                                 "rib_pos": 0.81, 
-                                "force": 15.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 1, 
-                                "nr": null, 
-                                "rib_pos": 0.69, 
-                                "force": 1.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 3, 
-                                "nr": null, 
-                                "rib_pos": 0.81, 
-                                "force": 16.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 5, 
-                                "nr": null, 
-                                "rib_pos": 0.31, 
-                                "force": 20.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 4, 
-                                "nr": null, 
-                                "rib_pos": 0.11, 
-                                "force": 25.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 2, 
-                                "nr": null, 
-                                "rib_pos": 0.11, 
-                                "force": 25.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "BatchNode2D", 
-                            "data": {
-                                "nr": null, 
-                                "pos_2D": [
-                                    1.054958701133728, 
-                                    -2.4264919757843018
-                                ]
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 8, 
-                                "nr": null, 
-                                "rib_pos": 0.55, 
-                                "force": 17.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "BatchNode2D", 
-                            "data": {
-                                "nr": null, 
-                                "pos_2D": [
-                                    -0.5404711365699768, 
-                                    -4.58119010925293
-                                ]
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 5, 
-                                "nr": null, 
-                                "rib_pos": 0.81, 
-                                "force": 16.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "BatchNode2D", 
-                            "data": {
-                                "nr": null, 
-                                "pos_2D": [
-                                    4.008257865905762, 
-                                    -4.220938205718994
-                                ]
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 12, 
-                                "nr": null, 
-                                "rib_pos": 0.55, 
-                                "force": 15.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 14, 
-                                "nr": null, 
-                                "rib_pos": 0.55, 
                                 "force": 14.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 14, 
-                                "nr": null, 
-                                "rib_pos": 1.0, 
-                                "force": 0.1
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 11, 
-                                "nr": null, 
-                                "rib_pos": 0.31, 
-                                "force": 18.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 12, 
-                                "nr": null, 
-                                "rib_pos": 1.0, 
-                                "force": 0.1
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 11, 
-                                "nr": null, 
-                                "rib_pos": 0.81, 
-                                "force": 10
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "BatchNode2D", 
-                            "data": {
-                                "nr": null, 
-                                "pos_2D": [
-                                    2.425467014312744, 
-                                    0.08922925591468811
-                                ]
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 16, 
-                                "nr": null, 
-                                "rib_pos": 0.32, 
-                                "force": 1.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 2, 
-                                "nr": null, 
-                                "rib_pos": 0.87, 
-                                "force": 1.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 8, 
-                                "nr": null, 
-                                "rib_pos": 1.0, 
-                                "force": 0.4
                             }
                         }, 
                         {
@@ -451,91 +247,8 @@
                             "data": {
                                 "rib_no": 6, 
                                 "nr": null, 
-                                "rib_pos": 0.55, 
-                                "force": 17.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 4, 
-                                "nr": null, 
-                                "rib_pos": 1.0, 
-                                "force": 0.5
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "BatchNode2D", 
-                            "data": {
-                                "nr": null, 
-                                "pos_2D": [
-                                    -0.33263516426086426, 
-                                    0.5649058818817139
-                                ]
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "BatchNode2D", 
-                            "data": {
-                                "nr": null, 
-                                "pos_2D": [
-                                    3.433643341064453, 
-                                    -0.09670823812484741
-                                ]
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "BatchNode2D", 
-                            "data": {
-                                "nr": null, 
-                                "pos_2D": [
-                                    3.1367087364196777, 
-                                    -2.322274923324585
-                                ]
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 13, 
-                                "nr": null, 
-                                "rib_pos": 0.31, 
-                                "force": 17.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 14, 
-                                "nr": null, 
                                 "rib_pos": 0.11, 
-                                "force": 20.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 7, 
-                                "nr": null, 
-                                "rib_pos": 0.31, 
-                                "force": 20.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 6, 
-                                "nr": null, 
-                                "rib_pos": 1.0, 
-                                "force": 0.4
+                                "force": 24.0
                             }
                         }, 
                         {
@@ -544,85 +257,9 @@
                             "data": {
                                 "nr": null, 
                                 "pos_2D": [
-                                    4.489322662353516, 
-                                    -4.2342095375061035
+                                    0.8249130845069885, 
+                                    2.075883388519287
                                 ]
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 12, 
-                                "nr": null, 
-                                "rib_pos": 0.11, 
-                                "force": 21.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 15, 
-                                "nr": null, 
-                                "rib_pos": 0.19, 
-                                "force": 1.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 9, 
-                                "nr": null, 
-                                "rib_pos": 0.81, 
-                                "force": 14.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 16, 
-                                "nr": null, 
-                                "rib_pos": 0.87, 
-                                "force": 1.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "LowerNode2D", 
-                            "data": {
-                                "nr": null, 
-                                "pos_2D": [
-                                    7.09653377532959, 
-                                    -6.062927722930908
-                                ], 
-                                "pos_3D": [
-                                    1.2, 
-                                    0.35, 
-                                    -5.8
-                                ]
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 9, 
-                                "nr": null, 
-                                "rib_pos": 0.31, 
-                                "force": 19.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 13, 
-                                "nr": null, 
-                                "rib_pos": 0.81, 
-                                "force": 14.0
                             }
                         }, 
                         {
@@ -640,30 +277,31 @@
                             "_module": "openglider.glider.glider_2d.lines", 
                             "_type": "UpperNode2D", 
                             "data": {
-                                "rib_no": 1, 
+                                "rib_no": 13, 
                                 "nr": null, 
-                                "rib_pos": 0.32, 
-                                "force": 1.0
+                                "rib_pos": 0.31, 
+                                "force": 17.0
                             }
                         }, 
                         {
                             "_module": "openglider.glider.glider_2d.lines", 
                             "_type": "UpperNode2D", 
                             "data": {
-                                "rib_no": 8, 
+                                "rib_no": 2, 
                                 "nr": null, 
                                 "rib_pos": 0.11, 
-                                "force": 23.0
+                                "force": 25.0
                             }
                         }, 
                         {
                             "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
+                            "_type": "BatchNode2D", 
                             "data": {
-                                "rib_no": 10, 
                                 "nr": null, 
-                                "rib_pos": 0.11, 
-                                "force": 22.0
+                                "pos_2D": [
+                                    4.008257865905762, 
+                                    -4.220938205718994
+                                ]
                             }
                         }, 
                         {
@@ -672,8 +310,39 @@
                             "data": {
                                 "rib_no": 6, 
                                 "nr": null, 
-                                "rib_pos": 0.11, 
-                                "force": 24.0
+                                "rib_pos": 0.55, 
+                                "force": 17.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 7, 
+                                "nr": null, 
+                                "rib_pos": 0.31, 
+                                "force": 20.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 7, 
+                                "nr": null, 
+                                "rib_pos": 0.81, 
+                                "force": 15.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    4.8000359535217285, 
+                                    -0.9601708650588989
+                                ]
                             }
                         }, 
                         {
@@ -684,6 +353,33 @@
                                 "nr": null, 
                                 "rib_pos": 0.0, 
                                 "force": 1.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "LowerNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    -8.432106018066406, 
+                                    -1.1742432117462158
+                                ], 
+                                "pos_3D": [
+                                    1.5, 
+                                    0.3, 
+                                    -6.0
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    -0.5404711365699768, 
+                                    -4.58119010925293
+                                ]
                             }
                         }, 
                         {
@@ -701,10 +397,225 @@
                             "_module": "openglider.glider.glider_2d.lines", 
                             "_type": "UpperNode2D", 
                             "data": {
-                                "rib_no": 3, 
+                                "rib_no": 9, 
+                                "nr": null, 
+                                "rib_pos": 0.31, 
+                                "force": 19.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    1.054958701133728, 
+                                    -2.4264919757843018
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 14, 
+                                "nr": null, 
+                                "rib_pos": 0.55, 
+                                "force": 14.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 2, 
+                                "nr": null, 
+                                "rib_pos": 0.87, 
+                                "force": 1.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 4, 
+                                "nr": null, 
+                                "rib_pos": 0.55, 
+                                "force": 18.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 5, 
+                                "nr": null, 
+                                "rib_pos": 0.81, 
+                                "force": 16.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 14, 
+                                "nr": null, 
+                                "rib_pos": 1.0, 
+                                "force": 0.1
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 4, 
+                                "nr": null, 
+                                "rib_pos": 0.11, 
+                                "force": 25.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 1, 
+                                "nr": null, 
+                                "rib_pos": 0.69, 
+                                "force": 1.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    1.5430275201797485, 
+                                    -2.449120044708252
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 12, 
+                                "nr": null, 
+                                "rib_pos": 1.0, 
+                                "force": 0.1
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 1, 
+                                "nr": null, 
+                                "rib_pos": 0.32, 
+                                "force": 1.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    5.886043071746826, 
+                                    -4.96153450012207
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 12, 
+                                "nr": null, 
+                                "rib_pos": 0.55, 
+                                "force": 15.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 5, 
                                 "nr": null, 
                                 "rib_pos": 0.31, 
                                 "force": 20.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    -0.33263516426086426, 
+                                    0.5649058818817139
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 9, 
+                                "nr": null, 
+                                "rib_pos": 0.81, 
+                                "force": 14.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    3.433643341064453, 
+                                    -0.09670823812484741
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 14, 
+                                "nr": null, 
+                                "rib_pos": 0.11, 
+                                "force": 20.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 10, 
+                                "nr": null, 
+                                "rib_pos": 0.55, 
+                                "force": 16.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 3, 
+                                "nr": null, 
+                                "rib_pos": 0.81, 
+                                "force": 16.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 16, 
+                                "nr": null, 
+                                "rib_pos": 0.32, 
+                                "force": 1.0
                             }
                         }, 
                         {
@@ -719,17 +630,89 @@
                         }, 
                         {
                             "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 4, 
+                                "nr": null, 
+                                "rib_pos": 1.0, 
+                                "force": 0.5
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
                             "_type": "LowerNode2D", 
                             "data": {
                                 "nr": null, 
                                 "pos_2D": [
-                                    -8.432106018066406, 
-                                    -1.1742432117462158
+                                    7.09653377532959, 
+                                    -6.062927722930908
                                 ], 
                                 "pos_3D": [
-                                    1.0, 
-                                    0.3, 
-                                    -6.0
+                                    1.55, 
+                                    0.35, 
+                                    -5.8
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 12, 
+                                "nr": null, 
+                                "rib_pos": 0.11, 
+                                "force": 21.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 10, 
+                                "nr": null, 
+                                "rib_pos": 0.11, 
+                                "force": 22.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 2, 
+                                "nr": null, 
+                                "rib_pos": 0.55, 
+                                "force": 18.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    -1.869310736656189, 
+                                    -2.6655375957489014
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 8, 
+                                "nr": null, 
+                                "rib_pos": 0.55, 
+                                "force": 17.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    2.425467014312744, 
+                                    0.08922925591468811
                                 ]
                             }
                         }, 
@@ -739,8 +722,99 @@
                             "data": {
                                 "nr": null, 
                                 "pos_2D": [
-                                    0.9298047423362732, 
-                                    0.48242104053497314
+                                    4.489322662353516, 
+                                    -4.2342095375061035
+                                ]
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 6, 
+                                "nr": null, 
+                                "rib_pos": 1.0, 
+                                "force": 0.4
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 3, 
+                                "nr": null, 
+                                "rib_pos": 0.31, 
+                                "force": 20.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 16, 
+                                "nr": null, 
+                                "rib_pos": 0.87, 
+                                "force": 1.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 15, 
+                                "nr": null, 
+                                "rib_pos": 0.19, 
+                                "force": 1.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 11, 
+                                "nr": null, 
+                                "rib_pos": 0.81, 
+                                "force": 10
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 8, 
+                                "nr": null, 
+                                "rib_pos": 1.0, 
+                                "force": 0.4
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 8, 
+                                "nr": null, 
+                                "rib_pos": 0.11, 
+                                "force": 23.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "UpperNode2D", 
+                            "data": {
+                                "rib_no": 11, 
+                                "nr": null, 
+                                "rib_pos": 0.31, 
+                                "force": 18.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "BatchNode2D", 
+                            "data": {
+                                "nr": null, 
+                                "pos_2D": [
+                                    3.1367087364196777, 
+                                    -2.322274923324585
                                 ]
                             }
                         }, 
@@ -760,82 +834,8 @@
                             "data": {
                                 "nr": null, 
                                 "pos_2D": [
-                                    -1.869310736656189, 
-                                    -2.6655375957489014
-                                ]
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 4, 
-                                "nr": null, 
-                                "rib_pos": 0.55, 
-                                "force": 18.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "BatchNode2D", 
-                            "data": {
-                                "nr": null, 
-                                "pos_2D": [
-                                    1.5430275201797485, 
-                                    -2.449120044708252
-                                ]
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "BatchNode2D", 
-                            "data": {
-                                "nr": null, 
-                                "pos_2D": [
-                                    5.886043071746826, 
-                                    -4.96153450012207
-                                ]
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "BatchNode2D", 
-                            "data": {
-                                "nr": null, 
-                                "pos_2D": [
-                                    0.8249130845069885, 
-                                    2.075883388519287
-                                ]
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 2, 
-                                "nr": null, 
-                                "rib_pos": 0.55, 
-                                "force": 18.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "UpperNode2D", 
-                            "data": {
-                                "rib_no": 10, 
-                                "nr": null, 
-                                "rib_pos": 0.55, 
-                                "force": 16.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "BatchNode2D", 
-                            "data": {
-                                "nr": null, 
-                                "pos_2D": [
-                                    4.8000359535217285, 
-                                    -0.9601708650588989
+                                    0.9298047423362732, 
+                                    0.48242104053497314
                                 ]
                             }
                         }
@@ -846,7 +846,7 @@
                             "_type": "Line2D", 
                             "data": {
                                 "upper_node": 5, 
-                                "lower_node": 23, 
+                                "lower_node": 30, 
                                 "target_length": null
                             }
                         }, 
@@ -854,8 +854,8 @@
                             "_module": "openglider.glider.glider_2d.lines", 
                             "_type": "Line2D", 
                             "data": {
-                                "upper_node": 4, 
-                                "lower_node": 23, 
+                                "upper_node": 22, 
+                                "lower_node": 30, 
                                 "target_length": null
                             }
                         }, 
@@ -863,8 +863,8 @@
                             "_module": "openglider.glider.glider_2d.lines", 
                             "_type": "Line2D", 
                             "data": {
-                                "upper_node": 45, 
-                                "lower_node": 23, 
+                                "upper_node": 48, 
+                                "lower_node": 30, 
                                 "target_length": null
                             }
                         }, 
@@ -872,8 +872,8 @@
                             "_module": "openglider.glider.glider_2d.lines", 
                             "_type": "Line2D", 
                             "data": {
-                                "upper_node": 3, 
-                                "lower_node": 48, 
+                                "upper_node": 29, 
+                                "lower_node": 57, 
                                 "target_length": null
                             }
                         }, 
@@ -881,8 +881,8 @@
                             "_module": "openglider.glider.glider_2d.lines", 
                             "_type": "Line2D", 
                             "data": {
-                                "upper_node": 42, 
-                                "lower_node": 48, 
+                                "upper_node": 1, 
+                                "lower_node": 57, 
                                 "target_length": null
                             }
                         }, 
@@ -890,8 +890,8 @@
                             "_module": "openglider.glider.glider_2d.lines", 
                             "_type": "Line2D", 
                             "data": {
-                                "upper_node": 28, 
-                                "lower_node": 48, 
+                                "upper_node": 8, 
+                                "lower_node": 57, 
                                 "target_length": null
                             }
                         }, 
@@ -899,8 +899,8 @@
                             "_module": "openglider.glider.glider_2d.lines", 
                             "_type": "Line2D", 
                             "data": {
-                                "upper_node": 40, 
-                                "lower_node": 17, 
+                                "upper_node": 53, 
+                                "lower_node": 45, 
                                 "target_length": null
                             }
                         }, 
@@ -909,7 +909,7 @@
                             "_type": "Line2D", 
                             "data": {
                                 "upper_node": 41, 
-                                "lower_node": 17, 
+                                "lower_node": 45, 
                                 "target_length": null
                             }
                         }, 
@@ -917,8 +917,8 @@
                             "_module": "openglider.glider.glider_2d.lines", 
                             "_type": "Line2D", 
                             "data": {
-                                "upper_node": 36, 
-                                "lower_node": 17, 
+                                "upper_node": 15, 
+                                "lower_node": 45, 
                                 "target_length": null
                             }
                         }, 
@@ -926,7 +926,142 @@
                             "_module": "openglider.glider.glider_2d.lines", 
                             "_type": "Line2D", 
                             "data": {
-                                "upper_node": 14, 
+                                "upper_node": 54, 
+                                "lower_node": 32, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 40, 
+                                "lower_node": 32, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 4, 
+                                "lower_node": 32, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 30, 
+                                "lower_node": 2, 
+                                "target_length": 4.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 57, 
+                                "lower_node": 2, 
+                                "target_length": 4.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 45, 
+                                "lower_node": 2, 
+                                "target_length": 4.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 32, 
+                                "lower_node": 2, 
+                                "target_length": 4.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 10, 
+                                "lower_node": 2, 
+                                "target_length": 4.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 2, 
+                                "lower_node": 12, 
+                                "target_length": 0.5
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 42, 
+                                "lower_node": 43, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 35, 
+                                "lower_node": 43, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 19, 
+                                "lower_node": 43, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 20, 
+                                "lower_node": 16, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 7, 
+                                "lower_node": 16, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 9, 
+                                "lower_node": 16, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 44, 
                                 "lower_node": 24, 
                                 "target_length": null
                             }
@@ -944,80 +1079,8 @@
                             "_module": "openglider.glider.glider_2d.lines", 
                             "_type": "Line2D", 
                             "data": {
-                                "upper_node": 26, 
+                                "upper_node": 34, 
                                 "lower_node": 24, 
-                                "target_length": null
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 23, 
-                                "lower_node": 54, 
-                                "target_length": 4.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 48, 
-                                "lower_node": 54, 
-                                "target_length": 4.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 17, 
-                                "lower_node": 54, 
-                                "target_length": 4.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 24, 
-                                "lower_node": 54, 
-                                "target_length": 4.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 57, 
-                                "lower_node": 54, 
-                                "target_length": 4.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 54, 
-                                "lower_node": 47, 
-                                "target_length": 0.5
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 55, 
-                                "lower_node": 50, 
-                                "target_length": null
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 2, 
-                                "lower_node": 50, 
                                 "target_length": null
                             }
                         }, 
@@ -1026,25 +1089,7 @@
                             "_type": "Line2D", 
                             "data": {
                                 "upper_node": 51, 
-                                "lower_node": 50, 
-                                "target_length": null
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 9, 
-                                "lower_node": 6, 
-                                "target_length": null
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 21, 
-                                "lower_node": 6, 
+                                "lower_node": 55, 
                                 "target_length": null
                             }
                         }, 
@@ -1053,6 +1098,87 @@
                             "_type": "Line2D", 
                             "data": {
                                 "upper_node": 0, 
+                                "lower_node": 55, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 28, 
+                                "lower_node": 55, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 17, 
+                                "lower_node": 3, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 3, 
+                                "lower_node": 13, 
+                                "target_length": 4.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 55, 
+                                "lower_node": 13, 
+                                "target_length": 4.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 24, 
+                                "lower_node": 13, 
+                                "target_length": 4.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 16, 
+                                "lower_node": 13, 
+                                "target_length": 4.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 43, 
+                                "lower_node": 13, 
+                                "target_length": 4.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 13, 
+                                "lower_node": 12, 
+                                "target_length": 0.5
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 38, 
                                 "lower_node": 6, 
                                 "target_length": null
                             }
@@ -1061,8 +1187,8 @@
                             "_module": "openglider.glider.glider_2d.lines", 
                             "_type": "Line2D", 
                             "data": {
-                                "upper_node": 7, 
-                                "lower_node": 52, 
+                                "upper_node": 47, 
+                                "lower_node": 6, 
                                 "target_length": null
                             }
                         }, 
@@ -1070,26 +1196,8 @@
                             "_module": "openglider.glider.glider_2d.lines", 
                             "_type": "Line2D", 
                             "data": {
-                                "upper_node": 33, 
-                                "lower_node": 52, 
-                                "target_length": null
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 56, 
-                                "lower_node": 52, 
-                                "target_length": null
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 16, 
-                                "lower_node": 25, 
+                                "upper_node": 52, 
+                                "lower_node": 46, 
                                 "target_length": null
                             }
                         }, 
@@ -1098,7 +1206,79 @@
                             "_type": "Line2D", 
                             "data": {
                                 "upper_node": 37, 
-                                "lower_node": 25, 
+                                "lower_node": 46, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 25, 
+                                "lower_node": 14, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 21, 
+                                "lower_node": 14, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 14, 
+                                "lower_node": 27, 
+                                "target_length": 2.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 46, 
+                                "lower_node": 27, 
+                                "target_length": 2.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 6, 
+                                "lower_node": 27, 
+                                "target_length": 2.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 27, 
+                                "lower_node": 39, 
+                                "target_length": 3.0
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 26, 
+                                "lower_node": 30, 
+                                "target_length": null
+                            }
+                        }, 
+                        {
+                            "_module": "openglider.glider.glider_2d.lines", 
+                            "_type": "Line2D", 
+                            "data": {
+                                "upper_node": 50, 
+                                "lower_node": 10, 
                                 "target_length": null
                             }
                         }, 
@@ -1107,78 +1287,6 @@
                             "_type": "Line2D", 
                             "data": {
                                 "upper_node": 11, 
-                                "lower_node": 25, 
-                                "target_length": null
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 12, 
-                                "lower_node": 38, 
-                                "target_length": null
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 38, 
-                                "lower_node": 8, 
-                                "target_length": 4.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 25, 
-                                "lower_node": 8, 
-                                "target_length": 4.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 52, 
-                                "lower_node": 8, 
-                                "target_length": 4.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 6, 
-                                "lower_node": 8, 
-                                "target_length": 4.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 50, 
-                                "lower_node": 8, 
-                                "target_length": 4.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 8, 
-                                "lower_node": 47, 
-                                "target_length": 0.5
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 22, 
                                 "lower_node": 10, 
                                 "target_length": null
                             }
@@ -1187,7 +1295,7 @@
                             "_module": "openglider.glider.glider_2d.lines", 
                             "_type": "Line2D", 
                             "data": {
-                                "upper_node": 29, 
+                                "upper_node": 36, 
                                 "lower_node": 10, 
                                 "target_length": null
                             }
@@ -1196,98 +1304,8 @@
                             "_module": "openglider.glider.glider_2d.lines", 
                             "_type": "Line2D", 
                             "data": {
-                                "upper_node": 20, 
-                                "lower_node": 30, 
-                                "target_length": null
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 46, 
-                                "lower_node": 30, 
-                                "target_length": null
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 15, 
-                                "lower_node": 44, 
-                                "target_length": null
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 13, 
-                                "lower_node": 44, 
-                                "target_length": null
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 44, 
-                                "lower_node": 53, 
-                                "target_length": 2.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 30, 
-                                "lower_node": 53, 
-                                "target_length": 2.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 10, 
-                                "lower_node": 53, 
-                                "target_length": 2.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 53, 
-                                "lower_node": 35, 
-                                "target_length": 3.0
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 39, 
-                                "lower_node": 23, 
-                                "target_length": null
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 32, 
-                                "lower_node": 57, 
-                                "target_length": null
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 43, 
-                                "lower_node": 57, 
+                                "upper_node": 33, 
+                                "lower_node": 32, 
                                 "target_length": null
                             }
                         }, 
@@ -1296,7 +1314,7 @@
                             "_type": "Line2D", 
                             "data": {
                                 "upper_node": 18, 
-                                "lower_node": 57, 
+                                "lower_node": 43, 
                                 "target_length": null
                             }
                         }, 
@@ -1304,8 +1322,8 @@
                             "_module": "openglider.glider.glider_2d.lines", 
                             "_type": "Line2D", 
                             "data": {
-                                "upper_node": 27, 
-                                "lower_node": 24, 
+                                "upper_node": 23, 
+                                "lower_node": 43, 
                                 "target_length": null
                             }
                         }, 
@@ -1313,17 +1331,8 @@
                             "_module": "openglider.glider.glider_2d.lines", 
                             "_type": "Line2D", 
                             "data": {
-                                "upper_node": 19, 
-                                "lower_node": 50, 
-                                "target_length": null
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 1, 
-                                "lower_node": 50, 
+                                "upper_node": 56, 
+                                "lower_node": 3, 
                                 "target_length": null
                             }
                         }, 
@@ -1332,16 +1341,7 @@
                             "_type": "Line2D", 
                             "data": {
                                 "upper_node": 49, 
-                                "lower_node": 38, 
-                                "target_length": null
-                            }
-                        }, 
-                        {
-                            "_module": "openglider.glider.glider_2d.lines", 
-                            "_type": "Line2D", 
-                            "data": {
-                                "upper_node": 34, 
-                                "lower_node": 38, 
+                                "lower_node": 3, 
                                 "target_length": null
                             }
                         }
@@ -1350,7 +1350,7 @@
             }, 
             "profiles": [
                 {
-                    "_module": "openglider.airfoil", 
+                    "_module": "openglider.airfoil.profile_2d", 
                     "_type": "Profile2D", 
                     "data": {
                         "data": [
@@ -1987,7 +1987,7 @@
                     }
                 }, 
                 {
-                    "_module": "openglider.airfoil", 
+                    "_module": "openglider.airfoil.profile_2d", 
                     "_type": "Profile2D", 
                     "data": {
                         "data": [
@@ -2625,7 +2625,7 @@
                 }
             ], 
             "ballooning_merge_curve": {
-                "_module": "openglider.utils.bezier", 
+                "_module": "openglider.vector.spline", 
                 "_type": "SymmetricBezier", 
                 "data": {
                     "controlpoints": [
@@ -2651,9 +2651,9 @@
         }
     }, 
     "MetaData": {
-        "date_created": "17.02.15 21:56", 
+        "date_created": "16.03.15 11:49", 
         "application": "openglider", 
-        "date_modified": "17.02.15 21:56", 
+        "date_modified": "16.03.15 11:49", 
         "version": "0.01dev", 
         "author": "obviously, a pilot"
     }

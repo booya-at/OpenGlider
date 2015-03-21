@@ -164,7 +164,7 @@ class panel_tool(base_tool):
             rib_new.append(rib_new[0])
             ribs_new.append(rib_new)
         ribs = ribs_new
-        wake_edge = [rib[0] for rib in ribs]
+        trailing_edge = [rib[0] for rib in ribs]
         polygons = []
         for i, rib_i in enumerate(ribs[:-1]):
             rib_j = ribs[i+1]
@@ -176,10 +176,10 @@ class panel_tool(base_tool):
     # Panel3-methode
         self._vertices = [self.PPM.PanelVector3(*vertex) for vertex in vertices]
         self._panels = [self.PPM.Panel3([self._vertices[nr] for nr in pol]) for pol in polygons]
-        _wake_edges = [self._vertices[i] for i in wake_edge]
+        _trailing_edges = [self._vertices[i] for i in trailing_edge]
 
         self.case.panels = self._panels
-        self.case.wake_edges = _wake_edges
+        self.case.trailing_edges = _trailing_edges
 
     def run(self):
         self.update_glider()
@@ -188,34 +188,40 @@ class panel_tool(base_tool):
         speed = self.glider_2d.speed
         self.case.vinf = self.PPM.Vector3(speed * numpy.cos(alpha) , 0, speed * numpy.sin(alpha))
         self.create_panels(self.Qmidribs.value(), self.Qprofile_points.value())
-        self.case.farfield = 1000000
-        self.case.create_wake(20, 20)
+        self.case.farfield = 5
+        self.case.create_wake(10, 20)
         self.case.run()
         self.show_glider()
 
     def show_glider(self):
         self.glider_result.removeAllChildren()
-        verts = []
+        verts = [list(i) for i in self.case.vertices.values]
+        cols = [i.cp for i in self.case.vertices.values]
+        norms = [list(i.n) for i in self.case.panels]
         pols = []
-        cols = []
-        index = 0
         for pan in self._panels:
             for vert in pan.points:
                 verts.append(list(vert))
-                pols.append(index)
-                index += 1
-            cols.append(pan.cp)
+                pols.append(vert.nr)
             pols.append(-1)     # end of pol
         vertex_property = coin.SoVertexProperty()
         face_set = coin.SoIndexedFaceSet()
+
         for i, col in enumerate(cols):
             vertex_property.orderedRGBA.set1Value(i, coin.SbColor(self.color(col)).getPackedValue())
-            vertex_property.materialBinding = coin.SoMaterialBinding.PER_FACE
+            
         vertex_property.vertex.setValues(0, len(verts), verts)
+        vertex_property.materialBinding = coin.SoMaterialBinding.PER_VERTEX_INDEXED
+
+        vertex_property.normal.setValues(0, len(norms), norms)
+        vertex_property.normalBinding = coin.SoNormalBinding.PER_FACE
+
         face_set.coordIndex.setValues(0, len(pols), pols)
+
         self.glider_result.addChild(vertex_property)
         self.glider_result.addChild(face_set)
-        p1 = numpy.array(list(self.case.pressure_point))
+
+        p1 = numpy.array(list(self.case.center_of_pressure))
         f = numpy.array(list(self.case.force))
         line = Line([p1, p1 + f])
         self.glider_result.addChild(line)
