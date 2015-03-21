@@ -37,12 +37,13 @@ def create_line_tree(glider):
     return collections.OrderedDict([(line, recursive_get_upper(line.upper_node)) for _, line in lowest_lines])
 
 
-def output_lines(glider, ods_sheet=None):
+def output_lines(glider, ods_sheet=None, places=3):
     line_tree = create_line_tree(glider)
     ods_sheet = ods_sheet or ezodf.Table(name="lines", size=(500, 500))
 
     def insert_block(line, upper, row, column):
-        ods_sheet[row, column].set_value(line.get_stretched_length())
+        length = round(line.get_stretched_length(), places)
+        ods_sheet[row, column].set_value(length)
         ods_sheet[row, column+1].set_value(line.type.name)
         if upper:
             for line, line_upper in upper.items():
@@ -59,12 +60,12 @@ def output_lines(glider, ods_sheet=None):
 
     return ods_sheet
 
+if __name__ == "__main__":
+    from openglider.glider.glider_2d import Glider2D
+    glider = Glider2D.import_ods("/tmp/akkro5.ods")
+    #tree=create_line_tree(glider.get_glider_3d())
+    sheet = output_lines(glider.get_glider_3d())
 
-from openglider.glider.glider_2d import Glider2D
-glider = Glider2D.import_ods("/tmp/akkro5.ods")
-#tree=create_line_tree(glider.get_glider_3d())
-sheet = output_lines(glider.get_glider_3d())
-
-ods=ezodf.newdoc("ods", "/tmp/lines.ods")
-ods.sheets += sheet
-ods.save()
+    ods=ezodf.newdoc("ods", "/tmp/lines.ods")
+    ods.sheets += sheet
+    ods.save()

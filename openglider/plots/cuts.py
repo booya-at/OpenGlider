@@ -116,5 +116,5 @@ def cut_3(inner_lists, outer_left, outer_right, amount):
     return newlist, leftcut_index, rightcut_index
 
 cuts = {"orthogonal": cut_1,
-             "folded": cut_2,
-             "parallel": cut_3}
+        "folded": cut_2,
+        "parallel": cut_3}

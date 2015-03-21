@@ -98,15 +98,17 @@ class BasicCell(CachedObject):
 
 
 class Cell(CachedObject):
-    def __init__(self, rib1, rib2, miniribs=None, panels=None, ):
+    def __init__(self, rib1, rib2, miniribs=None, panels=None, diagonals=None):
         self.rib1 = rib1
         self.rib2 = rib2
         self._miniribs = miniribs or []
+        self.diagonals = diagonals or []
 
     def __json__(self):
         return {"rib1": self.rib1,
                 "rib2": self.rib2,
-                "miniribs": self._miniribs}
+                "miniribs": self._miniribs,
+                "diagonals": self.diagonals}
 
     def add_minirib(self, minirib):
         """add a minirib to the cell.

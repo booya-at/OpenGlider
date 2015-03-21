@@ -20,6 +20,7 @@
 from __future__ import division
 import sys
 
+import scipy
 import scipy.interpolate
 
 
@@ -44,12 +45,14 @@ class LineType():
             stretch_curve.insert(0, [0, 0])
         self.stretch_curve = stretch_curve
         self.stretch_interpolation = scipy.interpolate.interp1d([p[0] for p in stretch_curve],
-                                                                [p[1] for p in stretch_curve],
-                                                                bounds_error=False)
+                                                                [p[1] for p in stretch_curve])
 
         self.resistance = resistance
 
     def get_stretch_factor(self, force):
+        if force > self.stretch_interpolation.x[-1]:
+            return 1 + self.stretch_interpolation.y[-1] * force / self.stretch_interpolation.x[-1] / 100
+
         return 1 + self.stretch_interpolation(force) / 100
 
     @classmethod
