@@ -257,3 +257,69 @@ def export_apame(glider, path="", midribs=0, numpoints=None, *other):
     return outfile.close()
 
 
+def PPM_Panels(glider, midribs=0, profile_numpoints=10, num_average=0, symmetric=False):
+    """return the vertices, panels and the trailing edge of a glider, as PPM objects.
+
+    midribs:           midribs of a cell spanwise. if num_average is greater then
+                       0 ballooning will be disables
+    profile_numpoints: coordinates of every rib, choordwise
+    num_average:       steps to average a cell profile
+    symmetric:         set to True if a symmetric result is expected (this will
+                       reduce evaluation time)
+    """
+    # PPM is not a dependency of openglider so if problems occure here, get the module.
+    import PPM
+    glider.close_rib()
+    if symmetric:
+        gilder = glider.copy()
+    else:
+        glider = glider.copy_complete()
+    glider.profile_numpoints = profile_numpoints
+
+    if num_average > 0:
+        ribs = glider.return_average_ribs(midribs, num_average)
+        glider.close_rib()          # should be handled inside return_average_ribs
+    else:
+        ribs = glider.return_ribs(midribs)
+    # deleting the last vertex of every rib (no trailing edge gap)
+    ribs = [rib[:-1] for rib in ribs]
+    # get a numbered representation + flatten vertices
+    i = 0
+    vertices = []
+    ribs_new = []
+    panels = []
+    sym_panels = []
+
+    for rib in ribs:
+        rib_new = []
+        for vertex in rib:
+            rib_new.append(i)
+            vertices.append(vertex)
+            i += 1
+        rib_new.append(rib_new[0])
+        ribs_new.append(rib_new)
+    ribs = ribs_new
+    trailing_edge = [rib[0] for rib in ribs]
+    panel_nr = 0
+    for i, rib_i in enumerate(ribs[:-1]):
+        rib_j = ribs[i+1]
+        for k, _ in enumerate(rib_j[:-1]):
+            l = k + 1
+            panel = [rib_i[k], rib_j[k], rib_j[l], rib_i[l]]
+            panels.append(panel)
+            if symmetric:
+                sym = True
+                for p in panel:
+                    if not vertices[p][1] > -0.000001:
+                        sym = False
+                        break
+                if sym:
+                    sym_panels.append(panel_nr)
+            panel_nr += 1
+    vertices = [PPM.PanelVector3(*point) for point in vertices]
+    panels = [PPM.Panel3([vertices[nr] for nr in panel]) for panel in panels]
+    trailing_edge = [vertices[nr] for nr in trailing_edge]
+    for nr in sym_panels:
+        panels[nr].set_symmetric()
+
+    return vertices, panels, trailing_edge

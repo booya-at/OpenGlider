@@ -195,9 +195,9 @@ class Glider2D(object):
             integrated_depth.append(integrated_depth[-1] + 1. / (front_int(x)[1] - back_int(x)[1]))
         return zip(x_values, [i / integrated_depth[-1] for i in integrated_depth])
 
-    @property
-    def span(self):
-        return self.cell_dist_interpolation[-1][0] * 2
+    def set_const_cell_dist(self):
+        const_dist = list(self.depth_integrated())
+        self.cell_dist = BezierCurve.fit(const_dist, numpoints=len(self.cell_dist.controlpoints))
 
     @property
     def attachment_points(self):
@@ -383,3 +383,21 @@ class Glider2D(object):
     def v_inf(self):
         angle = numpy.arctan(1/self.glide)
         return self.speed * numpy.array([numpy.cos(angle), 0, numpy.sin(angle)])
+
+    @property
+    def projected_area(self):
+        ribs, _, _ = self.shape()
+        ribs = list(ribs)       # gschissenes python3
+        area = 0
+        for i in range(len(ribs) - 1):
+            l = (ribs[i][0][1] - ribs[i][1][1]) + (ribs[i+1][0][1] - ribs[i+1][1][1])
+            area += l * (-ribs[i][0][0] + ribs[i+1][0][0]) / 2
+        return area
+
+    @property   #chached
+    def aspect_ratio(self):
+        return self.span ** 2 / self.projected_area
+
+    @property
+    def span(self):
+        return self.cell_dist_interpolation[-1][0] * 2

@@ -3,6 +3,7 @@ import FreeCAD as App
 from PySide import QtGui
 import numpy
 
+
 from _tools import base_tool, input_field, text_field
 from pivy_primitives_new_new import Container, Marker, coin, Line, COLORS
 from . import BaseCommand
@@ -27,10 +28,11 @@ class panel_tool(base_tool):
             self.QWarning = QtGui.QLabel("no panel_methode installed")
             self.layout.addWidget(self.QWarning)
         else:
-            print(dir(self.PPM))
             self.case = None
             self.Qrun = QtGui.QPushButton("run")
             self.Qmidribs = QtGui.QSpinBox()
+            self.Qsymmetric = QtGui.QCheckBox()
+            self.Qmean_profile = QtGui.QCheckBox()
             self.Qprofile_points = QtGui.QSpinBox()
             self.Qstream_points = QtGui.QSpinBox()
             self.Qstream_radius = QtGui.QDoubleSpinBox()
@@ -50,18 +52,22 @@ class panel_tool(base_tool):
         self.layout.setWidget(0, input_field, self.Qprofile_points)
         self.layout.setWidget(1, text_field, QtGui.QLabel("midribs"))
         self.layout.setWidget(1, input_field, self.Qmidribs)
-        self.layout.setWidget(2, text_field, QtGui.QLabel("number of streams"))
-        self.layout.setWidget(2, input_field, self.Qstream_points)
-        self.layout.setWidget(3, text_field, QtGui.QLabel("stream radius"))
-        self.layout.setWidget(3, input_field, self.Qstream_radius)
-        self.layout.setWidget(4, text_field, QtGui.QLabel("points per streamline"))
-        self.layout.setWidget(4, input_field, self.Qstream_num)
-        self.layout.setWidget(5, text_field, QtGui.QLabel("stream interval"))
-        self.layout.setWidget(5, input_field, self.Qstream_interval)
-        self.layout.setWidget(6, text_field, QtGui.QLabel("min_val"))
-        self.layout.setWidget(6, input_field, self.Qmin_val)
-        self.layout.setWidget(7, text_field, QtGui.QLabel("max_val"))
-        self.layout.setWidget(7, input_field, self.Qmax_val)
+        self.layout.setWidget(2, text_field, QtGui.QLabel("symmetric"))
+        self.layout.setWidget(2, input_field, self.Qsymmetric)
+        self.layout.setWidget(3, text_field, QtGui.QLabel("mean profile"))
+        self.layout.setWidget(3, input_field, self.Qmean_profile)
+        self.layout.setWidget(4, text_field, QtGui.QLabel("number of streams"))
+        self.layout.setWidget(4, input_field, self.Qstream_points)
+        self.layout.setWidget(5, text_field, QtGui.QLabel("stream radius"))
+        self.layout.setWidget(5, input_field, self.Qstream_radius)
+        self.layout.setWidget(6, text_field, QtGui.QLabel("points per streamline"))
+        self.layout.setWidget(6, input_field, self.Qstream_num)
+        self.layout.setWidget(7, text_field, QtGui.QLabel("stream interval"))
+        self.layout.setWidget(7, input_field, self.Qstream_interval)
+        self.layout.setWidget(8, text_field, QtGui.QLabel("min_val"))
+        self.layout.setWidget(8, input_field, self.Qmin_val)
+        self.layout.setWidget(9, text_field, QtGui.QLabel("max_val"))
+        self.layout.setWidget(9, input_field, self.Qmax_val)
         self.layout.addWidget(self.Qrun)
 
         self.Qmidribs.setMaximum(5)
@@ -69,22 +75,24 @@ class panel_tool(base_tool):
         self.Qmidribs.setValue(0)
         self.Qprofile_points.setMaximum(50)
         self.Qprofile_points.setMinimum(10)
-        self.Qprofile_points.setValue(15)
+        self.Qprofile_points.setValue(20)
+        self.Qsymmetric.setChecked(True)
+        self.Qmean_profile.setChecked(True)
         self.Qstream_points.setMaximum(30)
         self.Qstream_points.setMinimum(1)
-        self.Qstream_points.setValue(5)
+        self.Qstream_points.setValue(3)
         self.Qstream_radius.setMaximum(2)
         self.Qstream_radius.setMinimum(0)
-        self.Qstream_radius.setValue(0.3)
+        self.Qstream_radius.setValue(0.1)
         self.Qstream_radius.setSingleStep(0.1)
         self.Qstream_interval.setMaximum(1.000)
         self.Qstream_interval.setMinimum(0.00001)
-        self.Qstream_interval.setValue(0.1)
+        self.Qstream_interval.setValue(0.02)
         self.Qstream_interval.setSingleStep(0.01)
 
         self.Qstream_num.setMaximum(300)
         self.Qstream_num.setMinimum(5)
-        self.Qstream_num.setValue(20)
+        self.Qstream_num.setValue(70)
 
         self.Qmin_val.setMaximum(3)
         self.Qmin_val.setMinimum(-10)
@@ -92,7 +100,7 @@ class panel_tool(base_tool):
         self.Qmin_val.setSingleStep(0.01)
 
         self.Qmax_val.setMaximum(10)
-        self.Qmax_val.setMinimum(1)
+        self.Qmax_val.setMinimum(0)
         self.Qmax_val.setValue(1)
         self.Qmax_val.setSingleStep(0.01)
 
@@ -132,7 +140,7 @@ class panel_tool(base_tool):
         self.stream.removeAllChildren()
         if self.case:
             point = list(self.marker.points[0].getValue())
-            pts = self.stream_line(point, 0.05, 20)
+            pts = self.stream_line(point, 0.05, 10)
             self.stream.addChild(Line(pts, dynamic=False))
 
     def update_glider(self):
@@ -143,11 +151,17 @@ class panel_tool(base_tool):
         flow_path = self.case.flow_path(self.PPM.Vector3(*point), interval, numpoints)
         return [[p.x, p.y, p.z] for p in flow_path.values]
 
-    def create_panels(self, midribs=0, profile_numpoints=10):
-        glider = self.obj.glider_instance.copy_complete()
+    def create_panels(self, midribs=0, profile_numpoints=10, mean=False, symmetric=True):
+        if symmetric:
+            glider = self.obj.glider_instance.copy()
+        else:
+            glider = self.obj.glider_instance.copy_complete()
         glider.profile_numpoints = profile_numpoints
         ribs = glider.return_ribs(midribs)
-
+        if mean:
+            ribs = glider.return_average_ribs(midribs, 5)
+        else:
+            ribs = glider.return_ribs(midribs)
         # deleting the last vertex of every rib (no trailing edge gap)
         ribs = [rib[:-1] for rib in ribs]
 
@@ -176,6 +190,9 @@ class panel_tool(base_tool):
     # Panel3-methode
         self._vertices = [self.PPM.PanelVector3(*vertex) for vertex in vertices]
         self._panels = [self.PPM.Panel3([self._vertices[nr] for nr in pol]) for pol in polygons]
+        if self.Qsymmetric.isChecked():
+            start = glider.has_center_cell * (profile_numpoints) * (midribs +1)
+            for pan in self._panels[start:]: pan.set_symmetric()
         _trailing_edges = [self._vertices[i] for i in trailing_edge]
 
         self.case.panels = self._panels
@@ -187,9 +204,10 @@ class panel_tool(base_tool):
         alpha = numpy.arctan(1 / self.glider_2d.glide)
         speed = self.glider_2d.speed
         self.case.vinf = self.PPM.Vector3(speed * numpy.cos(alpha) , 0, speed * numpy.sin(alpha))
-        self.create_panels(self.Qmidribs.value(), self.Qprofile_points.value())
+        self.create_panels(self.Qmidribs.value(), self.Qprofile_points.value(),
+                           self.Qmean_profile.isChecked(), self.Qsymmetric.isChecked())
         self.case.farfield = 5
-        self.case.create_wake(10, 20)
+        self.case.create_wake(100, 20)
         self.case.run()
         self.show_glider()
 

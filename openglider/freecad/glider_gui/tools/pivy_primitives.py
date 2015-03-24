@@ -105,7 +105,7 @@ class ControlPointContainer(coin.SoSeparator):
     @property
     def control_pos(self):
         return [i.pos for i in self.control_points]
-    
+
     @control_pos.setter
     def control_pos(self, points):
         self.control_points = [ControlPoint(*point) for point in points]

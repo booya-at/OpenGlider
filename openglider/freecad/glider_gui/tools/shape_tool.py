@@ -30,6 +30,11 @@ class shape_tool(base_tool):
         # self.Qcheck1 = QtGui.QCheckBox(self.base_widget)
         self.Qset_const = QtGui.QPushButton(self.base_widget)
 
+        # add another form widget displaying data
+        self.Qarea = QtGui.QDoubleSpinBox(self.base_widget)
+        self.Qaspect_ratio = QtGui.QDoubleSpinBox(self.base_widget)
+        self.Qspan = QtGui.QDoubleSpinBox(self.base_widget)
+
         self.setup_widget()
         self.setup_pivy()
         Gui.SendMsgToActiveView("ViewFit")
@@ -73,8 +78,8 @@ class shape_tool(base_tool):
         self.Qnum_dist.setMaximum(5)
 
         self.Qnum_cells.setMinimum(10)
-        self.Qnum_back.setMinimum(2)
-        self.Qnum_front.setMinimum(2)
+        self.Qnum_back.setMinimum(1)
+        self.Qnum_front.setMinimum(1)
         self.Qnum_dist.setMinimum(1)
 
         # self.layout.setWidget(1, text_field, QtGui.QLabel("manual shape edit"))
@@ -91,6 +96,14 @@ class shape_tool(base_tool):
         self.layout.setWidget(6, input_field, self.Qnum_dist)
         self.layout.setWidget(7, text_field, QtGui.QLabel("constant AR"))
         self.layout.setWidget(7, input_field, self.Qset_const)
+        self.layout.setWidget(8, text_field, QtGui.QLabel("span:"))
+        self.layout.setWidget(8, input_field, self.Qspan)
+        self.layout.setWidget(9, text_field, QtGui.QLabel("projected area:"))
+        self.layout.setWidget(9, input_field, self.Qarea)
+        self.layout.setWidget(10, text_field, QtGui.QLabel("aspect ratio:"))
+        self.layout.setWidget(10, input_field, self.Qaspect_ratio)
+
+        self.update_properties()
 
     def setup_pivy(self):
         # setting on drag behavior
@@ -104,6 +117,10 @@ class shape_tool(base_tool):
         self.task_separator.addChild(self.back_cpc)
         self.task_separator.addChild(self.rib_pos_cpc)
         self.update_shape()
+
+        self.front_cpc.drag_release.append(self.update_properties)
+        self.back_cpc.drag_release.append(self.update_properties)
+        self.rib_pos_cpc.drag_release.append(self.update_properties)
 
     def line_edit(self):
         self.front_cpc.set_edit_mode(self.view)
@@ -160,3 +177,8 @@ class shape_tool(base_tool):
         self.shape.addChild(Line(dist_line).object)
         for i in dist_line:
             self.shape.addChild(Line([[0, i[1]], i, [i[0], 0]], color="gray").object)
+
+    def update_properties(self):
+        self.Qarea.setValue(self.glider_2d.projected_area)
+        self.Qspan.setValue(self.glider_2d.span)
+        self.Qaspect_ratio.setValue(self.glider_2d.aspect_ratio)
