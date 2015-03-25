@@ -307,7 +307,7 @@ def PPM_Panels(glider, midribs=0, profile_numpoints=10, num_average=0, symmetric
             if vertices[rib_j[0]][1] > 0.00001:
                 trailing_edge.append(rib_i[0])
         else:
-            trailing_edge.append(trailing_edge.append(rib_i[0]))
+            trailing_edge.append(rib_i[0])
         if i == len(ribs[:-2]):
             trailing_edge.append(rib_j[0])
 
