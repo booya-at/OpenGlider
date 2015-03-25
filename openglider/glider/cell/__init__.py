@@ -211,7 +211,7 @@ class Cell(CachedObject):
         else:
             return self.basic_cell.midrib(y, ballooning=False)
 
-    @cached_property('rib1.ballooning', 'rib2.ballooning')
+    @cached_property('rib1.ballooning', 'rib2.ballooning', 'rib1.profile_2d.numpoints', 'rib2.profile_2d.numpoints')
     def ballooning_phi(self):
         x_values = self.rib1.profile_2d.x_values
         balloon = [self.rib1.ballooning[i] + self.rib2.ballooning[i] for i in x_values]
