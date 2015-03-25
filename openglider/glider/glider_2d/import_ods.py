@@ -97,12 +97,12 @@ def import_ods_2d(cls, filename, numpoints=4):
     for res in read_elements(sheets[1], "QR", len_data=6):
         height1 = res[5]*2-1
         height2 = res[6]*2-1
-        diagonals.append({"left_front": (res[1]- res[3], height1),
-                          "left_back": (res[1] + res[3], height1),
-                          "right_front": (res[2] - res[4], height2),
-                          "right_back": (res[2] + res[4], height2),
+        diagonals.append({"left_front": (res[1] - res[3]/2, height1),
+                          "left_back": (res[1] + res[3]/2, height1),
+                          "right_front": (res[2] - res[4]/2, height2),
+                          "right_back": (res[2] + res[4]/2, height2),
                           "cells": [res[0]]})
-
+        # todo: group
 
     has_center_cell = not front[0][0] == 0
     cell_no = (len(front)-1)*2 + has_center_cell
@@ -141,6 +141,7 @@ def import_ods_2d(cls, filename, numpoints=4):
     glider_3d = glider_2d.get_glider_3d()
     glider_2d.lineset.set_default_nodes2d_pos(glider_3d)
     return glider_2d
+
 
 def get_lower_aufhaengepunkte(data):
     aufhaengepunkte = {}

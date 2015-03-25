@@ -47,7 +47,6 @@ class DiagonalRib(object):
         Get 3d-Points of a diagonal rib
         :return: (left_list, right_list)
         """
-        # cell = openglider.glider.cells.Cell()
 
         def get_list(rib, cut_front, cut_back):
             # Is it at 0 or 1?
@@ -57,7 +56,8 @@ class DiagonalRib(object):
                 back = rib.profile_2d(cut_back[0] * side)
                 return rib.profile_3d[front:back]
             else:
-                return [rib.align(p + [0]) for p in (cut_front, cut_back)]
+
+                return [rib.align(rib.profile_2d.align(p) + [0]) for p in (cut_front, cut_back)]
 
         left = get_list(cell.rib1, self.left_front, self.left_back)
         right = get_list(cell.rib2, self.right_front, self.right_back)
@@ -68,9 +68,6 @@ class DiagonalRib(object):
         first, second = self.get_3d(cell)
         left, right = flatten_list(first, second)
         return left, right
-        # Insert Marks into ribs
-        # ribs_flattened[self.cell]
-        # ribs_flattened[self.cell+1]
 
 
 class DoubleDiagonalRib():
