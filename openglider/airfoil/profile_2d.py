@@ -206,6 +206,27 @@ class Profile2D(Polygon2D):
         xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 + math.cos(2 * math.pi * x)) / 2
         return [xtemp(i/numpoints) for i in range(numpoints+1)]
 
+    @staticmethod
+    def nose_cos_distribution(pos=0.5):
+        """from cos distribution at leading edge, to a const distribution ad trailing edge"""
+        def distribution(numpoints):
+            def f(x):
+                return x ** 2 / ((-2 + pos) * pos) if x < pos else (2 * x - pos)/(-2 + pos)
+            dist_values = numpy.linspace(0, 1, int(numpoints / 2) + 1)
+            dist_values = [f(val) for val in dist_values]
+            dist_values = dist_values[::-1][:-1] + list(-numpy.array(dist_values))
+            return dist_values
+        return distribution
+
+    @staticmethod
+    def polynom_distribution(p):
+        """return a distribution f(x) = x ** p, 0 < x < 1"""
+        def distribution(numpoints):
+            dist_values = numpy.linspace(0, 1, int(numpoints / 2) + 1) ** p
+            dist_values = list(-dist_values[::-1])[:-1] + list(dist_values)
+            return dist_values
+        return distribution
+
     #@cached_property('self')
     @property
     def x_values(self):

@@ -257,7 +257,7 @@ def export_apame(glider, path="", midribs=0, numpoints=None, *other):
     return outfile.close()
 
 
-def PPM_Panels(glider, midribs=0, profile_numpoints=10, num_average=0, symmetric=False):
+def PPM_Panels(glider, midribs=0, profile_numpoints=10, num_average=0, symmetric=False, distribution=None):
     """return the vertices, panels and the trailing edge of a glider, as PPM objects.
 
     midribs:           midribs of a cell spanwise. if num_average is greater then
@@ -270,7 +270,7 @@ def PPM_Panels(glider, midribs=0, profile_numpoints=10, num_average=0, symmetric
     # PPM is not a dependency of openglider so if problems occure here, get the module.
     import PPM
     glider.close_rib()
-    glider.profile_numpoints = profile_numpoints
+    glider.set_profile_numpoints(profile_numpoints, distribution)
     if symmetric:
         gilder = glider.copy()
     else:
