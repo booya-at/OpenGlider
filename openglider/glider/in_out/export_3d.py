@@ -270,11 +270,11 @@ def PPM_Panels(glider, midribs=0, profile_numpoints=10, num_average=0, symmetric
     # PPM is not a dependency of openglider so if problems occure here, get the module.
     import PPM
     glider.close_rib()
+    glider.profile_numpoints = profile_numpoints
     if symmetric:
         gilder = glider.copy()
     else:
         glider = glider.copy_complete()
-    glider.profile_numpoints = profile_numpoints
 
     if num_average > 0:
         ribs = glider.return_average_ribs(midribs, num_average)
@@ -289,6 +289,7 @@ def PPM_Panels(glider, midribs=0, profile_numpoints=10, num_average=0, symmetric
     ribs_new = []
     panels = []
     sym_panels = []
+    trailing_edge = []
 
     for rib in ribs:
         rib_new = []
@@ -299,23 +300,36 @@ def PPM_Panels(glider, midribs=0, profile_numpoints=10, num_average=0, symmetric
         rib_new.append(rib_new[0])
         ribs_new.append(rib_new)
     ribs = ribs_new
-    trailing_edge = [rib[0] for rib in ribs]
     panel_nr = 0
     for i, rib_i in enumerate(ribs[:-1]):
         rib_j = ribs[i+1]
+        if symmetric:
+            if vertices[rib_j[0]][1] > 0.00001:
+                trailing_edge.append(rib_i[0])
+        else:
+            trailing_edge.append(trailing_edge.append(rib_i[0]))
+        if i == len(ribs[:-2]):
+            trailing_edge.append(rib_j[0])
+
         for k, _ in enumerate(rib_j[:-1]):
             l = k + 1
             panel = [rib_i[k], rib_j[k], rib_j[l], rib_i[l]]
-            panels.append(panel)
             if symmetric:
                 sym = True
+                add_panel = False
                 for p in panel:
-                    if not vertices[p][1] > -0.000001:
-                        sym = False
-                        break
-                if sym:
-                    sym_panels.append(panel_nr)
-            panel_nr += 1
+                    if not vertices[p][1] > -0.000001:      # if one point lies on the y- side
+                        sym = False                         # y- is the mirrored side
+                    if not vertices[p][1] < 0.0001:      # if one point lies on the y+ side
+                        add_panel = True
+                if add_panel:
+                    panels.append(panel)
+                    if sym:
+                        sym_panels.append(panel_nr)
+                    panel_nr += 1
+            else:
+                panels.append(panel)
+
     vertices = [PPM.PanelVector3(*point) for point in vertices]
     panels = [PPM.Panel3([vertices[nr] for nr in panel]) for panel in panels]
     trailing_edge = [vertices[nr] for nr in trailing_edge]

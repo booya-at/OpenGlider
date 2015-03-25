@@ -3,7 +3,7 @@ import FreeCAD as App
 from PySide import QtGui
 import numpy
 
-
+from openglider.glider.in_out.export_3d import PPM_Panels
 from _tools import base_tool, input_field, text_field
 from pivy_primitives_new_new import Container, Marker, coin, Line, COLORS
 from . import BaseCommand
@@ -152,51 +152,15 @@ class panel_tool(base_tool):
         return [[p.x, p.y, p.z] for p in flow_path.values]
 
     def create_panels(self, midribs=0, profile_numpoints=10, mean=False, symmetric=True):
-        if symmetric:
-            glider = self.obj.glider_instance.copy()
-        else:
-            glider = self.obj.glider_instance.copy_complete()
-        glider.profile_numpoints = profile_numpoints
-        ribs = glider.return_ribs(midribs)
-        if mean:
-            ribs = glider.return_average_ribs(midribs, 5)
-        else:
-            ribs = glider.return_ribs(midribs)
-        # deleting the last vertex of every rib (no trailing edge gap)
-        ribs = [rib[:-1] for rib in ribs]
-
-        # get a numbered representation + flatten vertices
-        i = 0
-        vertices = [] 
-        ribs_new = []
-        for rib in ribs:
-            rib_new = []
-            for vertex in rib:
-                rib_new.append(i)
-                vertices.append(vertex)
-                i += 1
-            rib_new.append(rib_new[0])
-            ribs_new.append(rib_new)
-        ribs = ribs_new
-        trailing_edge = [rib[0] for rib in ribs]
-        polygons = []
-        for i, rib_i in enumerate(ribs[:-1]):
-            rib_j = ribs[i+1]
-            for k, _ in enumerate(rib_j[:-1]):
-                l = k + 1
-                p = [rib_i[k], rib_j[k], rib_j[l], rib_i[l]]
-                polygons.append(p)
-
-    # Panel3-methode
-        self._vertices = [self.PPM.PanelVector3(*vertex) for vertex in vertices]
-        self._panels = [self.PPM.Panel3([self._vertices[nr] for nr in pol]) for pol in polygons]
-        if self.Qsymmetric.isChecked():
-            start = glider.has_center_cell * (profile_numpoints) * (midribs +1)
-            for pan in self._panels[start:]: pan.set_symmetric()
-        _trailing_edges = [self._vertices[i] for i in trailing_edge]
+        self._vertices, self._panels, self._trailing_edges = PPM_Panels(
+            self.obj.glider_instance,
+            midribs=midribs,
+            profile_numpoints=profile_numpoints,
+            num_average=mean,
+            symmetric=symmetric)
 
         self.case.panels = self._panels
-        self.case.trailing_edges = _trailing_edges
+        self.case.trailing_edges = self._trailing_edges
 
     def run(self):
         self.update_glider()
@@ -216,10 +180,11 @@ class panel_tool(base_tool):
         verts = [list(i) for i in self.case.vertices.values]
         cols = [i.cp for i in self.case.vertices.values]
         norms = [list(i.n) for i in self.case.panels]
+        print(verts)
         pols = []
         for pan in self._panels:
             for vert in pan.points:
-                verts.append(list(vert))
+                #verts.append(list(vert))
                 pols.append(vert.nr)
             pols.append(-1)     # end of pol
         vertex_property = coin.SoVertexProperty()
