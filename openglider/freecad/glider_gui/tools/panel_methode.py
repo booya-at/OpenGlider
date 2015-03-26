@@ -4,6 +4,7 @@ from PySide import QtGui
 import numpy
 
 from openglider.glider.in_out.export_3d import PPM_Panels
+from openglider.airfoil import Profile2D
 from _tools import base_tool, input_field, text_field
 from pivy_primitives_new_new import Container, Marker, coin, Line, COLORS
 from . import BaseCommand
@@ -152,11 +153,13 @@ class panel_tool(base_tool):
         return [[p.x, p.y, p.z] for p in flow_path.values]
 
     def create_panels(self, midribs=0, profile_numpoints=10, mean=False, symmetric=True):
+        print(mean)
         self._vertices, self._panels, self._trailing_edges = PPM_Panels(
-            self.obj.glider_instance,
+            self.glider_2d.get_glider_3d(),
             midribs=midribs,
             profile_numpoints=profile_numpoints,
-            num_average=mean,
+            num_average=mean*5,
+            distribution=Profile2D.nose_cos_distribution(0.2),
             symmetric=symmetric)
 
         self.case.panels = self._panels
@@ -180,7 +183,6 @@ class panel_tool(base_tool):
         verts = [list(i) for i in self.case.vertices.values]
         cols = [i.cp for i in self.case.vertices.values]
         norms = [list(i.n) for i in self.case.panels]
-        print(verts)
         pols = []
         for pan in self._panels:
             for vert in pan.points:
