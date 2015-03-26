@@ -379,13 +379,35 @@ class Glider2D(object):
         glider.lineset.calc_sag()
         return glider
 
+
     @property
     def v_inf(self):
         angle = numpy.arctan(1/self.glide)
         return self.speed * numpy.array([numpy.cos(angle), 0, numpy.sin(angle)])
 
+    def scale_x_y(self, value):
+        self.front._data *= value
+        self.back._data *= value
+        self.ballooning_merge_curve._data[:, 0] *= value
+        self.profile_merge_curve._data[:, 0] *= value
+        self.cell_dist._data[:, 0] *= value
+        self.aoa._data[:, 0] *= value
+
+    def scale_x(self, value):
+        self.front._data[:, 0] *= value
+        self.back._data[:, 0] *= value
+        self.ballooning_merge_curve._data[:, 0] *= value
+        self.profile_merge_curve._data[:, 0] *= value
+        self.cell_dist._data[:, 0] *= value
+        self.aoa._data[:, 0] *= value
+        self.arc._data[:, 0] *= value
+
+    def scale_y(self, value):
+        self.front._data[:, 1] *= value
+        self.back._data[:, 1] *= value
+
     @property
-    def projected_area(self):
+    def flat_area(self):
         ribs, _, _ = self.shape()
         ribs = list(ribs)       # gschissenes python3
         area = 0
@@ -394,10 +416,33 @@ class Glider2D(object):
             area += l * (-ribs[i][0][0] + ribs[i+1][0][0]) / 2
         return area
 
-    @property   #chached
+    def set_flat_area(self, value, fixed="aspect_ratio"):
+        area = self.flat_area
+        if fixed == "aspect_ratio":
+            self.scale_x_y(numpy.sqrt(value / area))
+        if fixed == "span":
+            self.scale_y(value / area)
+
+    @property
     def aspect_ratio(self):
-        return self.span ** 2 / self.projected_area
+        return self.span ** 2 / self.flat_area
 
     @property
     def span(self):
         return self.cell_dist_interpolation[-1][0] * 2
+
+    def set_aspect_ratio(self, value, fixed="span"):
+        ar0 = self.aspect_ratio
+        if fixed == "span":
+            self.scale_y(ar0 / value)
+        elif fixed == "area":
+            self.scale_y(numpy.sqrt(ar0 / value))
+            self.scale_x(numpy.sqrt(value / ar0))
+
+    def set_span_1(self, value, fixed="area"):     # integrate in set span
+        sp0 = self.span / 2
+        if fixed == "area":
+            self.scale_x(value / sp0)
+            self.scale_y(sp0 / value)
+        if fixed == "aspect_ratio":
+            self.scale_x_y(value / sp0)
