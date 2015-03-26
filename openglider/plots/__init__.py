@@ -78,11 +78,7 @@ def flattened_cell(cell):
     return left_bal, left, right, right_bal
 
 
-def flatten_glider(glider, sewing_config=sewing_config):
-    plots = {}
-
-    # Panels!
-
+def get_panels(glider):
     panels = collections.OrderedDict()
     xvalues = glider.profile_x_values
 
@@ -105,11 +101,11 @@ def flatten_glider(glider, sewing_config=sewing_config):
             amount_back = panel.cut_back.get("amount", sewing_config["allowance"][panel.cut_back["type"]])
 
             cut_front = cuts[panel.cut_front["type"]]([[left_bal, front_left],
-                                                      [right_bal, front_right]],
-                                                     left_out, right_out, amount_front)
+                                                       [right_bal, front_right]],
+                                                      left_out, right_out, amount_front)
             cut_back = cuts[panel.cut_back["type"]]([[left_bal, back_left],
-                                                    [right_bal, back_right]],
-                                                   left_out, right_out, amount_back)
+                                                     [right_bal, back_right]],
+                                                    left_out, right_out, amount_back)
             part_cuts = [left_out[cut_front[1]:cut_back[1]] +
                          PolyLine2D(cut_back[0]) +
                          right_out[cut_front[2]:cut_back[2]:-1] +
@@ -136,16 +132,18 @@ def flatten_glider(glider, sewing_config=sewing_config):
 
 
             cell_parts.append(PlotPart({"CUTS": part_cuts,
-                                   "MARKS": part_marks,
-                                   "TEXT": part_text
-            }))
+                                        "MARKS": part_marks,
+                                        "TEXT": part_text
+                                        }))
         panels[cell] = cell_parts
 
+    return panels
 
 
-    ##################################RIBS###########################
-    #################################################################
-    ribs = []
+def get_ribs(glider):
+    ribs = collections.OrderedDict()
+    xvalues = glider.profile_x_values
+
     for i, rib in enumerate(glider.ribs[glider.has_center_cell:-1]):
         rib_no = i + glider.has_center_cell
         chord = rib.chord
@@ -200,9 +198,13 @@ def flatten_glider(glider, sewing_config=sewing_config):
             profile_outer.close()
         except:
             raise LookupError("ahah {}/{}".format(i, rib.profile_2d))
-        ribs.append(PlotPart({"CUTS": [profile_outer],
-                               "MARKS": [profile] + rib_marks}))
+        ribs[rib] = PlotPart({"CUTS": [profile_outer],
+                              "MARKS": [profile] + rib_marks})
 
+    return ribs
+
+
+def get_dribs(glider):
     dribs = []
     for cell_no, cell in enumerate(glider.cells):
         cell_dribs = []
@@ -221,6 +223,8 @@ def flatten_glider(glider, sewing_config=sewing_config):
             cut_back = cuts["parallel"]([[left, len(left)-1],
                                          [right, len(right)-1]],
                                         left_out, right_out, alw2)
+
+            print("left", left_out[cut_front[1]:cut_back[1]].get_length())
             part_cuts = [left_out[cut_front[1]:cut_back[1]] +
                          PolyLine2D(cut_back[0]) +
                          right_out[cut_front[2]:cut_back[2]:-1] +
@@ -239,10 +243,19 @@ def flatten_glider(glider, sewing_config=sewing_config):
 
         dribs.append(cell_dribs)
 
+    return dribs
 
+
+def flatten_glider(glider, sewing_config=sewing_config):
+    plots = {}
+
+    # Panels!
+    panels = get_panels(glider)
+    ribs = get_ribs(glider)
+    dribs = get_dribs(glider)
 
     plots['panels'] = DrawingArea.create_raster(panels.values())
-    plots['ribs'] = DrawingArea.create_raster([ribs])
+    plots['ribs'] = DrawingArea.create_raster([ribs.values()])
     plots["dribs"] = DrawingArea.create_raster(dribs)
 
     return plots
