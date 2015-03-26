@@ -141,7 +141,7 @@ def get_panels(glider):
 
 
 def get_ribs(glider):
-    ribs = []
+    ribs = collections.OrderedDict()
     xvalues = glider.profile_x_values
 
     for i, rib in enumerate(glider.ribs[glider.has_center_cell:-1]):
@@ -198,8 +198,10 @@ def get_ribs(glider):
             profile_outer.close()
         except:
             raise LookupError("ahah {}/{}".format(i, rib.profile_2d))
-        ribs.append(PlotPart({"CUTS": [profile_outer],
-                              "MARKS": [profile] + rib_marks}))
+        ribs[rib] = PlotPart({"CUTS": [profile_outer],
+                              "MARKS": [profile] + rib_marks})
+
+    return ribs
 
 
 def get_dribs(glider):
@@ -252,8 +254,8 @@ def flatten_glider(glider, sewing_config=sewing_config):
     ribs = get_ribs(glider)
     dribs = get_dribs(glider)
 
-    plots['panels'] = DrawingArea.create_raster(panels)
-    plots['ribs'] = DrawingArea.create_raster([ribs])
+    plots['panels'] = DrawingArea.create_raster(panels.values())
+    plots['ribs'] = DrawingArea.create_raster([ribs.values()])
     plots["dribs"] = DrawingArea.create_raster(dribs)
 
     return plots
