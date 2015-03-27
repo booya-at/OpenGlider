@@ -69,12 +69,11 @@ def flattened_cell(cell):
     left, right = projection.flatten_list(cell.prof1, cell.prof2)
     left_bal = left.copy()
     right_bal = right.copy()
-    ballooning_left = [cell.rib1.ballooning[x] for x in cell.rib1.profile_2d.x_values]
-    ballooning_right = [cell.rib2.ballooning[x] for x in cell.rib2.profile_2d.x_values]
+    ballooning = [cell.ballooning[x] for x in cell.rib1.profile_2d.x_values]
     for i in range(len(left)):
         diff = right[i] - left[i]
-        left_bal.data[i] -= diff * ballooning_left[i]
-        right_bal.data[i] += diff * ballooning_right[i]
+        left_bal.data[i] -= diff * ballooning[i]
+        right_bal.data[i] += diff * ballooning[i]
     return left_bal, left, right, right_bal
 
 
