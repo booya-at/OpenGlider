@@ -1,6 +1,5 @@
 import math
 import numpy
-from dxfwrite import DXFEngine as dxf
 
 # from openglider.graphics import Graphics3D, Line
 from openglider.vector.functions import norm, normalize
@@ -198,6 +197,7 @@ def export_json(glider, path, numpoints, midribs=0, wake_panels=1,
 
 
 def export_dxf(glider, path="", midribs=0, numpoints=None, *other):
+    from dxfwrite import DXFEngine as dxf
     outfile = dxf.drawing(path)
     other = glider.copy_complete()
     if numpoints:
