@@ -104,13 +104,15 @@ class Cell(CachedObject):
         self._miniribs = miniribs or []
         self.diagonals = diagonals or []
         self.ballooning = ballooning
+        self.panels = panels or []
 
     def __json__(self):
         return {"rib1": self.rib1,
                 "rib2": self.rib2,
                 "ballooning": self.ballooning,
                 "miniribs": self._miniribs,
-                "diagonals": self.diagonals}
+                "diagonals": self.diagonals,
+                "panels": self.panels}
 
     def add_minirib(self, minirib):
         """add a minirib to the cell.

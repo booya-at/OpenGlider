@@ -21,7 +21,8 @@ import tempfile
 import json
 
 from common import *
-from openglider.plots import flatten_glider, create_svg
+from openglider.plots import flatten_glider
+from openglider.plots.part import create_svg
 from openglider import jsonify
 from test_glider import GliderTestClass
 

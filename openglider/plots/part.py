@@ -1,4 +1,10 @@
 import copy
+import io
+import svgwrite
+import svgwrite.container
+import svgwrite.shapes
+
+from openglider.plots import config
 from openglider.vector.polyline import PolyLine2D
 
 
@@ -159,3 +165,76 @@ class DrawingArea():
         y = 0 - other.min_y
         other.move([x, y])
         self.parts += other.parts
+
+    def get_svg_group(self, config=config.sewing_config):
+        group = svgwrite.container.Group()
+
+        for part in self.parts:
+            part_group = svgwrite.container.Group()
+
+            for layer_name, layer_config in config["layers"].items():
+                if layer_name in part.layer_dict:
+                    lines = part.return_layer_svg(layer_name, scale=config["scale"])
+                    for line in lines:
+                        element = svgwrite.shapes.Polyline(line, **layer_config)
+                        part_group.add(element)
+
+            group.add(part_group)
+
+        return group
+
+    def _repr_svg_(self):
+        #self.move([0, -self.max_y])
+        strio = io.StringIO()
+        drawing = svgwrite.Drawing()
+        group = self.get_svg_group()
+        #group.translate(ty=self.max_y)
+        group.scale(0.75/self.max_x)
+        drawing.add(group)
+        drawing.write(strio)
+        strio.seek(0)
+        return strio.read()
+
+
+def create_svg(drawing_area, path):
+    drawing = svgwrite.Drawing()
+    outer_group = svgwrite.container.Group()
+    drawing.add(outer_group)
+    # svg is shifted downwards
+    drawing_area.move([0, -drawing_area.max_y])
+    for part in drawing_area.parts:
+        part_group = svgwrite.container.Group()
+
+        for layer_name, layer_config in config.sewing_config["layers"].items():
+            if layer_name in part.layer_dict:
+                lines = part.return_layer_svg(layer_name, scale=config.sewing_config["scale"])
+                for line in lines:
+                    element = svgwrite.shapes.Polyline(line, **layer_config)
+                    part_group.add(element)
+        outer_group.add(part_group)
+
+    if isinstance(path, str):
+        with open(path, "w") as output_file:
+            return drawing.write(output_file)
+    else:
+        return drawing.write(path)
+
+        # FLATTENING
+        # Dict for layers
+        # Flatten all cell-parts
+        #   * attachment points
+        #   * miniribs
+        #   * sewing marks
+        # FLATTEN RIBS
+        #   * airfoil
+        #   * attachment points
+        #   * gibus arcs
+        #   * holes
+        #   * rigidfoils
+        #   * sewing marks
+        #   ---> SCALE
+        # FLATTEN DIAGONALS
+        #     * Flatten + add stuff
+        #     * Draw marks on ribs
+
+    from IPython.display import SVG
