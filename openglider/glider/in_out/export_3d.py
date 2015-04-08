@@ -40,7 +40,7 @@ def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6, copy=True):
         for point in points:
             # point = point[0] * [-1, -1, -1], point[1] * [-1, -1, -1]
             # Write Normvector
-            # {: 10.6f} 10 zeichen lang, 6 nachkommas (leerzeichen füllen)
+            # {: 10.6f} 10 zeichen lang, 6 nachkommas (leerzeichen fuellen)
             outfile.write("vn {: 10.6f} {: 10.6f} {: 10.6f}\n".format(*point[1]))
             # Write point
             outfile.write("v {: 10.6f} {: 10.6f} {: 10.6f}\n".format(*point[0]))
