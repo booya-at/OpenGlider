@@ -79,7 +79,7 @@ class Glider2D(object):
 
     def get_arc_positions(self, num=50):
         # calculating y/z values vor the arc-curve
-        x_values = numpy.array(self.cell_dist_interpolation).T[0] #array of scalars
+        x_values = self.rib_x_values
         
         arc_curve = PolyLine2D([self.arc(i) for i in numpy.linspace(0.5, 1, num)])  # Symmetric-Bezier-> start from 0.5
         arc_curve_length = arc_curve.get_length()
@@ -120,8 +120,7 @@ class Glider2D(object):
         """
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
-        dist_line = self.cell_dist_interpolation
-        dist = [i[0] for i in dist_line]
+        dist = self.rib_x_values
         front_line = [front_int(x) for x in dist]
         front = mirror2D_x(front_line)[::-1] + front_line
         back = [back_int(x) for x in dist]
@@ -132,8 +131,8 @@ class Glider2D(object):
     def ribs(self, num=30):         #property
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
-        dist_line = self.cell_dist_interpolation
-        dist = [i[0] for i in dist_line]
+
+        dist = self.rib_x_values
         front = [front_int(x) for x in dist]
         back = [back_int(x) for x in dist]
         if self.has_center_cell:
@@ -182,6 +181,10 @@ class Glider2D(object):
         interpolation = self.cell_dist.interpolate_3d(num=20, axis=1)
         start = (self.has_center_cell) / self.cell_num
         return [interpolation(i) for i in numpy.linspace(start, 1, num=self.cell_num // 2 + 1)]
+
+    @property
+    def rib_x_values(self):
+        return [p[0] for p in self.cell_dist_interpolation]
 
     def depth_integrated(self, num=100):
         """
@@ -267,38 +270,42 @@ class Glider2D(object):
         """
         Create a parametric model from glider
         """
-        def mirror_x(polyline):
-            mirrored = [[-p[0], p[1]] for p in polyline[1:]]
-            return mirrored[::-1] + polyline[glider.has_center_cell:]
-
         front, back = glider.shape_simple
         arc = [rib.pos[1:] for rib in glider.ribs]
         aoa = [[front[i][0], rib.aoa_relative] for i, rib in enumerate(glider.ribs)]
 
-        front_bezier = SymmetricBezier.fit(mirror_x(front), numpoints=numpoints)
-        back_bezier = SymmetricBezier.fit(mirror_x(back), numpoints=numpoints)
-        arc_bezier = SymmetricBezier.fit(mirror_x(arc), numpoints=numpoints)
-        aoa_bezier = SymmetricBezier.fit(mirror_x(aoa), numpoints=numpoints)
+        def symmetric_fit(polyline, numpoints=numpoints):
+            mirrored = [[-p[0], p[1]] for p in polyline[1:]]
+            symmetric = mirrored[::-1] + polyline[glider.has_center_cell:]
+            return SymmetricBezier.fit(symmetric, numpoints=numpoints)
+
+        front_bezier = symmetric_fit(front)
+        back_bezier = symmetric_fit(back)
+        arc_bezier = symmetric_fit(arc)
+        aoa_bezier = symmetric_fit(aoa)
 
         cell_num = len(glider.cells) * 2 - glider.has_center_cell
 
         front[0][0] = 0  # for midribs
         start = (2 - glider.has_center_cell) / cell_num
         const_arr = [0.] + numpy.linspace(start, 1, len(front) - 1).tolist()
-        rib_pos = [0.] + [p[0] for p in front[1:]]
-        rib_pos_int = scipy.interpolate.interp1d(rib_pos, [rib_pos, const_arr])
+
+        rib_pos = [p[0] for p in front]
+        cell_centers = [(p1+p2)/2 for p1, p2 in zip(rib_pos[:-1], rib_pos[1:])]
+
+        rib_pos_int = scipy.interpolate.interp1d([0] + rib_pos[1:], [[0] + rib_pos[1:], const_arr])
         rib_distribution = [rib_pos_int(i) for i in numpy.linspace(0, rib_pos[-1], 30)]
         rib_distribution = BezierCurve.fit(rib_distribution, numpoints=numpoints+3)
 
         profiles = [rib.profile_2d for rib in glider.ribs]
-        profile_dist = BezierCurve.fit([[i, i] for i in range(len(profiles))],
+        profile_dist = BezierCurve.fit([[i, i] for i, rib in enumerate(front)],
                                        numpoints=numpoints)
 
-        balloonings = [rib.ballooning for rib in glider.ribs]
-        ballooning_dist = BezierCurve.fit([[i, i] for i in range(len(balloonings))],
+        balloonings = [cell.ballooning for cell in glider.cells]
+        ballooning_dist = BezierCurve.fit([[i, i] for i, rib in enumerate(front[1:])],
                                        numpoints=numpoints)
 
-        # TODO: lineset
+        # TODO: lineset, dist-curce->xvalues
 
         return cls(front=front_bezier,
                    back=back_bezier,
@@ -322,7 +329,8 @@ class Glider2D(object):
         span = self.front.controlpoints[-1][0]
         self.set_span(span)
 
-        x_values = [rib_no[0] for rib_no in self.cell_dist_interpolation]
+        x_values = self.rib_x_values
+
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
         profile_merge_curve = self.profile_merge_curve.interpolate_3d(num=num)
@@ -342,6 +350,8 @@ class Glider2D(object):
             arc_pos = [[-arc_pos[0][0], arc_pos[0][1]]] + arc_pos
             arc_angles = [-arc_angles[0]] + arc_angles
 
+        cell_centers = [(p1+p2)/2 for p1, p2 in zip(x_values[:-1], x_values[1:])]
+
         for rib_no, pos in enumerate(x_values):
             front = front_int(pos)
             back = back_int(pos)
@@ -354,7 +364,6 @@ class Glider2D(object):
 
             ribs.append(Rib(
                 profile_2d=profile,
-                ballooning=self.merge_ballooning(ballooning_merge_curve(abs(pos))[1]),
                 startpoint=numpy.array([-front[1], arc[0], arc[1]]),
                 chord=norm(front - back),
                 arcang=arc_angles[rib_no],
@@ -365,8 +374,10 @@ class Glider2D(object):
             ribs[-1].aoa_relative = aoa_int(pos)[1]
 
         glider.cells = []
-        for rib1, rib2 in zip(ribs[:-1], ribs[1:]):
-            glider.cells.append(Cell(rib1, rib2, []))
+        for i, (rib1, rib2) in enumerate(zip(ribs[:-1], ribs[1:])):
+            ballooning_factor = ballooning_merge_curve(cell_centers[i])[1]
+            ballooning = self.merge_ballooning(ballooning_factor)
+            glider.cells.append(Cell(rib1, rib2, ballooning))
 
         glider.close_rib()
 
@@ -429,7 +440,7 @@ class Glider2D(object):
 
     @property
     def span(self):
-        return self.cell_dist_interpolation[-1][0] * 2
+        return 2 * self.rib_x_values[-1]
 
     def set_aspect_ratio(self, value, fixed="span"):
         ar0 = self.aspect_ratio

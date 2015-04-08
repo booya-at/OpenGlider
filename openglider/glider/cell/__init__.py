@@ -98,17 +98,21 @@ class BasicCell(CachedObject):
 
 
 class Cell(CachedObject):
-    def __init__(self, rib1, rib2, miniribs=None, panels=None, diagonals=None):
+    def __init__(self, rib1, rib2, ballooning, miniribs=None, panels=None, diagonals=None):
         self.rib1 = rib1
         self.rib2 = rib2
         self._miniribs = miniribs or []
         self.diagonals = diagonals or []
+        self.ballooning = ballooning
+        self.panels = panels or []
 
     def __json__(self):
         return {"rib1": self.rib1,
                 "rib2": self.rib2,
+                "ballooning": self.ballooning,
                 "miniribs": self._miniribs,
-                "diagonals": self.diagonals}
+                "diagonals": self.diagonals,
+                "panels": self.panels}
 
     def add_minirib(self, minirib):
         """add a minirib to the cell.
@@ -211,10 +215,10 @@ class Cell(CachedObject):
         else:
             return self.basic_cell.midrib(y, ballooning=False)
 
-    @cached_property('rib1.ballooning', 'rib2.ballooning', 'rib1.profile_2d.numpoints', 'rib2.profile_2d.numpoints')
+    @cached_property('ballooning', 'rib1.profile_2d.numpoints', 'rib2.profile_2d.numpoints')
     def ballooning_phi(self):
         x_values = self.rib1.profile_2d.x_values
-        balloon = [self.rib1.ballooning[i] + self.rib2.ballooning[i] for i in x_values]
+        balloon = [self.ballooning[i] for i in x_values]
         return HashedList([Ballooning.arcsinc(1. / (1+bal)) if bal > 0 else 0 for bal in balloon])
 
     @property
