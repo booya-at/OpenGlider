@@ -40,13 +40,12 @@ def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6, copy=True):
         for point in points:
             # point = point[0] * [-1, -1, -1], point[1] * [-1, -1, -1]
             # Write Normvector
-            outfile.write("vn {0} {1} {2}\n".format(
-                *map(lambda x: round(-x, floatnum), point[1])))
+            # {: 10.6f} 10 zeichen lang, 6 nachkommas (leerzeichen füllen)
+            outfile.write("vn {: 10.6f} {: 10.6f} {: 10.6f}\n".format(*point[1]))
             # Write point
-            outfile.write("v {0} {1} {2}\n".format(
-                *map(lambda x: round(-x, floatnum), point[0])))
+            outfile.write("v {: 10.6f} {: 10.6f} {: 10.6f}\n".format(*point[0]))
         for polygon in panels:
-            outfile.write("f {0} {1} {2}//{0} {1} {2}\n".format(*polygon))
+            outfile.write("f {0}//{0} {1}//{1} {2}//{2}\n".format(*polygon))
     return True
 
 
@@ -272,7 +271,7 @@ def PPM_Panels(glider, midribs=0, profile_numpoints=10, num_average=0, symmetric
     glider.close_rib()
     glider.set_profile_numpoints(profile_numpoints, distribution)
     if symmetric:
-        gilder = glider.copy()
+        glider = glider.copy()
     else:
         glider = glider.copy_complete()
 
