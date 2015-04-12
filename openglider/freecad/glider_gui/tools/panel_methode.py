@@ -162,17 +162,12 @@ class panel_tool(base_tool):
             distribution=Profile2D.nose_cos_distribution(0.2),
             symmetric=symmetric)
 
-        self.case.panels = self._panels
-        self.case.trailing_edges = self._trailing_edges
-
     def run(self):
         self.update_glider()
-        self.case = self.pan3d.DirichletDoublet0Source0Case3()
-        alpha = numpy.arctan(1 / self.glider_2d.glide)
-        speed = self.glider_2d.speed
-        self.case.vinf = self.PPM.Vector3(speed * numpy.cos(alpha) , 0, speed * numpy.sin(alpha))
         self.create_panels(self.Qmidribs.value(), self.Qprofile_points.value(),
                            self.Qmean_profile.isChecked(), self.Qsymmetric.isChecked())
+        self.case = self.pan3d.DirichletDoublet0Source0Case3(self._panels, self._trailing_edges)
+        self.case.vinf = self.PPM.Vector3(*self.glider_2d.v_inf)
         self.case.farfield = 5
         self.case.create_wake(100, 20)
         self.case.run()
