@@ -1,6 +1,5 @@
 import math
 import numpy
-from dxfwrite import DXFEngine as dxf
 
 # from openglider.graphics import Graphics3D, Line
 from openglider.vector.functions import norm, normalize
@@ -41,13 +40,12 @@ def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6, copy=True):
         for point in points:
             # point = point[0] * [-1, -1, -1], point[1] * [-1, -1, -1]
             # Write Normvector
-            outfile.write("vn {0} {1} {2}\n".format(
-                *map(lambda x: round(-x, floatnum), point[1])))
+            # {: 10.6f} 10 zeichen lang, 6 nachkommas (leerzeichen fuellen)
+            outfile.write("vn {: 10.6f} {: 10.6f} {: 10.6f}\n".format(*point[1]))
             # Write point
-            outfile.write("v {0} {1} {2}\n".format(
-                *map(lambda x: round(-x, floatnum), point[0])))
+            outfile.write("v {: 10.6f} {: 10.6f} {: 10.6f}\n".format(*point[0]))
         for polygon in panels:
-            outfile.write("f {0} {1} {2}//{0} {1} {2}\n".format(*polygon))
+            outfile.write("f {0}//{0} {1}//{1} {2}//{2}\n".format(*polygon))
     return True
 
 
@@ -198,6 +196,7 @@ def export_json(glider, path, numpoints, midribs=0, wake_panels=1,
 
 
 def export_dxf(glider, path="", midribs=0, numpoints=None, *other):
+    from dxfwrite import DXFEngine as dxf
     outfile = dxf.drawing(path)
     other = glider.copy_complete()
     if numpoints:
@@ -272,7 +271,7 @@ def PPM_Panels(glider, midribs=0, profile_numpoints=10, num_average=0, symmetric
     glider.close_rib()
     glider.set_profile_numpoints(profile_numpoints, distribution)
     if symmetric:
-        gilder = glider.copy()
+        glider = glider.copy()
     else:
         glider = glider.copy_complete()
 

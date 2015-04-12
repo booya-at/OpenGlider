@@ -29,4 +29,5 @@ objects = {"Glider": openglider.glider.Glider,
            "UpperNode2D": openglider.glider.glider_2d.UpperNode2D,
            "BatchNode2D": openglider.glider.glider_2d.BatchNode2D,
            "Line2D": openglider.glider.glider_2d.Line2D,
+           "Panel": openglider.glider.cell.Panel
            }

@@ -73,3 +73,8 @@ def cut(p1, p2, p3, p4):
     rhs = [p3[0] - p1[0], p3[1] - p1[1]]
     (k, l) = numpy.linalg.solve(matrix, rhs)
     return p1 + k * (p2 - p1), k, l
+
+
+def vector_angle(vec1, vec2):
+    cosalpha = numpy.dot(vec1, vec2)/(norm(vec1)*norm(vec2))
+    return numpy.arccos(cosalpha)

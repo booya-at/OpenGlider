@@ -18,50 +18,17 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import collections
-import svgwrite
 
 from openglider.vector.polyline import PolyLine2D
 from openglider.airfoil import get_x_value
 from openglider.plots import projection, marks
 from openglider.plots.cuts import cuts
-from openglider.plots.part import PlotPart, DrawingArea
+from openglider.plots.part import PlotPart, DrawingArea, create_svg
 from openglider.plots.text import get_text_vector
+from openglider.plots.config import sewing_config
 
 
 # Sign configuration
-sewing_config = {
-    "marks": {
-        "attachment-point": lambda p1, p2: marks.triangle(2 * p1 - p2, p1),  # on the inner-side
-        "panel-cut": marks.line
-    },
-    "allowance": {
-        "parallel": 0.01,
-        "orthogonal": 0.01,
-        "folded": 0.01,
-        "general": 0.01,
-        "diagonals": 0.01
-    },
-    "scale": 1000,
-    "layers":
-        {"CUTS": {
-            "id": 'outer',
-            "stroke_width": "1",
-            "stroke": "green",
-            "fill": "none"},
-         "MARKS": {
-             "id": 'marks',
-             "stroke_width": "1",
-             "stroke": "black",
-             "fill": "none"},
-         "TEXT": {
-             "id": 'text',
-             "stroke_width": "1",
-             "stroke": "black",
-             "fill": "none"},
-        }
-
-
-}
 
 
 def flattened_cell(cell):
@@ -69,12 +36,11 @@ def flattened_cell(cell):
     left, right = projection.flatten_list(cell.prof1, cell.prof2)
     left_bal = left.copy()
     right_bal = right.copy()
-    ballooning_left = [cell.rib1.ballooning[x] for x in cell.rib1.profile_2d.x_values]
-    ballooning_right = [cell.rib2.ballooning[x] for x in cell.rib2.profile_2d.x_values]
+    ballooning = [cell.ballooning[x] for x in cell.rib1.profile_2d.x_values]
     for i in range(len(left)):
         diff = right[i] - left[i]
-        left_bal.data[i] -= diff * ballooning_left[i]
-        right_bal.data[i] += diff * ballooning_right[i]
+        left_bal.data[i] -= diff * ballooning[i]
+        right_bal.data[i] += diff * ballooning[i]
     return left_bal, left, right, right_bal
 
 
@@ -187,9 +153,11 @@ def get_ribs(glider):
         # general marks
 
         # holes
+        cuts = [profile_outer]
         for hole in rib.holes:
-            rib_marks.append(hole.get_flattened(rib))
+            cuts.append(hole.get_flattened(rib))
 
+        # drib cuts
 
 
         #add text, entry, holes
@@ -198,7 +166,7 @@ def get_ribs(glider):
             profile_outer.close()
         except:
             raise LookupError("ahah {}/{}".format(i, rib.profile_2d))
-        ribs[rib] = PlotPart({"CUTS": [profile_outer],
+        ribs[rib] = PlotPart({"CUTS": cuts,
                               "MARKS": [profile] + rib_marks})
 
     return ribs
@@ -239,11 +207,35 @@ def get_dribs(glider):
                                         "MARKS": part_marks,
                                         "TEXT": text}))
 
-            # todo: add rib mark
-
         dribs.append(cell_dribs)
 
     return dribs
+
+
+def insert_drib_marks(glider, rib_plots):
+
+    def insert_mark(cut_front, cut_back, rib):
+        rib_plot = rib_plots[rib]
+        if cut_front[1] == -1 and cut_back[1] == -1:
+            # todo: mark( triangle,..)
+            ik1 = rib.profile_2d(cut_front[0])
+            ik2 = rib.profile_2d(cut_back[0])
+            mark = sewing_config["marks"]["diagonal"](0,0)
+            mark = None
+        elif cut_front[1] == 1 and cut_back[1] == 1:
+            mark = None
+        else:
+            # line
+            p1 = None
+            p2 = None
+            mark = PolyLine2D([p1, p2])
+
+        rib_plots[rib]["MARKS"].append(mark)
+
+    for cell in glider.cells:
+        for diagonal in cell.diagonals:
+            insert_mark(diagonal.left_front, diagonal.left_back, cell.rib1)
+            insert_mark(diagonal.right_front, diagonal.right_back, cell.rib2)
 
 
 def flatten_glider(glider, sewing_config=sewing_config):
@@ -253,6 +245,7 @@ def flatten_glider(glider, sewing_config=sewing_config):
     panels = get_panels(glider)
     ribs = get_ribs(glider)
     dribs = get_dribs(glider)
+    insert_drib_marks(glider, ribs)
 
     plots['panels'] = DrawingArea.create_raster(panels.values())
     plots['ribs'] = DrawingArea.create_raster([ribs.values()])
@@ -261,38 +254,3 @@ def flatten_glider(glider, sewing_config=sewing_config):
     return plots
 
 
-def create_svg(drawing_area, path):
-    drawing = svgwrite.Drawing()
-    # svg is shifted downwards
-    drawing_area.move([0, -drawing_area.max_y])
-    for part in drawing_area.parts:
-        part_group = svgwrite.container.Group()
-
-        for layer_name, layer_config in sewing_config["layers"].items():
-            if layer_name in part.layer_dict:
-                lines = part.return_layer_svg(layer_name, scale=sewing_config["scale"])
-                for line in lines:
-                    element = svgwrite.shapes.Polyline(line, **layer_config)
-                    part_group.add(element)
-        drawing.add(part_group)
-
-    with open(path, "w") as output_file:
-        return drawing.write(output_file)
-
-        # FLATTENING
-        # Dict for layers
-        # Flatten all cell-parts
-        #   * attachment points
-        #   * miniribs
-        #   * sewing marks
-        # FLATTEN RIBS
-        #   * airfoil
-        #   * attachment points
-        #   * gibus arcs
-        #   * holes
-        #   * rigidfoils
-        #   * sewing marks
-        #   ---> SCALE
-        # FLATTEN DIAGONALS
-        #     * Flatten + add stuff
-        #     * Draw marks on ribs
