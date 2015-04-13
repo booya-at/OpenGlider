@@ -20,7 +20,7 @@
 
 import unittest
 import numpy
-from openglider.utils.distribution import distribution
+from openglider.utils.distribution import Distribution
 
 
 class TestProfile(unittest.TestCase):
