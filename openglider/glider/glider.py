@@ -31,11 +31,9 @@ from openglider.vector.functions import norm, rotation_2d
 
 
 class Glider(object):
-    def __init__(self, cells=None, lineset=None, rib_elements=None, cell_elements=None):
+    def __init__(self, cells=None, lineset=None):
         self.cells = cells or []
         self.lineset = lineset
-        self.rib_elements = rib_elements or []
-        self.cell_elements = cell_elements or []
 
     def __json__(self):
         new = self.copy()
@@ -52,24 +50,16 @@ class Glider(object):
             cell_element.cell = cells.index(cell_element.cell)
         return {"cells": new.cells,
                 "ribs": ribs,
-                "lineset": self.lineset,
-                "cell_elements": new.cell_elements,
-                "rib_elements": new.rib_elements
+                "lineset": self.lineset
                 }
 
     @classmethod
-    def __from_json__(cls, cells, ribs, lineset, cell_elements, rib_elements):
+    def __from_json__(cls, cells, ribs, lineset):
         for cell in cells:
             if isinstance(cell.rib1, int):
                 cell.rib1 = ribs[cell.rib1]
             if isinstance(cell.rib2, int):
                 cell.rib2 = ribs[cell.rib2]
-        for rib_element in rib_elements:
-            if isinstance(rib_element.rib, int):
-                rib_element.rib = ribs[rib_element.rib]
-        for cell_element in cell_elements:
-            if isinstance(cell_element.cell, int):
-                cell_element.cell = cells[cell_element.cell]
         return cls(cells, lineset=lineset)
 
     def __repr__(self):
@@ -96,6 +86,12 @@ class Glider(object):
         return EXPORT_3D[filetype](self, path, *args, **kwargs)
 
     def return_ribs(self, num=None, ballooning=True):
+        """
+        Get a list of rib-curves
+        :param num: number of midribs per cell
+        :param ballooning: calculate ballooned cells
+        :return: nested list of ribs [[[x,y,z],p2,p3...],rib2,rib3,..]
+        """
         num = num or 0
         num += 1
         if not self.cells:
@@ -108,28 +104,38 @@ class Glider(object):
         ribs.append(self.cells[-1].midrib(1.).data)
         return ribs
 
+    def apply_mean_ribs(self, num_mean=8):
+        """
+        Calculate Mean ribs
+        :param num_mean:
+        :return:
+        """
+        ribs = [cell.mean_rib(num_mean) for cell in self.cells]
+        if self.has_center_cell:
+            ribs.insert(0, ribs[1])
+        else:
+            ribs.insert(0, ribs[0])
+
+        for i in range(len(self.ribs))[:-1]:
+            self.ribs[i].profile_2d = (ribs[i] + ribs[i+1]) * 0.5
+
     def return_average_ribs(self, num=0, num_average=8):
         glider = self.copy()
-        ribs = [cell.average_rib(num_average) for cell in glider.cells]
-        ribs = [ribs[0]] + ribs + [ribs[-1]]
-        for i in range(len(glider.ribs))[0:-1]:
-            j = i + 1
-            glider.ribs[i].profile_2d = (ribs[i] + ribs[j]) * 0.5
+        glider.apply_mean_ribs(num_average)
         return glider.return_ribs(num, ballooning=False)
 
-    def return_polygons(self, num=0):
-        if not self.cells:
-            return numpy.array([]), numpy.array([])
-        ribs = self.return_ribs(num)
-        num += 1
+    @staticmethod
+    def return_polygon_indices(ribs):
+        num = len(ribs)
         numpoints = len(ribs[0])  # points per rib
-        ribs = numpy.concatenate(ribs)  # ribs was [[point1[x,y,z],[point2[x,y,z]],[point1[x,y,z],point2[x,y,z]]]
+        #ribs = numpy.concatenate(ribs)  # ribs was [[point1[x,y,z],[point2[x,y,z]],[point1[x,y,z],point2[x,y,z]]]
         polygons = []
-        for i in range(len(self.cells) * num):  # without +1, because we use i+1 below
+        for i in range(num-1):  # because we use i+1 below
             for k in range(numpoints - 1):  # same reason as above
+                kplus = (k+1) % (numpoints-1)
                 polygons.append(
-                    [i * numpoints + k, i * numpoints + k + 1, (i + 1) * numpoints + k + 1, (i + 1) * numpoints + k])
-        return polygons, ribs
+                    [i * numpoints + k, i * numpoints + kplus, (i + 1) * numpoints + kplus, (i + 1) * numpoints + k])
+        return polygons
 
     def close_rib(self, rib=-1):
         self.ribs[rib].profile_2d *= 0.

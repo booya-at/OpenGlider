@@ -20,9 +20,8 @@
 from __future__ import division
 import os
 import random
-
 import sys
-from openglider.vector.spline import BezierCurve
+import numpy
 
 
 try:
@@ -32,6 +31,7 @@ except ImportError:
     import openglider
 import openglider.graphics
 import openglider.graphics as graphics
+from openglider.vector.spline import BezierCurve
 from test_glider import GliderTestClass
 import unittest
 
@@ -49,7 +49,9 @@ class TestGlider(GliderTestClass):
         left = glider.copy()
         right = left.copy()
         right.mirror()
-        polygons, points = left.return_polygons(num)
+        ribs = left.return_ribs(num)
+        polygons = left.return_polygon_indices(ribs)
+        points = numpy.concatenate(ribs)
         objects = []
         objects += [openglider.graphics.Red]
         objects += map(openglider.graphics.Polygon, polygons)
@@ -77,7 +79,7 @@ class TestGlider(GliderTestClass):
 
     def test_show_shape_simple(self):
         front, back = self.glider.shape_simple
-        openglider.graphics.Graphics2D([openglider.graphics.Line(obj) for obj in front, back])
+        openglider.graphics.Graphics2D([openglider.graphics.Line(obj) for obj in (front, back)])
 
     def test_show_ribs(self):
         #self.glider = self.glider.copy_complete()

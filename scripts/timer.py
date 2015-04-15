@@ -14,7 +14,7 @@ for i in range(num):
     with open('acro.json') as infile:
         glider_2d = jsonify.load(infile)["data"]
     glider_3d = glider_2d.get_glider_3d()
-    glider_3d.return_polygons()
+    glider_3d.return_polygon_indices()
 
 stop = time.time()
 print((stop-start)/num)
