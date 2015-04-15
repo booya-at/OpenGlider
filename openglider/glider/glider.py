@@ -42,12 +42,7 @@ class Glider(object):
         for cell in new.cells:
             cell.rib1 = ribs.index(cell.rib1)
             cell.rib2 = ribs.index(cell.rib2)
-        for rib_el in new.rib_elements:
-            rib_el.rib = ribs.index(rib_el.rib)
 
-        cells = new.cells
-        for cell_element in new.cell_elements:
-            cell_element.cell = cells.index(cell_element.cell)
         return {"cells": new.cells,
                 "ribs": ribs,
                 "lineset": self.lineset

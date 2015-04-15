@@ -1,6 +1,6 @@
 import json
+import re
 import time
-from openglider.jsonify.objects import objects
 import openglider
 
 __ALL__ = ['dumps', 'dump', 'loads', 'load']
@@ -23,25 +23,36 @@ class Encoder(json.JSONEncoder):
             return super(Encoder, self).default(obj)
 
 
+def get_element(_module, _name):
+    for rex in openglider.config["json_forbidden_modules"]:
+        if re.match(rex, _module):
+            raise Exception
+        elif re.match(rex, _name):
+            raise Exception
+    for rex in openglider.config["json_allowed_modules"]:
+        match = re.match(rex, _module)
+        if match:
+            module = __import__(_module, fromlist=_module.split("."))
+            if hasattr(module, _name):
+                obj = getattr(module, _name)
+                return obj
+            else:
+                raise LookupError("No element of type {} found (module: {})".format(_name, _module))
+
+
 def object_hook(dct):
     """
     Return the de-serialized object
     """
     if '_type' in dct and '_module' in dct:
-        _module = dct['_module'].split('.')
-        _type = dct['_type']
-        if _type in objects:
-            obj = objects[_type]
-            # TODO: add allowed_modules['_module']
-        else:
-            raise LookupError("No element of type {} found (module: {})".format(_type, dct['_module']))
+        obj = get_element(dct["_module"], dct["_type"])
 
         try:
             # use the __from_json__ function if present. __init__ otherwise
             deserializer = getattr(obj, '__from_json__', obj)
             return deserializer(**dct['data'])
         except TypeError as e:
-            raise TypeError("{} in element: {} ({})".format(e, _type, deserializer))
+            raise TypeError("{} in element: {} ({})".format(e, dct["_type"], dct["_module"]))
 
     else:
         return dct
@@ -54,7 +65,7 @@ def add_metadata(data):
     else:
         return {'MetaData': {'application': 'openglider',
                              'version': openglider.__version__,
-                             'author': 'obviously, a pilot',
+                             'author': openglider.config["user"],
                              'date_created': time.strftime("%d.%m.%y %H:%M"),
                              'date_modified': time.strftime("%d.%m.%y %H:%M")},
                 'data': data}

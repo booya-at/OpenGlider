@@ -93,7 +93,7 @@ def hash_attributes(class_instance, hashlist):
             thahash = hash(el)
         except TypeError:  # Lists p.e.
             if openglider.config['debug']:
-                print("bad cache: "+str(class_instance.__name__)+" attribute: "+attribute)
+                print("bad cache: "+str(class_instance.__class__.__name__)+" attribute: "+attribute)
             try:
                 thahash = hash(frozenset(el))
             except TypeError:

@@ -120,7 +120,6 @@ def get_ribs(glider):
         profile_outer = profile.copy()
         profile_outer.add_stuff(0.01)
 
-        rib_parts = filter(lambda el: el.rib is rib, glider.rib_elements)
 
         def return_points(x_value):
             "Return points for sewing marks"
