@@ -8,6 +8,7 @@ from _tools import base_tool, input_field, text_field
 from pivy_primitives_new_new import coin, Line, Marker, Container, vector3D
 from PySide import QtGui, QtCore
 from openglider.glider.glider_2d import UpperNode2D, LowerNode2D, BatchNode2D, Line2D, LineSet2D
+from openglider.lines.line_types import LineType
 
 
 # all line info goes into the tool.
@@ -59,6 +60,9 @@ class line_tool(base_tool):
         self.line_widget = QtGui.QWidget()
         self.lw_att_wid = QtGui.QWidget()
         self.up_att_wid = QtGui.QWidget()
+        self.Qline_list = QtGui.QListWidget()
+        for _type in LineType.types.values():
+            self.Qline_list.addItem(QLineType_item(_type))
 
         self.up_att_lay = QtGui.QFormLayout(self.up_att_wid)
         self.lw_att_lay = QtGui.QFormLayout(self.lw_att_wid)
@@ -68,7 +72,10 @@ class line_tool(base_tool):
         self.target_length = QtGui.QDoubleSpinBox()
         self.line_layout.setWidget(0, text_field, QtGui.QLabel("target length: "))
         self.line_layout.setWidget(0, input_field, self.target_length)
+        self.line_layout.setWidget(1, text_field, QtGui.QLabel("line type: "))
+        self.line_layout.setWidget(1, input_field, self.Qline_list)
         self.target_length.valueChanged.connect(self.update_target_length)
+        self.Qline_list.currentItemChanged.connect(self.update_line_type)
 
         self.attach_x_val = QtGui.QDoubleSpinBox()
         self.attach_y_val = QtGui.QDoubleSpinBox()
@@ -214,40 +221,77 @@ class line_tool(base_tool):
         # je nach dem welches widget grad selektiert ist
         # soll er ein widget einblenden.
         # wenn mehrere elemente oder keinen ausgewaehlt ist dann nichts auswaehlen
-        if len(self.shape.select_object) == 1:
-            obj = self.shape.select_object[0]
-            if (isinstance(obj, ConnectionLine) and not
-                (isinstance(obj.marker1, Upper_Att_Marker) or
-                 isinstance(obj.marker2, Upper_Att_Marker))):
+        def show_line_widget(objs):
+            for obj in objs:
+                if not (isinstance(obj, ConnectionLine)):
+                    return False
+            return True
+
+        def has_uppermost_line(objs):
+            for obj in objs:
+                if obj.is_uppermost_line():
+                    return True
+            return False
+
+        def show_upper_att_widget(objs):
+            for obj in objs:
+                if not isinstance(obj, Upper_Att_Marker):
+                    return False
+            return True
+
+        def show_lower_att_widget(objs):
+            for obj in objs:
+                if not isinstance(obj, Lower_Att_Marker):
+                    return False
+            return True
+
+        selected_objs = self.shape.select_object
+        if selected_objs:
+            self.target_length.setEnabled(True)
+            if show_line_widget(selected_objs):
                 self.tool_widget.setCurrentWidget(self.line_widget)
-                self.target_length.setValue(obj.target_length)
-            elif isinstance(obj, Lower_Att_Marker):
+                print(has_uppermost_line(selected_objs))
+                if has_uppermost_line(selected_objs):
+                    self.target_length.setEnabled(False)                    
+                else:
+                    self.target_length.setValue(selected_objs[0].target_length)
+                line_type_item = self.Qline_list.findItems(
+                        selected_objs[0].line_type, QtCore.Qt.MatchExactly)[0]
+                self.Qline_list.setCurrentItem(line_type_item)
+            elif show_lower_att_widget(selected_objs):
                 self.tool_widget.setCurrentWidget(self.lw_att_wid)
-                x, y, z = obj.pos_3D
+                x, y, z = selected_objs[0].pos_3D
                 self.attach_x_val.setValue(x)
                 self.attach_y_val.setValue(y)
                 self.attach_z_val.setValue(z)
-            elif isinstance(obj, Upper_Att_Marker):
+            elif show_upper_att_widget(selected_objs):
                 self.tool_widget.setCurrentWidget(self.up_att_wid)
-                self.up_att_force.setValue(obj.force)
-
+                self.up_att_force.setValue(selected_objs[0].force)
             else:
                 self.tool_widget.setCurrentWidget(self.none_widget)
         else:
-            self.tool_widget.setCurrentWidget(self.none_widget)
+            self.tool_widget.setCurrentWidget(self.none_widget)     
 
     def update_target_length(self, *args):
         l = float(self.target_length.value())
-        self.shape.select_object[0].target_length = l
+        for obj in self.shape.select_object:
+            obj.target_length = l
+
+    def update_line_type(self, *args):
+        print("update line_type")
+        for obj in self.shape.select_object:
+            obj.line_type = self.Qline_list.currentItem().line_type.name
 
     def update_lw_att_pos(self, *args):
         x = self.attach_x_val.value()
         y = self.attach_y_val.value()
         z = self.attach_z_val.value()
-        self.shape.select_object[0].pos_3D = [x,y,z]
+        for obj in self.shape.select_object:
+            obj.pos_3D = [x,y,z]
 
     def update_up_att_force(self, *args):
-        self.shape.select_object[0].force = self.up_att_force.value()
+        for obj in self.shape.select_object:
+            obj.force = self.up_att_force.value()
 
     def draw_shape(self):
         self.shape.removeAllChildren()
@@ -273,11 +317,12 @@ class line_tool(base_tool):
                 self.shape.addChild(obj)
             nodes[node] = obj
 
-        for i in self.glider_2d.lineset.lines:
-            m1 = nodes[i.lower_node]
-            m2 = nodes[i.upper_node]
-            target_length = i.target_length
+        for line in self.glider_2d.lineset.lines:
+            m1 = nodes[line.lower_node]
+            m2 = nodes[line.upper_node]
+            target_length = line.target_length
             obj = ConnectionLine(m1, m2)
+            obj.line_type = line.line_type.name
             obj.target_length = target_length
             self.shape.addChild(obj)
 
@@ -291,9 +336,9 @@ class line_tool(base_tool):
         for obj in self.shape.objects:
             if isinstance(obj, ConnectionLine):
                 l = Line2D(obj.marker1.node, obj.marker2.node)
-                if not (isinstance(obj.marker1, Upper_Att_Marker) or
-                        isinstance(obj.marker2, Upper_Att_Marker)):
+                if not obj.is_uppermost_line():
                     l.target_length = obj.target_length
+                l.line_type = LineType.types[obj.line_type]
                 lines.append(l)
 
         lineset = self.glider_2d.lineset
@@ -394,6 +439,11 @@ class ConnectionLine(Line):
         self.marker2.on_drag.append(self.update_Line)
         self.drawstyle.lineWidth = 1.
         self.target_length = 1.
+        self.line_type = "default"
+
+    def is_uppermost_line(self):
+        return (isinstance(self.marker1, Upper_Att_Marker) or 
+                isinstance(self.marker2, Upper_Att_Marker))
 
     def update_Line(self):
         self.points = [self.marker1.pos, self.marker2.pos]
@@ -419,3 +469,9 @@ class ConnectionLine(Line):
     def check_dependency(self):
         if self.marker1._delete or self.marker2._delete:
             self.delete()
+
+class QLineType_item(QtGui.QListWidgetItem):
+    def __init__(self, line_type):
+        self.line_type = line_type
+        super(QLineType_item, self).__init__()
+        self.setText(self.line_type.name)
