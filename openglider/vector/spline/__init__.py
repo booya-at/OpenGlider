@@ -117,6 +117,60 @@ class BezierCurve(HashedList):
 
         return cls(solution)
 
+    @classmethod
+    def constraint_fit(cls, points, constraint):
+        # constraint is a matrix in size of the controlpointmatrix
+        # constraint values have a value others are set to None
+        # points is [[x0,y0,z0], X1, X2, ...]
+
+        # all points have same dimension
+        dim = len(constraint[0])
+        num_ctrl_pts = len(constraint)
+
+        # create the base matrix:
+        base = cls.basefactory(num_ctrl_pts)
+        matrix = numpy.array(
+            [[base[column](row * 1. / (len(points) - 1))
+                for column in range(len(base))]
+                    for row in range(len(points))])
+
+        # create the b vector for each dim
+        b = numpy.array(list(zip(*points)))
+
+        # fit
+        solution = []
+        for i in range(dim):
+            constraints = {index: val for index, val in enumerate(list(zip(*constraint))[i]) if val != None}
+            solution.append(BezierCurve.constraint_pseudo_inverse(matrix, b[i], constraints))
+        return cls(numpy.array(solution).transpose())
+
+
+    @staticmethod
+    def constraint_pseudo_inverse(A, b, constraint):
+        """return u for minimized |A.u-b| with u containing the constraint points.
+        A(n x m)...matrix with n >= m + c_n (n=num_cols, m=num_rows, c_n=num_constraints)
+        constraint: dict of "indexes: value" couples  {0: 1, 10: 3}"""
+        # create  vector from the known
+        u_fix = numpy.zeros(A.shape[1])
+        u_sol_index = list(range(len(u_fix)))
+        u = numpy.zeros(A.shape[1])
+        for key, val in constraint.items():
+            u_fix[key] = val
+
+        # A.T.dot(A).dot(u) == A.T.dot(b) - A.T.dot(A).dot(u_fix)
+        rhs =  A.T.dot(b) - ((A.T).dot(A)).dot(u_fix)
+        mat = A.T.dot(A)
+        u_sol = numpy.linalg.lstsq(mat, rhs.transpose())[0]
+        print(u_sol)
+
+        # insert the known values in the solution
+        for i, index in enumerate(u_sol_index):
+            u[index] = u_sol[i]
+        for key, val in constraint.items():
+            u[key] = val
+        return u
+
+
     def interpolation(self, num=100, **kwargs):
         x, y = self.get_sequence(num).T
         return scipy.interpolate.interp1d(x, y, **kwargs)
@@ -177,5 +231,11 @@ class SymmetricBezier(BezierCurve):
     def fit(cls, data, numpoints=3):
         return super(SymmetricBezier, cls).fit(data, numpoints=numpoints*2)
 
-
-
+# if __name__ == "__main__":
+#     t = numpy.linspace(0, 1, 30)
+#     curve = numpy.array(list(zip(t, numpy.sin(t))))
+#     constraints = [[None] * 2 for i in range(5)]
+#     constraints[0] = [1,0]
+#     print(constraints[0])
+#     a = BezierCurve()
+#     print(a.constraint_fit(curve, constraints))
