@@ -160,8 +160,12 @@ class BezierCurve(HashedList):
         # A.T.dot(A).dot(u) == A.T.dot(b) - A.T.dot(A).dot(u_fix)
         rhs =  A.T.dot(b) - ((A.T).dot(A)).dot(u_fix)
         mat = A.T.dot(A)
+        for i, key in enumerate(constraint.keys()):
+            mat = numpy.delete(mat, key - i, 0)
+            mat = numpy.delete(mat, key - i, 1)
+            rhs = numpy.delete(rhs, key - i, 0)
+            u_sol_index.pop(key - i)
         u_sol = numpy.linalg.lstsq(mat, rhs.transpose())[0]
-        print(u_sol)
 
         # insert the known values in the solution
         for i, index in enumerate(u_sol_index):

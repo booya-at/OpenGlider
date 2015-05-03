@@ -28,7 +28,7 @@ from openglider.lines.functions import proj_force
 from openglider.lines.line_types import LineType
 from openglider.vector.functions import norm, normalize
 
-__All__ = ["Line", "Node", "LineSet"]
+__all__ = ["Line", "Node", "LineSet"]
 
 
 class LineSet():
