@@ -285,6 +285,11 @@ class Glider(object):
         self.scale(math.sqrt(faktor))
 
     @property
+    def projected_area(self):
+        complete = self.copy_complete()
+        return sum(cell.projected_area for cell in complete.cells)
+
+    @property
     def aspect_ratio(self):
         return self.span ** 2 / self.area
 

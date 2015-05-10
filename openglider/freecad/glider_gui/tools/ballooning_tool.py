@@ -137,10 +137,10 @@ class ballooning_tool(base_tool):
             self.lower_drag_release()
 
     def upper_on_change(self):
-        self._update_upper_spline(15)
+        self._update_upper_spline(30)
 
     def lower_on_change(self):
-        self._update_lower_spline(15)
+        self._update_lower_spline(30)
 
     def upper_drag_release(self):
         self._update_upper_spline(60)

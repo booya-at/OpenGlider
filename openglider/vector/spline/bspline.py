@@ -1,8 +1,8 @@
-from openglider.vector.spline import BezierCurve
+from openglider.vector.spline.bezier import BezierCurve, SymmetricBezier
 
 
 class BSplineBasis():
-    def __init__(self, degree):
+    def __init__(self, degree=3):
         self.degree = degree
         self.bases = {}
 
@@ -22,7 +22,7 @@ class BSplineBasis():
                 """The basis function for degree = 0 as per eq. 7"""
                 t_this = knots[i]
                 t_next = knots[i+1]
-                return t_next > t >= t_this
+                return t_next >= t >= t_this
         else:
 
             def basis_function(t):
@@ -60,7 +60,7 @@ class BSplineBasis():
         inner_knots = total_knots - 2*outer_knots
 
         knots = [0.]*outer_knots
-        knots += [i/(inner_knots-1) for i in range(inner_knots)]
+        knots += [i/(inner_knots-1.) for i in range(inner_knots)]
         knots += [1.]*outer_knots
         return knots
 
@@ -68,25 +68,20 @@ class BSplineBasis():
 class BSplineCurve(BezierCurve):
     basefactory = BSplineBasis(2)
 
+class SymmetricBSpline(SymmetricBezier):
+    basefactory = BSplineBasis(2)
+
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import numpy
 
-    data = [(3, -1), (2.5, 3), (0, 1), (-2.5, 3), (-3, -1)]
+    data = [(-5,3), (-4, 1),  (-3, 2), (-2.5, 1), (2.5, 1)]
     curve = BSplineCurve(data)
+    values = curve.get_sequence(30)
 
-    values = [t for t in numpy.linspace(0, 1, 1000)]#, endpoint=C.endpoint)]
-
-    fig = plt.figure()
-    interpolation_curve = [curve(s) for s in values]
-    ax = fig.add_subplot(111)
-
-    ax.plot(*zip(*interpolation_curve), alpha=0.5)
-    ax.plot(*zip(*data), alpha=0.3)
-
+    curve_pts = [curve(i) for i in numpy.linspace(0, 1, 100)]
+    plt.plot(*zip(*curve_pts))
+    plt.plot(*zip(*curve.data))
+    plt.plot(*zip(*data))
     plt.show()
-
-
-
-
