@@ -5,6 +5,11 @@ from openglider.plots import marks
 
 
 def inside(fctn):
+    """
+    Put two profile points (outer, inner) on the inside of sewing mark
+    :param fctn:
+    :return:
+    """
     return lambda p1, p2: fctn(2 * p1 - p2, p1)
 
 

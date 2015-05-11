@@ -152,56 +152,12 @@ class PolyLine2D(PolyLine):
             except numpy.linalg.LinAlgError:
                 continue
 
-    # TODO: Get Rid of this
-    def cut(self, p1, p2, startpoint=0, break_if_found=True,
-            cut_only_positive=False, cut_only_in_between=False):
-        """
-        Cut with two points given, returns (point, position_in_list, k [*(p2-p1)])
-        """
-        startpoint = int(startpoint)
-        cutlist = []
-
-        for i in rangefrom(len(self) - 1, startpoint):
-            try:
-                thacut = cut(self[i], self[i + 1], p1, p2)  # point, i, k
-            except numpy.linalg.linalg.LinAlgError:
-                continue
-            if (0 <= thacut[1] < 1 and
-                    (not cut_only_positive or thacut[2] >= 0) and
-                    (not cut_only_in_between or thacut[2] <= 1.)):
-                cutlist.append((thacut[0], i + thacut[1], thacut[2]))
-                if break_if_found:
-                    return cutlist[0]
-
-        if len(cutlist) > 0:
-            return cutlist
-
-        # Nothing found yet? Shit, so, check start and end of line
-        # Beginning
-        try:
-            temp = cut(self[0], self[1], p1, p2)
-            if temp[1] <= 0:
-                cutlist.append([temp[0], temp[1], norm(self[0] - self[1]) * temp[1]])
-        except numpy.linalg.linalg.LinAlgError:
-            pass
-        # End
-        try:
-            i = len(self) - 1
-            temp = cut(self[i], self[i + 1], p1, p2)
-            if temp[1] > 0:
-                cutlist.append([temp[0], i + temp[1], norm(self[i] - self[i + 1]) * temp[1]])
-        except numpy.linalg.linalg.LinAlgError:
-            pass
-
-        if len(cutlist) > 0:
-            # sort by distance
-            cutlist.sort(key=lambda x: x[2]**2)
-            #print(cutlist[0])
-            return cutlist[0][0:2]
-        else:
-            #graphics([Line(self.data), Line([p1,p2])])  # DEBUG
-            raise ArithmeticError("no cuts discovered for p1:" + str(p1) + " p2:" + str(p2) + str(self[0]))
-                                  #str(cut(self[0], self[1], p1, p2)))
+    def cut_with_polyline(self, pl, startpoint=0):
+        for i, (p1, p2) in enumerate(zip(pl[:-1], pl[1:])):
+            l = norm(p2-p1)
+            for ik1 in self.new_cut(p1, p2, startpoint, cut_only_positive=True):
+                ik2 = i + (norm(self[ik1] - p1) / l)
+                yield ik1, ik2
 
     def check(self):  # TODO: IMPROVE (len = len(self.data), len-=,...)
         """

@@ -142,6 +142,27 @@ class Glider(object):
             k = 1
         return self.cells[i].midrib(k)
 
+    def get_point(self, y=0, x=-1):
+        """
+        Get a point on the glider
+        :param y: span-wise argument (0, cell_no)
+        :param x: chord-wise argument (-1, 1)
+        :return: point
+        """
+        rib = self.get_midrib(y)
+        rib_no = int(y)
+        dy = y - rib_no
+        if rib_no == len(self.ribs)-1:
+            rib_no -= 1
+            dy = 1
+        left_rib = self.ribs[rib_no]
+        right_rib = self.ribs[rib_no+1]
+
+        ik_l = left_rib.profile_2d(x)
+        ik_r = right_rib.profile_2d(x)
+        ik = ik_l + dy * (ik_r - ik_l)
+        return rib[ik]
+
     def mirror(self, cutmidrib=True, complete=False):
         # lets assume we have at least one cell to mirror :)
         if self.cells[0].rib1.pos[1] != 0 and cutmidrib:  # Cut midrib

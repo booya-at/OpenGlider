@@ -39,12 +39,12 @@ from openglider.glider.rib import Rib
 import numpy
 
 
-prof = openglider.airfoil.Profile2D.import_from_dat(os.path.dirname(os.path.abspath(__file__)) + "/testprofile.dat")
+prof = openglider.airfoil.Profile2D.import_from_dat(os.path.dirname(os.path.abspath(__file__)) + "/common/testprofile.dat")
 
 ballooning = BallooningBezier()
 balloon = [ballooning(i) for i in prof.x_values]
 
-r1 = Rib(prof, ballooning, [0., 0.12, 0], 1., 20 * math.pi / 180, 2 * math.pi / 180, 0, 7.)
+r1 = Rib(prof, [0., 0.12, 0], 1., 20 * math.pi / 180, 2 * math.pi / 180, 0, 7.)
 r2 = r1.copy()
 r2.mirror()
 
@@ -53,24 +53,26 @@ ding = [numpy.array([0, 0]), numpy.array([1., 0])]
 
 #[numpy.array([0,0]),numpy.array([1,0])
 
-cell = Cell(r1, r2)
+cell = Cell(r1, r2, ballooning)
 left_bal, left2, right2, right_bal = flattened_cell(cell)
-left_out = left2.copy()
+left_out = left_bal.copy()
 left_out.add_stuff(-0.02)
-right_out = right2.copy()
+right_out = right_bal.copy()
 right_out.add_stuff(0.02)
 
 
 openglider.graphics.Graphics2D([openglider.graphics.Line(left.data), openglider.graphics.Line(right.data),
                                 openglider.graphics.Line(left2.data), openglider.graphics.Line(right2.data),
                                 openglider.graphics.Line(left_out.data),
-                                openglider.graphics.Line(right_out.data)])
+                                openglider.graphics.Line(right_out.data),
+                                openglider.graphics.Line(left_bal.data),
+                                openglider.graphics.Line(right_bal.data)])
 
 
 ################CUTS
-outlist, leftcut, rightcut = cuts[1]([[left2, 0], [right2, 0]], left_out, right_out, -0.02)
+outlist, leftcut, rightcut = cuts["folded"]([[left2, 0], [right2, 0]], left_out, right_out, -0.02)
 end = 150
-outlist2, leftcut2, rightcut2 = cuts[0]([[left2, end], [right2, end]], left_out, right_out, 0.02)
+outlist2, leftcut2, rightcut2 = cuts["orthogonal"]([[left2, end], [right2, end]], left_out, right_out, 0.02)
 
 openglider.graphics.Graphics2D([openglider.graphics.Line(left2.data[0:end]),
                                 openglider.graphics.Line(right2.data[0:end]),

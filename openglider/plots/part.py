@@ -9,9 +9,10 @@ from openglider.vector.polyline import PolyLine2D
 
 
 class PlotPart():
-    def __init__(self, layer_dict=None):
+    def __init__(self, layer_dict=None, name=None):
         self._layer_dict = {}
         self.layer_dict = layer_dict or {}
+        self.name = name
 
     def copy(self):
         return copy.deepcopy(self)
@@ -32,29 +33,44 @@ class PlotPart():
     def __getitem__(self, item):
         return self.layer_dict[item]
 
-    @staticmethod
-    def max_min_function(_func, i):
-        return lambda thalist: _func(thalist, key=lambda p: p[i])[i]
+    def max_function(self, index):
+        start = float("-Inf")
+        for layer in self.layer_dict.values():
+            if layer:
+                for line in layer:
+                    if line:
+                        values = [p[index] for p in line]
+                        start = max(start, max(values))
+        return start
+
+    def min_function(self, index):
+        start = float("Inf")
+        for layer in self.layer_dict.values():
+            if layer:
+                for line in layer:
+                    if line:
+                        try:
+                            values = [p[index] for p in line]
+                        except:
+                            raise ValueError("jo {} {} {}".format(line, layer, self.name))
+                        start = min(start, min(values))
+        return start
 
     @property
     def max_x(self):
-        max_x = lambda thalist: max(thalist, key=lambda point: point[0])[0] if len(thalist) > 0 else None
-        return max(map(lambda layer: max(map(max_x, layer)), self.layer_dict.values()))
+        return self.max_function(0)
 
     @property
     def max_y(self):
-        max_y = lambda thalist: max(thalist, key=lambda point: point[1])[1]
-        return max(map(lambda layer: max(map(max_y, layer)), self.layer_dict.values()))
+        return self.max_function(1)
 
     @property
     def min_x(self):
-        min_x = lambda thalist: min(thalist, key=lambda point: point[0])[0]
-        return min(x for x in map(lambda layer: min(map(min_x, layer)), self.layer_dict.values()) if x is not None)
+        return self.min_function(0)
 
     @property
     def min_y(self):
-        min_y = lambda thalist: min(thalist, key=lambda point: point[1])[1]
-        return min(map(lambda layer: min(map(min_y, layer)), self.layer_dict.values()))
+        return self.min_function(1)
 
     @property
     def width(self):

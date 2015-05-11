@@ -21,19 +21,19 @@ import collections
 
 from openglider.vector.polyline import PolyLine2D
 from openglider.airfoil import get_x_value
-from openglider.plots import projection, marks
+import openglider.plots.projection
 from openglider.plots.cuts import cuts
 from openglider.plots.part import PlotPart, DrawingArea, create_svg
 from openglider.plots.text import get_text_vector
 from openglider.plots.config import sewing_config
-
+from openglider.vector.functions import cut
 
 # Sign configuration
 
 
 def flattened_cell(cell):
     # assert isinstance(cell, Cell)
-    left, right = projection.flatten_list(cell.prof1, cell.prof2)
+    left, right = openglider.plots.projection.flatten_list(cell.prof1, cell.prof2)
     left_bal = left.copy()
     right_bal = right.copy()
     ballooning = [cell.ballooning[x] for x in cell.rib1.profile_2d.x_values]
@@ -72,35 +72,53 @@ def get_panels(glider):
             cut_back = cuts[panel.cut_back["type"]]([[left_bal, back_left],
                                                      [right_bal, back_right]],
                                                     left_out, right_out, amount_back)
-            part_cuts = [left_out[cut_front[1]:cut_back[1]] +
-                         PolyLine2D(cut_back[0]) +
-                         right_out[cut_front[2]:cut_back[2]:-1] +
-                         PolyLine2D(cut_front[0])[::-1]]
+
+            # spitzer schnitt
+            # links
+            if cut_front[1] >= cut_back[1]:
+                cut_front_new = PolyLine2D(cut_front[0])
+                ik1, ik2 = cut_front_new.cut_with_polyline(cut_back[0], startpoint=0)
+                panel_cut = PolyLine2D(cut_back[0])[ik2:]
+                panel_cut += right_out[cut_front[2]:cut_back[2]:-1]
+                panel_cut += cut_front_new[ik1::-1]
+            # rechts
+            elif cut_front[2] >= cut_back[2]:
+                cut_front_new = PolyLine2D(cut_front[0])
+                ik1, ik2 = cut_front_new.cut_with_polyline(cut_back[0], startpoint=len(cut_front_new)-1)
+                panel_cut = left_out[cut_front[2]:cut_back[2]]
+                panel_cut += PolyLine2D(cut_back[0])[:ik2]
+                panel_cut += cut_front_new[:ik1:-1]
+
+            else:
+                panel_cut = left_out[cut_front[1]:cut_back[1]]
+                panel_cut += PolyLine2D(cut_back[0])
+                panel_cut += right_out[cut_front[2]:cut_back[2]:-1]
+                panel_cut += PolyLine2D(cut_front[0])[::-1]
+
+            panel_cut += PolyLine2D([panel_cut[0]])
+
             part_marks = [left_bal[front_left:back_left] +
                           right_bal[front_right:back_right:-1] +
                           PolyLine2D([left_bal[front_left]])]
 
-            part_text = get_text_vector(" cell_{}_part{} ".format(cell_no, part_no+1),
+            part_name = "cell_{}_part{}".format(cell_no, part_no+1)
+            part_text = get_text_vector(" "+part_name+" ",
                                         left_bal[front_left],
                                         right_bal[front_right],
                                         height=0.8)
 
-            part_marks.append(PolyLine2D([left_bal[front_left],
-                                          right_bal[front_right]]))
-
             # add marks for
             # - Attachment Points
             # - periodic indicators
-            for attachment_point in filter(lambda p: p.rib is cell.rib1, glider.attachment_points):
-                pass
 
 
 
 
-            cell_parts.append(PlotPart({"CUTS": part_cuts,
+            cell_parts.append(PlotPart({"CUTS": [panel_cut],
                                         "MARKS": part_marks,
                                         "TEXT": part_text
-                                        }))
+                                        },
+                                       name=part_name))
         panels[cell] = cell_parts
 
     return panels
@@ -167,7 +185,8 @@ def get_ribs(glider):
         except:
             raise LookupError("ahah {}/{}".format(i, rib.profile_2d))
         ribs[rib] = PlotPart({"CUTS": cuts,
-                              "MARKS": [profile] + rib_marks})
+                              "MARKS": [profile] + rib_marks},
+                             name="Rib{}".format(rib_no))
 
     return ribs
 
@@ -200,12 +219,14 @@ def get_dribs(glider):
             part_marks = [left + right[::-1] +
                           PolyLine2D([left[0]])]
 
-            text = get_text_vector(" cell_{}_drib_{} ".format(cell_no, d_no),
+            d_rib_name = "cell_{}_drib_{}".format(cell_no, d_no)
+            text = get_text_vector(" "+d_rib_name+" ",
                                    left[0], right[0])
 
             cell_dribs.append(PlotPart({"CUTS": part_cuts,
                                         "MARKS": part_marks,
-                                        "TEXT": text}))
+                                        "TEXT": text},
+                                       name=d_rib_name))
 
         dribs.append(cell_dribs)
 
@@ -228,9 +249,11 @@ def insert_drib_marks(glider, rib_plots):
             # line
             p1 = None
             p2 = None
-            mark = PolyLine2D([p1, p2])
+            #mark = PolyLine2D([p1, p2])
+            mark = None
 
-        rib_plots[rib]["MARKS"].append(mark)
+        if mark:
+            rib_plot["MARKS"].append(mark)
 
     for cell in glider.cells:
         for diagonal in cell.diagonals:
