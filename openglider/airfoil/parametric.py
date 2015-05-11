@@ -3,6 +3,7 @@ import scipy.interpolate
 
 from openglider.airfoil import Profile2D
 from openglider.vector.spline import BezierCurve
+from openglider.vector.spline.bspline import BSplineCurve
 from openglider.vector import norm
 
 
@@ -33,14 +34,20 @@ class BezierProfile2D(Profile2D):
     def fit_upper(self, num=100, dist=None, control_num=6):
         upper = self.data[:self.noseindex + 1]
         upper_smooth = self.make_smooth_dist(upper, num, dist)
-        #upper_smooth = [self[self(x)] for x in numpy.linspace(-1., 0., num=num)]
-        return BezierCurve.fit(upper_smooth, numpoints=control_num)
+        constraints = [[None] * 2 for i in range(control_num)]
+        constraints[0] = [1, 0]
+        constraints[-2][0] = 0
+        constraints[-1] = [0, 0]
+        return BezierCurve.constraint_fit(upper_smooth, constraints)
 
     def fit_lower(self, num=100, dist=None, control_num=6):
         lower = self.data[self.noseindex:]
         lower_smooth = self.make_smooth_dist(lower, num, dist, upper=False)
-        #lower_smooth = [self[self(x)] for x in numpy.linspace(0., 1., num=num)]
-        return BezierCurve.fit(lower_smooth, numpoints=control_num)
+        constraints = [[None] * 2 for i in range(control_num)]
+        constraints[-1] = [1, 0]
+        constraints[1][0] = 0
+        constraints[0] = [0, 0]
+        return BezierCurve.constraint_fit(lower_smooth, constraints)
 
     def fit_region(self, start, stop, num_points, control_points):
         smoothened = [self[self(x)] for x in numpy.linspace(start, stop, num=num_points)]

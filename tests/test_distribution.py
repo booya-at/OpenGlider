@@ -30,7 +30,7 @@ class TestProfile(unittest.TestCase):
 
     def test_is_in_list(self):
         for typ in self.dist_types:
-            a = distribution(
+            a = Distribution(
                 numpoints=30,
                 fix_points=self.fixpoints,
                 dist_type=typ

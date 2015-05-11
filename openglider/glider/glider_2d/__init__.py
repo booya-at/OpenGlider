@@ -80,7 +80,6 @@ class Glider2D(object):
     def get_arc_positions(self, num=50):
         # calculating y/z values vor the arc-curve
         x_values = self.rib_x_values
-        
         arc_curve = PolyLine2D([self.arc(i) for i in numpy.linspace(0.5, 1, num)])  # Symmetric-Bezier-> start from 0.5
         arc_curve_length = arc_curve.get_length()
         _positions = [arc_curve.extend(0, x/x_values[-1]*arc_curve_length) for x in x_values]

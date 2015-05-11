@@ -166,7 +166,7 @@ class panel_tool(base_tool):
         self.update_glider()
         self.create_panels(self.Qmidribs.value(), self.Qprofile_points.value(),
                            self.Qmean_profile.isChecked(), self.Qsymmetric.isChecked())
-        self.case = self.pan3d.DirichletDoublet0Source0Case3(self._panels, self._trailing_edges)
+        self.case = self.pan3d.DirichletDoublet0Case3(self._panels, self._trailing_edges)
         self.case.vinf = self.PPM.Vector3(*self.glider_2d.v_inf)
         self.case.farfield = 5
         self.case.create_wake(100, 20)
@@ -177,7 +177,7 @@ class panel_tool(base_tool):
         self.glider_result.removeAllChildren()
         verts = [list(i) for i in self.case.vertices.values]
         cols = [i.cp for i in self.case.vertices.values]
-        norms = [list(i.n) for i in self.case.panels]
+        norms = [list(-1 * i.n) for i in self.case.panels]
         pols = []
         for pan in self._panels:
             for vert in pan.points:

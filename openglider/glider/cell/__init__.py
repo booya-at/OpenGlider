@@ -238,6 +238,16 @@ class Cell(CachedObject):
         return 0.5 * (norm(numpy.cross(p1_2 - p1_1, p2_1 - p1_1)) + norm(numpy.cross(p2_2 - p2_1, p2_2 - p1_2)))
 
     @property
+    def projected_area(self):
+        """ return the z component of the crossproduct 
+            of the cell diagonals"""
+        p1_1 = numpy.array(self.rib1.align([0, 0, 0]))
+        p1_2 = numpy.array(self.rib1.align([1, 0, 0]))
+        p2_1 = numpy.array(self.rib2.align([0, 0, 0]))
+        p2_2 = numpy.array(self.rib2.align([1, 0, 0]))
+        return -0.5 * numpy.cross(p2_1 - p1_2, p2_2 - p1_1)[-1]  
+
+    @property
     def aspect_ratio(self):
         return self.span ** 2 / self.area
 
