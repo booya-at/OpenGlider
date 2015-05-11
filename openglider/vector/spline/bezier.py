@@ -176,7 +176,7 @@ class BezierCurve(HashedList):
         solution = []
         for i in range(dim):
             constraints = {index: val for index, val in enumerate(list(zip(*constraint))[i]) if val != None}
-            solution.append(BezierCurve.constraint_pseudo_inverse(matrix, b[i], constraints))
+            solution.append(self.constraint_pseudo_inverse(matrix, b[i], constraints))
         return cls(numpy.array(solution).transpose())
 
 
@@ -184,8 +184,8 @@ class BezierCurve(HashedList):
     def constraint_pseudo_inverse(A, b, constraint):
         """return u for minimized |A.u-b| with u containing the constraint points.
         A(n x m)...matrix with n >= m + c_n (n=num_cols, m=num_rows, c_n=num_constraints)
-        constraint: dict of "indexes: value" couples  {0: 1, 10: 3}"""
-        # create  vector from the known
+        constraint: dict of "indeces: value" couples  {0: 1, 10: 3}"""
+        # create  vector from the known values
         u_fix = numpy.zeros(A.shape[1])
         u_sol_index = list(range(len(u_fix)))
         u = numpy.zeros(A.shape[1])
@@ -264,11 +264,11 @@ class SymmetricBezier(BezierCurve):
         if not num_ctrl == self.numpoints:
             num_ctrl *= 2
             data = [self(i) for i in numpy.linspace(0, 1, num_points)]
-            self._data = BezierCurve.fit(data, num_ctrl).data
+            self._data = self.fit(data, num_ctrl).data
 
     @classmethod
     def fit(cls, data, numpoints=3):
-        return super(SymmetricBezier, cls).fit(data, numpoints=numpoints*2)
+        return super(SymmetricBezier, cls).fit(data, numpoints=numpoints)
 
 
 def choose(n, k):

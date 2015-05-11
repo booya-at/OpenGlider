@@ -6,7 +6,7 @@
             "elements": {}, 
             "aoa": {
                 "_module": "openglider.vector.spline", 
-                "_type": "SymmetricBezier", 
+                "_type": "SymmetricBSpline", 
                 "data": {
                     "controlpoints": [
                         [
@@ -46,7 +46,7 @@
             }, 
             "arc": {
                 "_module": "openglider.vector.spline", 
-                "_type": "SymmetricBezier", 
+                "_type": "SymmetricBSpline", 
                 "data": {
                     "controlpoints": [
                         [
@@ -62,7 +62,7 @@
             }, 
             "profile_merge_curve": {
                 "_module": "openglider.vector.spline", 
-                "_type": "BezierCurve", 
+                "_type": "BSplineCurve", 
                 "data": {
                     "controlpoints": [
                         [
@@ -86,7 +86,7 @@
             }, 
             "cell_dist": {
                 "_module": "openglider.vector.spline", 
-                "_type": "BezierCurve", 
+                "_type": "BSplineCurve", 
                 "data": {
                     "controlpoints": [
                         [

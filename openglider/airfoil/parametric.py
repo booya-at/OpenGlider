@@ -38,7 +38,7 @@ class BezierProfile2D(Profile2D):
         constraints[0] = [1, 0]
         constraints[-2][0] = 0
         constraints[-1] = [0, 0]
-        return BezierCurve.constraint_fit(upper_smooth, constraints)
+        return BSplineCurve.constraint_fit(upper_smooth, constraints)
 
     def fit_lower(self, num=100, dist=None, control_num=6):
         lower = self.data[self.noseindex:]
@@ -47,7 +47,7 @@ class BezierProfile2D(Profile2D):
         constraints[-1] = [1, 0]
         constraints[1][0] = 0
         constraints[0] = [0, 0]
-        return BezierCurve.constraint_fit(lower_smooth, constraints)
+        return BSplineCurve.constraint_fit(lower_smooth, constraints)
 
     def fit_region(self, start, stop, num_points, control_points):
         smoothened = [self[self(x)] for x in numpy.linspace(start, stop, num=num_points)]
