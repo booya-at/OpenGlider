@@ -22,7 +22,7 @@ class BSplineBasis():
                 """The basis function for degree = 0 as per eq. 7"""
                 t_this = knots[i]
                 t_next = knots[i+1]
-                return t_next >= t >= t_this
+                return t_next > t >= t_this
         else:
 
             def basis_function(t):
@@ -67,6 +67,12 @@ class BSplineBasis():
 
 class BSplineCurve(BezierCurve):
     basefactory = BSplineBasis(2)
+
+    def __call__(self, x):
+        if x == 1:
+            return self.controlpoints[-1]
+        return super(BSplineCurve, self).__call__(x)
+
 
 class SymmetricBSpline(SymmetricBezier):
     basefactory = BSplineBasis(2)
