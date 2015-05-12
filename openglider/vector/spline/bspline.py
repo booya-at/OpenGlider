@@ -68,17 +68,9 @@ class BSplineBasis():
 class BSplineCurve(BezierCurve):
     basefactory = BSplineBasis(2)
 
-    # def __call__(self, x):
-    #     return super(BSplineCurve, self).__call__(x)
-
 
 class SymmetricBSpline(SymmetricBezier):
     basefactory = BSplineBasis(2)
-
-    def __call__(self, x):
-        if x == 1:
-            return self.controlpoints[-1]
-        return super(SymmetricBSpline, self).__call__(x)
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
