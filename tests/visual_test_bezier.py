@@ -87,7 +87,7 @@ class TestBSpline(unittest.TestCase):
         nose_ind = self.profile.noseindex
         upper = self.curve.fit(self.profile.data[:nose_ind+1], numpoints=5)
         print(upper.basefactory.degree)
-        lower = self.curve.fit(self.profile.data[nose_ind:], numpoints=5)
+        lower = BSpline.fit(self.profile.data[nose_ind:], numpoints=5)
 
         Graphics2D([
             Red,

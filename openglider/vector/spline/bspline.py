@@ -1,5 +1,5 @@
 from openglider.vector.spline.bezier import Bezier, SymmetricBezier
-
+from openglider.utils import dualmethod
 
 class BSplineBase():
     def __init__(self, degree=3):
@@ -67,7 +67,6 @@ class BSplineBase():
 
 class BSpline(Bezier):
     basefactory = BSplineBase(3)
-
 
 class SymmetricBSpline(SymmetricBezier):
     basefactory = BSplineBase(3)

@@ -30,3 +30,16 @@ def consistent_value(elements, attribute):
     if vals[1:] == vals[:-1]:
         return vals[0]
 
+
+class dualmethod(object):
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, obj, cls=None):
+        obj = obj or cls
+
+        def temp(*args, **kwargs):
+            return self.func(obj, *args, **kwargs)
+
+        return temp
+

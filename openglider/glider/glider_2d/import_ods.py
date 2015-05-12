@@ -26,9 +26,10 @@ def import_ods_2d(cls, filename, numpoints=4):
     balloonings_temp = transpose_columns(sheets[4])
     balloonings = []
     for baloon in balloonings_temp:
-        upper = [[0, 0]] + baloon[:7] + [[1, 0]]
-        lower = [[0, 0]] + [[i[0], -1 * i[1]] for i in baloon[8:15]] + [[1, 0]]
-        balloonings.append(BallooningBezier(upper, lower))
+        if baloon:
+            upper = [[0, 0]] + baloon[:7] + [[1, 0]]
+            lower = [[0, 0]] + [[i[0], -1 * i[1]] for i in baloon[8:15]] + [[1, 0]]
+            balloonings.append(BallooningBezier(upper, lower))
 
     data = {}
     datasheet = sheets[-1]

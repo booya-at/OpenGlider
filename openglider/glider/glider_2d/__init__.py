@@ -120,11 +120,11 @@ class Glider2D(object):
         front_int = self.front.interpolate_3d(num=num)
         back_int = self.back.interpolate_3d(num=num)
         dist = self.rib_x_values
-        front_line = [front_int(x) for x in dist]
+        front_line = [front_int(x).tolist() for x in dist]
         front = mirror2D_x(front_line)[::-1] + front_line
-        back = [back_int(x) for x in dist]
+        back = [back_int(x).tolist() for x in dist]
         back = mirror2D_x(back)[::-1] + back
-        ribs = zip(front, back)
+        ribs = list(zip(front, back))
         return [ribs, front, back]
 
     def ribs(self, num=30):         #property
@@ -145,10 +145,12 @@ class Glider2D(object):
         rib = ribs[rib_no]
         return rib[0] + x * (rib[1] - rib[0])
 
-    def set_span(self, span):
+    def set_span(self, span=None):
         """
-        rescale BezierCurves
+        rescale BezierCurves to given span (or front-line)
         """
+        span = span or self.front.controlpoints[-1][0]
+
         def set_span(attribute):
             el = getattr(self, attribute)
             assert el is not None, "Not a Beziercurve: {}".format(attribute)

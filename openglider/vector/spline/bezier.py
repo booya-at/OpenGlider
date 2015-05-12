@@ -100,7 +100,7 @@ class Bezier(HashedList):
     def ypoint(self, y):
         root = findroot(lambda y2: self.__call__(y2)[1] - y, 0, 1)
         return self.__call__(root)
-    
+
     @dualmethod
     def fit(this, points, numpoints=5, start=True, end=True):
         """
@@ -151,7 +151,11 @@ class Bezier(HashedList):
             if end:
                 solution.append(points[-1])
 
-        return cls(solution)
+        if type(this) == type:
+            return this(solution)
+        else:
+            this.controlpoints = solution
+            return this
 
     @classmethod
     def constraint_fit(cls, points, constraint):
