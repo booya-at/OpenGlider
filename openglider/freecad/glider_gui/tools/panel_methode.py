@@ -166,10 +166,10 @@ class panel_tool(base_tool):
         self.update_glider()
         self.create_panels(self.Qmidribs.value(), self.Qprofile_points.value(),
                            self.Qmean_profile.isChecked(), self.Qsymmetric.isChecked())
-        self.case = self.pan3d.DirichletDoublet0Case3(self._panels, self._trailing_edges)
+        self.case = self.pan3d.DirichletDoublet0Source0Case3(self._panels, self._trailing_edges)
         self.case.vinf = self.PPM.Vector3(*self.glider_2d.v_inf)
         self.case.farfield = 5
-        self.case.create_wake(100, 20)
+        self.case.create_wake(10000000, 20)
         self.case.run()
         self.show_glider()
 
@@ -201,8 +201,9 @@ class panel_tool(base_tool):
         self.glider_result.addChild(vertex_property)
         self.glider_result.addChild(face_set)
 
-        p1 = numpy.array(list(self.case.center_of_pressure))
-        f = numpy.array(list(self.case.force))
+        p1 = numpy.array(self.case.center_of_pressure)
+        print(p1)
+        f = numpy.array(self.case.force)
         line = Line([p1, p1 + f])
         self.glider_result.addChild(line)
 

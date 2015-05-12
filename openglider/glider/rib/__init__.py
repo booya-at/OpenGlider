@@ -5,7 +5,7 @@ import numpy
 import math
 from openglider.airfoil import Profile2D, Profile3D
 from openglider.utils.cache import cached_property, CachedObject
-from openglider.vector.spline import BezierCurve
+from openglider.vector.spline import Bezier
 from openglider.vector.functions import rotation_3d
 
 from .elements import AttachmentPoint, GibusArcs, RibHole, RigidFoil
@@ -112,7 +112,7 @@ class MiniRib():
                 points = points + [[front_cut * 1. / 3 + back_cut * 2. / 3, 0], [back_cut, 1]]
             else:
                 points = points + [[back_cut, 0]]
-            func = BezierCurve(points).interpolation()
+            func = Bezier(points).interpolation()
 
         self.__function__ = func
 

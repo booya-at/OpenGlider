@@ -12,7 +12,7 @@ import scipy.interpolate
 from openglider.airfoil import BezierProfile2D
 from openglider.glider.ballooning import BallooningBezier
 from openglider.lines import line_types
-from openglider.vector.spline import BezierCurve, SymmetricBezier
+from openglider.vector.spline import Bezier, SymmetricBezier
 
 from .lines import UpperNode2D, LowerNode2D, BatchNode2D, Line2D, LineSet2D
 
@@ -119,7 +119,7 @@ def import_ods_2d(cls, filename, numpoints=4):
     rib_pos_int = scipy.interpolate.interp1d(rib_pos, [rib_pos, const_arr])
     rib_distribution = [rib_pos_int(i) for i in numpy.linspace(0, rib_pos[-1], 30)]
 
-    rib_distribution = BezierCurve.fit(rib_distribution, numpoints=numpoints+3)
+    rib_distribution = Bezier.fit(rib_distribution, numpoints=numpoints+3)
 
     glider_2d = cls(front=symmetric_fit(front),
                back=symmetric_fit(back),

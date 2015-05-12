@@ -5,7 +5,7 @@
         "data": {
             "elements": {}, 
             "aoa": {
-                "_module": "openglider.vector.spline", 
+                "_module": "openglider.vector.spline.bspline", 
                 "_type": "SymmetricBSpline", 
                 "data": {
                     "controlpoints": [
@@ -29,7 +29,7 @@
                 }
             }, 
             "back": {
-                "_module": "openglider.vector.spline", 
+                "_module": "openglider.vector.spline.bezier", 
                 "_type": "SymmetricBezier", 
                 "data": {
                     "controlpoints": [
@@ -45,24 +45,24 @@
                 }
             }, 
             "arc": {
-                "_module": "openglider.vector.spline", 
+                "_module": "openglider.vector.spline.bspline", 
                 "_type": "SymmetricBSpline", 
                 "data": {
                     "controlpoints": [
                         [
-                            1.1114843231902332, 
-                            0.4607901552163567
+                            0.9959447178097828, 
+                            0.41289068278467733
                         ], 
                         [
-                            1.455396017390127, 
-                            -0.7319534250279298
+                            1.304106540774851, 
+                            -0.6558663330913918
                         ]
                     ]
                 }
             }, 
             "profile_merge_curve": {
-                "_module": "openglider.vector.spline", 
-                "_type": "BSplineCurve", 
+                "_module": "openglider.vector.spline.bspline", 
+                "_type": "BSpline", 
                 "data": {
                     "controlpoints": [
                         [
@@ -85,8 +85,8 @@
                 }
             }, 
             "cell_dist": {
-                "_module": "openglider.vector.spline", 
-                "_type": "BSplineCurve", 
+                "_module": "openglider.vector.spline.bspline", 
+                "_type": "BSpline", 
                 "data": {
                     "controlpoints": [
                         [
@@ -94,24 +94,24 @@
                             0.0
                         ], 
                         [
-                            0.30519989132881165, 
-                            0.11645379662513733
+                            0.18311992287635803, 
+                            0.07171396911144257
                         ], 
                         [
-                            0.6103997826576233, 
-                            0.2570280432701111
+                            0.5493597984313965, 
+                            0.21934302151203156
                         ], 
                         [
                             0.9155996441841125, 
-                            0.33276239037513733
+                            0.3769022524356842
                         ], 
                         [
-                            1.2207995653152466, 
-                            0.5572531223297119
+                            1.2818394899368286, 
+                            0.5613619685173035
                         ], 
                         [
-                            1.5259994268417358, 
-                            0.6288485527038574
+                            1.6480793952941895, 
+                            0.7917971014976501
                         ], 
                         [
                             1.831199288368225, 
@@ -121,7 +121,7 @@
                 }
             }, 
             "front": {
-                "_module": "openglider.vector.spline", 
+                "_module": "openglider.vector.spline.bezier", 
                 "_type": "SymmetricBezier", 
                 "data": {
                     "controlpoints": [
@@ -237,8 +237,8 @@
                     "_type": "BezierProfile2D", 
                     "data": {
                         "lower_spline": {
-                            "_module": "openglider.vector.spline", 
-                            "_type": "BezierCurve", 
+                            "_module": "openglider.vector.spline.bezier", 
+                            "_type": "Bezier", 
                             "data": {
                                 "controlpoints": [
                                     [
@@ -828,8 +828,8 @@
                         ], 
                         "name": "parafoil", 
                         "upper_spline": {
-                            "_module": "openglider.vector.spline", 
-                            "_type": "BezierCurve", 
+                            "_module": "openglider.vector.spline.bezier", 
+                            "_type": "Bezier", 
                             "data": {
                                 "controlpoints": [
                                     [
@@ -866,8 +866,8 @@
                     "_type": "BezierProfile2D", 
                     "data": {
                         "lower_spline": {
-                            "_module": "openglider.vector.spline", 
-                            "_type": "BezierCurve", 
+                            "_module": "openglider.vector.spline.bezier", 
+                            "_type": "Bezier", 
                             "data": {
                                 "controlpoints": [
                                     [
@@ -1457,8 +1457,8 @@
                         ], 
                         "name": "parafoil1", 
                         "upper_spline": {
-                            "_module": "openglider.vector.spline", 
-                            "_type": "BezierCurve", 
+                            "_module": "openglider.vector.spline.bezier", 
+                            "_type": "Bezier", 
                             "data": {
                                 "controlpoints": [
                                     [
@@ -1492,7 +1492,7 @@
                 }
             ], 
             "ballooning_merge_curve": {
-                "_module": "openglider.vector.spline", 
+                "_module": "openglider.vector.spline.bezier", 
                 "_type": "SymmetricBezier", 
                 "data": {
                     "controlpoints": [
@@ -1518,9 +1518,9 @@
         }
     }, 
     "MetaData": {
-        "date_created": "24.03.15 13:28", 
+        "date_created": "11.05.15 22:11", 
         "application": "openglider", 
-        "date_modified": "24.03.15 13:28", 
+        "date_modified": "11.05.15 22:11", 
         "version": "0.01dev", 
         "author": "obviously, a pilot"
     }

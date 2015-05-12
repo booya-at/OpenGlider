@@ -7,13 +7,13 @@ from PySide import QtGui
 from _tools import base_tool, text_field, input_field
 from pivy_primitives import Line, ControlPointContainer, vector3D
 
-from openglider.vector.spline import BezierCurve, SymmetricBezier
+from openglider.vector.spline import Bezier, SymmetricBezier
 
 
 class base_merge_tool(base_tool):
     def __init__(self, obj):
         super(base_merge_tool, self).__init__(obj)
-        self.bezier_curve = BezierCurve([[0, 0], [1, 1]])
+        self.bezier_curve = Bezier([[0, 0], [1, 1]])
         self.bezier_cpc = ControlPointContainer(self.bezier_curve.controlpoints, self.view)
         self.shape = coin.SoSeparator()
         self.grid = coin.SoSeparator()
@@ -78,7 +78,7 @@ class airfoil_merge_tool(base_merge_tool):
         self.x_grid = [i[0] for i in self.front if i[0] >= 0]
         self.set_end_points()
         self.bezier_curve = self.glider_2d.profile_merge_curve
-        self.bezier_curve = BezierCurve([self.scal * i for i in self.bezier_curve.controlpoints])
+        self.bezier_curve = Bezier([self.scal * i for i in self.bezier_curve.controlpoints])
         self.bezier_cpc.control_pos = vector3D(self.bezier_curve.controlpoints)
         self.fix_end_points()
 
@@ -126,7 +126,7 @@ class ballooning_merge_tool(base_merge_tool):
         self.x_grid = [i[0] for i in self.front if i[0] >= 0]
         self.set_end_points()
         self.bezier_curve = self.glider_2d.ballooning_merge_curve
-        self.bezier_curve = BezierCurve([self.scal * i for i in self.bezier_curve.controlpoints])
+        self.bezier_curve = Bezier([self.scal * i for i in self.bezier_curve.controlpoints])
         self.bezier_cpc.control_pos = vector3D(self.bezier_curve.controlpoints)
         self.fix_end_points()
 

@@ -2,8 +2,8 @@ import numpy
 import scipy.interpolate
 
 from openglider.airfoil import Profile2D
-from openglider.vector.spline import BezierCurve
-from openglider.vector.spline.bspline import BSplineCurve
+from openglider.vector.spline import Bezier
+from openglider.vector.spline.bspline import BSpline
 from openglider.vector import norm
 
 
@@ -38,7 +38,7 @@ class BezierProfile2D(Profile2D):
         constraints[0] = [1, 0]
         constraints[-2][0] = 0
         constraints[-1] = [0, 0]
-        return BSplineCurve.constraint_fit(upper_smooth, constraints)
+        return BSpline.constraint_fit(upper_smooth, constraints)
 
     def fit_lower(self, num=100, dist=None, control_num=6):
         lower = self.data[self.noseindex:]
@@ -47,11 +47,11 @@ class BezierProfile2D(Profile2D):
         constraints[-1] = [1, 0]
         constraints[1][0] = 0
         constraints[0] = [0, 0]
-        return BSplineCurve.constraint_fit(lower_smooth, constraints)
+        return BSpline.constraint_fit(lower_smooth, constraints)
 
     def fit_region(self, start, stop, num_points, control_points):
         smoothened = [self[self(x)] for x in numpy.linspace(start, stop, num=num_points)]
-        return BezierCurve.fit(smoothened, numpoints=num_points)
+        return Bezier.fit(smoothened, numpoints=num_points)
 
     def fit_profile(self, num_points, control_points):
         # todo: classmethod

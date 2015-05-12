@@ -285,7 +285,7 @@ class Container(coin.SoSeparator):
 
 
 
-from openglider.vector.spline import BezierCurve, SymmetricBezier
+from openglider.vector.spline import Bezier, SymmetricBezier
 from openglider.vector import mirror_x
 import numpy
 
@@ -293,7 +293,7 @@ import numpy
 class Spline(Container):
     def __init__(self, points, dynamic=False):
         super(Spline, self).__init__()
-        self.bez = BezierCurve(points)
+        self.bez = Bezier(points)
         for i in points:
             self.addChild(Marker([i], dynamic=dynamic))
         self.line = Line(self.bez.get_sequence(50), dynamic=False)

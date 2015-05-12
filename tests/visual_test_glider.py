@@ -22,7 +22,7 @@ import os
 import random
 
 import sys
-from openglider.vector.spline import BezierCurve
+from openglider.vector.spline import Bezier
 
 
 try:
@@ -107,7 +107,7 @@ class TestGlider(GliderTestClass):
 
     def test_brake(self):
         glider = self.glider
-        brake = BezierCurve([[0., 0.], [1., 0.], [1., -0.2]])
+        brake = Bezier([[0., 0.], [1., 0.], [1., -0.2]])
         num = 60
         brakeprof = openglider.airfoil.Profile2D([brake(i / num) for i in reversed(range(num + 1))][:-1] +
                                                  [brake(i / num) for i in range(num + 1)])

@@ -20,9 +20,9 @@ objects = {"Glider": openglider.glider.Glider,
            "Node": openglider.lines.Node,
            "AttachmentPoint": openglider.glider.rib.AttachmentPoint,
            ################################BEZIER##############################
-           "BezierCurve": openglider.vector.spline.BezierCurve,
+           "Bezier": openglider.vector.spline.Bezier,
            "SymmetricBezier": openglider.vector.spline.SymmetricBezier,
-           "BSplineCurve": openglider.vector.spline.BSplineCurve,
+           "BSpline": openglider.vector.spline.BSpline,
            "SymmetricBSpline": openglider.vector.spline.SymmetricBSpline,
            ################################Glider2D############################
            "Glider2D": openglider.glider.Glider2D,

@@ -1,7 +1,9 @@
 from __future__ import division
 
-from openglider.vector.spline.bezier import BezierCurve, SymmetricBezier
-from openglider.vector.spline.bspline import BSplineCurve, SymmetricBSpline
+from openglider.vector.spline.bezier import (
+    Bezier, SymmetricBezier, BernsteinBase)
+from openglider.vector.spline.bspline import (
+    BSpline, SymmetricBSpline, BSplineBase)
 
 
 
@@ -11,5 +13,5 @@ from openglider.vector.spline.bspline import BSplineCurve, SymmetricBSpline
 #     constraints = [[None] * 2 for i in range(5)]
 #     constraints[0] = [1,0]
 #     print(constraints[0])
-#     a = BezierCurve()
+#     a = Bezier()
 #     print(a.constraint_fit(curve, constraints))

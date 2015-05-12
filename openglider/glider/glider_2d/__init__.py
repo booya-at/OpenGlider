@@ -6,7 +6,7 @@ from openglider.airfoil import Profile2D
 
 from openglider.glider import Glider
 from openglider.vector import mirror2D_x
-from openglider.vector.spline import BezierCurve, SymmetricBezier
+from openglider.vector.spline import Bezier, SymmetricBezier
 from openglider.vector.polyline import PolyLine2D
 from openglider.vector.functions import norm, normalize
 from openglider.glider.rib import Rib, RibHole
@@ -42,9 +42,9 @@ class Glider2D(object):
     def create_default(cls):
         front = SymmetricBezier()
         back = SymmetricBezier()
-        cell_dist = BezierCurve()
-        arc = BezierCurve()
-        aoa = BezierCurve()
+        cell_dist = Bezier()
+        arc = Bezier()
+        aoa = Bezier()
 
     def __json__(self):
         return {
@@ -294,14 +294,14 @@ class Glider2D(object):
 
         rib_pos_int = scipy.interpolate.interp1d([0] + rib_pos[1:], [[0] + rib_pos[1:], const_arr])
         rib_distribution = [rib_pos_int(i) for i in numpy.linspace(0, rib_pos[-1], 30)]
-        rib_distribution = BezierCurve.fit(rib_distribution, numpoints=numpoints+3)
+        rib_distribution = Bezier.fit(rib_distribution, numpoints=numpoints+3)
 
         profiles = [rib.profile_2d for rib in glider.ribs]
-        profile_dist = BezierCurve.fit([[i, i] for i, rib in enumerate(front)],
+        profile_dist = Bezier.fit([[i, i] for i, rib in enumerate(front)],
                                        numpoints=numpoints)
 
         balloonings = [cell.ballooning for cell in glider.cells]
-        ballooning_dist = BezierCurve.fit([[i, i] for i, rib in enumerate(front[1:])],
+        ballooning_dist = Bezier.fit([[i, i] for i, rib in enumerate(front[1:])],
                                        numpoints=numpoints)
 
         # TODO: lineset, dist-curce->xvalues

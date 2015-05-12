@@ -2,7 +2,7 @@ import numpy
 
 from pivy import coin
 import FreeCAD as App
-from openglider.vector.spline import BezierCurve
+from openglider.vector.spline import Bezier
 
 
 COLORS ={
@@ -264,7 +264,7 @@ class Marker(coin.SoSeparator):
 
 class Spline(Line):
     def __init__(self, control_points, num=50):
-        self.bezier_curve = BezierCurve(controlpoints=control_points)
+        self.bezier_curve = Bezier(controlpoints=control_points)
         self.num = num
         points = self.bezier_curve.get_sequence(num)
         super(Spline, self).__init__(points)

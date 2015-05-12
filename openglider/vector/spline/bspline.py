@@ -1,7 +1,7 @@
-from openglider.vector.spline.bezier import BezierCurve, SymmetricBezier
+from openglider.vector.spline.bezier import Bezier, SymmetricBezier
 
 
-class BSplineBasis():
+class BSplineBase():
     def __init__(self, degree=3):
         self.degree = degree
         self.bases = {}
@@ -65,26 +65,20 @@ class BSplineBasis():
         return knots
 
 
-class BSplineCurve(BezierCurve):
-    basefactory = BSplineBasis(2)
-
-    # def __call__(self, x):
-    #     return super(BSplineCurve, self).__call__(x)
+class BSpline(Bezier):
+    basefactory = BSplineBase(3)
 
 
 class SymmetricBSpline(SymmetricBezier):
-    basefactory = BSplineBasis(2)
+    basefactory = BSplineBase(3)
 
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import numpy
 
-    phi = numpy.linspace(-10, 10, 60)
-    y = numpy.cos(phi)
-    x = phi
-    data = zip(x, y)
-    curve = SymmetricBezier(data)
+    data = [[0., 0.], [0.5, 0.5], [1., 0.], [2, 3]]
+    curve = BSpline(data)
     curve.numpoints = 5
     values = curve.get_sequence(30)
     cp = curve.controlpoints

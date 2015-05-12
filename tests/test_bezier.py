@@ -22,13 +22,13 @@ from __future__ import division
 import unittest
 import random
 
-from openglider.vector.spline import BezierCurve
+from openglider.vector.spline import Bezier
 
 
 class TestBezier(unittest.TestCase):
     def setUp(self):
         controlpoints = [[i, random.random()] for i in range(15)]
-        self.bezier = BezierCurve(controlpoints)
+        self.bezier = Bezier(controlpoints)
 
     def test_get_value(self):
         val = random.random()
@@ -38,7 +38,7 @@ class TestBezier(unittest.TestCase):
     def test_fit(self):
         num = len(self.bezier.controlpoints)
         to_fit = self.bezier.get_sequence()
-        bezier2 = BezierCurve.fit(to_fit, numpoints=num)
+        bezier2 = Bezier.fit(to_fit, numpoints=num)
         for p1, p2 in zip(self.bezier.controlpoints, bezier2.controlpoints):
             self.assertAlmostEqual(p1[0], p2[0], 0)
             self.assertAlmostEqual(p1[1], p2[1], 0)

@@ -25,6 +25,7 @@ from scipy.optimize import bisect as findroot
 
 from openglider.utils.cache import HashedList
 from openglider.vector import norm, mirror2D_x
+from openglider.utils import dualmethod
 
 
 class _BernsteinFactory():
@@ -44,7 +45,7 @@ class _BernsteinFactory():
 BernsteinBase = _BernsteinFactory()
 
 
-class BezierCurve(HashedList):
+class Bezier(HashedList):
     basefactory = BernsteinBase
 
     def __init__(self, controlpoints=None):
@@ -52,7 +53,7 @@ class BezierCurve(HashedList):
         Bezier Curve representative
         http://en.wikipedia.org/wiki/Bezier_curve#Generalization
         """
-        super(BezierCurve, self).__init__(controlpoints)
+        super(Bezier, self).__init__(controlpoints)
 
     def __json__(self):
         return {'controlpoints': [p.tolist() for p in self.controlpoints]}
@@ -100,13 +101,13 @@ class BezierCurve(HashedList):
         root = findroot(lambda y2: self.__call__(y2)[1] - y, 0, 1)
         return self.__call__(root)
     
-    @classmethod
-    def fit(cls, points, numpoints=5, start=True, end=True):
+    @dualmethod
+    def fit(this, points, numpoints=5, start=True, end=True):
         """
         Fit to a given set of points with a certain number of spline-points (default=3)
         if start (/ end) is True, the first (/ last) point of the Curve is included
         """
-        base = cls.basefactory(numpoints)
+        base = this.basefactory(numpoints)
         matrix = numpy.matrix(
             [[base[column](row * 1. / (len(points) - 1))
                 for column in range(len(base))]
@@ -176,7 +177,7 @@ class BezierCurve(HashedList):
         solution = []
         for i in range(dim):
             constraints = {index: val for index, val in enumerate(list(zip(*constraint))[i]) if val != None}
-            solution.append(self.constraint_pseudo_inverse(matrix, b[i], constraints))
+            solution.append(cls.constraint_pseudo_inverse(matrix, b[i], constraints))
         return cls(numpy.array(solution).transpose())
 
 
@@ -236,7 +237,7 @@ class BezierCurve(HashedList):
         return out
 
 
-class SymmetricBezier(BezierCurve):
+class SymmetricBezier(Bezier):
     def __init__(self, controlpoints=None, mirror=None):
         self._mirror = mirror or mirror2D_x
         super(SymmetricBezier, self).__init__(controlpoints=controlpoints)
