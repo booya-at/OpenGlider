@@ -68,8 +68,31 @@ class BSplineBase():
 class BSpline(Bezier):
     basefactory = BSplineBase(3)
 
+    def __json__(self):
+        out = super(BSpline, self).__json__()
+        out["degree"] = self.basefactory.degree
+        return out
+
+    @classmethod
+    def __from_json__(cls, controlpoints, degree):
+        obj = super(BSpline, cls).__from_json__(controlpoints)
+        obj.basefactory = BSplineBase(degree)
+        return obj
+
+
 class SymmetricBSpline(SymmetricBezier):
     basefactory = BSplineBase(3)
+
+    def __json__(self):
+        out = super(SymmetricBSpline, self).__json__()
+        out["degree"] = self.basefactory.degree
+        return out
+
+    @classmethod
+    def __from_json__(cls, controlpoints, degree):
+        obj = super(SymmetricBSpline, cls).__from_json__(controlpoints)
+        obj.basefactory = BSplineBase(degree)
+        return obj
 
 
 if __name__ == '__main__':

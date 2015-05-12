@@ -157,8 +157,8 @@ class Bezier(HashedList):
             this.controlpoints = solution
             return this
 
-    @classmethod
-    def constraint_fit(cls, points, constraint):
+    @dualmethod
+    def constraint_fit(this, points, constraint):
         # constraint is a matrix in size of the controlpointmatrix
         # constraint values have a value others are set to None
         # points is [[x0,y0,z0], X1, X2, ...]
@@ -168,7 +168,7 @@ class Bezier(HashedList):
         num_ctrl_pts = len(constraint)
 
         # create the base matrix:
-        base = cls.basefactory(num_ctrl_pts)
+        base = this.basefactory(num_ctrl_pts)
         matrix = numpy.array(
             [[base[column](row * 1. / (len(points) - 1))
                 for column in range(len(base))]
@@ -181,8 +181,13 @@ class Bezier(HashedList):
         solution = []
         for i in range(dim):
             constraints = {index: val for index, val in enumerate(list(zip(*constraint))[i]) if val != None}
-            solution.append(cls.constraint_pseudo_inverse(matrix, b[i], constraints))
-        return cls(numpy.array(solution).transpose())
+            solution.append(this.constraint_pseudo_inverse(matrix, b[i], constraints))
+
+        if type(this) == type:
+            return this(numpy.array(solution).transpose())
+        else:
+            this.controlpoints = numpy.array(solution).transpose()
+            return this
 
 
     @staticmethod
