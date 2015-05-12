@@ -77,7 +77,7 @@ class Glider2D(object):
     def has_center_cell(self):
         return self.cell_num % 2
 
-    def get_arc_positions(self, num=50):
+    def get_arc_positions(self, num=60):
         # calculating y/z values vor the arc-curve
         x_values = self.rib_x_values
         arc_curve = PolyLine2D([self.arc(i) for i in numpy.linspace(0.5, 1, num)])  # Symmetric-Bezier-> start from 0.5
@@ -201,7 +201,7 @@ class Glider2D(object):
 
     def set_const_cell_dist(self):
         const_dist = list(self.depth_integrated())
-        self.cell_dist = BezierCurve.fit(const_dist, numpoints=len(self.cell_dist.controlpoints))
+        self.cell_dist = self.cell_dist.fit(const_dist, numpoints=len(self.cell_dist.controlpoints))
 
     @property
     def attachment_points(self):

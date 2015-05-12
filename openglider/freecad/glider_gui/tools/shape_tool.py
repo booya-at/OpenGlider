@@ -80,11 +80,11 @@ class shape_tool(base_tool):
         self.Qnum_cells.setMaximum(150)
         self.Qnum_back.setMaximum(5)
         self.Qnum_front.setMaximum(5)
-        self.Qnum_dist.setMaximum(5)
+        self.Qnum_dist.setMaximum(8)
 
         self.Qnum_cells.setMinimum(10)
-        self.Qnum_back.setMinimum(1)
-        self.Qnum_front.setMinimum(1)
+        self.Qnum_back.setMinimum(2)
+        self.Qnum_front.setMinimum(2)
         self.Qnum_dist.setMinimum(1)
 
         Qset_const_layout = QtGui.QHBoxLayout()
@@ -258,7 +258,8 @@ class shape_tool(base_tool):
 
     def update_const(self):
         const_dist = list(self.glider_2d.depth_integrated())
-        self.glider_2d.cell_dist = BezierCurve.fit(const_dist, numpoints=self.Qnum_dist.value() + 2)
+        self.glider_2d.cell_dist = self.glider_2d.cell_dist.fit(
+            const_dist, numpoints=self.Qnum_dist.value() + 2)
         self.cell_dist_cpc.control_pos = self.glider_2d.cell_dist_controlpoints
         self.update_shape()
 

@@ -6,7 +6,7 @@ class BSplineBasis():
         self.degree = degree
         self.bases = {}
 
-    def __call__(self, numpoints):
+    def __call__(self, numpoints):      # number of controlpoints
         if numpoints not in self.bases and True:
             knots = self.make_knot_vector(self.degree, numpoints)
             basis = [self.get_basis(self.degree, i, knots) for i in range(numpoints)]
@@ -17,16 +17,17 @@ class BSplineBasis():
     def get_basis(self, degree, i, knots):
         """ Returns a basis_function for the given degree """
         if degree == 0:
-
             def basis_function(t):
                 """The basis function for degree = 0 as per eq. 7"""
                 t_this = knots[i]
                 t_next = knots[i+1]
-                return t_next > t >= t_this
+                return t_next >= t > t_this
         else:
 
             def basis_function(t):
                 """The basis function for degree > 0 as per eq. 8"""
+                if i == t == 0:
+                    return 1
                 out = 0.
                 t_this = knots[i]
                 t_next = knots[i+1]
@@ -43,7 +44,6 @@ class BSplineBasis():
                 bottom = (t_horizon-t_next)
                 if bottom != 0:
                     out += top/bottom * self.get_basis(degree-1, i+1, knots)(t)
-
                 return out
 
         return basis_function
@@ -68,10 +68,8 @@ class BSplineBasis():
 class BSplineCurve(BezierCurve):
     basefactory = BSplineBasis(2)
 
-    def __call__(self, x):
-        if x == 1:
-            return self.controlpoints[-1]
-        return super(BSplineCurve, self).__call__(x)
+    # def __call__(self, x):
+    #     return super(BSplineCurve, self).__call__(x)
 
 
 class SymmetricBSpline(SymmetricBezier):
@@ -86,11 +84,18 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import numpy
 
-    data = [(-5,3), (-4, 1),  (-3, 2), (-2.5, 1), (2.5, 1)]
-    curve = BSplineCurve(data)
+    phi = numpy.linspace(-10, 10, 60)
+    y = numpy.cos(phi)
+    x = phi
+    data = zip(x, y)
+    curve = SymmetricBezier(data)
+    curve.numpoints = 5
     values = curve.get_sequence(30)
-
-    curve_pts = [curve(i) for i in numpy.linspace(0, 1, 100)]
+    cp = curve.controlpoints
+    curve_pts = [curve(i) for i in numpy.linspace(0.,  1, 100)]
+    # for i in curve.basefactory(5):
+    #     plt.plot(*zip(*[[x, i(x)] for x in numpy.linspace(0., 1, 100)]))
+    plt.show()
     plt.plot(*zip(*curve_pts))
     plt.plot(*zip(*curve.data))
     plt.plot(*zip(*data))

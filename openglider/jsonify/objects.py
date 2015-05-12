@@ -1,6 +1,6 @@
 import openglider.airfoil
 import openglider.lines
-from openglider.vector.spline import BezierCurve, SymmetricBezier
+import openglider.vector.spline
 import openglider.glider
 import openglider.glider.ballooning
 import openglider.glider.rib
@@ -20,8 +20,10 @@ objects = {"Glider": openglider.glider.Glider,
            "Node": openglider.lines.Node,
            "AttachmentPoint": openglider.glider.rib.AttachmentPoint,
            ################################BEZIER##############################
-           "BezierCurve": BezierCurve,
-           "SymmetricBezier": SymmetricBezier,
+           "BezierCurve": openglider.vector.spline.BezierCurve,
+           "SymmetricBezier": openglider.vector.spline.SymmetricBezier,
+           "BSplineCurve": openglider.vector.spline.BSplineCurve,
+           "SymmetricBSpline": openglider.vector.spline.SymmetricBSpline,
            ################################Glider2D############################
            "Glider2D": openglider.glider.Glider2D,
            "LineSet2D": openglider.glider.glider_2d.LineSet2D,
