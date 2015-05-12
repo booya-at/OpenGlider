@@ -274,9 +274,9 @@ class SymmetricBezier(Bezier):
         if not num_ctrl == self.numpoints:
             num_ctrl *= 2
             data = [self(i) for i in numpy.linspace(0, 1, num_points)]
-            self._data = self.fit(data, num_ctrl).data
+            self._data = self.fit(numpy.array(data), num_ctrl).data[self.numpoints:]
 
-    @classmethod
+    @dualmethod
     def fit(cls, data, numpoints=3):
         return super(SymmetricBezier, cls).fit(data, numpoints=numpoints)
 

@@ -190,15 +190,18 @@ class ControlPointContainer(coin.SoSeparator):
 
 
 class Line(object):
-    def __init__(self, points, color="black"):
+    def __init__(self, points, color="black", width=1):
         self.object = coin.SoSeparator()
         self.ls = coin.SoLineSet()
         self.data = coin.SoCoordinate3()
         self.color = coin.SoMaterial()
+        self.drawstyle = coin.SoDrawStyle()
         self.points = vector3D(points)
         self.color.diffuseColor = COLORS[color]
+        self.drawstyle.lineWidth = width
         self.update()
         self.object.addChild(self.color)
+        self.object.addChild(self.drawstyle)
         self.object.addChild(self.data)
         self.object.addChild(self.ls)
 

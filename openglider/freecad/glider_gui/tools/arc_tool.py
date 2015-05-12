@@ -36,8 +36,8 @@ class arc_tool(base_tool):
         self.arc_cpc.on_drag.append(self.update_spline)
         self.arc_cpc.drag_release.append(self.update_real_arc)
         self.task_separator.addChild(self.arc_cpc)
-        self.shape.addChild(Line(self.glider_2d.arc.get_sequence(num=30), color="red").object)
-        self.shape.addChild(Line(self.glider_2d.get_arc_positions()).object)
+        self.shape.addChild(Line(self.glider_2d.arc.get_sequence(num=30), color="grey").object)
+        self.shape.addChild(Line(self.glider_2d.get_arc_positions(), color="red", width=2).object)
 
     # def set_edit(self, *arg):
     #     self.arc_cpc.set_edit_mode(self.view)
@@ -45,10 +45,10 @@ class arc_tool(base_tool):
     def update_spline(self):
         self.shape.removeAllChildren()
         self.glider_2d.arc.controlpoints = [i[:-1] for i in self.arc_cpc.control_pos]
-        self.shape.addChild(Line(self.glider_2d.arc.get_sequence(num=30), color="red").object)
+        self.shape.addChild(Line(self.glider_2d.arc.get_sequence(num=30), color="grey").object)
 
     def update_real_arc(self):
-        self.shape.addChild(Line(self.glider_2d.get_arc_positions()).object)
+        self.shape.addChild(Line(self.glider_2d.get_arc_positions(), color="red", width=2).object)
 
     def update_num(self, *arg):
         self.glider_2d.arc.numpoints = self.Qnum_arc.value()

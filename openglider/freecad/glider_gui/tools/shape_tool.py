@@ -270,14 +270,19 @@ class shape_tool(base_tool):
         self.shape.removeAllChildren()
         ribs, front, back = self.glider_2d.shape(num=15)
         dist_line = self.glider_2d.cell_dist_interpolation
-        self.shape.addChild(Line(front).object)
-        self.shape.addChild(Line(back).object)
+        self.shape.addChild(Line(front, width=2).object)
+        self.shape.addChild(Line(back, width=2).object)
         self.shape.addChild(Line(vector3D(self.glider_2d.front.data), color="gray").object)
         self.shape.addChild(Line(vector3D(self.glider_2d.back.data), color="gray").object)
     
         for rib in ribs:
-            self.shape.addChild(Line(rib).object)
-        self.shape.addChild(Line(dist_line).object)
+            width = 1
+            col = "grey"
+            if rib in (ribs[0], ribs[-1]):
+                width = 2
+                col = "black"
+            self.shape.addChild(Line(rib, color=col, width=width).object)
+        self.shape.addChild(Line(dist_line, color="red", width=2).object)
         for i in dist_line:
             self.shape.addChild(Line([[0, i[1]], i, [i[0], 0]], color="gray").object)
 

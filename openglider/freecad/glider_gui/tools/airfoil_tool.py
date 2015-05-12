@@ -118,7 +118,7 @@ class airfoil_tool(base_tool):
 
     def update_airfoil(self, *args):
         self.airfoil_sep.removeAllChildren()
-        self.airfoil_sep.addChild(Line(vector3D(self.current_airfoil)).object)
+        self.airfoil_sep.addChild(Line(vector3D(self.current_airfoil), width=2).object)
 
     def spline_edit(self):
         if self.is_edit:
@@ -174,8 +174,8 @@ class airfoil_tool(base_tool):
 
     def _draw_spline(self, num):
         self.upper_spline.addChild(Line(self.control_line, color="gray").object)
-        self.upper_spline.addChild(Line(vector3D(self.current_airfoil.upper_spline.get_sequence(num))).object)
-        self.lower_spline.addChild(Line(vector3D(self.current_airfoil.lower_spline.get_sequence(num))).object)
+        self.upper_spline.addChild(Line(vector3D(self.current_airfoil.upper_spline.get_sequence(num)), width=2).object)
+        self.lower_spline.addChild(Line(vector3D(self.current_airfoil.lower_spline.get_sequence(num)), width=2).object)
 
     def _update_upper_spline(self, num=20):
         self.upper_spline.removeAllChildren()
