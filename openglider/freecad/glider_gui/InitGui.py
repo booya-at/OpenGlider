@@ -2,7 +2,7 @@ import FreeCADGui as Gui
 import FreeCAD
 
 
-from tools.panel_methode import Panel_Tool
+from tools.panel_methode import Panel_Tool, Polars_Tool
 from tools import (Gl2d_Export, Gl2d_Import, CreateGlider, Shape_Tool,
                    Airfoil_Tool, Arc_Tool, Aoa_Tool, AirfoilMergeTool,
                    Ballooning_Tool, Line_Tool, Pattern_Tool, BallooningMergeTool,
@@ -27,6 +27,7 @@ Gui.addCommand("BallooningMergeTool", BallooningMergeTool())
 
 Gui.addCommand("Pattern_Tool", Pattern_Tool())
 Gui.addCommand("Panel_Tool", Panel_Tool())
+Gui.addCommand("Polars_Tool", Polars_Tool())
 
 
 class gliderWorkbench(Workbench):
@@ -49,7 +50,8 @@ class gliderWorkbench(Workbench):
 
     productionbox = [
         "Pattern_Tool",
-        "Panel_Tool"
+        "Panel_Tool",
+        "Polars_Tool"
         ]
 
 
