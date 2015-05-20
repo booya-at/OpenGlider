@@ -16,6 +16,58 @@ class Panel_Tool(BaseCommand):
     def tool(self, obj):
         return panel_tool(obj)
 
+class Polars_Tool(BaseCommand):
+    def GetResources(self):
+        return {'Pixmap': 'polar.svg', 'MenuText': 'polars', 'ToolTip': 'polars'}
+
+    def tool(self, obj):
+        return Polars(obj)
+
+class Polars(base_tool):
+    try:
+        PPM = __import__("PPM")
+        pan3d = __import__("PPM.pan3d", globals(), locals(), ["abc"], -1)
+        PPM_utils = __import__("PPM.utils", globals(), locals(), ["abc"], -1)
+    except ImportError:
+        PPM = None
+
+    def __init__(self, obj):
+        super(Polars, self).__init__(obj, widget_name="Properties", hide=True)
+        if not self.PPM:
+            self.QWarning = QtGui.QLabel("no panel_methode installed")
+            self.layout.addWidget(self.QWarning)
+        else:
+            import Plot
+            self._vertices, self._panels, self._trailing_edges = PPM_Panels(
+                self.glider_2d.get_glider_3d(),
+                midribs=0,
+                profile_numpoints=20,
+                num_average=4,
+                distribution=Profile2D.nose_cos_distribution(0.2),
+                symmetric=True
+                )
+            case = self.pan3d.DirichletDoublet0Source0Case3(self._panels, self._trailing_edges)
+            case.A_ref = self.glider_2d.flat_area
+            case.v_inf = self.PPM.Vector(self.glider_2d.v_inf)
+            case.farfield = 5
+            case.create_wake(10000000, 20)
+            polars = case.polars(self.PPM_utils.vinf_deg_range3(case.v_inf, -10, 10, 30))
+            cL = []
+            cD = []
+            cP = []
+            alpha = []
+            for i in polars.values:
+                alpha.append(i.alpha)
+                cL.append(i.cL)
+                cD.append(i.cD * 10)
+                cP.append(i.cP * 2)
+            Plot.plot(cL, alpha)
+            Plot.plot(cD, alpha)
+            Plot.plot(cP, alpha)
+            Plot.grid()
+
+
+
 class panel_tool(base_tool):
     try:
         PPM = __import__("PPM")
@@ -167,7 +219,7 @@ class panel_tool(base_tool):
         self.create_panels(self.Qmidribs.value(), self.Qprofile_points.value(),
                            self.Qmean_profile.isChecked(), self.Qsymmetric.isChecked())
         self.case = self.pan3d.DirichletDoublet0Source0Case3(self._panels, self._trailing_edges)
-        self.case.vinf = self.PPM.Vector3(*self.glider_2d.v_inf)
+        self.case.v_inf = self.PPM.Vector(self.glider_2d.v_inf)
         self.case.farfield = 5
         self.case.create_wake(10000000, 20)
         self.case.run()
