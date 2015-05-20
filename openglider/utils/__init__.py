@@ -32,6 +32,24 @@ def consistent_value(elements, attribute):
 
 
 class dualmethod(object):
+    """
+    A Decorator to have a combined class-/instancemethod
+
+    >>>class a:
+    ...    @dualmethod
+    ...    def test(this):
+    ...        return this
+    ...
+    >>>a.test()
+    <class '__main__.a'>
+    >>>a().test()
+    <__main__.a object at 0x7f133b5f7198>
+    >>>
+
+    an instance-check could be:
+
+        is_instance = not type(this) is type
+    """
     def __init__(self, func):
         self.func = func
 

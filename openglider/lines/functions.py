@@ -29,7 +29,7 @@ def proj_force(force, vec):
         assert proj >= 0.00001
     except AssertionError as e:
         proj = 0.00001
-        traceback.print_exc(e)
+        traceback.print_exc()
     return numpy.dot(force, force) / proj
 
 

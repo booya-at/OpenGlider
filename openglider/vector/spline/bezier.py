@@ -151,7 +151,7 @@ class Bezier(HashedList):
             if end:
                 solution.append(points[-1])
 
-        if type(this) == type:
+        if type(this) == type:  # classmethod
             return this(solution)
         else:
             this.controlpoints = solution
@@ -249,7 +249,8 @@ class Bezier(HashedList):
 class SymmetricBezier(Bezier):
     def __init__(self, controlpoints=None, mirror=None):
         self._mirror = mirror or mirror2D_x
-        super(SymmetricBezier, self).__init__(controlpoints=controlpoints)
+        super(SymmetricBezier, self).__init__(controlpoints=None)
+        self.controlpoints = controlpoints
 
     @classmethod
     def __from_json__(cls, controlpoints):
@@ -263,7 +264,7 @@ class SymmetricBezier(Bezier):
 
     @controlpoints.setter
     def controlpoints(self, controlpoints):
-        self.data = numpy.array(self._mirror(controlpoints)[::-1] + controlpoints)
+        self.data = numpy.array(list(self._mirror(controlpoints)[::-1]) + list(controlpoints))
 
     @property
     def numpoints(self):
@@ -278,7 +279,9 @@ class SymmetricBezier(Bezier):
 
     @dualmethod
     def fit(cls, data, numpoints=3):
-        return super(SymmetricBezier, cls).fit(data, numpoints=numpoints)
+        bez = super(SymmetricBezier, cls).fit(data, numpoints=2*numpoints)
+        bez.controlpoints = bez.controlpoints[numpoints:]
+        return bez
 
 
 def choose(n, k):
