@@ -77,9 +77,11 @@ class TestGlider(TestCase):
         self.assertEqualGlider(self.glider, glider)
 
     def test_export_glider_json2(self):
-        path = self.tempfile('.json').name
-        with open(path, "w") as outfile:
-            jsonify.dump(self.glider, outfile)
+        with self.tempfile('.json') as tmp:
+            jsonify.dump(self.glider_2d, tmp)
+            tmp.seek(0)
+            glider = jsonify.load(tmp)['data']
+        self.assertEqualGlider2D(self.glider_2d, glider)
 
 
 

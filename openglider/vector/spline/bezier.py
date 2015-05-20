@@ -250,7 +250,8 @@ class SymmetricBezier(Bezier):
     def __init__(self, controlpoints=None, mirror=None):
         self._mirror = mirror or mirror2D_x
         super(SymmetricBezier, self).__init__(controlpoints=None)
-        self.controlpoints = controlpoints
+        if controlpoints:
+            self.controlpoints = controlpoints
 
     @classmethod
     def __from_json__(cls, controlpoints):
