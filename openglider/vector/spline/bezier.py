@@ -83,7 +83,7 @@ class Bezier(HashedList):
     def numpoints(self, num_ctrl, num_points=50):
         if not num_ctrl == self.numpoints:
             data = [self(i) for i in numpy.linspace(0, 1, num_points)]
-            self.controlpoints = self.fit(data, num_ctrl).data
+            self.fit(data, num_ctrl)
 
     @property
     def controlpoints(self):
@@ -274,9 +274,8 @@ class SymmetricBezier(Bezier):
     @numpoints.setter
     def numpoints(self, num_ctrl, num_points=50):
         if not num_ctrl == self.numpoints:
-            num_ctrl *= 2
             data = [self(i) for i in numpy.linspace(0, 1, num_points)]
-            self._data = self.fit(numpy.array(data), num_ctrl).data[self.numpoints:]
+            self.fit(numpy.array(data), num_ctrl)
 
     @dualmethod
     def fit(cls, data, numpoints=3):
