@@ -32,7 +32,8 @@ def get_element(_module, _name):
     for rex in openglider.config["json_allowed_modules"]:
         match = re.match(rex, _module)
         if match:
-            module = __import__(_module, fromlist=_module.split("."))
+            fromlist = [str(w) for w in _module.split(".")]
+            module = __import__(_module, fromlist=fromlist)
             if hasattr(module, _name):
                 obj = getattr(module, _name)
                 return obj
