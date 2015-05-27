@@ -4,7 +4,7 @@ import numpy
 from pivy import coin
 from PySide import QtGui
 
-from _tools import base_tool, text_field, input_field
+from _tools import base_tool, text_field, input_field, spline_select
 from pivy_primitives import Line, ControlPointContainer, vector3D
 
 
@@ -25,6 +25,7 @@ class aoa_tool(base_tool):
 
         self.QGlide = QtGui.QDoubleSpinBox(self.base_widget)
         self.Qnum_aoa = QtGui.QSpinBox(self.base_widget)
+        self.spline_select = spline_select([self.glider_2d.aoa], self.update_aoa, self.base_widget)
 
         self.setup_widget()
         self.setup_pivy()
@@ -46,6 +47,8 @@ class aoa_tool(base_tool):
         self.layout.setWidget(0, input_field, self.QGlide)
         self.layout.setWidget(1, text_field, QtGui.QLabel("num_points"))
         self.layout.setWidget(1, input_field, self.Qnum_aoa)
+        self.layout.setWidget(2, text_field, QtGui.QLabel("spline type"))
+        self.layout.setWidget(2, input_field, self.spline_select)
 
         self.Qnum_aoa.setValue(len(self.glider_2d.aoa.controlpoints))
         self.Qnum_aoa.setMaximum(5)

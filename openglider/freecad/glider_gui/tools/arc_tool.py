@@ -1,7 +1,7 @@
 from pivy import coin
 from PySide import QtGui, QtCore
 
-from _tools import base_tool, text_field, input_field
+from _tools import base_tool, text_field, input_field, spline_select
 from pivy_primitives import Line, ControlPointContainer
 
 
@@ -12,9 +12,8 @@ class arc_tool(base_tool):
         super(arc_tool, self).__init__(obj, widget_name="arc_tool")
 
         self.arc_cpc = ControlPointContainer(self.glider_2d.arc.controlpoints, self.view)
-        # self.Qmanual_edit = QtGui.QCheckBox(self.base_widget)
         self.Qnum_arc = QtGui.QSpinBox(self.base_widget)
-        # self.Qcalc_real = QtGui.QPushButton(self.base_widget)
+        self.spline_select = spline_select([self.glider_2d.arc], self.update_spline, self.base_widget)
         self.shape = coin.SoSeparator()
         self.task_separator.addChild(self.shape)
 
@@ -30,7 +29,11 @@ class arc_tool(base_tool):
 
         self.layout.setWidget(0, text_field, QtGui.QLabel("arc num_points"))
         self.layout.setWidget(0, input_field, self.Qnum_arc)
+        self.layout.setWidget(1, text_field, QtGui.QLabel("bspline type"))
+        self.layout.setWidget(1, input_field, self.spline_select)
+
         self.Qnum_arc.valueChanged.connect(self.update_num)
+
 
     def setup_pivy(self):
         self.arc_cpc.on_drag.append(self.update_spline)

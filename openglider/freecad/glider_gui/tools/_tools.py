@@ -6,6 +6,7 @@ from PySide import QtGui
 from pivy import coin
 import FreeCADGui as Gui
 from openglider.jsonify import dump, load
+from openglider.vector.spline import BernsteinBase, BSplineBase
 
 # from openglider.glider.glider_2d import Glider2D
 
@@ -48,8 +49,36 @@ def import_2d(glider):
             glider.glider_2d.get_glider_3d(glider.glider_instance)
             glider.ViewObject.Proxy.updateData()
 
-class base_tool(object):
+class spline_select(QtGui.QComboBox):
+    spline_types = {
+        "Bezier": (BernsteinBase, 0),
+        "BSpline_2": (BSplineBase(2), 1),
+        "BSpline_3": (BSplineBase(3), 2)
+    }
+    def __init__(self, spline_objects, update_function, parent=None):
+        super(spline_select, self).__init__(parent)
+        self.update_function = update_function
+        self.spline_objects = spline_objects #list of splines
+        for key in self.spline_types.keys():
+            self.addItem(key)
+        self.setCurrentIndex(self.current_spline_type)
+        self.currentIndexChanged.connect(self.set_spline_type)
 
+    @property
+    def current_spline_type(self):
+        base = self.spline_objects[0].basefactory
+        print(base)
+        if base == BernsteinBase:
+            return 0
+        else:
+            return base.degree - 1
+
+    def set_spline_type(self, *args):
+        for spline in self.spline_objects:
+            spline.basefactory = self.spline_types[self.currentText()][0]
+        self.update_function()
+
+class base_tool(object):
     def __init__(self, obj, widget_name="base_widget", hide=True):
         self.obj = obj
         self.glider_2d = deepcopy(self.obj.glider_2d)

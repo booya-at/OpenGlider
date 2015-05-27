@@ -49,6 +49,7 @@ class Polars(base_tool):
             case = self.pan3d.DirichletDoublet0Source0Case3(self._panels, self._trailing_edges)
             case.A_ref = self.glider_2d.flat_area
             case.v_inf = self.PPM.Vector(self.glider_2d.v_inf)
+            case.drag_calc = "trefftz"
             case.farfield = 5
             case.create_wake(10000000, 20)
             polars = case.polars(self.PPM_utils.vinf_deg_range3(case.v_inf, -10, 10, 30))
