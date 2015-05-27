@@ -59,19 +59,19 @@ class spline_select(QtGui.QComboBox):
         super(spline_select, self).__init__(parent)
         self.update_function = update_function
         self.spline_objects = spline_objects #list of splines
-        for key in self.spline_types.keys():
+        for key in ["Bezier", "BSpline_2", "BSpline_3"]:
             self.addItem(key)
-        self.setCurrentIndex(self.current_spline_type)
+        self.setCurrentIndex(self.spline_types[self.current_spline_type][1])
         self.currentIndexChanged.connect(self.set_spline_type)
 
     @property
     def current_spline_type(self):
         base = self.spline_objects[0].basefactory
-        print(base)
-        if base == BernsteinBase:
-            return 0
+        print(base.__class__)
+        if base.__class__ == BernsteinBase.__class__:
+            return "Bezier"
         else:
-            return base.degree - 1
+            return "BSpline_" + str(base.degree)
 
     def set_spline_type(self, *args):
         for spline in self.spline_objects:
