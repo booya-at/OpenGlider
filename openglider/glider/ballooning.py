@@ -139,12 +139,13 @@ class Ballooning(object):
 
 class BallooningBezier(Ballooning):
     def __init__(self, upper=None, lower=None, name="ballooning"):
+        super(BallooningBezier, self).__init__(None, None)
         upper = upper or [[0, 0], [0.1, 0], [0.2, 0.14], [0.8, 0.14], [0.9, 0], [1, 0]]
         lower = lower or [[0, 0], [0.1, 0], [0.2, 0.14], [0.8, 0.14], [0.9, 0], [1, 0]]
         self.upper_spline = BSpline(upper)
         self.lower_spline = BSpline(lower)
         self.name = name
-        Ballooning.__init__(self, self.upper_spline.interpolation(), self.lower_spline.interpolation())
+        self.apply_splines()
 
     def __json__(self):
         return {"upper": [p.tolist() for p in self.upper_spline.controlpoints],
@@ -155,6 +156,10 @@ class BallooningBezier(Ballooning):
         upper = list(self.upper_spline.get_sequence())
         lower = map(lambda x: [x[0], -x[1]], self.lower_spline.get_sequence()[::-1])
         return upper + lower
+
+    def apply_splines(self):
+        self.upper = self.upper_spline.interpolation()
+        self.lower = self.lower_spline.interpolation()
 
     def __mul__(self, other):  # TODO: Check consistency
         """Multiplication of BezierBallooning"""
