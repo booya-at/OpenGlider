@@ -171,10 +171,12 @@ def draw_glider(glider, num=0, mirror=True, panels=True):
     else:
         temp = glider
 
+    ribs = temp.return_ribs(num)
+
     if panels:
-        polygons, points = temp.return_polygons(num)
+        points = numpy.concatenate(ribs)
+        polygons = temp.return_polygon_indices(ribs)
         Graphics([Polygon(polygon) for polygon in polygons], points)
     else:
-        ribs = temp.return_ribs(num)
         Graphics([Line(rib) for rib in ribs])
     return True
