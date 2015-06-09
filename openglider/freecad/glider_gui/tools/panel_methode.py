@@ -3,7 +3,7 @@ import FreeCAD as App
 from PySide import QtGui
 import numpy
 
-from openglider.glider.in_out.export_3d import PPM_Panels
+from openglider.glider.in_out.export_3d import ppm_Panels
 from openglider.airfoil import Profile2D
 from _tools import base_tool, input_field, text_field
 from pivy_primitives_new_new import Container, Marker, coin, Line, COLORS
@@ -25,20 +25,20 @@ class Polars_Tool(BaseCommand):
 
 class Polars(base_tool):
     try:
-        PPM = __import__("PPM")
-        pan3d = __import__("PPM.pan3d", globals(), locals(), ["abc"], -1)
-        PPM_utils = __import__("PPM.utils", globals(), locals(), ["abc"], -1)
+        ppm = __import__("ppm")
+        pan3d = __import__("ppm.pan3d", globals(), locals(), ["abc"], -1)
+        ppm_utils = __import__("ppm.utils", globals(), locals(), ["abc"], -1)
     except ImportError:
-        PPM = None
+        ppm = None
 
     def __init__(self, obj):
         super(Polars, self).__init__(obj, widget_name="Properties", hide=True)
-        if not self.PPM:
+        if not self.ppm:
             self.QWarning = QtGui.QLabel("no panel_methode installed")
             self.layout.addWidget(self.QWarning)
         else:
             import Plot
-            self._vertices, self._panels, self._trailing_edges = PPM_Panels(
+            self._vertices, self._panels, self._trailing_edges = ppm_Panels(
                 self.glider_2d.get_glider_3d(),
                 midribs=0,
                 profile_numpoints=20,
@@ -48,11 +48,11 @@ class Polars(base_tool):
                 )
             case = self.pan3d.DirichletDoublet0Source0Case3(self._panels, self._trailing_edges)
             case.A_ref = self.glider_2d.flat_area
-            case.v_inf = self.PPM.Vector(self.glider_2d.v_inf)
+            case.v_inf = self.ppm.Vector(self.glider_2d.v_inf)
             case.drag_calc = "trefftz"
             case.farfield = 5
             case.create_wake(10000000, 20)
-            polars = case.polars(self.PPM_utils.vinf_deg_range3(case.v_inf, -10, 10, 30))
+            polars = case.polars(self.ppm_utils.vinf_deg_range3(case.v_inf, -10, 10, 30))
             cL = []
             cD = []
             cP = []
@@ -71,14 +71,14 @@ class Polars(base_tool):
 
 class panel_tool(base_tool):
     try:
-        PPM = __import__("PPM")
-        pan3d = __import__("PPM.pan3d", globals(), locals(), ["abc"], -1)
+        ppm = __import__("ppm")
+        pan3d = __import__("ppm.pan3d", globals(), locals(), ["abc"], -1)
     except ImportError:
-        PPM = None
+        ppm = None
 
     def __init__(self, obj):
         super(panel_tool, self).__init__(obj, widget_name="Properties", hide=True)
-        if not self.PPM:
+        if not self.ppm:
             self.QWarning = QtGui.QLabel("no panel_methode installed")
             self.layout.addWidget(self.QWarning)
         else:
@@ -202,12 +202,12 @@ class panel_tool(base_tool):
         self.obj.ViewObject.profile_num = self.Qprofile_points.value()
 
     def stream_line(self, point, interval, numpoints):
-        flow_path = self.case.flow_path(self.PPM.Vector3(*point), interval, numpoints)
+        flow_path = self.case.flow_path(self.ppm.Vector3(*point), interval, numpoints)
         return [[p.x, p.y, p.z] for p in flow_path.values]
 
     def create_panels(self, midribs=0, profile_numpoints=10, mean=False, symmetric=True):
         print(mean)
-        self._vertices, self._panels, self._trailing_edges = PPM_Panels(
+        self._vertices, self._panels, self._trailing_edges = ppm_Panels(
             self.glider_2d.get_glider_3d(),
             midribs=midribs,
             profile_numpoints=profile_numpoints,
@@ -220,7 +220,7 @@ class panel_tool(base_tool):
         self.create_panels(self.Qmidribs.value(), self.Qprofile_points.value(),
                            self.Qmean_profile.isChecked(), self.Qsymmetric.isChecked())
         self.case = self.pan3d.DirichletDoublet0Source0Case3(self._panels, self._trailing_edges)
-        self.case.v_inf = self.PPM.Vector(self.glider_2d.v_inf)
+        self.case.v_inf = self.ppm.Vector(self.glider_2d.v_inf)
         self.case.farfield = 5
         self.case.create_wake(10000000, 20)
         self.case.run()
