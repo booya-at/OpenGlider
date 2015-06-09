@@ -239,13 +239,13 @@ class Cell(CachedObject):
 
     @property
     def projected_area(self):
-        """ return the z component of the crossproduct 
+        """ return the z component of the crossproduct
             of the cell diagonals"""
         p1_1 = numpy.array(self.rib1.align([0, 0, 0]))
         p1_2 = numpy.array(self.rib1.align([1, 0, 0]))
         p2_1 = numpy.array(self.rib2.align([0, 0, 0]))
         p2_2 = numpy.array(self.rib2.align([1, 0, 0]))
-        return -0.5 * numpy.cross(p2_1 - p1_2, p2_2 - p1_1)[-1]  
+        return -0.5 * numpy.cross(p2_1 - p1_2, p2_2 - p1_1)[-1]
 
     @property
     def aspect_ratio(self):
@@ -259,8 +259,8 @@ class Cell(CachedObject):
         for rib in self.ribs:
             rib.mirror()
 
-    def average_rib(self, num_midribs=8):
-        average_rib = self.midrib(0).flatten().normalize()
+    def mean_rib(self, num_midribs=8):
+        mean_rib = self.midrib(0).flatten().normalize()
         for y in numpy.linspace(0, 1, num_midribs)[1:]:
-            average_rib += self.midrib(y).flatten().normalize()
-        return average_rib * (1. / num_midribs)
+            mean_rib += self.midrib(y).flatten().normalize()
+        return mean_rib * (1. / num_midribs)
