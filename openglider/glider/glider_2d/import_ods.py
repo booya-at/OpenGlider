@@ -1,5 +1,6 @@
 from __future__ import division
 from openglider.utils import recursive_getattr
+from openglider.vector import Interpolation
 
 try:
     import ezodf2 as ezodf
@@ -7,7 +8,6 @@ except ImportError:
     import ezodf
 
 import numpy
-import scipy.interpolate
 
 from openglider.airfoil import BezierProfile2D
 from openglider.glider.ballooning import BallooningBezier
@@ -117,8 +117,8 @@ def import_ods_2d(cls, filename, numpoints=4):
 
     const_arr = [0.] + numpy.linspace(start, 1, len(front) - (not has_center_cell)).tolist()
     rib_pos = [0.] + [p[0] for p in front[not has_center_cell:]]
-    rib_pos_int = scipy.interpolate.interp1d(rib_pos, [rib_pos, const_arr])
-    rib_distribution = [rib_pos_int(i) for i in numpy.linspace(0, rib_pos[-1], 30)]
+    rib_pos_int = Interpolation(zip(rib_pos, const_arr))
+    rib_distribution = [[i, rib_pos_int(i)] for i in numpy.linspace(0, rib_pos[-1], 30)]
 
     rib_distribution = Bezier.fit(rib_distribution, numpoints=numpoints+3)
 
