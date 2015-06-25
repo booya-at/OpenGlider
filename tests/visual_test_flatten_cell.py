@@ -22,7 +22,8 @@ import math
 import sys
 import os
 
-from openglider.plots import flattened_cell, cuts
+from openglider.plots import cuts
+from openglider.plots.glider.cell import flattened_cell
 
 
 try:

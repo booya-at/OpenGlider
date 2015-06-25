@@ -20,7 +20,8 @@
 import unittest
 import tempfile
 from openglider.jsonify import load
-from openglider.plots import flatten_glider, flattened_cell
+from openglider.plots import flatten_glider
+from openglider.plots.glider.cell import flattened_cell
 from openglider.plots.part import create_svg
 from openglider.glider.cell_elements import Panel
 from openglider.graphics import Line, Graphics2D, Red, Graphics3D

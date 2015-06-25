@@ -132,6 +132,11 @@ class Glider(object):
                     [i * numpoints + k, i * numpoints + kplus, (i + 1) * numpoints + kplus, (i + 1) * numpoints + k])
         return polygons
 
+    def return_polygons(self, num=None):
+        ribs = self.return_ribs(num)
+        polygons = self.return_polygon_indices(ribs)
+        return polygons, numpy.concatenate(ribs)
+
     def close_rib(self, rib=-1):
         self.ribs[rib].profile_2d *= 0.
 
