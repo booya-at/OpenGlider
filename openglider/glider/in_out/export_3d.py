@@ -256,8 +256,8 @@ def export_apame(glider, path="", midribs=0, numpoints=None, *other):
     return outfile.close()
 
 
-def PPM_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, symmetric=False, distribution=None):
-    """return the vertices, panels and the trailing edge of a glider, as PPM objects.
+def ppm_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, symmetric=False, distribution=None):
+    """return the vertices, panels and the trailing edge of a glider, as ppm objects.
 
     midribs:           midribs of a cell spanwise. if num_average is greater then
                        0 ballooning will be disables
@@ -266,8 +266,8 @@ def PPM_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, symmetr
     symmetric:         set to True if a symmetric result is expected (this will
                        reduce evaluation time)
     """
-    # PPM is not a dependency of openglider so if problems occure here, get the module.
-    import PPM
+    # ppm is not a dependency of openglider so if problems occure here, get the module.
+    import ppm
 
     if symmetric:
         glider = glider.copy()
@@ -333,8 +333,8 @@ def PPM_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, symmetr
             else:
                 panels.append(panel)
 
-    vertices = [PPM.PanelVector3(*point) for point in vertices]
-    panels = [PPM.Panel3([vertices[nr] for nr in panel]) for panel in panels]
+    vertices = [ppm.PanelVector3(*point) for point in vertices]
+    panels = [ppm.Panel3([vertices[nr] for nr in panel]) for panel in panels]
     trailing_edge = [vertices[nr] for nr in trailing_edge]
     for nr in sym_panels:
         panels[nr].set_symmetric()
