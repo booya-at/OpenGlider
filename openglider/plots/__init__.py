@@ -21,10 +21,9 @@
 import openglider.plots.projection
 from openglider.plots.cuts import cuts
 from openglider.plots.part import PlotPart, DrawingArea, create_svg
-from openglider.plots.text import get_text_vector
 from openglider.plots.config import sewing_config
 from openglider.plots.glider.cell import get_panels
-from openglider.plots.glider.ribs import get_ribs
+from openglider.plots.glider.ribs import get_ribs, insert_drib_marks
 from openglider.plots.glider.dribs import get_dribs, insert_drib_marks
 
 

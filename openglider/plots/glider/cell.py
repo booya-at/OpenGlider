@@ -2,7 +2,8 @@ import collections
 
 from openglider.airfoil import get_x_value
 import openglider.plots
-from openglider.plots import sewing_config, cuts, get_text_vector, PlotPart
+from openglider.vector.text import get_text_vector
+from openglider.plots import sewing_config, cuts, PlotPart
 from openglider.vector import PolyLine2D
 
 

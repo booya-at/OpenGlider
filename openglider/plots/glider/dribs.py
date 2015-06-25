@@ -1,5 +1,6 @@
-from openglider.plots import sewing_config, cuts, get_text_vector, PlotPart
+from openglider.plots import sewing_config, cuts, PlotPart
 from openglider.vector import PolyLine2D
+from openglider.vector.text import get_text_vector
 
 
 def get_dribs(glider):
@@ -22,7 +23,7 @@ def get_dribs(glider):
                                          [right, len(right)-1]],
                                         left_out, right_out, alw2)
 
-            print("left", left_out[cut_front[1]:cut_back[1]].get_length())
+            #print("left", left_out[cut_front[1]:cut_back[1]].get_length())
             part_cuts = [left_out[cut_front[1]:cut_back[1]] +
                          PolyLine2D(cut_back[0]) +
                          right_out[cut_front[2]:cut_back[2]:-1] +
@@ -42,31 +43,3 @@ def get_dribs(glider):
         dribs.append(cell_dribs)
 
     return dribs
-
-
-def insert_drib_marks(glider, rib_plots):
-
-    def insert_mark(cut_front, cut_back, rib):
-        rib_plot = rib_plots[rib]
-        if cut_front[1] == -1 and cut_back[1] == -1:
-            # todo: mark( triangle,..)
-            ik1 = rib.profile_2d(cut_front[0])
-            ik2 = rib.profile_2d(cut_back[0])
-            mark = sewing_config["marks"]["diagonal"](0,0)
-            mark = None
-        elif cut_front[1] == 1 and cut_back[1] == 1:
-            mark = None
-        else:
-            # line
-            p1 = None
-            p2 = None
-            #mark = PolyLine2D([p1, p2])
-            mark = None
-
-        if mark:
-            rib_plot["MARKS"].append(mark)
-
-    for cell in glider.cells:
-        for diagonal in cell.diagonals:
-            insert_mark(diagonal.left_front, diagonal.left_back, cell.rib1)
-            insert_mark(diagonal.right_front, diagonal.right_back, cell.rib2)
