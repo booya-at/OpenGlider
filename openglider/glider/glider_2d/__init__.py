@@ -9,7 +9,7 @@ from openglider.vector import mirror2D_x
 from openglider.vector.spline import Bezier, SymmetricBezier
 from openglider.vector.polyline import PolyLine2D
 from openglider.vector.functions import norm, normalize
-from openglider.glider.rib import Rib, RibHole
+from openglider.glider.rib import Rib, RibHole, RigidFoil
 from openglider.glider.cell import Cell, Panel, DiagonalRib
 from .lines import LowerNode2D, Line2D, LineSet2D, BatchNode2D, UpperNode2D
 from .import_ods import import_ods_2d
@@ -344,6 +344,7 @@ class Glider2D(object):
         profile_x_values = self.profiles[0].x_values
 
         rib_holes = self.elements.get("holes", [])
+        rigids = self.elements.get("rigidfoils", [])
 
         if x_values[0] != 0.:
             # adding the mid cell
@@ -362,6 +363,7 @@ class Glider2D(object):
             profile.x_values = profile_x_values
 
             this_rib_holes = [RibHole(ribhole["pos"], ribhole["size"]) for ribhole in rib_holes if rib_no in ribhole["ribs"]]
+            this_rigid_foils = [RigidFoil(rigid["start"], rigid["end"], rigid["distance"]) for rigid in rigids if rib_no in rigid["ribs"]]
 
             ribs.append(Rib(
                 profile_2d=profile,
@@ -370,7 +372,8 @@ class Glider2D(object):
                 arcang=arc_angles[rib_no],
                 glide=self.glide,
                 aoa_absolute=aoa_int(pos)[1],
-                holes=this_rib_holes
+                holes=this_rib_holes,
+                rigidfoils=this_rigid_foils
             ))
             ribs[-1].aoa_relative = aoa_int(pos)[1]
 

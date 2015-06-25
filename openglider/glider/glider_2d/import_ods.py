@@ -84,7 +84,7 @@ def import_ods_2d(cls, filename, numpoints=4):
     # RIB HOLES
     #RibHole(rib, pos, size)
     rib_holes = [{"ribs": [res[0]], "pos": res[1], "size": res[2]} for res in read_elements(sheets[2], "QUERLOCH", len_data=2)]
-
+    rigidfoils = [{"ribs": [res[0]], "start": res[1], "end": res[2], "distance": res[3]} for res in read_elements(sheets[2], "RIGIDFOIL", len_data=3)]
     # CUTS
     def get_cuts(name, target_name):
         return [{"ribs": [res[0]], "left": res[1], "right": res[2], "type": target_name}
@@ -130,7 +130,8 @@ def import_ods_2d(cls, filename, numpoints=4):
                aoa=symmetric_fit(aoa),
                elements={"cuts": cuts,
                          "holes": rib_holes,
-                         "diagonals": diagonals},
+                         "diagonals": diagonals,
+                         "rigidfoils": rigidfoils},
                profiles=profiles,
                profile_merge_curve=symmetric_fit(profile_merge),
                balloonings=balloonings,

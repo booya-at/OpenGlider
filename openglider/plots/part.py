@@ -9,32 +9,29 @@ from openglider.vector.polyline import PolyLine2D
 
 
 class PlotPart():
-    def __init__(self, layer_dict=None, name=None):
-        self._layer_dict = {}
-        self.layer_dict = layer_dict or {}
+    def __init__(self, cuts=None, marks=None, text=None, name=None):
+        self.cuts = cuts or []
+        self.marks = marks or []
+        self.text = text or []
         self.name = name
 
     def __json__(self):
-        return {"layer_dict": self.layer_dict, "name": self.name}
+        return {
+            "cuts": self.cuts,
+            "marks": self.marks,
+            "text": self.text,
+            "name": self.name
+        }
 
     def copy(self):
         return copy.deepcopy(self)
 
     @property
     def layer_dict(self):
-        return self._layer_dict
-
-    @layer_dict.setter
-    def layer_dict(self, layer_dict):
-        assert isinstance(layer_dict, dict)
-        for name, layer in layer_dict.items():
-            for line in layer:
-                if not isinstance(line, PolyLine2D):
-                    line = PolyLine2D(layer)
-        self._layer_dict = layer_dict
-
-    def __getitem__(self, item):
-        return self.layer_dict[item]
+        # TODO: remove
+        return {"CUTS": self.cuts,
+                "MARKS": self.marks,
+                "TEXT": self.text}
 
     def max_function(self, index):
         start = float("-Inf")
@@ -172,6 +169,14 @@ class DrawingArea():
         return [[self.min_x, self.min_y], [self.max_x, self.min_y],
                 [self.max_x, self.max_x], [self.min_x, self.max_y]]
 
+    @property
+    def width(self):
+        return abs(self.max_x - self.min_x)
+
+    @property
+    def height(self):
+        return abs(self.max_y - self.min_y)
+
     def move(self, vector):
         for part in self.parts:
             part.move(vector)
@@ -206,15 +211,15 @@ class DrawingArea():
         return group
 
     def _repr_svg_(self):
-        #self.move([0, -self.max_y])
         strio = io.StringIO()
         drawing = svgwrite.Drawing()
         group = self.get_svg_group()
-        #group.translate(ty=self.max_y)
-        scale = 0.75/self.max_x
+
+        scale = 0.75/self.width
         group.scale(scale)
-        group.translate(tx=0, ty=self.max_y*1000)
+        group.translate(tx=-self.min_x*1000, ty=self.max_y*1000)
         drawing.add(group)
+        drawing.viewbox(0, 0, self.width*scale*1000, self.height*scale*1000)
         drawing.write(strio)
         strio.seek(0)
         return strio.read()

@@ -27,7 +27,8 @@ from openglider.vector import norm
 class DiagonalRib(object):
     def __init__(self, left_front, left_back, right_front, right_back):
         """
-        Cut: (x_value, height)
+        [left_front, left_back, right_front, right_back]
+            -> Cut: (x_value, height)
         """
         # Attributes
         self.left_front = left_front
