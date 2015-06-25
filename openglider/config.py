@@ -1,6 +1,9 @@
 import getpass
 import platform
 
+def get(*args):
+    return config.get(*args)
+
 config = {
     "asinc_interpolation_points": 1000,
     "caching": True,

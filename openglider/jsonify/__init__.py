@@ -72,12 +72,16 @@ def add_metadata(data):
                 'data': data}
 
 
-def dumps(obj):
-    return json.dumps(add_metadata(obj), cls=Encoder)
+def dumps(obj, add_meta=True):
+    if add_meta:
+        obj = add_metadata(obj)
+    return json.dumps(obj, cls=Encoder)
 
 
-def dump(obj, fp):
-    return json.dump(add_metadata(obj), fp, cls=Encoder, indent=4)
+def dump(obj, fp, add_meta=True):
+    if add_meta:
+        obj = add_metadata(obj)
+    return json.dump(obj, fp, cls=Encoder, indent=4)
 
 
 def loads(obj):

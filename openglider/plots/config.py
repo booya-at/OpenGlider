@@ -29,7 +29,8 @@ sewing_config = {
         "orthogonal": 0.01,
         "folded": 0.01,
         "general": 0.01,
-        "diagonals": 0.01
+        "diagonals": 0.01,
+        "trailing_edge": 0.02
     },
     "scale": 1000,
     "layers":

@@ -21,7 +21,7 @@ import os
 import random
 import sys
 import unittest
-from openglider.plots import flattened_cell
+from openglider.plots.glider.cell import flattened_cell
 
 try:
     import openglider

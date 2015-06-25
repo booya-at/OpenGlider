@@ -14,6 +14,9 @@ class PlotPart():
         self.layer_dict = layer_dict or {}
         self.name = name
 
+    def __json__(self):
+        return {"layer_dict": self.layer_dict, "name": self.name}
+
     def copy(self):
         return copy.deepcopy(self)
 
@@ -128,6 +131,9 @@ class DrawingArea():
     def __init__(self, parts=None):
         self.parts = parts or []
 
+    def __json__(self):
+        return {"parts": self.parts}
+
     @classmethod
     def create_raster(cls, parts, distance_x=0.2, distance_y=0.1):
         area = cls()
@@ -205,7 +211,9 @@ class DrawingArea():
         drawing = svgwrite.Drawing()
         group = self.get_svg_group()
         #group.translate(ty=self.max_y)
-        group.scale(0.75/self.max_x)
+        scale = 0.75/self.max_x
+        group.scale(scale)
+        group.translate(tx=0, ty=self.max_y*1000)
         drawing.add(group)
         drawing.write(strio)
         strio.seek(0)
