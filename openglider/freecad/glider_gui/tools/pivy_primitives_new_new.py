@@ -16,6 +16,7 @@ class Object3D(coin.SoSeparator):
     std_col = "black"
     ovr_col = "red"
     sel_col = "yellow"
+    disabled_col = "grey"
 
     def __init__(self, dynamic=False):
         super(Object3D, self).__init__()
@@ -33,6 +34,15 @@ class Object3D(coin.SoSeparator):
         self.on_drag_release = []
         self.on_drag_start = []
         self._delete = False
+        self.enabled = True
+
+    def set_disabled(self):
+        self.set_color(Object3D.disabled_col)
+        self.enabled = False
+
+    def set_enabled(self):
+        self.set_color(Object3D.std_col)
+        self.enabled = True
 
     def set_color(self, col):
         self.std_col = col
@@ -49,38 +59,46 @@ class Object3D(coin.SoSeparator):
         self.data.point.setValues(0, len(points), points)
 
     def set_mouse_over(self):
-        self.color.diffuseColor = self._ovr_color
+        if self.enabled:
+            self.color.diffuseColor = self._ovr_color
 
     def unset_mouse_over(self):
-        self.color.diffuseColor = self._std_color
+        if self.enabled:
+            self.color.diffuseColor = self._std_color
 
     def select(self):
-        self.color.diffuseColor = self._sel_color
+        if self.enabled:
+            self.color.diffuseColor = self._sel_color
 
     def unselect(self):
-        self.color.diffuseColor = self._std_color
+        if self.enabled:
+            self.color.diffuseColor = self._std_color
 
     def drag(self, mouse_coords, fact=1.):
-        pts = self.points
-        for i in pts:
-            i[0] += mouse_coords[0] * fact
-            i[1] += mouse_coords[1] * fact
-            i[2] += mouse_coords[2] * fact
-        self.points = pts
-        for i in self.on_drag:
-            i()
+        if self.enabled:
+            pts = self.points
+            for i in pts:
+                i[0] += mouse_coords[0] * fact
+                i[1] += mouse_coords[1] * fact
+                i[2] += mouse_coords[2] * fact
+            self.points = pts
+            for i in self.on_drag:
+                i()
 
     def drag_release(self):
-        for i in self.on_drag_release:
-            i()
+        if self.enabled:
+            for i in self.on_drag_release:
+                i()
 
     @property
     def drag_objects(self):
-        return [self]
+        if self.enabled:
+            return [self]
 
     def delete(self):
-        self.removeAllChildren()
-        self._delete = True
+        if self.enabled:
+            self.removeAllChildren()
+            self._delete = True
 
     def check_dependency(self):
         pass

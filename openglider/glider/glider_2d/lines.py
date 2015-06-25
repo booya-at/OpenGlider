@@ -9,16 +9,18 @@ from openglider.lines import line_types
 
 class LowerNode2D(object):
     """lower attachment point"""
-    def __init__(self, pos_2D, pos_3D, nr=None):
+    def __init__(self, pos_2D, pos_3D, nr=None, layer=None):
         self.pos_2D = pos_2D
         self.pos_3D = pos_3D
         self.nr = nr
+        self.layer = layer or "all"
 
     def __json__(self):
         return{
             "pos_2D": self.pos_2D,
             "pos_3D": self.pos_3D,
-            "nr": self.nr}
+            "nr": self.nr,
+            "layer": self.layer}
 
     def get_node(self, glider):
         return Node(node_type=0, position_vector=numpy.array(self.pos_3D))
@@ -26,17 +28,19 @@ class LowerNode2D(object):
 
 class UpperNode2D(object):
     """stores the 2d data of an attachment point"""
-    def __init__(self, rib_no, rib_pos, force=1., nr=None):
+    def __init__(self, rib_no, rib_pos, force=1., nr=None, layer=None):
         self.rib_no = rib_no
         self.rib_pos = rib_pos  # value from 0...1
         self.force = force
         self.nr = nr
+        self.layer = layer or "all"
 
     def __json__(self):
         return {'rib_no': self.rib_no,
                 'rib_pos': self.rib_pos,
                 'force': self.force,
-                'nr': self.nr}
+                'nr': self.nr,
+                "layer": self.layer}
 
     def get_2d(self, glider_2d):
         # _, front, back = glider_2d.shape()                          # rib numbering convention???
@@ -59,14 +63,16 @@ class UpperNode2D(object):
 
 
 class BatchNode2D(object):
-    def __init__(self, pos_2D, nr=None):
+    def __init__(self, pos_2D, nr=None, layer=None):
         self.pos_2D = pos_2D  # pos => 2d coordinates
         self.nr = nr
+        self.layer = layer or "all"
 
     def __json__(self):
         return{
             "pos_2D": self.pos_2D,
-            "nr": self.nr
+            "nr": self.nr,
+            "layer": self.layer
         }
 
     def get_node(self, glider):
@@ -174,12 +180,14 @@ class LineSet2D(object):
 
 
 class Line2D(object):
-    def __init__(self, lower_node, upper_node, target_length=None, line_type='default'):
+    def __init__(self, lower_node, upper_node, 
+                 target_length=None, line_type='default', layer=None):
         self.lower_node = lower_node
         self.upper_node = upper_node
         self.target_length = target_length
         self.is_sorted = False
         self.line_type = line_types.LineType.get(line_type)
+        self.layer = layer or "all"
 
     def __json__(self):
         return{

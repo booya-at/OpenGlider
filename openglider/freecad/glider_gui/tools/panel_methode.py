@@ -1,5 +1,6 @@
 from __future__ import division
 import FreeCAD as App
+from FreeCAD import Base
 from PySide import QtGui
 import numpy
 
@@ -46,6 +47,8 @@ class Polars(base_tool):
                 distribution=Profile2D.nose_cos_distribution(0.2),
                 symmetric=True
                 )
+            progress_bar = Base.ProgressIndicator()
+            progress_bar.start("running ppm", 0)
             case = self.pan3d.DirichletDoublet0Source0Case3(self._panels, self._trailing_edges)
             case.A_ref = self.glider_2d.flat_area
             case.v_inf = self.ppm.Vector(self.glider_2d.v_inf)
@@ -66,6 +69,7 @@ class Polars(base_tool):
             Plot.plot(cD, alpha)
             Plot.plot(cP, alpha)
             Plot.grid()
+            progress_bar.stop()
 
 
 
@@ -216,6 +220,8 @@ class panel_tool(base_tool):
             symmetric=symmetric)
 
     def run(self):
+        progress_bar = Base.ProgressIndicator()
+        progress_bar.start("Progress bar test...", 10)
         self.update_glider()
         self.create_panels(self.Qmidribs.value(), self.Qprofile_points.value(),
                            self.Qmean_profile.isChecked(), self.Qsymmetric.isChecked())
@@ -225,6 +231,7 @@ class panel_tool(base_tool):
         self.case.create_wake(10000000, 20)
         self.case.run()
         self.show_glider()
+        progress_bar.stop()
 
     def show_glider(self):
         self.glider_result.removeAllChildren()
