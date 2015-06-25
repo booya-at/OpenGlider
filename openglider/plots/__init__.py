@@ -24,7 +24,7 @@ from openglider.plots.part import PlotPart, DrawingArea, create_svg
 from openglider.plots.config import sewing_config
 from openglider.plots.glider.cell import get_panels
 from openglider.plots.glider.ribs import get_ribs, insert_drib_marks
-from openglider.plots.glider.dribs import get_dribs, insert_drib_marks
+from openglider.plots.glider.dribs import get_dribs
 
 
 def flatten_glider(glider, sewing_config=sewing_config):

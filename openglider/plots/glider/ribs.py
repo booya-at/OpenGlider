@@ -85,11 +85,11 @@ def cut_outer_rib(outer_rib, inner_rib, t_e_allowance):
 
     start = next(cuts)
     stop = next(cuts)
-    bürzl = PolyLine2D([outer_rib[stop],
+    buerzl = PolyLine2D([outer_rib[stop],
                         outer_rib[stop] + [t_e_allowance, 0],
                         outer_rib[start] + [t_e_allowance, 0],
                         outer_rib[start]])
-    return PolyLine2D(outer_rib[start:stop].data) + bürzl
+    return PolyLine2D(outer_rib[start:stop].data) + buerzl
 
 
 def insert_drib_marks(glider, rib_plots):
