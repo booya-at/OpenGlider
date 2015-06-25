@@ -23,7 +23,7 @@ from openglider.plots.cuts import cuts
 from openglider.plots.part import PlotPart, DrawingArea, create_svg
 from openglider.plots.config import sewing_config
 from openglider.plots.glider.cell import get_panels
-from openglider.plots.glider.ribs import get_ribs, insert_drib_marks
+from openglider.plots.glider.ribs import get_ribs
 from openglider.plots.glider.dribs import get_dribs
 
 
@@ -34,7 +34,6 @@ def flatten_glider(glider, sewing_config=sewing_config):
     panels = get_panels(glider)
     ribs = get_ribs(glider)
     dribs = get_dribs(glider)
-    insert_drib_marks(glider, ribs)
 
     plots['panels'] = DrawingArea.create_raster(panels.values())
     plots['ribs'] = DrawingArea.create_raster([ribs.values()])

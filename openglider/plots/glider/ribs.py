@@ -115,9 +115,7 @@ def get_ribs(glider):
 
         # Diagonals
         for cell in glider.cells:
-            if rib not in cell.ribs:
-                continue
-            else:
+            if rib in cell.ribs:
                 if rib is cell.rib2:
                     right = True
                 elif rib is cell.rib1:
@@ -126,7 +124,9 @@ def get_ribs(glider):
                     rib_plot.insert_drib_mark(diagonal, right)
 
         # rigidfoils
-        # TODO
+        for rigid in rib.rigidfoils:
+            rib_plot.plotpart.marks.append(rigid.get_flattened(rib))
+
 
         # add text, entry, holes
         rib_plot.add_text("rib{}".format(rib_no))
