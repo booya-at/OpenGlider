@@ -1,5 +1,5 @@
 from pivy import coin
-from PySide import QtGui, QtCore
+from PySide import QtGui
 
 from _tools import base_tool, text_field, input_field, spline_select
 from pivy_primitives import Line, ControlPointContainer
@@ -11,9 +11,11 @@ class arc_tool(base_tool):
         """adds a symmetric spline to the scene"""
         super(arc_tool, self).__init__(obj, widget_name="arc_tool")
 
-        self.arc_cpc = ControlPointContainer(self.glider_2d.arc.controlpoints, self.view)
+        self.arc_cpc = ControlPointContainer(
+            self.glider_2d.arc.controlpoints, self.view)
         self.Qnum_arc = QtGui.QSpinBox(self.base_widget)
-        self.spline_select = spline_select([self.glider_2d.arc], self.update_spline, self.base_widget)
+        self.spline_select = spline_select(
+            [self.glider_2d.arc], self.update_spline, self.base_widget)
         self.shape = coin.SoSeparator()
         self.task_separator.addChild(self.shape)
 
@@ -34,13 +36,16 @@ class arc_tool(base_tool):
 
         self.Qnum_arc.valueChanged.connect(self.update_num)
 
-
     def setup_pivy(self):
         self.arc_cpc.on_drag.append(self.update_spline)
         self.arc_cpc.drag_release.append(self.update_real_arc)
         self.task_separator.addChild(self.arc_cpc)
-        self.shape.addChild(Line(self.glider_2d.arc.get_sequence(num=30), color="grey").object)
-        self.shape.addChild(Line(self.glider_2d.get_arc_positions(), color="red", width=2).object)
+        self.shape.addChild(
+            Line(self.glider_2d.arc.get_sequence(num=30), 
+                 color="grey").object)
+        self.shape.addChild(
+            Line(self.glider_2d.get_arc_positions(), 
+                 color="red", width=2).object)
 
     # def set_edit(self, *arg):
     #     self.arc_cpc.set_edit_mode(self.view)

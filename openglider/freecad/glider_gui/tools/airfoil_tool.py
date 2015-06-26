@@ -78,7 +78,9 @@ class airfoil_tool(base_tool):
             filter='*.dat',
             selectedFilter='*.dat')
         if filename[0] != "":
-            self.QList_View.addItem(QAirfoil_item(BezierProfile2D.import_from_dat(filename[0])))
+            self.QList_View.addItem(
+                QAirfoil_item(
+                    BezierProfile2D.import_from_dat(filename[0])))
 
     def create_airfoil(self):
         j = 0
@@ -118,7 +120,9 @@ class airfoil_tool(base_tool):
 
     def update_airfoil(self, *args):
         self.airfoil_sep.removeAllChildren()
-        self.airfoil_sep.addChild(Line(vector3D(self.current_airfoil), width=2).object)
+        self.airfoil_sep.addChild(
+            Line(vector3D(
+                self.current_airfoil), width=2).object)
 
     def spline_edit(self):
         if self.is_edit:
@@ -173,15 +177,24 @@ class airfoil_tool(base_tool):
         return [[p[0], p[1], -0.01] for p in points]
 
     def _draw_spline(self, num):
-        self.upper_spline.addChild(Line(self.control_line, color="gray").object)
-        self.upper_spline.addChild(Line(vector3D(self.current_airfoil.upper_spline.get_sequence(num)), width=2).object)
-        self.lower_spline.addChild(Line(vector3D(self.current_airfoil.lower_spline.get_sequence(num)), width=2).object)
+        self.upper_spline.addChild(
+            Line(self.control_line, color="gray").object)
+        self.upper_spline.addChild(
+            Line(vector3D(
+                self.current_airfoil.upper_spline.get_sequence(num)),
+                width=2).object)
+        self.lower_spline.addChild(
+            Line(vector3D(
+                self.current_airfoil.lower_spline.get_sequence(num)),
+                width=2).object)
 
     def _update_upper_spline(self, num=20):
         self.upper_spline.removeAllChildren()
         self.lower_spline.removeAllChildren()
-        self.current_airfoil.upper_spline.controlpoints = [i[:-1] for i in self.upper_cpc.control_pos]
-        direction = normalize(self.current_airfoil.upper_spline.controlpoints[-2])
+        self.current_airfoil.upper_spline.controlpoints = [
+            i[:-1] for i in self.upper_cpc.control_pos]
+        direction = normalize(
+            self.current_airfoil.upper_spline.controlpoints[-2])
         radius = norm(self.current_airfoil.lower_spline.controlpoints[1])
         new_point = - numpy.array(direction) * radius
         self.current_airfoil.lower_spline.controlpoints[1] = new_point
@@ -191,8 +204,10 @@ class airfoil_tool(base_tool):
     def _update_lower_spline(self, num=20):
         self.lower_spline.removeAllChildren()
         self.upper_spline.removeAllChildren()
-        self.current_airfoil.lower_spline.controlpoints = [i[:-1] for i in self.lower_cpc.control_pos]
-        direction = normalize(self.current_airfoil.lower_spline.controlpoints[1])
+        self.current_airfoil.lower_spline.controlpoints = [
+            i[:-1] for i in self.lower_cpc.control_pos]
+        direction = normalize(
+            self.current_airfoil.lower_spline.controlpoints[1])
         radius = norm(self.current_airfoil.upper_spline.controlpoints[-2])
         new_point = -numpy.array(direction) * radius
         self.current_airfoil.upper_spline.controlpoints[-2] = new_point
