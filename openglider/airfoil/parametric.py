@@ -1,10 +1,9 @@
 import numpy
-import scipy.interpolate
 
 from openglider.airfoil import Profile2D
 from openglider.vector.spline import Bezier
 from openglider.vector.spline.bspline import BSpline
-from openglider.vector import norm
+from openglider.vector import norm, Interpolation
 
 
 class BezierProfile2D(Profile2D):
@@ -76,7 +75,13 @@ class BezierProfile2D(Profile2D):
         length = [0]
         for i, point in enumerate(points[1:]):
             length.append(length[-1] + norm(point - points[i]))
-        interpolation = scipy.interpolate.interp1d(length, numpy.array(points).T)
+        interpolation_x = Interpolation(zip(length, [p[0] for p in points]))
+        interpolation_y = Interpolation(points)
+
+        def get_point(dist):
+            x = interpolation_x(dist)
+            return [x, interpolation_y(x)]
+
         if dist == "const":
             dist = numpy.linspace(0, length[-1], num)
         elif dist == "sin":
@@ -89,6 +94,6 @@ class BezierProfile2D(Profile2D):
             pass
         else:
             return points
-        return [interpolation(i) for i in dist]
+        return [get_point(d) for d in dist]
 
 

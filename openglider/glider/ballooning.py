@@ -20,10 +20,10 @@
 import copy
 
 import numpy
-from scipy.interpolate import interp1d
 
 import openglider
 from openglider.vector.spline import BSpline
+from openglider.vector.interpolate import Interpolation
 
 
 class ArcSinc:
@@ -39,14 +39,13 @@ class ArcSinc:
         return self.arsinc(val)
 
     def interpolate(self, numpoints):
-        x, y = [], []
+        data = []
 
         for i in range(numpoints + 1):
             phi = self.end + (i * 1. / numpoints) * (self.start - self.end)  # reverse for interpolation (increasing x_values)
-            x.append(numpy.sinc(phi / numpy.pi))
-            y.append(phi)
+            data.append([numpy.sinc(phi / numpy.pi), phi])
 
-        self.arsinc = interp1d(x, y)
+        self.arsinc = Interpolation(data)
 
     @property
     def numpoints(self):
@@ -85,18 +84,27 @@ class Ballooning(object):
 
     def __add__(self, other):
         """Add another Ballooning to this one, needed for merging purposes"""
-        xup = self.upper.x  # This is valid for scipy interpolations, no clue how to do different, if so...
-        xlow = self.lower.x
-        yup = [self.upper(i) + other.upper(i) for i in xup]
-        ylow = [self.lower(i) + other.lower(i) for i in xlow]
+        upper = []
+        for point in self.upper.data:
+            upper.append([point[0], point[1]+other.upper(point[0])])
+        lower = []
+        for point in self.lower.data:
+            lower.append([point[0], point[1]+other.lower(point[0])])
 
-        return Ballooning(interp1d(xup, yup), interp1d(xlow, ylow))
+        return Ballooning(Interpolation(upper), Interpolation(lower))
 
-    def __mul__(self, other):
+    def __imul__(self, val):
+        for point in self.upper.data:
+            point[1] *= val
+        for point in self.lower.data:
+            point[1] *= val
+        return self
+
+    def __mul__(self, value):
         """Multiply Ballooning With a Value"""
-        up = interp1d(self.upper.x, [i * other for i in self.upper.y])
-        low = interp1d(self.upper.x, [i * other for i in self.lower.y])
-        return Ballooning(up, low)
+        new = self.copy()
+        new *= value
+        return new
 
     def copy(self):
         return copy.deepcopy(self)
