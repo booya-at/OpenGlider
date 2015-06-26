@@ -42,15 +42,20 @@ def cached_property(*hashlist):
             if not openglider.config["caching"]:
                 return self.function(parentclass)
             else:
+                if not hasattr(parentclass, "_cache"):
+                    parentclass._cache = {}
+
+                cache = parentclass._cache
                 dahash = hash_attributes(parentclass, self.hashlist)
                 # Return cached or recalc if hashes differ
-                if id(parentclass) in self.cache and dahash == self.cache[id(parentclass)][0]:
-                    return self.cache[id(parentclass)][1]
-                else:
+                if self not in cache or cache[self]['hash'] != dahash:
                     res = self.function(parentclass)
-                    self.cache[id(parentclass)] = [dahash, res]
-                    parentclass.cached_properties.append(self)
-                    return res
+                    cache[self] = {
+                        "hash": dahash,
+                        "value": res
+                    }
+
+                return cache[self]["value"]
 
     return CachedProperty
 
@@ -122,10 +127,10 @@ class HashedList(CachedObject):
         return {"data": self.data.tolist(), "name": self.name}
 
     def __getitem__(self, item):
-        return self.data.__getitem__(item)
+        return self.data[item]
 
     def __setitem__(self, key, value):
-        self.data.__setitem__(key, numpy.array(value))
+        self.data[key] = numpy.array(value)
         self._hash = None
 
     def __hash__(self):
@@ -137,13 +142,14 @@ class HashedList(CachedObject):
         return len(self.data)
 
     def __iter__(self):
-        return self.data.__iter__()
+        for el in self.data:
+            yield el
 
     def __str__(self):
-        return self.data.__str__()
+        return str(self.data)
 
     def __repr__(self):
-        return super(HashedList, self).__repr__() + " (name: {})".format(self.name)
+        return "<class '{}' name: {}".format(self.__class__, self.name)
 
     @property
     def data(self):
@@ -152,7 +158,9 @@ class HashedList(CachedObject):
     @data.setter
     def data(self, data):
         if data is not None:
+            data = list(data)  # numpy.array(zip(x,y)) is shit
             self._data = numpy.array(data)
+            #self._data = numpy.array(data)
             #self._data = [np.array(vector) for vector in data]  # 1,5*execution time
             self._hash = None
         else:

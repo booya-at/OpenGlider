@@ -116,10 +116,6 @@ class PolyLine(HashedList):
 
 
 class PolyLine2D(PolyLine):
-    def __init__(self, data, name=None):
-        self._normvectors = None
-        super(PolyLine2D, self).__init__(data, name)
-
     def __add__(self, other):  # this is python default behaviour for lists
         if other.__class__ is self.__class__:
             if len(self.data) == 0:

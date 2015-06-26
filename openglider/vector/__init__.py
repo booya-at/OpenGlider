@@ -24,6 +24,7 @@ from openglider.vector.functions import norm, norm_squared, normalize
 from openglider.vector.polyline import PolyLine, PolyLine2D
 from openglider.vector.polygon import Polygon2D
 from openglider.vector.layer import Layer
+from openglider.vector.interpolate import Interpolation
 
 def depth(arg):
     try:
@@ -63,35 +64,34 @@ def arrtype(arg):
     else:
         return 0
 
-
-def mirror_func(direction=None):
-    if direction is None:
-        direction = [1., 0., 0.]
-    if len(direction) == 2:
-        x, y = normalize(direction)
-        mirrormat=numpy.array(
-            [
-                [1 - 2 * x ** 2, -2 * x * y],
-                [-2 * x * y, 1 - 2 * y ** 2]
-            ]
-        )
-    else:
-        x, y, z = normalize(direction)
-        mirrormat = numpy.array(
-            [
-                [1 - 2 * x ** 2, -2 * x * y, -2 * x * z],
-                [-2 * x * y, 1 - 2 * y ** 2, -2 * y * z],
-                [-2 * x * z, -2 * y * z, 1 - 2 * z ** 2]
-            ]
-        )
-
-    def mirror(vec):
-        if len(vec) == 2 and not isinstance(vec[0], (numpy.ndarray, list, tuple)):
-            return numpy.dot(vec, mirrormat).tolist()
+class mirror_func:
+    def __init__(self, direction=None):
+        if direction is None:
+            direction = [1., 0., 0.]
+        if len(direction) == 2:
+            x, y = normalize(direction)
+            self.matrix = numpy.array(
+                [
+                    [1 - 2 * x ** 2, -2 * x * y],
+                    [-2 * x * y, 1 - 2 * y ** 2]
+                ]
+            )
         else:
-            return numpy.array([mirror(i) for i in vec]).tolist()
+            x, y, z = normalize(direction)
+            self.matrix = numpy.array(
+                [
+                    [1 - 2 * x ** 2, -2 * x * y, -2 * x * z],
+                    [-2 * x * y, 1 - 2 * y ** 2, -2 * y * z],
+                    [-2 * x * z, -2 * y * z, 1 - 2 * z ** 2]
+                ]
+            )
 
-    return mirror
+    def __call__(self, vec):
+        if len(vec) == 2 and not isinstance(vec[0], (numpy.ndarray, list, tuple)):
+            return numpy.dot(vec, self.matrix).tolist()
+        else:
+            return numpy.array([self(i) for i in vec]).tolist()
+
 
 mirror2D_x = mirror_func(direction=[1., 0.])
 mirror_x = mirror_func(direction=[1., 0., 0.])

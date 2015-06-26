@@ -37,25 +37,26 @@ class RigidFoil(object):
                 'distance': self.distance}
 
     def get_3d(self, rib):
-        ######NEEDED??
-        pass
+        return rib.align(self.get_flattened(rib))
 
     def get_length(self, rib):
-        flat = self.get_flattened(rib)
-        flat = PolyLine2D(flat)
-        flat.check()
-        return flat.get_length()
+        return self.get_flattened(rib).get_length()
 
     def get_flattened(self, rib):
+        flat = PolyLine2D(self._get_flattened(rib))
+        flat.check()
+        return flat
+
+    def _get_flattened(self, rib):
         profile = rib.profile_2d
-        normvectors = PolyLine2D(profile.normvectors)
-        __, start = profile.profilepoint(self.start)
-        __, end = profile.profilepoint(self.end)
+        profile_normvectors = PolyLine2D(profile.normvectors)
+        start = profile(self.start)
+        end = profile(self.end)
 
-        list_1 = profile.data.get(start, end)
-        list_2 = normvectors.get(start, end)
+        outer_curve = profile[start:end].scale(rib.chord)
+        normvectors = profile_normvectors[start:end]
 
-        return [list_1[i] + self.func(list_1[i]) * list_2[i] for i in range(len(list_1))]
+        return [p - n*self.func(p) for p, n in zip(outer_curve, normvectors)]
 
 
 class GibusArcs(object):

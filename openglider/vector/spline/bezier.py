@@ -20,11 +20,9 @@
 from __future__ import division
 
 import numpy
-import scipy
-from scipy.optimize import bisect as findroot
 
 from openglider.utils.cache import HashedList
-from openglider.vector import norm, mirror2D_x
+from openglider.vector import norm, mirror2D_x, Interpolation
 from openglider.utils import dualmethod
 
 
@@ -92,14 +90,6 @@ class Bezier(HashedList):
     @controlpoints.setter
     def controlpoints(self, points):
        self.data = points
-
-    def xpoint(self, x):
-        root = findroot(lambda x2: self.__call__(x2)[0] - x, 0, 1)
-        return self.__call__(root)
-
-    def ypoint(self, y):
-        root = findroot(lambda y2: self.__call__(y2)[1] - y, 0, 1)
-        return self.__call__(root)
 
     @dualmethod
     def fit(this, points, numpoints=5, start=True, end=True):
@@ -219,17 +209,8 @@ class Bezier(HashedList):
             u[key] = val
         return u
 
-
     def interpolation(self, num=100, **kwargs):
-        x, y = self.get_sequence(num).T
-        return scipy.interpolate.interp1d(x, y, **kwargs)
-
-    def interpolate_3d(self, num=100, axis=0, bounds_error=False):
-        """
-        Return scipy interpolation for a given axis (x=0, y=1
-        """
-        data = self.get_sequence(num).T
-        return scipy.interpolate.interp1d(data[axis], data, bounds_error=bounds_error)
+        return Interpolation(self.get_sequence(num))
 
     def get_sequence(self, num=50):
         data = []

@@ -1,5 +1,6 @@
 from __future__ import division
 from openglider.utils import recursive_getattr
+from openglider.vector import Interpolation
 
 try:
     import ezodf2 as ezodf
@@ -7,7 +8,6 @@ except ImportError:
     import ezodf
 
 import numpy
-import scipy.interpolate
 
 from openglider.airfoil import BezierProfile2D
 from openglider.glider.ballooning import BallooningBezier
@@ -84,7 +84,7 @@ def import_ods_2d(cls, filename, numpoints=4):
     # RIB HOLES
     #RibHole(rib, pos, size)
     rib_holes = [{"ribs": [res[0]], "pos": res[1], "size": res[2]} for res in read_elements(sheets[2], "QUERLOCH", len_data=2)]
-
+    rigidfoils = [{"ribs": [res[0]], "start": res[1], "end": res[2], "distance": res[3]} for res in read_elements(sheets[2], "RIGIDFOIL", len_data=3)]
     # CUTS
     def get_cuts(name, target_name):
         return [{"ribs": [res[0]], "left": res[1], "right": res[2], "type": target_name}
@@ -105,6 +105,12 @@ def import_ods_2d(cls, filename, numpoints=4):
                           "cells": [res[0]]})
         # todo: group
 
+    straps = []
+    for res in read_elements(sheets[1], "VEKTLAENGE", len_data=2):
+        straps.append({"cells": [res[0]],
+                       "left": res[1],
+                       "right": res[2]})
+
     has_center_cell = not front[0][0] == 0
     cell_no = (len(front)-1)*2 + has_center_cell
 
@@ -117,8 +123,8 @@ def import_ods_2d(cls, filename, numpoints=4):
 
     const_arr = [0.] + numpy.linspace(start, 1, len(front) - (not has_center_cell)).tolist()
     rib_pos = [0.] + [p[0] for p in front[not has_center_cell:]]
-    rib_pos_int = scipy.interpolate.interp1d(rib_pos, [rib_pos, const_arr])
-    rib_distribution = [rib_pos_int(i) for i in numpy.linspace(0, rib_pos[-1], 30)]
+    rib_pos_int = Interpolation(zip(rib_pos, const_arr))
+    rib_distribution = [[i, rib_pos_int(i)] for i in numpy.linspace(0, rib_pos[-1], 30)]
 
     rib_distribution = Bezier.fit(rib_distribution, numpoints=numpoints+3)
 
@@ -130,7 +136,9 @@ def import_ods_2d(cls, filename, numpoints=4):
                aoa=symmetric_fit(aoa),
                elements={"cuts": cuts,
                          "holes": rib_holes,
-                         "diagonals": diagonals},
+                         "diagonals": diagonals,
+                         "rigidfoils": rigidfoils,
+                         "straps": straps},
                profiles=profiles,
                profile_merge_curve=symmetric_fit(profile_merge),
                balloonings=balloonings,

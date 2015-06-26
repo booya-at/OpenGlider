@@ -98,11 +98,13 @@ class BasicCell(CachedObject):
 
 
 class Cell(CachedObject):
-    def __init__(self, rib1, rib2, ballooning, miniribs=None, panels=None, diagonals=None):
+    def __init__(self, rib1, rib2, ballooning, miniribs=None, panels=None,
+                 diagonals=None, straps=None):
         self.rib1 = rib1
         self.rib2 = rib2
         self._miniribs = miniribs or []
         self.diagonals = diagonals or []
+        self.straps = straps or []
         self.ballooning = ballooning
         self.panels = panels or []
 
@@ -112,7 +114,8 @@ class Cell(CachedObject):
                 "ballooning": self.ballooning,
                 "miniribs": self._miniribs,
                 "diagonals": self.diagonals,
-                "panels": self.panels}
+                "panels": self.panels,
+                "straps": self.straps}
 
     def add_minirib(self, minirib):
         """add a minirib to the cell.
