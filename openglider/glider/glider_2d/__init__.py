@@ -116,8 +116,8 @@ class Glider2D(object):
         Return shape of the glider:
         [ribs, front, back]
         """
-        front_int = self.front.interpolate(num=num)
-        back_int = self.back.interpolate(num=num)
+        front_int = self.front.interpolation(num=num)
+        back_int = self.back.interpolation(num=num)
         dist = self.rib_x_values
         front_line = [[x, front_int(x)] for x in dist]
         front = mirror2D_x(front_line)[::-1] + front_line
@@ -127,8 +127,8 @@ class Glider2D(object):
         return [ribs, front, back]
 
     def ribs(self, num=30):         #property
-        front_int = self.front.interpolate(num=num)
-        back_int = self.back.interpolate(num=num)
+        front_int = self.front.interpolation(num=num)
+        back_int = self.back.interpolation(num=num)
 
         dist = self.rib_x_values
         front = [[x, front_int(x)] for x in dist]
@@ -192,8 +192,8 @@ class Glider2D(object):
         Return A(x)
         """
         x_values = numpy.linspace(0, self.front.controlpoints[-1][0], num)
-        front_int = self.front.interpolate(num=num)
-        back_int = self.back.interpolate(num=num)
+        front_int = self.front.interpolation(num=num)
+        back_int = self.back.interpolation(num=num)
         integrated_depth = [0.]
         for x in x_values[1:]:
             integrated_depth.append(integrated_depth[-1] + 1. / (front_int(x) - back_int(x)))
@@ -332,11 +332,11 @@ class Glider2D(object):
 
         x_values = self.rib_x_values
 
-        front_int = self.front.interpolate(num=num)
-        back_int = self.back.interpolate(num=num)
-        profile_merge_curve = self.profile_merge_curve.interpolate(num=num)
-        ballooning_merge_curve = self.ballooning_merge_curve.interpolate(num=num)
-        aoa_int = self.aoa.interpolate(num=num)
+        front_int = self.front.interpolation(num=num)
+        back_int = self.back.interpolation(num=num)
+        profile_merge_curve = self.profile_merge_curve.interpolation(num=num)
+        ballooning_merge_curve = self.ballooning_merge_curve.interpolation(num=num)
+        aoa_int = self.aoa.interpolation(num=num)
 
         arc_pos = list(self.get_arc_positions(num=num))
         arc_angles = self.get_arc_angles()

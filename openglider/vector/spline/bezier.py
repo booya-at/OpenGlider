@@ -209,7 +209,7 @@ class Bezier(HashedList):
             u[key] = val
         return u
 
-    def interpolate(self, num=100, **kwargs):
+    def interpolation(self, num=100, **kwargs):
         return Interpolation(self.get_sequence(num))
 
     def get_sequence(self, num=50):
