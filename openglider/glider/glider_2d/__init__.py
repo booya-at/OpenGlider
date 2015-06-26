@@ -9,7 +9,7 @@ from openglider.vector.spline import Bezier, SymmetricBezier
 from openglider.vector.polyline import PolyLine2D
 from openglider.vector.functions import norm, normalize
 from openglider.glider.rib import Rib, RibHole, RigidFoil
-from openglider.glider.cell import Cell, Panel, DiagonalRib
+from openglider.glider.cell import Cell, Panel, DiagonalRib, TensionStrapSimple
 from .lines import LowerNode2D, Line2D, LineSet2D, BatchNode2D, UpperNode2D
 from .import_ods import import_ods_2d
 
@@ -259,11 +259,19 @@ class Glider2D(object):
     def apply_diagonals(self, glider):
         for cell_no, cell in enumerate(glider.cells):
             cell.diagonals = []
+            cell.straps = []
             for diagonal in self.elements.get("diagonals", []):
                 if cell_no in diagonal["cells"]:
                     dct = diagonal.copy()
                     dct.pop("cells")
                     cell.diagonals.append(DiagonalRib(**dct))
+
+            for strap in self.elements.get("straps", []):
+                if cell_no in strap["cells"]:
+                    dct = strap.copy()
+                    dct.pop("cells")
+                    cell.straps.append(TensionStrapSimple(**dct))
+
 
 
     @classmethod

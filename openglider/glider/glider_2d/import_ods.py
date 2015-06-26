@@ -105,6 +105,12 @@ def import_ods_2d(cls, filename, numpoints=4):
                           "cells": [res[0]]})
         # todo: group
 
+    straps = []
+    for res in read_elements(sheets[1], "VEKTLAENGE", len_data=2):
+        straps.append({"cells": [res[0]],
+                       "left": res[1],
+                       "right": res[2]})
+
     has_center_cell = not front[0][0] == 0
     cell_no = (len(front)-1)*2 + has_center_cell
 
@@ -131,7 +137,8 @@ def import_ods_2d(cls, filename, numpoints=4):
                elements={"cuts": cuts,
                          "holes": rib_holes,
                          "diagonals": diagonals,
-                         "rigidfoils": rigidfoils},
+                         "rigidfoils": rigidfoils,
+                         "straps": straps},
                profiles=profiles,
                profile_merge_curve=symmetric_fit(profile_merge),
                balloonings=balloonings,

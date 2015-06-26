@@ -45,15 +45,16 @@ class PlotPart():
 
     def min_function(self, index):
         start = float("Inf")
-        for layer in self.layer_dict.values():
+        for layer_name, layer in self.layer_dict.items():
             if layer:
                 for line in layer:
                     if line:
                         try:
                             values = [p[index] for p in line]
-                        except:
-                            raise ValueError("jo {} {} {}".format(line, layer, self.name))
-                        start = min(start, min(values))
+                            start = min(start, min(values))
+                        except Exception as e:
+                            print("fehler {}".format(line))
+                            raise ValueError("{} {} {} {}".format(layer_name, layer, self.name, e))
         return start
 
     @property

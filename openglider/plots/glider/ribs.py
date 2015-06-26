@@ -6,6 +6,7 @@ from openglider.plots import sewing_config, PlotPart
 from openglider.vector import PolyLine2D
 from openglider.vector.text import get_text_vector
 
+
 class RibPlot:
     def __init__(self, rib, config):
         self.rib = rib
@@ -77,12 +78,8 @@ class RibPlot:
                                               self.get_point(0.13, 0))
 
 
-
-
-
 def get_ribs(glider):
     ribs = collections.OrderedDict()
-    xvalues = glider.profile_x_values
 
     for rib_no, rib in enumerate(glider.ribs[glider.has_center_cell:-1]):
         rib_plot = RibPlot(rib, config=sewing_config)
@@ -116,22 +113,27 @@ def get_ribs(glider):
         # Diagonals
         for cell in glider.cells:
             if rib in cell.ribs:
+                right = False
                 if rib is cell.rib2:
                     right = True
-                elif rib is cell.rib1:
-                    right = False
                 for diagonal in cell.diagonals:
                     rib_plot.insert_drib_mark(diagonal, right)
+
+        for cell in glider.cells:
+            for strap in cell.straps:
+                if rib is cell.rib1:  # left
+                    rib_plot.insert_mark(strap.left, "strap")
+                elif rib is cell.rib2:  # right
+                    rib_plot.insert_mark(strap.right, "strap")
+
 
         # rigidfoils
         for rigid in rib.rigidfoils:
             rib_plot.plotpart.marks.append(rigid.get_flattened(rib))
 
-
-        # add text, entry, holes
-        rib_plot.add_text("rib{}".format(rib_no))
-
+        # TEXT
         # TODO: improve (move away from holes?)
+        rib_plot.add_text("rib{}".format(rib_no))
 
         ribs[rib] = rib_plot.plotpart
 

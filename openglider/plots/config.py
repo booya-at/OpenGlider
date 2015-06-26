@@ -20,9 +20,9 @@ def on_line(fctn):
 sewing_config = {
     "marks": {
         "diagonal": inside(marks.triangle),
+        "strap": inside(marks.line),
         "attachment-point": on_line(functools.partial(marks.cross, rotation=numpy.pi/4)),
-        "panel-cut": marks.line,
-        "rigidfoil": inside(marks.line)
+        "panel-cut": marks.line
     },
     "allowance": {
         "parallel": 0.01,

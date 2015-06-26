@@ -7,6 +7,85 @@ from openglider.plots import sewing_config, cuts, PlotPart
 from openglider.vector import PolyLine2D
 
 
+class PanelPlot:
+    def __init__(self, x_values, inner, ballooned, outer, panel):
+        self.inner = inner
+        self.ballooned = ballooned
+        self.outer = outer
+
+        self.panel = panel
+        self.xvalues = x_values
+        self.plotpart = PlotPart()
+
+    def get_panel(self):
+        front_left = get_x_value(self.xvalues, self.panel.cut_front["left"])
+        back_left = get_x_value(self.xvalues, self.panel.cut_back["left"])
+        front_right = get_x_value(self.xvalues, self.panel.cut_front["right"])
+        back_right = get_x_value(self.xvalues, self.panel.cut_back["right"])
+
+        amount_front = -self.panel.cut_front.get("amount",
+                                            sewing_config["allowance"][
+                                                self.panel.cut_front["type"]])
+        amount_back = self.panel.cut_back.get("amount",
+                                         sewing_config["allowance"][
+                                             self.panel.cut_back["type"]])
+
+        cut_front = cuts[self.panel.cut_front["type"]](
+            [[self.ballooned[0], front_left],
+             [self.ballooned[1], front_right]],
+            self.outer[0], self.outer[1],
+            amount_front)
+        cut_back = cuts[self.panel.cut_back["type"]](
+            [[self.ballooned[0], back_left],
+             [self.ballooned[1], back_right]],
+            self.outer[0], self.outer[1], amount_back)
+
+        # spitzer schnitt
+        # links
+        if cut_front[1] >= cut_back[1]:
+            cut_front_new = PolyLine2D(cut_front[0])
+            ik1, ik2 = cut_front_new.cut_with_polyline(cut_back[0],
+                                                       startpoint=0)
+            panel_cut = PolyLine2D(cut_back[0])[ik2:]
+            panel_cut += self.outer[1][cut_front[2]:cut_back[2]:-1]
+            panel_cut += cut_front_new[ik1::-1]
+        # rechts
+        elif cut_front[2] >= cut_back[2]:
+            cut_front_new = PolyLine2D(cut_front[0])
+            ik1, ik2 = cut_front_new.cut_with_polyline(cut_back[0],
+                                                       startpoint=len(
+                                                           cut_front_new) - 1)
+            panel_cut = self.outer[0][cut_front[2]:cut_back[2]]
+            panel_cut += PolyLine2D(cut_back[0])[:ik2]
+            panel_cut += cut_front_new[:ik1:-1]
+
+        else:
+            panel_cut = self.outer[0][cut_front[1]:cut_back[1]]
+            panel_cut += PolyLine2D(cut_back[0])
+            panel_cut += self.outer[1][cut_front[2]:cut_back[2]:-1]
+            panel_cut += PolyLine2D(cut_front[0])[::-1]
+
+        panel_cut += PolyLine2D([panel_cut[0]])
+
+        part_marks = [self.ballooned[0][front_left:back_left] +
+                      self.ballooned[1][front_right:back_right:-1] +
+                      PolyLine2D([self.ballooned[0][front_left]])]
+
+        self.plotpart.marks += part_marks
+        self.plotpart.cuts.append(panel_cut)
+
+    def insert_text(self, text):
+        left = self.panel.cut_front["left"]
+        right = self.panel.cut_front["right"]
+        part_text = get_text_vector(" " + text + " ",
+                                    self.ballooned[0][left],
+                                    self.ballooned[1][right],
+                                    height=0.8)
+        self.plotpart.marks += part_text
+
+
+
+
 def flattened_cell(cell):
     # assert isinstance(cell, Cell)
     left, right = openglider.plots.projection.flatten_list(cell.prof1,
@@ -18,7 +97,7 @@ def flattened_cell(cell):
         diff = right[i] - left[i]
         left_bal.data[i] -= diff * ballooning[i]
         right_bal.data[i] += diff * ballooning[i]
-    return left_bal, left, right, right_bal
+    return [left, right], [left_bal, right_bal]
 
 
 def get_panels(glider):
@@ -27,84 +106,27 @@ def get_panels(glider):
 
     for cell_no, cell in enumerate(glider.cells):
         cell_parts = []
-        left_bal, left, right, right_bal = flattened_cell(cell)
-        left_out = left_bal.copy()
-        right_out = right_bal.copy()
-        left_out.add_stuff(-sewing_config["allowance"]["general"])
-        right_out.add_stuff(sewing_config["allowance"]["general"])
-        left_out.check()
-        right_out.check()
+        inner, ballooned = flattened_cell(cell)
+        outer = [line.copy() for line in ballooned]
+
+        outer[0].add_stuff(-sewing_config["allowance"]["general"])
+        outer[1].add_stuff(sewing_config["allowance"]["general"])
+        for line in outer:
+            line.check()
+
         for part_no, panel in enumerate(cell.panels):
-            front_left = get_x_value(xvalues, panel.cut_front["left"])
-            back_left = get_x_value(xvalues, panel.cut_back["left"])
-            front_right = get_x_value(xvalues, panel.cut_front["right"])
-            back_right = get_x_value(xvalues, panel.cut_back["right"])
-
-            amount_front = -panel.cut_front.get("amount",
-                                                sewing_config["allowance"][
-                                                    panel.cut_front["type"]])
-            amount_back = panel.cut_back.get("amount",
-                                             sewing_config["allowance"][
-                                                 panel.cut_back["type"]])
-
-            cut_front = cuts[panel.cut_front["type"]]([[left_bal, front_left],
-                                                       [right_bal,
-                                                        front_right]],
-                                                      left_out, right_out,
-                                                      amount_front)
-            cut_back = cuts[panel.cut_back["type"]]([[left_bal, back_left],
-                                                     [right_bal, back_right]],
-                                                    left_out, right_out,
-                                                    amount_back)
-
-            # spitzer schnitt
-            # links
-            if cut_front[1] >= cut_back[1]:
-                cut_front_new = PolyLine2D(cut_front[0])
-                ik1, ik2 = cut_front_new.cut_with_polyline(cut_back[0],
-                                                           startpoint=0)
-                panel_cut = PolyLine2D(cut_back[0])[ik2:]
-                panel_cut += right_out[cut_front[2]:cut_back[2]:-1]
-                panel_cut += cut_front_new[ik1::-1]
-            # rechts
-            elif cut_front[2] >= cut_back[2]:
-                cut_front_new = PolyLine2D(cut_front[0])
-                ik1, ik2 = cut_front_new.cut_with_polyline(cut_back[0],
-                                                           startpoint=len(
-                                                               cut_front_new) - 1)
-                panel_cut = left_out[cut_front[2]:cut_back[2]]
-                panel_cut += PolyLine2D(cut_back[0])[:ik2]
-                panel_cut += cut_front_new[:ik1:-1]
-
-            else:
-                panel_cut = left_out[cut_front[1]:cut_back[1]]
-                panel_cut += PolyLine2D(cut_back[0])
-                panel_cut += right_out[cut_front[2]:cut_back[2]:-1]
-                panel_cut += PolyLine2D(cut_front[0])[::-1]
-
-            panel_cut += PolyLine2D([panel_cut[0]])
-
-            part_marks = [left_bal[front_left:back_left] +
-                          right_bal[front_right:back_right:-1] +
-                          PolyLine2D([left_bal[front_left]])]
-
             part_name = "cell_{}_part{}".format(cell_no, part_no + 1)
-            part_text = get_text_vector(" " + part_name + " ",
-                                        left_bal[front_left],
-                                        right_bal[front_right],
-                                        height=0.8)
+            panelplot = PanelPlot(xvalues, inner, ballooned, outer, panel)
+            panelplot.get_panel()
+            panelplot.insert_text(part_name)
+            panelplot.plotpart.name = part_name
+
+            cell_parts.append(panelplot.plotpart)
+
 
             # add marks for
             # - Attachment Points
             # - periodic indicators
-
-
-
-
-            cell_parts.append(PlotPart(cuts=[panel_cut],
-                                       marks=part_marks,
-                                       text=part_text,
-                                       name=part_name))
         panels[cell] = cell_parts
 
     return panels

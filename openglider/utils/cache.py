@@ -149,7 +149,7 @@ class HashedList(CachedObject):
         return str(self.data)
 
     def __repr__(self):
-        return repr(super(HashedList, self)) + " (name: {})".format(self.name)
+        return "<class '{}' name: {}".format(self.__class__, self.name)
 
     @property
     def data(self):
