@@ -65,11 +65,11 @@ class RibPlot:
 
         start = next(cuts)
         stop = next(cuts)
-        bürzl = PolyLine2D([outer_rib[stop],
+        buerzl = PolyLine2D([outer_rib[stop],
                             outer_rib[stop] + [t_e_allowance, 0],
                             outer_rib[start] + [t_e_allowance, 0],
                             outer_rib[start]])
-        self.plotpart.cuts += [PolyLine2D(outer_rib[start:stop].data) + bürzl]
+        self.plotpart.cuts += [PolyLine2D(outer_rib[start:stop].data) + buerzl]
 
     def add_text(self, text):
         self.plotpart.text += get_text_vector(text,
