@@ -29,6 +29,7 @@ input_field = QtGui.QFormLayout.FieldRole
 #   -minirips-tool
 #   -etc...
 
+
 def export_2d(glider):
     filename = QtGui.QFileDialog.getSaveFileName(
         parent=None,
@@ -37,6 +38,7 @@ def export_2d(glider):
     if filename[0] != "":
         with open(filename[0], 'w') as exportfile:
             dump(glider.glider_2d, exportfile)
+
 
 def import_2d(glider):
     filename = QtGui.QFileDialog.getOpenFileName(
@@ -49,16 +51,18 @@ def import_2d(glider):
             glider.glider_2d.get_glider_3d(glider.glider_instance)
             glider.ViewObject.Proxy.updateData()
 
+
 class spline_select(QtGui.QComboBox):
     spline_types = {
         "Bezier": (BernsteinBase, 0),
         "BSpline_2": (BSplineBase(2), 1),
         "BSpline_3": (BSplineBase(3), 2)
     }
+
     def __init__(self, spline_objects, update_function, parent=None):
         super(spline_select, self).__init__(parent)
         self.update_function = update_function
-        self.spline_objects = spline_objects #list of splines
+        self.spline_objects = spline_objects    # list of splines
         for key in ["Bezier", "BSpline_2", "BSpline_3"]:
             self.addItem(key)
         self.setCurrentIndex(self.spline_types[self.current_spline_type][1])
@@ -77,6 +81,7 @@ class spline_select(QtGui.QComboBox):
         for spline in self.spline_objects:
             spline.basefactory = self.spline_types[self.currentText()][0]
         self.update_function()
+
 
 class base_tool(object):
     def __init__(self, obj, widget_name="base_widget", hide=True):

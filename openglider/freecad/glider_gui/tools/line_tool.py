@@ -7,7 +7,8 @@ import FreeCAD as App
 from _tools import base_tool, input_field, text_field
 from pivy_primitives_new_new import coin, Line, Marker, Container, vector3D
 from PySide import QtGui, QtCore
-from openglider.glider.glider_2d import UpperNode2D, LowerNode2D, BatchNode2D, Line2D, LineSet2D
+from openglider.glider.glider_2d import UpperNode2D, LowerNode2D, \
+    BatchNode2D, Line2D, LineSet2D
 from openglider.lines.line_types import LineType
 
 
@@ -23,7 +24,7 @@ class line_tool(base_tool):
     def __init__(self, obj):
         super(line_tool, self).__init__(obj, widget_name="line_tool")
 
-        #get the glider_2d shape
+        # get the glider_2d shape
         self.ribs, self.front, self.back = self.glider_2d.shape()
         self.xpos = [rib[0][0] for rib in self.glider_2d.ribs()]
 
@@ -50,13 +51,12 @@ class line_tool(base_tool):
         self.setup_widget()
         self.setup_pivy()
 
-
     def setup_widget(self):
         self.tool_widget.setWindowTitle("object properties")
         self.layer_widget.setWindowTitle("layers")
         self.form.append(self.layer_widget)
         self.form.append(self.tool_widget)
-        
+
         # temp_wid = QtGui.QWidget()
         # temp_lay = QtGui.QHBoxLayout(temp_wid)
         # self.layout.setWidget(1, input_field, temp_wid)
@@ -65,6 +65,7 @@ class line_tool(base_tool):
         self.line_widget = QtGui.QWidget()
         self.lw_att_wid = QtGui.QWidget()
         self.up_att_wid = QtGui.QWidget()
+        self.multi_wid = QtGui.QWidget()
         self.Qline_list = QtGui.QListWidget()
         for _type in LineType.types.values():
             self.Qline_list.addItem(QLineType_item(_type))
@@ -72,10 +73,12 @@ class line_tool(base_tool):
         self.up_att_lay = QtGui.QFormLayout(self.up_att_wid)
         self.lw_att_lay = QtGui.QFormLayout(self.lw_att_wid)
         self.line_layout = QtGui.QFormLayout(self.line_widget)
+        self.multi_layout = QtGui.QFormLayout(self.multi_wid)
         self.none_layout = QtGui.QFormLayout(self.none_widget)
 
         self.target_length = QtGui.QDoubleSpinBox()
-        self.line_layout.setWidget(0, text_field, QtGui.QLabel("target length: "))
+        self.line_layout.setWidget(
+            0, text_field, QtGui.QLabel("target length: "))
         self.line_layout.setWidget(0, input_field, self.target_length)
         self.line_layout.setWidget(1, text_field, QtGui.QLabel("line type: "))
         self.line_layout.setWidget(1, input_field, self.Qline_list)
@@ -86,7 +89,8 @@ class line_tool(base_tool):
         self.attach_y_val = QtGui.QDoubleSpinBox()
         self.attach_z_val = QtGui.QDoubleSpinBox()
 
-        for spinbox in [self.attach_x_val, self.attach_y_val, self.attach_z_val]:
+        for spinbox in [
+                self.attach_x_val, self.attach_y_val, self.attach_z_val]:
             spinbox.setMaximum(10.)
             spinbox.setMinimum(-10.)
             spinbox.valueChanged.connect(self.update_lw_att_pos)
@@ -107,33 +111,41 @@ class line_tool(base_tool):
         self.tool_widget.addWidget(self.up_att_wid)
         self.tool_widget.setCurrentWidget(self.none_widget)
 
-        button =  QtGui.QPushButton("Help")
+        button = QtGui.QPushButton("Help")
         self.layout.setWidget(0, input_field, button)
         button.clicked.connect(self.show_help)
 
         self.Qhl_pos.setValue(50)
         self.Qhl_pos.setRange(0, 100)
         self.Qhl_pos.setSingleStep(1)
-        self.Qhl_pos.connect(self.Qhl_pos, QtCore.SIGNAL('valueChanged(double)'), self.update_helper_line)
+        self.Qhl_pos.connect(
+            self.Qhl_pos,
+            QtCore.SIGNAL('valueChanged(double)'),
+            self.update_helper_line)
 
         self.layout.setWidget(1, text_field, QtGui.QLabel("helper_line_pos"))
         self.layout.setWidget(1, input_field, self.Qhl_pos)
 
         # layers:
-        label = QtGui.QLabel("layers")
+
+        self.layer_selection = LayerComboBox(self.layer_widget)
         self.layer_combobox = LayerComboBox(self.layer_widget)
 
         add_button = QtGui.QPushButton("add layer")
         del_button = QtGui.QPushButton("delete layer")
-        self.layer_layout.setWidget(0, text_field, label)
+        self.layer_layout.setWidget(
+            0, text_field, QtGui.QLabel("work on layer"))
         self.layer_layout.setWidget(0, input_field, self.layer_combobox)
         self.layer_layout.setWidget(1, text_field, add_button)
         self.layer_layout.setWidget(1, input_field, del_button)
+        self.layer_layout.setWidget(2, text_field, QtGui.QLabel("setLayer"))
+        self.layer_layout.setWidget(2, input_field, self.layer_selection)
 
         # dialogs
         self.add_layer_dialog = QtGui.QInputDialog()
         add_button.clicked.connect(self.add_new_layer)
         del_button.clicked.connect(self.delete_layer)
+        self.layer_selection.activated.connect(self.set_layer)
 
     def add_new_layer(self):
         self.add_layer_dialog.exec_()
@@ -141,10 +153,19 @@ class line_tool(base_tool):
         self.layer_combobox.addItem(text)
         index = self.layer_combobox.findText(text)
         self.layer_combobox.setCurrentIndex(index)
+        self.update_layer_selection()
 
     def delete_layer(self):
         self.layer_combobox.removeItem(self.layer_combobox.currentIndex())
+        self.update_layer_selection()
+        for i in self.shape.objects:
+            print(i)
 
+    def update_layer_selection(self):
+        self.layer_selection.getAllItems(self.layer_combobox)
+
+    def set_layer(self):
+        print(self.layer_selection.currentText())
 
     def show_help(self):
         App.Console.PrintMessage("Use this commands to rule the lineinput\n")
@@ -157,7 +178,6 @@ class line_tool(base_tool):
 
     def setup_pivy(self):
         self.shape.setName("shape")
-        # als erstes soll er den shape hinmalen (kommt alles in einen shape seperator)
         self.shape.register(self.view)
         self.task_separator.addChild(self.shape)
         self.task_separator.addChild(self.helper_line)
@@ -288,7 +308,6 @@ class line_tool(base_tool):
             self.target_length.setEnabled(True)
             if show_line_widget(selected_objs):
                 self.tool_widget.setCurrentWidget(self.line_widget)
-                print(has_uppermost_line(selected_objs))
                 if has_uppermost_line(selected_objs):
                     self.target_length.setEnabled(False)                    
                 else:
@@ -306,7 +325,7 @@ class line_tool(base_tool):
                 self.tool_widget.setCurrentWidget(self.up_att_wid)
                 self.up_att_force.setValue(selected_objs[0].force)
             else:
-                self.tool_widget.setCurrentWidget(self.none_widget)
+                self.tool_widget.setCurrentWidget(self.multi_wid)
         else:
             self.tool_widget.setCurrentWidget(self.none_widget)     
 
@@ -524,10 +543,22 @@ class LayerComboBox(QtGui.QComboBox):
 
     def addItem(self, text):
         if self.findText(text) == -1:
-            print(text)
             super(LayerComboBox, self).addItem(text)
 
     def removeItem(self, index):
         super(LayerComboBox, self).removeItem(index)
         if self.count() == 0:
             self.addItem("all")
+
+    def removeAll(self):
+        while self.currentIndex() != -1:
+            super(LayerComboBox, self).removeItem(self.currentIndex())
+
+    def getAllItems(self, other):
+        self.removeAll()
+        for i in range(other.count()):
+            print(i)
+            self.addItem(other.itemText(i))
+
+    def currentText(self):
+        return self.itemText(self.currentIndex())

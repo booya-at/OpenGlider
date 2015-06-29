@@ -50,7 +50,7 @@ class ballooning_tool(base_tool):
         self.layout.addWidget(self.Qdelete_button)
         self.QList_View.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
 
-        #connections
+        # connections
         self.Qnew_button.clicked.connect(self.create_ballooning)
         self.Qdelete_button.clicked.connect(self.delete_ballooning)
         self.QList_View.currentRowChanged.connect(self.update_selection)
@@ -176,23 +176,25 @@ class ballooning_tool(base_tool):
         self._update_lower_spline(70)
 
     def _update_upper_spline(self, num):
-        self.current_ballooning.upper_controlpoints =[i[:-1] for i in self.upper_cpc.control_pos]
+        self.current_ballooning.upper_controlpoints = [
+            i[:-1] for i in self.upper_cpc.control_pos]
         self.draw_upper_spline(num)
 
     def draw_upper_spline(self, num):
         self.upper_spline.removeAllChildren()
         l = Line(vector3D(self.current_ballooning.get_expl_upper_spline(num)),
-                color="red", width=2)
+                 color="red", width=2)
         self.upper_spline.addChild(l.object)
 
     def _update_lower_spline(self, num):
-        self.current_ballooning.lower_controlpoints =[i[:-1] for i in self.lower_cpc.control_pos]
+        self.current_ballooning.lower_controlpoints = [
+            i[:-1] for i in self.lower_cpc.control_pos]
         self.draw_lower_spline(num)
 
     def draw_lower_spline(self, num):
         self.lower_spline.removeAllChildren()
-        l = Line(vector3D(self.current_ballooning.get_expl_lower_spline(num)), 
-                color="red", width=2)
+        l = Line(vector3D(self.current_ballooning.get_expl_lower_spline(num)),
+                 color="red", width=2)
         self.lower_spline.addChild(l.object)
 
     def unset_edit_mode(self):
@@ -224,10 +226,12 @@ class QBalooning(QtGui.QListWidgetItem):
         super(QBalooning, self).__init__()
         self.setText(self.ballooning.name)
         self.upper_controlpoints = self.ballooning.upper_spline.controlpoints
-        self.lower_controlpoints = numpy.array([1, -1]) * self.ballooning.lower_spline.controlpoints
+        self.lower_controlpoints = numpy.array(
+            [1, -1]) * self.ballooning.lower_spline.controlpoints
 
     def get_expl_lower_spline(self, num):
-        self.ballooning.lower_spline.controlpoints = numpy.array([1, -1]) * self.lower_controlpoints
+        self.ballooning.lower_spline.controlpoints = numpy.array(
+            [1, -1]) * self.lower_controlpoints
         seq = self.ballooning.lower_spline.get_sequence(num)
         return seq * numpy.array([1, -1])
 

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 from __future__ import division
 import numpy
 from pivy import coin
@@ -13,7 +13,8 @@ class aoa_tool(base_tool):
     def __init__(self, obj):
         super(aoa_tool, self).__init__(obj)
         self.scale = numpy.array([1., 8.])
-        pts = vector3D(numpy.array(self.glider_2d.aoa.controlpoints) * self.scale)
+        pts = vector3D(
+            numpy.array(self.glider_2d.aoa.controlpoints) * self.scale)
         self.aoa_cpc = ControlPointContainer(pts, self.view)
         self.shape = coin.SoSeparator()
         self.coords = coin.SoSeparator()
@@ -25,13 +26,15 @@ class aoa_tool(base_tool):
 
         self.QGlide = QtGui.QDoubleSpinBox(self.base_widget)
         self.Qnum_aoa = QtGui.QSpinBox(self.base_widget)
-        self.spline_select = spline_select([self.glider_2d.aoa], self.update_aoa, self.base_widget)
+        self.spline_select = spline_select(
+            [self.glider_2d.aoa], self.update_aoa, self.base_widget)
 
         self.setup_widget()
         self.setup_pivy()
 
     def setup_pivy(self):
-        self.aoa_cpc.control_points[-1].constraint = lambda pos: [self.glider_2d.span / 2, pos[1], pos[2]]
+        self.aoa_cpc.control_points[-1].constraint = lambda pos: [
+            self.glider_2d.span / 2, pos[1], pos[2]]
         self.task_separator.addChild(self.aoa_cpc)
         self.task_separator.addChild(self.shape)
         self.task_separator.addChild(self.aoa_spline.object)
@@ -65,8 +68,11 @@ class aoa_tool(base_tool):
             self.shape.addChild(Line(rib, color="gray").object)
 
     def update_aoa(self):
-        self.glider_2d.aoa.controlpoints = (numpy.array([i[:-1] for i in self.aoa_cpc.control_pos]) / self.scale).tolist()
-        self.aoa_spline.update(self.glider_2d.aoa.get_sequence(num=20) * self.scale)
+        self.glider_2d.aoa.controlpoints = (
+            numpy.array([i[:-1] for i in self.aoa_cpc.control_pos]) /
+            self.scale).tolist()
+        self.aoa_spline.update(
+            self.glider_2d.aoa.get_sequence(num=20) * self.scale)
 
     def update_grid(self):
         self.coords.removeAllChildren()
@@ -76,8 +82,10 @@ class aoa_tool(base_tool):
         max_y = max([i[1] for i in pts])
         min_y = min([i[1] for i in pts])
 
-        self.coords.addChild(Line([[0, 0], [0., max_y * 1.3 * self.scale[1]]]).object)
-        self.coords.addChild(Line([[0, 0], [max_x * 1.3, 0.]]).object)
+        self.coords.addChild(
+            Line([[0, 0], [0., max_y * 1.3 * self.scale[1]]]).object)
+        self.coords.addChild(
+            Line([[0, 0], [max_x * 1.3, 0.]]).object)
         # transform to scale + transform to degree
         min_y *= 180 / numpy.pi
         max_y *= 180 / numpy.pi
@@ -86,9 +94,9 @@ class aoa_tool(base_tool):
         # create range
         _range = range(int(max_y) - int(min_y) + 2)
         # transform back
-        y_grid = [(i + int(min_y)) * numpy.pi * self.scale[1] / 180 for i in _range]
+        y_grid = [(i + int(min_y)) * numpy.pi * self.scale[1] / 180
+                  for i in _range]
         self._update_grid(self.x_grid, y_grid)
-
 
     def accept(self):
         self.aoa_cpc.remove_callbacks()
@@ -132,7 +140,8 @@ class aoa_tool(base_tool):
             rot = coin.SoRotationXYZ()
             rot.axis = coin.SoRotationXYZ.Z
             rot.angle.setValue(numpy.pi / 2)
-            scale.scaleFactor = (self.text_scale, self.text_scale, self.text_scale)
+            scale.scaleFactor = (
+                self.text_scale, self.text_scale, self.text_scale)
             trans.translation = (i[0], i[1], 0.001)
             text.string = str(aoa_int(i[0]) * 180 / numpy.pi)[:6]
             textsep.addChild(trans)
@@ -141,9 +150,10 @@ class aoa_tool(base_tool):
             self.grid.addChild(textsep)
             textsep.addChild(text)
 
-
-    def update_num(self, *arg):
+    def update_num(self):
         self.glider_2d.aoa.numpoints = self.Qnum_aoa.value()
-        self.aoa_cpc.control_pos = vector3D(numpy.array(self.glider_2d.aoa.controlpoints) * self.scale)
-        self.aoa_cpc.control_points[-1].constraint = lambda pos: [self.glider_2d.span / 2, pos[1], pos[2]]
+        self.aoa_cpc.control_pos = vector3D(
+            numpy.array(self.glider_2d.aoa.controlpoints) * self.scale)
+        self.aoa_cpc.control_points[-1].constraint = lambda pos: [
+            self.glider_2d.span / 2, pos[1], pos[2]]
         self.update_aoa()
