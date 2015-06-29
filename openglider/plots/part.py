@@ -81,6 +81,11 @@ class PlotPart():
     def height(self):
         return self.max_y - self.min_y
 
+    @property
+    def bbox(self):
+        return [[self.min_x, self.min_y], [self.max_x, self.min_y],
+                [self.max_x, self.max_y], [self.min_x, self.max_y]]
+
     def rotate(self, angle):
         for layer in self.layer_dict.values():
             for polyline in layer:
@@ -168,7 +173,7 @@ class DrawingArea():
     @property
     def bbox(self):
         return [[self.min_x, self.min_y], [self.max_x, self.min_y],
-                [self.max_x, self.max_x], [self.min_x, self.max_y]]
+                [self.max_x, self.max_y], [self.min_x, self.max_y]]
 
     @property
     def width(self):
@@ -182,7 +187,7 @@ class DrawingArea():
         for part in self.parts:
             part.move(vector)
 
-    def insert(self, other, position=None):
+    def join(self, other, position=None):
         assert isinstance(other, DrawingArea)
 
         if self.parts:

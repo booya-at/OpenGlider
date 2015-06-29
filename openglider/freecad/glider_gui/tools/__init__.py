@@ -127,7 +127,7 @@ class Pattern_Tool(object):
             max_last = [0, 0]
             draw_area = flat_glider.values()[0]
             for da in flat_glider.values()[1:]:
-                draw_area.insert(da)
+                draw_area.join(da)
             for i, part in enumerate(draw_area.parts):
                 grp = pattern_doc.addObject("App::DocumentObjectGroup","Panel_" + str(i))
                 layer_dict = part.layer_dict

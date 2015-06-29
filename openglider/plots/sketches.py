@@ -28,11 +28,11 @@ def design_plot(glider_2d, glider_3d=None, lower=True):
                     p = 0
                 shape_points.append(glider_2d.shape_point(cell_no + p_no%2, p))
 
-            drawingarea.parts.append(PlotPart({
-                "CUTS": [PolyLine2D(shape_points[:2] + shape_points[2:][::-1] + shape_points[:1])]
-            }))
+            drawingarea.parts.append(PlotPart(
+                cuts=[PolyLine2D(shape_points[:2] + shape_points[2:][::-1] + shape_points[:1])]))
 
     return drawingarea
+
 
 def shape_plot(glider2d, glider3d=None):
     glider3d = glider3d or glider2d.get_glider_3d()
@@ -47,12 +47,10 @@ def vectorstraps_plot(glider2d, glider3d=None):
     drawingarea = design_plot(glider2d, glider3d, lower=True)
 
     for cell_no, cell in enumerate(glider3d.cells):
-        for tensionstrap in cell.tension_straps:
-            p1 = glider2d.shape_point(cell_no, tensionstrap[0])
-            p2 = glider2d.shape_point(cell_no+1, tensionstrap[1])
-            drawingarea.parts.append(PlotPart({
-                "MARKS": [PolyLine2D([p1, p2])]
-            }))
+        for tensionstrap in cell.straps:
+            p1 = glider2d.shape_point(cell_no, tensionstrap.left)
+            p2 = glider2d.shape_point(cell_no+1, tensionstrap.left)
+            drawingarea.parts.append(PlotPart(marks=[PolyLine2D([p1, p2])]))
 
     return drawingarea
 
@@ -69,9 +67,7 @@ def diagonal_plot(glider2d, glider3d=None):
             points_left = [glider2d.shape_point(cell_no, p) for p in left]
             points_right = [glider2d.shape_point(cell_no+1, p) for p in right]
 
-            drawingarea.parts.append(PlotPart({
-                "MARKS": [PolyLine2D(points_left + points_right[::-1] + points_left[:1])]
-            }))
+            drawingarea.parts.append(PlotPart(marks=[PolyLine2D(points_left + points_right[::-1] + points_left[:1])]))
 
     return drawingarea
 

@@ -74,9 +74,13 @@ class PanelPlot:
         self.plotpart.marks += part_marks
         self.plotpart.cuts.append(panel_cut)
 
+    def get_point(self, x):
+        ik = get_x_value(self.xvalues, x)
+        return [lst[ik] for lst in self.ballooned]
+
     def insert_text(self, text):
-        left = self.panel.cut_front["left"]
-        right = self.panel.cut_front["right"]
+        left = get_x_value(self.xvalues, self.panel.cut_front["left"])
+        right = get_x_value(self.xvalues, self.panel.cut_front["right"])
         part_text = get_text_vector(" " + text + " ",
                                     self.ballooned[0][left],
                                     self.ballooned[1][right],

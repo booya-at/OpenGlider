@@ -122,27 +122,27 @@ class Ballooning(object):
 
     @property
     def amount_maximal(self):
-        return max(max(self.upper.y), max(self.lower.y))
+        return max(max([p[1] for p in self.upper]), max([p[1] for p in self.lower]))
 
     @property
     def amount_integral(self):
         # Integration of 2-points always:
         amount = 0
         for curve in [self.upper, self.lower]:
-            for i in range(len(curve.x) - 2):
+            for p1, p2 in zip(curve[:-1], curve[1:]):
                 # points: (x1,y1), (x2,y2)
                 #     _ p2
                 # p1_/ |
                 #  |   |
                 #  |___|
-                amount += (curve.y[i] + (curve.y[i + 1] - curve.y[i]) / 2) * (curve.x[i + 1] - curve.x[i])
+                amount += (p1[1] + (p2[1]-p1[1])/2) * (p2[0]-p1[0])
         return amount / 2
 
     @amount_maximal.setter
     def amount_maximal(self, amount):
         factor = float(amount) / self.amount_maximal
-        self.upper.y = [i * factor for i in self.upper.y]
-        self.lower.y = [i * factor for i in self.lower.y]
+        self.upper.scale(1, factor)
+        self.lower.scale(1, factor)#
 
 
 class BallooningBezier(Ballooning):
@@ -169,14 +169,14 @@ class BallooningBezier(Ballooning):
         self.upper = self.upper_spline.interpolation()
         self.lower = self.lower_spline.interpolation()
 
-    def __mul__(self, other):  # TODO: Check consistency
+    def __imul__(self, factor):  # TODO: Check consistency
         """Multiplication of BezierBallooning"""
         # Multiplicate as normal interpolated ballooning, then refit
-        return Ballooning.__mul__(self, other)
-        #self.upper = temp.upper
-        #self.lower = temp.lower
-        #self.upper_spline.fit(numpy.transpose([self.upper.x, self.upper.y]))
-        #self.lower_spline.fit(numpy.transpose([self.lower.x, self.lower.y]))
+        Ballooning.__imul__(self, factor)
+        # print("JO")
+        self.upper_spline.fit(self.upper.data)
+        self.lower_spline.fit(self.lower.data)
+        return self
 
     @property
     def numpoints(self):

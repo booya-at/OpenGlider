@@ -142,7 +142,7 @@ class Glider2D(object):
     def shape_point(self, rib_no, x):
         ribs = list(self.ribs())
         rib = ribs[rib_no]
-        return rib[0] + x * (rib[1] - rib[0])
+        return rib[0][0], rib[0][1] + x * (rib[1][1] - rib[0][1])
 
     def set_span(self, span=None):
         """

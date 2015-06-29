@@ -66,7 +66,7 @@ class TestGlider(TestCase):
         path = self.tempfile('.svg').name
         plots = flatten_glider(self.glider)
         all = plots['panels']
-        all.insert(plots['ribs'])
+        all.join(plots['ribs'])
         create_svg(all, path)
 
     def test_export_glider_json(self):

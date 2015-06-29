@@ -27,8 +27,8 @@ def import_ods_2d(cls, filename, numpoints=4):
     balloonings = []
     for baloon in balloonings_temp:
         if baloon:
-            upper = [[0, 0]] + baloon[:7] + [[1, 0]]
-            lower = [[0, 0]] + [[i[0], -1 * i[1]] for i in baloon[8:15]] + [[1, 0]]
+            upper = [[0, 0]] + baloon[:8] + [[1, 0]]
+            lower = [[0, 0]] + [[i[0], -1 * i[1]] for i in baloon[8:16]] + [[1, 0]]
             balloonings.append(BallooningBezier(upper, lower))
 
     data = {}

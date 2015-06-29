@@ -20,3 +20,17 @@
 __version__ = '0.01dev'
 __author__ = 'Booya'
 from openglider.config import config
+import numpy
+
+
+# Monkey-patch numpy cross for pypy
+try:
+    import __pypy__
+    def cross(a,b):
+        return numpy.array([a[1]*b[2]-a[2]*b[1],
+                            -a[0]*b[2]+a[2]*b[0],
+                            a[0]*b[1]-a[1]*b[0]
+                            ])
+    numpy.cross = cross
+except ImportError:
+    pass
