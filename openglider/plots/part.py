@@ -117,7 +117,7 @@ class PlotPart():
     def area(self):
         return self.width * self.height
 
-    def return_layer_svg(self, layer, scale=1):
+    def return_layer_svg(self, layer, scale=1, unit="mm"):
         """
         Return a layer scaled for svg_coordinate_system [x,y = (mm, -mm)]
         """
@@ -201,13 +201,15 @@ class DrawingArea():
 
     def get_svg_group(self, config=config.sewing_config):
         group = svgwrite.container.Group()
+        group.scale(1, -1)
 
         for part in self.parts:
             part_group = svgwrite.container.Group()
 
             for layer_name, layer_config in config["layers"].items():
                 if layer_name in part.layer_dict:
-                    lines = part.return_layer_svg(layer_name, scale=config["scale"])
+                    lines = part.layer_dict[layer_name]
+                    #lines = part.return_layer_svg(layer_name, scale=config["scale"])
                     for line in lines:
                         element = svgwrite.shapes.Polyline(line, **layer_config)
                         part_group.add(element)
@@ -222,7 +224,7 @@ class DrawingArea():
         group = self.get_svg_group()
 
         scale = 0.75/self.width
-        group.scale(scale)
+        group.scale(scale, -scale)
         group.translate(tx=-self.min_x*1000, ty=self.max_y*1000)
         drawing.add(group)
         drawing.viewbox(0, 0, self.width*scale*1000, self.height*scale*1000)
@@ -232,17 +234,25 @@ class DrawingArea():
 
 
 def create_svg(drawing_area, path):
-    drawing = svgwrite.Drawing()
+    drawing_area.move([-drawing_area.min_x, -drawing_area.max_y])
+    width = drawing_area.width
+    height = drawing_area.height
+    drawing = svgwrite.Drawing(size=["{}mm".format(1000*i) for i in (width, height)])
+    drawing.viewbox(0, 0, width, height)
+
     outer_group = svgwrite.container.Group()
+    outer_group.scale(1, -1)
     drawing.add(outer_group)
     # svg is shifted downwards
-    drawing_area.move([0, -drawing_area.max_y])
+    #drawing_area.move([0, -drawing_area.max_y])
+
     for part in drawing_area.parts:
         part_group = svgwrite.container.Group()
 
         for layer_name, layer_config in config.sewing_config["layers"].items():
             if layer_name in part.layer_dict:
-                lines = part.return_layer_svg(layer_name, scale=config.sewing_config["scale"])
+                lines = part.layer_dict[layer_name]
+                #lines = part.return_layer_svg(layer_name, scale=config.sewing_config["scale"])
                 for line in lines:
                     element = svgwrite.shapes.Polyline(line, **layer_config)
                     part_group.add(element)

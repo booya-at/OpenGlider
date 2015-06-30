@@ -37,17 +37,17 @@ sewing_config = {
     "layers":
         {"CUTS": {
             "id": 'outer',
-            "stroke_width": "1",
+            "stroke_width": "0.001",
             "stroke": "green",
             "fill": "none"},
          "MARKS": {
              "id": 'marks',
-             "stroke_width": "1",
+             "stroke_width": "0.001",
              "stroke": "black",
              "fill": "none"},
          "TEXT": {
              "id": 'text',
-             "stroke_width": "1",
+             "stroke_width": "0.001",
              "stroke": "black",
              "fill": "none"},
          }
