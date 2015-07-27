@@ -9,7 +9,7 @@ except ImportError:
 
 import numpy
 
-from openglider.airfoil import BezierProfile2D
+from openglider.airfoil import BezierProfile2D, Profile2D
 from openglider.glider.ballooning import BallooningBezier
 from openglider.lines import line_types
 from openglider.vector.spline import Bezier, SymmetricBezier
@@ -21,14 +21,15 @@ def import_ods_2d(cls, filename, numpoints=4):
     ods = ezodf.opendoc(filename)
     sheets = ods.sheets
 
-    profiles = [BezierProfile2D(profile) for profile in transpose_columns(sheets[3])]
+    #profiles = [BezierProfile2D(profile) for profile in transpose_columns(sheets[3])]
+    profiles = [Profile2D(profile) for profile in transpose_columns(sheets[3])]
 
     balloonings_temp = transpose_columns(sheets[4])
     balloonings = []
     for baloon in balloonings_temp:
         if baloon:
-            upper = [[0, 0]] + baloon[:7] + [[1, 0]]
-            lower = [[0, 0]] + [[i[0], -1 * i[1]] for i in baloon[8:15]] + [[1, 0]]
+            upper = [[0, 0]] + baloon[:8] + [[1, 0]]
+            lower = [[0, 0]] + [[i[0], -1 * i[1]] for i in baloon[8:16]] + [[1, 0]]
             balloonings.append(BallooningBezier(upper, lower))
 
     data = {}

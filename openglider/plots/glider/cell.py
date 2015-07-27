@@ -18,17 +18,22 @@ class PanelPlot:
         self.plotpart = PlotPart()
 
     def get_panel(self):
+        allowance = {
+            "folded": "entry_open",
+            "parallel": "trailing_edge",
+            "orthogonal": "general"
+        }
         front_left = get_x_value(self.xvalues, self.panel.cut_front["left"])
         back_left = get_x_value(self.xvalues, self.panel.cut_back["left"])
         front_right = get_x_value(self.xvalues, self.panel.cut_front["right"])
         back_right = get_x_value(self.xvalues, self.panel.cut_back["right"])
 
+        allowance_front = allowance[self.panel.cut_front["type"]]
+        allowance_back = allowance[self.panel.cut_back["type"]]
         amount_front = -self.panel.cut_front.get("amount",
-                                            sewing_config["allowance"][
-                                                self.panel.cut_front["type"]])
+                                            sewing_config["allowance"][allowance_front])
         amount_back = self.panel.cut_back.get("amount",
-                                         sewing_config["allowance"][
-                                             self.panel.cut_back["type"]])
+                                         sewing_config["allowance"][allowance_back])
 
         cut_front = cuts[self.panel.cut_front["type"]](
             [[self.ballooned[0], front_left],
@@ -71,12 +76,21 @@ class PanelPlot:
                       self.ballooned[1][front_right:back_right:-1] +
                       PolyLine2D([self.ballooned[0][front_left]])]
 
+
+        #self.plotpart.marks += [self.inner[0][front_left:back_left] +
+        #              self.inner[1][front_right:back_right:-1] +
+        #              PolyLine2D([self.inner[0][front_left]])]
+
         self.plotpart.marks += part_marks
         self.plotpart.cuts.append(panel_cut)
 
+    def get_point(self, x):
+        ik = get_x_value(self.xvalues, x)
+        return [lst[ik] for lst in self.ballooned]
+
     def insert_text(self, text):
-        left = self.panel.cut_front["left"]
-        right = self.panel.cut_front["right"]
+        left = get_x_value(self.xvalues, self.panel.cut_front["left"])
+        right = get_x_value(self.xvalues, self.panel.cut_front["right"])
         part_text = get_text_vector(" " + text + " ",
                                     self.ballooned[0][left],
                                     self.ballooned[1][right],
@@ -117,7 +131,11 @@ def get_panels(glider):
         for part_no, panel in enumerate(cell.panels):
             part_name = "cell_{}_part{}".format(cell_no, part_no + 1)
             panelplot = PanelPlot(xvalues, inner, ballooned, outer, panel)
-            panelplot.get_panel()
+            try:
+                panelplot.get_panel()
+            except Exception as e:
+                print(part_name)
+                raise e
             panelplot.insert_text(part_name)
             panelplot.plotpart.name = part_name
 

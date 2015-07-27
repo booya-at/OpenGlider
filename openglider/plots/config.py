@@ -25,28 +25,29 @@ sewing_config = {
         "panel-cut": marks.line
     },
     "allowance": {
-        "parallel": 0.01,
-        "orthogonal": 0.01,
-        "folded": 0.01,
-        "general": 0.01,
-        "diagonals": 0.01,
-        "trailing_edge": 0.02
+        "parallel": 0.012,
+        "orthogonal": 0.012,
+        "folded": 0.012,
+        "general": 0.012,
+        "diagonals": 0.012,
+        "trailing_edge": 0.024,
+        "entry_open": 0.015
     },
     "scale": 1000,
     "layers":
         {"CUTS": {
             "id": 'outer',
-            "stroke_width": "1",
+            "stroke_width": "0.001",
             "stroke": "green",
             "fill": "none"},
          "MARKS": {
              "id": 'marks',
-             "stroke_width": "1",
+             "stroke_width": "0.001",
              "stroke": "black",
              "fill": "none"},
          "TEXT": {
              "id": 'text',
-             "stroke_width": "1",
+             "stroke_width": "0.001",
              "stroke": "black",
              "fill": "none"},
          }
