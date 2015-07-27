@@ -13,7 +13,7 @@ class LowerNode2D(object):
         self.pos_2D = pos_2D
         self.pos_3D = pos_3D
         self.nr = nr
-        self.layer = layer or "all"
+        self.layer = layer or ""
 
     def __json__(self):
         return{
@@ -33,7 +33,7 @@ class UpperNode2D(object):
         self.rib_pos = rib_pos  # value from 0...1
         self.force = force
         self.nr = nr
-        self.layer = layer or "all"
+        self.layer = layer or ""
 
     def __json__(self):
         return {'rib_no': self.rib_no,
@@ -66,7 +66,7 @@ class BatchNode2D(object):
     def __init__(self, pos_2D, nr=None, layer=None):
         self.pos_2D = pos_2D  # pos => 2d coordinates
         self.nr = nr
-        self.layer = layer or "all"
+        self.layer = layer or ""
 
     def __json__(self):
         return{
@@ -187,12 +187,13 @@ class Line2D(object):
         self.target_length = target_length
         self.is_sorted = False
         self.line_type = line_types.LineType.get(line_type)
-        self.layer = layer or "all"
+        self.layer = layer or ""
 
     def __json__(self):
         return{
             "lower_node": self.lower_node,
             "upper_node": self.upper_node,
             "target_length": self.target_length,
-            "line_type": self.line_type.name
+            "line_type": self.line_type.name,
+            "layer": self.layer
             }

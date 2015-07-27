@@ -145,7 +145,9 @@ class line_tool(base_tool):
         self.add_layer_dialog = QtGui.QInputDialog()
         add_button.clicked.connect(self.add_new_layer)
         del_button.clicked.connect(self.delete_layer)
-        self.layer_selection.activated.connect(self.set_layer)
+        self.layer_combobox.currentIndexChanged.connect(self.show_layer)
+        self.layer_selection.activated.connect(self.set_layer_by_current)
+        self.layer_selection.setEnabled(False)
 
     def add_new_layer(self):
         self.add_layer_dialog.exec_()
@@ -153,19 +155,46 @@ class line_tool(base_tool):
         self.layer_combobox.addItem(text)
         index = self.layer_combobox.findText(text)
         self.layer_combobox.setCurrentIndex(index)
+        self.set_layer(text=text)
+        self.show_layer()
         self.update_layer_selection()
 
     def delete_layer(self):
+        current_layer = self.layer_combobox.currentText()
+        self.set_layer(text="", objects=self.shape.objects,
+                       from_layer=current_layer)
         self.layer_combobox.removeItem(self.layer_combobox.currentIndex())
         self.update_layer_selection()
-        for i in self.shape.objects:
-            print(i)
+        self.show_layer()
+        self.update_layer_selection()
 
     def update_layer_selection(self):
         self.layer_selection.getAllItems(self.layer_combobox)
+        self.selection_changed()
 
-    def set_layer(self):
-        print(self.layer_selection.currentText())
+    def set_layer_by_current(self):
+        self.set_layer()
+        self.show_layer()
+
+    def set_layer(self, text=None, objects=None, from_layer=None):
+        text = text or self.layer_selection.currentText()
+        print("set text to : ", text)
+        objects = objects or self.shape.select_object
+        for obj in objects:
+            if hasattr(obj, "layer"):
+                if from_layer is None or from_layer == obj.layer:
+                    obj.layer = text
+
+    def show_layer(self):
+        for obj in self.shape.objects:
+            if hasattr(obj, "layer"):
+                if obj.layer != self.layer_combobox.currentText():
+                    if obj.enabled:
+                        obj.set_disabled()
+                else:
+                    if not obj.enabled:
+                        obj.set_enabled()
+
 
     def show_help(self):
         App.Console.PrintMessage("Use this commands to rule the lineinput\n")
@@ -237,6 +266,7 @@ class line_tool(base_tool):
                 if (isinstance(objs[0], NodeMarker) and
                     isinstance(objs[1], NodeMarker)):
                     line = ConnectionLine(objs[0], objs[1])
+                    line.layer = self.layer_combobox.currentText()
                     self.shape.addChild(line)
             elif len(objs) == 1:
                 if (isinstance(objs[0], NodeMarker)):
@@ -246,6 +276,7 @@ class line_tool(base_tool):
                         self.shape.addChild(line)
                         self.shape.Select(marker2)
                         self.shape.selection_changed()
+                        line.layer = self.layer_combobox.currentText()
 
     def add_node(self, event_callback, force=False):
         event = event_callback.getEvent()
@@ -260,9 +291,11 @@ class line_tool(base_tool):
                 if event.wasCtrlDown():
                     node = LowerNode2D(pos_3D[:-1], [0, 0, 0])
                     point = Lower_Att_Marker(node)
+                    point.layer = self.layer_combobox.currentText()
                 else:
                     node = BatchNode2D(pos_3D[:-1])
                     point = NodeMarker(node)
+                    point.layer = self.layer_combobox.currentText()
                 self.shape.addChild(point)
                 return point
 
@@ -273,6 +306,7 @@ class line_tool(base_tool):
         node = UpperNode2D(rib_nr, pos / 100)
         node_pos = node.get_2d(self.glider_2d)
         ap = Upper_Att_Marker(node, node_pos)
+        ap.layer = self.layer_combobox.currentText()
         self.shape.addChild(ap)
 
     def selection_changed(self):
@@ -305,7 +339,9 @@ class line_tool(base_tool):
 
         selected_objs = self.shape.select_object
         if selected_objs:
+            self.layer_selection.setEnabled(True)
             self.target_length.setEnabled(True)
+            self.layer_selection.setItemByText(selected_objs[0].layer)
             if show_line_widget(selected_objs):
                 self.tool_widget.setCurrentWidget(self.line_widget)
                 if has_uppermost_line(selected_objs):
@@ -327,7 +363,8 @@ class line_tool(base_tool):
             else:
                 self.tool_widget.setCurrentWidget(self.multi_wid)
         else:
-            self.tool_widget.setCurrentWidget(self.none_widget)     
+            self.tool_widget.setCurrentWidget(self.none_widget)
+            self.layer_selection.setEnabled(False)
 
     def update_target_length(self, *args):
         l = float(self.target_length.value())
@@ -382,8 +419,10 @@ class line_tool(base_tool):
             obj = ConnectionLine(m1, m2)
             obj.line_type = line.line_type.name
             obj.target_length = target_length
+            obj.layer = line.layer
             self.shape.addChild(obj)
             self.layer_combobox.addItem(line.layer)
+        self.show_layer()
 
     def accept(self):
         """glider 2d will recive the 2d information
@@ -398,6 +437,7 @@ class line_tool(base_tool):
                 if not obj.is_uppermost_line():
                     l.target_length = obj.target_length
                 l.line_type = LineType.types[obj.line_type]
+                l.layer = obj.layer
                 lines.append(l)
 
         lineset = self.glider_2d.lineset
@@ -445,6 +485,14 @@ class NodeMarker(Marker):
     @pos.setter
     def pos(self, pos):
         self.points = [pos]
+
+    @property
+    def layer(self):
+        return self._node.layer
+
+    @layer.setter
+    def layer(self, layer):
+        self._node.layer = layer
 
 
 class Upper_Att_Marker(NodeMarker):
@@ -499,6 +547,7 @@ class ConnectionLine(Line):
         self.drawstyle.lineWidth = 1.
         self.target_length = 1.
         self.line_type = "default"
+        self.layer = ""
 
     def is_uppermost_line(self):
         return (isinstance(self.marker1, Upper_Att_Marker) or 
@@ -539,7 +588,7 @@ class LayerComboBox(QtGui.QComboBox):
     def __init__(self, parent=None):
         super(LayerComboBox, self).__init__(parent)
         self.setInsertPolicy(QtGui.QComboBox.InsertAlphabetically)
-        self.addItem("all")
+        self.addItem("")
 
     def addItem(self, text):
         if self.findText(text) == -1:
@@ -548,7 +597,7 @@ class LayerComboBox(QtGui.QComboBox):
     def removeItem(self, index):
         super(LayerComboBox, self).removeItem(index)
         if self.count() == 0:
-            self.addItem("all")
+            self.addItem("")
 
     def removeAll(self):
         while self.currentIndex() != -1:
@@ -557,8 +606,15 @@ class LayerComboBox(QtGui.QComboBox):
     def getAllItems(self, other):
         self.removeAll()
         for i in range(other.count()):
-            print(i)
             self.addItem(other.itemText(i))
 
     def currentText(self):
+        print("current Item", self.currentIndex())
+        print("current Text", self.itemText(self.currentIndex()))
+
         return self.itemText(self.currentIndex())
+
+    def setItemByText(self, text):
+        item = self.findText(text)
+        if item != -1:
+            self.setCurrentIndex(item)

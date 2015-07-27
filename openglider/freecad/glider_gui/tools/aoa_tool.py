@@ -131,7 +131,7 @@ class aoa_tool(base_tool):
             textsep.addChild(trans)
             self.grid.addChild(textsep)
             textsep.addChild(text)
-        aoa_int = self.glider_2d.aoa.interpolate_3d(30)
+        aoa_int = self.glider_2d.aoa.interpolation(30)
         for i in self.back:
             textsep = coin.SoSeparator()
             scale = coin.SoScale()
@@ -143,7 +143,7 @@ class aoa_tool(base_tool):
             scale.scaleFactor = (
                 self.text_scale, self.text_scale, self.text_scale)
             trans.translation = (i[0], i[1], 0.001)
-            text.string = str(aoa_int(i[0])[1] * 180 / numpy.pi)[:6]
+            text.string = str(aoa_int(i[0]) * 180 / numpy.pi)[:6]
             textsep.addChild(trans)
             textsep.addChild(scale)
             textsep.addChild(rot)

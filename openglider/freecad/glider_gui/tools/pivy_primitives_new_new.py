@@ -37,11 +37,11 @@ class Object3D(coin.SoSeparator):
         self.enabled = True
 
     def set_disabled(self):
-        self.set_color(Object3D.disabled_col)
+        self.color.diffuseColor = COLORS[self.disabled_col]
         self.enabled = False
 
     def set_enabled(self):
-        self.set_color(Object3D.std_col)
+        self.color.diffuseColor = COLORS[self.std_col]
         self.enabled = True
 
     def set_color(self, col):
@@ -213,13 +213,13 @@ class Container(coin.SoSeparator):
     def drag_cb(self, event_callback):
         event = event_callback.getEvent()
         if (type(event) == coin.SoMouseButtonEvent and
-            event.getState() == coin.SoMouseButtonEvent.DOWN):
-                self.register(self.view)
-                self.view.removeEventCallbackPivy(
+                event.getState() == coin.SoMouseButtonEvent.DOWN):
+            self.register(self.view)
+            self.view.removeEventCallbackPivy(
                 coin.SoEvent.getClassTypeId(), self.drag)
-                self.start_pos = None
-                for obj in self.drag_objects:
-                    obj.drag_release()
+            self.start_pos = None
+            for obj in self.drag_objects:
+                obj.drag_release()
         elif type(event) == coin.SoLocation2Event:
             fact = 0.3 if event.wasShiftDown() else 1.
             diff = self.cursor_pos(event) - self.start_pos
