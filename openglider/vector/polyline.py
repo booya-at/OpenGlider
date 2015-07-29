@@ -251,3 +251,25 @@ class PolyLine2D(PolyLine):
         self.data = new_data
 
         return self
+
+    def get_bbox(self):
+        if not self:
+            return [[0,0], [0,0]]
+        return [
+            [min([p[0] for p in self]), min([p[1] for p in self])],
+            [max([p[0] for p in self]), max([p[1] for p in self])],
+        ]
+
+    def _repr_svg_(self):
+        border = 0.1
+        bbox = self.get_bbox()
+        width = bbox[1][0] - bbox[0][0]
+        height = bbox[1][1] - bbox[0][1]
+
+        import svgwrite
+        drawing = svgwrite.Drawing(size=[800, 800*height/width])
+
+        drawing.viewbox(bbox[0][0]-border*width, bbox[0][1]-border*height, width*(1+2*border), height*(1+2*border))
+        drawing.add(drawing.polyline(self.data, style="stroke:black; vector-effect: non-scaling-stroke; fill: none;"))
+
+        return drawing.tostring()

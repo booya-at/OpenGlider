@@ -102,13 +102,9 @@ class DrawingArea():
         drawing.add(group)
         return drawing
 
-
     def _repr_svg_(self):
-        strio = io.StringIO()
         drawing = self.get_svg_drawing()
-        drawing.write(strio)
-        strio.seek(0)
-        return strio.read()
+        return drawing.tostring()
 
     def export_svg(self, path):
         drawing = self.get_svg_drawing()
