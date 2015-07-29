@@ -15,7 +15,7 @@ class PanelPlot:
 
         self.panel = panel
         self.xvalues = x_values
-        self.plotpart = PlotPart()
+        self.plotpart = PlotPart(material_code=self.panel.material_code)
 
     def get_panel(self):
         allowance = {

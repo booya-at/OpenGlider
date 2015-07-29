@@ -49,9 +49,11 @@ def rotation_3d(angle, axis=None):
     # see http://en.wikipedia.org/wiki/SO%284%29#The_Euler.E2.80.93Rodrigues_formula_for_3D_rotations"""
     a = numpy.cos(angle / 2)
     (b, c, d) = -normalize(axis) * numpy.sin(angle / 2)
-    return numpy.array([[a ** 2 + b ** 2 - c ** 2 - d ** 2, 2 * (b * c - a * d), 2 * (b * d + a * c)],
-                     [2 * (b * c + a * d), a ** 2 + c ** 2 - b ** 2 - d ** 2, 2 * (c * d - a * b)],
-                     [2 * (b * d - a * c), 2 * (c * d + a * b), a ** 2 + d ** 2 - b ** 2 - c ** 2]])
+    return numpy.array([
+        [a**2 + b**2 - c**2 - d**2, 2*(b*c - a*d),              2*(b*d + a*c)],
+        [2*(b*c + a*d),             a**2 + c**2 - b**2 - d**2,  2 * (c*d - a*b)],
+        [2*(b*d - a*c),             2*(c*d + a*b),              a**2 + d**2 - b**2 - c**2]
+    ])
 
 
 def rotation_2d(angle):

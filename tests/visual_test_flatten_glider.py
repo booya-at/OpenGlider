@@ -94,7 +94,7 @@ class TestGlider_Flatten(GliderTestClass):
         all.join(parts['ribs'])
         layers = {}
         for part in all.parts:
-            for name, layer in part.layer_dict.iteritems():
+            for name, layer in part.layers.iteritems():
                 layers.setdefault(name, [])
                 layers[name] += layer
 

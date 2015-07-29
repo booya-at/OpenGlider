@@ -84,7 +84,7 @@ class DrawingArea():
             part_group = svgwrite.container.Group()
 
             for layer_name, layer_config in config["layers"].items():
-                if layer_name in part.layer_dict:
+                if layer_name in part.layers:
                     lines = part.return_layer_svg(layer_name, scale=config["scale"])
                     for line in lines:
                         element = svgwrite.shapes.Polyline(line, **layer_config)
@@ -120,22 +120,16 @@ class DrawingArea():
         drawing = ezdxf.new(dxfversion="ac1015")
         ms = drawing.modelspace()
 
-        drawing.layers.create(name="marks")
-        drawing.layers.create(name="cuts")
-        drawing.layers.create(name="text")
-
         for part in self.parts:
             group = drawing.groups.add()
             with group.edit_data() as part_group:
-                for cut in part.cuts:
-                    pl = ms.add_lwpolyline(cut, dxfattribs={"layer": "cuts"})
-                    part_group.append(pl)
-                for mark in part.marks:
-                    pl = ms.add_lwpolyline(mark, dxfattribs={"layer": "marks"})
-                    part_group.append(pl)
-                for _text in part.text:
-                    pl = ms.add_lwpolyline(_text, dxfattribs={"layer": "text"})
-                    part_group.append(pl)
+                for layer_name, layer in part.layers.items():
+                    if layer_name not in drawing.layers:
+                        drawing.layers.create(name=layer_name)
+
+                    for elem in layer:
+                        pl = ms.add_lwpolyline(elem, dxfattribs={"layer": layer_name})
+                        part_group.append(pl)
 
         drawing.saveas(path)
         return drawing

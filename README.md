@@ -16,8 +16,14 @@ Clone the git-repo first:
   ```
   git clone https://github.com/hiaselhans/OpenGlider.git
   ```
+  
+Install using Pip:
+  ```
+  cd OpenGlider
+  pip install -e .
+  ```
 
-Install all dependencies (using distro-repos, easy_install or pip)
+Or manually install all dependencies (using distro-repos, easy_install or pip)
 * ezodf2
 * dxfwrite
 * scipy
