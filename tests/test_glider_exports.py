@@ -22,7 +22,6 @@ import json
 
 from common import *
 from openglider.plots import flatten_glider
-from openglider.plots.part import create_svg
 from openglider import jsonify
 from test_glider import GliderTestClass
 
@@ -64,10 +63,12 @@ class TestGlider(TestCase):
 
     def test_export_plots(self):
         path = self.tempfile('.svg').name
+        dxfile = self.tempfile(".dxf").name
         plots = flatten_glider(self.glider)
         all = plots['panels']
         all.join(plots['ribs'])
-        create_svg(all, path)
+        all.export_svg(path)
+        all.export_dxf(dxfile)
 
     def test_export_glider_json(self):
         with self.tempfile('.json') as tmp:

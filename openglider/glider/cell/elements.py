@@ -25,7 +25,7 @@ from openglider.vector import norm
 
 
 class DiagonalRib(object):
-    def __init__(self, left_front, left_back, right_front, right_back):
+    def __init__(self, left_front, left_back, right_front, right_back, material_code=None):
         """
         [left_front, left_back, right_front, right_back]
             -> Cut: (x_value, height)
@@ -35,12 +35,14 @@ class DiagonalRib(object):
         self.left_back = left_back
         self.right_front = right_front
         self.right_back = right_back
+        self.material_code = material_code or ""
 
     def __json__(self):
         return {'left_front': self.left_front,
                 'left_back': self.left_back,
                 'right_front': self.right_front,
-                'right_back': self.right_back
+                'right_back': self.right_back,
+                "material_code": self.material_code
         }
 
     def get_3d(self, cell):
@@ -76,12 +78,14 @@ class DoubleDiagonalRib():
 
 
 class TensionStrap(DiagonalRib):
-    def __init__(self, left, right, width):
+    def __init__(self, left, right, width, material_code=None):
         width /= 2
         super(TensionStrap, self).__init__((left - width, -1),
                                            (left + width, -1),
                                            (right - width, -1),
-                                           (right + width, -1))
+                                           (right + width, -1),
+                                           material_code)
+
 
 class TensionStrapSimple():
     def __init__(self, left, right):
@@ -90,7 +94,8 @@ class TensionStrapSimple():
 
     def __json__(self):
         return {"left": self.left,
-                "right": self.right}
+                "right": self.right,
+                "material_code": self.material_code}
 
     def get_length(self, cell):
         rib1 = cell.rib1
@@ -106,14 +111,15 @@ class Panel(object):
     Glider cell-panel
     """
 
-    def __init__(self, cut_front, cut_back):
+    def __init__(self, cut_front, cut_back, material_code=None):
         self.cut_front = cut_front  # (left, right, style(int))
         self.cut_back = cut_back
-        # TODO: colour, material, ..
+        self.material_code = material_code or ""
 
     def __json__(self):
         return {'cut_front': self.cut_front,
-                'cut_back': self.cut_back
+                'cut_back': self.cut_back,
+                "material_code": self.material_code
         }
 
     def get_3d(self, cell, numribs=0):

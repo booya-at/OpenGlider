@@ -17,7 +17,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-from openglider.vector.functions import norm, normalize
+import numpy
+from openglider.vector.functions import norm, normalize, rotation_3d
 from openglider.vector.polyline import PolyLine, PolyLine2D
 
 
@@ -128,6 +129,39 @@ class TestVector2D(TestVector3D):
             p2 = thalist[i]-dirr
             neu = thalist.new_cut(p1, p2, i-1)
             #self.assertAlmostEqual(i, neu[1])
+
+class TestVectorFunctions3D(unittest.TestCase):
+    def setUp(self):
+        self.vectors = [
+            [random.random()+0.001 for _ in range(3)]
+            for _ in range(100)
+        ]
+
+    def test_rotation_scale(self):
+        angle = 2*random.random() - 1
+        rot = rotation_3d(0, [1, 0, 0])
+        for axis in self.vectors:
+            rotation_matrix = rotation_3d(angle, axis)
+            rot = rot.dot(rotation_matrix)
+            for vector in self.vectors:
+                self.assertAlmostEqual(norm(rot.dot(vector)), norm(vector))
+                self.assertAlmostEqual(norm(rotation_matrix.dot(vector)), norm(vector))
+
+    def test_rotation_scale_2(self):
+        rot = rotation_3d(0, [1,0,0])
+        for axis in self.vectors:
+            angle = 2*random.random() - 1
+            scale = random.random()
+            rotation_matrix = rotation_3d(angle, axis)
+            rot = rot.dot(rotation_matrix)
+
+            for vector in self.vectors:
+                p1 = rot.dot(numpy.array(vector) * scale)
+                p2 = rot.dot(vector) * scale
+                for i in range(3):
+                    self.assertAlmostEqual(p1[i], p2[i])
+
+
 
 
 if __name__ == '__main__':

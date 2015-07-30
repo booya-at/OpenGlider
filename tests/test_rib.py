@@ -51,5 +51,17 @@ class TestRib(unittest.TestCase):
         for i in range(3):
             self.assertAlmostEqual(first[i], second[i])
 
+    def test_align_scale(self):
+        prof1 = [self.rib.align(p) for p in self.rib.profile_2d]
+        _prof2 = self.rib.profile_2d.copy()
+        _prof2.scale(self.rib.chord)
+        prof2 = [self.rib.align(p, scale=False) for p in _prof2]
+
+
+        for p1, p2 in zip(prof1, prof2):
+            self.assertAlmostEqual(p1[0], p2[0])
+            self.assertAlmostEqual(p1[1], p2[1])
+            self.assertAlmostEqual(p1[2], p2[2])
+
 
 

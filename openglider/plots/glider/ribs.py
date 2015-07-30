@@ -14,7 +14,7 @@ class RibPlot:
         self.outer = self.inner.copy().add_stuff(config["allowance"]["general"])
         self.x_values = rib.profile_2d.x_values
         self.config = config
-        self.plotpart = PlotPart(name=rib.name)
+        self.plotpart = PlotPart(name=rib.name, material_code=rib.material_code)
 
         # insert cut
         self.cut_outer_rib()

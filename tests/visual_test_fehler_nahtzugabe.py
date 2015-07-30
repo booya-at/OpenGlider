@@ -47,7 +47,7 @@ class TestGlider(unittest.TestCase):
 
     def test_flatten_cell(self):
         layers={}
-        l = self.plots["panels"].parts[-1].layer_dict
+        l = self.plots["panels"].parts[-1].layers
         for name, layer in l.iteritems():
             layers.setdefault(name, [])
             layers[name] += layer

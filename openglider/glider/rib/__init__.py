@@ -23,7 +23,7 @@ class Rib(CachedObject):
                  chord=1., arcang=0, aoa_absolute=0, zrot=0, glide=1,
                  name="unnamed rib", startpos=0.,
                  rigidfoils=None,
-                 holes=None):
+                 holes=None, material_code=None):
         self.startpos = startpos
         # TODO: Startpos > Set Rotation Axis in Percent
         self.name = name
@@ -36,6 +36,7 @@ class Rib(CachedObject):
         self.chord = chord
         self.holes = holes or []
         self.rigidfoils = rigidfoils or []
+        self.material_code = material_code or ""
 
     def __json__(self):
         return {"profile_2d": self.profile_2d,
@@ -45,13 +46,18 @@ class Rib(CachedObject):
                 "aoa_absolute": self.aoa_absolute,
                 "zrot": self.zrot,
                 "glide": self.glide,
-                "name": self.name}
+                "name": self.name,
+                "material_code": self.material_code}
 
-    def align(self, point):
+    def align(self, point, scale=True):
         if len(point) == 2:
-            return self.align([point[0], point[1], 0])
+            return self.align([point[0], point[1], 0], scale=scale)
         elif len(point) == 3:
-            return self.pos + self.rotation_matrix.dot(point) * self.chord
+            if scale:
+                return self.pos + (self.rotation_matrix.dot(point) * self.chord)
+            else:
+                return self.pos + self.rotation_matrix.dot(point)
+
         raise ValueError("Can only Align one single 2D or 3D-Point")
 
     @property
@@ -74,7 +80,10 @@ class Rib(CachedObject):
     @cached_property('self')
     def profile_3d(self):
         if self.profile_2d.data is not None:
-            return Profile3D([self.align(p) for p in self.profile_2d.data], name="profile3d (rib: {})".format(self.name))
+            prof = self.profile_2d.copy()
+            prof.scale(self.chord)
+            return Profile3D([self.align(p, scale=False) for p in prof])
+            #return Profile3D([self.align(p) for p in self.profile_2d.data], name="profile3d (rib: {})".format(self.name))
         else:
             raise ValueError("no 2d-profile present fortharib at rib {}".format(
                 self.name))

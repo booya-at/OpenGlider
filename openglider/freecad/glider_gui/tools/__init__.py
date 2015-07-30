@@ -133,7 +133,7 @@ class Pattern_Tool(object):
             for i, part in enumerate(draw_area.parts):
                 grp = pattern_doc.addObject("App::DocumentObjectGroup",
                                             "Panel_" + str(i))
-                layer_dict = part.layer_dict
+                layer_dict = part.layers
                 for layer in layer_dict:
                     for j, line in enumerate(layer_dict[layer]):
                         a = makeWire(map(Pattern_Tool.fcvec, line))

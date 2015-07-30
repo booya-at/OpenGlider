@@ -33,7 +33,7 @@ class TestBallooningBezier(unittest.TestCase):
         self.ballooning = ballooning.BallooningBezier(upper, lower)
 
     def test_multiplication(self):
-        for i in range(10000):
+        for i in range(100):
             factor = random.random()
             temp = self.ballooning * factor
             val = random.random()

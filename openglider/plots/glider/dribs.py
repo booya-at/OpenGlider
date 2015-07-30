@@ -38,7 +38,8 @@ def get_dribs(glider):
             cell_dribs.append(PlotPart(cuts=part_cuts,
                                        marks=part_marks,
                                        text=text,
-                                       name=d_rib_name))
+                                       name=d_rib_name,
+                                       material_code=d_rib.material_code))
 
         dribs.append(cell_dribs)
 

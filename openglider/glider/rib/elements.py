@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 #from openglider import Profile2D
+import numpy
 from openglider.lines import Node
 from openglider.plots.marks import polygon
 from openglider.vector.functions import cut
@@ -37,7 +38,7 @@ class RigidFoil(object):
                 'distance': self.distance}
 
     def get_3d(self, rib):
-        return rib.align(self.get_flattened(rib))
+        return [rib.align(p, scale=False) for p in self.get_flattened(rib)]
 
     def get_length(self, rib):
         return self.get_flattened(rib).get_length()
@@ -63,10 +64,11 @@ class GibusArcs(object):
     """
     A Reinforcement, in the shape of an arc, to reinforce attachment points
     """
-    def __init__(self, position, size=0.2):
+    def __init__(self, position, size=0.2, material_code=None):
         self.pos = position
         self.size = size
         self.size_abs = False
+        self.material_code = material_code or ""
 
     def __json__(self):
         return {'position': self.pos,
@@ -75,17 +77,20 @@ class GibusArcs(object):
     def get_3d(self, rib, num_points=10):
         # create circle with center on the point
         gib_arc = self.get_flattened(rib, num_points=num_points)
-        return [rib.align([p[0], p[1], 0]) for p in gib_arc]
+        return [rib.align([p[0], p[1], 0], scale=False) for p in gib_arc]
 
     def get_flattened(self, rib, num_points=10):
         # get center point
         profile = rib.profile_2d
         start = profile(self.pos)
         point_1 = profile[start]
+
         if self.size_abs:
-            point_2 = point_1 + [self.size, 0]
+            # reverse scale now
+            size = self.size / rib.chord
         else:
-            point_2 = profile.profilepoint(self.pos + self.size)
+            size = self.size
+        point_2 = profile.profilepoint(self.pos + size)
 
         gib_arc = [[], []]  # first, second
         circle = polygon(point_1, point_2, num=num_points, is_center=True)[0][1:]
@@ -99,6 +104,7 @@ class GibusArcs(object):
                 gib_arc[is_second_run].append(circle[i])
             else:
                 is_second_run = True
+
         # Cut first and last
         gib_arc = gib_arc[1] + gib_arc[0]  # [secondlist] + [firstlist]
         start2 = profile.new_cut(gib_arc[0], gib_arc[1], start)
@@ -107,7 +113,7 @@ class GibusArcs(object):
         # Append Profile_List
         gib_arc += profile.get(start2.next(), stop.next()).tolist()
 
-        return gib_arc
+        return numpy.array(gib_arc) * rib.chord
 
 
 # Node from lines
@@ -137,13 +143,12 @@ class RibHole(object):
 
     def get_3d(self, rib, num=20):
         hole = self.get_flattened(rib, num=num)
-        print("aha", [p for p in hole])
         return [rib.align([p[0], p[1], 0]) for p in hole]
 
     def get_flattened(self, rib, num=20):
-        chord = rib.chord
-        p1 = rib.profile_2d[rib.profile_2d(self.pos)] * chord
-        p2 = rib.profile_2d[rib.profile_2d(-self.pos)] * chord
+        prof = rib.profile_2d
+        p1 = prof[prof(self.pos)]
+        p2 = prof[prof(-self.pos)]
 
         return polygon(p1, p2, num=num, scale=self.size, is_center=False)[0]
 
