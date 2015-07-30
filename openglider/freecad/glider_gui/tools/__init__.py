@@ -10,6 +10,7 @@ from aoa_tool import aoa_tool
 from ballooning_tool import ballooning_tool
 from line_tool import line_tool
 from merge_tool import airfoil_merge_tool, ballooning_merge_tool
+import openglider
 from openglider.plots import flatten_glider
 
 
@@ -25,7 +26,6 @@ class BaseCommand(object):
 
     def GetResources(self):
         return {'Pixmap': '.svg', 'MenuText': 'Text', 'ToolTip': 'Text'}
-        pass
 
     def IsActive(self):
         if FreeCAD.ActiveDocument is None:
@@ -44,6 +44,12 @@ class BaseCommand(object):
         return base_tool(obj)
 
 
+class Reload(BaseCommand):
+    def Activated(self):
+        reload(openglider)
+
+
+
 class Gl2d_Export(object):
     def __init__(self):
         pass
@@ -52,7 +58,6 @@ class Gl2d_Export(object):
         return {'Pixmap': 'gl2d_export.svg',
                 'MenuText': 'export 2D',
                 'ToolTip': 'export 2D'}
-        pass
 
     def IsActive(self):
         if FreeCAD.ActiveDocument is None:
@@ -79,7 +84,6 @@ class Gl2d_Import(object):
         return {'Pixmap': 'gl2d_import.svg',
                 'MenuText': 'import 2D',
                 'ToolTip': 'import 2D'}
-        pass
 
     def IsActive(self):
         if FreeCAD.ActiveDocument is None:
@@ -106,7 +110,6 @@ class Pattern_Tool(object):
         return {'Pixmap': 'pattern_tool.svg',
                 'MenuText': 'unwrap glider',
                 'ToolTip': 'unwrap glider'}
-        pass
 
     def IsActive(self):
         if FreeCAD.ActiveDocument is None:
@@ -125,16 +128,15 @@ class Pattern_Tool(object):
             pattern_doc = FreeCAD.newDocument()
             from Draft import makeWire
             flat_glider = flatten_glider(obj.glider_instance)
-            draw_area = flat_glider.values()[0]
-            for da in flat_glider.values()[1:]:
-                draw_area.join(da)
+            draw_area = flat_glider['panels']
+            draw_area.join(flat_glider['ribs'])
             for i, part in enumerate(draw_area.parts):
                 grp = pattern_doc.addObject("App::DocumentObjectGroup",
                                             "Panel_" + str(i))
                 layer_dict = part.layer_dict
                 for layer in layer_dict:
                     for j, line in enumerate(layer_dict[layer]):
-                        a = makeWire(map(Pattern_Tool.fcvec, line), face=False)
+                        a = makeWire(map(Pattern_Tool.fcvec, line))
                         grp.addObject(a)
 
     @staticmethod

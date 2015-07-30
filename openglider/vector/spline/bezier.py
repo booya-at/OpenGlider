@@ -265,6 +265,7 @@ class SymmetricBezier(Bezier):
         return bez
 
 
+
 def choose(n, k):
     if 0 <= k <= n:
         ntok = 1
