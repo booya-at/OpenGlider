@@ -9,7 +9,8 @@ from openglider.vector.spline import Bezier, SymmetricBezier
 from openglider.vector.polyline import PolyLine2D
 from openglider.vector.functions import norm, normalize
 from openglider.glider.rib import Rib, RibHole, RigidFoil
-from openglider.glider.cell import Cell, Panel, DiagonalRib, TensionStrapSimple
+from openglider.glider.cell import Panel, DiagonalRib, TensionStrapSimple
+from openglider.glider.cell.cell import Cell
 from .lines import LowerNode2D, Line2D, LineSet2D, BatchNode2D, UpperNode2D
 from .import_ods import import_ods_2d
 

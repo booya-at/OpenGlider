@@ -24,7 +24,7 @@ import os
 
 import numpy
 
-from openglider.glider.cell import Cell
+from openglider.glider.cell.cell import Cell
 from openglider.glider.rib import Rib, MiniRib
 
 

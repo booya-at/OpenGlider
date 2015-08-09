@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
+import copy
 
 from openglider.airfoil import get_x_value
 from openglider.plots.projection import flatten_list
@@ -44,6 +45,13 @@ class DiagonalRib(object):
                 'right_back': self.right_back,
                 "material_code": self.material_code
         }
+
+    def copy(self):
+        return copy.copy(self)
+
+    def mirror(self):
+        self.left_front, self.right_front = self.right_front, self.left_front
+        self.left_back, self.right_back = self.right_back, self.left_back
 
     def get_3d(self, cell):
         """
@@ -129,7 +137,7 @@ class Panel(object):
         :param numribs: number of miniribs to calculate
         :return: List of rib-pieces (Vectorlist)
         """
-        xvalues = cell.profile_2d.x_values
+        xvalues = cell.rib1.profile_2d.x_values
         ribs = []
         for i in range(numribs + 1):
             y = i / numribs

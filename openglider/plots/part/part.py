@@ -115,6 +115,11 @@ class PlotPart():
         else:
             return None
 
+    def scale(self, factor):
+        for layer in self.layers.values():
+            for p in layer:
+                p.scale(factor)
+
         # FLATTENING
         # Dict for layers
         # Flatten all cell-parts

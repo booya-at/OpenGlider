@@ -1,6 +1,8 @@
 Cells
 =====
 
+![Cell](cell.png)
+
 A cell basically consists of two ribs plus a Ballooning.
 
 ```

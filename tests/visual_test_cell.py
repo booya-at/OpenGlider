@@ -31,7 +31,7 @@ try:
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 from openglider.airfoil import Profile2D
-from openglider.glider.cell import Cell
+from openglider.glider.cell.cell import Cell
 from openglider.glider.rib import Rib
 import openglider.graphics as Graph
 from openglider.glider.ballooning import BallooningBezier
