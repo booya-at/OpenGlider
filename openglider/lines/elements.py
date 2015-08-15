@@ -157,11 +157,18 @@ class Line(CachedObject):
     #@cached_property('v_inf', 'type.cw', 'type.thickness')
     @property
     def ortho_pressure(self):
-        """drag per meter (projected)"""
+        """
+        drag per meter (projected)
+        :return: 1/2 * cw * d * v^2
+        """
         return 1 / 2 * self.type.cw * self.type.thickness * norm(self.v_inf) ** 2
 
     @cached_property('lower_node.vec', 'upper_node.vec', 'v_inf')
     def drag_total(self):
+        """
+        Get total drag of line
+        :return: 1/2 * cw * A * v^2
+        """
         return self.ortho_pressure * self.length_projected
 
     @cached_property('force', 'lower_node.vec', 'upper_node.vec')

@@ -21,6 +21,10 @@ def import_ods_2d(cls, filename, numpoints=4):
     ods = ezodf.opendoc(filename)
     sheets = ods.sheets
 
+    main_sheet = sheets[0]
+    cell_sheet = sheets[1]
+    rib_sheet = sheets[2]
+
     #profiles = [BezierProfile2D(profile) for profile in transpose_columns(sheets[3])]
     profiles = [Profile2D(profile) for profile in transpose_columns(sheets[3])]
 
@@ -49,7 +53,7 @@ def import_ods_2d(cls, filename, numpoints=4):
     ballooning_merge = []
 
     y = z = span_last = alpha = 0.
-    main_sheet = sheets[0]
+
     assert isinstance(main_sheet, ezodf.Sheet)
     for i in range(1, main_sheet.nrows()+1):
         line = [main_sheet.get_cell([i, j]).value for j in range(main_sheet.ncols())]
@@ -78,8 +82,7 @@ def import_ods_2d(cls, filename, numpoints=4):
         span_last = span
 
     # Attachment points: rib_no, id, pos, force
-    attachment_points = [UpperNode2D(args[0], args[2], args[3], args[1]) for args in read_elements(sheets[2], "AHP", len_data=3)]
-    attachment_points.sort(key=lambda element: element.nr)
+    attachment_points = get_attachment_points(rib_sheet)
     attachment_points_lower = get_lower_aufhaengepunkte(data)
 
     # RIB HOLES
@@ -90,6 +93,7 @@ def import_ods_2d(cls, filename, numpoints=4):
     def get_cuts(name, target_name):
         return [{"ribs": [res[0]], "left": res[1], "right": res[2], "type": target_name}
                 for res in read_elements(sheets[1], name, len_data=2)]
+
     cuts = get_cuts("EKV", "folded") + get_cuts("EKH", "folded")
     cuts += get_cuts("DESIGNM", "orthogonal") + get_cuts("DESIGNO", "orthogonal")
 
@@ -139,7 +143,8 @@ def import_ods_2d(cls, filename, numpoints=4):
                          "holes": rib_holes,
                          "diagonals": diagonals,
                          "rigidfoils": rigidfoils,
-                         "straps": straps},
+                         "straps": straps,
+                         "materials": get_material_codes(cell_sheet)},
                profiles=profiles,
                profile_merge_curve=symmetric_fit(profile_merge),
                balloonings=balloonings,
@@ -151,6 +156,25 @@ def import_ods_2d(cls, filename, numpoints=4):
     glider_3d = glider_2d.get_glider_3d()
     glider_2d.lineset.set_default_nodes2d_pos(glider_3d)
     return glider_2d
+
+
+def get_material_codes(sheet):
+    materials = read_elements(sheet, "MATERIAL", len_data=1)
+    i = 0
+    ret = []
+    while materials:
+        codes = [el[1] for el in materials if el[0]==i]
+        materials = [el for el in materials if el[0]!=i]
+        ret.append(codes)
+        i += 1
+    # cell_no, part_no, code
+    return ret
+
+
+def get_attachment_points(sheet):
+    attachment_points = [UpperNode2D(args[0], args[2], args[3], args[1]) for args in read_elements(sheet, "AHP", len_data=3)]
+    attachment_points.sort(key=lambda element: element.nr)
+    return attachment_points
 
 
 def get_lower_aufhaengepunkte(data):
@@ -236,6 +260,8 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
 def read_elements(sheet, keyword, len_data=2):
     """
     Return rib/cell_no for the element + data
+
+    -> read_elements(sheet, "AHP", 2) -> [ [rib_no, id, x], ...]
     """
 
     elements = []

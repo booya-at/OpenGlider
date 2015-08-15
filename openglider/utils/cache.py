@@ -22,6 +22,12 @@ class CachedObject(object):
             if id(self) in prop.cache:
                 prop.cache.pop(id(self))
 
+    def __repr__(self):
+        rep = super(CachedObject, self).__repr__()
+        if hasattr(self, "name"):
+            rep = rep[:-1] + ': "{}">'.format(self.name)
+        return rep
+
 
 def cached_property(*hashlist):
     #@functools.wraps

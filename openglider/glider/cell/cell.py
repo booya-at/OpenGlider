@@ -11,7 +11,7 @@ from openglider.vector import norm
 
 class Cell(CachedObject):
     def __init__(self, rib1, rib2, ballooning, miniribs=None, panels=None,
-                 diagonals=None, straps=None):
+                 diagonals=None, straps=None, name="unnamed"):
         self.rib1 = rib1
         self.rib2 = rib2
         self._miniribs = miniribs or []
@@ -19,6 +19,7 @@ class Cell(CachedObject):
         self.straps = straps or []
         self.ballooning = ballooning
         self.panels = panels or []
+        self.name = name
 
     def __json__(self):
         return {"rib1": self.rib1,
