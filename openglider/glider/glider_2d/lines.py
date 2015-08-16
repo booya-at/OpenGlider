@@ -28,18 +28,18 @@ class LowerNode2D(object):
 
 class UpperNode2D(object):
     """stores the 2d data of an attachment point"""
-    def __init__(self, rib_no, rib_pos, force=1., nr=None, layer=None):
+    def __init__(self, rib_no, rib_pos, force=1., name=None, layer=None):
         self.rib_no = rib_no
         self.rib_pos = rib_pos  # value from 0...1
         self.force = force
-        self.nr = nr
+        self.name = name
         self.layer = layer or "all"
 
     def __json__(self):
         return {'rib_no': self.rib_no,
                 'rib_pos': self.rib_pos,
                 'force': self.force,
-                'nr': self.nr,
+                'name': self.name,
                 "layer": self.layer}
 
     def get_2d(self, glider_2d):

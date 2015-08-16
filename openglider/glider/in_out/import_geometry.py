@@ -19,7 +19,8 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 from openglider.glider.cell.cell import Cell
 from openglider.glider.cell import Panel
-from openglider.glider.rib import Rib, AttachmentPoint
+from openglider.glider.rib import AttachmentPoint
+from openglider.glider.rib.rib import Rib
 from openglider.lines import Line, Node, LineSet
 
 

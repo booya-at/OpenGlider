@@ -24,8 +24,7 @@ import os
 
 import common
 import openglider
-from openglider.glider.rib import Rib
-
+from openglider.glider.rib.rib import Rib
 
 
 class TestRib(unittest.TestCase):

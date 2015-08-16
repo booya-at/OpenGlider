@@ -1,10 +1,12 @@
 import copy
 
+
 class PlotPart():
-    def __init__(self, cuts=None, marks=None, text=None, name=None, material_code=""):
+    def __init__(self, cuts=None, marks=None, text=None, stitches=None, name=None, material_code=""):
         self.cuts = cuts or []
         self.marks = marks or []
         self.text = text or []
+        self.stitches = stitches or []
         self.name = name
         self.material_code = material_code
 
@@ -13,7 +15,9 @@ class PlotPart():
             "cuts": self.cuts,
             "marks": self.marks,
             "text": self.text,
-            "name": self.name
+            "stitches": self.stitches,
+            "name": self.name,
+            "material_code": self.material_code
         }
 
     def copy(self):

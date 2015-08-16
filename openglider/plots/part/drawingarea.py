@@ -96,6 +96,8 @@ class DrawingArea():
 
     def get_svg_drawing(self):
         width, height = self.width, self.height
+        width *= 1000
+        height *= 1000
         drawing = svgwrite.Drawing(size=["{}mm".format(n) for n in (width, height)])
         drawing.viewbox(self.min_x, self.min_y, self.width, self.height)
         group = self.get_svg_group()

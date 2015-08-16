@@ -2,7 +2,7 @@ import collections
 
 from openglider.airfoil import get_x_value
 import openglider.plots
-from openglider.vector.text import get_text_vector
+from openglider.vector.text import get_text_vector, Text
 from openglider.plots import sewing_config, cuts, PlotPart
 from openglider.vector import PolyLine2D
 
@@ -95,7 +95,16 @@ class PanelPlot:
                                     self.ballooned[0][left],
                                     self.ballooned[1][right],
                                     height=0.8)
-        self.plotpart.marks += part_text
+        self.plotpart.text += part_text
+
+    def insert_attachment_point_text(self, attachment_point, rib="left"):
+        align = rib  # (left, right)
+        which = rib  # (left, right)
+        if self.panel.cut_front[which] <= attachment_point.rib_pos <= self.panel.cut_back[which]:
+            left, right = self.get_point(attachment_point.rib_pos)
+            self.plotpart.text += Text(attachment_point.name, left, right,
+                                       size=0.02,  # 2 cm
+                                       align=align).get_vectors()
 
 
 

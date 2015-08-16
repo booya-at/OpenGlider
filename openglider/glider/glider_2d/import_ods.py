@@ -172,9 +172,12 @@ def get_material_codes(sheet):
 
 
 def get_attachment_points(sheet):
+    # UpperNode2D(rib_no, rib_pos, force, name, layer)
     attachment_points = [UpperNode2D(args[0], args[2], args[3], args[1]) for args in read_elements(sheet, "AHP", len_data=3)]
-    attachment_points.sort(key=lambda element: element.nr)
-    return attachment_points
+    #attachment_points.sort(key=lambda element: element.nr)
+
+    return {node.name: node for node in attachment_points}
+    #return attachment_points
 
 
 def get_lower_aufhaengepunkte(data):
@@ -210,6 +213,7 @@ def transpose_columns(sheet=ezodf.Table(), columnswidth=2):
 
 
 def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
+    # upper -> dct {name: node}
     num_rows = sheet.nrows()
     num_cols = sheet.ncols()
     linelist = []
@@ -231,12 +235,12 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
                 # We have a line
                 line_type_name = sheet.get_cell([i, j+1]).value
 
-                lower = current_nodes[j//2]
+                lower_node = current_nodes[j//2]
 
                 # gallery
                 if j + 4 >= num_cols or sheet.get_cell([i, j+2]).value is None:
 
-                    upper = attachment_points_upper[int(val-1)]
+                    upper = attachment_points_upper[val]
                     line_length = None
                     i += 1
                     j = 0
@@ -248,7 +252,7 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
                     j += 2
 
                 linelist.append(
-                    Line2D(lower, upper, target_length=line_length, line_type=line_type_name))
+                    Line2D(lower_node, upper, target_length=line_length, line_type=line_type_name))
                 count += 1
 
         elif j+2 >= num_cols:
