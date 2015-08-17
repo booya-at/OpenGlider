@@ -45,12 +45,14 @@ text_vectors = {
     "Y": [[0.2, 1.], [0.2, 0.6], [0.3, 0.5], [0.7, 0.5], [0.8, 0.6], [0.8, 1.], [0.8, 0.6], [0.7, 0.5], [0.8, 0.4],
           [0.8, 0.1], [0.7, 0]],
     "Z": [[0.2, 1.], [0.8, 1.], [0.2, 0], [0.8, 0]],
-    "_": [[0.2, 0.], [0.8, 0.]]
+    "_": [[0.2, 0.], [0.8, 0.]],
+    " ": [],
+    ".": [[0.48, 0], [0.52, 0], [0.52, 0.04], [0.48, 0.04], [0.48, 0]]
 }
 
 
 class Text():
-    def __init__(self, text, p1, p2, size=None, align="left", height=1, space=0.2):
+    def __init__(self, text, p1, p2, size=None, align="left", height=1, space=0.2, valign=0.5):
         self.text = text
         self.p1 = p1
         self.p2 = p2
@@ -58,6 +60,7 @@ class Text():
         self.height = height
         self.space = space
         self.align = align
+        self.valign = valign
 
     def __json__(self):
         return {
@@ -89,11 +92,17 @@ class Text():
 
         rot = numpy.array([[r_x, -r_y], [r_y, r_x]])
 
+        p1 += numpy.array([-r_y, r_x]) * (self.valign - 0.5)
+
         for letter in self.text.upper():
-            vectors.append(
-                PolyLine2D([p1 + rot.dot(p) for p in text_vectors[letter]])
-            )
-            p1 += diff
+            try:
+                if text_vectors[letter]:
+                    vectors.append(
+                        PolyLine2D([p1 + rot.dot(p) for p in text_vectors[letter]])
+                    )
+                p1 += diff
+            except KeyError:
+                raise KeyError("Letter {} from word '{}' not available".format(letter, self.text.upper()))
         return vectors
 
 def get_text_vector(text, p1, p2, height=1, space=0.2):

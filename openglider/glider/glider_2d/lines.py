@@ -9,7 +9,7 @@ from openglider.lines import line_types
 
 class LowerNode2D(object):
     """lower attachment point"""
-    def __init__(self, pos_2D, pos_3D, name=None, layer=None):
+    def __init__(self, pos_2D, pos_3D, name="unnamed", layer=None):
         self.pos_2D = pos_2D
         self.pos_3D = pos_3D
         self.name = name
@@ -19,7 +19,7 @@ class LowerNode2D(object):
         return{
             "pos_2D": self.pos_2D,
             "pos_3D": self.pos_3D,
-            "nr": self.nr,
+            "name": self.name,
             "layer": self.layer}
 
     def get_node(self, glider):
@@ -28,7 +28,7 @@ class LowerNode2D(object):
 
 class UpperNode2D(object):
     """stores the 2d data of an attachment point"""
-    def __init__(self, rib_no, rib_pos, force=1., name=None, layer=None):
+    def __init__(self, rib_no, rib_pos, force=1., name="unnamed", layer=None):
         self.rib_no = rib_no
         self.rib_pos = rib_pos  # value from 0...1
         self.force = force
@@ -56,7 +56,7 @@ class UpperNode2D(object):
             return x, y
 
     def get_node(self, glider):
-        node = AttachmentPoint(glider.ribs[self.rib_no], None,
+        node = AttachmentPoint(glider.ribs[self.rib_no], self.name,
                                self.rib_pos, [0, 0, self.force])
         node.get_position()
         return node
@@ -71,7 +71,7 @@ class BatchNode2D(object):
     def __json__(self):
         return{
             "pos_2D": self.pos_2D,
-            "nr": self.nr,
+            "nr": self.name,
             "layer": self.layer
         }
 

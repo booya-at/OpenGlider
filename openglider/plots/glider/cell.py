@@ -15,7 +15,7 @@ class PanelPlot:
 
         self.panel = panel
         self.xvalues = x_values
-        self.plotpart = PlotPart(material_code=self.panel.material_code)
+        self.plotpart = PlotPart(material_code=self.panel.material_code, name=self.panel.name)
 
     def get_panel(self):
         allowance = {
@@ -88,13 +88,23 @@ class PanelPlot:
         ik = get_x_value(self.xvalues, x)
         return [lst[ik] for lst in self.ballooned]
 
-    def insert_text(self, text):
+    def get_p1_p2(self, x, which):
+        which = {"left": 0, "right": 1}[which]
+        ik = get_x_value(self.xvalues, x)
+
+        return self.ballooned[which][ik], self.outer[which][ik]
+
+    def insert_text(self):
         left = get_x_value(self.xvalues, self.panel.cut_front["left"])
         right = get_x_value(self.xvalues, self.panel.cut_front["right"])
-        part_text = get_text_vector(" " + text + " ",
-                                    self.ballooned[0][left],
-                                    self.ballooned[1][right],
-                                    height=0.8)
+        text = self.panel.name
+        part_text = Text(text,
+                         self.ballooned[0][left],
+                         self.ballooned[1][right],
+                         size=0.01,
+                         align="center",
+                         valign=0.6,
+                         height=0.8).get_vectors()
         self.plotpart.text += part_text
 
     def insert_attachment_point_text(self, attachment_point, rib="left"):
@@ -102,9 +112,10 @@ class PanelPlot:
         which = rib  # (left, right)
         if self.panel.cut_front[which] <= attachment_point.rib_pos <= self.panel.cut_back[which]:
             left, right = self.get_point(attachment_point.rib_pos)
-            self.plotpart.text += Text(attachment_point.name, left, right,
-                                       size=0.02,  # 2 cm
-                                       align=align).get_vectors()
+            self.plotpart.text += Text(" {} ".format(attachment_point.name), left, right,
+                                       size=0.01,  # 1cm
+                                       align=align, valign=0).get_vectors()
+            self.plotpart.marks += [PolyLine2D(self.get_p1_p2(attachment_point.rib_pos, which))]
 
 
 
@@ -145,8 +156,14 @@ def get_panels(glider):
             except Exception as e:
                 print(part_name)
                 raise e
-            panelplot.insert_text(part_name)
-            panelplot.plotpart.name = part_name
+
+            panelplot.insert_text()
+
+            for attachment_point in glider.attachment_points:
+                if attachment_point.rib == cell.rib1:
+                    panelplot.insert_attachment_point_text(attachment_point, rib="left")
+                elif attachment_point.rib == cell.rib2:
+                    panelplot.insert_attachment_point_text(attachment_point, rib="right")
 
             cell_parts.append(panelplot.plotpart)
 
