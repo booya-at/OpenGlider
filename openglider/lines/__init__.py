@@ -55,10 +55,12 @@ class LineSet():
             nodes.add(line.lower_node)
         return nodes
 
-    # def calc_stretch(self):
-    #     for line in self.lines:
-    #         pass
-    #     pass
+    @property
+    def total_length(self):
+        length = 0
+        for line in self.lines:
+            length += line.get_stretched_length()
+        return length
 
     def calc_geo(self, start=None):
         if start is None:
