@@ -71,6 +71,7 @@ class Text():
         }
 
     def get_vectors(self):
+        # todo: add valign (space)
         vectors = []
         diff = (self.p2 - self.p1)/len(self.text)
         if self.size is not None:
