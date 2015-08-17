@@ -20,7 +20,7 @@ class aoa_tool(base_tool):
         self.coords = coin.SoSeparator()
         self.grid = coin.SoSeparator()
         self.aoa_spline = Line([], color="red", width=2)
-        self.ribs, self.front, self.back = self.glider_2d.shape()
+        self.ribs, self.front, self.back = self.glider_2d.shape().ribs_front_back
         self.text_scale = self.glider_2d.span / len(self.front) / 30
         self.x_grid = [i[0] for i in self.front]
 

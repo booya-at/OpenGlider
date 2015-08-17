@@ -24,8 +24,9 @@ import os
 
 import numpy
 
-from openglider.glider.cell import Cell
-from openglider.glider.rib import Rib, MiniRib
+from openglider.glider.cell.cell import Cell
+from openglider.glider.rib.minirib import MiniRib
+from openglider.glider.rib.rib import Rib
 
 
 try:

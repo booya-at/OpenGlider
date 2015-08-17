@@ -169,14 +169,13 @@ class Glider(object):
         ik = ik_l + dy * (ik_r - ik_l)
         return rib[ik]
 
-    def mirror(self, cutmidrib=True, complete=False):
-        # lets assume we have at least one cell to mirror :)
-        if self.cells[0].rib1.pos[1] != 0 and cutmidrib:  # Cut midrib
+    def mirror(self, cutmidrib=True):
+        if self.has_center_cell and cutmidrib:  # Cut midrib
             self.cells = self.cells[1:]
         for rib in self.ribs:
             rib.mirror()
         for cell in self.cells:
-            cell.rib1, cell.rib2 = cell.rib2, cell.rib1
+            cell.mirror(mirror_ribs=False)
         self.cells = self.cells[::-1]
 
     def copy(self):
@@ -269,7 +268,7 @@ class Glider(object):
     @property
     def profile_x_values(self):
         return self.ribs[0].profile_2d.x_values
-        return consistent_value(self.ribs, 'profile_2d.x_values')
+        # return consistent_value(self.ribs, 'profile_2d.x_values')
 
     @profile_x_values.setter
     def profile_x_values(self, xvalues):

@@ -4,12 +4,15 @@ import numpy
 from openglider.airfoil import Profile2D
 
 from openglider.glider import Glider
+from openglider.glider.glider_2d.shape import Shape
 from openglider.vector import mirror2D_x, Interpolation
 from openglider.vector.spline import Bezier, SymmetricBezier
 from openglider.vector.polyline import PolyLine2D
 from openglider.vector.functions import norm, normalize
-from openglider.glider.rib import Rib, RibHole, RigidFoil
-from openglider.glider.cell import Cell, Panel, DiagonalRib, TensionStrapSimple
+from openglider.glider.rib import RibHole, RigidFoil
+from openglider.glider.rib.rib import Rib
+from openglider.glider.cell import Panel, DiagonalRib, TensionStrapSimple
+from openglider.glider.cell.cell import Cell
 from .lines import LowerNode2D, Line2D, LineSet2D, BatchNode2D, UpperNode2D
 from .import_ods import import_ods_2d
 
@@ -123,8 +126,10 @@ class Glider2D(object):
         front = mirror2D_x(front_line)[::-1] + front_line
         back = [[x, back_int(x)] for x in dist]
         back = mirror2D_x(back)[::-1] + back
-        ribs = list(zip(front, back))
-        return [ribs, front, back]
+
+        return Shape(PolyLine2D(front), PolyLine2D(back))
+        #ribs = list(zip(front, back))
+        #return [ribs, front, back]
 
     def ribs(self, num=30):         #property
         front_int = self.front.interpolation(num=num)
@@ -248,13 +253,22 @@ class Glider2D(object):
             cuts.sort(key=lambda cut: cut["right"])
 
             cell.panels = []
-            for cut1, cut2 in zip(cuts[:-1], cuts[1:]):
+            for part_no, (cut1, cut2) in enumerate(zip(cuts[:-1], cuts[1:])):
                 if cut1["type"] == cut2["type"] == "folded":
                     continue
 
                 assert cut2["left"] >= cut1["left"]
                 assert cut2["right"] >= cut1["right"]
-                cell.panels.append(Panel(cut1, cut2))
+
+                try:
+                    material_code = self.elements["materials"][cell_no][part_no]
+                except (KeyError, IndexError):
+                    material_code = "unknown"
+
+                panel = Panel(cut1, cut2,
+                              name="cell{}p{}".format(cell_no, part_no),
+                              material_code=material_code)
+                cell.panels.append(panel)
 
     def apply_diagonals(self, glider):
         for cell_no, cell in enumerate(glider.cells):
@@ -266,11 +280,28 @@ class Glider2D(object):
                     dct.pop("cells")
                     cell.diagonals.append(DiagonalRib(**dct))
 
+            cell.diagonals.sort(key=lambda d: d.get_average_x())
+
             for strap in self.elements.get("straps", []):
                 if cell_no in strap["cells"]:
                     dct = strap.copy()
                     dct.pop("cells")
+                    dct["name"] = "cell{}strap".format(cell_no)
                     cell.straps.append(TensionStrapSimple(**dct))
+
+            cell.straps.sort(key=lambda s: (s.left + s.right)/2)
+
+            # Name elements
+
+            for d_no, diagonal in enumerate(cell.diagonals):
+                diagonal.name = "cell{}drib{}".format(cell_no, d_no)
+
+            for s_no, strap in enumerate(cell.straps):
+                strap.name = "cell{}strap{}".format(cell_no, s_no)
+
+
+
+
 
 
 
@@ -381,15 +412,18 @@ class Glider2D(object):
                 glide=self.glide,
                 aoa_absolute=aoa_int(pos),
                 holes=this_rib_holes,
-                rigidfoils=this_rigid_foils
+                rigidfoils=this_rigid_foils,
+                name="rib{}".format(rib_no)
             ))
             ribs[-1].aoa_relative = aoa_int(pos)
 
         glider.cells = []
-        for i, (rib1, rib2) in enumerate(zip(ribs[:-1], ribs[1:])):
-            ballooning_factor = ballooning_merge_curve(cell_centers[i])
+        for cell_no, (rib1, rib2) in enumerate(zip(ribs[:-1], ribs[1:])):
+            ballooning_factor = ballooning_merge_curve(cell_centers[cell_no])
             ballooning = self.merge_ballooning(ballooning_factor)
-            glider.cells.append(Cell(rib1, rib2, ballooning))
+            cell = Cell(rib1, rib2, ballooning, name="cell{}".format(cell_no))
+
+            glider.cells.append(cell)
 
         glider.close_rib()
 
@@ -431,13 +465,7 @@ class Glider2D(object):
 
     @property
     def flat_area(self):
-        ribs, _, _ = self.shape()
-        ribs = list(ribs)       # gschissenes python3
-        area = 0
-        for i in range(len(ribs) - 1):
-            l = (ribs[i][0][1] - ribs[i][1][1]) + (ribs[i+1][0][1] - ribs[i+1][1][1])
-            area += l * (-ribs[i][0][0] + ribs[i+1][0][0]) / 2
-        return area
+        return self.shape().area
 
     def set_flat_area(self, value, fixed="aspect_ratio"):
         area = self.flat_area

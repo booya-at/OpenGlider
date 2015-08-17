@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
+import copy
 
 from openglider.airfoil import get_x_value
 from openglider.plots.projection import flatten_list
@@ -25,7 +26,7 @@ from openglider.vector import norm
 
 
 class DiagonalRib(object):
-    def __init__(self, left_front, left_back, right_front, right_back, material_code=None):
+    def __init__(self, left_front, left_back, right_front, right_back, material_code="", name="unnamed"):
         """
         [left_front, left_back, right_front, right_back]
             -> Cut: (x_value, height)
@@ -35,7 +36,8 @@ class DiagonalRib(object):
         self.left_back = left_back
         self.right_front = right_front
         self.right_back = right_back
-        self.material_code = material_code or ""
+        self.material_code = material_code
+        self.name = name
 
     def __json__(self):
         return {'left_front': self.left_front,
@@ -44,6 +46,13 @@ class DiagonalRib(object):
                 'right_back': self.right_back,
                 "material_code": self.material_code
         }
+
+    def copy(self):
+        return copy.copy(self)
+
+    def mirror(self):
+        self.left_front, self.right_front = self.right_front, self.left_front
+        self.left_back, self.right_back = self.right_back, self.left_back
 
     def get_3d(self, cell):
         """
@@ -72,25 +81,35 @@ class DiagonalRib(object):
         left, right = flatten_list(first, second)
         return left, right
 
+    def get_average_x(self):
+        """
+        return average x value for sorting
+        """
+        return (self.left_front[0] + self.left_back[0] +
+                self.right_back[0] + self.right_front[0]) / 4
+
 
 class DoubleDiagonalRib():
     pass  # TODO
 
 
 class TensionStrap(DiagonalRib):
-    def __init__(self, left, right, width, material_code=None):
+    def __init__(self, left, right, width, material_code=None, name=""):
         width /= 2
         super(TensionStrap, self).__init__((left - width, -1),
                                            (left + width, -1),
                                            (right - width, -1),
                                            (right + width, -1),
-                                           material_code)
+                                           material_code,
+                                           name)
 
 
 class TensionStrapSimple():
-    def __init__(self, left, right):
+    def __init__(self, left, right, material_code="", name=""):
         self.left = left
         self.right = right
+        self.name = name
+        self.material_code = material_code
 
     def __json__(self):
         return {"left": self.left,
@@ -105,16 +124,20 @@ class TensionStrapSimple():
 
         return norm(left - right)
 
+    def mirror(self):
+        self.left, self.right = self.right, self.left
+
 
 class Panel(object):
     """
     Glider cell-panel
     """
 
-    def __init__(self, cut_front, cut_back, material_code=None):
+    def __init__(self, cut_front, cut_back, material_code=None, name="unnamed"):
         self.cut_front = cut_front  # (left, right, style(int))
         self.cut_back = cut_back
         self.material_code = material_code or ""
+        self.name = name
 
     def __json__(self):
         return {'cut_front': self.cut_front,
@@ -129,7 +152,7 @@ class Panel(object):
         :param numribs: number of miniribs to calculate
         :return: List of rib-pieces (Vectorlist)
         """
-        xvalues = cell.profile_2d.x_values
+        xvalues = cell.rib1.profile_2d.x_values
         ribs = []
         for i in range(numribs + 1):
             y = i / numribs

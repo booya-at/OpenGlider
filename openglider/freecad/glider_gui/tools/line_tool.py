@@ -25,7 +25,7 @@ class line_tool(base_tool):
         super(line_tool, self).__init__(obj, widget_name="line_tool")
 
         # get the glider_2d shape
-        self.ribs, self.front, self.back = self.glider_2d.shape()
+        self.ribs, self.front, self.back = self.glider_2d.shape().ribs_front_back
         self.xpos = [rib[0][0] for rib in self.glider_2d.ribs()]
 
         # qt helper line

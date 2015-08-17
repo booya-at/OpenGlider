@@ -1,33 +1,10 @@
-#! /usr/bin/python2
-# -*- coding: utf-8; -*-
-#
-# (c) 2013 booya (http://booya.at)
-#
-# This file is part of the OpenGlider project.
-#
-# OpenGlider is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# OpenGlider is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import division
-
 import numpy
-from numpy import dot
+import copy
+from openglider.lines import SagMatrix
 
-from openglider.lines.elements import Line, Node, SagMatrix
-from openglider.lines.lineset import LineSet
-from openglider.vector.functions import norm, normalize
 from openglider.lines.functions import proj_force
+from openglider.vector.functions import norm, normalize
 
-__all__ = ["Line", "Node", "LineSet"]
 
 class LineSet():
     """
@@ -53,12 +30,10 @@ class LineSet():
             nodes.add(line.lower_node)
         return nodes
 
-    @property
-    def total_length(self):
-        length = 0
-        for line in self.lines:
-            length += line.get_stretched_length()
-        return length
+    # def calc_stretch(self):
+    #     for line in self.lines:
+    #         pass
+    #     pass
 
     def calc_geo(self, start=None):
         if start is None:
@@ -116,7 +91,7 @@ class LineSet():
                     else:
                         force += line.force * line.diff_vector
                 # vec = line_lower.upper_node.vec - line_lower.lower_node.vec
-                line_lower.force = norm(dot(force, normalize(vec)))
+                line_lower.force = norm(numpy.dot(force, normalize(vec)))
 
             else:
                 force = line_lower.upper_node.force
@@ -130,6 +105,22 @@ class LineSet():
 
     def get_connected_lines(self, node):
         return self.get_upper_connected_lines(node) + self.get_lower_connected_lines(node)
+
+    def get_drag(self):
+        """
+        Get Total drag of the lineset
+        :return: Center of Pressure, Drag (1/2*cw*A*v^2)
+        """
+        centers = [line.get_line_point(0.5) for line in self.lines]
+        drag = [line.drag_total for line in self.lines]
+
+        center = numpy.array([0, 0, 0])
+        drag_total = sum(drag)
+        for p, drag in zip(centers, drag):
+            center = center + p*drag
+        center /= drag_total
+
+        return center, drag_total
 
     def calc_projected_nodes(self):
         for n in self.nodes:
@@ -190,3 +181,12 @@ class LineSet():
             'nodes': nodes,
             'v_inf': self.v_inf.tolist()
         }
+
+    @classmethod
+    def __from_json__(cls, lines, nodes, v_inf):
+        for line in lines:
+            if isinstance(line.upper_node, int):
+                line.upper_node = nodes[line.upper_node]
+            if isinstance(line.lower_node, int):
+                line.lower_node = nodes[line.lower_node]
+        return cls(lines, v_inf)

@@ -27,7 +27,10 @@ class GraphicObject(object):
         """
         cell = graphics.get_cell(self.__class__)
         pointnums = self.add_points(graphics)
-        graphics.colours.InsertNextTupleValue(self.colour or graphics.default_colour)
+        colour = self.colour or graphics.default_colour
+        if isinstance(colour, RGBColour):
+            colour = colour.colour
+        graphics.colours.InsertNextTupleValue(colour)
         return cell, pointnums
 
 
@@ -129,6 +132,9 @@ class RGBColour(object):
 
     def draw(self, graphics):
         graphics.default_colour = self.colour
+
+    def __iter__(self):
+        return iter(self.colour)
 
 Red = RGBColour(255, 0, 0)
 Blue = RGBColour(0, 0, 255)

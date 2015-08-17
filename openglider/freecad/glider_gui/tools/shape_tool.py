@@ -268,17 +268,17 @@ class shape_tool(base_tool):
         self.glider_2d.back.controlpoints = [i[:-1] for i in self.back_cpc.control_pos]
         self.glider_2d.cell_dist_controlpoints = [i[:-1] for i in self.cell_dist_cpc.control_pos]
         self.shape.removeAllChildren()
-        ribs, front, back = self.glider_2d.shape(num=15)
+        ribs, front, back = self.glider_2d.shape(num=15).ribs_front_back
         dist_line = self.glider_2d.cell_dist_interpolation
         self.shape.addChild(Line(front, width=2).object)
         self.shape.addChild(Line(back, width=2).object)
         self.shape.addChild(Line(vector3D(self.glider_2d.front.data), color="gray").object)
         self.shape.addChild(Line(vector3D(self.glider_2d.back.data), color="gray").object)
-    
+        print(ribs)
         for rib in ribs:
             width = 1
             col = "grey"
-            if rib in (ribs[0], ribs[-1]):
+            if list(rib) in (ribs[0], ribs[-1]):
                 width = 2
                 col = "black"
             self.shape.addChild(Line(rib, color=col, width=width).object)

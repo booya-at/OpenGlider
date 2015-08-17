@@ -49,6 +49,53 @@ text_vectors = {
 }
 
 
+class Text():
+    def __init__(self, text, p1, p2, size=None, align="left", height=1, space=0.2):
+        self.text = text
+        self.p1 = p1
+        self.p2 = p2
+        self.size = size
+        self.height = height
+        self.space = space
+        self.align = align
+
+    def __json__(self):
+        return {
+            "text": self.text,
+            "p1": self.p1,
+            "p2": self.p2,
+            "size": self.size,
+            "height": self.height,
+            "space": self.space,
+            "align": self.align
+        }
+
+    def get_vectors(self):
+        vectors = []
+        diff = (self.p2 - self.p1)/len(self.text)
+        if self.size is not None:
+            diff = normalize(diff) * self.size
+
+        if self.align == "left":
+            p1 = self.p1[:]
+        elif self.align == "center":
+            p1 = self.p1 + (self.p2 - self.p1)/2 - len(self.text)/2 * diff
+        elif self.align == "right":
+            p1 = self.p2 - len(self.text) * diff
+        else:
+            raise ValueError
+
+        r_x, r_y = diff[0], diff[1]
+
+        rot = numpy.array([[r_x, -r_y], [r_y, r_x]])
+
+        for letter in self.text.upper():
+            vectors.append(
+                PolyLine2D([p1 + rot.dot(p) for p in text_vectors[letter]])
+            )
+            p1 += diff
+        return vectors
+
 def get_text_vector(text, p1, p2, height=1, space=0.2):
     width = (p2-p1)/len(text)
     x, y = normalize([width.dot([1, 0]), width.dot([0, 1])])
