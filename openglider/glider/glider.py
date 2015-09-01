@@ -25,8 +25,10 @@ import numpy
 from openglider.airfoil import Profile2D
 
 from openglider.glider.in_out import IMPORT_GEOMETRY, EXPORT_3D
+from openglider.glider.shape import Shape
 from openglider.utils import consistent_value
 from openglider.plots.projection import flatten_list
+from openglider.vector import PolyLine2D
 from openglider.vector.functions import norm, rotation_2d
 
 
@@ -203,7 +205,7 @@ class Glider(object):
             # todo: scale lines,
 
     @property
-    def shape_simple(self):
+    def shape_simple(self, cut_center=True):
         """
         Simple (rectangular) shape representation for spline inputs
         """
@@ -223,7 +225,7 @@ class Glider(object):
             front.append([x, y_front])
             back.append([x, y_back])
 
-        return front, back
+        return Shape(front, back)
 
     @property
     def shape_flattened(self):
@@ -232,7 +234,7 @@ class Glider(object):
         """
         rot = rotation_2d(numpy.pi / 2)
         front, back = flatten_list(self.get_spanwise(0), self.get_spanwise(1))
-        return [rot.dot(p) for p in front], [rot.dot(p) for p in back]
+        return Shape([rot.dot(p) for p in front], [rot.dot(p) for p in back])
 
     # delete ? 
     @property

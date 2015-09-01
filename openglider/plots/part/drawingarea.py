@@ -17,20 +17,41 @@ class DrawingArea():
 
     @classmethod
     def create_raster(cls, parts, distance_x=0.2, distance_y=0.1):
-        area = cls()
+        """
+
+        :param parts: [[p1_1, p1_2], [p2_1, p2_2],...]
+        :param distance_x: grid distance (x)
+        :param distance_y: grid distance (y)
+        :return: DrawingArea
+        """
+        parts_flat = []
+        for column in parts:
+            parts_flat += column
+        area = cls(parts)
+        area.rasterize(len(parts), distance_x, distance_y)
+
+        return area
+
+    def rasterize(self, columns, distance_x=0.2, distance_y=0.1):
+        column_lst = [[] for _ in range(columns)]
+
+        for i, part in enumerate(self.parts):
+            column = i%columns
+            column_lst[column].append(part)
+
+        distance_y = distance_y or distance_x
         last_x = 0.
         last_y = 0.
         next_x = [0.]
-        for col in parts:
+        for col in column_lst:
             for part in col:
                 part.move([last_x - part.min_x, last_y - part.min_y])
-                area.parts.append(part)
+                #area.parts.append(part)
                 last_y = part.max_y + distance_y
                 next_x.append(part.max_x)
             last_x = max(next_x) + distance_x
             last_y = 0.
 
-        return area
 
     @property
     def min_x(self):
@@ -84,10 +105,15 @@ class DrawingArea():
             part_group = svgwrite.container.Group()
 
             for layer_name, layer_config in config["layers"].items():
+                # todo: simplify
                 if layer_name in part.layers:
-                    lines = part.return_layer_svg(layer_name, scale=config["scale"])
+                    lines = part.return_layer_svg(layer_name)
                     for line in lines:
                         element = svgwrite.shapes.Polyline(line, **layer_config)
+                        classes = [layer_name]
+                        if part.material_code:
+                            classes.append(part.material_code)
+                        element.attribs["class"] = " ".join(classes)
                         part_group.add(element)
 
             group.add(part_group)
@@ -99,13 +125,18 @@ class DrawingArea():
         width *= 1000
         height *= 1000
         drawing = svgwrite.Drawing(size=["{}mm".format(n) for n in (width, height)])
-        drawing.viewbox(self.min_x, self.min_y, self.width, self.height)
+        drawing.viewbox(self.min_x, -self.max_y, self.width, self.height)
         group = self.get_svg_group()
         drawing.add(group)
         return drawing
 
     def _repr_svg_(self):
-        drawing = self.get_svg_drawing()
+        width = 600
+        height = int(width * self.height/self.width)+1
+        drawing = svgwrite.Drawing(size=["{}px".format(n) for n in (width, height)])
+        drawing.viewbox(self.min_x, -self.max_y, self.width, self.height)
+        group = self.get_svg_group()
+        drawing.add(group)
         return drawing.tostring()
 
     def export_svg(self, path):
@@ -131,3 +162,11 @@ class DrawingArea():
 
         drawing.saveas(path)
         return drawing
+
+    def group_materials(self):
+        dct = {}
+        for part in self.parts:
+            code = part.material_code
+            if code not in dct:
+                dct[code] = DrawingArea()
+            dct[code].parts.append(part)

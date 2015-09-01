@@ -131,6 +131,7 @@ class TensionStrapSimple():
 class Panel(object):
     """
     Glider cell-panel
+    :param cut_front {'left': 0.06, 'right': 0.06, 'type': 'orthogonal'}
     """
 
     def __init__(self, cut_front, cut_back, material_code=None, name="unnamed"):
@@ -143,7 +144,7 @@ class Panel(object):
         return {'cut_front': self.cut_front,
                 'cut_back': self.cut_back,
                 "material_code": self.material_code
-        }
+                }
 
     def get_3d(self, cell, numribs=0):
         """
@@ -156,13 +157,23 @@ class Panel(object):
         ribs = []
         for i in range(numribs + 1):
             y = i / numribs
-            front = get_x_value(xvalues, self.cut_front[0] + y * (
-                self.cut_front[1] - self.cut_front[0]))
-            back = get_x_value(xvalues, self.cut_back[0] + y * (
-                self.cut_back[1] - self.cut_back[0]))
+            x1 = self.cut_front["left"] + y * (self.cut_front["right"] -
+                                               self.cut_front["left"])
+            front = get_x_value(xvalues, x1)
+
+            x2 = self.cut_back["left"] + y * (self.cut_back["right"] -
+                                              self.cut_back["left"])
+            back = get_x_value(xvalues, x2)
             ribs.append(cell.midrib(y).get(front, back))
             # todo: return polygon-data
         return ribs
+
+    def mirror(self):
+        left, right = self.cut_front["left"], self.cut_front["right"]
+        self.cut_front["left"], self.cut_front["right"] = right, left
+
+        left, right = self.cut_back["left"], self.cut_back["right"]
+        self.cut_back["left"], self.cut_back["right"] = right, left
 
 
 

@@ -4,7 +4,7 @@ import numpy
 from openglider.airfoil import Profile2D
 
 from openglider.glider import Glider
-from openglider.glider.glider_2d.shape import Shape
+from openglider.glider.shape import Shape
 from openglider.vector import mirror2D_x, Interpolation
 from openglider.vector.spline import Bezier, SymmetricBezier
 from openglider.vector.polyline import PolyLine2D
@@ -79,6 +79,10 @@ class Glider2D(object):
     def has_center_cell(self):
         return self.cell_num % 2
 
+    @property
+    def half_cell_num(self):
+        return self.cell_num // 2 + self.has_center_cell
+
     def get_arc_positions(self, num=60):
         # calculating y/z values vor the arc-curve
         x_values = self.rib_x_values
@@ -114,7 +118,7 @@ class Glider2D(object):
 
         return angles
 
-    def shape(self, num=30):
+    def half_shape(self, num=30):
         """
         Return shape of the glider:
         [ribs, front, back]
@@ -122,14 +126,17 @@ class Glider2D(object):
         front_int = self.front.interpolation(num=num)
         back_int = self.back.interpolation(num=num)
         dist = self.rib_x_values
-        front_line = [[x, front_int(x)] for x in dist]
-        front = mirror2D_x(front_line)[::-1] + front_line
+        front = [[x, front_int(x)] for x in dist]
         back = [[x, back_int(x)] for x in dist]
-        back = mirror2D_x(back)[::-1] + back
 
         return Shape(PolyLine2D(front), PolyLine2D(back))
-        #ribs = list(zip(front, back))
-        #return [ribs, front, back]
+
+    def shape(self, num=30):
+        """
+        Return shape of the glider:
+        [ribs, front, back]
+        """
+        return self.half_shape(num).copy_complete()
 
     def ribs(self, num=30):         #property
         front_int = self.front.interpolation(num=num)
@@ -236,25 +243,43 @@ class Glider2D(object):
             airfoil = first.copy()
         return Profile2D(airfoil.data)
 
-    def apply_panels(self, glider_3d):
+    def get_panels(self, glider_3d=None):
         def is_greater(cut_1, cut_2):
             if cut_1["left"] >= cut_2["left"] and cut_1["right"] >= cut_2["left"]:
                 return True
             return False
 
-        for cell_no, cell in enumerate(glider_3d.cells):
-            cuts = [cut for cut in self.elements.get("cuts", []) if cell_no in cut["ribs"]]
-            if -1 not in [c["left"] for c in cuts]:
-                cuts.append({"left": -1, "right": -1, "type": "parallel"})
-            if 1 not in [c["left"] for c in cuts]:
-                cuts.append({"left": 1, "right": 1, "type": "parallel"})
+        if glider_3d is None:
+            cells = [[] for _ in range(self.half_cell_num)]
+        else:
+            cells = [cell.panels for cell in glider_3d.cells]
+            for cell in cells:
+                cell.clear()
+
+        for cell_no, panel_lst in enumerate(cells):
+            cuts = [cut for cut in self.elements.get("cuts", []) if cell_no in cut["cells"]]
+
+            # add trailing edge (2x)
+            all_values = [c["left"] for c in cuts] + [c["right"] for c in cuts]
+            if -1 not in all_values:
+                cuts.append({"cells": [cell_no], "type": "parallel",
+                             "left": -1, "right": -1})
+            if 1 not in all_values:
+                cuts.append({"cells": [cell_no], "type": "parallel",
+                            "left": 1, "right": 1})
 
             cuts.sort(key=lambda cut: cut["left"])
             cuts.sort(key=lambda cut: cut["right"])
 
-            cell.panels = []
-            for part_no, (cut1, cut2) in enumerate(zip(cuts[:-1], cuts[1:])):
+            for part_no in range(len(cuts)-1):
+                cut1 = cuts[part_no].copy()
+                cut2 = cuts[part_no+1].copy()
+
+                cut1.pop("cells")
+                cut2.pop("cells")
+
                 if cut1["type"] == cut2["type"] == "folded":
+                    # entry
                     continue
 
                 assert cut2["left"] >= cut1["left"]
@@ -268,7 +293,9 @@ class Glider2D(object):
                 panel = Panel(cut1, cut2,
                               name="cell{}p{}".format(cell_no, part_no),
                               material_code=material_code)
-                cell.panels.append(panel)
+                panel_lst.append(panel)
+
+        return cells
 
     def apply_diagonals(self, glider):
         for cell_no, cell in enumerate(glider.cells):
@@ -385,7 +412,7 @@ class Glider2D(object):
         rib_holes = self.elements.get("holes", [])
         rigids = self.elements.get("rigidfoils", [])
 
-        if x_values[0] != 0.:
+        if self.has_center_cell:
             # adding the mid cell
             x_values = [-x_values[0]] + x_values
             arc_pos = [[-arc_pos[0][0], arc_pos[0][1]]] + arc_pos
@@ -427,7 +454,7 @@ class Glider2D(object):
 
         glider.close_rib()
 
-        self.apply_panels(glider)
+        self.get_panels(glider)
         self.apply_diagonals(glider)
         #self.apply_holes(glider)
 
