@@ -4,6 +4,7 @@ import svgwrite.container
 import svgwrite.shapes
 
 from openglider.plots import config
+from openglider.utils.css import get_material_color, normalize_class_names
 
 __author__ = 'simon'
 
@@ -27,7 +28,7 @@ class DrawingArea():
         parts_flat = []
         for column in parts:
             parts_flat += column
-        area = cls(parts)
+        area = cls(parts_flat)
         area.rasterize(len(parts), distance_x, distance_y)
 
         return area
@@ -100,6 +101,7 @@ class DrawingArea():
 
     def get_svg_group(self, config=config.sewing_config):
         group = svgwrite.container.Group()
+        group.scale(1, -1)  # svg coordinate system is x->right y->down
 
         for part in self.parts:
             part_group = svgwrite.container.Group()
@@ -107,7 +109,7 @@ class DrawingArea():
             for layer_name, layer_config in config["layers"].items():
                 # todo: simplify
                 if layer_name in part.layers:
-                    lines = part.return_layer_svg(layer_name)
+                    lines = part.layers[layer_name]
                     for line in lines:
                         element = svgwrite.shapes.Polyline(line, **layer_config)
                         classes = [layer_name]
@@ -120,23 +122,52 @@ class DrawingArea():
 
         return group
 
-    def get_svg_drawing(self):
+    def get_svg_drawing(self, unit="mm"):
         width, height = self.width, self.height
-        width *= 1000
-        height *= 1000
-        drawing = svgwrite.Drawing(size=["{}mm".format(n) for n in (width, height)])
+        drawing = svgwrite.Drawing(size=[("{}"+unit).format(n) for n in (width, height)])
         drawing.viewbox(self.min_x, -self.max_y, self.width, self.height)
         group = self.get_svg_group()
         drawing.add(group)
+
         return drawing
 
     def _repr_svg_(self):
         width = 600
         height = int(width * self.height/self.width)+1
-        drawing = svgwrite.Drawing(size=["{}px".format(n) for n in (width, height)])
-        drawing.viewbox(self.min_x, -self.max_y, self.width, self.height)
-        group = self.get_svg_group()
-        drawing.add(group)
+        drawing = self.get_svg_drawing()
+        drawing["width"] = "{}px".format(width)
+        drawing["height"] = "{}px".format(height)
+
+
+        style = svgwrite.container.Style()
+        styles = {}
+
+        def add_style(elem):
+            classes = elem.attribs.get("class", "")
+            normalized = normalize_class_names(classes)
+
+            if normalized:
+                elem.attribs["class"] = normalize_class_names(classes)
+
+            for _class in classes.split(" "):
+                colour = get_material_color(_class)
+                _class_new = normalize_class_names(_class)
+
+                if colour:
+                    styles[_class_new] = ["fill: {}".format(colour)]
+            if hasattr(elem, "elements"):
+                for sub_elem in elem.elements:
+                    add_style(sub_elem)
+
+        add_style(drawing)
+
+        for cls, attribs in styles.items():
+            style.append(".{} {{\n".format(cls))
+            for attrib in attribs:
+                style.append("\t{};\n".format(attrib))
+            style.append("}\n")
+        drawing.defs.add(style)
+
         return drawing.tostring()
 
     def export_svg(self, path):
@@ -170,3 +201,5 @@ class DrawingArea():
             if code not in dct:
                 dct[code] = DrawingArea()
             dct[code].parts.append(part)
+
+        return dct

@@ -271,9 +271,10 @@ class Glider2D(object):
             cuts.sort(key=lambda cut: cut["left"])
             cuts.sort(key=lambda cut: cut["right"])
 
-            for part_no in range(len(cuts)-1):
-                cut1 = cuts[part_no].copy()
-                cut2 = cuts[part_no+1].copy()
+            part_no = 0
+            for cut_no in range(len(cuts)-1):
+                cut1 = cuts[cut_no].copy()
+                cut2 = cuts[cut_no+1].copy()
 
                 cut1.pop("cells")
                 cut2.pop("cells")
@@ -294,6 +295,8 @@ class Glider2D(object):
                               name="cell{}p{}".format(cell_no, part_no),
                               material_code=material_code)
                 panel_lst.append(panel)
+
+                part_no += 1
 
         return cells
 

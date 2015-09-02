@@ -42,6 +42,7 @@ def design_plot(glider_2d, glider_3d=None, lower=True):
             p4 = shape.get_point(cell_no+1, rigth_front)
 
             drawingarea.parts.append(PlotPart(
-                cuts=[PolyLine2D([p1, p2, p3, p4, p1])]))
+                cuts=[PolyLine2D([p1, p2, p3, p4, p1])],
+                material_code=panel.material_code))
 
     return drawingarea
