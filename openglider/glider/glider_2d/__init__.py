@@ -254,7 +254,7 @@ class Glider2D(object):
         else:
             cells = [cell.panels for cell in glider_3d.cells]
             for cell in cells:
-                cell.clear()
+                cell = []
 
         for cell_no, panel_lst in enumerate(cells):
             cuts = [cut for cut in self.elements.get("cuts", []) if cell_no in cut["cells"]]
