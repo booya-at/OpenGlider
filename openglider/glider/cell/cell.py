@@ -183,6 +183,9 @@ class Cell(CachedObject):
         for strap in self.straps:
             strap.mirror()
 
+        for panel in self.panels:
+            panel.mirror()
+
     def mean_rib(self, num_midribs=8):
         mean_rib = self.midrib(0).flatten().normalize()
         for y in numpy.linspace(0, 1, num_midribs)[1:]:

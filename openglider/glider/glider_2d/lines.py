@@ -71,7 +71,7 @@ class BatchNode2D(object):
     def __json__(self):
         return{
             "pos_2D": self.pos_2D,
-            "nr": self.name,
+            "name": self.name,
             "layer": self.layer
         }
 

@@ -107,18 +107,6 @@ class PlotPart():
     def area(self):
         return self.width * self.height
 
-    def return_layer_svg(self, layer, scale=1):
-        """
-        Return a layer scaled for svg_coordinate_system [x,y = (mm, -mm)]
-        """
-        if layer in self.layers:
-            new = []
-            for line in self.layers[layer]:
-                new.append(map(lambda point: point * [scale, -scale], line))
-            return new
-        else:
-            return None
-
     def scale(self, factor):
         for layer in self.layers.values():
             for p in layer:

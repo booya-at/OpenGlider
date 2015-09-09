@@ -91,7 +91,7 @@ def import_ods_2d(cls, filename, numpoints=4):
     rigidfoils = [{"ribs": [res[0]], "start": res[1], "end": res[2], "distance": res[3]} for res in read_elements(sheets[2], "RIGIDFOIL", len_data=3)]
     # CUTS
     def get_cuts(name, target_name):
-        return [{"ribs": [res[0]], "left": res[1], "right": res[2], "type": target_name}
+        return [{"cells": [res[0]], "left": res[1], "right": res[2], "type": target_name}
                 for res in read_elements(sheets[1], name, len_data=2)]
 
     cuts = get_cuts("EKV", "folded") + get_cuts("EKH", "folded")
