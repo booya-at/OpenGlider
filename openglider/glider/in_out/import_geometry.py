@@ -102,7 +102,7 @@ def import_ods(filename, glider):
 
     ######################################LINESET######################################################
     attachment_points = [AttachmentPoint(glider.ribs[args[0]], args[1], args[2]) for args in read_elements(sheets[2], "AHP", len_data=2)]
-    attachment_points.sort(key=lambda element: element.number)
+    attachment_points.sort(key=lambda element: element.name)
     attachment_points_lower = get_lower_aufhaengepunkte(glider.data)
 
     for p in attachment_points:

@@ -23,9 +23,11 @@ import sys
 
 import vtk
 
-from .functions import depth, tofloat
-from .elements import *
-from .qt import ApplicationWindow
+from openglider.graphics.functions import depth, tofloat
+from openglider.graphics.elements import *
+# from openglider.graphics.qt import ApplicationWindow
+
+    # problems with this line on ubuntu 15.04
 
 
 class Graphics(object):
