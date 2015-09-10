@@ -127,7 +127,7 @@ class AttachmentPoint(Node):
 
     def __json__(self):
         return {"rib": self.rib,
-                "number": self.name,
+                "name": self.name,
                 "rib_pos": self.rib_pos,
                 "force": self.force}
 
