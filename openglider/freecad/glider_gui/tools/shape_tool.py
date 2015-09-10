@@ -274,7 +274,6 @@ class shape_tool(base_tool):
         self.shape.addChild(Line(back, width=2).object)
         self.shape.addChild(Line(vector3D(self.glider_2d.front.data), color="gray").object)
         self.shape.addChild(Line(vector3D(self.glider_2d.back.data), color="gray").object)
-        print(ribs)
         for rib in ribs:
             width = 1
             col = "grey"
