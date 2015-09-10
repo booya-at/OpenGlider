@@ -48,9 +48,12 @@ def output_lines(glider, ods_sheet=None, places=3):
         if upper:
             for line, line_upper in upper.items():
                 row = insert_block(line, line_upper, row, column+2)
-        else: # Insert a top node
-            ods_sheet[row, column+2].set_value("Rib_{}/{}".format(glider.ribs.index(line.upper_node.rib),
-                                                                 line.upper_node.rib_pos))
+        else:  # Insert a top node
+            name = line.upper_node.name
+            if not name:
+                name = "Rib_{}/{}".format(glider.ribs.index(line.upper_node.rib),
+                                          line.upper_node.rib_pos)
+            ods_sheet[row, column+2].set_value(name)
             row += 1
         return row
 

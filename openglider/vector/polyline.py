@@ -174,6 +174,8 @@ class PolyLine2D(PolyLine):
                 except numpy.linalg.linalg.LinAlgError:
                     continue
 
+        return self
+
     @cached_property('self')
     def normvectors(self):
         """

@@ -1,6 +1,6 @@
 from openglider.plots import sewing_config, cuts, PlotPart
 from openglider.vector import PolyLine2D
-from openglider.vector.text import get_text_vector
+from openglider.vector.text import Text
 
 
 def get_dribs(glider):
@@ -31,14 +31,12 @@ def get_dribs(glider):
             part_marks = [left + right[::-1] +
                           PolyLine2D([left[0]])]
 
-            d_rib_name = "cell_{}_drib_{}".format(cell_no, d_no)
-            text = get_text_vector(" " + d_rib_name + " ",
-                                   left[0], right[0])
+            text = Text(" {} ".format(d_rib.name), left[0], right[0]).get_vectors()
 
             cell_dribs.append(PlotPart(cuts=part_cuts,
                                        marks=part_marks,
                                        text=text,
-                                       name=d_rib_name,
+                                       name=d_rib.name,
                                        material_code=d_rib.material_code))
 
         dribs.append(cell_dribs)

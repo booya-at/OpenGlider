@@ -112,6 +112,31 @@ class PlotPart():
             for p in layer:
                 p.scale(factor)
 
+    def _repr_svg_(self):
+        import svgwrite
+        import svgwrite.container
+        import svgwrite.shapes
+        width = 600
+        height = int(width * self.height/self.width)+1
+        drawing = svgwrite.Drawing(size=["{}px".format(n) for n in (width, height)])
+        drawing.viewbox(self.min_x, -self.max_y, self.width, self.height)
+        group = svgwrite.container.Group()
+        group.scale(1, -1)  # svg coordinate system is x->right y->down
+        drawing.add(group)
+        style = {
+            "stroke-width": 1,
+            "stroke": "black",
+            "style": "vector-effect: non-scaling-stroke",
+            "fill": "none"
+        }
+
+        for layer in self.layers.values():
+            for line in layer:
+                element = svgwrite.shapes.Polyline(line, **style)
+                group.add(element)
+
+        return drawing.tostring()
+
         # FLATTENING
         # Dict for layers
         # Flatten all cell-parts

@@ -131,14 +131,8 @@ class DrawingArea():
 
         return drawing
 
-    def _repr_svg_(self):
-        width = 600
-        height = int(width * self.height/self.width)+1
-        drawing = self.get_svg_drawing()
-        drawing["width"] = "{}px".format(width)
-        drawing["height"] = "{}px".format(height)
-
-
+    @staticmethod
+    def add_svg_styles(drawing):
         style = svgwrite.container.Style()
         styles = {}
 
@@ -168,9 +162,21 @@ class DrawingArea():
             style.append("}\n")
         drawing.defs.add(style)
 
+        return drawing
+
+    def _repr_svg_(self):
+        width = 600
+        height = int(width * self.height/self.width)+1
+        drawing = self.get_svg_drawing()
+        drawing["width"] = "{}px".format(width)
+        drawing["height"] = "{}px".format(height)
+
+        self.add_svg_styles(drawing)
+
+
         return drawing.tostring()
 
-    def export_svg(self, path):
+    def export_svg(self, path, add_styles=False):
         drawing = self.get_svg_drawing()
         with open(path, "w") as outfile:
             drawing.write(outfile)

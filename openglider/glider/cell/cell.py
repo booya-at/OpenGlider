@@ -10,6 +10,10 @@ from openglider.vector import norm
 
 
 class Cell(CachedObject):
+    diagonal_naming_scheme = "{cell.name}d{diagonal_no}"
+    strap_naming_scheme = "{cell.name}strap{strap_no}"
+    panel_naming_scheme = "{cell.name}part{panel_no}"
+
     def __init__(self, rib1, rib2, ballooning, miniribs=None, panels=None,
                  diagonals=None, straps=None, name="unnamed"):
         self.rib1 = rib1
@@ -29,6 +33,17 @@ class Cell(CachedObject):
                 "diagonals": self.diagonals,
                 "panels": self.panels,
                 "straps": self.straps}
+
+    def rename_parts(self):
+        for diagonal_no, diagonal in enumerate(self.diagonals):
+            diagonal.name = self.diagonal_naming_scheme.format(cell=self, diagonal=diagonal, diagonal_no=diagonal_no)
+
+        for strap_no, strap in enumerate(self.straps):
+            strap.name = self.strap_naming_scheme.format(cell=self, strap=strap, strap_no=strap_no)
+
+        for panel_no, panel in enumerate(self.panels):
+            panel.name = self.panel_naming_scheme.format(cell=self, panel=panel, panel_no=panel_no)
+
 
     def add_minirib(self, minirib):
         """add a minirib to the cell.

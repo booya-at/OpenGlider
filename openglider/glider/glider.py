@@ -33,6 +33,9 @@ from openglider.vector.functions import norm, rotation_2d
 
 
 class Glider(object):
+    cell_naming_scheme = "cell{cell_no}"
+    rib_naming_scheme = "rib{rib_no}"
+
     def __init__(self, cells=None, lineset=None):
         self.cells = cells or []
         self.lineset = lineset
@@ -81,6 +84,15 @@ class Glider(object):
     def export_3d(self, path="", *args, **kwargs):
         filetype = path.split(".")[-1]
         return EXPORT_3D[filetype](self, path, *args, **kwargs)
+
+    def rename_parts(self):
+        for rib_no, rib in enumerate(self.ribs):
+            rib.name = self.rib_naming_scheme.format(rib=rib, rib_no=rib_no)
+            rib.rename_parts()
+
+        for cell_no, cell in enumerate(self.cells):
+            cell.name = self.cell_naming_scheme.format(cell=cell, cell_no=cell_no)
+            cell.rename_parts()
 
     def return_ribs(self, num=None, ballooning=True):
         """

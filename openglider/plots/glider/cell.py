@@ -2,7 +2,7 @@ import collections
 
 from openglider.airfoil import get_x_value
 import openglider.plots
-from openglider.vector.text import get_text_vector, Text
+from openglider.vector.text import Text
 from openglider.plots import sewing_config, cuts, PlotPart
 from openglider.vector import PolyLine2D
 
@@ -11,7 +11,8 @@ class PanelPlot:
     def __init__(self, x_values, inner, ballooned, outer, panel):
         self.inner = inner
         self.ballooned = ballooned
-        self.outer = outer
+        self.outer_orig = outer
+        self.outer = [l.copy().check() for l in outer]
 
         self.panel = panel
         self.xvalues = x_values
@@ -92,7 +93,7 @@ class PanelPlot:
         which = {"left": 0, "right": 1}[which]
         ik = get_x_value(self.xvalues, x)
 
-        return self.ballooned[which][ik], self.outer[which][ik]
+        return self.ballooned[which][ik], self.outer_orig[which][ik]
 
     def insert_text(self):
         left = get_x_value(self.xvalues, self.panel.cut_front["left"])
@@ -145,8 +146,8 @@ def get_panels(glider):
 
         outer[0].add_stuff(-sewing_config["allowance"]["general"])
         outer[1].add_stuff(sewing_config["allowance"]["general"])
-        for line in outer:
-            line.check()
+        #for line in outer:
+        #    line.check()
 
         for part_no, panel in enumerate(cell.panels):
             part_name = "cell_{}_part{}".format(cell_no, part_no + 1)

@@ -52,7 +52,18 @@ text_vectors = {
 
 
 class Text():
-    def __init__(self, text, p1, p2, size=None, align="left", height=1, space=0.2, valign=0.5):
+    def __init__(self, text, p1, p2, size=None, align="left", height=0.8, space=0.2, valign=0.5):
+        """
+        Vector Text
+        :param text: Text
+        :param p1: left orientation point
+        :param p2: right orientation point
+        :param size: letter size. if not set, letters are fit into space (p1/p2)
+        :param align: horizontal align: ("left", "right", "center")
+        :param height: letter height, relative to width
+        :param space: space in between letters
+        :param valign: vertical align ( -0.5: bottom, 0: centered, 0.5: top)
+        """
         self.text = text
         self.p1 = p1
         self.p2 = p2
@@ -91,7 +102,7 @@ class Text():
 
         r_x, r_y = diff[0], diff[1]
 
-        rot = numpy.array([[r_x, -r_y], [r_y, r_x]])
+        rot = numpy.array([[r_x, -r_y*self.height], [r_y, r_x*self.height]])
 
         p1 += numpy.array([-r_y, r_x]) * (self.valign - 0.5)
 
@@ -105,16 +116,3 @@ class Text():
             except KeyError:
                 raise KeyError("Letter {} from word '{}' not available".format(letter, self.text.upper()))
         return vectors
-
-def get_text_vector(text, p1, p2, height=1, space=0.2):
-    width = (p2-p1)/len(text)
-    x, y = normalize([width.dot([1, 0]), width.dot([0, 1])])
-    rot = numpy.array([[x, -y], [y, x]]) * norm(width) * [1, height]
-    p0 = p1.copy() + rot.dot([0, (1-height)/2 + space])
-    vectors = []
-    for letter in text.upper():
-        if letter != " ":
-            vectors.append(
-                PolyLine2D([p0 + rot.dot(p) for p in text_vectors[letter]]))
-        p0 += width
-    return vectors

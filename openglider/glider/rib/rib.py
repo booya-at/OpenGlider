@@ -55,6 +55,13 @@ class Rib(CachedObject):
 
         raise ValueError("Can only Align one single 2D or 3D-Point")
 
+    def rename_parts(self):
+        for hole_no, hole in enumerate(self.holes):
+            hole.name = "{}hole{}".format(self.name, hole_no)
+
+        for rigid_no, rigid in enumerate(self.rigidfoils):
+            rigid.name = "{}rigidfoil{}".format(self.name, rigid_no)
+
     @property
     def aoa_relative(self):
         return self.aoa_absolute + self.__aoa_diff(self.arcang, self.glide)

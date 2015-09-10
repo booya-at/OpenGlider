@@ -4,7 +4,7 @@ import collections
 from openglider.airfoil import get_x_value
 from openglider.plots import sewing_config, PlotPart
 from openglider.vector import PolyLine2D
-from openglider.vector.text import get_text_vector
+from openglider.vector.text import Text
 
 
 class RibPlot:
@@ -73,9 +73,9 @@ class RibPlot:
         self.plotpart.cuts += [PolyLine2D(outer_rib[start:stop].data) + buerzl]
 
     def add_text(self, text):
-        self.plotpart.text += get_text_vector(text,
-                                              self.get_point(0.03, 0),
-                                              self.get_point(0.13, 0))
+        p1 = self.get_point(0.03, 0)
+        p2 = self.get_point(0.13, 0)
+        self.plotpart.text += Text(text, p1, p2).get_vectors()
 
 
 def get_ribs(glider):

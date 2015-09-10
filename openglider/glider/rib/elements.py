@@ -143,12 +143,12 @@ class RibHole(object):
 
     def get_3d(self, rib, num=20):
         hole = self.get_flattened(rib, num=num)
-        return [rib.align([p[0], p[1], 0]) for p in hole]
+        return [rib.align([p[0], p[1], 0], scale=False) for p in hole]
 
     def get_flattened(self, rib, num=20):
         prof = rib.profile_2d
-        p1 = prof[prof(self.pos)]
-        p2 = prof[prof(-self.pos)]
+        p1 = prof[prof(self.pos)] * rib.chord
+        p2 = prof[prof(-self.pos)] * rib.chord
 
         return polygon(p1, p2, num=num, scale=self.size, is_center=False)[0]
 
