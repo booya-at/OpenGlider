@@ -202,10 +202,16 @@ class Glider(object):
         other2.mirror()
         other2.cells[-1].rib2 = other.cells[0].rib1
         other2.cells = other2.cells + other.cells
-        other2.lineset2 = other2.lineset
-        other2.lineset = other.lineset
-        for node in [node for node in other2.lineset2.nodes if node.type==0]:
+        #other2.lineset2 = other2.lineset
+        for p in other2.lineset.attachment_points:
+            p.get_position()
+        for node in [node for node in other2.lineset.nodes if node.type==0]:
             node.vec = numpy.array([1, -1, 1]) * node.vec
+
+        other2.lineset.lines += other.lineset.lines
+        other2.lineset.sort_lines()
+
+        #other2.lineset = other.lineset
         #other2.lineset.lines += other.lineset.lines
         #other2.lineset2, other2.lineset = other2.lineset, other2.lineset2
         return other2

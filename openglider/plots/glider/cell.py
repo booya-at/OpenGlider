@@ -115,7 +115,7 @@ class PanelPlot:
             left, right = self.get_point(attachment_point.rib_pos)
             self.plotpart.text += Text(" {} ".format(attachment_point.name), left, right,
                                        size=0.01,  # 1cm
-                                       align=align, valign=0).get_vectors()
+                                       align=align, valign=-0.5).get_vectors()
             self.plotpart.marks += [PolyLine2D(self.get_p1_p2(attachment_point.rib_pos, which))]
 
 

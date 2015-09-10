@@ -30,6 +30,14 @@ class LineSet():
             nodes.add(line.lower_node)
         return nodes
 
+    @property
+    def attachment_points(self):
+        return [n for n in self.nodes if n.type == 2]
+
+    @property
+    def lower_attachment_points(self):
+        return [n for n in self.nodes if n.type == 0]
+
     # def calc_stretch(self):
     #     for line in self.lines:
     #         pass
@@ -158,9 +166,18 @@ class LineSet():
             self.calc_sag()
 
     def sort_lines(self):
-        self.lines.sort(key=lambda line: line.number)
+        for i, line in enumerate(self.lines):
+            line.number = i
+        #self.lines.sort(key=lambda line: line.number)
         # self.nodes.sort(key=lambda node: node.number)
         # TODO: Check for consistency
+
+    @property
+    def total_length(self):
+        length = 0
+        for line in self.lines:
+            length += line.get_stretched_length()
+        return length
 
     def copy(self):
         return copy.deepcopy(self)
