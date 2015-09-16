@@ -8,6 +8,7 @@ def get_dribs(glider):
     for cell_no, cell in enumerate(glider.cells):
         cell_dribs = []
         for d_no, d_rib in enumerate(cell.diagonals):
+            plotpart = PlotPart(material_code=d_rib.material_code, name=d_rib.name)
             left, right = d_rib.get_flattened(cell)
             left_out = left.copy()
             right_out = right.copy()
@@ -24,20 +25,23 @@ def get_dribs(glider):
                                         left_out, right_out, alw2, num_folds=1)
 
             # print("left", left_out[cut_front[1]:cut_back[1]].get_length())
-            part_cuts = [left_out[cut_front[1]:cut_back[1]] +
-                         PolyLine2D(cut_back[0]) +
-                         right_out[cut_front[2]:cut_back[2]:-1] +
-                         PolyLine2D(cut_front[0])[::-1]]
-            part_marks = [left + right[::-1] +
-                          PolyLine2D([left[0]])]
+            plotpart.cuts += [left_out[cut_front[1]:cut_back[1]] +
+                              PolyLine2D(cut_back[0]) +
+                              right_out[cut_front[2]:cut_back[2]:-1] +
+                              PolyLine2D(cut_front[0])[::-1]]
 
-            text = Text(" {} ".format(d_rib.name), left[0], right[0]).get_vectors()
+            plotpart.marks.append(PolyLine2D([left[0], right[0]]))
+            plotpart.marks.append(PolyLine2D([left[len(left)-1], right[len(right)-1]]))
 
-            cell_dribs.append(PlotPart(cuts=part_cuts,
-                                       marks=part_marks,
-                                       text=text,
-                                       name=d_rib.name,
-                                       material_code=d_rib.material_code))
+            #print(left, right)
+
+            plotpart.stitches += [left, right]
+            #print(left[0], right[0])
+            #plotpart.stitches.append(left)
+
+            plotpart.text += Text(" {} ".format(d_rib.name), left[0], right[0], valign=0.6).get_vectors()
+
+            cell_dribs.append(plotpart)
 
         dribs.append(cell_dribs)
 

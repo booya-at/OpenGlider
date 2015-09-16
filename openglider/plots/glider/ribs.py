@@ -18,7 +18,7 @@ class RibPlot:
 
         # insert cut
         self.cut_outer_rib()
-        self.plotpart.marks.append(self.inner)
+        self.plotpart.stitches.append(self.inner)
 
     def insert_mark(self, position, _type):
         mark = self.config["marks"][_type]
@@ -43,11 +43,11 @@ class RibPlot:
             p2 = drib.left_back
 
         if p1[1] == p2[1] == -1:
-            self.insert_mark(p1[0], "diagonal")
-            self.insert_mark(p2[0], "diagonal")
+            self.insert_mark(p1[0], "diagonal_front")
+            self.insert_mark(p2[0], "diagonal_back")
         elif p1[1] == p2[1] == 1:
-            self.insert_mark(-p1[0], "diagonal")
-            self.insert_mark(-p2[0], "diagonal")
+            self.insert_mark(-p1[0], "diagonal_back")
+            self.insert_mark(-p2[0], "diagonal_front")
         else:
             p1 = self.get_point(*p1)
             p2 = self.get_point(*p2)
@@ -101,8 +101,8 @@ def get_ribs(glider):
         for panel in right_cell.panels:
             rib_cuts.add(panel.cut_front["left"])
             rib_cuts.add(panel.cut_back["left"])
-        rib_cuts.remove(1)
-        rib_cuts.remove(-1)
+        #rib_cuts.remove(1)
+        #rib_cuts.remove(-1)
         for cut in rib_cuts:
             rib_plot.insert_mark(cut, "panel-cut")
 
@@ -133,7 +133,7 @@ def get_ribs(glider):
 
         # TEXT
         # TODO: improve (move away from holes?)
-        rib_plot.add_text("rib{}".format(rib_no))
+        rib_plot.add_text(rib.name)
 
         ribs[rib] = rib_plot.plotpart
 

@@ -73,16 +73,19 @@ class PanelPlot:
 
         panel_cut += PolyLine2D([panel_cut[0]])
 
-        part_marks = [self.ballooned[0][front_left:back_left] +
-                      self.ballooned[1][front_right:back_right:-1] +
-                      PolyLine2D([self.ballooned[0][front_left]])]
+        self.plotpart.stitches += [self.ballooned[0][front_left:back_left],
+                                   self.ballooned[1][front_right:back_right]]
+
+        self.plotpart.marks += [PolyLine2D([self.ballooned[0][front_left], self.ballooned[1][front_right]]),
+                                PolyLine2D([self.ballooned[0][back_left], self.ballooned[1][back_right]])]
+
+
 
 
         #self.plotpart.marks += [self.inner[0][front_left:back_left] +
         #              self.inner[1][front_right:back_right:-1] +
         #              PolyLine2D([self.inner[0][front_left]])]
 
-        self.plotpart.marks += part_marks
         self.plotpart.cuts.append(panel_cut)
 
     def get_point(self, x):
