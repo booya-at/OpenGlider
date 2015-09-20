@@ -178,12 +178,19 @@ class DrawingArea():
 
     def export_svg(self, path, add_styles=False):
         drawing = self.get_svg_drawing()
+
+        if add_styles:
+            self.add_svg_styles(drawing)
+
         with open(path, "w") as outfile:
             drawing.write(outfile)
 
     def export_dxf(self, path):
         import ezdxf
         drawing = ezdxf.new(dxfversion="ac1015")
+
+        drawing.header["$EXTMAX"] = (self.max_x, self.max_y, 0)
+        drawing.header["$EXTMIN"] = (self.min_x, self.min_y, 0)
         ms = drawing.modelspace()
 
         for part in self.parts:
@@ -209,3 +216,9 @@ class DrawingArea():
             dct[code].parts.append(part)
 
         return dct
+
+    def scale(self, factor):
+        for part in self.parts:
+            part.scale(factor)
+
+        return self

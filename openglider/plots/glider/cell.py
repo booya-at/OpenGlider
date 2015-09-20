@@ -73,16 +73,19 @@ class PanelPlot:
 
         panel_cut += PolyLine2D([panel_cut[0]])
 
-        part_marks = [self.ballooned[0][front_left:back_left] +
-                      self.ballooned[1][front_right:back_right:-1] +
-                      PolyLine2D([self.ballooned[0][front_left]])]
+        self.plotpart.stitches += [self.ballooned[0][front_left:back_left],
+                                   self.ballooned[1][front_right:back_right]]
+
+        self.plotpart.marks += [PolyLine2D([self.ballooned[0][front_left], self.ballooned[1][front_right]]),
+                                PolyLine2D([self.ballooned[0][back_left], self.ballooned[1][back_right]])]
+
+
 
 
         #self.plotpart.marks += [self.inner[0][front_left:back_left] +
         #              self.inner[1][front_right:back_right:-1] +
         #              PolyLine2D([self.inner[0][front_left]])]
 
-        self.plotpart.marks += part_marks
         self.plotpart.cuts.append(panel_cut)
 
     def get_point(self, x):
@@ -115,7 +118,7 @@ class PanelPlot:
             left, right = self.get_point(attachment_point.rib_pos)
             self.plotpart.text += Text(" {} ".format(attachment_point.name), left, right,
                                        size=0.01,  # 1cm
-                                       align=align, valign=0).get_vectors()
+                                       align=align, valign=-0.5).get_vectors()
             self.plotpart.marks += [PolyLine2D(self.get_p1_p2(attachment_point.rib_pos, which))]
 
 

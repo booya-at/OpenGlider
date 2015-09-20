@@ -1,14 +1,29 @@
 import copy
 
 
+class Layers():
+    def __init__(self, **layers):
+        self.layers = layers
+
+    def __getitem__(self, item):
+        self.layers.setdefault(item, [])
+        return self.layers[item]
+
+    def __setitem__(self, key, value):
+        assert isinstance(value, list)
+        self.layers[key] = value
+
+
 class PlotPart():
-    def __init__(self, cuts=None, marks=None, text=None, stitches=None, name=None, material_code=""):
+    def __init__(self, cuts=None, marks=None, text=None, stitches=None, name=None, material_code="", **layers):
         self.cuts = cuts or []
         self.marks = marks or []
         self.text = text or []
         self.stitches = stitches or []
         self.name = name
         self.material_code = material_code
+
+        #self.layers = layers
 
     def __json__(self):
         return {
@@ -27,7 +42,8 @@ class PlotPart():
     def layers(self):
         return {"Cuts": self.cuts,
                 "Marks": self.marks,
-                "Text": self.text}
+                "Text": self.text,
+                "Stitches": self.stitches}
 
     def max_function(self, axis, layer):
         start = float("-Inf")

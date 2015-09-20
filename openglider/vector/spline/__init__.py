@@ -6,7 +6,7 @@ from openglider.vector.spline.bspline import (
     BSpline, SymmetricBSpline, BSplineBase)
 
 
-class GenericSpline(BSpline):
+class GenericSpline(Bezier):
     def __json__(self):
         out = super(GenericSpline, self).__json__()
         if hasattr(self.basefactory, "degree"):
@@ -16,8 +16,9 @@ class GenericSpline(BSpline):
         return out
 
     @classmethod
+
     def __from_json__(cls, controlpoints, degree=0):
-        obj = super(GenericSpline, cls).__from_json__(controlpoints, degree)
+        obj = super(GenericSpline, cls).__from_json__(controlpoints)
         if degree == 0:
             obj.basefactory = BernsteinBase
         else:
@@ -25,7 +26,7 @@ class GenericSpline(BSpline):
         return obj
 
 
-class SymmetricGenericSpline(SymmetricBSpline):
+class SymmetricGenericSpline(SymmetricBezier):
     def __json__(self):
         out = super(SymmetricGenericSpline, self).__json__()
         if hasattr(self.basefactory, "degree"):
@@ -35,8 +36,9 @@ class SymmetricGenericSpline(SymmetricBSpline):
         return out
 
     @classmethod
+
     def __from_json__(cls, controlpoints, degree=0):
-        obj = super(SymmetricGenericSpline, cls).__from_json__(controlpoints, degree)
+        obj = super(SymmetricGenericSpline, cls).__from_json__(controlpoints)
         if degree == 0:
             obj.basefactory = BernsteinBase
         else:

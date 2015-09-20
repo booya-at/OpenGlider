@@ -1,4 +1,5 @@
 import math
+import numpy
 
 from openglider.vector.functions import rotation_2d
 from openglider.vector.polyline import PolyLine2D
@@ -19,6 +20,19 @@ def polygon(p1, p2, rotation=False, num=3, scale=scale, is_center=False):
 
 def triangle(p1, p2, scale=scale):
     return polygon(p1, p2, num=3, scale=scale)
+
+
+def arrow_left(p1, p2, scale=1):
+    d = (p2 - p1)*scale
+    dr = numpy.array([-d[1], d[0]])/math.sqrt(2)
+
+    return [PolyLine2D([p1, p1+d, p1+d/2+dr, p1])]
+
+
+def arrow_right(p1, p2, scale=1):
+    arrow = arrow_left(p1, p2, scale=scale)
+    arrow[0].mirror(p1, p2)
+    return arrow
 
 
 def line(p1, p2, rotation=False):

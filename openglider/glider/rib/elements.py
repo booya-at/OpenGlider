@@ -127,7 +127,7 @@ class AttachmentPoint(Node):
 
     def __json__(self):
         return {"rib": self.rib,
-                "number": self.name,
+                "name   ": self.name,
                 "rib_pos": self.rib_pos,
                 "force": self.force}
 
@@ -145,7 +145,7 @@ class RibHole(object):
         hole = self.get_flattened(rib, num=num)
         return [rib.align([p[0], p[1], 0], scale=False) for p in hole]
 
-    def get_flattened(self, rib, num=20):
+    def get_flattened(self, rib, num=80):
         prof = rib.profile_2d
         p1 = prof[prof(self.pos)] * rib.chord
         p2 = prof[prof(-self.pos)] * rib.chord

@@ -20,6 +20,8 @@ def on_line(fctn):
 sewing_config = {
     "marks": {
         "diagonal": inside(marks.triangle),
+        "diagonal_front": inside(marks.arrow_left),
+        "diagonal_back": inside(marks.arrow_right),
         "strap": inside(marks.line),
         "attachment-point": on_line(functools.partial(marks.cross, rotation=numpy.pi/4)),
         "panel-cut": marks.line
@@ -50,6 +52,11 @@ sewing_config = {
              "stroke_width": "0.001",
              "stroke": "black",
              "fill": "none"},
+         "Stitches": {
+             "id": "stitches",
+             "stroke_width": "0.001",
+             "stroke": "grey",
+             "fill": "none"}
          }
 
 

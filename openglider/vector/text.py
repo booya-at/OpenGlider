@@ -65,8 +65,8 @@ class Text():
         :param valign: vertical align ( -0.5: bottom, 0: centered, 0.5: top)
         """
         self.text = text
-        self.p1 = p1
-        self.p2 = p2
+        self.p1 = p1[:]
+        self.p2 = p2[:]
         self.size = size
         self.height = height
         self.space = space
@@ -92,7 +92,7 @@ class Text():
             diff = normalize(diff) * self.size
 
         if self.align == "left":
-            p1 = self.p1[:]
+            p1 = self.p1.copy()
         elif self.align == "center":
             p1 = self.p1 + (self.p2 - self.p1)/2 - len(self.text)/2 * diff
         elif self.align == "right":
