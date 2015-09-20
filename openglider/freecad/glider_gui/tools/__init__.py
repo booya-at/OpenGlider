@@ -130,13 +130,15 @@ class Pattern_Tool(object):
             flat_glider = flatten_glider(obj.glider_instance)
             draw_area = flat_glider['panels']
             draw_area.join(flat_glider['ribs'])
+            if flat_glider['dribs']:
+                draw_area.join(flat_glider['dribs'])
             for i, part in enumerate(draw_area.parts):
                 grp = pattern_doc.addObject("App::DocumentObjectGroup",
                                             "Panel_" + str(i))
                 layer_dict = part.layers
                 for layer in layer_dict:
                     for j, line in enumerate(layer_dict[layer]):
-                        a = makeWire(map(Pattern_Tool.fcvec, line))
+                        a = makeWire(map(Pattern_Tool.fcvec, line), False)
                         grp.addObject(a)
 
     @staticmethod

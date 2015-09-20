@@ -272,8 +272,8 @@ class shape_tool(base_tool):
         dist_line = self.glider_2d.cell_dist_interpolation
         self.shape.addChild(Line(front, width=2).object)
         self.shape.addChild(Line(back, width=2).object)
-        self.shape.addChild(Line(vector3D(self.glider_2d.front.data), color="gray").object)
-        self.shape.addChild(Line(vector3D(self.glider_2d.back.data), color="gray").object)
+        self.shape.addChild(Line(vector3D(self.glider_2d.front.data), color="grey").object)
+        self.shape.addChild(Line(vector3D(self.glider_2d.back.data), color="grey").object)
         for rib in ribs:
             width = 1
             col = "grey"
@@ -283,5 +283,5 @@ class shape_tool(base_tool):
             self.shape.addChild(Line(rib, color=col, width=width).object)
         self.shape.addChild(Line(dist_line, color="red", width=2).object)
         for i in dist_line:
-            self.shape.addChild(Line([[0, i[1]], i, [i[0], 0]], color="gray").object)
+            self.shape.addChild(Line([[0, i[1]], i, [i[0], 0]], color="grey").object)
 

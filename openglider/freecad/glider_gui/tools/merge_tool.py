@@ -35,10 +35,10 @@ class base_merge_tool(base_tool):
 
     def draw_shape(self):
         self.shape.removeAllChildren()
-        self.shape.addChild(Line(self.front, color="gray").object)
-        self.shape.addChild(Line(self.back, color="gray").object)
+        self.shape.addChild(Line(self.front, color="grey").object)
+        self.shape.addChild(Line(self.back, color="grey").object)
         for rib in self.ribs:
-            self.shape.addChild(Line(rib, color="gray").object)
+            self.shape.addChild(Line(rib, color="grey").object)
 
     def update_num_control_points(self, numpoints):
         self.bezier_curve.numpoints = numpoints
@@ -66,9 +66,9 @@ class base_merge_tool(base_tool):
         y_points_lower = [[grid_x[0], y, 0] for y in grid_y]
         y_points_upper = [[grid_x[-1], y, 0] for y in grid_y]
         for l in zip(x_points_lower, x_points_upper):
-            self.grid.addChild(Line(l, color="gray").object)
+            self.grid.addChild(Line(l, color="grey").object)
         for l in zip(y_points_lower, y_points_upper):
-            self.grid.addChild(Line(l, color="gray").object)
+            self.grid.addChild(Line(l, color="grey").object)
 
 
 class airfoil_merge_tool(base_merge_tool):
