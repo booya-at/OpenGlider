@@ -52,6 +52,10 @@ class PolyLine(HashedList):
         self.scale(*other)
         return self
 
+    def join(self, *other):
+        self.data = numpy.concatenate([self.data] + list(other))
+        return self
+
     def point(self, x):
         """List.point(x) is the same as List[x]"""
         return self[x]

@@ -340,13 +340,14 @@ class Glider2D(object):
         """
         Create a parametric model from glider
         """
-        front, back = glider.shape_simple
+        shape = glider.shape_simple
+        front, back = shape.front, shape.back
         arc = [rib.pos[1:] for rib in glider.ribs]
         aoa = [[front[i][0], rib.aoa_relative] for i, rib in enumerate(glider.ribs)]
 
         def symmetric_fit(polyline, numpoints=numpoints):
-            mirrored = [[-p[0], p[1]] for p in polyline[1:]]
-            symmetric = mirrored[::-1] + polyline[glider.has_center_cell:]
+            mirrored = PolyLine2D(polyline[1:]).mirror([0, 0], [0, 1])
+            symmetric = mirrored[::-1].join(polyline[glider.has_center_cell:])
             return SymmetricBezier.fit(symmetric, numpoints=numpoints)
 
         front_bezier = symmetric_fit(front)

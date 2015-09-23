@@ -173,7 +173,6 @@ class DrawingArea():
 
         self.add_svg_styles(drawing)
 
-
         return drawing.tostring()
 
     def export_svg(self, path, add_styles=False):
@@ -202,6 +201,8 @@ class DrawingArea():
 
                     for elem in layer:
                         pl = ms.add_lwpolyline(elem, dxfattribs={"layer": layer_name})
+                        if len(elem) > 2 and all(elem[-1] == elem[0]):
+                            pl.closed = True
                         part_group.append(pl)
 
         drawing.saveas(path)
