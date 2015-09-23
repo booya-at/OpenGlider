@@ -75,9 +75,9 @@ class ballooning_tool(base_tool):
         y_points_lower = [[grid_x[0], y, -0.001] for y in grid_y]
         y_points_upper = [[grid_x[-1], y, -0.001] for y in grid_y]
         for l in zip(x_points_lower, x_points_upper):
-            self.grid.addChild(Line(l, color="gray").object)
+            self.grid.addChild(Line(l, color="grey").object)
         for l in zip(y_points_lower, y_points_upper):
-            self.grid.addChild(Line(l, color="gray").object)
+            self.grid.addChild(Line(l, color="grey").object)
         for l in y_points_upper[::10]:
             textsep = coin.SoSeparator()
             text = coin.SoText2()

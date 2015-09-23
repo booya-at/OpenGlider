@@ -451,6 +451,10 @@ class line_tool(base_tool):
             self.glider_2d.get_glider_3d(self.obj.glider_instance)
             return
 
+        for node in self.glider_2d.lineset.nodes:
+            if isinstance(node, UpperNode2D):
+                node.name = node.layer + str(node.rib_no)
+
         self.shape.unregister()
         self.remove_all_callbacks()
         self.obj.glider_2d = self.glider_2d

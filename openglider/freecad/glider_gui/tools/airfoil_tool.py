@@ -178,7 +178,7 @@ class airfoil_tool(base_tool):
 
     def _draw_spline(self, num):
         self.upper_spline.addChild(
-            Line(self.control_line, color="gray").object)
+            Line(self.control_line, color="grey").object)
         self.upper_spline.addChild(
             Line(vector3D(
                 self.current_airfoil.upper_spline.get_sequence(num)),

@@ -16,7 +16,8 @@ class GenericSpline(Bezier):
         return out
 
     @classmethod
-    def __from_json__(cls, controlpoints, degree):
+
+    def __from_json__(cls, controlpoints, degree=0):
         obj = super(GenericSpline, cls).__from_json__(controlpoints)
         if degree == 0:
             obj.basefactory = BernsteinBase
@@ -35,7 +36,8 @@ class SymmetricGenericSpline(SymmetricBezier):
         return out
 
     @classmethod
-    def __from_json__(cls, controlpoints, degree):
+
+    def __from_json__(cls, controlpoints, degree=0):
         obj = super(SymmetricGenericSpline, cls).__from_json__(controlpoints)
         if degree == 0:
             obj.basefactory = BernsteinBase
