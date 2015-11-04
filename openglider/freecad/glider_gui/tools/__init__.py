@@ -127,20 +127,23 @@ class Pattern_Tool(object):
                 proceed = True
         if proceed:
             pattern_doc = FreeCAD.newDocument()
-            from Draft import makeWire
+            import Part
             flat_glider = flatten_glider(obj.glider_instance)
             draw_area = flat_glider['panels']
             draw_area.join(flat_glider['ribs'])
             if flat_glider['dribs']:
-                draw_area.join(flat_glider['dribs'])
+                if flat_glider['dribs'].parts:
+                    draw_area.join(flat_glider['dribs'])
             for i, part in enumerate(draw_area.parts):
                 grp = pattern_doc.addObject("App::DocumentObjectGroup",
                                             "Panel_" + str(i))
                 layer_dict = part.layers
                 for layer in layer_dict:
                     for j, line in enumerate(layer_dict[layer]):
-                        a = makeWire(map(Pattern_Tool.fcvec, line), False)
-                        grp.addObject(a)
+                        obj = FreeCAD.ActiveDocument.addObject("Part::Feature", layer + str(j))
+                        obj.Shape = Part.makePolygon(map(Pattern_Tool.fcvec, line))
+                        grp.addObject(obj)
+            pattern_doc.recompute()
 
     @staticmethod
     def fcvec(vec):

@@ -41,44 +41,40 @@ class OGBaseVP(object):
 
 
 class OGGlider(OGBaseObject):
-    def __init__(self, obj, glider2d=None):
+    def __init__(self, obj):
         obj.addProperty("App::PropertyPythonObject",
                         "glider_instance", "object",
-                        "glider_instance", 1)
+                        "glider_instance", 2)
         obj.addProperty("App::PropertyPythonObject",
                         "glider_2d", "object",
-                        "parametric glider", 1)
-        if not glider2d:
-            with open(
-                    str(App.ConfigGet("UserAppData")) +
-                    "Mod/glider_gui/glider2d.json", 'r'
-                    ) as importfile:
-                obj.glider_2d = load(importfile)["data"]
-        else:
-            obj.glider_2d = glider2d
+                        "parametric glider", 2)
+        with open(
+                str(App.ConfigGet("UserAppData")) +
+                "Mod/glider_gui/glider2d.json", 'r'
+                ) as importfile:
+            obj.glider_2d = load(importfile)["data"]
         obj.glider_instance = obj.glider_2d.get_glider_3d()
         obj.Proxy = self
         self.obj = obj
         super(OGGlider, self).__init__(obj)
 
-    def attach(self, obj):
-        print("attachesdsd")
-
     def __getstate__(self):
         out = {
-            "glider_instance": dumps(self.obj.glider_instance),
-            "glider_2d": dumps(self.obj.glider_2d)}
+            "glider_2d": dumps(self.obj.glider_2d),
+            "name": self.obj.Name}
         return out
 
     def __setstate__(self, state):
-        out = {
-            "glider_instance": loads(state["glider_instance"]),
-            "glider_2d": loads(state["glider_2d"])}
-        return out
-
-
-
-
+        self.obj = App.ActiveDocument.getObject(state["name"])
+        self.obj.addProperty("App::PropertyPythonObject",
+                        "glider_instance", "object",
+                        "glider_instance", 2)
+        self.obj.addProperty("App::PropertyPythonObject",
+                        "glider_2d", "object",
+                        "parametric glider", 2)
+        self.obj.glider_2d = loads(state["glider_2d"])["data"]
+        self.obj.glider_instance = self.obj.glider_2d.get_glider_3d()
+        return None
 
 class OGGliderVP(OGBaseVP):
     def __init__(self, view_obj):
@@ -110,14 +106,17 @@ class OGGliderVP(OGBaseVP):
         view_obj.addDisplayMode(self.seperator, 'out')
 
     def updateData(self, fp=None, prop=None):
-        if prop in ["num_ribs", "profile_num", None]:
-            numpoints = self.view_obj.profile_num
-            if numpoints < 5:
-                numpoints = 5
-            self.update_glider(midribs=self.view_obj.num_ribs,
-                               profile_numpoints=numpoints)
-        if prop in ["line_num", None]:
-            self.update_lines(self.view_obj.line_num)
+        if hasattr(self, "view_obj"):
+            if prop in ["num_ribs", "profile_num", None]:
+                if hasattr(self.view_obj, "profile_num"):
+                    numpoints = self.view_obj.profile_num
+                    if numpoints < 5:
+                        numpoints = 5
+                    self.update_glider(midribs=self.view_obj.num_ribs,
+                                       profile_numpoints=numpoints)
+            elif prop in ["line_num", None]:
+                if hasattr(self.view_obj, "line_num"):
+                    self.update_lines(self.view_obj.line_num)
 
     def update_glider(self, midribs=0, profile_numpoints=20):
         self.vis_glider.removeAllChildren()
@@ -172,4 +171,5 @@ class OGGliderVP(OGBaseVP):
         return None
 
     def __setstate__(self, state):
+        self.updateData()
         return None
