@@ -10,6 +10,7 @@ from aoa_tool import aoa_tool
 from ballooning_tool import ballooning_tool
 from line_tool import line_tool
 from merge_tool import airfoil_merge_tool, ballooning_merge_tool
+from panel_methode import panel_tool, polars
 import openglider
 from openglider.plots import flatten_glider
 
@@ -155,7 +156,8 @@ class CreateGlider(BaseCommand):
     def Activated(self):
         a = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Glider")
         OGGlider(a)
-        OGGliderVP(a.ViewObject)
+        vp = OGGliderVP(a.ViewObject)
+        vp.updateData()
         FreeCAD.ActiveDocument.recompute()
         Gui.SendMsgToActiveView("ViewFit")
 
@@ -246,3 +248,18 @@ def check_glider(obj):
         return True
     else:
         return False
+
+
+class Panel_Tool(BaseCommand):
+    def GetResources(self):
+        return {'Pixmap': 'panel_methode.svg', 'MenuText': 'panelmethode', 'ToolTip': 'panelmethode'}
+
+    def tool(self, obj):
+        return panel_tool(obj)
+
+class Polars_Tool(BaseCommand):
+    def GetResources(self):
+        return {'Pixmap': 'polar.svg', 'MenuText': 'polars', 'ToolTip': 'polars'}
+
+    def tool(self, obj):
+        return polars(obj)

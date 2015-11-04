@@ -1,10 +1,11 @@
 from __future__ import division
 import os
+import ast
 
 from pivy import coin
 import FreeCAD as App
 
-from openglider.jsonify import load
+from openglider.jsonify import load, dumps, loads
 from pivy_primitives_new_new import Line
 
 importpath = os.path.join(os.path.dirname(__file__), '..', 'demokite.ods')
@@ -40,21 +41,43 @@ class OGBaseVP(object):
 
 
 class OGGlider(OGBaseObject):
-    def __init__(self, obj):
+    def __init__(self, obj, glider2d=None):
         obj.addProperty("App::PropertyPythonObject",
                         "glider_instance", "object",
-                        "glider_instance")
+                        "glider_instance", 1)
         obj.addProperty("App::PropertyPythonObject",
                         "glider_2d", "object",
-                        "parametric glider")
-        with open(
-                str(App.ConfigGet("UserAppData")) +
-                "Mod/glider_gui/glider2d.json", 'r'
-                ) as importfile:
-            obj.glider_2d = load(importfile)["data"]
+                        "parametric glider", 1)
+        if not glider2d:
+            with open(
+                    str(App.ConfigGet("UserAppData")) +
+                    "Mod/glider_gui/glider2d.json", 'r'
+                    ) as importfile:
+                obj.glider_2d = load(importfile)["data"]
+        else:
+            obj.glider_2d = glider2d
         obj.glider_instance = obj.glider_2d.get_glider_3d()
         obj.Proxy = self
+        self.obj = obj
         super(OGGlider, self).__init__(obj)
+
+    def attach(self, obj):
+        print("attachesdsd")
+
+    def __getstate__(self):
+        out = {
+            "glider_instance": dumps(self.obj.glider_instance),
+            "glider_2d": dumps(self.obj.glider_2d)}
+        return out
+
+    def __setstate__(self, state):
+        out = {
+            "glider_instance": loads(state["glider_instance"]),
+            "glider_2d": loads(state["glider_2d"])}
+        return out
+
+
+
 
 
 class OGGliderVP(OGBaseVP):
@@ -71,20 +94,20 @@ class OGGliderVP(OGBaseVP):
         view_obj.num_ribs = 0
         view_obj.profile_num = 13
         view_obj.line_num = 5
+        super(OGGliderVP, self).__init__(view_obj)
+
+    def attach(self, view_obj):
         self.vis_glider = coin.SoSeparator()
         self.vis_lines = coin.SoSeparator()
         self.material = coin.SoMaterial()
         self.seperator = coin.SoSeparator()
         self.view_obj = view_obj
         self.glider_instance = view_obj.Object.glider_instance
-        super(OGGliderVP, self).__init__(view_obj)
-
-    def attach(self, vobj):
         self.material.diffuseColor = (.7, .7, .7)
         self.seperator.addChild(self.vis_glider)
         self.seperator.addChild(self.vis_lines)
         self.seperator.addChild(self.material)
-        vobj.addDisplayMode(self.seperator, 'out')
+        view_obj.addDisplayMode(self.seperator, 'out')
 
     def updateData(self, fp=None, prop=None):
         if prop in ["num_ribs", "profile_num", None]:
@@ -138,7 +161,8 @@ class OGGliderVP(OGBaseVP):
             self.vis_lines.addChild(Line(points, dynamic=False))
 
     def onChanged(self, vp, prop):
-        self.updateData()
+        print("onChanged")
+        self.updateData(vp, prop)
 
     def getIcon(self):
         return str(App.getHomePath() +

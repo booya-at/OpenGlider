@@ -8,23 +8,9 @@ from openglider.glider.in_out.export_3d import ppm_Panels
 from openglider.airfoil import Profile2D
 from _tools import base_tool, input_field, text_field
 from pivy_primitives_new_new import Container, Marker, coin, Line, COLORS
-from . import BaseCommand
 
-class Panel_Tool(BaseCommand):
-    def GetResources(self):
-        return {'Pixmap': 'panel_methode.svg', 'MenuText': 'panelmethode', 'ToolTip': 'panelmethode'}
 
-    def tool(self, obj):
-        return panel_tool(obj)
-
-class Polars_Tool(BaseCommand):
-    def GetResources(self):
-        return {'Pixmap': 'polar.svg', 'MenuText': 'polars', 'ToolTip': 'polars'}
-
-    def tool(self, obj):
-        return Polars(obj)
-
-class Polars(base_tool):
+class polars(base_tool):
     try:
         ppm = __import__("ppm")
         pan3d = __import__("ppm.pan3d", globals(), locals(), ["abc"], -1)
