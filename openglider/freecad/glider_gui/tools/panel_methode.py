@@ -1,5 +1,6 @@
 from __future__ import division
 import FreeCAD as App
+import Plot
 from FreeCAD import Base
 from PySide import QtGui
 import numpy
@@ -19,16 +20,15 @@ class polars(base_tool):
         ppm = None
 
     def __init__(self, obj):
-        super(Polars, self).__init__(obj, widget_name="Properties", hide=True)
+        super(polars, self).__init__(obj, widget_name="Properties", hide=True)
         if not self.ppm:
             self.QWarning = QtGui.QLabel("no panel_methode installed")
             self.layout.addWidget(self.QWarning)
         else:
-            import Plot
             self._vertices, self._panels, self._trailing_edges = ppm_Panels(
                 self.glider_2d.get_glider_3d(),
                 midribs=0,
-                profile_numpoints=20,
+                profile_numpoints=50,
                 num_average=4,
                 distribution=Profile2D.nose_cos_distribution(0.2),
                 symmetric=True
@@ -37,23 +37,26 @@ class polars(base_tool):
             progress_bar.start("running ppm", 0)
             case = self.pan3d.DirichletDoublet0Source0Case3(self._panels, self._trailing_edges)
             case.A_ref = self.glider_2d.flat_area
+            case.mom_ref_point = self.ppm.Vector3(1.25, 0, -6)
             case.v_inf = self.ppm.Vector(self.glider_2d.v_inf)
             case.drag_calc = "trefftz"
             case.farfield = 5
             case.create_wake(10000000, 20)
-            polars = case.polars(self.ppm_utils.vinf_deg_range3(case.v_inf, -10, 10, 30))
+            pols = case.polars(self.ppm_utils.vinf_deg_range3(case.v_inf, -10, 10, 30))
             cL = []
             cD = []
             cP = []
             alpha = []
-            for i in polars.values:
+            for i in pols.values:
                 alpha.append(i.alpha)
                 cL.append(i.cL)
                 cD.append(i.cD * 10)
-                cP.append(i.cP * 2)
-            Plot.plot(cL, alpha)
-            Plot.plot(cD, alpha)
-            Plot.plot(cP, alpha)
+                cP.append(-i.cP)
+            Plot.plot(cL, alpha, "Lift $c_L$")
+            Plot.plot(cD, alpha, "Drag $c_D * 10$")
+            Plot.plot(cP, alpha, "Pitch -$c_P$")
+            Plot.ylabel("$\\alpha$")
+            Plot.legend()
             Plot.grid()
             progress_bar.stop()
 
