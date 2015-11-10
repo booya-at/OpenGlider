@@ -114,7 +114,7 @@ class OGGliderVP(OGBaseVP):
                         numpoints = 5
                     self.update_glider(midribs=self.view_obj.num_ribs,
                                        profile_numpoints=numpoints)
-            elif prop in ["line_num", None]:
+            if prop in ["line_num", None]:
                 if hasattr(self.view_obj, "line_num"):
                     self.update_lines(self.view_obj.line_num)
 

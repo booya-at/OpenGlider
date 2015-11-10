@@ -2,3 +2,4 @@ dxfwrite
 ezodf2
 svgwrite
 numpy
+ezdxf
