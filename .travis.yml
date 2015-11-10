@@ -8,7 +8,7 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq python-scipy python-lxml
   - sudo apt-get install -qq python3-scipy python3-lxml
-  - git clone https://lorenz_l@bitbucket.org/mozman/ezdxf
+  - git clone https://bitbucket.org/anantha_ani/ezdxf-mozman
   - sudo pip install -e ezdxf
 install:
   - pip install -r requires.txt
