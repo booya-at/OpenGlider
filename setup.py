@@ -81,5 +81,5 @@ setup(
                       ezdxf],
     author='Booya',
     url='www.openglider.org',
-    download_url="https://github.com/hiaselhans/OpenGlider/tarball/0.1"
+    download_url="https://github.com/hiaselhans/OpenGlider/tarball/0.01dev2"
 )
