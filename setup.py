@@ -71,7 +71,7 @@ print(package_data, packages)
 setup(
     name='OpenGlider',
     version=openglider.__version__,
-    description="tool fpr glider design"
+    description="tool fpr glider design",
     packages=packages,
     package_data=package_data,
     license='GPL-v3',
