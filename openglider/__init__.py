@@ -17,7 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-__version__ = '0.01dev'
+__version__ = '0.01dev2'
 __author__ = 'Booya'
 from openglider.config import config
 import numpy
