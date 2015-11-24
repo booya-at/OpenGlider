@@ -1,7 +1,7 @@
 import copy
 
 
-class Layers():
+class Layers(object):
     def __init__(self, **layers):
         self.layers = layers
 
@@ -14,7 +14,7 @@ class Layers():
         self.layers[key] = value
 
 
-class PlotPart():
+class PlotPart(object):
     def __init__(self, cuts=None, marks=None, text=None, stitches=None, name=None, material_code="", **layers):
         self.cuts = cuts or []
         self.marks = marks or []

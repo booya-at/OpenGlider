@@ -19,8 +19,11 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 __version__ = '0.01dev'
 __author__ = 'Booya'
-from openglider.config import config
+
 import numpy
+
+from openglider.config import config
+import openglider.jsonify
 
 
 # Monkey-patch numpy cross for pypy

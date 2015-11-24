@@ -1,4 +1,7 @@
 import io
+import os
+
+import math
 import svgwrite
 import svgwrite.container
 import svgwrite.shapes
@@ -33,7 +36,9 @@ class DrawingArea():
 
         return area
 
-    def rasterize(self, columns, distance_x=0.2, distance_y=0.1):
+    def rasterize(self, columns=None, distance_x=0.2, distance_y=0.1):
+        columns = columns or round(math.sqrt(len(self.parts)))
+
         column_lst = [[] for _ in range(columns)]
 
         for i, part in enumerate(self.parts):
@@ -207,6 +212,26 @@ class DrawingArea():
 
         drawing.saveas(path)
         return drawing
+
+    def export_ntv(self, path):
+        filename = os.path.split(path)[-1]
+        with open(path, "w") as outfile:
+            # head
+            outfile.write("A {} {} 1 1 0 0 0 0\n".format(len(filename), filename))
+            for part in self.parts:
+                # part-header: 1A {name}, {position_x} {pos_y} {rot_degrees} {!derivePerimeter} {useAngle} {flipped}
+                part_header = "\n1A {len_name} {name} {pos_x} {pos_y} {rotation_deg} 0 0 0"
+                outfile.write(part_header.format(len(part.name), part.name, 0, 0, 0))
+
+
+
+                # part-end
+                outfile.write("\n0\n")
+
+
+            # end
+            outfile.write("\n0")
+
 
     def group_materials(self):
         dct = {}

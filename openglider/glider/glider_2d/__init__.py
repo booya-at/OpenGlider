@@ -14,7 +14,8 @@ from openglider.glider.rib.rib import Rib
 from openglider.glider.cell import Panel, DiagonalRib, TensionStrapSimple
 from openglider.glider.cell.cell import Cell
 from .lines import LowerNode2D, Line2D, LineSet2D, BatchNode2D, UpperNode2D
-from .import_ods import import_ods_2d
+from openglider.glider.glider_2d.import_ods import import_ods_2d
+from openglider.glider.glider_2d.export_ods import export_ods_2d
 
 
 class Glider2D(object):
@@ -69,6 +70,9 @@ class Glider2D(object):
     @classmethod
     def import_ods(cls, path):
         return import_ods_2d(cls, path)
+
+    def export_ods(self, path):
+        return export_ods_2d(self, path)
 
     @property
     def v_inf(self):
