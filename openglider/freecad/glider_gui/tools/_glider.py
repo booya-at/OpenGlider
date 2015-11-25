@@ -1,10 +1,11 @@
 from __future__ import division
 import os
+import ast
 
 from pivy import coin
 import FreeCAD as App
 
-from openglider.jsonify import load
+from openglider.jsonify import load, dumps, loads
 from pivy_primitives_new_new import Line
 
 importpath = os.path.join(os.path.dirname(__file__), '..', 'demokite.ods')
@@ -43,10 +44,10 @@ class OGGlider(OGBaseObject):
     def __init__(self, obj):
         obj.addProperty("App::PropertyPythonObject",
                         "glider_instance", "object",
-                        "glider_instance")
+                        "glider_instance", 2)
         obj.addProperty("App::PropertyPythonObject",
                         "glider_2d", "object",
-                        "parametric glider")
+                        "parametric glider", 2)
         with open(
                 str(App.ConfigGet("UserAppData")) +
                 "Mod/glider_gui/glider2d.json", 'r'
@@ -54,8 +55,26 @@ class OGGlider(OGBaseObject):
             obj.glider_2d = load(importfile)["data"]
         obj.glider_instance = obj.glider_2d.get_glider_3d()
         obj.Proxy = self
+        self.obj = obj
         super(OGGlider, self).__init__(obj)
 
+    def __getstate__(self):
+        out = {
+            "glider_2d": dumps(self.obj.glider_2d),
+            "name": self.obj.Name}
+        return out
+
+    def __setstate__(self, state):
+        self.obj = App.ActiveDocument.getObject(state["name"])
+        self.obj.addProperty("App::PropertyPythonObject",
+                        "glider_instance", "object",
+                        "glider_instance", 2)
+        self.obj.addProperty("App::PropertyPythonObject",
+                        "glider_2d", "object",
+                        "parametric glider", 2)
+        self.obj.glider_2d = loads(state["glider_2d"])["data"]
+        self.obj.glider_instance = self.obj.glider_2d.get_glider_3d()
+        return None
 
 class OGGliderVP(OGBaseVP):
     def __init__(self, view_obj):
@@ -71,30 +90,33 @@ class OGGliderVP(OGBaseVP):
         view_obj.num_ribs = 0
         view_obj.profile_num = 13
         view_obj.line_num = 5
+        super(OGGliderVP, self).__init__(view_obj)
+
+    def attach(self, view_obj):
         self.vis_glider = coin.SoSeparator()
         self.vis_lines = coin.SoSeparator()
         self.material = coin.SoMaterial()
         self.seperator = coin.SoSeparator()
         self.view_obj = view_obj
         self.glider_instance = view_obj.Object.glider_instance
-        super(OGGliderVP, self).__init__(view_obj)
-
-    def attach(self, vobj):
         self.material.diffuseColor = (.7, .7, .7)
         self.seperator.addChild(self.vis_glider)
         self.seperator.addChild(self.vis_lines)
         self.seperator.addChild(self.material)
-        vobj.addDisplayMode(self.seperator, 'out')
+        view_obj.addDisplayMode(self.seperator, 'out')
 
     def updateData(self, fp=None, prop=None):
-        if prop in ["num_ribs", "profile_num", None]:
-            numpoints = self.view_obj.profile_num
-            if numpoints < 5:
-                numpoints = 5
-            self.update_glider(midribs=self.view_obj.num_ribs,
-                               profile_numpoints=numpoints)
-        if prop in ["line_num", None]:
-            self.update_lines(self.view_obj.line_num)
+        if hasattr(self, "view_obj"):
+            if prop in ["num_ribs", "profile_num", None]:
+                if hasattr(self.view_obj, "profile_num"):
+                    numpoints = self.view_obj.profile_num
+                    if numpoints < 5:
+                        numpoints = 5
+                    self.update_glider(midribs=self.view_obj.num_ribs,
+                                       profile_numpoints=numpoints)
+            if prop in ["line_num", None]:
+                if hasattr(self.view_obj, "line_num"):
+                    self.update_lines(self.view_obj.line_num)
 
     def update_glider(self, midribs=0, profile_numpoints=20):
         self.vis_glider.removeAllChildren()
@@ -138,7 +160,8 @@ class OGGliderVP(OGBaseVP):
             self.vis_lines.addChild(Line(points, dynamic=False))
 
     def onChanged(self, vp, prop):
-        self.updateData()
+        print("onChanged")
+        self.updateData(vp, prop)
 
     def getIcon(self):
         return str(App.getHomePath() +
@@ -148,4 +171,5 @@ class OGGliderVP(OGBaseVP):
         return None
 
     def __setstate__(self, state):
+        self.updateData()
         return None

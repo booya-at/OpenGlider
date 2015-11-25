@@ -105,7 +105,10 @@ class Rib(CachedObject):
 
     def copy(self):
         new = copy.deepcopy(self)
-        new.name += "_copy"
+        try:
+            new.name += "_copy"
+        except TypeError:
+            new.name = str(new.name) + "_copy"
         return new
 
 

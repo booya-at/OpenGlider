@@ -1,7 +1,6 @@
 import FreeCADGui as Gui
 import FreeCAD
 
-from tools.panel_methode import Panel_Tool, Polars_Tool
 from tools import *
 
 Gui.addIconPath(FreeCAD.ConfigGet("UserAppData") + "/Mod/glider_gui/icons")

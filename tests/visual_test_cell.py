@@ -52,8 +52,8 @@ class TestCell(unittest.TestCase):
         self.rib1 = self.rib2.copy()
         self.rib1.mirror()
 
-        self.cell1 = Cell(self.rib1, self.rib2)
-        self.cell2 = Cell(self.rib2, self.rib3)
+        self.cell1 = Cell(self.rib1, self.rib2, self.ballooning)
+        self.cell2 = Cell(self.rib2, self.rib3, self.ballooning)
 
 
     def test_show_cell(self, num=20):

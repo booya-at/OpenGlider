@@ -36,19 +36,14 @@ class BasicCell(CachedObject):
             # 2: x2 = R*normvekt*(cos(phi2)-cos(phi)
             # 3: norm(d)/r*(1-x) = 2*sin(phi(2))
 
-            for i in range(len(self.prof1.data)):  # Arc -> phi(bal) -> r  # oder so...
+            for i, _ in enumerate(self.prof1.data):  # Arc -> phi(bal) -> r  # oder so...
                 diff = self.prof1[i] - self.prof2[i]
                 if ballooning and self.ballooning_radius[i] > 0.:
                     if arc_argument:
-                        # d = 0.5 - math.sin(self.ballooning_phi[i] * (y_value- 0.5)) / math.sin(self.ballooning_phi[i])
-                        d = 0.5 - math.sin(self.ballooning_phi[i] * (1 - 2 *  y_value)) / math.sin(self.ballooning_phi[i]) / 2
+                        d = 0.5 + math.sin(self.ballooning_phi[i] * (y_value - 0.5)) / math.sin(self.ballooning_phi[i])
                         h = math.cos(self.ballooning_phi[i] * (1 - 2 * y_value)) - self.ballooning_cos_phi[i]
-                        #h = math.sqrt(1 - (norm(diff) * (0.5 - d) / self._radius[i]) ** 2)
-                        #h -= self._cosphi[i]  # cosphi2-cosphi
                     else:
                         d = y_value
-                        # h = math.sqrt(1 - (norm(diff) * (0.5 - y_value) ** 2 / self.ballooning_radius[i]) ** 2)
-                        # h -= self.ballooning_cos_phi[i]  # cosphi2-cosphi
                         h = math.cos(math.asin((2 * d - 1)*math.sin(self.ballooning_phi[i]))) -  math.cos(self.ballooning_phi[i])
                 else:  # Without ballooning
                     d = y_value
@@ -87,5 +82,3 @@ class BasicCell(CachedObject):
 
     def copy(self):
         return copy.deepcopy(self)
-
-

@@ -23,8 +23,8 @@ import os
 
 import openglider
 
-with open('requires.txt', 'r') as req_file:
-    requires = [l.strip() for l in req_file.readlines()]
+# with open('requires.txt', 'r') as req_file:
+#     requires = [l.strip() for l in req_file.readlines()]
 
 packages, package_data = [], {}
 # This is all copied 1:1 from django-project as i dont know any better way to do this
@@ -71,12 +71,15 @@ print(package_data, packages)
 setup(
     name='OpenGlider',
     version=openglider.__version__,
+    description="tool fpr glider design",
     packages=packages,
     package_data=package_data,
-    #include_package_data=True,
     license='GPL-v3',
-    long_description=open('README.md').read(),
-    install_requires=requires,
+    # long_description=open('README.md').read(),
+    install_requires=["dxfwrite",  "ezodf2",
+                      "svgwrite",  "numpy",
+                      "ezdxf"],
     author='Booya',
-    url='www.openglider.org'
+    url='www.openglider.org',
+    download_url="https://github.com/hiaselhans/OpenGlider/tarball/0.01dev0"
 )
