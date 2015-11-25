@@ -32,7 +32,7 @@ class Shape():
 
     @property
     def ribs(self):
-        return list(zip(self.front, self.back))
+        return list(zip(self.front.data.tolist(), self.back.data.tolist()))
 
     @property
     def ribs_front_back(self):

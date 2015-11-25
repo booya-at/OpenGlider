@@ -7,7 +7,9 @@ import svgwrite.container
 import svgwrite.shapes
 
 from openglider.plots import config
+from openglider.plots.part.part import PlotPart
 from openglider.utils.css import get_material_color, normalize_class_names
+from openglider.vector import PolyLine2D
 
 __author__ = 'simon'
 
@@ -18,6 +20,9 @@ class DrawingArea():
 
     def __json__(self):
         return {"parts": self.parts}
+
+    def copy(self):
+        return self.__class__([p.copy() for p in self.parts])
 
     @classmethod
     def create_raster(cls, parts, distance_x=0.2, distance_y=0.1):
@@ -104,6 +109,25 @@ class DrawingArea():
         other.move([x, y])
         self.parts += other.parts
 
+    @classmethod
+    def import_dxf(cls, dxfile):
+        import ezdxf
+        dxf = ezdxf.readfile(dxfile)
+        dwg = cls()
+
+        groups = list(dxf.groups)
+
+        for panel_name, panel in groups:
+            new_panel = PlotPart()
+            dwg.parts.append(new_panel)
+
+            for entity in panel:
+                layer = entity.dxf.layer
+                if layer in new_panel.layers:
+                    new_panel.layers[layer].append(PolyLine2D([p[:2] for p in entity]))
+
+        return dwg
+
     def get_svg_group(self, config=config.sewing_config):
         group = svgwrite.container.Group()
         group.scale(1, -1)  # svg coordinate system is x->right y->down
@@ -189,9 +213,9 @@ class DrawingArea():
         with open(path, "w") as outfile:
             drawing.write(outfile)
 
-    def export_dxf(self, path):
+    def export_dxf(self, path, dxfversion="AC1015"):
         import ezdxf
-        drawing = ezdxf.new(dxfversion="ac1015")
+        drawing = ezdxf.new(dxfversion=dxfversion)
 
         drawing.header["$EXTMAX"] = (self.max_x, self.max_y, 0)
         drawing.header["$EXTMIN"] = (self.min_x, self.min_y, 0)
@@ -213,16 +237,44 @@ class DrawingArea():
         drawing.saveas(path)
         return drawing
 
+    ntv_layer_config = {
+        "C": ["Cuts"],
+        "P": ["Marks", "Text"],
+        "R": ["Stitches"]
+    }
+
     def export_ntv(self, path):
         filename = os.path.split(path)[-1]
+
+        def format_line(line):
+            a = "\nA {} ".format(len(line))
+            b = " ".join(["({:.5f},{:.5f})".format(p[0], p[1]) for p in line])
+            return a+b
+
         with open(path, "w") as outfile:
             # head
             outfile.write("A {} {} 1 1 0 0 0 0\n".format(len(filename), filename))
             for part in self.parts:
                 # part-header: 1A {name}, {position_x} {pos_y} {rot_degrees} {!derivePerimeter} {useAngle} {flipped}
-                part_header = "\n1A {len_name} {name} {pos_x} {pos_y} {rotation_deg} 0 0 0"
-                outfile.write(part_header.format(len(part.name), part.name, 0, 0, 0))
+                part_header = "\n1A {len_name} {name} ({pos_x}, {pos_y}) {rotation_deg} 0 0 0 0 0"
+                name = part.name or "unnamed"
+                args = {"len_name": len(name),
+                        "name": name,
+                        "pos_x": 0,
+                        "pos_y": 0,
+                        "rotation_deg": 0}
+                outfile.write(part_header.format(**args))
 
+                # part-boundary
+                part_boundary = "\n{boundary_len} {line}"
+                #outfile.write()
+
+                for plottype in self.ntv_layer_config:
+                    for layer_origin in self.ntv_layer_config[plottype]:
+                        for line in part.layers[layer_origin]:
+                            # line-header type: (R->ignore, P->plot, C->cut
+                            outfile.write("\n1A P 0 {} 0 0 0".format(plottype))
+                            outfile.write(format_line(line))
 
 
                 # part-end
