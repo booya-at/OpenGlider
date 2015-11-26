@@ -111,6 +111,11 @@ class DrawingArea():
 
     @classmethod
     def import_dxf(cls, dxfile):
+        """
+        Imports groups and blocks from a dxf file
+        :param dxfile: filename
+        :return:
+        """
         import ezdxf
         dxf = ezdxf.readfile(dxfile)
         dwg = cls()
@@ -118,7 +123,7 @@ class DrawingArea():
         groups = list(dxf.groups)
 
         for panel_name, panel in groups:
-            new_panel = PlotPart()
+            new_panel = PlotPart(name=panel_name)
             dwg.parts.append(new_panel)
 
             for entity in panel:
@@ -126,6 +131,26 @@ class DrawingArea():
                 if layer in new_panel.layers:
                     new_panel.layers[layer].append(PolyLine2D([p[:2] for p in entity]))
 
+        #blocks = list(dxf.blocks)
+        blockrefs = dxf.modelspace().query("INSERT")
+
+        for blockref in blockrefs:
+            name = blockref.dxf.name
+            block = dxf.blocks.get(name)
+
+            new_panel = PlotPart(name=block.name)
+            dwg.parts.append(new_panel)
+
+            for entity in block:
+                layer = entity.dxf.layer
+                if layer in new_panel.layers:
+                    new_panel.layers[layer].append(PolyLine2D([v.dxf.location[:2] for v in entity]))
+
+            new_panel.rotate(blockref.dxf.rotation * math.pi / 180)
+            new_panel.move(blockref.dxf.insert[:2])
+
+            # block.name
+        #return blocks
         return dwg
 
     def get_svg_group(self, config=config.sewing_config):
