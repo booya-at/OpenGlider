@@ -144,14 +144,19 @@ class DrawingArea():
             for entity in block:
                 layer = entity.dxf.layer
                 if layer in new_panel.layers:
-                    new_panel.layers[layer].append(PolyLine2D([v.dxf.location[:2] for v in entity]))
+                    line = [v.dxf.location[:2] for v in entity]
+                    if entity.dxf.flags % 1:
+                        line.append(line[0])
+                    new_panel.layers[layer].append(PolyLine2D(line))
 
-            new_panel.rotate(blockref.dxf.rotation * math.pi / 180)
+
+            new_panel.rotate(-blockref.dxf.rotation * math.pi / 180)
             new_panel.move(blockref.dxf.insert[:2])
 
             # block.name
         #return blocks
         return dwg
+
 
     def get_svg_group(self, config=config.sewing_config):
         group = svgwrite.container.Group()
@@ -209,11 +214,12 @@ class DrawingArea():
 
         add_style(drawing)
 
-        for cls, attribs in styles.items():
-            style.append(".{} {{\n".format(cls))
+        for css_class, attribs in styles.items():
+            style.append(".{} {{\n".format(css_class))
             for attrib in attribs:
                 style.append("\t{};\n".format(attrib))
             style.append("}\n")
+        style.append("\nline { vector-effect: non-scaling-width }")
         drawing.defs.add(style)
 
         return drawing
