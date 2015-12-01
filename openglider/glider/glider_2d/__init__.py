@@ -36,7 +36,7 @@ class Glider2D(object):
         self.profile_merge_curve = profile_merge_curve
         self.balloonings = balloonings or []
         self.ballooning_merge_curve = ballooning_merge_curve
-        self.lineset = lineset or LineSet2D([], [])
+        self.lineset = lineset or LineSet2D([])
         self.speed = speed
         self.glide = glide
         self.elements = elements or {}

@@ -48,10 +48,12 @@ class PlotPart(object):
         self.material_code = material_code
 
     def __json__(self):
-        return {
+        new = {
             "name": self.name,
             "material_code": self.material_code
-        }.update(self.layers)
+        }
+        new.update(self.layers)
+        return new
 
     def copy(self):
         return copy.deepcopy(self)

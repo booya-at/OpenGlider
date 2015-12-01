@@ -105,6 +105,7 @@ def import_ods_2d(cls, filename, numpoints=4):
     # height (0,1) -> (-1,1)
     diagonals = []
     for res in read_elements(sheets[1], "QR", len_data=6):
+        # excel-version?
         height1 = res[5]*2-1
         height2 = res[6]*2-1
         diagonals.append({"left_front": (res[1] - res[3]/2, height1),

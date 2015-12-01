@@ -79,6 +79,10 @@ class TestGlider(TestCase):
             glider = jsonify.load(tmp)['data']
         self.assertEqualGlider(self.glider, glider)
 
+    def test_export_glider_ods(self):
+        path = self.tempfile(".ods").name
+        self.glider_2d.export_ods(path)
+
     def test_export_glider_json2(self):
         with self.tempfile('.json') as tmp:
             jsonify.dump(self.glider_2d, tmp)

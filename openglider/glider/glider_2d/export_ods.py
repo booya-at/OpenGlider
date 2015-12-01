@@ -1,4 +1,12 @@
-import ezodf
+import copy
+
+from openglider.glider.cell import DiagonalRib
+
+try:
+    import ezodf2 as ezodf
+except ImportError:
+    import ezodf
+
 import openglider.glider
 
 
@@ -7,6 +15,7 @@ def export_ods_2d(glider, filename):
     assert isinstance(glider, openglider.glider.Glider2D)
 
     doc.sheets.append(get_geom_sheet(glider))
+    doc.sheets.append(get_cell_sheet(glider))
 
 
     doc.saveas(filename)
@@ -34,15 +43,68 @@ def get_geom_sheet(glider_2d):
 
     return geom_page
 
-def get_element_sheet(elems, row_num, sheet_name):
+
+def get_cell_sheet(glider):
+    row_num = glider.half_cell_num
+    sheet_name = "Cell Elements"
     sheet = ezodf.Sheet(name=sheet_name, size=(row_num+1, 1))
+    elems = glider.elements
 
     for i in range(1, row_num+1):
-        sheet[0, i].set_value(str(i))
+        sheet[i, 0].set_value(str(i))
 
-    for elem_type, elements in elems.items():
-        pass
+    column = 1
 
+    # cuts
+    for cut in elems["cuts"]:
+        sheet.append_columns(2)
+        # folded -> EKV
+        # orthogonal -> DESIGNM
+        if cut["type"] == "folded":
+            cut_type = "EKV"
+        elif cut["type"] == "orthogonal":
+            cut_type = "DESIGNM"
+        else:
+            cut_type = "CUT"
+        sheet[0, column].set_value(cut_type)
+        for cell_no in cut["cells"]:
+            sheet[cell_no+1, column].set_value(cut["left"])
+            sheet[cell_no+1, column+1].set_value(cut["right"])
+        column += 2
+
+    # Diagonals
+    for diagonal in elems["diagonals"]:
+        diagonal = copy.copy(diagonal)
+        sheet.append_columns(6)
+        sheet[0, column].set_value("QR")
+        cells = diagonal.pop("cells")
+        _diagonal = DiagonalRib(**diagonal)
+
+        for cell_no in cells:
+            # center_left, center_right, width_left, width_right, height_left, height_right
+
+            sheet[cell_no+1, column].set_value(_diagonal.center_left)
+            sheet[cell_no+1, column+1].set_value(_diagonal.center_right)
+            sheet[cell_no+1, column+2].set_value(_diagonal.width_left)
+            sheet[cell_no+1, column+3].set_value(_diagonal.width_right)
+            sheet[cell_no+1, column+4].set_value(_diagonal.left_front[1])
+            sheet[cell_no+1, column+5].set_value(_diagonal.right_front[1])
+        column += 6
+
+    # Straps
+    for strap in elems["straps"]:
+        sheet.append_columns(2)
+        sheet[0, column].set_value("VEKTLAENGE")
+        for cell_no in strap["cells"]:
+            sheet[cell_no+1, column].set_value(strap["left"])
+            sheet[cell_no+1, column+1].set_value(strap["right"])
+
+    return sheet
+
+
+def write_cuts(cuts, sheet):
+    pass
+    #
 
 
 # for i, value in enumerate(("Ribs", "Chord", "x: (m)", "y LE (m)", "kruemmung", "aoa", "Z-rotation",
