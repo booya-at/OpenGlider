@@ -5,45 +5,56 @@ class Layers(object):
     def __init__(self, **layers):
         self.layers = layers
 
+    def __repr__(self):
+        """pretty-print"""
+        lines = ["Layers:"] + list(self.layers.keys())
+        return "\n  - ".join(lines)
+
     def __getitem__(self, item):
+        if item in ("name", "material_code"):
+            raise ValueError()
         self.layers.setdefault(item, [])
         return self.layers[item]
 
     def __setitem__(self, key, value):
+        if key in ("name", "material_code"):
+            raise ValueError()
         assert isinstance(value, list)
         self.layers[key] = value
+
+    def values(self):
+        return self.layers.values()
+
+    def items(self):
+        return self.layers.items()
+
+    def keys(self):
+        return self.layers.keys()
+
+    def copy(self):
+        layer_copy = {layer_name: [line.copy() for line in layer] for layer_name, layer in self.layers.items()}
+        return Layers(**layer_copy)
 
 
 class PlotPart(object):
     def __init__(self, cuts=None, marks=None, text=None, stitches=None, name=None, material_code="", **layers):
-        self.cuts = cuts or []
-        self.marks = marks or []
-        self.text = text or []
-        self.stitches = stitches or []
+        layers["cuts"] = cuts or []
+        layers["marks"] = marks or []
+        layers["stitches"] = stitches or []
+        layers["text"] = text or []
+        self.layers = Layers(**layers)
+
         self.name = name
         self.material_code = material_code
 
-        #self.layers = layers
-
     def __json__(self):
         return {
-            "cuts": self.cuts,
-            "marks": self.marks,
-            "text": self.text,
-            "stitches": self.stitches,
             "name": self.name,
             "material_code": self.material_code
-        }
+        }.update(self.layers)
 
     def copy(self):
         return copy.deepcopy(self)
-
-    @property
-    def layers(self):
-        return {"Cuts": self.cuts,
-                "Marks": self.marks,
-                "Text": self.text,
-                "Stitches": self.stitches}
 
     def max_function(self, axis, layer):
         start = float("-Inf")

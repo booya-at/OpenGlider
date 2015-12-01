@@ -12,6 +12,9 @@ class Rib(CachedObject):
         glide-wide rotation and glider ratio.
         optional: name, absolute aoa (bool), startposition
     """
+    hole_naming_scheme = "{rib.name}h{}"
+    rigid_naming_scheme = "{rib.name}rigid{}"
+
     hashlist = ('aoa_absolute', 'glide', 'arcang', 'zrot', 'chord', 'pos', 'profile_2d')  # pos
 
     def __init__(self, profile_2d=None, startpoint=None,
@@ -57,10 +60,10 @@ class Rib(CachedObject):
 
     def rename_parts(self):
         for hole_no, hole in enumerate(self.holes):
-            hole.name = "{}hole{}".format(self.name, hole_no)
+            hole.name = self.hole_naming_scheme.format(hole_no, rib=self)
 
         for rigid_no, rigid in enumerate(self.rigidfoils):
-            rigid.name = "{}rigidfoil{}".format(self.name, rigid_no)
+            rigid.name = self.rigid_naming_scheme.format(rigid_no, rib=self)
 
     @property
     def aoa_relative(self):

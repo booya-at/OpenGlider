@@ -60,6 +60,9 @@ class PolyLine(HashedList):
         """List.point(x) is the same as List[x]"""
         return self[x]
 
+    def last(self):
+        return self[len(self) - 1]
+
     def get(self, start, stop):
         start2 = start - start % 1 + 1
         stop2 = stop - stop % 1

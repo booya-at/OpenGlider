@@ -33,8 +33,8 @@ from openglider.vector.functions import norm, rotation_2d
 
 
 class Glider(object):
-    cell_naming_scheme = "cell{cell_no}"
-    rib_naming_scheme = "rib{rib_no}"
+    cell_naming_scheme = "c{cell_no}"
+    rib_naming_scheme = "r{rib_no}"
 
     def __init__(self, cells=None, lineset=None):
         self.cells = cells or []

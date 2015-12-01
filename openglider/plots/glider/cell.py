@@ -36,11 +36,12 @@ class PanelPlot:
         amount_back = self.panel.cut_back.get("amount",
                                          sewing_config["allowance"][allowance_back])
 
+        # cuts -> cut-line, index left, index right
         cut_front = cuts[self.panel.cut_front["type"]](
             [[self.ballooned[0], front_left],
              [self.ballooned[1], front_right]],
-            self.outer[0], self.outer[1],
-            amount_front)
+            self.outer[0], self.outer[1], amount_front)
+
         cut_back = cuts[self.panel.cut_back["type"]](
             [[self.ballooned[0], back_left],
              [self.ballooned[1], back_right]],
@@ -52,41 +53,55 @@ class PanelPlot:
             cut_front_new = PolyLine2D(cut_front[0])
             ik1, ik2 = cut_front_new.cut_with_polyline(cut_back[0],
                                                        startpoint=0)
-            panel_cut = PolyLine2D(cut_back[0])[ik2:]
-            panel_cut += self.outer[1][cut_front[2]:cut_back[2]:-1]
-            panel_cut += cut_front_new[ik1::-1]
+
+            panel_right = PolyLine2D([])
+            panel_back = PolyLine2D(cut_back[0])[ik2:]
+            panel_left = self.outer[1][cut_front[2]:cut_back[2]:-1]
+            panel_front = cut_front_new[ik1::-1]
         # rechts
         elif cut_front[2] >= cut_back[2]:
             cut_front_new = PolyLine2D(cut_front[0])
             ik1, ik2 = cut_front_new.cut_with_polyline(cut_back[0],
                                                        startpoint=len(
                                                            cut_front_new) - 1)
-            panel_cut = self.outer[0][cut_front[2]:cut_back[2]]
-            panel_cut += PolyLine2D(cut_back[0])[:ik2]
-            panel_cut += cut_front_new[:ik1:-1]
+
+            panel_right = self.outer[0][cut_front[2]:cut_back[2]]
+            panel_back = PolyLine2D(cut_back[0])[:ik2]
+            panel_left = PolyLine2D([])
+            panel_front = cut_front_new[:ik1:-1]
 
         else:
-            panel_cut = self.outer[0][cut_front[1]:cut_back[1]]
-            panel_cut += PolyLine2D(cut_back[0])
-            panel_cut += self.outer[1][cut_front[2]:cut_back[2]:-1]
-            panel_cut += PolyLine2D(cut_front[0])[::-1]
+            panel_right = self.outer[0][cut_front[1]:cut_back[1]]
+            panel_back = PolyLine2D(cut_back[0])
+            panel_left = self.outer[1][cut_front[2]:cut_back[2]:-1]
+            panel_front = PolyLine2D(cut_front[0])[::-1]
 
-        panel_cut += PolyLine2D([panel_cut[0]])
+        envelope = panel_right + panel_back + panel_left + panel_front
+        envelope += PolyLine2D([envelope[0]])
 
-        self.plotpart.stitches += [self.ballooned[0][front_left:back_left],
-                                   self.ballooned[1][front_right:back_right]]
+        self.plotpart.layers["envelope"] = [envelope]
 
-        self.plotpart.marks += [PolyLine2D([self.ballooned[0][front_left], self.ballooned[1][front_right]]),
-                                PolyLine2D([self.ballooned[0][back_left], self.ballooned[1][back_right]])]
+        self.plotpart.layers["stitches"] += [
+            self.ballooned[0][front_left:back_left],
+            self.ballooned[1][front_right:back_right]]
 
+        self.plotpart.layers["marks"] += [
+            PolyLine2D([self.ballooned[0][front_left], self.ballooned[1][front_right]]),
+            PolyLine2D([self.ballooned[0][back_left], self.ballooned[1][back_right]])]
 
+        if panel_right:
+            right = PolyLine2D([panel_front.last()]) + panel_right + PolyLine2D([panel_back[0]])
+            self.plotpart.layers["cuts"].append(right)
 
+        self.plotpart.layers["cuts"].append(panel_back)
 
-        #self.plotpart.marks += [self.inner[0][front_left:back_left] +
-        #              self.inner[1][front_right:back_right:-1] +
-        #              PolyLine2D([self.inner[0][front_left]])]
+        if panel_left:
+            left = PolyLine2D([panel_back.last()]) + panel_left + PolyLine2D([panel_front[0]])
+            self.plotpart.layers["cuts"].append(left)
 
-        self.plotpart.cuts.append(panel_cut)
+        self.plotpart.layers["cuts"].append(panel_front)
+
+        #self.plotpart.layers["cuts"].append(envelope)
 
     def get_point(self, x):
         ik = get_x_value(self.xvalues, x)
@@ -109,17 +124,17 @@ class PanelPlot:
                          align="center",
                          valign=0.6,
                          height=0.8).get_vectors()
-        self.plotpart.text += part_text
+        self.plotpart.layers["text"] += part_text
 
     def insert_attachment_point_text(self, attachment_point, rib="left"):
         align = rib  # (left, right)
         which = rib  # (left, right)
         if self.panel.cut_front[which] <= attachment_point.rib_pos <= self.panel.cut_back[which]:
             left, right = self.get_point(attachment_point.rib_pos)
-            self.plotpart.text += Text(" {} ".format(attachment_point.name), left, right,
+            self.plotpart.layers["text"] += Text(" {} ".format(attachment_point.name), left, right,
                                        size=0.01,  # 1cm
                                        align=align, valign=-0.5).get_vectors()
-            self.plotpart.marks += [PolyLine2D(self.get_p1_p2(attachment_point.rib_pos, which))]
+            self.plotpart.layers["marks"] += [PolyLine2D(self.get_p1_p2(attachment_point.rib_pos, which))]
 
 
 
@@ -155,11 +170,8 @@ def get_panels(glider):
         for part_no, panel in enumerate(cell.panels):
             part_name = "cell_{}_part{}".format(cell_no, part_no + 1)
             panelplot = PanelPlot(xvalues, inner, ballooned, outer, panel)
-            try:
-                panelplot.get_panel()
-            except Exception as e:
-                print(part_name)
-                raise e
+
+            panelplot.get_panel()
 
             panelplot.insert_text()
 

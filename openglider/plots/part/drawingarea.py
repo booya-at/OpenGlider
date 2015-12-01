@@ -128,8 +128,7 @@ class DrawingArea():
 
             for entity in panel:
                 layer = entity.dxf.layer
-                if layer in new_panel.layers:
-                    new_panel.layers[layer].append(PolyLine2D([p[:2] for p in entity]))
+                new_panel.layers[layer].append(PolyLine2D([p[:2] for p in entity]))
 
         #blocks = list(dxf.blocks)
         blockrefs = dxf.modelspace().query("INSERT")
@@ -143,11 +142,10 @@ class DrawingArea():
 
             for entity in block:
                 layer = entity.dxf.layer
-                if layer in new_panel.layers:
-                    line = [v.dxf.location[:2] for v in entity]
-                    if entity.dxf.flags % 1:
-                        line.append(line[0])
-                    new_panel.layers[layer].append(PolyLine2D(line))
+                line = [v.dxf.location[:2] for v in entity]
+                if entity.dxf.flags % 1:
+                    line.append(line[0])
+                new_panel.layers[layer].append(PolyLine2D(line))
 
 
             new_panel.rotate(-blockref.dxf.rotation * math.pi / 180)
