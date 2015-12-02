@@ -64,11 +64,13 @@ class TestGlider(TestCase):
     def test_export_plots(self):
         path = self.tempfile('.svg').name
         dxfile = self.tempfile(".dxf").name
+        ntvfile = self.tempfile(".ntv").name
         plots = flatten_glider(self.glider)
         all = plots['panels']
         all.join(plots['ribs'])
         all.export_svg(path)
         all.export_dxf(dxfile)
+        all.export_ntv(ntvfile)
 
     def test_export_glider_json(self):
         with self.tempfile('.json') as tmp:
@@ -76,6 +78,10 @@ class TestGlider(TestCase):
             tmp.seek(0)
             glider = jsonify.load(tmp)['data']
         self.assertEqualGlider(self.glider, glider)
+
+    def test_export_glider_ods(self):
+        path = self.tempfile(".ods").name
+        self.glider_2d.export_ods(path)
 
     def test_export_glider_json2(self):
         with self.tempfile('.json') as tmp:

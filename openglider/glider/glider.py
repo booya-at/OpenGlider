@@ -33,8 +33,8 @@ from openglider.vector.functions import norm, rotation_2d
 
 
 class Glider(object):
-    cell_naming_scheme = "cell{cell_no}"
-    rib_naming_scheme = "rib{rib_no}"
+    cell_naming_scheme = "c{cell_no}"
+    rib_naming_scheme = "r{rib_no}"
 
     def __init__(self, cells=None, lineset=None):
         self.cells = cells or []
@@ -202,7 +202,8 @@ class Glider(object):
         other2.mirror()
         other2.cells[-1].rib2 = other.cells[0].rib1
         other2.cells = other2.cells + other.cells
-        #other2.lineset2 = other2.lineset
+
+        # lineset
         for p in other2.lineset.attachment_points:
             p.get_position()
         for node in [node for node in other2.lineset.nodes if node.type==0]:
@@ -211,9 +212,7 @@ class Glider(object):
         other2.lineset.lines += other.lineset.lines
         other2.lineset.sort_lines()
 
-        #other2.lineset = other.lineset
-        #other2.lineset.lines += other.lineset.lines
-        #other2.lineset2, other2.lineset = other2.lineset, other2.lineset2
+        # rename
         return other2
 
     def scale(self, faktor):

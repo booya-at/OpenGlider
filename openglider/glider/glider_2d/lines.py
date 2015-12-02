@@ -141,10 +141,9 @@ class LineSet2D(object):
                      line_no, line2d in enumerate(self.lines)}
 
         for line in lineset_3d.lines:
-            pos_2d = line.upper_node.vec
-            line_dict[line.number].upper_node.pos_2D = [pos_2d[1], pos_2d[2]]
-
-
+            pos_3d = line.upper_node.vec
+            pos_2d = [pos_3d[1], pos_3d[2]]
+            line_dict[line.number].upper_node.pos_2D = pos_2d
 
     def sort_lines(self, lower_att):
         """

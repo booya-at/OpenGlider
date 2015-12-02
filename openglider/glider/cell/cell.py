@@ -11,8 +11,8 @@ from openglider.vector import norm
 
 class Cell(CachedObject):
     diagonal_naming_scheme = "{cell.name}d{diagonal_no}"
-    strap_naming_scheme = "{cell.name}strap{strap_no}"
-    panel_naming_scheme = "{cell.name}part{panel_no}"
+    strap_naming_scheme = "{cell.name}s{strap_no}"
+    panel_naming_scheme = "{cell.name}p{panel_no}"
 
     def __init__(self, rib1, rib2, ballooning, miniribs=None, panels=None,
                  diagonals=None, straps=None, name="unnamed"):

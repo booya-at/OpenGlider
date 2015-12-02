@@ -88,7 +88,9 @@ def import_ods_2d(cls, filename, numpoints=4):
     # RIB HOLES
     #RibHole(rib, pos, size)
     rib_holes = [{"ribs": [res[0]], "pos": res[1], "size": res[2]} for res in read_elements(sheets[2], "QUERLOCH", len_data=2)]
+    rib_holes = group(rib_holes, "ribs")
     rigidfoils = [{"ribs": [res[0]], "start": res[1], "end": res[2], "distance": res[3]} for res in read_elements(sheets[2], "RIGIDFOIL", len_data=3)]
+    rigidfoils = group(rigidfoils, "ribs")
     # CUTS
     def get_cuts(name, target_name):
         return [{"cells": [res[0]], "left": res[1], "right": res[2], "type": target_name}
@@ -97,10 +99,13 @@ def import_ods_2d(cls, filename, numpoints=4):
     cuts = get_cuts("EKV", "folded") + get_cuts("EKH", "folded")
     cuts += get_cuts("DESIGNM", "orthogonal") + get_cuts("DESIGNO", "orthogonal")
 
+    cuts = group(cuts, "cells")
+
     # Diagonals: center_left, center_right, width_l, width_r, height_l, height_r
     # height (0,1) -> (-1,1)
     diagonals = []
     for res in read_elements(sheets[1], "QR", len_data=6):
+        # excel-version?
         height1 = res[5]*2-1
         height2 = res[6]*2-1
         diagonals.append({"left_front": (res[1] - res[3]/2, height1),
@@ -280,3 +285,32 @@ def read_elements(sheet, keyword, len_data=2):
         else:
             j += 1
     return elements
+
+def group(lst, keyword):
+    new_lst = []
+
+    def equal(first, second):
+        if first.keys() != second.keys():
+            return False
+        for key in first:
+            if key == keyword:
+                continue
+            if first[key] != second[key]:
+                return False
+
+        return True
+
+    def insert(_obj):
+        for obj2 in new_lst:
+            if equal(_obj, obj2):
+                obj2[keyword] += _obj[keyword]
+                return
+
+        # nothing found
+        new_lst.append(_obj)
+
+    for obj in lst:
+        insert(obj)
+
+    return new_lst
+

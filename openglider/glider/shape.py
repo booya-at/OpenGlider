@@ -1,6 +1,6 @@
 from openglider.plots.part import PlotPart, DrawingArea
 from openglider.glider.cell import Panel
-from openglider.vector import PolyLine2D
+from openglider.vector import PolyLine2D, norm
 
 
 class Shape():
@@ -32,11 +32,15 @@ class Shape():
 
     @property
     def ribs(self):
-        return list(zip(self.front, self.back))
+        return list(zip(self.front.data.tolist(), self.back.data.tolist()))
 
     @property
     def ribs_front_back(self):
         return [self.ribs, self.front, self.back]
+
+    @property
+    def chords(self):
+        return [norm(p1-p2) for p1, p2 in zip(self.front, self.back)]
 
     @property
     def area(self):

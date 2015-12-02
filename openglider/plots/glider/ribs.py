@@ -18,7 +18,7 @@ class RibPlot:
 
         # insert cut
         self.cut_outer_rib()
-        self.plotpart.stitches.append(self.inner)
+        self.plotpart.layers["stitches"].append(self.inner)
 
     def insert_mark(self, position, _type):
         mark = self.config["marks"][_type]
@@ -26,7 +26,7 @@ class RibPlot:
         inner = self.inner[ik]
         outer = self.outer[ik]
 
-        self.plotpart.marks += mark(inner, outer)
+        self.plotpart.layers["marks"] += mark(inner, outer)
 
     def get_point(self, x, y=-1):
         assert x >= 0
@@ -51,7 +51,7 @@ class RibPlot:
         else:
             p1 = self.get_point(*p1)
             p2 = self.get_point(*p2)
-            self.plotpart.marks.append(PolyLine2D([p1, p2]))
+            self.plotpart.layers["marks"].append(PolyLine2D([p1, p2]))
 
     def cut_outer_rib(self):
         """
@@ -70,12 +70,12 @@ class RibPlot:
                             outer_rib[stop] + [t_e_allowance, 0],
                             outer_rib[start] + [t_e_allowance, 0],
                             outer_rib[start]])
-        self.plotpart.cuts += [PolyLine2D(outer_rib[start:stop].data) + buerzl]
+        self.plotpart.layers["cuts"] += [PolyLine2D(outer_rib[start:stop].data) + buerzl]
 
     def add_text(self, text):
         p1 = self.get_point(0.03, 0)
         p2 = self.get_point(0.13, 0)
-        self.plotpart.text += Text(text, p1, p2).get_vectors()
+        self.plotpart.layers["text"] += Text(text, p1, p2).get_vectors()
 
 
 def get_ribs(glider):
@@ -108,7 +108,7 @@ def get_ribs(glider):
 
         # holes
         for hole in rib.holes:
-            rib_plot.plotpart.cuts.append(hole.get_flattened(rib))
+            rib_plot.plotpart.layers["cuts"].append(hole.get_flattened(rib))
 
         # Diagonals
         for cell in glider.cells:
@@ -129,7 +129,7 @@ def get_ribs(glider):
 
         # rigidfoils
         for rigid in rib.rigidfoils:
-            rib_plot.plotpart.marks.append(rigid.get_flattened(rib))
+            rib_plot.plotpart.layers["marks"].append(rigid.get_flattened(rib))
 
         # TEXT
         # TODO: improve (move away from holes?)

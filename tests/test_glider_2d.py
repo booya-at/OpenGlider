@@ -22,6 +22,9 @@ class GliderTestCase2D(TestCase):
         imp = jsonify.loads(exp)['data']
         self.assertEqualGlider2D(self.glider2d, imp)
 
+    def test_export_ods(self):
+        exp = self.glider2d.export_ods("/tmp/test.ods")
+
     def test_set_area(self):
         self.glider2d.set_flat_area(10)
         self.assertEqual(self.glider2d.flat_area, 10)

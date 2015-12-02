@@ -19,8 +19,23 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 __version__ = '0.01'
 __author__ = 'Booya'
-from openglider.config import config
+
 import numpy
+
+from openglider.config import config
+import openglider.jsonify
+
+
+def load(filename):
+    """
+    """
+    with open(filename) as infile:
+        res = openglider.jsonify.load(infile)
+    if isinstance(res, dict) and "data" in res:
+        print(res["MetaData"])  # HakunaMaData
+        return res["data"]
+
+    return res
 
 
 # Monkey-patch numpy cross for pypy
