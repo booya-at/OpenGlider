@@ -145,12 +145,23 @@ class RibHole(object):
         hole = self.get_flattened(rib, num=num)
         return [rib.align([p[0], p[1], 0], scale=False) for p in hole]
 
-    def get_flattened(self, rib, num=80):
+    def get_flattened(self, rib, num=80, scale=True):
         prof = rib.profile_2d
-        p1 = prof[prof(self.pos)] * rib.chord
-        p2 = prof[prof(-self.pos)] * rib.chord
-
+        p1 = prof[prof(self.pos)]
+        p2 = prof[prof(-self.pos)]
+        if scale:
+            p1 *= rib.chord
+            p2 *= rib.chord
         return polygon(p1, p2, num=num, scale=self.size, is_center=False)[0]
+
+    def get_center(self, rib, scale=True):
+        prof = rib.profile_2d
+        p1 = prof[prof(self.pos)]
+        p2 = prof[prof(-self.pos)]
+        if scale:
+            p1 *= rib.chord
+            p2 *= rib.chord
+        return (p1 + p2) / 2
 
 
 class Mylar(object):
