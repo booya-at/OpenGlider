@@ -3,5 +3,4 @@ ezodf2
 svgwrite
 numpy
 ezdxf
-cython
 triangle
