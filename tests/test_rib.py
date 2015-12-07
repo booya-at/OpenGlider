@@ -22,16 +22,19 @@ import random
 import sys
 import os
 
+
 import common
 import openglider
 from openglider.glider.rib.rib import Rib
+from openglider.glider.rib.elements import RibHole
+from openglider.mesh import mesh_2d
 
 
 class TestRib(unittest.TestCase):
 
     def setUp(self):
         naca = random.randint(1, 9999)
-        numpoints = random.randint(10,200)
+        numpoints = random.randint(10,11)
         self.prof = openglider.airfoil.Profile2D.compute_naca(naca, numpoints)
         self.rib = Rib(self.prof,
                        startpoint=[random.random(), random.random(), random.random()],
@@ -62,5 +65,14 @@ class TestRib(unittest.TestCase):
             self.assertAlmostEqual(p1[1], p2[1])
             self.assertAlmostEqual(p1[2], p2[2])
 
+    def test_mesh(self):
+        self.rib.holes.append(RibHole(0.2))
+        mesh = mesh_2d.from_rib(self.rib)
+
+
+
+
+if __name__ == '__main__':
+    unittest.main(verbosity=2)
 
 

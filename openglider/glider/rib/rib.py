@@ -47,6 +47,21 @@ class Rib(CachedObject):
                 "name": self.name,
                 "material_code": self.material_code}
 
+    def align_all(self, coo, scale=True):
+        """align 2d coordinates to the 3d pos of the rib"""
+        if not isinstance(coo, numpy.ndarray):
+            coo = numpy.array(coo)
+        if len(coo[0]) != 3:
+            # adding z-value
+            coo = coo.T
+            coo = numpy.array([coo[0], coo[1], numpy.zeros(len(coo[0]))]).T
+        #appply rotations matrix and transpose back
+        coo = coo.dot(self.rotation_matrix.T)
+        if scale:
+            coo *= self.chord
+        coo += self.pos
+        return coo
+
     def align(self, point, scale=True):
         if len(point) == 2:
             return self.align([point[0], point[1], 0], scale=scale)
@@ -86,8 +101,9 @@ class Rib(CachedObject):
     def profile_3d(self):
         if self.profile_2d.data is not None:
             prof = self.profile_2d.copy()
-            prof.scale(self.chord)
-            return Profile3D([self.align(p, scale=False) for p in prof])
+            return Profile3D(self.align_all(prof))
+            # prof.scale(self.chord)
+            #return Profile3D([self.align(p, scale=False) for p in prof])
             #return Profile3D([self.align(p) for p in self.profile_2d.data], name="profile3d (rib: {})".format(self.name))
         else:
             raise ValueError("no 2d-profile present fortharib at rib {}".format(
@@ -118,6 +134,7 @@ class Rib(CachedObject):
 def rib_rotation(aoa, arc, zrot):
     """
     Rotation Matrix for Ribs, aoa, arcwide-angle and glidewise angle in radians
+    return -> numpy.array
     """
     # Rotate Arcangle, rotate from lying to standing (x-z)
     rot = rotation_3d(-arc + math.pi / 2, [-1, 0, 0])
