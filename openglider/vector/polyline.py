@@ -69,6 +69,17 @@ class PolyLine(HashedList):
         data = self.data[start2:stop2]
         return numpy.concatenate([[self[start]], data, [self[stop]]])
 
+    def check(self):
+        # remove zero-length segments
+        index = 0
+        while index < len(self)-1:
+            if norm(self[index+1] - self[index]) < 0.0000001:
+                self.data = numpy.concatenate([self[:index], self[index+1:]])
+            else:
+                index += 1
+
+        return self
+
     def extend(self, start, length):
         """
         Move from a starting point for a given length in direction of the line
@@ -167,6 +178,7 @@ class PolyLine2D(PolyLine):
         """
         Check for mistakes in the array, such as for the moment: self-cuttings,..
         """
+        super(PolyLine2D, self).check()
         for i in range(len(self.data) - 3):
             if i > len(self.data) - 4:
                 break

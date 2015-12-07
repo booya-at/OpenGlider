@@ -22,6 +22,9 @@ class Layers(object):
         assert isinstance(value, list)
         self.layers[key] = value
 
+    def __contains__(self, item):
+        return item in self.layers
+
     def values(self):
         return self.layers.values()
 
