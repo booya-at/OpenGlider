@@ -58,15 +58,9 @@ def get_cell_sheet(glider):
     # cuts
     for cut in elems["cuts"]:
         sheet.append_columns(2)
-        # folded -> EKV
-        # orthogonal -> DESIGNM
-        if cut["type"] == "folded":
-            cut_type = "EKV"
-        elif cut["type"] == "orthogonal":
-            cut_type = "DESIGNM"
-        else:
-            cut_type = "CUT"
-        sheet[0, column].set_value(cut_type)
+        # folded = EKV
+        # orthogonal = DESIGNM
+        sheet[0, column].set_value(cut["type"])
         for cell_no in cut["cells"]:
             sheet[cell_no+1, column].set_value(cut["left"])
             sheet[cell_no+1, column+1].set_value(cut["right"])
@@ -98,6 +92,17 @@ def get_cell_sheet(glider):
         for cell_no in strap["cells"]:
             sheet[cell_no+1, column].set_value(strap["left"])
             sheet[cell_no+1, column+1].set_value(strap["right"])
+        column += 2
+
+    # Material
+    max_parts = max([len(c) for c in elems["materials"]])
+    sheet.append_columns(max_parts)
+    for part_no in range(max_parts):
+        sheet[0, column+part_no].set_value("MATERIAL")
+    for cell_no, cell in enumerate(elems["materials"]):
+        for part_no, part in enumerate(cell):
+            sheet[cell_no+1, column+part_no].set_value(part)
+
 
     return sheet
 

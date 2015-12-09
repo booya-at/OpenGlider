@@ -143,7 +143,7 @@ class DrawingArea():
             for entity in block:
                 layer = entity.dxf.layer
                 line = [v.dxf.location[:2] for v in entity]
-                if entity.dxf.flags % 1:
+                if entity.dxf.flags % 2:
                     line.append(line[0])
                 new_panel.layers[layer].append(PolyLine2D(line))
 
@@ -154,7 +154,6 @@ class DrawingArea():
             # block.name
         #return blocks
         return dwg
-
 
     def get_svg_group(self, config=config.sewing_config):
         group = svgwrite.container.Group()
@@ -267,9 +266,9 @@ class DrawingArea():
         return drawing
 
     ntv_layer_config = {
-        "C": ["Cuts"],
-        "P": ["Marks", "Text"],
-        "R": ["Stitches"]
+        "C": ["cuts"],
+        "P": ["marks", "text"],
+        "R": ["stitches"]
     }
 
     def export_ntv(self, path):

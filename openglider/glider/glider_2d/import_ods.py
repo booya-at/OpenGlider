@@ -16,6 +16,11 @@ from openglider.vector.spline import Bezier, SymmetricBezier
 
 from .lines import UpperNode2D, LowerNode2D, BatchNode2D, Line2D, LineSet2D
 
+element_keywords = {
+    "cuts": ["cells", "left", "right", "type"],
+    "a": "",
+}
+
 
 def import_ods_2d(cls, filename, numpoints=4):
     ods = ezodf.opendoc(filename)
@@ -24,6 +29,13 @@ def import_ods_2d(cls, filename, numpoints=4):
     main_sheet = sheets[0]
     cell_sheet = sheets[1]
     rib_sheet = sheets[2]
+
+    # file-version
+    if cell_sheet[0,0].value == "V2" or cell_sheet[0,0].value == "V2":
+        file_version = 2
+    else:
+        file_version = 1
+    # ------------
 
     #profiles = [BezierProfile2D(profile) for profile in transpose_columns(sheets[3])]
     profiles = [Profile2D(profile) for profile in transpose_columns(sheets[3])]
@@ -86,36 +98,55 @@ def import_ods_2d(cls, filename, numpoints=4):
     attachment_points_lower = get_lower_aufhaengepunkte(data)
 
     # RIB HOLES
-    #RibHole(rib, pos, size)
-    rib_holes = [{"ribs": [res[0]], "pos": res[1], "size": res[2]} for res in read_elements(sheets[2], "QUERLOCH", len_data=2)]
+    rib_hole_keywords = ["ribs", "pos", "size"]
+    rib_holes = read_elements(rib_sheet, "QUERLOCH", len_data=2)
+    rib_holes = to_dct(rib_holes, rib_hole_keywords)
     rib_holes = group(rib_holes, "ribs")
-    rigidfoils = [{"ribs": [res[0]], "start": res[1], "end": res[2], "distance": res[3]} for res in read_elements(sheets[2], "RIGIDFOIL", len_data=3)]
+
+
+    rigidfoil_keywords = ["ribs", "start", "end", "distance"]
+    rigidfoils = read_elements(rib_sheet, "RIGIDFOIL", len_data=3)
+    rigidfoils = to_dct(rigidfoils, rigidfoil_keywords)
     rigidfoils = group(rigidfoils, "ribs")
+
     # CUTS
-    def get_cuts(name, target_name):
-        return [{"cells": [res[0]], "left": res[1], "right": res[2], "type": target_name}
-                for res in read_elements(sheets[1], name, len_data=2)]
+    def get_cuts(names, target_name):
+        objs = []
+        for name in names:
+            objs += read_elements(sheets[1], name, len_data=2)
 
-    cuts = get_cuts("EKV", "folded") + get_cuts("EKH", "folded")
-    cuts += get_cuts("DESIGNM", "orthogonal") + get_cuts("DESIGNO", "orthogonal")
+        cuts = [{"cells": res[0], "left": res[1], "right": res[2], "type": target_name}
+                for res in objs]
 
-    cuts = group(cuts, "cells")
+        return group(cuts, "cells")
+
+    cuts = get_cuts(["EKV", "EKH", "orthogonal"], "folded")
+    cuts += get_cuts(["DESIGNM", "DESIGNO", "orthogonal"], "orthogonal")
 
     # Diagonals: center_left, center_right, width_l, width_r, height_l, height_r
     # height (0,1) -> (-1,1)
     diagonals = []
     for res in read_elements(sheets[1], "QR", len_data=6):
-        # excel-version?
-        height1 = res[5]*2-1
-        height2 = res[6]*2-1
+        height1 = res[5]
+        height2 = res[6]
+
+        # migration
+        if file_version == 1:
+            height1 = height1*2-1
+            height2 = height2*2-1
+        # ---------
+
         diagonals.append({"left_front": (res[1] - res[3]/2, height1),
                           "left_back": (res[1] + res[3]/2, height1),
                           "right_front": (res[2] - res[4]/2, height2),
                           "right_back": (res[2] + res[4]/2, height2),
-                          "cells": [res[0]]})
+                          "cells": res[0]})
         # todo: group
+    diagonals = group(diagonals, "cells")
 
     straps = []
+    straps_keywords = ["cells", "left", "right"]
+    #straps = read_elements(cell_sheet, "VEKTLAENGE", len_data=2)
     for res in read_elements(sheets[1], "VEKTLAENGE", len_data=2):
         straps.append({"cells": [res[0]],
                        "left": res[1],
@@ -286,6 +317,9 @@ def read_elements(sheet, keyword, len_data=2):
             j += 1
     return elements
 
+def to_dct(elems, keywords):
+    return [{key: value for key, value in zip(keywords, elem)} for elem in elems]
+
 def group(lst, keyword):
     new_lst = []
 
@@ -310,6 +344,8 @@ def group(lst, keyword):
         new_lst.append(_obj)
 
     for obj in lst:
+        # create a list to group
+        obj[keyword] = [obj[keyword]]
         insert(obj)
 
     return new_lst

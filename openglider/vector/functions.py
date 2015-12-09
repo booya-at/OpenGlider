@@ -1,3 +1,4 @@
+import math
 import numpy
 
 
@@ -24,6 +25,17 @@ def normalize(vector):
         return vector / norm(vector)
     raise ValueError("Cannot normalize a vector of length Zero")
 
+def vector_angle(v1, v2):
+    prod = normalize(v1).dot(normalize(v2))
+    if abs(prod) >= 1:
+        # float errors
+        return 0.
+    angle = math.acos(prod)
+    return angle
+
+#def vector_angle(vec1, vec2):
+#    cosalpha = numpy.dot(vec1, vec2)/(norm(vec1)*norm(vec2))
+#    return numpy.arccos(cosalpha)
 
 def rangefrom(maxl, startpoint=0):
     """
@@ -75,7 +87,3 @@ def cut(p1, p2, p3, p4):
     (k, l) = numpy.linalg.solve(matrix, rhs)
     return p1 + k * (p2 - p1), k, l
 
-
-def vector_angle(vec1, vec2):
-    cosalpha = numpy.dot(vec1, vec2)/(norm(vec1)*norm(vec2))
-    return numpy.arccos(cosalpha)
