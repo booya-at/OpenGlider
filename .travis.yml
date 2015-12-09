@@ -1,5 +1,5 @@
 dist: trusty
-language: generic
+language: python
 python:
   - "2.7"
   - "3.4"
@@ -12,10 +12,10 @@ before_install:
   - sudo apt-get install -qq hgsubversion
   - sudo apt-get install -qq cython
   - sudo apt-get install -qq cython3
-  - sudo apt-get install -qq numpy
 install:
   - hg clone https://bitbucket.org/anantha_ani/ezdxf-mozman
   - sudo pip install -e ezdxf-mozman
+  - sudo pip install --upgrade numpy
   - pip install -r requires.txt
   - pip install coveralls
 script:
