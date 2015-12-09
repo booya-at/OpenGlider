@@ -1,8 +1,8 @@
 dist: trusty
-language: python
+language: generic
 python:
   - "2.7"
-  - "3.2"
+  - "3.4"
 virtualenv:
   system_site_packages: true
 before_install:
@@ -12,6 +12,7 @@ before_install:
   - sudo apt-get install -qq hgsubversion
   - sudo apt-get install -qq cython
   - sudo apt-get install -qq cython3
+  - sudo apt-get install -qq numpy
 install:
   - hg clone https://bitbucket.org/anantha_ani/ezdxf-mozman
   - sudo pip install -e ezdxf-mozman
