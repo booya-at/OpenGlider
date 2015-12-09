@@ -2,10 +2,11 @@ from __future__ import division
 import triangle
 import numpy as np
 
-class mesh_2d(object):
+
+class mesh(object):
     def __init__(self, vertices=None, polygons=None):
         self.vertices = vertices
-        self.polygons = polygons
+        self.polygons = polygons or []
 
     @classmethod
     def from_rib(cls, rib):
@@ -73,12 +74,10 @@ class mesh_2d(object):
             segment.append([edge[-1], edge[0]])
             point_array = np.array([point for line in point_array for point in line])
             points2d = map_to_2d(point_array)
-            # print(np.array(point_array))
-            # print(segment)
+
             triangles = triangle.triangulate({"vertices": points2d})
             return cls(point_array, triangles["triangles"].tolist())
-            # create triangulation
-            # return 3d points and polygon
+
         else:
             vertices = np.array(list(left) + list(right)[::-1])
             polygon = [range(len(vertices))]
@@ -91,7 +90,7 @@ class mesh_2d(object):
         if None in (self.vertices, self.polygons):
             return other
         else:
-            new_mesh = mesh_2d()
+            new_mesh = mesh()
             new_mesh.vertices = np.concatenate([self.vertices, other.vertices])
             start_value = float(len(self.vertices))
             new_other_polygons = [[val + start_value for val in tri] for tri in other.polygons]
@@ -117,8 +116,8 @@ def apply_z(vertices):
 
 
 def map_to_2d(points):
-    # map points to 2d least square plane
-    # min([x, y, z, 1] * [A, B, C, D].T)
+    """ map points to 2d least square plane
+     min([x, y, z, 1] * [A, B, C, D].T)"""
     mat = np.array(points).T
     mat = np.array([mat[0], mat[1], mat[2], np.ones(len(mat[0]))])
     u, d, v = np.linalg.svd(mat.T)
@@ -132,8 +131,8 @@ def map_to_2d(points):
             
 
 if __name__ == "__main__":
-    a = mesh_2d()
-    b = mesh_2d()
+    a = mesh()
+    b = mesh()
     a.vertices = np.array([[0,0],[1,2],[2,3]])
     b.vertices = np.array([[0,0],[1,2],[2,3]])
     a.outer_faces = np.array([[0, 1, 2]])

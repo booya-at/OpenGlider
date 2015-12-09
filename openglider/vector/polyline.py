@@ -13,20 +13,7 @@ class PolyLine(HashedList):
         if isinstance(ik, int) and 0 <= ik < len(self):  # easiest case
             return self.data[ik]
         elif isinstance(ik, slice):  # example: list[1.2:5.5:1]
-            start = ik.start if ik.start is not None else 0
-            stop = ik.stop if ik.stop is not None else len(self)-1
-            if ik.step is not None and ik.step < 0:
-                start, stop = stop, start
-            step = sign(stop - start)
-            if step == 0:
-                return self.__class__([self.data[start]])
-            if step > 0:
-                start_round = max(int(start) + 1, 0)
-                stop_round = min(int(stop) + (1 if stop % 1 > 0 else 0), len(self) - 1)
-            else:
-                start_round = min(int(start) - (0 if start % 1 > 0 else 1), len(self) - 1)
-                stop_round = max(int(stop), 0)
-            values = [start] + list(range(start_round, stop_round, step)) + [stop]
+            values = self.get_positions(ik.start, ik.stop, ik.step)
             #print(values, ik.start, ik.stop, ik.step, step, start_round, stop_round)
             return self.__class__([self[i] for i in values])
         else:
@@ -68,6 +55,21 @@ class PolyLine(HashedList):
         stop2 = stop - stop % 1
         data = self.data[start2:stop2]
         return numpy.concatenate([[self[start]], data, [self[stop]]])
+
+    def get_positions(self, start=0, stop=None, step=None):
+        stop = stop if stop is not None else len(self)-1
+        start = start if start is not None else 0
+        if step is not None and step < 0:
+            start, stop = stop, start
+        step = sign(stop - start)
+        if step > 0:
+            start_round = max(int(start) + 1, 0)
+            stop_round = min(int(stop) + (1 if stop % 1 > 0 else 0), len(self) - 1)
+        else:
+            start_round = min(int(start) - (0 if start % 1 > 0 else 1), len(self) - 1)
+            stop_round = max(int(stop), 0)
+        values = [start] + list(range(start_round, stop_round, step)) + [stop]
+        return values
 
     def extend(self, start, length):
         """

@@ -27,7 +27,7 @@ import common
 import openglider
 from openglider.glider.rib.rib import Rib
 from openglider.glider.rib.elements import RibHole
-from openglider.mesh import mesh_2d
+from openglider.mesh import mesh
 
 
 class TestRib(unittest.TestCase):
@@ -67,7 +67,7 @@ class TestRib(unittest.TestCase):
 
     def test_mesh(self):
         self.rib.holes.append(RibHole(0.2))
-        mesh = mesh_2d.from_rib(self.rib)
+        mesh = mesh.from_rib(self.rib)
 
 
 

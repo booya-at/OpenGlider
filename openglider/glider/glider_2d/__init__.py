@@ -333,12 +333,6 @@ class Glider2D(object):
             for s_no, strap in enumerate(cell.straps):
                 strap.name = "cell{}strap{}".format(cell_no, s_no)
 
-
-
-
-
-
-
     @classmethod
     def fit_glider_3d(cls, glider, numpoints=3):
         """

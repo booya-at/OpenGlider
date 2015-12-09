@@ -19,6 +19,7 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
 import copy
+import numpy
 
 from openglider.airfoil import get_x_value
 from openglider.plots.projection import flatten_list
@@ -161,6 +162,10 @@ class Panel(object):
     Glider cell-panel
     :param cut_front {'left': 0.06, 'right': 0.06, 'type': 'orthogonal'}
     """
+    class CUT_TYPES:
+        folded = "folded"
+        orthogonal = "orthogonal"
+
 
     def __init__(self, cut_front, cut_back, material_code=None, name="unnamed"):
         self.cut_front = cut_front  # (left, right, style(int))
@@ -195,6 +200,74 @@ class Panel(object):
             ribs.append(cell.midrib(y).get(front, back))
             # todo: return polygon-data
         return ribs
+
+    def get_mesh(self, cell, numribs=0):
+        """
+        Get Panel-mesh
+        :param cell: cell from which the panel-mesh is build
+        :param numribs: number of miniribs to calculate
+        :return: mesh
+        """
+        xvalues = cell.rib1.profile_2d.x_values
+        ribs = []
+        points = []
+        nums = []
+        count = 0
+        for i in range(numribs + 1):
+            y = i / numribs
+            x1 = self.cut_front["left"] + y * (self.cut_front["right"] -
+                                               self.cut_front["left"])
+            front = get_x_value(xvalues, x1)
+
+            x2 = self.cut_back["left"] + y * (self.cut_back["right"] -
+                                              self.cut_back["left"])
+            back = get_x_value(xvalues, x2)
+            midrib = cell.midrib(y)
+            ribs.append([x for x in midrib.get_positions(front, back)])
+            points += list(midrib[front:back])
+            nums.append([i + count for i, _ in enumerate(ribs[-1])])
+            count += len(ribs[-1])
+
+        triangles = []
+
+        def left_triangle(l_i, r_i):
+            return [l_i + 1, l_i, r_i]
+
+        def right_triangle(l_i, r_i):
+            return [r_i + 1, l_i, r_i]
+
+        def quad(l_i, r_i):
+            return [l_i + 1, l_i, r_i, r_i + 1]
+
+        for i, _ in enumerate(ribs[:-1]):
+            num_l = nums[i]
+            num_r = nums[i + 1]
+            pos_l = ribs[i]
+            pos_r = ribs[i + 1]
+            l_i = r_i = 0
+            while l_i < len(num_l)-1 or r_i < len(num_r)-1:
+                if l_i == len(num_l) - 1:
+                    triangles.append(right_triangle(num_l[l_i], num_r[r_i]))
+                    r_i += 1
+
+                elif r_i == len(num_r) - 1:
+                    triangles.append(left_triangle(num_l[l_i], num_r[r_i]))
+                    l_i += 1
+
+                elif abs(pos_l[l_i] - pos_r[r_i]) == 0:
+                    triangles.append(quad(num_l[l_i], num_r[r_i]))
+                    r_i += 1
+                    l_i += 1
+
+                elif pos_l[l_i] <= pos_r[r_i]:
+                    triangles.append(left_triangle(num_l[l_i], num_r[r_i]))
+                    l_i += 1
+
+                elif pos_r[r_i] < pos_l[l_i]:
+                    triangles.append(right_triangle(num_l[l_i], num_r[r_i]))
+                    r_i += 1
+        from openglider.mesh import mesh
+        return mesh(numpy.array(points), triangles)
 
     def mirror(self):
         left, right = self.cut_front["left"], self.cut_front["right"]

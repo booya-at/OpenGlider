@@ -39,7 +39,6 @@ def rangefrom(maxl, startpoint=0):
             yield startpoint - j
         j += 1
 
-
 def rotation_3d(angle, axis=None):
     """
     3D-Rotation Matrix for (angle[rad],[axis(x,y,z)])

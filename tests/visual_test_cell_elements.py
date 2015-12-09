@@ -51,16 +51,21 @@ class TestCellElements(GliderTestClass):
 
 
     def get_panels(self):
-        panel1 = Panel([-1, -1, 2], [0.01, 0.01, 2])
-        panel2 = Panel([.06, .06, 2], [1, 1, 2], self.cell_no)
-        ribs = panel1.get_3d(self.cell, numribs=10) + panel2.get_3d(self.cell, numribs=10)
+        dc = ["left", "right", "type"]
+        panel1 = Panel(dict(zip(dc, [-1, -1, 2])), dict(zip(dc, [0.01, 0.01, 2])))
+        panel2 = Panel(dict(zip(dc, [.06, .06, 2])), dict(zip(dc, [1, 1, 2])))
+        ribs = panel1.get_3d(self.cell, numribs=10)
 
+        mesh = (panel1.get_mesh(self.cell, numribs=9) +
+                panel2.get_mesh(self.cell, numribs=9))
+        #print(triangles, points)
+        tris = mesh.vertices[mesh.polygons]
+        #print(points[triangles])
         # elems = []
         # for rib1, rib2 in zip(ribs[:-1], ribs[1:]):
         #     elems.append(Graph.Polygon(list(rib1) + list(rib2)[::-1]))
         # return elems
-        return [Graph.Line(r) for r in ribs]
-
+        return [Graph.Polygon(tri) for tri in tris]
 
     def test_panel_3d(self):
         Graph.Graphics(self.get_panels())
