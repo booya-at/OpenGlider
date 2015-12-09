@@ -9,10 +9,10 @@ before_install:
   - sudo apt-get install -qq python-scipy python-lxml
   - sudo apt-get install -qq python3-scipy python3-lxml
   - sudo apt-get install -qq hgsubversion
+  - sudo apt-get install -qq cython cython3
 install:
   - hg clone https://bitbucket.org/anantha_ani/ezdxf-mozman
   - sudo pip install -e ezdxf-mozman
-  - sudo pip install cython
   - pip install -r requires.txt
   - pip install coveralls
 script:
