@@ -92,12 +92,13 @@ def import_ods_2d(cls, filename, numpoints=4):
         # zrot = line[7] * numpy.pi / 180
 
         # midrib
-        if i == 1 and span != 0:
-            for lst in (aoa, arc, front, back, cell_distribution, profile_merge, ballooning_merge):
-                p0 = lst[0]
-                lst.insert(0, [-p0[0], p0[1]])
-                
+        # if midrib:
+        #     for lst in (aoa, arc, front, back, cell_distribution, profile_merge, ballooning_merge):
+        #         p0 = lst[0]
+        #         lst.insert(0, [-p0[0], p0[1]])
+
         span_last = span
+
 
     # Attachment points: rib_no, id, pos, force
     attachment_points = get_attachment_points(rib_sheet)
@@ -114,6 +115,14 @@ def import_ods_2d(cls, filename, numpoints=4):
     rigidfoils = read_elements(rib_sheet, "RIGIDFOIL", len_data=3)
     rigidfoils = to_dct(rigidfoils, rigidfoil_keywords)
     rigidfoils = group(rigidfoils, "ribs")
+
+    if front[1][0] != 0.:
+        # apply midrib hack
+        for node in attachment_points.values():
+            node.rib_no += 1
+        for elements in (rib_holes, rigidfoils):
+            for element in elements:
+                element["ribs"] = [rib + 1 for rib in element["ribs"]]
 
     # CUTS
     def get_cuts(names, target_name):
@@ -213,9 +222,10 @@ def get_material_codes(sheet):
     return ret
 
 
-def get_attachment_points(sheet):
+def get_attachment_points(sheet, midrib=False):
     # UpperNode2D(rib_no, rib_pos, force, name, layer)
-    attachment_points = [UpperNode2D(args[0], args[2], args[3], args[1]) for args in read_elements(sheet, "AHP", len_data=3)]
+    attachment_points = [UpperNode2D(args[0], args[2], args[3], args[1]) 
+                        for args in read_elements(sheet, "AHP", len_data=3)]
     #attachment_points.sort(key=lambda element: element.nr)
 
     return {node.name: node for node in attachment_points}
