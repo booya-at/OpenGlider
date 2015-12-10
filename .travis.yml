@@ -1,3 +1,4 @@
+sudo: false
 dist: trusty
 language: python
 python:
@@ -5,14 +6,19 @@ python:
   - "3.4"
 virtualenv:
   system_site_packages: true
-before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq cython python-scipy python-lxml
-  - sudo apt-get install -qq cython3 python3-scipy python3-lxml
-  - sudo apt-get install -qq hgsubversion
+addons:
+  apt:
+    sources:
+      - cython
+      - cython3
+      - python-scipy
+      - python3-scipy
+      - python-lxml
+      - python3-lxml
+      - hgsubversion
 install:
   - hg clone https://bitbucket.org/anantha_ani/ezdxf-mozman
-  - sudo pip install -e ezdxf-mozman
+  - pip install -e ezdxf-mozman
   - pip install -r requires.txt
   - pip install coveralls
 script:
