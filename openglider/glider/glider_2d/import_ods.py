@@ -91,6 +91,12 @@ def import_ods_2d(cls, filename, numpoints=4):
 
         # zrot = line[7] * numpy.pi / 180
 
+        # midrib
+        if i == 1 and span != 0:
+            for lst in (aoa, arc, front, back, cell_distribution, profile_merge, ballooning_merge):
+                p0 = lst[0]
+                lst.insert(0, [-p0[0], p0[1]])
+                
         span_last = span
 
     # Attachment points: rib_no, id, pos, force
