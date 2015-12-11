@@ -83,6 +83,13 @@ class Bezier(HashedList):
             data = [self(i) for i in numpy.linspace(0, 1, num_points)]
             self.fit(data, num_ctrl)
 
+    def change_base(self, base, num_points=50):
+        data = [self(i) for i in numpy.linspace(0, 1, num_points)]
+        self.basefactory = base
+        print(self.controlpoints)
+        self.fit(data, self.numpoints)
+        print(self.controlpoints)
+
     @property
     def controlpoints(self):
         return self._data
@@ -149,9 +156,9 @@ class Bezier(HashedList):
 
     @dualmethod
     def constraint_fit(this, points, constraint):
-        # constraint is a matrix in size of the controlpointmatrix
-        # constraint values have a value others are set to None
-        # points is [[x0,y0,z0], X1, X2, ...]
+        """constraint is a matrix in size of the controlpointmatrix
+        constraint values have a value others are set to None
+        points is [[x0,y0,z0], X1, X2, ...]"""
 
         # all points have same dimension
         dim = len(constraint[0])
@@ -200,7 +207,7 @@ class Bezier(HashedList):
             mat = numpy.delete(mat, key - i, 1)
             rhs = numpy.delete(rhs, key - i, 0)
             u_sol_index.pop(key - i)
-        u_sol = numpy.linalg.lstsq(mat, rhs.transpose())[0]
+        u_sol = numpy.linalg.solve(mat, rhs.transpose())
 
         # insert the known values in the solution
         for i, index in enumerate(u_sol_index):
