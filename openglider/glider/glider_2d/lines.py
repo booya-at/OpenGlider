@@ -48,7 +48,7 @@ class UpperNode2D(object):
         front_back = glider_2d.ribs()[glider_2d.has_center_cell:]
         pos = self.rib_pos
         if self.rib_no <= len(front_back):
-            rib_no = self.rib_no - glider_2d.has_center_cell
+            rib_no = self.rib_no# - glider_2d.has_center_cell
             fr, ba = front_back[rib_no]
             chord = ba[1] - fr[1]
             x = fr[0]
@@ -56,7 +56,7 @@ class UpperNode2D(object):
             return x, y
 
     def get_node(self, glider):
-        node = AttachmentPoint(glider.ribs[self.rib_no], self.name,
+        node = AttachmentPoint(glider.ribs[self.rib_no + glider.has_center_cell], self.name,
                                self.rib_pos, [0, 0, self.force])
         node.get_position()
         return node

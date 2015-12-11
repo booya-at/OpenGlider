@@ -91,12 +91,6 @@ def import_ods_2d(cls, filename, numpoints=4):
 
         # zrot = line[7] * numpy.pi / 180
 
-        # midrib
-        # if midrib:
-        #     for lst in (aoa, arc, front, back, cell_distribution, profile_merge, ballooning_merge):
-        #         p0 = lst[0]
-        #         lst.insert(0, [-p0[0], p0[1]])
-
         span_last = span
 
 
@@ -115,14 +109,6 @@ def import_ods_2d(cls, filename, numpoints=4):
     rigidfoils = read_elements(rib_sheet, "RIGIDFOIL", len_data=3)
     rigidfoils = to_dct(rigidfoils, rigidfoil_keywords)
     rigidfoils = group(rigidfoils, "ribs")
-
-    if front[1][0] != 0.:
-        # apply midrib hack
-        for node in attachment_points.values():
-            node.rib_no += 1
-        for elements in (rib_holes, rigidfoils):
-            for element in elements:
-                element["ribs"] = [rib + 1 for rib in element["ribs"]]
 
     # CUTS
     def get_cuts(names, target_name):

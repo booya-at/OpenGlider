@@ -5,15 +5,15 @@ from openglider.airfoil import Profile2D
 
 from openglider.glider import Glider
 from openglider.glider.shape import Shape
-from openglider.vector import mirror2D_x, Interpolation
+from openglider.vector import Interpolation
 from openglider.vector.spline import Bezier, SymmetricBezier
 from openglider.vector.polyline import PolyLine2D
-from openglider.vector.functions import norm, normalize
+from openglider.vector.functions import normalize
 from openglider.glider.rib import RibHole, RigidFoil
 from openglider.glider.rib.rib import Rib
 from openglider.glider.cell import Panel, DiagonalRib, TensionStrapSimple
 from openglider.glider.cell.cell import Cell
-from .lines import LowerNode2D, Line2D, LineSet2D, BatchNode2D, UpperNode2D
+from .lines import LineSet2D, UpperNode2D, LowerNode2D, BatchNode2D, Line2D
 from openglider.glider.glider_2d.import_ods import import_ods_2d
 from openglider.glider.glider_2d.export_ods import export_ods_2d
 
@@ -41,14 +41,6 @@ class Glider2D(object):
         self.glide = glide
         self.elements = elements or {}
 
-    @classmethod
-    def create_default(cls):
-        front = SymmetricBezier()
-        back = SymmetricBezier()
-        cell_dist = Bezier()
-        arc = Bezier()
-        aoa = Bezier()
-
     def __json__(self):
         return {
             "front": self.front,
@@ -68,8 +60,8 @@ class Glider2D(object):
         }
 
     @classmethod
-    def import_ods(cls, path):
-        return import_ods_2d(cls, path)
+    def import_ods(path):
+        return import_ods_2d(Glider2D, path)
 
     def export_ods(self, path):
         return export_ods_2d(self, path)
@@ -414,12 +406,6 @@ class Glider2D(object):
         rib_holes = self.elements.get("holes", [])
         rigids = self.elements.get("rigidfoils", [])
 
-        if self.has_center_cell:
-            # adding the mid cell
-            x_values = [-x_values[0]] + x_values
-            arc_pos = [[-arc_pos[0][0], arc_pos[0][1]]] + arc_pos
-            arc_angles = [-arc_angles[0]] + arc_angles
-
         cell_centers = [(p1+p2)/2 for p1, p2 in zip(x_values[:-1], x_values[1:])]
 
         for rib_no, pos in enumerate(x_values):
@@ -445,6 +431,12 @@ class Glider2D(object):
                 name="rib{}".format(rib_no)
             ))
             ribs[-1].aoa_relative = aoa_int(pos)
+
+        if self.has_center_cell:
+            ribs.insert(0, ribs[0].copy())
+            ribs[0].arcang *= -1
+            ribs[0].pos[1] *= -1
+            cell_centers.insert(0, 0.)
 
         glider.cells = []
         for cell_no, (rib1, rib2) in enumerate(zip(ribs[:-1], ribs[1:])):
