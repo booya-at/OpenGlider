@@ -1,3 +1,4 @@
+from __future__ import division
 import copy
 import math
 import numpy
@@ -39,12 +40,14 @@ class BasicCell(CachedObject):
             for i, _ in enumerate(self.prof1.data):  # Arc -> phi(bal) -> r  # oder so...
                 diff = self.prof1[i] - self.prof2[i]
                 if ballooning and self.ballooning_radius[i] > 0.:
+                    phi = self.ballooning_phi[i]    # phi is half only the half
                     if arc_argument:
-                        d = 0.5 + math.sin(self.ballooning_phi[i] * (y_value - 0.5)) / math.sin(self.ballooning_phi[i])
-                        h = math.cos(self.ballooning_phi[i] * (1 - 2 * y_value)) - self.ballooning_cos_phi[i]
+                        psi = phi * 2 * y_value         # psi [-phi:phi]
+                        d = 0.5 - 0.5 * math.sin(phi - psi) / math.sin(phi)
+                        h = math.cos(phi - psi) - math.cos(phi)
                     else:
                         d = y_value
-                        h = math.cos(math.asin((2 * d - 1)*math.sin(self.ballooning_phi[i]))) -  math.cos(self.ballooning_phi[i])
+                        h = math.cos(math.asin((2 * d - 1) * math.sin(phi))) -  math.cos(phi)
                 else:  # Without ballooning
                     d = y_value
                     h = 0.
