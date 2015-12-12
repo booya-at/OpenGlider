@@ -283,3 +283,10 @@ class Profile2D(Polygon2D):
         factor = newcamber / old_camber - 1
         now = dict(self.camber_line)
         self.data = [i + [0, now[i[0]] * factor] for i in self.data]
+
+    @property
+    def has_zero_thickness(self):
+        for x, y in self._data:
+            if abs(y) > 0.0001:
+                return False
+        return True

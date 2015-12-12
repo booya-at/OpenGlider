@@ -1,6 +1,7 @@
 from __future__ import division
-import triangle
 import numpy as np
+import meshpy.triangle as mptriangle
+from openglider.mesh.meshpy_triangle import custom_triangulation
 
 
 class mesh(object):
@@ -16,9 +17,9 @@ class mesh(object):
         profile = rib.profile_2d
         triangle_in = {}
         vertices = list(profile.data)
-        segments = [[i, i+1] for i, _ in enumerate(vertices)]
+        segments = [[i, i+1] for i, _ in enumerate(vertices[:-1])]
         segments[-1][-1] = 0
-        triangle_in["vertices"] = vertices
+        triangle_in["vertices"] = vertices[:-1]
         triangle_in["segments"] = segments
 
         # adding the vertices and segments of the holes
@@ -36,15 +37,22 @@ class mesh(object):
                 triangle_in["segments"] += segments
                 triangle_in["holes"].append(hole.get_center(rib, scale=False).tolist())
 
-        _triangle_output = triangle.triangulate(triangle_in, "pi")
+        # _triangle_output = triangle.triangulate(triangle_in, "pziq")
+        mesh_info = mptriangle.MeshInfo()
+        mesh_info.set_points(triangle_in["vertices"])
+        mesh_info.set_facets(triangle_in["segments"])
+        if "holes" in triangle_in:
+            mesh_info.set_holes(triangle_in["holes"])
+        mesh = custom_triangulation(mesh_info, "Qzip")
         try:
-            vertices = rib.align_all(_triangle_output["vertices"])
-            triangles = _triangle_output["triangles"]
+            # vertices = rib.align_all(_triangle_output["vertices"])
+            # triangles = _triangle_output["triangles"]
+            vertices = rib.align_all(np.array(mesh.points))
+            triangles = list(mesh.elements)
         except KeyError:
             print("there was an keyerror")
             return cls()
-        obj = cls(vertices, triangles.tolist())
-        return obj
+        return cls(vertices, triangles)
 
     @classmethod
     def from_diagonal(cls, diagonal, cell, insert_points=0):
@@ -78,8 +86,10 @@ class mesh(object):
             point_array = np.array([point for line in point_array for point in line])
             points2d = map_to_2d(point_array)
 
-            triangles = triangle.triangulate({"vertices": points2d})
-            return cls(point_array, triangles["triangles"].tolist())
+            mesh_info = meshpy_triangle.MeshInfo()
+            mesh_info.set_points(points2d)
+            mesh = custom_triangulation(mesh_info, "Qz")
+            return cls(point_array, list(mesh.elements))
 
         else:
             vertices = np.array(list(left) + list(right)[::-1])

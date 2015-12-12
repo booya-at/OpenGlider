@@ -4,13 +4,11 @@ language: python
 python:
   - "2.7"
   - "3.4"
-virtualenv:
-  system_site_packages: true
+# virtualenv:
+#   system_site_packages: true
 addons:
   apt:
     sources:
-      - cython
-      - cython3
       - python-scipy
       - python3-scipy
       - python-lxml
