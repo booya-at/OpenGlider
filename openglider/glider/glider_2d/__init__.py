@@ -1,6 +1,6 @@
 from __future__ import division
 
-import numpy
+import numpy as np
 from openglider.airfoil import Profile2D
 
 from openglider.glider import Glider
@@ -13,7 +13,7 @@ from openglider.glider.rib import RibHole, RigidFoil
 from openglider.glider.rib.rib import Rib
 from openglider.glider.cell import Panel, DiagonalRib, TensionStrapSimple
 from openglider.glider.cell.cell import Cell
-from .lines import LineSet2D, UpperNode2D, LowerNode2D, BatchNode2D, Line2D
+from openglider.glider.glider_2d.lines import LineSet2D, UpperNode2D
 from openglider.glider.glider_2d.import_ods import import_ods_2d
 from openglider.glider.glider_2d.export_ods import export_ods_2d
 
@@ -22,6 +22,12 @@ class Glider2D(object):
     """
     A parametric (2D) Glider object used for gui input
     """
+    num_arc_positions = 60
+    num_shape = 30
+    num_interpolate_ribs = 40
+    num_cell_dist = 30
+    num_depth_integral = 100
+
     def __init__(self, front, back, cell_dist, cell_num,
                  arc, aoa, profiles, profile_merge_curve,
                  balloonings, ballooning_merge_curve, lineset,
@@ -68,8 +74,8 @@ class Glider2D(object):
 
     @property
     def v_inf(self):
-        angle = numpy.arctan(1/self.glide)
-        return numpy.array([-numpy.cos(angle), 0, numpy.sin(angle)]) * self.speed
+        angle = np.arctan(1/self.glide)
+        return np.array([-np.cos(angle), 0, np.sin(angle)]) * self.speed
 
     @property
     def has_center_cell(self):
@@ -79,12 +85,17 @@ class Glider2D(object):
     def half_cell_num(self):
         return self.cell_num // 2 + self.has_center_cell
 
-    def get_arc_positions(self, num=60):
+    @property
+    def arc_positions(self):
         # calculating y/z values vor the arc-curve
+        num = self.num_arc_positions
         x_values = self.rib_x_values
-        arc_curve = PolyLine2D([self.arc(i) for i in numpy.linspace(0.5, 1, num)])  # Symmetric-Bezier-> start from 0.5
+
+        # Symmetric-Bezier-> start from 0.5
+        arc_curve = PolyLine2D([self.arc(i) for i in np.linspace(0.5, 1, num)])
         arc_curve_length = arc_curve.get_length()
-        _positions = [arc_curve.extend(0, x/x_values[-1]*arc_curve_length) for x in x_values]
+        scale_factor = arc_curve_length / x_values[-1]
+        _positions = [arc_curve.extend(0, x * scale_factor) for x in x_values]
         positions = PolyLine2D([arc_curve[p] for p in _positions])
         if not self.has_center_cell:
             positions[0][0] = 0
@@ -93,7 +104,7 @@ class Glider2D(object):
 
     def get_arc_angles(self, arc_curve=None):
         # calculate rib rotations from arc
-        arc_curve = arc_curve or self.get_arc_positions()
+        arc_curve = arc_curve or self.arc_positions
         arc_curve = [arc_curve[i] for i in range(len(arc_curve))]
         angles = []
         if not self.has_center_cell:
@@ -110,15 +121,17 @@ class Glider2D(object):
                 # after
                 d += normalize(arc_curve[i+2]-arc_curve[i+1])
 
-            angles.append(numpy.arctan2(-d[1], d[0]))
+            angles.append(np.arctan2(-d[1], d[0]))
 
         return angles
 
-    def half_shape(self, num=30):
+    @property
+    def half_shape(self):
         """
         Return shape of the glider:
         [ribs, front, back]
         """
+        num = self.num_shape
         front_int = self.front.interpolation(num=num)
         back_int = self.back.interpolation(num=num)
         dist = self.rib_x_values
@@ -127,14 +140,17 @@ class Glider2D(object):
 
         return Shape(PolyLine2D(front), PolyLine2D(back))
 
-    def shape(self, num=30):
+    @property
+    def shape(self):
         """
         Return shape of the glider:
         [ribs, front, back]
         """
-        return self.half_shape(num).copy_complete()
+        return self.half_shape.copy_complete()
 
-    def ribs(self, num=30):         #property
+    @property
+    def ribs(self):
+        num = self.num_interpolate_ribs
         front_int = self.front.interpolation(num=num)
         back_int = self.back.interpolation(num=num)
 
@@ -147,8 +163,8 @@ class Glider2D(object):
 
         return zip(front, back)
 
-    def shape_point(self, rib_no, x):
-        ribs = list(self.ribs())
+    def get_shape_point(self, rib_no, x):
+        ribs = list(self.ribs)
         rib = ribs[rib_no]
         return rib[0][0], rib[0][1] + x * (rib[1][1] - rib[0][1])
 
@@ -164,10 +180,11 @@ class Glider2D(object):
             factor = span/el.controlpoints[-1][0]
             el.controlpoints = [[p[0]*factor, p[1]] for p in el.controlpoints]
 
-        for attr in 'back', 'front', 'cell_dist', 'aoa', 'profile_merge_curve', 'ballooning_merge_curve':
+        for attr in ('back', 'front', 'cell_dist', 'aoa',
+                     'profile_merge_curve', 'ballooning_merge_curve'):
             set_span(attr)
 
-        arc_pos = self.get_arc_positions()
+        arc_pos = self.arc_positions
         arc_length = arc_pos.get_length() + arc_pos[0][0]  # add center cell
         factor = span/arc_length
         self.arc.controlpoints = [[p[0]*factor, p[1]*factor]
@@ -179,42 +196,51 @@ class Glider2D(object):
 
     @cell_dist_controlpoints.setter
     def cell_dist_controlpoints(self, arr):
-        self.cell_dist.controlpoints = [[0, 0]] + arr + [[self.front.controlpoints[-1][0], 1]]
+        x0 = self.front.controlpoints[-1][0]
+        self.cell_dist.controlpoints = [[0, 0]] + arr + [[x0, 1]]
 
     @property
     def cell_dist_interpolation(self):
         """
         Interpolate Cell-distribution
         """
-        data = self.cell_dist.get_sequence(num=20)
-        interpolation = Interpolation([[p[1],p[0]] for p in data])
+        data = self.cell_dist.get_sequence(self.num_cell_dist)
+        interpolation = Interpolation([[p[1], p[0]] for p in data])
         start = (self.has_center_cell) / self.cell_num
-        return [[interpolation(i), i] for i in numpy.linspace(start, 1, num=self.cell_num // 2 + 1)]
+        num = self.cell_num // 2 + 1
+        return [[interpolation(i), i] for i in np.linspace(start, 1, num)]
 
     @property
     def rib_x_values(self):
         return [p[0] for p in self.cell_dist_interpolation]
 
-    def depth_integrated(self, num=100):
+    @property
+    def depth_integrated(self):
         """
         Return A(x)
         """
-        x_values = numpy.linspace(0, self.front.controlpoints[-1][0], num)
+        num = self.num_depth_integral
+        x_values = np.linspace(0, self.front.controlpoints[-1][0], num)
         front_int = self.front.interpolation(num=num)
         back_int = self.back.interpolation(num=num)
         integrated_depth = [0.]
         for x in x_values[1:]:
-            integrated_depth.append(integrated_depth[-1] + 1. / (front_int(x) - back_int(x)))
-        return zip(x_values, [i / integrated_depth[-1] for i in integrated_depth])
+            depth = front_int(x) - back_int(x)
+            integrated_depth.append(integrated_depth[-1] + 1. / depth)
+        y_values = [i / integrated_depth[-1] for i in integrated_depth]
+        return zip(x_values, y_values)
 
     def set_const_cell_dist(self):
-        const_dist = list(self.depth_integrated())
-        self.cell_dist = self.cell_dist.fit(const_dist, numpoints=len(self.cell_dist.controlpoints))
+        const_dist = list(self.depth_integrated)
+        num_pts = len(self.cell_dist.controlpoints)
+        self.cell_dist = self.cell_dist.fit(const_dist, numpoints=num_pts)
 
     @property
     def attachment_points(self):
         """coordinates of the attachment_points"""
-        return [a_p.get_2d(self) for a_p in self.lineset.nodes if isinstance(a_p, UpperNode2D)]
+        return [a_p.get_2d(self)
+                for a_p in self.lineset.nodes
+                if isinstance(a_p, UpperNode2D)]
 
     def merge_ballooning(self, factor):
         factor = max(0, min(len(self.balloonings)-1, factor))
@@ -227,7 +253,7 @@ class Glider2D(object):
         else:
             return first.copy()
 
-    def merge_profile(self, factor):
+    def get_merge_profile(self, factor):
         factor = max(0, min(len(self.profiles)-1, factor))
         k = factor % 1
         i = int(factor // 1)
@@ -253,7 +279,8 @@ class Glider2D(object):
                 cell = []
 
         for cell_no, panel_lst in enumerate(cells):
-            cuts = [cut for cut in self.elements.get("cuts", []) if cell_no in cut["cells"]]
+            _cuts = self.elements.get("cuts", [])
+            cuts = [cut for cut in _cuts if cell_no in cut["cells"]]
 
             # add trailing edge (2x)
             all_values = [c["left"] for c in cuts] + [c["right"] for c in cuts]
@@ -349,13 +376,13 @@ class Glider2D(object):
 
         front[0][0] = 0  # for midribs
         start = (2 - glider.has_center_cell) / cell_num
-        const_arr = [0.] + numpy.linspace(start, 1, len(front) - 1).tolist()
+        const_arr = [0.] + np.linspace(start, 1, len(front) - 1).tolist()
 
         rib_pos = [p[0] for p in front]
         cell_centers = [(p1+p2)/2 for p1, p2 in zip(rib_pos[:-1], rib_pos[1:])]
 
         rib_pos_int = Interpolation(zip([0] + rib_pos[1:], const_arr))
-        rib_distribution = [[i, rib_pos_int(i)] for i in numpy.linspace(0, rib_pos[-1], 30)]
+        rib_distribution = [[i, rib_pos_int(i)] for i in np.linspace(0, rib_pos[-1], 30)]
         rib_distribution = Bezier.fit(rib_distribution, numpoints=numpoints+3)
 
         profiles = [rib.profile_2d for rib in glider.ribs]
@@ -398,7 +425,7 @@ class Glider2D(object):
         ballooning_merge_curve = self.ballooning_merge_curve.interpolation(num=num)
         aoa_int = self.aoa.interpolation(num=num)
 
-        arc_pos = list(self.get_arc_positions(num=num))
+        arc_pos = list(self.arc_positions)
         arc_angles = self.get_arc_angles()
 
         profile_x_values = self.profiles[0].x_values
@@ -413,7 +440,7 @@ class Glider2D(object):
             back = back_int(pos)
             arc = arc_pos[rib_no]
             factor = profile_merge_curve(abs(pos))
-            profile = self.merge_profile(factor)
+            profile = self.get_merge_profile(factor)
             profile.x_values = profile_x_values
 
             this_rib_holes = [RibHole(ribhole["pos"], ribhole["size"]) for ribhole in rib_holes if rib_no in ribhole["ribs"]]
@@ -421,7 +448,7 @@ class Glider2D(object):
 
             ribs.append(Rib(
                 profile_2d=profile,
-                startpoint=numpy.array([-front, arc[0], arc[1]]),
+                startpoint=np.array([-front, arc[0], arc[1]]),
                 chord=abs(front - back),
                 arcang=arc_angles[rib_no],
                 glide=self.glide,
@@ -460,8 +487,8 @@ class Glider2D(object):
 
     @property
     def v_inf(self):
-        angle = numpy.arctan(1/self.glide)
-        return self.speed * numpy.array([numpy.cos(angle), 0, numpy.sin(angle)])
+        angle = np.arctan(1/self.glide)
+        return self.speed * np.array([np.cos(angle), 0, np.sin(angle)])
 
     def scale_x_y(self, value):
         self.front._data *= value
@@ -486,12 +513,12 @@ class Glider2D(object):
 
     @property
     def flat_area(self):
-        return self.shape().area
+        return self.shape.area
 
     def set_flat_area(self, value, fixed="aspect_ratio"):
         area = self.flat_area
         if fixed == "aspect_ratio":
-            self.scale_x_y(numpy.sqrt(value / area))
+            self.scale_x_y(np.sqrt(value / area))
         if fixed == "span":
             self.scale_y(value / area)
 
@@ -508,8 +535,8 @@ class Glider2D(object):
         if fixed == "span":
             self.scale_y(ar0 / value)
         elif fixed == "area":
-            self.scale_y(numpy.sqrt(ar0 / value))
-            self.scale_x(numpy.sqrt(value / ar0))
+            self.scale_y(np.sqrt(ar0 / value))
+            self.scale_x(np.sqrt(value / ar0))
 
     def set_span_1(self, value, fixed="area"):     # integrate in set span
         sp0 = self.span / 2
