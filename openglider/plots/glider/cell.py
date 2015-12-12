@@ -79,7 +79,7 @@ class PanelPlot:
         envelope = panel_right + panel_back + panel_left + panel_front
         envelope += PolyLine2D([envelope[0]])
 
-        self.plotpart.layer["cuts"] = []
+        self.plotpart.layers["cuts"] = []
         self.plotpart.layers["envelope"] = [envelope]
 
         self.plotpart.layers["stitches"] += [
