@@ -4,6 +4,9 @@ import numpy as np
 
 
 class mesh(object):
+    """
+    Mesh Surface: vertices and polygons
+    """
     def __init__(self, vertices=None, polygons=None):
         self.vertices = vertices
         self.polygons = polygons or []

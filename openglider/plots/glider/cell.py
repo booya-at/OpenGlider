@@ -79,6 +79,7 @@ class PanelPlot:
         envelope = panel_right + panel_back + panel_left + panel_front
         envelope += PolyLine2D([envelope[0]])
 
+        self.plotpart.layer["cuts"] = []
         self.plotpart.layers["envelope"] = [envelope]
 
         self.plotpart.layers["stitches"] += [
@@ -89,19 +90,20 @@ class PanelPlot:
             PolyLine2D([self.ballooned[0][front_left], self.ballooned[1][front_right]]),
             PolyLine2D([self.ballooned[0][back_left], self.ballooned[1][back_right]])]
 
-        if panel_right:
-            right = PolyLine2D([panel_front.last()]) + panel_right + PolyLine2D([panel_back[0]])
-            self.plotpart.layers["cuts"].append(right)
+        if False:
+            if panel_right:
+                right = PolyLine2D([panel_front.last()]) + panel_right + PolyLine2D([panel_back[0]])
+                self.plotpart.layers["cuts"].append(right)
 
-        self.plotpart.layers["cuts"].append(panel_back)
+            self.plotpart.layers["cuts"].append(panel_back)
 
-        if panel_left:
-            left = PolyLine2D([panel_back.last()]) + panel_left + PolyLine2D([panel_front[0]])
-            self.plotpart.layers["cuts"].append(left)
+            if panel_left:
+                left = PolyLine2D([panel_back.last()]) + panel_left + PolyLine2D([panel_front[0]])
+                self.plotpart.layers["cuts"].append(left)
 
-        self.plotpart.layers["cuts"].append(panel_front)
+            self.plotpart.layers["cuts"].append(panel_front)
 
-        #self.plotpart.layers["cuts"].append(envelope)
+        self.plotpart.layers["cuts"].append(envelope)
 
     def get_point(self, x):
         ik = get_x_value(self.xvalues, x)

@@ -110,7 +110,6 @@ class Line(CachedObject):
         self.upper_node = upper_node
 
         self.target_length = target_length
-        self.init_length = target_length
 
         self.force = None
 
@@ -124,6 +123,10 @@ class Line(CachedObject):
     #@cached_property('lower_node.vec', 'upper_node.vec')
     @property
     def diff_vector(self):
+        """
+        Line Direction vector (normalized)
+        :return:
+        """
         return normalize(self.upper_node.vec - self.lower_node.vec)
 
     #@cached_property('lower_node.vec', 'upper_node.vec')

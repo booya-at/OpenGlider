@@ -60,8 +60,8 @@ class Glider2D(object):
         }
 
     @classmethod
-    def import_ods(path):
-        return import_ods_2d(Glider2D, path)
+    def import_ods(cls, path):
+        return import_ods_2d(cls, path)
 
     def export_ods(self, path):
         return export_ods_2d(self, path)
@@ -453,8 +453,8 @@ class Glider2D(object):
         #self.apply_holes(glider)
 
         glider.lineset = self.lineset.return_lineset(glider, self.v_inf)
-        glider.lineset.calc_geo()
-        glider.lineset.calc_sag()
+        glider.lineset._calc_geo()
+        glider.lineset._calc_sag()
         return glider
 
 

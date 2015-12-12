@@ -13,7 +13,7 @@ def create_line_tree(glider):
     assert isinstance(lineset, openglider.lines.LineSet)
     lowest_lines = []
     for line in lineset.lowest_lines:
-        nodes = lineset.get_upper_influence_node(line)
+        nodes = lineset.get_upper_influence_nodes(line)
         xval = sum([node.rib_pos for node in nodes])/len(nodes)
         lowest_lines.append((xval, line))
 
@@ -24,7 +24,7 @@ def create_line_tree(glider):
         dct = collections.OrderedDict()
         upper_lines = lineset.get_upper_connected_lines(node)
         def sort_key(line):
-            nodes = lineset.get_upper_influence_node(line)
+            nodes = lineset.get_upper_influence_nodes(line)
             values = [glider.ribs.index(node.rib)*100+node.rib_pos for node in nodes]
             return sum(values)/len(values)
 

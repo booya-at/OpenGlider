@@ -359,7 +359,7 @@ class Glider(object):
     def attachment_points(self):
         points = []
         for line in self.lineset.lowest_lines:
-            points += self.lineset.get_upper_influence_node(line)
+            points += self.lineset.get_upper_influence_nodes(line)
         return points
 
     @property

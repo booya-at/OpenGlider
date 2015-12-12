@@ -7,7 +7,7 @@ class Layers(object):
 
     def __repr__(self):
         """pretty-print"""
-        lines = ["Layers:"] + list(self.layers.keys())
+        lines = ["Layers:"] + ["{} ({})".format(layer_name, len(layer)) for layer_name, layer in self.layers.items()]
         return "\n  - ".join(lines)
 
     def __getitem__(self, item):

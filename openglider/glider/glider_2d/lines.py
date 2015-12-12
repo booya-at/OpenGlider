@@ -136,7 +136,7 @@ class LineSet2D(object):
 
     def set_default_nodes2d_pos(self, glider):
         lineset_3d = self.return_lineset(glider, [10,0,0])
-        lineset_3d.calc_geo()
+        lineset_3d._calc_geo()
         line_dict = {line_no: line2d for
                      line_no, line2d in enumerate(self.lines)}
 

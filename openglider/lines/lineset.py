@@ -12,9 +12,13 @@ class LineSet():
     TODO:
         -add stretch
     """
+    calculate_sag = True
 
     def __init__(self, lines=None, v_inf=None):
-        self.v_inf = numpy.array(v_inf) if v_inf is not None else numpy.array([0, 0, 0])  # Parameters
+        if v_inf is None:
+            v_inf = [0, 0, 0]
+
+        self.v_inf = numpy.array(v_inf)
         self.lines = lines or []
         self.mat = None
 
@@ -38,12 +42,23 @@ class LineSet():
     def lower_attachment_points(self):
         return [n for n in self.nodes if n.type == 0]
 
-    # def calc_stretch(self):
-    #     for line in self.lines:
-    #         pass
-    #     pass
+    def recalc(self):
+        """
+        Recalculate Lineset Geometry.
+        if LineSet.calculate_sag = True, drag induced sag will be calculated
+        :return: self
+        """
+        self._calc_geo()
+        if self.calculate_sag:
+            # apply v_inf
+            for line in self.lines:
+                line.v_inf = self.v_inf
 
-    def calc_geo(self, start=None):
+            self._calc_sag()
+
+        return self
+
+    def _calc_geo(self, start=None):
         if start is None:
             start = self.lowest_lines
         for line in start:
@@ -51,26 +66,30 @@ class LineSet():
             if line.upper_node.type == 1:  # no gallery line
                 lower_point = line.lower_node.vec
                 tangential = self.get_tangential_comp(line, lower_point)
-                line.upper_node.vec = lower_point + tangential * line.init_length
+                line.upper_node.vec = lower_point + tangential * line.target_length
 
-                self.calc_geo(self.get_upper_connected_lines(line.upper_node))
+                self._calc_geo(self.get_upper_connected_lines(line.upper_node))
 
-    def calc_sag(self, start=None):
+    def _calc_sag(self, start=None):
         if start is None:
             start = self.lowest_lines
         # 0 every line calculates its parameters
         self.mat = SagMatrix(len(self.lines))
-        self.calc_projected_nodes()
+
+        # calculate projections
+        for n in self.nodes:
+            n.calc_proj_vec(self.v_inf)
+
         self.calc_forces(start)
         for line in start:
-            self.calc_matrix_entries(line)
+            self._calc_matrix_entries(line)
         # print(self.mat)
         self.mat.solve_system()
         for l in self.lines:
             l.sag_par_1, l.sag_par_2 = self.mat.get_sag_parameters(l.number)
 
     # -----CALCULATE SAG-----#
-    def calc_matrix_entries(self, line):
+    def _calc_matrix_entries(self, line):
         up = self.get_upper_connected_lines(line.upper_node)
         if line.lower_node.type == 0:
             self.mat.insert_type_0_lower(line)
@@ -83,19 +102,21 @@ class LineSet():
         else:
             self.mat.insert_type_2_upper(line)
         for u in up:
-            self.calc_matrix_entries(u)
+            self._calc_matrix_entries(u)
 
     def calc_forces(self, start_lines):
         for line_lower in start_lines:
+            upper_node = line_lower.upper_node
             vec = line_lower.diff_vector
             if line_lower.upper_node.type != 2:  # not a gallery line
-                lines_upper = self.get_upper_connected_lines(
-                    line_lower.upper_node)
+                # recursive force-calculation
+                lines_upper = self.get_upper_connected_lines(upper_node)
                 self.calc_forces(lines_upper)
+
                 force = numpy.zeros(3)
                 for line in lines_upper:
                     if line.force is None:
-                        print("error line force not set")
+                        print("error line force not set: {}".format(line))
                     else:
                         force += line.force * line.diff_vector
                 # vec = line_lower.upper_node.vec - line_lower.lower_node.vec
@@ -130,21 +151,19 @@ class LineSet():
 
         return center, drag_total
 
-    def calc_projected_nodes(self):
-        for n in self.nodes:
-            n.calc_proj_vec(self.v_inf)
-
     # -----CALCULATE GEO-----#
     def get_tangential_comp(self, line, pos_vec):
-        upper_node_nrs = self.get_upper_influence_node(line)
+        upper_node_nrs = self.get_upper_influence_nodes(line)
         tangent = numpy.array([0., 0., 0.])
         for node in upper_node_nrs:
             tangent += node.calc_force_infl(pos_vec)
         return normalize(tangent)
 
-    def get_upper_influence_node(self, line):
-        """get the points that have influence on the line and
-        are connected to the wing"""
+    def get_upper_influence_nodes(self, line):
+        """
+        get the points that have influence on the line and
+        are connected to the wing
+        """
         upper_node = line.upper_node
         if upper_node.type == 2:
             return [upper_node]
@@ -152,25 +171,24 @@ class LineSet():
             upper_lines = self.get_upper_connected_lines(upper_node)
             result = []
             for upper_line in upper_lines:
-                result += self.get_upper_influence_node(upper_line)
+                result += self.get_upper_influence_nodes(upper_line)
             return result
 
-    def iterate_target_length(self, steps=10, fac=0.5, pre_load=50):
-        '''iterative methode to satisfy the target length'''
+    def iterate_target_length(self, steps=10, pre_load=50):
+        """
+        iterative method to satisfy the target length
+        """
         for i in range(steps):
             for l in self.lines:
                 if l.target_length is not None:
-                    l.init_length = l.target_length * l.init_length / l.get_stretched_length(pre_load)
-            print("------")
-            self.calc_geo()
-            self.calc_sag()
+                    l.target_length = l.target_length * l.target_length / l.get_stretched_length(pre_load)
+            #print("------")
+            self.recalc()
 
     def sort_lines(self):
+        # ?
         for i, line in enumerate(self.lines):
             line.number = i
-        #self.lines.sort(key=lambda line: line.number)
-        # self.nodes.sort(key=lambda node: node.number)
-        # TODO: Check for consistency
 
     @property
     def total_length(self):
@@ -181,10 +199,6 @@ class LineSet():
 
     def copy(self):
         return copy.deepcopy(self)
-
-    @classmethod
-    def from_2d(cls, lines, points):
-        pass
 
     def __json__(self):
         new = self.copy()
