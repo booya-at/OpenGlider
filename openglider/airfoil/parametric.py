@@ -32,19 +32,19 @@ class BezierProfile2D(Profile2D):
     #     profile.lower_spline = lower_spline
     #     return profile
 
-    def fit_upper(self, num=100, dist=None, control_num=6):
+    def fit_upper(self, num=100, dist=None, control_num=4):
         upper = self.data[:self.noseindex + 1]
         upper_smooth = self.make_smooth_dist(upper, num, dist)
         constraints = [[None] * 2 for i in range(control_num)]
-        constraints[0] = [1, 0]
-        constraints[-2][0] = 0
-        constraints[-1] = [0, 0]
+        constraints[0] = [1., 0.]
+        constraints[-2][0] = 0.
+        constraints[-1] = [0., 0.]
         if self.upper_spline:
-            return self.upper_spline.fit(upper_smooth, constraints)
+            return self.upper_spline.__class__.constraint_fit(upper_smooth, constraints)
         else:
             return BSpline.constraint_fit(upper_smooth, constraints)
 
-    def fit_lower(self, num=100, dist=None, control_num=6):
+    def fit_lower(self, num=100, dist=None, control_num=4):
         lower = self.data[self.noseindex:]
         lower_smooth = self.make_smooth_dist(lower, num, dist, upper=False)
         constraints = [[None] * 2 for i in range(control_num)]
@@ -52,7 +52,7 @@ class BezierProfile2D(Profile2D):
         constraints[1][0] = 0
         constraints[0] = [0, 0]
         if self.lower_spline:
-            return self.lower_spline.fit(lower_smooth, constraints)
+            return self.lower_spline.__class__.constraint_fit(lower_smooth, constraints)
         else:
             return BSpline.constraint_fit(lower_smooth, constraints)
 
@@ -72,6 +72,8 @@ class BezierProfile2D(Profile2D):
 
     def make_smooth_dist(self, points, num=70, dist=None, upper=True):
         # make array [[lenght, x, y], ...]
+        if not dist:
+            return points
         length = [0]
         for i, point in enumerate(points[1:]):
             length.append(length[-1] + norm(point - points[i]))
@@ -96,4 +98,7 @@ class BezierProfile2D(Profile2D):
             return points
         return [get_point(d) for d in dist]
 
+    @classmethod
+    def from_profile_2d(cls, profile_2d):
+        return cls(profile_2d.data, profile_2d.name)
 
