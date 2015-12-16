@@ -58,6 +58,8 @@ Development Progress
 
 While still being in an early status, here is some little screenshots to see the progress:
 
+
+![screenshot gui](docs/freecad_gui.png)
 ![screenshot testcell with miniribs](docs/screen.png)
 ![screenshot demokite with central minirib](docs/screen2.png)
 ![screenshot demokite plots](docs/screen3.png)

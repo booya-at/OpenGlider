@@ -29,7 +29,7 @@ def get_geom_sheet(glider_2d):
     for i in range(1, glider_2d.half_cell_num+2):
         geom_page[i, 0].set_value(i)
 
-    shape = glider_2d.half_shape()
+    shape = glider_2d.half_shape
 
     geom_page[0, 1].set_value("Chord")
     for i, chord in enumerate(shape.chords):

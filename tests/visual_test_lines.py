@@ -18,9 +18,9 @@ class TestLines(unittest.TestCase):
         # print(key_dict["LINES"][2])
         thalines = LineSet(
             key_dict["LINES"][2], key_dict["CALCPAR"][2]["V_INF"])
-        thalines.calc_geo()
+        thalines._calc_geo()
 
-        thalines.calc_sag()
+        thalines._calc_sag()
         objects = map(lambda line: graph.Line(line.get_line_points()), thalines.lines)
         graph.Graphics3D(objects)
 

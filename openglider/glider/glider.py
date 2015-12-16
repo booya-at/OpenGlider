@@ -279,7 +279,7 @@ class Glider(object):
         self.set_profile_numpoints(numpoints)
 
     def set_profile_numpoints(self, numpoints, dist_function=None):
-        dist_function = dist_function or Profile2D.cos_distribution
+        dist_function = dist_function or Profile2D.cos_2_distribution
         xvalues = dist_function(numpoints)
         for rib in self.ribs:
             rib.profile_2d.x_values = xvalues
@@ -359,7 +359,7 @@ class Glider(object):
     def attachment_points(self):
         points = []
         for line in self.lineset.lowest_lines:
-            points += self.lineset.get_upper_influence_node(line)
+            points += self.lineset.get_upper_influence_nodes(line)
         return points
 
     @property

@@ -83,6 +83,11 @@ class Bezier(HashedList):
             data = [self(i) for i in numpy.linspace(0, 1, num_points)]
             self.fit(data, num_ctrl)
 
+    def change_base(self, base, num_points=50):
+        data = [self(i) for i in numpy.linspace(0, 1, num_points)]
+        self.basefactory = base
+        self.fit(data, self.numpoints)
+
     @property
     def controlpoints(self):
         return self._data
@@ -149,9 +154,9 @@ class Bezier(HashedList):
 
     @dualmethod
     def constraint_fit(this, points, constraint):
-        # constraint is a matrix in size of the controlpointmatrix
-        # constraint values have a value others are set to None
-        # points is [[x0,y0,z0], X1, X2, ...]
+        """constraint is a matrix in size of the controlpointmatrix
+        constraint values have a value others are set to None
+        points is [[x0,y0,z0], X1, X2, ...]"""
 
         # all points have same dimension
         dim = len(constraint[0])
@@ -169,10 +174,10 @@ class Bezier(HashedList):
 
         # fit
         solution = []
+        constraints_T = list(zip(*constraint))
         for i in range(dim):
-            constraints = {index: val for index, val in enumerate(list(zip(*constraint))[i]) if val != None}
+            constraints = [[index, val] for index, val in enumerate(constraints_T[i]) if val != None]
             solution.append(this.constraint_pseudo_inverse(matrix, b[i], constraints))
-
         if type(this) == type:
             return this(numpy.array(solution).transpose())
         else:
@@ -184,28 +189,28 @@ class Bezier(HashedList):
     def constraint_pseudo_inverse(A, b, constraint):
         """return u for minimized |A.u-b| with u containing the constraint points.
         A(n x m)...matrix with n >= m + c_n (n=num_cols, m=num_rows, c_n=num_constraints)
-        constraint: dict of "indeces: value" couples  {0: 1, 10: 3}"""
+        constraint: dict of "indeces: value" couples  [[0, 1.], [10, 3.]]"""
         # create  vector from the known values
         u_fix = numpy.zeros(A.shape[1])
         u_sol_index = list(range(len(u_fix)))
         u = numpy.zeros(A.shape[1])
-        for key, val in constraint.items():
+        for key, val in constraint:
             u_fix[key] = val
 
         # A.T.dot(A).dot(u) == A.T.dot(b) - A.T.dot(A).dot(u_fix)
         rhs =  A.T.dot(b) - ((A.T).dot(A)).dot(u_fix)
         mat = A.T.dot(A)
-        for i, key in enumerate(constraint.keys()):
-            mat = numpy.delete(mat, key - i, 0)
-            mat = numpy.delete(mat, key - i, 1)
-            rhs = numpy.delete(rhs, key - i, 0)
-            u_sol_index.pop(key - i)
-        u_sol = numpy.linalg.lstsq(mat, rhs.transpose())[0]
+        for i, key in enumerate(constraint):
+            mat = numpy.delete(mat, key[0] - i, 0)
+            mat = numpy.delete(mat, key[0] - i, 1)
+            rhs = numpy.delete(rhs, key[0] - i, 0)
+            u_sol_index.pop(key[0] - i)
+        u_sol = numpy.linalg.solve(mat, rhs.transpose())
 
         # insert the known values in the solution
         for i, index in enumerate(u_sol_index):
             u[index] = u_sol[i]
-        for key, val in constraint.items():
+        for key, val in constraint:
             u[key] = val
         return u
 

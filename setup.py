@@ -78,7 +78,7 @@ setup(
     # long_description=open('README.md').read(),
     install_requires=["dxfwrite",  "ezodf2",
                       "svgwrite",  "numpy",
-                      "ezdxf", "triangle"],
+                      "ezdxf", "meshpy"],
     author='Booya',
     url='www.openglider.org',
     download_url="https://github.com/hiaselhans/OpenGlider/tarball/0.01dev0"
