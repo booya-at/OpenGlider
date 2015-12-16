@@ -11,12 +11,14 @@ class Layers(object):
         return "\n  - ".join(lines)
 
     def __getitem__(self, item):
+        item = str(item)
         if item in ("name", "material_code"):
             raise ValueError()
         self.layers.setdefault(item, [])
         return self.layers[item]
 
     def __setitem__(self, key, value):
+        key = str(key)
         if key in ("name", "material_code"):
             raise ValueError()
         assert isinstance(value, list)
@@ -25,6 +27,10 @@ class Layers(object):
     def __contains__(self, item):
         return item in self.layers
 
+    def __iter__(self):
+        for key in self.layers:
+            yield str(key)
+
     def values(self):
         return self.layers.values()
 
@@ -32,7 +38,7 @@ class Layers(object):
         return self.layers.items()
 
     def keys(self):
-        return self.layers.keys()
+        return list(self)
 
     def copy(self):
         layer_copy = {layer_name: [line.copy() for line in layer] for layer_name, layer in self.layers.items()}

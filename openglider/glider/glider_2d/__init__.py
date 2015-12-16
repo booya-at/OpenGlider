@@ -266,6 +266,11 @@ class Glider2D(object):
         return Profile2D(airfoil.data)
 
     def get_panels(self, glider_3d=None):
+        """
+        Create Panels Objects and apply on gliders cells if provided
+        :param glider_3d: (optional)
+        :return: list of "cells"
+        """
         def is_greater(cut_1, cut_2):
             if cut_1["left"] >= cut_2["left"] and cut_1["right"] >= cut_2["left"]:
                 return True
@@ -469,7 +474,7 @@ class Glider2D(object):
         for cell_no, (rib1, rib2) in enumerate(zip(ribs[:-1], ribs[1:])):
             ballooning_factor = ballooning_merge_curve(cell_centers[cell_no])
             ballooning = self.merge_ballooning(ballooning_factor)
-            cell = Cell(rib1, rib2, ballooning, name="cell{}".format(cell_no))
+            cell = Cell(rib1, rib2, ballooning, name="c{}".format(cell_no))
 
             glider.cells.append(cell)
 
@@ -478,6 +483,8 @@ class Glider2D(object):
         self.get_panels(glider)
         self.apply_diagonals(glider)
         #self.apply_holes(glider)
+
+        glider.rename_parts()
 
         glider.lineset = self.lineset.return_lineset(glider, self.v_inf)
         glider.lineset._calc_geo()

@@ -165,17 +165,22 @@ class DrawingArea():
         for part in self.parts:
             part_group = svgwrite.container.Group()
 
-            for layer_name, layer_config in config["layers"].items():
+            for layer_name in part.layers:
                 # todo: simplify
-                if layer_name in part.layers:
-                    lines = part.layers[layer_name]
-                    for line in lines:
-                        element = svgwrite.shapes.Polyline(line, **layer_config)
-                        classes = [layer_name]
-                        if part.material_code:
-                            classes.append(part.material_code)
-                        element.attribs["class"] = " ".join(classes)
-                        part_group.add(element)
+                if layer_name in config["layers"]:
+                    layer_config = config["layers"][layer_name]
+                else:
+                    layer_config = {"stroke": "black", "fill": "none", "stroke-width": "0.001"}
+
+                lines = part.layers[layer_name]
+
+                for line in lines:
+                    element = svgwrite.shapes.Polyline(line, **layer_config)
+                    classes = [layer_name]
+                    if part.material_code:
+                        classes.append(part.material_code)
+                    element.attribs["class"] = " ".join(classes)
+                    part_group.add(element)
 
             group.add(part_group)
 
@@ -231,7 +236,7 @@ class DrawingArea():
         drawing["width"] = "{}px".format(width)
         drawing["height"] = "{}px".format(height)
 
-        self.add_svg_styles(drawing)
+        #self.add_svg_styles(drawing)
 
         return drawing.tostring()
 

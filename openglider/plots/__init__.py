@@ -22,7 +22,7 @@ import openglider.plots.projection
 from openglider.plots.cuts import cuts
 from openglider.plots.part import PlotPart, DrawingArea
 from openglider.plots.config import sewing_config
-from openglider.plots.glider.cell import get_panels
+from openglider.plots.glider import PlotMaker
 from openglider.plots.glider.ribs import get_ribs
 from openglider.plots.glider.dribs import get_dribs
 
@@ -31,7 +31,10 @@ def flatten_glider(glider, sewing_config=sewing_config):
     plots = {}
 
     # Panels!
-    panels = get_panels(glider)
+    plotter = PlotMaker(glider)
+    plotter.unwrap()
+
+    panels = plotter.panels
     ribs = get_ribs(glider)
     dribs = get_dribs(glider)
 
