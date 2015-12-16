@@ -3,6 +3,7 @@ import unittest
 from common import *
 from openglider import jsonify
 from openglider.glider.glider_2d import Glider2D
+from openglider.plots.sketches.line_plan import line_plan
 
 
 class GliderTestCase2D(TestCase):
@@ -29,5 +30,8 @@ class GliderTestCase2D(TestCase):
         self.glider2d.set_flat_area(10)
         self.assertAlmostEqual(self.glider2d.flat_area, 10)
 
+    def test_line_plan(self):
+        line_plan(self.glider2d)
+
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(verbosity=2)

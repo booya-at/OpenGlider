@@ -42,6 +42,9 @@ class DrawingArea():
         return area
 
     def rasterize(self, columns=None, distance_x=0.2, distance_y=0.1):
+        """
+        create a raster with cells containing the parts
+        """
         columns = columns or round(math.sqrt(len(self.parts)))
 
         column_lst = [[] for _ in range(columns)]

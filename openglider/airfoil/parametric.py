@@ -32,7 +32,7 @@ class BezierProfile2D(Profile2D):
     #     profile.lower_spline = lower_spline
     #     return profile
 
-    def fit_upper(self, num=100, dist=None, control_num=4):
+    def fit_upper(self, num=100, dist=None, control_num=8):
         upper = self.data[:self.noseindex + 1]
         upper_smooth = self.make_smooth_dist(upper, num, dist)
         constraints = [[None] * 2 for i in range(control_num)]
@@ -44,7 +44,7 @@ class BezierProfile2D(Profile2D):
         else:
             return BSpline.constraint_fit(upper_smooth, constraints)
 
-    def fit_lower(self, num=100, dist=None, control_num=4):
+    def fit_lower(self, num=100, dist=None, control_num=8):
         lower = self.data[self.noseindex:]
         lower_smooth = self.make_smooth_dist(lower, num, dist, upper=False)
         constraints = [[None] * 2 for i in range(control_num)]
@@ -91,9 +91,6 @@ class BezierProfile2D(Profile2D):
                 dist = [numpy.sin(i) * length[-1] for i in numpy.linspace(0, numpy.pi / 2, num)]
             else:
                 dist = [abs(1 - numpy.sin(i)) * length[-1] for i in numpy.linspace(0, numpy.pi / 2, num)]
-        elif dist == "hardcore":
-            # berechne kruemmung in den punkten
-            pass
         else:
             return points
         return [get_point(d) for d in dist]
@@ -101,4 +98,3 @@ class BezierProfile2D(Profile2D):
     @classmethod
     def from_profile_2d(cls, profile_2d):
         return cls(profile_2d.data, profile_2d.name)
-

@@ -177,7 +177,7 @@ class Bezier(HashedList):
         constraints_T = list(zip(*constraint))
         for i in range(dim):
             constraints = [[index, val] for index, val in enumerate(constraints_T[i]) if val != None]
-            solution.append(this.constraint_pseudo_inverse(matrix, b[i], constraints))
+            solution.append(this.constraint_least_square_sol(matrix, b[i], constraints))
         if type(this) == type:
             return this(numpy.array(solution).transpose())
         else:
@@ -186,7 +186,7 @@ class Bezier(HashedList):
 
 
     @staticmethod
-    def constraint_pseudo_inverse(A, b, constraint):
+    def constraint_least_square_sol(A, b, constraint):
         """return u for minimized |A.u-b| with u containing the constraint points.
         A(n x m)...matrix with n >= m + c_n (n=num_cols, m=num_rows, c_n=num_constraints)
         constraint: dict of "indeces: value" couples  [[0, 1.], [10, 3.]]"""
