@@ -48,5 +48,23 @@ def cross(p1, p2, rotation=False):
     return line(p1, p2, rotation=rotation) + line(p1, p2, rotation=rotation+math.pi/2)
 
 
+def inside(fctn):
+    """
+    Put two profile points (outer, inner) on the inside of sewing mark
+    :param fctn:
+    :return:
+    """
+    return lambda p1, p2: fctn(2 * p1 - p2, p1)
 
 
+class Rotate:
+    def __init__(self, func, rotation):
+        self.func = func
+        self.rotation = rotation
+
+    def __call__(self, *args, **kwargs):
+        kwargs["rotation"] = self.rotation
+
+
+def on_line(fctn):
+    return lambda p1, p2: fctn(0.5 * (p1 + p2), 1.5 * p1 - 0.5 * p2)

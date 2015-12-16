@@ -1,20 +1,33 @@
 # coding=utf-8
 import collections
 
+import numpy
+
 from openglider.airfoil import get_x_value
-from openglider.plots import sewing_config, PlotPart
+from openglider.plots import sewing_config, PlotPart, marks
 from openglider.vector import PolyLine2D
 from openglider.vector.text import Text
 
 
 class RibPlot:
+    allowance_general = None
+    allowance_trailing_edge = None
+
+    marks_diagonal_front = marks.inside(marks.arrow_left)
+    marks_diagonal_back = marks.inside(marks.arrow_right)
+    marks_strap = marks.inside(marks.line)
+    marks_attachment_point = marks.on_line(marks.Rotate(marks.cross, numpy.pi / 4))
+    marks_panel_cut = marks.line
+
     def __init__(self, rib, config):
         self.rib = rib
-        self.inner = rib.profile_2d.copy().scale(rib.chord)
-        self.outer = self.inner.copy().add_stuff(config["allowance"]["general"])
-        self.x_values = rib.profile_2d.x_values
         self.config = config
-        self.plotpart = PlotPart(name=rib.name, material_code=rib.material_code)
+
+    def flatten(self):
+        self.plotpart = PlotPart(name=self.rib.name, material_code=self.rib.material_code)
+        self.x_values = rib.profile_2d.x_values
+        self.inner = rib.profile_2d.copy().scale(rib.chord)
+        self.outer = self.inner.copy().add_stuff(self.allowance_general)
 
         # insert cut
         self.cut_outer_rib()
@@ -28,10 +41,19 @@ class RibPlot:
 
         self.plotpart.layers["marks"] += mark(inner, outer)
 
+    def insert_mark_2(self, position, mark_function):
+        if mark_function is None:
+            return
+        ik = get_x_value(self.x_values, position)
+        inner = self.inner[ik]
+        outer = self.outer[ik]
+
+        self.plotpart.layers["marks"] += mark_function(inner, outer)
+
     def get_point(self, x, y=-1):
         assert x >= 0
-        p = self.rib.profile_2d.profilepoint(x,y)
-        return p*self.rib.chord
+        p = self.rib.profile_2d.profilepoint(x, y)
+        return p * self.rib.chord
 
     def insert_drib_mark(self, drib, right=False):
 
@@ -43,11 +65,11 @@ class RibPlot:
             p2 = drib.left_back
 
         if p1[1] == p2[1] == -1:
-            self.insert_mark(p1[0], "diagonal_front")
-            self.insert_mark(p2[0], "diagonal_back")
+            self.insert_mark_2(p1[0], self.marks_diagonal_front)
+            self.insert_mark(p2[0], self.marks_diagonal_back)
         elif p1[1] == p2[1] == 1:
-            self.insert_mark(-p1[0], "diagonal_back")
-            self.insert_mark(-p2[0], "diagonal_front")
+            self.insert_mark(-p1[0], self.marks_diagonal_back)
+            self.insert_mark(-p2[0], self.marks_diagonal_front)
         else:
             p1 = self.get_point(*p1)
             p2 = self.get_point(*p2)
@@ -59,7 +81,7 @@ class RibPlot:
         """
         outer_rib = self.outer
         inner_rib = self.inner
-        t_e_allowance = self.config["allowance"]["trailing_edge"]
+        t_e_allowance = self.allowance_trailing_edge
         p1 = inner_rib[0] + [0, 1]
         p2 = inner_rib[0] + [0, -1]
         cuts = outer_rib.new_cut(p1, p2)

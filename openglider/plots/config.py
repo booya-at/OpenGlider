@@ -1,21 +1,9 @@
-import numpy
 import functools
 
+import numpy
+
 from openglider.plots import marks
-
-
-def inside(fctn):
-    """
-    Put two profile points (outer, inner) on the inside of sewing mark
-    :param fctn:
-    :return:
-    """
-    return lambda p1, p2: fctn(2 * p1 - p2, p1)
-
-
-def on_line(fctn):
-    return lambda p1, p2: fctn(0.5 * (p1 + p2), 1.5 * p1 - 0.5 * p2)
-
+from openglider.plots.marks import inside, on_line
 
 sewing_config = {
     "marks": {
@@ -23,7 +11,7 @@ sewing_config = {
         "diagonal_front": inside(marks.arrow_left),
         "diagonal_back": inside(marks.arrow_right),
         "strap": inside(marks.line),
-        "attachment-point": on_line(functools.partial(marks.cross, rotation=numpy.pi/4)),
+        "attachment-point": on_line(functools.partial(marks.cross, rotation=numpy.pi / 4)),
         "panel-cut": marks.line
     },
     "allowance": {
