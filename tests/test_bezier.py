@@ -47,5 +47,10 @@ class TestBezier(unittest.TestCase):
         self.bezier.controlpoints = [[0, 0], [2, 0]]
         self.assertAlmostEqual(self.bezier.get_length(10), 2.)
 
+    def test_get_sequence(self):
+        print(self.bezier.get_sequence(100))
 
 
+
+if __name__ == '__main__':
+    unittest.main(verbosity=2)

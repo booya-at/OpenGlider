@@ -66,7 +66,7 @@ class BSplineBase():
 
 
 class BSpline(Bezier):
-    basefactory = BSplineBase(3)
+    basefactory = BSplineBase(2)
 
     def __json__(self):
         out = super(BSpline, self).__json__()
@@ -99,16 +99,16 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import numpy
 
-    data = [[0., 0.], [0.5, 0.5], [1., 0.], [2, 3]]
-    curve = BSpline(data)
-    curve.numpoints = 5
-    values = curve.get_sequence(30)
+    data = [[-0.2, 0.], [-0.5, 0.5], [-1., 0.], [-2, 3]]
+    curve = SymmetricBSpline(data)
+    values = curve.get_sequence(20)
     cp = curve.controlpoints
     curve_pts = [curve(i) for i in numpy.linspace(0.,  1, 100)]
     # for i in curve.basefactory(5):
     #     plt.plot(*zip(*[[x, i(x)] for x in numpy.linspace(0., 1, 100)]))
     plt.show()
-    plt.plot(*zip(*curve_pts))
+    plt.plot(*zip(*values))
+    # plt.plot(*zip(*curve_pts))
     plt.plot(*zip(*curve.data))
     plt.plot(*zip(*data))
     plt.show()

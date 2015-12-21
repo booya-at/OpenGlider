@@ -31,6 +31,7 @@ class _BernsteinFactory():
         self.bases = {}
 
     def __call__(self, degree):
+        """degree is the number of controlpoints"""
         if degree not in self.bases:
             def bsf(n):
                 return lambda x: choose(degree - 1, n) * (x ** n) * ((1 - x) ** (degree - 1 - n))
@@ -38,7 +39,6 @@ class _BernsteinFactory():
             self.bases[degree] = [bsf(i) for i in range(degree)]
 
         return self.bases[degree]
-
 
 BernsteinBase = _BernsteinFactory()
 
@@ -51,6 +51,7 @@ class Bezier(HashedList):
         Bezier Curve representative
         http://en.wikipedia.org/wiki/Bezier_curve#Generalization
         """
+        self._matrix = None
         super(Bezier, self).__init__(controlpoints)
 
     def __json__(self):
@@ -86,6 +87,7 @@ class Bezier(HashedList):
     def change_base(self, base, num_points=50):
         data = [self(i) for i in numpy.linspace(0, 1, num_points)]
         self.basefactory = base
+        self._matrix = None
         self.fit(data, self.numpoints)
 
     @property
@@ -217,12 +219,25 @@ class Bezier(HashedList):
     def interpolation(self, num=100, **kwargs):
         return Interpolation(self.get_sequence(num))
 
+    def get_matrix(self, num=50):
+        degree = len(self._data)
+        if self._matrix is not None:
+            if len(self._matrix) == num and len(self._matrix[0]) == degree:
+                return self._matrix
+        self._matrix = numpy.ndarray([num, degree])
+        functions = self.basefactory(degree)
+        for row, value in enumerate(numpy.linspace(0, 1 , num)):
+            for col, foo in enumerate(functions):
+                self._matrix[row, col] = foo(value)
+        return self._matrix
+
     def get_sequence(self, num=50):
-        data = []
-        for i in range(num):
-            point = self(i / (num - 1))
-            data.append(point)
-        return numpy.array(data)
+        return numpy.dot(self.get_matrix(num), self._data)
+        # data = []
+        # for i in range(num):
+        #     point = self(i / (num - 1))
+        #     data.append(point)
+        # return numpy.array(data)
 
     def get_length(self, num):
         seq = self.get_sequence(num=num)
