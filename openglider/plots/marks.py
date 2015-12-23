@@ -56,15 +56,27 @@ def inside(fctn):
     """
     return lambda p1, p2: fctn(2 * p1 - p2, p1)
 
-
-class Rotate:
-    def __init__(self, func, rotation):
+class Modify():
+    def __init__(self, func):
         self.func = func
+
+    def __repr__(self):
+        return "{} [{}]".format(self.__class__, repr(self.func))
+
+    def __call__(self, p1, p2, *args, **kwargs):
+        return self.func(p1, p2, *args, **kwargs)
+
+class Rotate(Modify):
+    def __init__(self, func, rotation):
         self.rotation = rotation
+        super(Rotate, self).__init__(func)
 
     def __call__(self, *args, **kwargs):
         kwargs["rotation"] = self.rotation
+        return super(Rotate, self).__call__(*args, **kwargs)
 
-
-def on_line(fctn):
-    return lambda p1, p2: fctn(0.5 * (p1 + p2), 1.5 * p1 - 0.5 * p2)
+class OnLine(Modify):
+    def __call__(self, p1, p2, *args, **kwargs):
+        p1_2 = 0.5 * (p1+p2)
+        p2_2 = 1.5 * p1 - 0.5 * p2
+        return super(OnLine, self).__call__(p1_2, p2_2, *args, **kwargs)

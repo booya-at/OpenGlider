@@ -25,6 +25,8 @@ def get_thickness(y):
 print([get_thickness(y*0.1) for y in range(10)])
 ```
 
+A cell's "left" side is its first rib (rib1)
+
 
 Cell elements
 -------------

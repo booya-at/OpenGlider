@@ -46,7 +46,7 @@ class DrawingArea():
         create a raster with cells containing the parts
         """
         columns = columns or round(math.sqrt(len(self.parts)))
-
+        columns = int(columns)  # python2 fix
         column_lst = [[] for _ in range(columns)]
 
         for i, part in enumerate(self.parts):
