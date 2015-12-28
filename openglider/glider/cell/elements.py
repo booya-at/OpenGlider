@@ -24,6 +24,7 @@ import numpy
 from openglider.airfoil import get_x_value
 from openglider.plots.projection import flatten_list
 from openglider.vector import norm
+from openglider.mesh import Mesh
 
 
 class DiagonalRib(object):
@@ -208,13 +209,14 @@ class Panel(object):
         :param numribs: number of miniribs to calculate
         :return: mesh
         """
+        # TODO: doesnt work for numribs=0?
         xvalues = cell.rib1.profile_2d.x_values
         ribs = []
         points = []
         nums = []
         count = 0
-        for i in range(numribs + 1):
-            y = i / numribs
+        for rib_no in range(numribs + 1):
+            y = rib_no / max(numribs, 1)
             x1 = self.cut_front["left"] + y * (self.cut_front["right"] -
                                                self.cut_front["left"])
             front = get_x_value(xvalues, x1)
@@ -239,11 +241,11 @@ class Panel(object):
         def quad(l_i, r_i):
             return [l_i + 1, l_i, r_i, r_i + 1]
 
-        for i, _ in enumerate(ribs[:-1]):
-            num_l = nums[i]
-            num_r = nums[i + 1]
-            pos_l = ribs[i]
-            pos_r = ribs[i + 1]
+        for rib_no, _ in enumerate(ribs[:-1]):
+            num_l = nums[rib_no]
+            num_r = nums[rib_no + 1]
+            pos_l = ribs[rib_no]
+            pos_r = ribs[rib_no + 1]
             l_i = r_i = 0
             while l_i < len(num_l)-1 or r_i < len(num_r)-1:
                 if l_i == len(num_l) - 1:
@@ -266,8 +268,8 @@ class Panel(object):
                 elif pos_r[r_i] < pos_l[l_i]:
                     triangles.append(right_triangle(num_l[l_i], num_r[r_i]))
                     r_i += 1
-        from openglider.mesh import mesh
-        return mesh(numpy.array(points), triangles)
+
+        return Mesh(numpy.array(points), triangles)
 
     def mirror(self):
         left, right = self.cut_front["left"], self.cut_front["right"]

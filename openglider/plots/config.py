@@ -3,14 +3,14 @@ import functools
 import numpy
 
 from openglider.plots import marks
-from openglider.plots.marks import inside, OnLine
+from openglider.plots.marks import Inside, OnLine
 
 sewing_config = {
     "marks": {
-        "diagonal": inside(marks.triangle),
-        "diagonal_front": inside(marks.arrow_left),
-        "diagonal_back": inside(marks.arrow_right),
-        "strap": inside(marks.line),
+        "diagonal": Inside(marks.triangle),
+        "diagonal_front": Inside(marks.arrow_left),
+        "diagonal_back": Inside(marks.arrow_right),
+        "strap": Inside(marks.line),
         "attachment-point": OnLine(functools.partial(marks.cross, rotation=numpy.pi / 4)),
         "panel-cut": marks.line
     },

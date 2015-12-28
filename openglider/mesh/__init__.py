@@ -4,7 +4,7 @@ import meshpy.triangle as mptriangle
 from openglider.mesh.meshpy_triangle import custom_triangulation
 
 
-class mesh(object):
+class Mesh(object):
     """
     Mesh Surface: vertices and polygons
     """
@@ -96,6 +96,29 @@ class mesh(object):
             polygon = [range(len(vertices))]
             return cls(vertices, polygon)
 
+    def copy(self):
+        poly_copy = [p[:] for p in self.polygons]
+        return self.__class__(self.vertices, poly_copy)
+
+    def triangularize(self):
+        """
+        Make triangles from quads
+        """
+        faces_new = []
+        for face in self.polygons:
+            if len(face) == 3:
+                faces_new.append(face)
+            elif len(face) == 4:
+                faces_new.append(face[:3])
+                faces_new.append(face[2:] + face[:1])
+
+        return self.__class__(self.vertices, faces_new)
+
+    def __json__(self):
+        return {
+            "vertices": self.vertices.tolist(),
+            "faces": self.polygons
+        }
 
     def __add__(self, other):
         if None in (other.vertices, other.polygons):
@@ -103,7 +126,7 @@ class mesh(object):
         if None in (self.vertices, self.polygons):
             return other
         else:
-            new_mesh = mesh()
+            new_mesh = Mesh()
             new_mesh.vertices = np.concatenate([self.vertices, other.vertices])
             start_value = float(len(self.vertices))
             new_other_polygons = [[val + start_value for val in tri] for tri in other.polygons]
@@ -121,6 +144,7 @@ class mesh(object):
             self.polygons = self.polygons + new_other_polygons
             self.vertices = np.concatenate([self.vertices, other.vertices])
             return self
+
 
 def apply_z(vertices):
     v = vertices.T
@@ -144,8 +168,8 @@ def map_to_2d(points):
             
 
 if __name__ == "__main__":
-    a = mesh()
-    b = mesh()
+    a = Mesh()
+    b = Mesh()
     a.vertices = np.array([[0,0],[1,2],[2,3]])
     b.vertices = np.array([[0,0],[1,2],[2,3]])
     a.outer_faces = np.array([[0, 1, 2]])

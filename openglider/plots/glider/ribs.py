@@ -13,9 +13,9 @@ class RibPlot:
     allowance_general = None
     allowance_trailing_edge = None
 
-    marks_diagonal_front = marks.inside(marks.arrow_left)
-    marks_diagonal_back = marks.inside(marks.arrow_right)
-    marks_strap = marks.inside(marks.line)
+    marks_diagonal_front = marks.Inside(marks.arrow_left)
+    marks_diagonal_back = marks.Inside(marks.arrow_right)
+    marks_strap = marks.Inside(marks.line)
     marks_attachment_point = marks.OnLine(marks.Rotate(marks.cross, numpy.pi / 4))
     marks_panel_cut = marks.line
 
