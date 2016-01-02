@@ -16,9 +16,29 @@ def export_ods_2d(glider, filename):
 
     doc.sheets.append(get_geom_sheet(glider))
     doc.sheets.append(get_cell_sheet(glider))
+    doc.sheets.append(get_rib_sheet(glider))
+    doc.sheets.append(get_airfoil_sheet(glider))
+
+    # airfoil sheet
+
 
 
     doc.saveas(filename)
+
+
+def get_airfoil_sheet(glider):
+    profiles = glider.profiles
+    max_length = max(len(p) for p in profiles)
+    sheet = ezodf.Sheet(name="airfoils", size=(max_length+1, len(profiles)*2))
+
+    for i, profile in enumerate(profiles):
+        sheet[0, 2*i].set_value(profile.name or "unnamed")
+        for j, p in enumerate(profile):
+            sheet[j+1, 2*i].set_value(p[0])
+            sheet[j+1, 2*i+1].set_value(p[1])
+
+    return sheet
+
 
 
 def get_geom_sheet(glider_2d):
@@ -103,6 +123,40 @@ def get_cell_sheet(glider):
         for part_no, part in enumerate(cell):
             sheet[cell_no+1, column+part_no].set_value(part)
 
+    return sheet
+
+
+def get_rib_sheet(glider):
+    row_num = glider.half_cell_num + 1
+    sheet_name = "Rib Elements"
+    sheet = ezodf.Sheet(name=sheet_name, size=(row_num+1, 1))
+    elems = glider.elements
+
+    for i in range(1, row_num+1):
+        sheet[i, 0].set_value(str(i))
+
+    column = 1
+
+    # holes
+    for hole in elems["holes"]:
+        sheet.append_columns(2)
+
+        sheet[0, column].set_value("QUERLOCH")
+
+        for rib_no in hole["ribs"]:
+            sheet[rib_no+1, column].set_value(hole["pos"])
+            sheet[rib_no+1, column+1].set_value(hole["size"])
+
+        column += 2
+
+    # attachment points
+    per_rib = [glider.lineset.get_upper_nodes(rib_no) for rib_no in range(glider.half_rib_num)]
+    max_points = max([len(p) for p in per_rib])
+
+    for rib_no, nodes in enumerate(per_rib):
+        pass
+
+    # rigidfoils
 
     return sheet
 

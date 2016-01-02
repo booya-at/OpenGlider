@@ -59,7 +59,7 @@ class RibPlot:
                     self.insert_mark(strap.right, self.marks_strap)
 
         for cut in panel_cuts:
-            print(cut, self.marks_panel_cut)
+            #print(cut, self.marks_panel_cut)
             self.insert_mark(cut, self.marks_panel_cut)
 
 

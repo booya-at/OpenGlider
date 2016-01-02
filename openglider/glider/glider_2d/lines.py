@@ -111,6 +111,16 @@ class LineSet2D(object):
 
         return list(nodes)
 
+    def get_upper_nodes(self, rib_no=None):
+        nodes = set()
+        for line in self.lines:
+            node = line.upper_node
+            if isinstance(node, UpperNode2D):
+                if rib_no is None or node.rib_no == rib_no:
+                    nodes.add(line.upper_node)
+
+        return list(nodes)
+
     def return_lineset(self, glider, v_inf):
         lines = []
         # first get the lowest points (lw-att)
