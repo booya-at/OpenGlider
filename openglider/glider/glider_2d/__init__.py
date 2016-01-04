@@ -345,6 +345,7 @@ class Glider2D(object):
                     dct = strap.copy()
                     dct.pop("cells")
                     dct["name"] = "cell{}strap".format(cell_no)
+                    print("append strap")
                     cell.straps.append(TensionStrapSimple(**dct))
 
             cell.straps.sort(key=lambda s: (s.left + s.right)/2)
