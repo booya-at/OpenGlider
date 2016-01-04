@@ -86,6 +86,10 @@ class Glider2D(object):
         return self.cell_num // 2 + self.has_center_cell
 
     @property
+    def half_rib_num(self):
+        return self.half_cell_num + 1
+
+    @property
     def arc_positions(self):
         # calculating y/z values vor the arc-curve
         num = self.num_arc_positions
@@ -161,7 +165,7 @@ class Glider2D(object):
             front.insert(0, [-front[0][0], front[0][1]])
             back.insert(0, [-back[0][0], back[0][1]])
 
-        return zip(front, back)
+        return list(zip(front, back))
 
     def get_shape_point(self, rib_no, x):
         ribs = list(self.ribs)

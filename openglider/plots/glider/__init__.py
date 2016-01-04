@@ -57,3 +57,6 @@ class PlotMaker(object):
             parts.append(rib.copy())
         return DrawingArea(parts)
 
+    def get_all_parts_grouped(self):
+        return self.get_all_parts().group_materials()
+
