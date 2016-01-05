@@ -29,7 +29,7 @@ class Glider2D(object):
                  arc, aoa, profiles, profile_merge_curve,
                  balloonings, ballooning_merge_curve, lineset,
                  speed, glide, zrot, elements=None):
-        self.zrot=zrot
+        self.zrot = zrot or aoa
         self.front = front
         self.back = back
         self.cell_num = cell_num  # updates cell pos
@@ -345,6 +345,7 @@ class Glider2D(object):
         front, back = shape.front, shape.back
         arc = [rib.pos[1:] for rib in glider.ribs]
         aoa = [[front[i][0], rib.aoa_relative] for i, rib in enumerate(glider.ribs)]
+        zrot = [[front[i][0], rib.zrot] for i, rib in enumerate(glider.ribs)]
 
         def symmetric_fit(polyline, numpoints=numpoints):
             mirrored = PolyLine2D(polyline[1:]).mirror([0, 0], [0, 1])
@@ -355,6 +356,7 @@ class Glider2D(object):
         back_bezier = symmetric_fit(back)
         arc_bezier = symmetric_fit(arc)
         aoa_bezier = symmetric_fit(aoa)
+        zrot_bezier = symmetric_fit(zrot)
 
         cell_num = len(glider.cells) * 2 - glider.has_center_cell
 
@@ -385,6 +387,7 @@ class Glider2D(object):
                    cell_num=cell_num,
                    arc=arc_bezier,
                    aoa=aoa_bezier,
+                   zrot=zrot,
                    profiles=profiles,
                    profile_merge_curve=profile_dist,
                    balloonings=balloonings,
