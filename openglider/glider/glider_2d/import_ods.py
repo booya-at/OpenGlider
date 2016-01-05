@@ -63,6 +63,7 @@ def import_ods_2d(cls, filename, numpoints=4):
     arc = []
     profile_merge = []
     ballooning_merge = []
+    zrot = []
 
     y = z = span_last = alpha = 0.
 
@@ -89,7 +90,7 @@ def import_ods_2d(cls, filename, numpoints=4):
         profile_merge.append([span, line[8]])
         ballooning_merge.append([span, line[9]])
 
-        # zrot = line[7] * numpy.pi / 180
+        zrot.append([span, line[7] * numpy.pi / 180])
 
         span_last = span
 
@@ -177,6 +178,7 @@ def import_ods_2d(cls, filename, numpoints=4):
                cell_num=cell_no,
                arc=symmetric_fit(arc),
                aoa=symmetric_fit(aoa),
+               zrot=symmetric_fit(zrot),
                elements={"cuts": cuts,
                          "holes": rib_holes,
                          "diagonals": diagonals,

@@ -54,6 +54,9 @@ class Bezier(HashedList):
         self._matrix = None
         super(Bezier, self).__init__(controlpoints)
 
+    def __repr__(self):
+        return (self.__class__.__name__ + ":\n" + str(self.controlpoints))
+
     def __json__(self):
         return {'controlpoints': [p.tolist() for p in self.controlpoints]}
 

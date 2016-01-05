@@ -28,7 +28,8 @@ class Glider2D(object):
     def __init__(self, front, back, cell_dist, cell_num,
                  arc, aoa, profiles, profile_merge_curve,
                  balloonings, ballooning_merge_curve, lineset,
-                 speed, glide, elements=None):
+                 speed, glide, zrot, elements=None):
+        self.zrot=zrot
         self.front = front
         self.back = back
         self.cell_num = cell_num  # updates cell pos
@@ -52,6 +53,7 @@ class Glider2D(object):
             "cell_num": self.cell_num,
             "arc": self.arc,
             "aoa": self.aoa,
+            "zrot": self.zrot,
             "profiles": self.profiles,
             "profile_merge_curve": self.profile_merge_curve,
             "balloonings": self.balloonings,
