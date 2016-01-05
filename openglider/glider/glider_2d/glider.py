@@ -408,6 +408,7 @@ class Glider2D(object):
         profile_merge_curve = self.profile_merge_curve.interpolation(num=num)
         ballooning_merge_curve = self.ballooning_merge_curve.interpolation(num=num)
         aoa_int = self.aoa.interpolation(num=num)
+        zrot_int = self.zrot.interpolation(num=num)
 
         arc_pos = list(self.arc_positions)
         arc_angles = self.get_arc_angles()
@@ -437,6 +438,7 @@ class Glider2D(object):
                 arcang=arc_angles[rib_no],
                 glide=self.glide,
                 aoa_absolute=aoa_int(pos),
+                zrot=zrot_int(pos),
                 holes=this_rib_holes,
                 rigidfoils=this_rigid_foils,
                 name="rib{}".format(rib_no)
