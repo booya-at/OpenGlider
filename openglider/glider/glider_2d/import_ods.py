@@ -149,9 +149,10 @@ def import_ods_2d(cls, filename, numpoints=4):
     straps_keywords = ["cells", "left", "right"]
     #straps = read_elements(cell_sheet, "VEKTLAENGE", len_data=2)
     for res in read_elements(sheets[1], "VEKTLAENGE", len_data=2):
-        straps.append({"cells": [res[0]],
+        straps.append({"cells": res[0],
                        "left": res[1],
                        "right": res[2]})
+    straps = group(straps, "cells")
 
     has_center_cell = not front[0][0] == 0
     cell_no = (len(front)-1)*2 + has_center_cell

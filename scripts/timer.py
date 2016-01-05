@@ -1,7 +1,6 @@
 import time
 from openglider import jsonify
-
-from openglider.glider.glider_2d import Glider2D
+from openglider.glider import Glider2D
 
 #gl = Glider2D.import_ods('acro.ods')
 num = 3

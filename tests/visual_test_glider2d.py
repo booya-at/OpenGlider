@@ -1,6 +1,5 @@
 from common import *
-
-
+from openglider.glider import Glider2D
 from visual_test_glider import TestGlider
 
 __ALL__ = ['GliderTestCase2D']

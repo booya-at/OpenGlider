@@ -2,7 +2,7 @@ import unittest
 
 from common import *
 from openglider import jsonify
-from openglider.glider.glider_2d import Glider2D
+from openglider.glider import Glider2D
 
 
 class GliderTestCase2D(TestCase):

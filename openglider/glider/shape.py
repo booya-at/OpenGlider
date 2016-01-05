@@ -1,9 +1,8 @@
 from openglider.plots.part import PlotPart, DrawingArea
-from openglider.glider.cell import Panel
 from openglider.vector import PolyLine2D, norm
 
 
-class Shape():
+class Shape(object):
     def __init__(self, front, back):
         if not isinstance(front, PolyLine2D):
             front = PolyLine2D(front)
@@ -63,10 +62,18 @@ class Shape():
 
     def _repr_svg_(self):
         da = DrawingArea()
-        panel = Panel({"left": 0, "right": 0}, {"left": 1, "right": 1})
         for cell_no in range(self.cell_no):
-            points = list(self.get_panel(cell_no, panel))
+            points = [
+                self.get_point(cell_no, 0),
+                self.get_point(cell_no, 1),
+                self.get_point(cell_no+1, 1),
+                self.get_point(cell_no+1, 0),
+            ]
             points.append(points[0])
             da.parts.append(PlotPart(marks=[points]))
 
         return da._repr_svg_()
+
+
+class ParametricShape(Shape):
+    pass

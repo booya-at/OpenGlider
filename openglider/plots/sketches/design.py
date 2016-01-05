@@ -1,10 +1,11 @@
 import openglider.glider
+import openglider.glider.glider_2d.glider
 from openglider.vector import PolyLine2D
 from openglider.plots.part import DrawingArea, PlotPart
 
 
 def design_plot(glider_2d, glider_3d=None, lower=True):
-    assert isinstance(glider_2d, openglider.glider.Glider2D)
+    assert isinstance(glider_2d, openglider.glider.glider_2d.glider.Glider2D)
     #glider_3d = glider_3d or glider_2d.get_glider_3d()
     shape = glider_2d.half_shape()  #.copy_complete()
     #glider_3d = glider_3d.copy_complete()
