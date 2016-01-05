@@ -48,7 +48,8 @@ class TestBezier(unittest.TestCase):
         self.assertAlmostEqual(self.bezier.get_length(10), 2.)
 
     def test_get_sequence(self):
-        print(self.bezier.get_sequence(100))
+        sequence = self.bezier.get_sequence(100)
+        # print(sequence)
 
 
 

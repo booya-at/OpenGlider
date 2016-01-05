@@ -17,7 +17,6 @@ class ArcCurve(object):
 
     @staticmethod
     def has_center_cell(x_values):
-        print(x_values)
         return x_values[0] != 0
 
     def get_arc_positions(self, x_values):
@@ -34,7 +33,6 @@ class ArcCurve(object):
         _positions = [arc_curve.extend(0, x * scale_factor) for x in x_values]
         positions = PolyLine2D([arc_curve[p] for p in _positions])
         if not self.has_center_cell(x_values):
-            print("shit")
             positions[0][0] = 0
         # rescale
         return positions

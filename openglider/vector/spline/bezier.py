@@ -222,6 +222,9 @@ class Bezier(HashedList):
     def interpolation(self, num=100, **kwargs):
         return Interpolation(self.get_sequence(num))
 
+    def scale(self, x=1, y=1):
+        self.controlpoints = [p*[x,y] for p in self.controlpoints]
+
     def get_matrix(self, num=50):
         degree = len(self._data)
         if self._matrix is not None:

@@ -8,7 +8,8 @@ class GliderTestCase2D(TestCase):
         self.shape = self.glider2d.half_shape
 
     def test_chords(self):
-        print(self.shape)
+        shape = self.shape
+        # print(shape)
 
 if __name__ == '__main__':
     unittest.main()

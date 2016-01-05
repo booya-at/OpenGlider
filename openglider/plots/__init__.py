@@ -37,7 +37,7 @@ def flatten_glider(glider):
     dribs = get_dribs(glider)
 
     plots['panels'] = DrawingArea.create_raster(panels.values())
-    plots['ribs'] = DrawingArea.create_raster([ribs.values()])
+    plots['ribs'] = DrawingArea.create_raster([ribs])
     plots["dribs"] = DrawingArea.create_raster(dribs)
 
     return plots
