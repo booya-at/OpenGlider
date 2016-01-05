@@ -157,6 +157,13 @@ class TensionStrapSimple():
     def mirror(self):
         self.left, self.right = self.right, self.left
 
+    def get_3d(self, cell):
+        rib1 = cell.rib1
+        rib2 = cell.rib2
+        left = rib1.profile_3d[rib1.profile_2d(self.left)]
+        right = rib2.profile_3d[rib2.profile_2d(self.right)]
+        return [left, right]
+
 
 class Panel(object):
     """
