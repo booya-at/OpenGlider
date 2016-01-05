@@ -119,7 +119,7 @@ class Rib(CachedObject):
 
     def mirror(self):
         self.arcang = -self.arcang
-        self.zrot = -self.zrot
+        # self.zrot = -self.zrot
         self.pos = numpy.multiply(self.pos, [1, -1., 1])
 
     def copy(self):
