@@ -18,17 +18,17 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
-import math
+
 import copy
+import math
 
 import numpy
-from openglider.airfoil import Profile2D
 
+from openglider.airfoil import Profile2D
 from openglider.glider.in_out import IMPORT_GEOMETRY, EXPORT_3D
 from openglider.glider.shape import Shape
-from openglider.utils import consistent_value
 from openglider.plots.projection import flatten_list
-from openglider.vector import PolyLine2D
+from openglider.utils import consistent_value
 from openglider.vector.functions import norm, rotation_2d
 
 

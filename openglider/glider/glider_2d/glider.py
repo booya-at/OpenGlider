@@ -1,16 +1,18 @@
+from __future__ import division
+
 import numpy as np
 
-from openglider.vector import PolyLine2D, Interpolation
-from openglider.vector.spline import SymmetricBezier, Bezier
 from openglider.airfoil import Profile2D
-from openglider.glider.glider_2d.lines import LineSet2D, UpperNode2D
-from openglider.glider.glider_2d.export_ods import export_ods_2d
-from openglider.glider.glider_2d.import_ods import import_ods_2d
-from openglider.glider.glider_2d.arc import ArcCurve
 from openglider.glider import Glider
 from openglider.glider.cell import Panel, DiagonalRib, TensionStrapSimple, Cell
+from openglider.glider.glider_2d.arc import ArcCurve
+from openglider.glider.glider_2d.export_ods import export_ods_2d
+from openglider.glider.glider_2d.import_ods import import_ods_2d
+from openglider.glider.glider_2d.lines import LineSet2D, UpperNode2D
 from openglider.glider.rib import RibHole, RigidFoil, Rib
 from openglider.glider.shape import Shape
+from openglider.vector import PolyLine2D, Interpolation
+from openglider.vector.spline import SymmetricBezier, Bezier
 
 
 class Glider2D(object):
@@ -181,7 +183,7 @@ class Glider2D(object):
         """
         data = self.cell_dist.get_sequence(self.num_cell_dist)
         interpolation = Interpolation([[p[1], p[0]] for p in data])
-        start = (self.has_center_cell) / self.cell_num
+        start = self.has_center_cell / self.cell_num
         num = self.cell_num // 2 + 1
         return [[interpolation(i), i] for i in np.linspace(start, 1, num)]
 
@@ -242,7 +244,7 @@ class Glider2D(object):
 
     def get_panels(self, glider_3d=None):
         """
-        Create Panels Objects and apply on gliders cells if provided
+        Create Panels Objects and apply on gliders cells if provided, otherwise create a list of panels
         :param glider_3d: (optional)
         :return: list of "cells"
         """
@@ -462,8 +464,8 @@ class Glider2D(object):
         glider.rename_parts()
 
         glider.lineset = self.lineset.return_lineset(glider, self.v_inf)
-        glider.lineset._calc_geo()
-        glider.lineset._calc_sag()
+        glider.lineset.recalc()
+
         return glider
 
 
@@ -471,6 +473,26 @@ class Glider2D(object):
     def v_inf(self):
         angle = np.arctan(1/self.glide)
         return self.speed * np.array([np.cos(angle), 0, np.sin(angle)])
+
+    def scale(self, x=1, y=1):
+        self.front.controlpoints = [p*[x, y] for p in self.front.controlpoints]
+        self.back.controlpoints = [p*[x, y] for p in self.back.controlpoints]
+
+        if x != 1:
+            self.rescale_curves()
+
+    def rescale_curves(self):
+        span = self.shape.span
+
+        def rescale(curve):
+            span_orig = curve.controlpoints[-1][0]
+            factor = span/span_orig
+            curve.controlpoints = [[p[0]*factor, p[1]] for p in curve.controlpoints]
+
+        rescale(self.ballooning_merge_curve)
+        rescale(self.profile_merge_curve)
+        rescale(self.cell_dist)
+        rescale(self.aoa)
 
     def scale_x_y(self, value):
         self.front._data *= value

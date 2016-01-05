@@ -50,6 +50,12 @@ class Shape(object):
             area += l * (front[i+1][0] - front[i][0]) / 2
         return area
 
+    def scale(self, x=1, y=1):
+        self.front.scale(x, y)
+        self.back.scale(x, y)
+
+        return self
+
     def copy_complete(self):
         front = self.front.copy().mirror([0, 0], [0, 1])[::-1]
         back = self.back.copy().mirror([0, 0], [0, 1])[::-1]
@@ -74,6 +80,3 @@ class Shape(object):
 
         return da._repr_svg_()
 
-
-class ParametricShape(Shape):
-    pass

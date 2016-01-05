@@ -15,7 +15,7 @@ except ImportError:
     import openglider
 
 import openglider.glider
-from openglider.glider.glider_2d import import_ods_2d
+from openglider.glider.glider_2d.import_ods import import_ods_2d
 from openglider.glider import Glider2D
 
 import_dir = os.path.dirname(os.path.abspath(__file__))
