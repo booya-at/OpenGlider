@@ -5,10 +5,10 @@ import numpy as np
 from openglider.airfoil import Profile2D
 from openglider.glider import Glider
 from openglider.glider.cell import Panel, DiagonalRib, TensionStrapSimple, Cell
-from openglider.glider.glider_2d.arc import ArcCurve
-from openglider.glider.glider_2d.export_ods import export_ods_2d
-from openglider.glider.glider_2d.import_ods import import_ods_2d
-from openglider.glider.glider_2d.lines import LineSet2D, UpperNode2D
+from openglider.glider.parametric.arc import ArcCurve
+from openglider.glider.parametric.export_ods import export_ods_2d
+from openglider.glider.parametric.import_ods import import_ods_2d
+from openglider.glider.parametric.lines import LineSet2D, UpperNode2D
 from openglider.glider.rib import RibHole, RigidFoil, Rib
 from openglider.glider.shape import Shape
 from openglider.vector import PolyLine2D, Interpolation
@@ -489,10 +489,13 @@ class Glider2D(object):
         self.back.controlpoints = [p*[x, y] for p in self.back.controlpoints]
 
         if x != 1:
+            #self.cell_dist.controlpoints = [p*[x,1] for p in self.cell_dist.controlpoints]
             self.rescale_curves()
 
     def rescale_curves(self):
-        span = self.shape.span
+        #span = self.span
+        #span = self.shape.span
+        span = self.front.controlpoints[-1][0]
 
         def rescale(curve):
             span_orig = curve.controlpoints[-1][0]

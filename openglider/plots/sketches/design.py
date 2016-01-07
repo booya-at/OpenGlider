@@ -1,16 +1,16 @@
 import openglider.glider
-import openglider.glider.glider_2d.glider
+import openglider.glider.parametric.glider
 from openglider.vector import PolyLine2D
 from openglider.plots.part import DrawingArea, PlotPart
 
 
 def design_plot(glider_2d, glider_3d=None, lower=True):
-    assert isinstance(glider_2d, openglider.glider.glider_2d.glider.Glider2D)
-    #glider_3d = glider_3d or glider_2d.get_glider_3d()
+    assert isinstance(glider_2d, openglider.glider.parametric.glider.Glider2D)
+    #glider_3d = glider_3d or parametric.get_glider_3d()
     shape = glider_2d.half_shape()  #.copy_complete()
     #glider_3d = glider_3d.copy_complete()
     #shape = shape.copy_complete()
-    #shape = glider_2d.shape()
+    #shape = parametric.shape()
     drawingarea = DrawingArea()
 
     for cell_no, cell_panels in enumerate(glider_2d.get_panels()):

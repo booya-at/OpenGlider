@@ -1,6 +1,4 @@
 from __future__ import division
-from openglider.utils import recursive_getattr
-from openglider.vector import Interpolation
 
 try:
     import ezodf2 as ezodf
@@ -11,8 +9,8 @@ import numpy
 
 from openglider.airfoil import BezierProfile2D, Profile2D
 from openglider.glider.ballooning import BallooningBezier
-from openglider.lines import line_types
 from openglider.vector.spline import Bezier, SymmetricBezier
+from openglider.vector import Interpolation
 
 from .lines import UpperNode2D, LowerNode2D, BatchNode2D, Line2D, LineSet2D
 

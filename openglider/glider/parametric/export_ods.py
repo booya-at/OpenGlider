@@ -2,9 +2,9 @@ import copy
 
 import math
 
-import openglider.glider.glider_2d.glider
+import openglider.glider.parametric.glider
 from openglider.glider.cell import DiagonalRib
-from openglider.glider.glider_2d.arc import ArcCurve
+from openglider.glider.parametric.arc import ArcCurve
 
 try:
     import ezodf2 as ezodf
@@ -16,7 +16,7 @@ import openglider.glider
 
 def export_ods_2d(glider, filename):
     doc = ezodf.newdoc(doctype="ods", filename=filename)
-    assert isinstance(glider, openglider.glider.glider_2d.glider.Glider2D)
+    assert isinstance(glider, openglider.glider.parametric.glider.Glider2D)
 
     doc.sheets.append(get_geom_sheet(glider))
     doc.sheets.append(get_cell_sheet(glider))

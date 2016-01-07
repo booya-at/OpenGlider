@@ -3,7 +3,7 @@ import math
 from openglider.glider.shape import Shape
 
 
-class ParametricShape():
+class ParametricShape(object):
     def __init__(self, front, back, cell_dist):
         self.front_curve = front
         self.back_curve = back
