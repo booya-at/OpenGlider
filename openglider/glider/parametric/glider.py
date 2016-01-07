@@ -88,7 +88,7 @@ class ParametricGlider(object):
         """
         rescale BezierCurves to given span (or front-line)
         """
-        span = span or self.span
+        span = span or self.shape.span
 
         self.shape.span = span
         self.arc.rescale(self.shape.rib_x_values)
@@ -102,42 +102,10 @@ class ParametricGlider(object):
         for attr in ('aoa', 'profile_merge_curve', 'ballooning_merge_curve'):
             set_span(attr)
 
-
-
-    @property
-    def cell_dist_controlpoints(self):
-        return self.cell_dist.controlpoints[1:-1]
-
-    @cell_dist_controlpoints.setter
-    def cell_dist_controlpoints(self, arr):
-        x0 = self.front.controlpoints[-1][0]
-        self.cell_dist.controlpoints = [[0, 0]] + arr + [[x0, 1]]
-
-    @property
-    def depth_integrated(self):
-        """
-        Return A(x)
-        """
-        num = self.num_depth_integral
-        x_values = np.linspace(0, self.front.controlpoints[-1][0], num)
-        front_int = self.front.interpolation(num=num)
-        back_int = self.back.interpolation(num=num)
-        integrated_depth = [0.]
-        for x in x_values[1:]:
-            depth = front_int(x) - back_int(x)
-            integrated_depth.append(integrated_depth[-1] + 1. / depth)
-        y_values = [i / integrated_depth[-1] for i in integrated_depth]
-        return zip(x_values, y_values)
-
-    def set_const_cell_dist(self):
-        const_dist = list(self.depth_integrated)
-        num_pts = len(self.cell_dist.controlpoints)
-        self.cell_dist = self.cell_dist.fit(const_dist, numpoints=num_pts)
-
     @property
     def attachment_points(self):
         """coordinates of the attachment_points"""
-        return [a_p.get_2d(self)
+        return [a_p.get_2d(self.shape)
                 for a_p in self.lineset.nodes
                 if isinstance(a_p, UpperNode2D)]
 
@@ -303,13 +271,13 @@ class ParametricGlider(object):
 
         # TODO: lineset, dist-curce->xvalues
 
-        parametric_shape = ParametricShape(front, back, rib_distribution, cell_num)
+        parametric_shape = ParametricShape(front_bezier, back_bezier, rib_distribution, cell_num)
         parametric_arc = ArcCurve(arc_bezier)
 
         return cls(shape=parametric_shape,
                    arc=parametric_arc,
                    aoa=aoa_bezier,
-                   zrot=zrot,
+                   zrot=zrot_bezier,
                    profiles=profiles,
                    profile_merge_curve=profile_dist,
                    balloonings=balloonings,
@@ -396,22 +364,18 @@ class ParametricGlider(object):
 
         return glider
 
-
     @property
     def v_inf(self):
         angle = np.arctan(1/self.glide)
         return self.speed * np.array([np.cos(angle), 0, np.sin(angle)])
 
     def scale(self, x=1, y=1):
-        self.front.controlpoints = [p*[x, y] for p in self.front.controlpoints]
-        self.back.controlpoints = [p*[x, y] for p in self.back.controlpoints]
+        self.shape.scale(x, y)
 
         if x != 1:
-            #self.cell_dist.controlpoints = [p*[x,1] for p in self.cell_dist.controlpoints]
             self.rescale_curves()
 
     def rescale_curves(self):
-        #span = self.span
         span = self.shape.span
 
         def rescale(curve):
@@ -429,27 +393,3 @@ class ParametricGlider(object):
 
     def set_flat_area(self, value, fixed="aspect_ratio"):
         self.shape.set_area(value, fixed=fixed)
-
-    @property
-    def aspect_ratio(self):
-        return self.span ** 2 / self.flat_area
-
-    @property
-    def span(self):
-        return 2 * self.shape.span
-
-    def set_aspect_ratio(self, value, fixed="span"):
-        ar0 = self.aspect_ratio
-        if fixed == "span":
-            self.scale_y(ar0 / value)
-        elif fixed == "area":
-            self.scale_y(np.sqrt(ar0 / value))
-            self.scale_x(np.sqrt(value / ar0))
-
-    def set_span_1(self, value, fixed="area"):     # integrate in set span
-        sp0 = self.span / 2
-        if fixed == "area":
-            self.scale_x(value / sp0)
-            self.scale_y(sp0 / value)
-        if fixed == "aspect_ratio":
-            self.scale_x_y(value / sp0)

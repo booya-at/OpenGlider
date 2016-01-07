@@ -9,6 +9,7 @@ from openglider.vector import Interpolation, PolyLine2D
 class ParametricShape(object):
     num_shape_interpolation = 50
     num_distribution_interpolation = 50
+    num_depth_integral = 50
 
     def __init__(self, front_curve, back_curve, rib_distribution, cell_num):
         self.front_curve = front_curve
@@ -124,5 +125,47 @@ class ParametricShape(object):
         ribs = list(self.ribs)
         rib = ribs[rib_no]
         return rib[0][0], rib[0][1] + x * (rib[1][1] - rib[0][1])
+
+    @property
+    def cell_dist_controlpoints(self):
+        return self.cell_dist.controlpoints[1:-1]
+
+    @cell_dist_controlpoints.setter
+    def cell_dist_controlpoints(self, arr):
+        x0 = self.front_curve.controlpoints[-1][0]
+        self.cell_dist.controlpoints = [[0, 0]] + arr + [[x0, 1]]
+
+    @property
+    def depth_integrated(self):
+        """
+        Return A(x)
+        """
+        num = self.num_depth_integral
+        x_values = np.linspace(0, self.span, num)
+        front_int = self.front_curve.interpolation(num=num)
+        back_int = self.back_curve.interpolation(num=num)
+        integrated_depth = [0.]
+        for x in x_values[1:]:
+            depth = front_int(x) - back_int(x)
+            integrated_depth.append(integrated_depth[-1] + 1. / depth)
+        y_values = [i / integrated_depth[-1] for i in integrated_depth]
+        return zip(x_values, y_values)
+
+    def set_const_cell_dist(self):
+        const_dist = list(self.depth_integrated)
+        num_pts = len(self.cell_dist.controlpoints)
+        self.cell_dist = self.cell_dist.fit(const_dist, numpoints=num_pts)
+
+    @property
+    def aspect_ratio(self):
+        # todo: span -> half span, area -> full area???
+        return (2*self.span) ** 2 / self.area
+
+    def set_aspect_ratio(self, value, fixed="span"):
+        ar0 = self.aspect_ratio
+        if fixed == "span":
+            self.scale(y=ar0 / value)
+        elif fixed == "area":
+            self.scale(x=np.sqrt(value / ar0), y=np.sqrt(ar0 / value))
 
 

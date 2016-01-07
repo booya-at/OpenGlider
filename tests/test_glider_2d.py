@@ -15,7 +15,7 @@ class GliderTestCase2D(TestCase):
 
     def test_create_glider(self):
         glider = self.glider2d.get_glider_3d()
-        self.assertAlmostEqual(glider.span, self.glider2d.span, 2)
+        self.assertAlmostEqual(glider.span, 2*self.glider2d.shape.span, 2)
 
     def test_export(self):
         exp = jsonify.dumps(self.glider2d)
