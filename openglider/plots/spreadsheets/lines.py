@@ -64,9 +64,9 @@ def output_lines(glider, ods_sheet=None, places=3):
     return ods_sheet
 
 if __name__ == "__main__":
-    from openglider.glider import Glider2D
+    from openglider.glider import ParametricGlider
 
-    glider = Glider2D.import_ods("/tmp/akkro5.ods")
+    glider = ParametricGlider.import_ods("/tmp/akkro5.ods")
     #tree=create_line_tree(glider.get_glider_3d())
     sheet = output_lines(glider.get_glider_3d())
 

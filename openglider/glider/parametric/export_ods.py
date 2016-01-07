@@ -16,7 +16,7 @@ import openglider.glider
 
 def export_ods_2d(glider, filename):
     doc = ezodf.newdoc(doctype="ods", filename=filename)
-    assert isinstance(glider, openglider.glider.parametric.glider.Glider2D)
+    assert isinstance(glider, openglider.glider.parametric.glider.ParametricGlider)
 
     doc.sheets.append(get_geom_sheet(glider))
     doc.sheets.append(get_cell_sheet(glider))
@@ -46,14 +46,14 @@ def get_airfoil_sheet(glider_2d):
 
 
 def get_geom_sheet(glider_2d):
-    geom_page = ezodf.Sheet(name="geometry", size=(glider_2d.half_cell_num + 2, 10))
+    geom_page = ezodf.Sheet(name="geometry", size=(glider_2d.shape.half_cell_num + 2, 10))
 
     # rib_nos
     geom_page[0, 0].set_value("Ribs")
-    for i in range(1, glider_2d.half_cell_num+2):
+    for i in range(1, glider_2d.shape.half_cell_num+2):
         geom_page[i, 0].set_value(i)
 
-    shape = glider_2d.half_shape
+    shape = glider_2d.shape.get_half_shape()
 
     geom_page[0, 1].set_value("Chord")
     for i, chord in enumerate(shape.chords):
@@ -67,7 +67,7 @@ def get_geom_sheet(glider_2d):
 
     geom_page[0, 4].set_value("Arc")
     last_angle = 0
-    cell_angles = ArcCurve(glider_2d.arc).get_cell_angles(glider_2d.rib_x_values)
+    cell_angles = glider_2d.arc.get_cell_angles(glider_2d.shape.rib_x_values)
     for i, angle in enumerate(cell_angles):
         this_angle = angle * 180/math.pi
 
@@ -82,7 +82,7 @@ def get_geom_sheet(glider_2d):
     aoa_int = glider_2d.aoa.interpolation(num=100)
     profile_int = glider_2d.profile_merge_curve.interpolation(num=100)
     ballooning_int = glider_2d.ballooning_merge_curve.interpolation(num=100)
-    for rib_no, x in enumerate(glider_2d.rib_x_values):
+    for rib_no, x in enumerate(glider_2d.shape.rib_x_values):
         geom_page[rib_no+1, 5].set_value(aoa_int(x)*180/math.pi)
         geom_page[rib_no+1, 6].set_value(0)
         geom_page[rib_no+1, 7].set_value(0)
@@ -93,7 +93,7 @@ def get_geom_sheet(glider_2d):
 
 
 def get_cell_sheet(glider):
-    row_num = glider.half_cell_num
+    row_num = glider.shape.half_cell_num
     sheet_name = "Cell Elements"
     sheet = ezodf.Sheet(name=sheet_name, size=(row_num+1, 1))
     elems = glider.elements
@@ -155,7 +155,7 @@ def get_cell_sheet(glider):
 
 
 def get_rib_sheet(glider):
-    row_num = glider.half_cell_num + 1
+    row_num = glider.shape.half_cell_num + 1
     sheet_name = "Rib Elements"
     sheet = ezodf.Sheet(name=sheet_name, size=(row_num+1, 1))
     elems = glider.elements
@@ -178,7 +178,7 @@ def get_rib_sheet(glider):
         column += 2
 
     # attachment points
-    per_rib = [glider.lineset.get_upper_nodes(rib_no) for rib_no in range(glider.half_rib_num)]
+    per_rib = [glider.lineset.get_upper_nodes(rib_no) for rib_no in range(glider.shape.half_rib_num)]
     max_points = max([len(p) for p in per_rib])
 
     for rib_no, nodes in enumerate(per_rib):

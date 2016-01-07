@@ -1,5 +1,5 @@
 from common import *
-from openglider.glider import Glider2D
+from openglider.glider import ParametricGlider
 from visual_test_glider import TestGlider
 
 __ALL__ = ['GliderTestCase2D']
@@ -8,7 +8,7 @@ __ALL__ = ['GliderTestCase2D']
 class GliderTestCase2D(TestCase):
     def setUp(self):
         self.glider = self.import_glider()
-        self.glider2d_ = Glider2D.fit_glider_3d(self.glider)
+        self.glider2d_ = ParametricGlider.fit_glider_3d(self.glider)
         self.glider2d = self.import_glider_2d()
         #self.glider = self.glider2d.get_glider_3d()
 

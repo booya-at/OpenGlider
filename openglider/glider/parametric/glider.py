@@ -9,13 +9,14 @@ from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.export_ods import export_ods_2d
 from openglider.glider.parametric.import_ods import import_ods_2d
 from openglider.glider.parametric.lines import LineSet2D, UpperNode2D
+from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.rib import RibHole, RigidFoil, Rib
 from openglider.glider.shape import Shape
 from openglider.vector import PolyLine2D, Interpolation
 from openglider.vector.spline import SymmetricBezier, Bezier
 
 
-class Glider2D(object):
+class ParametricGlider(object):
     """
     A parametric (2D) Glider object used for gui input
     """
@@ -25,15 +26,11 @@ class Glider2D(object):
     num_cell_dist = 30
     num_depth_integral = 100
 
-    def __init__(self, front, back, cell_dist, cell_num,
-                 arc, aoa, profiles, profile_merge_curve,
+    def __init__(self, shape, arc, aoa, profiles, profile_merge_curve,
                  balloonings, ballooning_merge_curve, lineset,
                  speed, glide, zrot, elements=None):
         self.zrot = zrot or aoa
-        self.front = front
-        self.back = back
-        self.cell_num = cell_num  # updates cell pos
-        self.cell_dist = cell_dist
+        self.shape = shape
         self.arc = arc
         self.aoa = aoa
         self.profiles = profiles or []
@@ -47,10 +44,7 @@ class Glider2D(object):
 
     def __json__(self):
         return {
-            "front": self.front,
-            "back": self.back,
-            "cell_dist": self.cell_dist,
-            "cell_num": self.cell_num,
+            "shape": self.shape,
             "arc": self.arc,
             "aoa": self.aoa,
             "zrot": self.zrot,
@@ -77,22 +71,8 @@ class Glider2D(object):
         return np.array([-np.cos(angle), 0, np.sin(angle)]) * self.speed
 
     @property
-    def has_center_cell(self):
-        return self.cell_num % 2
-
-    @property
-    def half_cell_num(self):
-        return self.cell_num // 2 + self.has_center_cell
-
-    @property
-    def half_rib_num(self):
-        return self.half_cell_num + 1
-
-    @property
     def arc_positions(self):
-        arc_curve = ArcCurve(self.arc)
-
-        return arc_curve.get_arc_positions(self.rib_x_values)
+        return self.arc.get_arc_positions(self.shape.rib_x_values)
 
     def get_arc_angles(self, arc_curve=None):
         """
@@ -104,54 +84,14 @@ class Glider2D(object):
 
         return arc_curve.get_rib_angles(self.rib_x_values)
 
-    @property
-    def half_shape(self):
-        """
-        Return shape of the glider:
-        [ribs, front, back]
-        """
-        num = self.num_shape
-        front_int = self.front.interpolation(num=num)
-        back_int = self.back.interpolation(num=num)
-        dist = self.rib_x_values
-        front = [[x, front_int(x)] for x in dist]
-        back = [[x, back_int(x)] for x in dist]
-
-        return Shape(PolyLine2D(front), PolyLine2D(back))
-
-    @property
-    def shape(self):
-        """
-        Return shape of the glider:
-        [ribs, front, back]
-        """
-        return self.half_shape.copy_complete()
-
-    @property
-    def ribs(self):
-        num = self.num_interpolate_ribs
-        front_int = self.front.interpolation(num=num)
-        back_int = self.back.interpolation(num=num)
-
-        dist = self.rib_x_values
-        front = [[x, front_int(x)] for x in dist]
-        back = [[x, back_int(x)] for x in dist]
-        if self.has_center_cell:
-            front.insert(0, [-front[0][0], front[0][1]])
-            back.insert(0, [-back[0][0], back[0][1]])
-
-        return list(zip(front, back))
-
-    def get_shape_point(self, rib_no, x):
-        ribs = list(self.ribs)
-        rib = ribs[rib_no]
-        return rib[0][0], rib[0][1] + x * (rib[1][1] - rib[0][1])
-
     def set_span(self, span=None):
         """
         rescale BezierCurves to given span (or front-line)
         """
-        span = span or self.front.controlpoints[-1][0]
+        span = span or self.span
+
+        self.shape.span = span
+        self.arc.rescale(self.shape.rib_x_values)
 
         def set_span(attribute):
             el = getattr(self, attribute)
@@ -159,15 +99,10 @@ class Glider2D(object):
             factor = span/el.controlpoints[-1][0]
             el.controlpoints = [[p[0]*factor, p[1]] for p in el.controlpoints]
 
-        for attr in ('back', 'front', 'cell_dist', 'aoa',
-                     'profile_merge_curve', 'ballooning_merge_curve'):
+        for attr in ('aoa', 'profile_merge_curve', 'ballooning_merge_curve'):
             set_span(attr)
 
-        arc_pos = self.arc_positions
-        arc_length = arc_pos.get_length() + arc_pos[0][0]  # add center cell
-        factor = span/arc_length
-        self.arc.controlpoints = [[p[0]*factor, p[1]*factor]
-                                  for p in self.arc.controlpoints]
+
 
     @property
     def cell_dist_controlpoints(self):
@@ -177,21 +112,6 @@ class Glider2D(object):
     def cell_dist_controlpoints(self, arr):
         x0 = self.front.controlpoints[-1][0]
         self.cell_dist.controlpoints = [[0, 0]] + arr + [[x0, 1]]
-
-    @property
-    def cell_dist_interpolation(self):
-        """
-        Interpolate Cell-distribution
-        """
-        data = self.cell_dist.get_sequence(self.num_cell_dist)
-        interpolation = Interpolation([[p[1], p[0]] for p in data])
-        start = self.has_center_cell / self.cell_num
-        num = self.cell_num // 2 + 1
-        return [[interpolation(i), i] for i in np.linspace(start, 1, num)]
-
-    @property
-    def rib_x_values(self):
-        return [p[0] for p in self.cell_dist_interpolation]
 
     @property
     def depth_integrated(self):
@@ -383,11 +303,11 @@ class Glider2D(object):
 
         # TODO: lineset, dist-curce->xvalues
 
-        return cls(front=front_bezier,
-                   back=back_bezier,
-                   cell_dist=rib_distribution,
-                   cell_num=cell_num,
-                   arc=arc_bezier,
+        parametric_shape = ParametricShape(front, back, rib_distribution, cell_num)
+        parametric_arc = ArcCurve(arc_bezier)
+
+        return cls(shape=parametric_shape,
+                   arc=parametric_arc,
                    aoa=aoa_bezier,
                    zrot=zrot,
                    profiles=profiles,
@@ -396,28 +316,25 @@ class Glider2D(object):
                    ballooning_merge_curve=ballooning_dist,
                    glide=glider.glide,
                    speed=10,
-                   lineset=LineSet2D([]),
-                   zrot=zrot)
+                   lineset=LineSet2D([]))
 
     def get_glider_3d(self, glider=None, num=50):
         """returns a new glider from parametric values"""
         glider = glider or Glider()
         ribs = []
 
-        span = self.front.controlpoints[-1][0]
-        self.set_span(span)
+        self.rescale_curves()
 
-        x_values = self.rib_x_values
+        x_values = self.shape.rib_x_values
+        shape_ribs = self.shape.ribs
 
-        front_int = self.front.interpolation(num=num)
-        back_int = self.back.interpolation(num=num)
         profile_merge_curve = self.profile_merge_curve.interpolation(num=num)
         ballooning_merge_curve = self.ballooning_merge_curve.interpolation(num=num)
         aoa_int = self.aoa.interpolation(num=num)
         zrot_int = self.zrot.interpolation(num=num)
 
-        arc_pos = list(self.arc_positions)
-        arc_angles = self.get_arc_angles()
+        arc_pos = list(self.arc.get_arc_positions(x_values))
+        rib_angles = self.arc.get_rib_angles(x_values)
 
         profile_x_values = self.profiles[0].x_values
 
@@ -427,9 +344,10 @@ class Glider2D(object):
         cell_centers = [(p1+p2)/2 for p1, p2 in zip(x_values[:-1], x_values[1:])]
 
         for rib_no, pos in enumerate(x_values):
-            front = front_int(pos)
-            back = back_int(pos)
+            front, back = shape_ribs[rib_no]
             arc = arc_pos[rib_no]
+            startpoint = np.array([-front[1], arc[0], arc[1]])
+            chord = abs(front[1]-back[1])
             factor = profile_merge_curve(abs(pos))
             profile = self.get_merge_profile(factor)
             profile.x_values = profile_x_values
@@ -439,9 +357,9 @@ class Glider2D(object):
 
             ribs.append(Rib(
                 profile_2d=profile,
-                startpoint=np.array([-front, arc[0], arc[1]]),
-                chord=abs(front - back),
-                arcang=arc_angles[rib_no],
+                startpoint=startpoint,
+                chord=chord,
+                arcang=rib_angles[rib_no],
                 glide=self.glide,
                 aoa_absolute=aoa_int(pos),
                 zrot=zrot_int(pos),
@@ -451,7 +369,7 @@ class Glider2D(object):
             ))
             ribs[-1].aoa_relative = aoa_int(pos)
 
-        if self.has_center_cell:
+        if self.shape.has_center_cell:
             ribs.insert(0, ribs[0].copy())
             ribs[0].arcang *= -1
             ribs[0].pos[1] *= -1
@@ -494,8 +412,7 @@ class Glider2D(object):
 
     def rescale_curves(self):
         #span = self.span
-        #span = self.shape.span
-        span = self.front.controlpoints[-1][0]
+        span = self.shape.span
 
         def rescale(curve):
             span_orig = curve.controlpoints[-1][0]
@@ -504,7 +421,6 @@ class Glider2D(object):
 
         rescale(self.ballooning_merge_curve)
         rescale(self.profile_merge_curve)
-        rescale(self.cell_dist)
         rescale(self.aoa)
 
     @property
@@ -512,12 +428,7 @@ class Glider2D(object):
         return self.shape.area
 
     def set_flat_area(self, value, fixed="aspect_ratio"):
-        area = self.flat_area
-        if fixed == "aspect_ratio":
-            factor = np.sqrt(value/area)
-            self.scale(x=factor, y=factor)
-        if fixed == "span":
-            self.scale(y=value / area)
+        self.shape.set_area(value, fixed=fixed)
 
     @property
     def aspect_ratio(self):
@@ -525,7 +436,7 @@ class Glider2D(object):
 
     @property
     def span(self):
-        return 2 * self.rib_x_values[-1]
+        return 2 * self.shape.span
 
     def set_aspect_ratio(self, value, fixed="span"):
         ar0 = self.aspect_ratio

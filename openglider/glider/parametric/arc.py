@@ -78,3 +78,10 @@ class ArcCurve(object):
         rib_angles.append(cell_angles[-1])
 
         return rib_angles
+
+    def rescale(self, x_values):
+        span = x_values[-1]
+        arc_pos = self.get_arc_positions(x_values)
+        arc_length = arc_pos.get_length() + arc_pos[0][0]  # add center cell
+        factor = span/arc_length
+        self.curve.controlpoints = [p * factor for p in self.curve.controlpoints]

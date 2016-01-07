@@ -5,7 +5,7 @@ from openglider.plots.part import DrawingArea, PlotPart
 
 
 def design_plot(glider_2d, glider_3d=None, lower=True):
-    assert isinstance(glider_2d, openglider.glider.parametric.glider.Glider2D)
+    assert isinstance(glider_2d, openglider.glider.parametric.glider.ParametricGlider)
     #glider_3d = glider_3d or parametric.get_glider_3d()
     shape = glider_2d.half_shape()  #.copy_complete()
     #glider_3d = glider_3d.copy_complete()
