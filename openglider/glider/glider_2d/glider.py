@@ -379,6 +379,8 @@ class Glider2D(object):
         ballooning_dist = Bezier.fit([[i, i] for i, rib in enumerate(front[1:])],
                                        numpoints=numpoints)
 
+        zrot = Bezier([[0, 0], [front.last()[0], 0]])
+
         # TODO: lineset, dist-curce->xvalues
 
         return cls(front=front_bezier,
@@ -394,7 +396,8 @@ class Glider2D(object):
                    ballooning_merge_curve=ballooning_dist,
                    glide=glider.glide,
                    speed=10,
-                   lineset=LineSet2D([]))
+                   lineset=LineSet2D([]),
+                   zrot=zrot)
 
     def get_glider_3d(self, glider=None, num=50):
         """returns a new glider from parametric values"""
@@ -501,27 +504,6 @@ class Glider2D(object):
         rescale(self.cell_dist)
         rescale(self.aoa)
 
-    def scale_x_y(self, value):
-        self.front._data *= value
-        self.back._data *= value
-        self.ballooning_merge_curve._data[:, 0] *= value
-        self.profile_merge_curve._data[:, 0] *= value
-        self.cell_dist._data[:, 0] *= value
-        self.aoa._data[:, 0] *= value
-
-    def scale_x(self, value):
-        self.front._data[:, 0] *= value
-        self.back._data[:, 0] *= value
-        self.ballooning_merge_curve._data[:, 0] *= value
-        self.profile_merge_curve._data[:, 0] *= value
-        self.cell_dist._data[:, 0] *= value
-        self.aoa._data[:, 0] *= value
-        self.arc._data[:, 0] *= value
-
-    def scale_y(self, value):
-        self.front._data[:, 1] *= value
-        self.back._data[:, 1] *= value
-
     @property
     def flat_area(self):
         return self.shape.area
@@ -529,9 +511,10 @@ class Glider2D(object):
     def set_flat_area(self, value, fixed="aspect_ratio"):
         area = self.flat_area
         if fixed == "aspect_ratio":
-            self.scale_x_y(np.sqrt(value / area))
+            factor = np.sqrt(value/area)
+            self.scale(x=factor, y=factor)
         if fixed == "span":
-            self.scale_y(value / area)
+            self.scale(y=value / area)
 
     @property
     def aspect_ratio(self):
