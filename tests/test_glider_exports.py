@@ -31,40 +31,37 @@ class TestGlider(TestCase):
         self.glider_2d = self.import_glider_2d()
         self.glider = self.glider_2d.get_glider_3d()
 
-    def tempfile(self, suffix, **kwargs):
-        if sys.version.startswith('3'):
-            kwargs["mode"] = 'w+'
-            kwargs["encoding"] = 'utf-8'
-        return tempfile.NamedTemporaryFile(suffix=suffix, **kwargs)
+    def tempfile(self, name):
+        return os.path.join(tempfile.gettempdir(), name)
 
     @unittest.skip('obsolete')
     def test_import_export_ods(self):
-        path = self.tempfile('.ods').name
+        path = self.tempfile('kite.ods')
         self.glider.export_geometry(path)
 
     def test_export_obj(self):
-        path = self.tempfile('.obj').name
+        path = self.tempfile('kite.obj')
         self.glider.export_3d(path, midribs=5)
 
     @unittest.skip('this hangs')
     def test_export_dxf(self):
-        path = self.tempfile('.dxf').name
+        path = self.tempfile('kite.dxf')
         self.glider.export_3d(path, midribs=5)
 
     def test_export_apame(self):
-        path = self.tempfile('.inp').name
+        path = self.tempfile('kite.inp')
         self.glider.export_3d(path, midribs=1)
 
     def test_export_json(self):
-        path = self.tempfile('.json').name
+        path = self.tempfile('kite_3d_panels.json')
         data = self.glider.export_3d(path=path, midribs=2, numpoints=10, wake_panels=3, wake_length=0.9)
         with open(path, "w") as outfile:
             json.dump(data, outfile, indent=2)
 
     def test_export_plots(self):
-        path = self.tempfile('.svg').name
-        dxfile = self.tempfile(".dxf").name
-        ntvfile = self.tempfile(".ntv").name
+        path = self.tempfile('kite_plots.svg')
+        dxfile = self.tempfile("kite_plots.dxf")
+        ntvfile = self.tempfile("kite_plots.ntv")
         plots = flatten_glider(self.glider)
         all = plots['panels']
         all.join(plots['ribs'])
@@ -73,21 +70,21 @@ class TestGlider(TestCase):
         all.export_ntv(ntvfile)
 
     def test_export_glider_json(self):
-        with self.tempfile('.json') as tmp:
+        with open(self.tempfile('kite_3d.json'), "w+") as tmp:
             jsonify.dump(self.glider, tmp)
             tmp.seek(0)
             glider = jsonify.load(tmp)['data']
         self.assertEqualGlider(self.glider, glider)
 
     def test_export_glider_ods(self):
-        path = self.tempfile(".ods").name
+        path = self.tempfile("kite.ods")
         self.glider_2d.export_ods(path)
 
     def test_export_glider_json2(self):
-        with self.tempfile('.json') as tmp:
-            jsonify.dump(self.glider_2d, tmp)
-            tmp.seek(0)
-            glider = jsonify.load(tmp)['data']
+        with open(self.tempfile("kite_2d.json"), "w+") as outfile:
+            jsonify.dump(self.glider_2d, outfile)
+            outfile.seek(0)
+            glider = jsonify.load(outfile)['data']
         self.assertEqualGlider2D(self.glider_2d, glider)
 
 
