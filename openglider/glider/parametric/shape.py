@@ -92,6 +92,17 @@ class ParametricShape(object):
         num = self.cell_num // 2 + 1
         return [[interpolation(i), i] for i in np.linspace(start, 1, num)]
 
+
+### besser mit spezieller bezier?
+    @property
+    def rib_dist_controlpoints(self):
+        return self.rib_distribution.controlpoints[1:-1]
+
+    @rib_dist_controlpoints.setter
+    def rib_dist_controlpoints(self, arr):
+        x0 = self.front_curve.controlpoints[-1][0]
+        self.rib_distribution.controlpoints = [[0, 0]] + arr + [[x0, 1]]
+
     @property
     def rib_x_values(self):
         return [p[0] for p in self.rib_dist_interpolation]
