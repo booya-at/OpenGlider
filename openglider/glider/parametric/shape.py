@@ -155,8 +155,8 @@ class ParametricShape(object):
 
     def set_const_cell_dist(self):
         const_dist = list(self.depth_integrated)
-        num_pts = len(self.cell_dist.controlpoints)
-        self.cell_dist = self.cell_dist.fit(const_dist, numpoints=num_pts)
+        num_pts = len(self.rib_distribution.controlpoints)
+        self.rib_distribution.fit(const_dist, numpoints=num_pts)
 
     @property
     def aspect_ratio(self):
