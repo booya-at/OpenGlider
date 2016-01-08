@@ -84,24 +84,6 @@ class ParametricGlider(object):
 
         return arc_curve.get_rib_angles(self.rib_x_values)
 
-    def set_span(self, span=None):
-        """
-        rescale BezierCurves to given span (or front-line)
-        """
-        span = span or self.shape.span
-
-        self.shape.span = span
-        self.arc.rescale(self.shape.rib_x_values)
-
-        def set_span(attribute):
-            el = getattr(self, attribute)
-            assert el is not None, "Not a Beziercurve: {}".format(attribute)
-            factor = span/el.controlpoints[-1][0]
-            el.controlpoints = [[p[0]*factor, p[1]] for p in el.controlpoints]
-
-        for attr in ('aoa', 'profile_merge_curve', 'ballooning_merge_curve'):
-            set_span(attr)
-
     @property
     def attachment_points(self):
         """coordinates of the attachment_points"""
@@ -223,6 +205,10 @@ class ParametricGlider(object):
 
             for s_no, strap in enumerate(cell.straps):
                 strap.name = "cell{}strap{}".format(cell_no, s_no)
+
+
+#######################################################################
+# we can outsource fit_glider_3d to make the parametric glider smaller
 
     @classmethod
     def fit_glider_3d(cls, glider, numpoints=3):
@@ -369,8 +355,13 @@ class ParametricGlider(object):
         angle = np.arctan(1/self.glide)
         return self.speed * np.array([np.cos(angle), 0, np.sin(angle)])
 
+
+##############################################################
+# is this used?
     def scale(self, x=1, y=1):
         self.shape.scale(x, y)
+##############################################################
+
 
         if x != 1:
             self.rescale_curves()
@@ -381,15 +372,28 @@ class ParametricGlider(object):
         def rescale(curve):
             span_orig = curve.controlpoints[-1][0]
             factor = span/span_orig
-            curve.controlpoints = [[p[0]*factor, p[1]] for p in curve.controlpoints]
+            curve._data[:,0] *= factor
 
         rescale(self.ballooning_merge_curve)
         rescale(self.profile_merge_curve)
         rescale(self.aoa)
+        rescale(self.zrot)
 
-    @property
-    def flat_area(self):
-        return self.shape.area
+
+
+###########################################################################################
+# scaling the glider changes nearly all controllcurves. So it make sense to place these 
+# functions inside the ParametricGlider. Also if we want to apply the scaling to the lines
+# it doesn't make sense to store these functions inside the shape.
 
     def set_flat_area(self, value, fixed="aspect_ratio"):
-        self.shape.set_area(value, fixed=fixed)
+        self.shape.set_area(value, fixed)
+        self.rescale_curves()
+
+    def set_flat_aspect_ratio(self, value, fixed="area"):
+        self.shape.set_aspect_ratio(value, fixed)
+        self.rescale_curves()
+
+    def set_flat_span(self, value, fixed="area"):
+        self.shape.set_span(value, fixed)
+        self.rescale_curves()
