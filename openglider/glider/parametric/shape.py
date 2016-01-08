@@ -138,15 +138,6 @@ class ParametricShape(object):
         return rib[0][0], rib[0][1] + x * (rib[1][1] - rib[0][1])
 
     @property
-    def cell_dist_controlpoints(self):
-        return self.cell_dist.controlpoints[1:-1]
-
-    @cell_dist_controlpoints.setter
-    def cell_dist_controlpoints(self, arr):
-        x0 = self.front_curve.controlpoints[-1][0]
-        self.cell_dist.controlpoints = [[0, 0]] + arr + [[x0, 1]]
-
-    @property
     def depth_integrated(self):
         """
         Return A(x)
