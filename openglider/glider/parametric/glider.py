@@ -67,11 +67,6 @@ class ParametricGlider(object):
         return export_ods_2d(self, path)
 
     @property
-    def v_inf(self):
-        angle = np.arctan(1/self.glide)
-        return np.array([-np.cos(angle), 0, np.sin(angle)]) * self.speed
-
-    @property
     def arc_positions(self):
         return self.arc.get_arc_positions(self.shape.rib_x_values)
 
@@ -292,18 +287,16 @@ class ParametricGlider(object):
     @property
     def v_inf(self):
         angle = np.arctan(1/self.glide)
-        return self.speed * np.array([np.cos(angle), 0, np.sin(angle)])
+        return np.array([-np.cos(angle), 0, np.sin(angle)]) * self.speed
 
 
 ##############################################################
 # is this used?
     def scale(self, x=1, y=1):
         self.shape.scale(x, y)
-##############################################################
-
-
         if x != 1:
             self.rescale_curves()
+##############################################################
 
     def rescale_curves(self):
         span = self.shape.span
@@ -311,13 +304,13 @@ class ParametricGlider(object):
         def rescale(curve):
             span_orig = curve.controlpoints[-1][0]
             factor = span/span_orig
-            curve._data[:,0] *= factor
+            curve._data[:, 0] *= factor
 
         rescale(self.ballooning_merge_curve)
         rescale(self.profile_merge_curve)
         rescale(self.aoa)
         rescale(self.zrot)
-
+        self.arc.rescale(self.shape.rib_x_values)
 
 
 ###########################################################################################
