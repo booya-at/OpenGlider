@@ -9,12 +9,8 @@ from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.export_ods import export_ods_2d
 from openglider.glider.parametric.import_ods import import_ods_2d
 from openglider.glider.parametric.lines import LineSet2D, UpperNode2D
-from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.rib import RibHole, RigidFoil, Rib
-from openglider.glider.shape import Shape
 from openglider.glider.parametric.fitglider import fit_glider_3d
-from openglider.vector import PolyLine2D, Interpolation
-from openglider.vector.spline import SymmetricBezier, Bezier
 
 
 class ParametricGlider(object):
@@ -311,21 +307,3 @@ class ParametricGlider(object):
         rescale(self.aoa)
         rescale(self.zrot)
         self.arc.rescale(self.shape.rib_x_values)
-
-
-###########################################################################################
-# scaling the glider changes nearly all controllcurves. So it make sense to place these 
-# functions inside the ParametricGlider. Also if we want to apply the scaling to the lines
-# it doesn't make sense to store these functions inside the shape.
-
-    def set_flat_area(self, value, fixed="aspect_ratio"):
-        self.shape.set_area(value, fixed)
-        self.rescale_curves()
-
-    def set_flat_aspect_ratio(self, value, fixed="area"):
-        self.shape.set_aspect_ratio(value, fixed)
-        self.rescale_curves()
-
-    def set_flat_span(self, value, fixed="area"):
-        self.shape.set_span(value, fixed)
-        self.rescale_curves()
