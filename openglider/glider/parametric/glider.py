@@ -200,7 +200,7 @@ class ParametricGlider(object):
 
     @classmethod
     def fit_glider_3d(cls, glider, numpoints=3):
-        fit_glider_3d(cls, glider, numpoints)
+        return fit_glider_3d(cls, glider, numpoints)
 
     def get_glider_3d(self, glider=None, num=50):
         """returns a new glider from parametric values"""

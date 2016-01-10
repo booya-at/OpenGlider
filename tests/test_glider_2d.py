@@ -26,8 +26,8 @@ class GliderTestCase2D(TestCase):
         exp = self.glider2d.export_ods("/tmp/test.ods")
 
     def test_set_area(self):
-        self.glider2d.set_flat_area(10)
-        self.assertAlmostEqual(self.glider2d.flat_area, 10)
+        self.glider2d.shape.area(10)
+        self.assertAlmostEqual(self.glider2d.shape.area, 10)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
