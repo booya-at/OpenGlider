@@ -117,7 +117,7 @@ class Mesh(object):
     def __json__(self):
         return {
             "vertices": self.vertices.tolist(),
-            "faces": self.polygons
+            "polygons": self.polygons
         }
 
     def __add__(self, other):

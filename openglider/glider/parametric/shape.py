@@ -49,7 +49,7 @@ class ParametricShape(object):
         return [[interpolation(i), i] for i in np.linspace(start, 1, num)]
 
 
-### besser mit spezieller bezier?
+    ### besser mit spezieller bezier?
     @property
     def rib_dist_controlpoints(self):
         return self.rib_distribution.controlpoints[1:-1]
@@ -114,9 +114,8 @@ class ParametricShape(object):
         num_pts = len(self.rib_distribution.controlpoints)
         self.rib_distribution.fit(const_dist, numpoints=num_pts)
 
-############################################################################
-# scaling stuff
-
+    ############################################################################
+    # scaling stuff
     def scale(self, x=1., y=1.):
         self.front_curve.scale(x, y)
 
