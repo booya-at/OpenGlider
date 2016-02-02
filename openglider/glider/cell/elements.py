@@ -216,6 +216,7 @@ class Panel(object):
         :param numribs: number of miniribs to calculate
         :return: mesh
         """
+        numribs += 1
         # TODO: doesnt work for numribs=0?
         xvalues = cell.rib1.profile_2d.x_values
         ribs = []
