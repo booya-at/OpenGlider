@@ -74,12 +74,12 @@ class ParametricGlider(object):
         """
         arc_curve = ArcCurve(self.arc)
 
-        return arc_curve.get_rib_angles(self.rib_x_values)
+        return arc_curve.get_rib_angles(self.shape.rib_x_values)
 
     @property
     def attachment_points(self):
         """coordinates of the attachment_points"""
-        return [a_p.get_2d(self.shape)
+        return [a_p.get_2d(self)
                 for a_p in self.lineset.nodes
                 if isinstance(a_p, UpperNode2D)]
 

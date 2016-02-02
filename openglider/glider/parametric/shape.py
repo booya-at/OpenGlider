@@ -48,6 +48,14 @@ class ParametricShape(object):
         num = self.cell_num // 2 + 1
         return [[interpolation(i), i] for i in np.linspace(start, 1, num)]
 
+    @property
+    def fast_interpolation(self):
+        data = self.rib_distribution.get_sequence(self.num_distribution_interpolation).T
+        start = self.has_center_cell / self.cell_num
+        num = self.cell_num // 2 + 1
+        positions = np.linspace(start, 1, num)
+        return np.interp(positions, data[1], data[0])
+
 
 ### besser mit spezieller bezier?
     @property
