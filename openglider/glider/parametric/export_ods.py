@@ -22,6 +22,10 @@ def export_ods_2d(glider, filename):
     doc.sheets.append(get_cell_sheet(glider))
     doc.sheets.append(get_rib_sheet(glider))
     doc.sheets.append(get_airfoil_sheet(glider))
+    doc.sheets.append(get_ballooning_sheet(glider))
+    doc.sheets.append(get_parametric_sheet(glider))
+    doc.sheets.append(get_lines_sheet(glider))
+    #doc.sheets.append(get_data_sheet(glider))
 
     # airfoil sheet
 
@@ -33,7 +37,7 @@ def export_ods_2d(glider, filename):
 def get_airfoil_sheet(glider_2d):
     profiles = glider_2d.profiles
     max_length = max(len(p) for p in profiles)
-    sheet = ezodf.Sheet(name="airfoils", size=(max_length+1, len(profiles)*2))
+    sheet = ezodf.Sheet(name="Airfoils", size=(max_length+1, len(profiles)*2))
 
     for i, profile in enumerate(profiles):
         sheet[0, 2*i].set_value(profile.name or "unnamed")
@@ -197,15 +201,81 @@ def get_rib_sheet(glider_2d):
     rigidfoils = glider_2d.elements.get("rigidfoils", [])
     rigidfoils.sort(key=lambda r: r["start"])
     for rigidfoil in rigidfoils:
+        sheet.append_columns(3)
         sheet[0, column].set_value("RIGIDFOIL")
         for rib_no in rigidfoil["ribs"]:
             sheet[rib_no+1, column].set_value(rigidfoil["start"])
-            sheet[rib_no+1, column].set_value(rigidfoil["end"])
-            sheet[rib_no+1, column].set_value(rigidfoil["distance"])
+            sheet[rib_no+1, column+1].set_value(rigidfoil["end"])
+            sheet[rib_no+1, column+1].set_value(rigidfoil["distance"])
         column += 3
 
     return sheet
 
+
+def get_ballooning_sheet(glider_2d):
+    balloonings = glider_2d.balloonings
+    line_no = max([len(b.upper_spline.controlpoints)+len(b.lower_spline.controlpoints) for b in balloonings])+1
+    sheet = ezodf.Sheet(name="Balloonings", size=(line_no, 2*len(balloonings)))
+
+    for ballooning_no, ballooning in enumerate(balloonings):
+        #sheet.append_columns(2)
+        sheet[0, 2*ballooning_no].set_value("ballooning_{}".format(ballooning_no))
+        pts = list(ballooning.upper_spline.controlpoints) + list(ballooning.lower_spline.controlpoints)
+        for i, point in enumerate(pts):
+            sheet[i+1, 2*ballooning_no].set_value(point[0])
+            sheet[i+1, 2*ballooning_no+1].set_value(point[0])
+
+    return sheet
+
+
+def get_parametric_sheet(glider):
+    line_no = 1 + max([
+        glider.shape.front_curve.numpoints,
+        glider.shape.back_curve.numpoints,
+        glider.shape.rib_distribution.numpoints,
+        glider.arc.curve.numpoints
+        ])
+    sheet = ezodf.Sheet(name="Parametric", size=(line_no, 8))
+
+    def add_curve(name, curve, column_no):
+        #sheet.append_columns(2)
+        sheet[0, column_no].set_value(name)
+        for i, p in enumerate(curve):
+            sheet[i+1, column_no].set_value(p[0])
+            sheet[i+1, column_no+1].set_value(p[1])
+
+    add_curve("front", glider.shape.front_curve.controlpoints, 0)
+    add_curve("back", glider.shape.back_curve.controlpoints, 2)
+    add_curve("rib_distribution", glider.shape.rib_distribution.controlpoints, 4)
+    add_curve("arc", glider.arc.curve.controlpoints, 6)
+
+    return sheet
+
+
+def get_lines_sheet(glider, places=3):
+    line_tree = glider.lineset.create_tree()
+    ods_sheet = ezodf.Table(name="Lines", size=(500, 500))
+
+    def insert_block(line, upper, row, column):
+        ods_sheet[row, column+1].set_value(line.line_type.name)
+        if upper:
+            ods_sheet[row, column].set_value(line.target_length)
+            for line, line_upper in upper:
+                row = insert_block(line, line_upper, row, column+2)
+        else:  # Insert a top node
+            name = line.upper_node.name
+            if not name:
+                name = "Rib_{}/{}".format(line.upper_node.rib_no,
+                                          line.upper_node.rib_pos)
+            ods_sheet[row, column].set_value(name)
+            row += 1
+        return row
+
+    row = 1
+    for line, upper in line_tree:
+        row = insert_block(line, upper, row, 1)
+
+    return ods_sheet
 
 # for i, value in enumerate(("Ribs", "Chord", "x: (m)", "y LE (m)", "kruemmung", "aoa", "Z-rotation",
 #                      "Y-Rotation-Offset", "merge", "balooning")):

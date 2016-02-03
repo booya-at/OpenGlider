@@ -15,7 +15,7 @@ class PolyLine(HashedList):
         elif isinstance(ik, slice):  # example: list[1.2:5.5:1]
             values = self.get_positions(ik.start, ik.stop, ik.step)
             #print(values, ik.start, ik.stop, ik.step, step, start_round, stop_round)
-            return self.__class__([self[i] for i in values])
+            return PolyLine([self[i] for i in values])
         else:
             if ik < 0:
                 k = ik
@@ -147,6 +147,13 @@ class PolyLine2D(PolyLine):
         else:
             raise ValueError("cannot append: ", self.__class__, other.__class__)
 
+    def __getitem__(self, ik):
+        res = super(PolyLine2D, self).__getitem__(ik)
+        if isinstance(ik, slice):
+            return PolyLine2D(res.data)
+        return res
+
+
     def new_cut(self, p1, p2, startpoint=0, extrapolate=False, cut_only_positive=False):
         """
         Iterate over all cuts with the line p1p2
@@ -260,10 +267,12 @@ class PolyLine2D(PolyLine):
 
         return self
 
-    def rotate(self, angle, startpoint=None):
+    def rotate(self, angle, startpoint=None, radians=True):
         """
         Rotate counter-clockwise around a (non)given startpoint [rad]
         """
+        if not radians:
+            angle = numpy.pi*angle/180
         rotation_matrix = rotation_2d(angle)
         new_data = []
         for point in self.data:
@@ -290,9 +299,14 @@ class PolyLine2D(PolyLine):
         height = bbox[1][1] - bbox[0][1]
 
         import svgwrite
+        import svgwrite.container
         drawing = svgwrite.Drawing(size=[800, 800*height/width])
 
-        drawing.viewbox(bbox[0][0]-border*width, bbox[0][1]-border*height, width*(1+2*border), height*(1+2*border))
-        drawing.add(drawing.polyline(self.data, style="stroke:black; vector-effect: non-scaling-stroke; fill: none;"))
+        drawing.viewbox(bbox[0][0]-border*width, -bbox[1][1]-border*height, width*(1+2*border), height*(1+2*border))
+        g = svgwrite.container.Group()
+        g.scale(1, -1)
+        line = drawing.polyline(self.data, style="stroke:black; vector-effect: non-scaling-stroke; fill: none;")
+        g.add(line)
+        drawing.add(g)
 
         return drawing.tostring()

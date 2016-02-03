@@ -146,8 +146,8 @@ class Profile2D(Polygon2D):
         with open(pfad, "w") as out:
             if self.name:
                 out.write(str(self.name))
-            for i in self.data:
-                out.write("\n" + str(i[0]) + "\t" + str(i[1]))
+            for p in self.data:
+                out.write("\n{:.12f}\t{:.12}".format(*p))
         return pfad
 
     @classmethod

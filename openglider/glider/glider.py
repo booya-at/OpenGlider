@@ -260,15 +260,12 @@ class Glider(object):
 
     @property
     def ribs(self):
-        if not self.cells:
-            return []
-        else:
-            ribs = []
-            for cell in self.cells:
-                for rib in cell.ribs:
-                    if rib not in ribs:
-                        ribs.append(rib)
-            return ribs
+        ribs = []
+        for cell in self.cells:
+            for rib in cell.ribs:
+                if rib not in ribs:
+                    ribs.append(rib)
+        return ribs
 
     @property
     def profile_numpoints(self):
@@ -350,10 +347,10 @@ class Glider(object):
         """
         Return a list of points for a x_value
         """
-        if x is not None:
-            return [rib.align([x, 0, 0]) for rib in self.ribs]
-        else:
+        if x == 0:
             return [rib.pos for rib in self.ribs]  # This is much faster
+        else:
+            return [rib.align([x, 0, 0]) for rib in self.ribs]
 
     @property
     def attachment_points(self):

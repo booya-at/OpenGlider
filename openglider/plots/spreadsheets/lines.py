@@ -38,7 +38,8 @@ def create_line_tree(glider):
 
 
 def output_lines(glider, ods_sheet=None, places=3):
-    line_tree = create_line_tree(glider)
+    #line_tree = create_line_tree(glider)
+    line_tree = glider.lineset.create_tree()
     ods_sheet = ods_sheet or ezodf.Table(name="lines", size=(500, 500))
 
     def insert_block(line, upper, row, column):
@@ -46,7 +47,7 @@ def output_lines(glider, ods_sheet=None, places=3):
         ods_sheet[row, column].set_value(length)
         ods_sheet[row, column+1].set_value(line.type.name)
         if upper:
-            for line, line_upper in upper.items():
+            for line, line_upper in upper:
                 row = insert_block(line, line_upper, row, column+2)
         else:  # Insert a top node
             name = line.upper_node.name
@@ -58,7 +59,7 @@ def output_lines(glider, ods_sheet=None, places=3):
         return row
 
     row = 1
-    for line, upper in line_tree.items():
+    for line, upper in line_tree:
         row = insert_block(line, upper, row, 1)
 
     return ods_sheet

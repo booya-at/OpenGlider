@@ -201,6 +201,27 @@ class LineSet():
             length += line.get_stretched_length()
         return length
 
+    def create_tree(self, start_node=None):
+        """
+        Create a tree of lines
+        :return: [{name: "", length: 0, upper: []},]
+        """
+        if start_node is None:
+            start_node = self.lower_attachment_points
+            lines = []
+            for node in start_node:
+                lines += self.get_upper_connected_lines(node)
+        else:
+            lines = self.get_upper_connected_lines(start_node)
+
+        def sort_key(line):
+            nodes = self.get_upper_influence_nodes(line)
+            return sum([100*node.vec[1]+node.vec[0] for node in nodes])/len(nodes)
+
+        lines.sort(key=sort_key)
+
+        return [[line, self.create_tree(line.upper_node)] for line in lines]
+
     def copy(self):
         return copy.deepcopy(self)
 

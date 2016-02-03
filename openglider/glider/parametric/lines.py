@@ -118,6 +118,13 @@ class LineSet2D(object):
         return list(nodes)
 
     def return_lineset(self, glider, v_inf):
+        """
+        Get Lineset_3d
+        :param glider: Glider3D
+        :param v_inf:
+        :return: LineSet (3d)
+        """
+        #v_inf = v_inf or glider.v_inf
         lines = []
         # first get the lowest points (lw-att)
         lowest = [node for node in self.nodes if isinstance(node, LowerNode2D)]
@@ -126,12 +133,12 @@ class LineSet2D(object):
         for node in lowest:
             self.sort_lines(node)
         self.delete_not_connected(glider)
-        for node in self.nodes:
-            node.temp_node = node.get_node(glider)  # store the nodes to remember them with the lines
+
+        nodes_3d = {node: node.get_node(glider) for node in self.nodes}
         # set up the lines!
         for line_no, line in enumerate(self.lines):
-            lower = line.lower_node.temp_node
-            upper = line.upper_node.temp_node
+            lower = nodes_3d[line.lower_node]
+            upper = nodes_3d[line.upper_node]
             if lower and upper:
                 line = Line(number=line_no, lower_node=lower, upper_node=upper,
                             vinf=v_inf, target_length=line.target_length,
@@ -162,6 +169,35 @@ class LineSet2D(object):
                 if lower_att == line.lower_node:
                     line.is_sorted = True
                     self.sort_lines(line.upper_node)
+
+    def get_upper_connected_lines(self, node):
+        return [line for line in self.lines if line.lower_node is node]
+
+    def create_tree(self, start_node=None):
+        """
+        Create a tree of lines
+        :return: [{name: "", length: 0, upper: []},]
+        """
+        if start_node is None:
+            start_node = [node for node in self.nodes if isinstance(node, LowerNode2D)]
+            lines = []
+            for node in start_node:
+                lines += self.get_upper_connected_lines(node)
+        else:
+            lines = self.get_upper_connected_lines(start_node)
+
+        def get_influence_nodes(line):
+            if isinstance(line.upper_node, UpperNode2D):
+                return [line.upper_node]
+            return sum([get_influence_nodes(l) for l in self.get_upper_connected_lines(line.upper_node)],[])
+
+        def sort_key(line):
+            nodes = get_influence_nodes(line)
+            return sum([100*node.rib_no+node.rib_pos for node in nodes])/len(nodes)
+
+        lines.sort(key=sort_key)
+
+        return [[line, self.create_tree(line.upper_node)] for line in lines]
 
     def delete_not_connected(self, glider):
         temp = []
