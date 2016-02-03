@@ -154,11 +154,11 @@ def get_cell_sheet(glider):
     return sheet
 
 
-def get_rib_sheet(glider):
-    row_num = glider.shape.half_cell_num + 1
+def get_rib_sheet(glider_2d):
+    row_num = glider_2d.shape.half_cell_num + 1
     sheet_name = "Rib Elements"
     sheet = ezodf.Sheet(name=sheet_name, size=(row_num+1, 1))
-    elems = glider.elements
+    elems = glider_2d.elements
 
     for i in range(1, row_num+1):
         sheet[i, 0].set_value(str(i))
@@ -178,20 +178,33 @@ def get_rib_sheet(glider):
         column += 2
 
     # attachment points
-    per_rib = [glider.lineset.get_upper_nodes(rib_no) for rib_no in range(glider.shape.half_rib_num)]
+    per_rib = [glider_2d.lineset.get_upper_nodes(rib_no) for rib_no in range(glider_2d.shape.half_rib_num)]
     max_points = max([len(p) for p in per_rib])
+    sheet.append_columns(3*max_points)
+
+    for node_no in range(max_points):
+        sheet[0, column+3*node_no].set_value("AHP")
 
     for rib_no, nodes in enumerate(per_rib):
-        pass
+        nodes.sort(key=lambda node: node.rib_pos)
+        for node_no, node in enumerate(nodes):
+            sheet[rib_no+1, column+3*node_no].set_value(node.name)
+            sheet[rib_no+1, column+3*node_no+1].set_value(node.rib_pos)
+            sheet[rib_no+1, column+3*node_no+2].set_value(node.force)
+    column += 3*max_points
 
     # rigidfoils
+    rigidfoils = glider_2d.elements.get("rigidfoils", [])
+    rigidfoils.sort(key=lambda r: r["start"])
+    for rigidfoil in rigidfoils:
+        sheet[0, column].set_value("RIGIDFOIL")
+        for rib_no in rigidfoil["ribs"]:
+            sheet[rib_no+1, column].set_value(rigidfoil["start"])
+            sheet[rib_no+1, column].set_value(rigidfoil["end"])
+            sheet[rib_no+1, column].set_value(rigidfoil["distance"])
+        column += 3
 
     return sheet
-
-
-def write_cuts(cuts, sheet):
-    pass
-    #
 
 
 # for i, value in enumerate(("Ribs", "Chord", "x: (m)", "y LE (m)", "kruemmung", "aoa", "Z-rotation",
