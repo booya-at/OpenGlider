@@ -79,6 +79,8 @@ class TestGlider(TestCase):
     def test_export_glider_ods(self):
         path = self.tempfile("kite.ods")
         self.glider_2d.export_ods(path)
+        glider_2d_2 = self.glider_2d.import_ods(path)
+        self.assertEqualGlider2D(self.glider_2d, glider_2d_2)
 
     def test_export_glider_json2(self):
         with open(self.tempfile("kite_2d.json"), "w+") as outfile:

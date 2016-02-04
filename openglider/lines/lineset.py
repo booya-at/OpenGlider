@@ -204,7 +204,7 @@ class LineSet():
     def create_tree(self, start_node=None):
         """
         Create a tree of lines
-        :return: [{name: "", length: 0, upper: []},]
+        :return: [(line, [(upper_line1, []),...]),(...)]
         """
         if start_node is None:
             start_node = self.lower_attachment_points
@@ -220,7 +220,7 @@ class LineSet():
 
         lines.sort(key=sort_key)
 
-        return [[line, self.create_tree(line.upper_node)] for line in lines]
+        return [(line, self.create_tree(line.upper_node)) for line in lines]
 
     def copy(self):
         return copy.deepcopy(self)

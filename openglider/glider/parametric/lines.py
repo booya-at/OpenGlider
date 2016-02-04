@@ -117,6 +117,9 @@ class LineSet2D(object):
 
         return list(nodes)
 
+    def get_lower_attachment_points(self):
+        return [node for node in self.nodes if isinstance(node, LowerNode2D)]
+
     def return_lineset(self, glider, v_inf):
         """
         Get Lineset_3d
@@ -126,11 +129,9 @@ class LineSet2D(object):
         """
         #v_inf = v_inf or glider.v_inf
         lines = []
-        # first get the lowest points (lw-att)
-        lowest = [node for node in self.nodes if isinstance(node, LowerNode2D)]
         # now get the connected lines
         # get the other point (change the nodes if necesarry)
-        for node in lowest:
+        for node in self.get_lower_attachment_points():
             self.sort_lines(node)
         self.delete_not_connected(glider)
 
@@ -176,10 +177,10 @@ class LineSet2D(object):
     def create_tree(self, start_node=None):
         """
         Create a tree of lines
-        :return: [{name: "", length: 0, upper: []},]
+        :return: [(line, [(upper_line1, []),...]),(...)]
         """
         if start_node is None:
-            start_node = [node for node in self.nodes if isinstance(node, LowerNode2D)]
+            start_node = self.get_lower_attachment_points()
             lines = []
             for node in start_node:
                 lines += self.get_upper_connected_lines(node)
@@ -197,7 +198,7 @@ class LineSet2D(object):
 
         lines.sort(key=sort_key)
 
-        return [[line, self.create_tree(line.upper_node)] for line in lines]
+        return [(line, self.create_tree(line.upper_node)) for line in lines]
 
     def delete_not_connected(self, glider):
         temp = []

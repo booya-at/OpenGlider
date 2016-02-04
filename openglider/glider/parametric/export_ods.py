@@ -25,7 +25,7 @@ def export_ods_2d(glider, filename):
     doc.sheets.append(get_ballooning_sheet(glider))
     doc.sheets.append(get_parametric_sheet(glider))
     doc.sheets.append(get_lines_sheet(glider))
-    #doc.sheets.append(get_data_sheet(glider))
+    doc.sheets.append(get_data_sheet(glider))
 
     # airfoil sheet
 
@@ -48,14 +48,11 @@ def get_airfoil_sheet(glider_2d):
     return sheet
 
 
-
 def get_geom_sheet(glider_2d):
     geom_page = ezodf.Sheet(name="geometry", size=(glider_2d.shape.half_cell_num + 2, 10))
 
     # rib_nos
     geom_page[0, 0].set_value("Ribs")
-    for i in range(1, glider_2d.shape.half_cell_num+2):
-        geom_page[i, 0].set_value(i)
 
     shape = glider_2d.shape.get_half_shape()
 
@@ -69,6 +66,7 @@ def get_geom_sheet(glider_2d):
         geom_page[i+1, 2].set_value(p[0])
         geom_page[i+1, 3].set_value(p[1])
 
+    # set arc values
     geom_page[0, 4].set_value("Arc")
     last_angle = 0
     cell_angles = glider_2d.arc.get_cell_angles(glider_2d.shape.rib_x_values)
@@ -87,6 +85,7 @@ def get_geom_sheet(glider_2d):
     profile_int = glider_2d.profile_merge_curve.interpolation(num=100)
     ballooning_int = glider_2d.ballooning_merge_curve.interpolation(num=100)
     for rib_no, x in enumerate(glider_2d.shape.rib_x_values):
+        geom_page[rib_no+1, 0].set_value(rib_no+1)
         geom_page[rib_no+1, 5].set_value(aoa_int(x)*180/math.pi)
         geom_page[rib_no+1, 6].set_value(0)
         geom_page[rib_no+1, 7].set_value(0)
@@ -253,7 +252,9 @@ def get_parametric_sheet(glider):
 
 
 def get_lines_sheet(glider, places=3):
-    line_tree = glider.lineset.create_tree()
+    lower_nodes = glider.lineset.get_lower_attachment_points()
+
+    line_trees = [glider.lineset.create_tree(node) for node in lower_nodes]
     ods_sheet = ezodf.Table(name="Lines", size=(500, 500))
 
     def insert_block(line, upper, row, column):
@@ -271,9 +272,25 @@ def get_lines_sheet(glider, places=3):
             row += 1
         return row
 
-    row = 1
-    for line, upper in line_tree:
-        row = insert_block(line, upper, row, 1)
+    row = 0
+    for node_no, tree in enumerate(line_trees):
+        ods_sheet[row, 0].set_value(node_no)
+        for line, upper in tree:
+            row = insert_block(line, upper, row, 1)
+
+    return ods_sheet
+
+def get_data_sheet(glider):
+    ods_sheet = ezodf.Sheet(name="Data", size=(1,10))
+    ods_sheet[0,0].set_value("Data")
+    current_row = 1
+    # lower attachment_points
+    for pt_no, att_pt in enumerate(glider.lineset.get_lower_attachment_points()):
+        ods_sheet.append_rows(3)
+        for i, axis in enumerate(['X', 'Y', 'Z']):
+            ods_sheet[current_row + i, 0].set_value("AHP{}{}".format(axis, pt_no))
+            ods_sheet[current_row + i, 1].set_value(att_pt.pos_3D[i])
+        current_row += 3
 
     return ods_sheet
 

@@ -1,5 +1,7 @@
 from __future__ import division
 
+import numbers
+
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.shape import ParametricShape
 
@@ -37,15 +39,16 @@ def import_ods_2d(Glider2D, filename, numpoints=4):
     # ------------
 
     # profiles = [BezierProfile2D(profile) for profile in transpose_columns(sheets[3])]
-    profiles = [Profile2D(profile) for profile in transpose_columns(sheets[3])]
+    profiles = [Profile2D(profile, name) for name, profile in transpose_columns(sheets[3])]
 
-    balloonings_temp = transpose_columns(sheets[4])
     balloonings = []
-    for baloon in balloonings_temp:
+    for name, baloon in transpose_columns(sheets[4]):
         if baloon:
             upper = [[0, 0]] + baloon[:8] + [[1, 0]]
             lower = [[0, 0]] + [[i[0], -1 * i[1]] for i in baloon[8:16]] + [[1, 0]]
-            balloonings.append(BallooningBezier(upper, lower))
+            print(upper)
+            print(lower)
+            balloonings.append(BallooningBezier(upper, lower, name=name))
 
     data = {}
     datasheet = sheets[-1]
@@ -71,6 +74,8 @@ def import_ods_2d(Glider2D, filename, numpoints=4):
         line = [main_sheet.get_cell([i, j]).value for j in range(main_sheet.ncols())]
         if not line[0]:
             break  # skip empty line
+        if not all(isinstance(c, numbers.Number) for c in line[:10]):
+            raise ValueError("Invalid row ({}): {}".format(i, line))
         # Index, Choord, Span(x_2d), Front(y_2d=x_3d), d_alpha(next), aoa,
         chord = line[1]
         span = line[2]
@@ -231,22 +236,33 @@ def get_lower_aufhaengepunkte(data):
             for nr, pos in aufhaengepunkte.items()}
 
 
-def transpose_columns(sheet=ezodf.Table(), columnswidth=2):
-    num = sheet.ncols()
+def transpose_columns(sheet, columnswidth=2):
+    num_columns = sheet.ncols()
+    num_elems = num_columns // columnswidth
     # if num % columnswidth > 0:
     #    raise ValueError("irregular columnswidth")
     result = []
-    for col in range(int(num / columnswidth)):
-        columns = range(col * columnswidth, (col + 1) * columnswidth)
+    for col in range(num_elems):
+        first_column = col*columnswidth
+        last_column = (col+1)*columnswidth
+        columns = range(first_column, last_column)
+        name = sheet[0, first_column].value
+        if not isinstance(name, numbers.Number):  # py2/3: str!=unicode
+            start = 1
+        else:
+            name = "unnamed"
+            start = 0
+
         element = []
-        i = 0
-        while i < sheet.nrows():
-            row = [sheet.get_cell([i, j]).value for j in columns]
-            if sum([j is None for j in row]) == len(row):  # Break at empty line
+
+        for i in range(start, sheet.nrows()):
+            row = [sheet[i, j].value for j in columns]
+            if all([j is None for j in row]):  # Break at empty line
                 break
-            i += 1
+            if not all([isinstance(j, numbers.Number) for j in row]):
+                raise ValueError("Invalid value at row {}: {}".format(i, row))
             element.append(row)
-        result.append(element)
+        result.append((name, element))
     return result
 
 
