@@ -118,7 +118,7 @@ class ParametricGlider(object):
             return False
 
         if glider_3d is None:
-            cells = [[] for _ in range(self.half_cell_num)]
+            cells = [[] for _ in range(self.shape.half_cell_num)]
         else:
             cells = [cell.panels for cell in glider_3d.cells]
             for cell in cells:

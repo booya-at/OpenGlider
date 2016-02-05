@@ -7,7 +7,7 @@ from openglider.plots.part import DrawingArea, PlotPart
 def design_plot(glider_2d, glider_3d=None, lower=True):
     assert isinstance(glider_2d, openglider.glider.parametric.glider.ParametricGlider)
     #glider_3d = glider_3d or parametric.get_glider_3d()
-    shape = glider_2d.half_shape()  #.copy_complete()
+    shape = glider_2d.shape  #.copy_complete()
     #glider_3d = glider_3d.copy_complete()
     #shape = shape.copy_complete()
     #shape = parametric.shape()
@@ -37,10 +37,10 @@ def design_plot(glider_2d, glider_3d=None, lower=True):
             left_back = get_val(panel.cut_back["left"])
             right_back = get_val(panel.cut_back["right"])
 
-            p1 = shape.get_point(cell_no, left_front)
-            p2 = shape.get_point(cell_no, left_back)
-            p3 = shape.get_point(cell_no+1, right_back)
-            p4 = shape.get_point(cell_no+1, rigth_front)
+            p1 = shape.get_shape_point(cell_no, left_front)
+            p2 = shape.get_shape_point(cell_no, left_back)
+            p3 = shape.get_shape_point(cell_no+1, right_back)
+            p4 = shape.get_shape_point(cell_no+1, rigth_front)
 
             drawingarea.parts.append(PlotPart(
                 cuts=[PolyLine2D([p1, p2, p3, p4, p1])],

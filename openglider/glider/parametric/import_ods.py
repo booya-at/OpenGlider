@@ -27,7 +27,6 @@ def import_ods_2d(Glider2D, filename, numpoints=4):
     ods = ezodf.opendoc(filename)
     sheets = ods.sheets
 
-    main_sheet = sheets[0]
     cell_sheet = sheets[1]
     rib_sheet = sheets[2]
 
@@ -40,6 +39,11 @@ def import_ods_2d(Glider2D, filename, numpoints=4):
 
     # profiles = [BezierProfile2D(profile) for profile in transpose_columns(sheets[3])]
     profiles = [Profile2D(profile, name) for name, profile in transpose_columns(sheets[3])]
+
+    try:
+        geometry = get_geometry_parametric(sheets[5])
+    except Exception:
+        geometry = get_geometry_explicit(sheets[0])
 
     balloonings = []
     for name, baloon in transpose_columns(sheets[4]):
@@ -57,46 +61,6 @@ def import_ods_2d(Glider2D, filename, numpoints=4):
         if len(row) > 1:
             data[row[0].value] = row[1].value
 
-    # All Lists
-    front = []
-    back = []
-    cell_distribution = []
-    aoa = []
-    arc = []
-    profile_merge = []
-    ballooning_merge = []
-    zrot = []
-
-    y = z = span_last = alpha = 0.
-
-    assert isinstance(main_sheet, ezodf.Sheet)
-    for i in range(1, main_sheet.nrows() + 1):
-        line = [main_sheet.get_cell([i, j]).value for j in range(main_sheet.ncols())]
-        if not line[0]:
-            break  # skip empty line
-        if not all(isinstance(c, numbers.Number) for c in line[:10]):
-            raise ValueError("Invalid row ({}): {}".format(i, line))
-        # Index, Choord, Span(x_2d), Front(y_2d=x_3d), d_alpha(next), aoa,
-        chord = line[1]
-        span = line[2]
-        x = line[3]
-        y += numpy.cos(alpha) * (span - span_last)
-        z -= numpy.sin(alpha) * (span - span_last)
-
-        alpha += line[4] * numpy.pi / 180  # angle after the rib
-
-        aoa.append([span, line[5] * numpy.pi / 180])
-        arc.append([y, z])
-        front.append([span, -x])
-        back.append([span, -x - chord])
-        cell_distribution.append([span, i - 1])
-
-        profile_merge.append([span, line[8]])
-        ballooning_merge.append([span, line[9]])
-
-        zrot.append([span, line[7] * numpy.pi / 180])
-
-        span_last = span
 
     # Attachment points: rib_no, id, pos, force
     attachment_points = get_attachment_points(rib_sheet)
@@ -157,13 +121,74 @@ def import_ods_2d(Glider2D, filename, numpoints=4):
                        "right": res[2]})
     straps = group(straps, "cells")
 
-    has_center_cell = not front[0][0] == 0
-    cell_no = (len(front) - 1) * 2 + has_center_cell
+    glider_2d = Glider2D(elements={"cuts": cuts,
+                                   "holes": rib_holes,
+                                   "diagonals": diagonals,
+                                   "rigidfoils": rigidfoils,
+                                   "straps": straps,
+                                   "materials": get_material_codes(cell_sheet)},
+                         profiles=profiles,
+                         balloonings=balloonings,
+                         lineset=tolist_lines(sheets[6], attachment_points_lower, attachment_points),
+                         speed=data.get("GESCHWINDIGKEIT", 10),
+                         glide=data.get("GLEITZAHL", 10),
+                         **geometry)
+
+    glider_3d = glider_2d.get_glider_3d()
+    glider_2d.lineset.set_default_nodes2d_pos(glider_3d)
+    return glider_2d
+
+
+def get_geometry_explicit(sheet):
+    # All Lists
+    front = []
+    back = []
+    cell_distribution = []
+    aoa = []
+    arc = []
+    profile_merge = []
+    ballooning_merge = []
+    zrot = []
+
+    y = z = span_last = alpha = 0.
+    for i in range(1, sheet.nrows()):
+        line = [sheet.get_cell([i, j]).value for j in range(sheet.ncols())]
+        if not line[0]:
+            break  # skip empty line
+        if not all(isinstance(c, numbers.Number) for c in line[:10]):
+            raise ValueError("Invalid row ({}): {}".format(i, line))
+        # Index, Choord, Span(x_2d), Front(y_2d=x_3d), d_alpha(next), aoa,
+        chord = line[1]
+        span = line[2]
+        x = line[3]
+        y += numpy.cos(alpha) * (span - span_last)
+        z -= numpy.sin(alpha) * (span - span_last)
+
+        alpha += line[4] * numpy.pi / 180  # angle after the rib
+
+        aoa.append([span, line[5] * numpy.pi / 180])
+        arc.append([y, z])
+        front.append([span, -x])
+        back.append([span, -x - chord])
+        cell_distribution.append([span, i - 1])
+
+        profile_merge.append([span, line[8]])
+        ballooning_merge.append([span, line[9]])
+
+        zrot.append([span, line[7] * numpy.pi / 180])
+
+        span_last = span
+
 
     def symmetric_fit(data):
         not_from_center = data[0][0] == 0
         mirrored = [[-p[0], p[1]] for p in data[not_from_center:]][::-1] + data
-        return SymmetricBezier.fit(mirrored, numpoints=numpoints)
+        return SymmetricBezier.fit(mirrored)
+
+
+    has_center_cell = not front[0][0] == 0
+    cell_no = (len(front) - 1) * 2 + has_center_cell
+
 
     start = (2 - has_center_cell) / cell_no
 
@@ -172,33 +197,24 @@ def import_ods_2d(Glider2D, filename, numpoints=4):
     rib_pos_int = Interpolation(zip(rib_pos, const_arr))
     rib_distribution = [[i, rib_pos_int(i)] for i in numpy.linspace(0, rib_pos[-1], 30)]
 
-    rib_distribution = Bezier.fit(rib_distribution, numpoints=numpoints + 3)
+    rib_distribution = Bezier.fit(rib_distribution)
 
     parametric_shape = ParametricShape(symmetric_fit(front), symmetric_fit(back), rib_distribution, cell_no)
     arc_curve = ArcCurve(symmetric_fit(arc))
 
-    glider_2d = Glider2D(shape=parametric_shape,
-                         arc=arc_curve,
-                         aoa=symmetric_fit(aoa),
-                         zrot=symmetric_fit(zrot),
-                         elements={"cuts": cuts,
-                                   "holes": rib_holes,
-                                   "diagonals": diagonals,
-                                   "rigidfoils": rigidfoils,
-                                   "straps": straps,
-                                   "materials": get_material_codes(cell_sheet)},
-                         profiles=profiles,
-                         profile_merge_curve=symmetric_fit(profile_merge),
-                         balloonings=balloonings,
-                         ballooning_merge_curve=symmetric_fit(ballooning_merge),
-                         lineset=tolist_lines(sheets[6], attachment_points_lower, attachment_points),
-                         speed=data.get("GESCHWINDIGKEIT", 10),
-                         glide=data.get("GLEITZAHL", 10))
+    return {
+        "shape": parametric_shape,
+        "arc": arc_curve,
+        "aoa": symmetric_fit(aoa),
+        "zrot": symmetric_fit(zrot),
+        "profile_merge_curve": symmetric_fit(profile_merge),
+        "ballooning_merge_curve": symmetric_fit(ballooning_merge)
 
-    glider_3d = glider_2d.get_glider_3d()
-    glider_2d.lineset.set_default_nodes2d_pos(glider_3d)
-    return glider_2d
+    }
 
+def get_geometry_parametric(sheet):
+    raise NotImplementedError
+    # todo -> raise on fail
 
 def get_material_codes(sheet):
     materials = read_elements(sheet, "MATERIAL", len_data=1)
@@ -225,7 +241,7 @@ def get_attachment_points(sheet, midrib=False):
 
 def get_lower_aufhaengepunkte(data):
     aufhaengepunkte = {}
-    xyz = {"X": 1, "Y": 0, "Z": 2}
+    xyz = {"X": 0, "Y": 1, "Z": 2}
     for key in data:
         if key is not None and "AHP" in key:
             pos = int(key[4])
@@ -292,7 +308,7 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
                 lower_node = current_nodes[j // 2]
 
                 # gallery
-                if j + 4 >= num_cols or sheet.get_cell([i, j + 2]).value is None:
+                if j + 2 >= num_cols-1 or sheet.get_cell([i, j + 2]).value is None:
 
                     upper = attachment_points_upper[val]
                     line_length = None

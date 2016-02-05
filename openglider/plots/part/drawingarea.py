@@ -186,10 +186,12 @@ class DrawingArea():
 
         return group
 
-    def get_svg_drawing(self, unit="mm"):
-        width, height = self.width, self.height
+    def get_svg_drawing(self, unit="mm", border=0.02):
+        border_w, border_h = [2*border*x for x in (self.width, self.height)]
+        width, height = self.width+border_w, self.height+border_h
+
         drawing = svgwrite.Drawing(size=[("{}"+unit).format(n) for n in (width, height)])
-        drawing.viewbox(self.min_x, -self.max_y, self.width, self.height)
+        drawing.viewbox(self.min_x-border_w/2, -self.max_y-border_h/2, width, height)
         group = self.get_svg_group()
         drawing.add(group)
 

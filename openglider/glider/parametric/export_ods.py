@@ -64,7 +64,7 @@ def get_geom_sheet(glider_2d):
     geom_page[0, 3].set_value("Le y (m)")
     for i, p in enumerate(shape.front):
         geom_page[i+1, 2].set_value(p[0])
-        geom_page[i+1, 3].set_value(p[1])
+        geom_page[i+1, 3].set_value(-p[1])
 
     # set arc values
     geom_page[0, 4].set_value("Arc")
