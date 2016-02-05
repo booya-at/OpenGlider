@@ -59,8 +59,7 @@ class ParametricGlider(object):
     def import_ods(cls, path):
         return import_ods_2d(cls, path)
 
-    def export_ods(self, path):
-        return export_ods_2d(self, path)
+    export_ods = export_ods_2d
 
     @property
     def arc_positions(self):

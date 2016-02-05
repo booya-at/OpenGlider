@@ -145,10 +145,13 @@ class DrawingArea():
 
             for entity in block:
                 layer = entity.dxf.layer
-                line = [v.dxf.location[:2] for v in entity]
-                if entity.dxf.flags % 2:
-                    line.append(line[0])
-                new_panel.layers[layer].append(PolyLine2D(line))
+                try:
+                    line = [v.dxf.location[:2] for v in entity]
+                    if entity.dxf.flags % 2:
+                        line.append(line[0])
+                    new_panel.layers[layer].append(PolyLine2D(line))
+                except:
+                    pass
 
 
             new_panel.rotate(-blockref.dxf.rotation * math.pi / 180)
