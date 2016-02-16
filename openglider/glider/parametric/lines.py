@@ -22,6 +22,9 @@ class LowerNode2D(object):
             "name": self.name,
             "layer": self.layer}
 
+    def get_2D(self, *args):
+        return self.pos_2D
+
     def get_node(self, glider):
         return Node(node_type=0, position_vector=numpy.array(self.pos_3D))
 
@@ -42,7 +45,7 @@ class UpperNode2D(object):
                 'name': self.name,
                 "layer": self.layer}
 
-    def get_2d(self, parametric_shape):
+    def get_2D(self, parametric_shape):
         front_back = parametric_shape.ribs
         if self.rib_no <= len(front_back):
             fr, ba = front_back[self.rib_no]
@@ -73,6 +76,9 @@ class BatchNode2D(object):
 
     def get_node(self, glider):
         return Node(node_type=1)
+
+    def get_2D(self, *args):
+        return self.pos_2D
 
 
 class LineSet2D(object):

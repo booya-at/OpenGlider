@@ -35,7 +35,7 @@ class ParametricShape(object):
 
     @property
     def half_rib_num(self):
-        return self.half_cell_num + 1
+        return self.half_cell_num + 1 - self.has_center_cell
 
     @property
     def rib_dist_interpolation(self):
