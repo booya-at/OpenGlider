@@ -46,13 +46,7 @@ class UpperNode2D(object):
                 "layer": self.layer}
 
     def get_2D(self, parametric_shape):
-        front_back = parametric_shape.ribs
-        if self.rib_no <= len(front_back):
-            fr, ba = front_back[self.rib_no]
-            chord = ba[1] - fr[1]
-            x = fr[0]
-            y = fr[1] + self.rib_pos * chord
-            return x, y
+        return parametric_shape[self.rib_no, self.rib_pos]
 
     def get_node(self, glider):
         node = AttachmentPoint(glider.ribs[self.rib_no + glider.has_center_cell], self.name,
