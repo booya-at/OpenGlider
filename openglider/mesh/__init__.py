@@ -15,14 +15,19 @@ class Mesh(object):
         self.connection = connection or {}  # store all the connection info
 
     @classmethod
-    def from_rib(cls, rib, hole_num=10):
+    def from_rib(cls, rib, hole_num=10, mesh_option="Qzip"):
+        """ Y... no additional points on boarder
+            i... algorythm (other algo crash)
+            p... triangulation
+            q... quality
+            a... area constraint
+        """
         profile = rib.profile_2d
         triangle_in = {}
         vertices = list(profile.data)
         segments = [[i, i+1] for i, _ in enumerate(vertices[:-1])]
         segments[-1][-1] = 0
         triangle_in["vertices"] = vertices[:-1]
-        triangle_in["outline"] = np.array(range(len(vertices[:-1]))) + 1
         triangle_in["segments"] = segments
 
         # adding the vertices and segments of the holes
@@ -33,26 +38,26 @@ class Mesh(object):
             triangle_in["holes"] = []
             for nr, hole in enumerate(rib.holes):
                 start_index = len(triangle_in["vertices"])
-                vertices = hole.get_flattened(rib, num=hole_num, scale=False)
-                segments = [[i + start_index, i + start_index + 1] for i, _ in enumerate(vertices)]
+                hole_vertices = hole.get_flattened(rib, num=hole_num, scale=False)
+                segments = [[i + start_index, i + start_index + 1] for i, _ in enumerate(hole_vertices)]
                 segments[-1][-1] = start_index
-                triangle_in["vertices"] += vertices
+                triangle_in["vertices"] += hole_vertices
                 triangle_in["segments"] += segments
                 triangle_in["holes"].append(hole.get_center(rib, scale=False).tolist())
 
         # _triangle_output = triangle.triangulate(triangle_in, "pziq")
         mesh_info = mptriangle.MeshInfo()
-        mesh_info.set_points(triangle_in["vertices"], triangle_in["outline"])
+        mesh_info.set_points(triangle_in["vertices"])
         mesh_info.set_facets(triangle_in["segments"])
         if "holes" in triangle_in:
             mesh_info.set_holes(triangle_in["holes"])
-        mesh = custom_triangulation(mesh_info, "QYzip")  # see triangle options
+        mesh = custom_triangulation(mesh_info, mesh_option)  # see triangle options
         try:
             # vertices = rib.align_all(_triangle_output["vertices"])
             # triangles = _triangle_output["triangles"]
             vertices = rib.align_all(mesh.points)
             triangles = list(mesh.elements)
-            connection = {rib: np.array(mesh.point_markers) - 1}
+            connection = {rib: range(len(vertices))}
         except KeyError:
             print("there was a keyerror")
             return cls()
