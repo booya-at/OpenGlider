@@ -4,7 +4,7 @@ import numpy
 from openglider.airfoil import Profile3D
 from openglider.glider.ballooning import Ballooning
 from openglider.glider.cell import BasicCell
-from openglider.utils import consistent_value
+from openglider.utils import consistent_value, linspace
 from openglider.utils.cache import CachedObject, cached_property, HashedList
 from openglider.vector import norm
 
@@ -145,6 +145,10 @@ class Cell(CachedObject):
             return cell.midrib(y_new, arc_argument=arc_argument)
         else:
             return self.basic_cell.midrib(y, ballooning=False)
+
+    def get_midribs(self, numribs):
+        y_values = linspace(0, 1, numribs)
+        return [self.midrib(y) for y in y_values]
 
     @cached_property('ballooning', 'rib1.profile_2d.numpoints', 'rib2.profile_2d.numpoints')
     def ballooning_phi(self):

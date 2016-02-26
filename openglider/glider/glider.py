@@ -29,6 +29,7 @@ from openglider.glider.in_out import IMPORT_GEOMETRY, EXPORT_3D
 from openglider.glider.shape import Shape
 from openglider.plots.projection import flatten_list
 from openglider.utils import consistent_value
+from openglider.utils.distribution import Distribution
 from openglider.vector.functions import norm, rotation_2d
 
 
@@ -276,7 +277,7 @@ class Glider(object):
         self.set_profile_numpoints(numpoints)
 
     def set_profile_numpoints(self, numpoints, dist_function=None):
-        dist_function = dist_function or Profile2D.cos_2_distribution
+        dist_function = dist_function or Distribution.nose_cos_distribution(0.3)
         xvalues = dist_function(numpoints)
         for rib in self.ribs:
             rib.profile_2d.x_values = xvalues

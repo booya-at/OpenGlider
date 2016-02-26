@@ -30,6 +30,8 @@ def consistent_value(elements, attribute):
     if vals[1:] == vals[:-1]:
         return vals[0]
 
+def linspace(start, stop, count):
+    return [start + y/(count-1) * (stop-start) for y in range(count)]
 
 class dualmethod(object):
     """

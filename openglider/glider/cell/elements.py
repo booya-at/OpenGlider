@@ -287,6 +287,44 @@ class Panel(object):
         self.cut_back["left"], self.cut_back["right"] = right, left
 
 
+    def _get_ik_values(self, cell, numribs=0):
+        x_values = cell.rib1.profile_2d.x_values
+        ik_values = []
+
+        for i in range(numribs+1):
+            y = i/numribs
+            x_front = self.cut_front["left"] + y * (self.cut_front["right"] -
+                                                    self.cut_front["left"])
+
+            x_back = self.cut_back["left"] + y * (self.cut_back["right"] -
+                                                  self.cut_back["left"])
+
+            front = get_x_value(x_values, x_front)
+            back = get_x_value(x_values, x_back)
+
+            ik_values.append([front, back])
+
+        return ik_values
+
+    def integrate_3d_shaping(self, cell, inner_2d, midribs=None):
+        numribs = len(inner_2d) - 2
+        if midribs is None:
+            midribs = cell.get_midribs(numribs)
+
+        ribs_3d = self.get_3d(cell, numribs, midribs)
+        positions = self._get_ik_values(cell, numribs)
+        ribs_2d = []
+
+        for inner_rib, positions in zip(inner_2d, positions):
+            ribs_2d.append(inner_rib.get(*positions))
+
+        # influence factor: e^-(x/stofffaktor)
+        # integral(x1, x2, e^-x) = -e^-x1 + e^-x2
+        lengthes_3d = [rib.get_segment_lengthes() for rib in ribs_3d]
+        lengthes_2d = [rib.get_segment_lengthes() for rib in ribs_2d]
+        lengthes_diff = [l3 - l2 for l3, l2 in zip(lengthes_3d, lengthes_2d)]
+
+
 
 
 

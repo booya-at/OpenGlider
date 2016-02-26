@@ -4,16 +4,24 @@ import meshpy.triangle as mptriangle
 from openglider.mesh.meshpy_triangle import custom_triangulation
 
 
+
 class Mesh(object):
     """
     Mesh Surface: vertices and polygons
     """
-    def __init__(self, vertices=None, polygons=None):
-        self.vertices = vertices
-        self.polygons = polygons or []
+    def __init__(self, vertices=None, polygons=None, connection=None):
+        self.vertices = vertices            # np array of all vertices
+        self.polygons = polygons or []      # list of all element indices
+        self.connection = connection or {}  # store all the connection info
 
     @classmethod
-    def from_rib(cls, rib):
+    def from_rib(cls, rib, hole_num=10, mesh_option="Qzip"):
+        """ Y... no additional points on boarder
+            i... algorythm (other algo crash)
+            p... triangulation
+            q... quality
+            a... area constraint
+        """
         profile = rib.profile_2d
         triangle_in = {}
         vertices = list(profile.data)
@@ -26,14 +34,14 @@ class Mesh(object):
         # to get TRIANGLE know where to remove triangles
         # a list of points which lay inside the holes
         # must be passed
-        if len(rib.holes) > 0:
+        if len(rib.holes) > 0 and hole_num > 3:
             triangle_in["holes"] = []
             for nr, hole in enumerate(rib.holes):
                 start_index = len(triangle_in["vertices"])
-                vertices = hole.get_flattened(rib, num=10, scale=False)
-                segments = [[i + start_index, i + start_index + 1] for i, _ in enumerate(vertices)]
+                hole_vertices = hole.get_flattened(rib, num=hole_num, scale=False)
+                segments = [[i + start_index, i + start_index + 1] for i, _ in enumerate(hole_vertices)]
                 segments[-1][-1] = start_index
-                triangle_in["vertices"] += vertices
+                triangle_in["vertices"] += hole_vertices
                 triangle_in["segments"] += segments
                 triangle_in["holes"].append(hole.get_center(rib, scale=False).tolist())
 
@@ -43,19 +51,23 @@ class Mesh(object):
         mesh_info.set_facets(triangle_in["segments"])
         if "holes" in triangle_in:
             mesh_info.set_holes(triangle_in["holes"])
-        mesh = custom_triangulation(mesh_info, "Qzip")
+        mesh = custom_triangulation(mesh_info, mesh_option)  # see triangle options
         try:
             # vertices = rib.align_all(_triangle_output["vertices"])
             # triangles = _triangle_output["triangles"]
-            vertices = rib.align_all(np.array(mesh.points))
+            vertices = rib.align_all(mesh.points)
             triangles = list(mesh.elements)
+            connection = {rib: range(len(vertices))}
         except KeyError:
-            print("there was an keyerror")
+            print("there was a keyerror")
             return cls()
-        return cls(vertices, triangles)
+        return cls(vertices, triangles, connection)
 
     @classmethod
-    def from_diagonal(cls, diagonal, cell, insert_points=0):
+    def from_diagonal(cls, diagonal, cell, insert_points=4):
+        """
+        get a mesh from a diagonal (2 lines)
+        """
         left, right = diagonal.get_3d(cell)
         if insert_points:
             point_array = []

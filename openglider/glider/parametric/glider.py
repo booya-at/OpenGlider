@@ -59,8 +59,7 @@ class ParametricGlider(object):
     def import_ods(cls, path):
         return import_ods_2d(cls, path)
 
-    def export_ods(self, path):
-        return export_ods_2d(self, path)
+    export_ods = export_ods_2d
 
     @property
     def arc_positions(self):
@@ -226,11 +225,12 @@ class ParametricGlider(object):
         rigids = self.elements.get("rigidfoils", [])
 
         cell_centers = [(p1+p2)/2 for p1, p2 in zip(x_values[:-1], x_values[1:])]
-
+        front_0 = shape_ribs[0][0][1]
         for rib_no, pos in enumerate(x_values):
             front, back = shape_ribs[rib_no]
             arc = arc_pos[rib_no]
-            startpoint = np.array([-front[1], arc[0], arc[1]])
+            startpoint = np.array([-front[1] + front_0, arc[0], arc[1]])
+            #startpoint = np.array([-front[1], arc[0], arc[1]])
             chord = abs(front[1]-back[1])
             factor = profile_merge_curve(abs(pos))
             profile = self.get_merge_profile(factor)
