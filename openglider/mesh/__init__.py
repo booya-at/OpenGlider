@@ -1,4 +1,5 @@
 from __future__ import division
+import copy
 import numpy as np
 import meshpy.triangle as mptriangle
 from openglider.mesh.meshpy_triangle import custom_triangulation
@@ -11,6 +12,8 @@ class Mesh(object):
     """
     def __init__(self, vertices=None, polygons=None, connection=None):
         self.vertices = vertices            # np array of all vertices
+        if self.vertices is None:
+            self.vertices = np.array([], float).reshape(0, 3)
         self.polygons = polygons or []      # list of all element indices
         self.connection = connection or {}  # store all the connection info
 
@@ -24,10 +27,11 @@ class Mesh(object):
         """
         profile = rib.profile_2d
         triangle_in = {}
-        vertices = list(profile.data)
-        segments = [[i, i+1] for i, _ in enumerate(vertices[:-1])]
+        vertices = list(profile.data)[:-1]
+        connection = {rib: np.array(range(len(vertices)))}
+        segments = [[i, i+1] for i, _ in enumerate(vertices)]
         segments[-1][-1] = 0
-        triangle_in["vertices"] = vertices[:-1]
+        triangle_in["vertices"] = vertices
         triangle_in["segments"] = segments
 
         # adding the vertices and segments of the holes
@@ -53,11 +57,8 @@ class Mesh(object):
             mesh_info.set_holes(triangle_in["holes"])
         mesh = custom_triangulation(mesh_info, mesh_option)  # see triangle options
         try:
-            # vertices = rib.align_all(_triangle_output["vertices"])
-            # triangles = _triangle_output["triangles"]
-            vertices = rib.align_all(mesh.points)
             triangles = list(mesh.elements)
-            connection = {rib: range(len(vertices))}
+            vertices = rib.align_all(mesh.points)
         except KeyError:
             print("there was a keyerror")
             return cls()
@@ -66,7 +67,7 @@ class Mesh(object):
     @classmethod
     def from_diagonal(cls, diagonal, cell, insert_points=4):
         """
-        get a mesh from a diagonal (2 lines)
+        get a mesh from a diagonal (2 poly lines)
         """
         left, right = diagonal.get_3d(cell)
         if insert_points:
@@ -108,6 +109,7 @@ class Mesh(object):
             polygon = [range(len(vertices))]
             return cls(vertices, polygon)
 
+
     def copy(self):
         poly_copy = [p[:] for p in self.polygons]
         return self.__class__(self.vertices, poly_copy)
@@ -133,29 +135,48 @@ class Mesh(object):
         }
 
     def __add__(self, other):
-        if None in (other.vertices, other.polygons):
-            return self
-        if None in (self.vertices, self.polygons):
-            return other
-        else:
-            new_mesh = Mesh()
-            new_mesh.vertices = np.concatenate([self.vertices, other.vertices])
-            start_value = float(len(self.vertices))
-            new_other_polygons = [[val + start_value for val in tri] for tri in other.polygons]
-            new_mesh.polygons = self.polygons + new_other_polygons
-            return new_mesh
+        """adding two mesh objects"""
+        # copy the mesh, otherwise the input mesh get changed
+        new_mesh = Mesh(copy.copy(self.vertices), 
+                        copy.copy(self.polygons), 
+                        copy.copy(self.connection))
+        # translate to a python list for easier manipulation
+        vertices_list = self.vertices.tolist()
+        count = len(vertices_list)
+        # connection information stored in both meshes
+        intersections = (set(self.connection.keys()) &
+                         set(other.connection.keys()))
+        # create a map from connection info
+        connect_rules = dict()
+        for intersect in intersections:
+            for j, index in enumerate(other.connection[intersect]):
+                connect_rules[index] = self.connection[intersect][j]
+        # mapping other.vertices
+        replace_rules = dict()
+        for i, vertex in enumerate(other.vertices):
+            value = connect_rules.get(i)
+            if value is not None:
+                replace_rules[i] = value
+                count -= 1
+            else:
+                replace_rules[i] = i+count
+                vertices_list.append(vertex)
+        # apply the replacement rules
+        new_mesh.polygons += [
+            [replace_rules[index] for index in pol] for pol in other.polygons]
+        new_mesh.vertices = np.array(vertices_list)
+        
+        for key in other.connection.keys():
+            if key not in intersections:
+                new_mesh.connection[key] = [
+                    replace_rules[value] for value in other.connection[key]]
+        return new_mesh
+
 
     def __iadd__(self, other):
-        if None in (other.vertices, other.polygons):
-            return self
-        if None in (self.vertices, self.polygons):
-            return other
-        else:
-            start_value = float(len(self.vertices))
-            new_other_polygons = [[val + start_value for val in tri] for tri in other.polygons]
-            self.polygons = self.polygons + new_other_polygons
-            self.vertices = np.concatenate([self.vertices, other.vertices])
-            return self
+        self = self + other
+        return self
+
 
 
 def apply_z(vertices):

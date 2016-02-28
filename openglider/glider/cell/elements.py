@@ -276,8 +276,9 @@ class Panel(object):
                 elif pos_r[r_i] < pos_l[l_i]:
                     triangles.append(right_triangle(num_l[l_i], num_r[r_i]))
                     r_i += 1
-
-        return Mesh(numpy.array(points), triangles)
+        connection_info = {cell.rib1: numpy.array(ribs[0], int), 
+                           cell.rib2: numpy.array(ribs[-1], int)}            
+        return Mesh(numpy.array(points), triangles, connection_info)
 
     def mirror(self):
         left, right = self.cut_front["left"], self.cut_front["right"]
