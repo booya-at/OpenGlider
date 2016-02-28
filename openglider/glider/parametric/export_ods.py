@@ -213,8 +213,8 @@ def get_rib_sheet(glider_2d):
 
 def get_ballooning_sheet(glider_2d):
     balloonings = glider_2d.balloonings
-    line_no = max([len(b.upper_spline.controlpoints)+len(b.lower_spline.controlpoints) for b in balloonings])+1
-    sheet = ezodf.Sheet(name="Balloonings", size=(line_no, 2*len(balloonings)))
+    row_num = max([len(b.upper_spline.controlpoints)+len(b.lower_spline.controlpoints) for b in balloonings])+1
+    sheet = ezodf.Sheet(name="Balloonings", size=(row_num, 2*len(balloonings)))
 
     for ballooning_no, ballooning in enumerate(balloonings):
         #sheet.append_columns(2)
@@ -222,7 +222,7 @@ def get_ballooning_sheet(glider_2d):
         pts = list(ballooning.upper_spline.controlpoints) + list(ballooning.lower_spline.controlpoints)
         for i, point in enumerate(pts):
             sheet[i+1, 2*ballooning_no].set_value(point[0])
-            sheet[i+1, 2*ballooning_no+1].set_value(point[0])
+            sheet[i+1, 2*ballooning_no+1].set_value(point[1])
 
     return sheet
 

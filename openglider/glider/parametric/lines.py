@@ -174,6 +174,11 @@ class LineSet2D(object):
     def get_upper_connected_lines(self, node):
         return [line for line in self.lines if line.lower_node is node]
 
+    def get_influence_nodes(self, line):
+        if isinstance(line.upper_node, UpperNode2D):
+            return [line.upper_node]
+        return sum([self.get_influence_nodes(l) for l in self.get_upper_connected_lines(line.upper_node)], [])
+
     def create_tree(self, start_node=None):
         """
         Create a tree of lines
@@ -190,10 +195,17 @@ class LineSet2D(object):
         def get_influence_nodes(line):
             if isinstance(line.upper_node, UpperNode2D):
                 return [line.upper_node]
-            return sum([get_influence_nodes(l) for l in self.get_upper_connected_lines(line.upper_node)],[])
+            return sum([get_influence_nodes(l) for l in self.get_upper_connected_lines(line.upper_node)], [])
+
+        for line in lines:
+            if not get_influence_nodes(line):
+                return line
 
         def sort_key(line):
             nodes = get_influence_nodes(line)
+            if not nodes:
+                print("line", line)
+                #return -1
             return sum([100*node.rib_no+node.rib_pos for node in nodes])/len(nodes)
 
         lines.sort(key=sort_key)
