@@ -35,7 +35,7 @@ class ParametricShape(object):
 
     @property
     def half_rib_num(self):
-        return self.half_cell_num + 1
+        return self.half_cell_num + 1 - self.has_center_cell
 
     @property
     def rib_dist_interpolation(self):
@@ -91,6 +91,20 @@ class ParametricShape(object):
         [ribs, front, back]
         """
         return self.get_half_shape().copy_complete()
+
+
+    def __getitem__(self, pos):
+        """if first argument is negativ the point is returned mirrored"""
+        rib_nr, rib_pos = pos
+        ribs = self.ribs
+        neg = (rib_nr < 0)
+        sign = -neg * 2 + 1
+        if rib_nr <= len(ribs):
+            fr, ba = ribs[abs(rib_nr + neg * self.has_center_cell)]
+            chord = ba[1] - fr[1]
+            x = fr[0]
+            y = fr[1] + rib_pos * chord
+            return [sign * x, y]
 
     @property
     def ribs(self):

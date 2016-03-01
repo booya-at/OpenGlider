@@ -22,6 +22,9 @@ class LowerNode2D(object):
             "name": self.name,
             "layer": self.layer}
 
+    def get_2D(self, *args):
+        return self.pos_2D
+
     def get_node(self, glider):
         return Node(node_type=0, position_vector=numpy.array(self.pos_3D))
 
@@ -42,14 +45,8 @@ class UpperNode2D(object):
                 'name': self.name,
                 "layer": self.layer}
 
-    def get_2d(self, parametric_shape):
-        front_back = parametric_shape.ribs
-        if self.rib_no <= len(front_back):
-            fr, ba = front_back[self.rib_no]
-            chord = ba[1] - fr[1]
-            x = fr[0]
-            y = fr[1] + self.rib_pos * chord
-            return x, y
+    def get_2D(self, parametric_shape):
+        return parametric_shape[self.rib_no, self.rib_pos]
 
     def get_node(self, glider):
         node = AttachmentPoint(glider.ribs[self.rib_no + glider.has_center_cell], self.name,
@@ -73,6 +70,9 @@ class BatchNode2D(object):
 
     def get_node(self, glider):
         return Node(node_type=1)
+
+    def get_2D(self, *args):
+        return self.pos_2D
 
 
 class LineSet2D(object):
@@ -174,6 +174,11 @@ class LineSet2D(object):
     def get_upper_connected_lines(self, node):
         return [line for line in self.lines if line.lower_node is node]
 
+    def get_influence_nodes(self, line):
+        if isinstance(line.upper_node, UpperNode2D):
+            return [line.upper_node]
+        return sum([self.get_influence_nodes(l) for l in self.get_upper_connected_lines(line.upper_node)], [])
+
     def create_tree(self, start_node=None):
         """
         Create a tree of lines
@@ -190,10 +195,17 @@ class LineSet2D(object):
         def get_influence_nodes(line):
             if isinstance(line.upper_node, UpperNode2D):
                 return [line.upper_node]
-            return sum([get_influence_nodes(l) for l in self.get_upper_connected_lines(line.upper_node)],[])
+            return sum([get_influence_nodes(l) for l in self.get_upper_connected_lines(line.upper_node)], [])
+
+        for line in lines:
+            if not get_influence_nodes(line):
+                return line
 
         def sort_key(line):
             nodes = get_influence_nodes(line)
+            if not nodes:
+                print("line", line)
+                #return -1
             return sum([100*node.rib_no+node.rib_pos for node in nodes])/len(nodes)
 
         lines.sort(key=sort_key)

@@ -1,12 +1,15 @@
+from __future__ import division
 import copy
 import itertools
 import numpy
 from openglider.airfoil import Profile3D
 from openglider.glider.ballooning import Ballooning
 from openglider.glider.cell import BasicCell
+from openglider.glider.cell.elements import Panel
 from openglider.utils import consistent_value, linspace
 from openglider.utils.cache import CachedObject, cached_property, HashedList
 from openglider.vector import norm
+from openglider.mesh import Mesh
 
 
 class Cell(CachedObject):
@@ -210,3 +213,39 @@ class Cell(CachedObject):
         for y in numpy.linspace(0, 1, num_midribs)[1:]:
             mean_rib += self.midrib(y).flatten().normalize()
         return mean_rib * (1. / num_midribs)
+
+    def get_mesh(self,  numribs=0):
+        """
+        Get Cell-mesh
+        :param numribs: number of miniribs to calculate
+        :return: mesh
+        """
+        numribs += 1
+        # TODO: doesnt work for numribs=0?
+        xvalues = self.rib1.profile_2d.x_values
+        ribs = []
+        points = []
+        nums = []
+        count = 0
+        for rib_no in range(numribs + 1):
+            y = rib_no / max(numribs, 1)
+            midrib = self.midrib(y).data[:-1]
+            points += list(midrib)
+            nums.append([i + count for i, _ in enumerate(midrib)])
+            count += len(nums[-1])
+            nums[-1].append(nums[-1][0])
+            
+        quads = []
+        for rib_no, _ in enumerate(nums[:-1]):
+            num_l = nums[rib_no]
+            num_r = nums[rib_no + 1]
+            for i, _ in enumerate(num_l[:-1]):
+                quads.append([
+                    num_l[i],
+                    num_r[i],             
+                    num_r[i + 1],
+                    num_l[i + 1]])
+
+        connection_info = {self.rib1: numpy.array(nums[0][:-1], int), 
+                           self.rib2: numpy.array(nums[-1][:-1], int)}            
+        return Mesh(numpy.array(points), quads, connection_info)

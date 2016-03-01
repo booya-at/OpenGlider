@@ -4,14 +4,13 @@ import numpy
 
 from openglider.utils.cache import HashedList
 
-
 class Distribution(HashedList):
     def __init__(self, numpoints=20, dist_type=None, fix_points=[], type_arg=None):
         """
         distribution(num_points=20, type="cos", fix_points=[], dist_arg=None)
             return a list of ordered values between -1, 1 with the given fix_points
-        type: (None -> constant difference, cos", "cos_2", "nose_cos")
-        dist_arg: pass an additional argument"""
+        type: (None -> constant difference, "cos", "cos_2", "nose_cos")
+        type_arg: pass an additional argument"""
 
         self.data = self._values(dist_type, numpoints, type_arg)
         if fix_points:
@@ -42,8 +41,14 @@ class Distribution(HashedList):
             return nearest_ind
 
         start_ind = 0
+        values = [abs(i) for i in values if (i != 1 and i != -1)]
+        values = sorted(list(set(values)))
         for value in values:
             start_ind = _insert_value(value, start_ind)
+        temp = self.data.tolist()
+        temp = [i for i in temp if i >= 0]
+        temp = [-i for i in temp[::-1]][:-1] + temp
+        self.data = temp
 
     @staticmethod
     def cos_distribution(numpoints, arg=None):
@@ -75,8 +80,24 @@ class Distribution(HashedList):
             dist_values = [f(val) for val in dist_values]
             dist_values = dist_values[::-1][:-1] + list(-numpy.array(dist_values))
             return dist_values
-        return distribution(numpoints)
+        return distribution
 
     @staticmethod
     def std_distribution(numpoints, arg=None):
         return numpy.linspace(-1, 1, numpoints)
+
+    @staticmethod
+    def polynom_distribution(p):
+        """return a distribution f(x) = x ** p, 0 < x < 1"""
+        def distribution(numpoints):
+            dist_values = numpy.linspace(0, 1, int(numpoints / 2) + 1) ** p
+            dist_values = list(-dist_values[::-1])[:-1] + list(dist_values)
+            return dist_values
+        return distribution
+
+    @staticmethod
+    def from_glider(glider, dist_type=None):
+        insert_pts = [point.rib_pos for point in glider.attachment_points] + [0]
+        def distribution(numpoints):
+            return Distribution(numpoints, dist_type=dist_type, fix_points=insert_pts)
+        return distribution

@@ -1,41 +1,51 @@
 from __future__ import division
+import copy
 import numpy as np
 import meshpy.triangle as mptriangle
 from openglider.mesh.meshpy_triangle import custom_triangulation
+
 
 
 class Mesh(object):
     """
     Mesh Surface: vertices and polygons
     """
-    def __init__(self, vertices=None, polygons=None):
-        self.vertices = vertices
-        self.polygons = polygons or []
-        if vertices is None:
-            self.vertices = []
+    def __init__(self, vertices=None, polygons=None, connection=None):
+        self.vertices = vertices            # np array of all vertices
+        if self.vertices is None:
+            self.vertices = np.array([], float).reshape(0, 3)
+        self.polygons = polygons or []      # list of all element indices
+        self.connection = connection or {}  # store all the connection info
 
     @classmethod
-    def from_rib(cls, rib):
+    def from_rib(cls, rib, hole_num=10, mesh_option="Qzip"):
+        """ Y... no additional points on boarder
+            i... algorythm (other algo crash)
+            p... triangulation
+            q... quality
+            a... area constraint
+        """
         profile = rib.profile_2d
         triangle_in = {}
-        vertices = list(profile.data)
-        segments = [[i, i+1] for i, _ in enumerate(vertices[:-1])]
+        vertices = list(profile.data)[:-1]
+        connection = {rib: np.array(range(len(vertices)))}
+        segments = [[i, i+1] for i, _ in enumerate(vertices)]
         segments[-1][-1] = 0
-        triangle_in["vertices"] = vertices[:-1]
+        triangle_in["vertices"] = vertices
         triangle_in["segments"] = segments
 
         # adding the vertices and segments of the holes
         # to get TRIANGLE know where to remove triangles
         # a list of points which lay inside the holes
         # must be passed
-        if len(rib.holes) > 0:
+        if len(rib.holes) > 0 and hole_num > 3:
             triangle_in["holes"] = []
             for nr, hole in enumerate(rib.holes):
                 start_index = len(triangle_in["vertices"])
-                vertices = hole.get_flattened(rib, num=10, scale=False)
-                segments = [[i + start_index, i + start_index + 1] for i, _ in enumerate(vertices)]
+                hole_vertices = hole.get_flattened(rib, num=hole_num, scale=False)
+                segments = [[i + start_index, i + start_index + 1] for i, _ in enumerate(hole_vertices)]
                 segments[-1][-1] = start_index
-                triangle_in["vertices"] += vertices
+                triangle_in["vertices"] += hole_vertices
                 triangle_in["segments"] += segments
                 triangle_in["holes"].append(hole.get_center(rib, scale=False).tolist())
 
@@ -45,19 +55,20 @@ class Mesh(object):
         mesh_info.set_facets(triangle_in["segments"])
         if "holes" in triangle_in:
             mesh_info.set_holes(triangle_in["holes"])
-        mesh = custom_triangulation(mesh_info, "Qzip")
+        mesh = custom_triangulation(mesh_info, mesh_option)  # see triangle options
         try:
-            # vertices = rib.align_all(_triangle_output["vertices"])
-            # triangles = _triangle_output["triangles"]
-            vertices = rib.align_all(np.array(mesh.points))
             triangles = list(mesh.elements)
+            vertices = rib.align_all(mesh.points)
         except KeyError:
-            print("there was an keyerror")
+            print("there was a keyerror")
             return cls()
-        return cls(vertices, triangles)
+        return cls(vertices, triangles, connection)
 
     @classmethod
-    def from_diagonal(cls, diagonal, cell, insert_points=0):
+    def from_diagonal(cls, diagonal, cell, insert_points=4):
+        """
+        get a mesh from a diagonal (2 poly lines)
+        """
         left, right = diagonal.get_3d(cell)
         if insert_points:
             point_array = []
@@ -98,6 +109,7 @@ class Mesh(object):
             polygon = [range(len(vertices))]
             return cls(vertices, polygon)
 
+
     def copy(self):
         poly_copy = [p[:] for p in self.polygons]
         return self.__class__(self.vertices, poly_copy)
@@ -123,23 +135,46 @@ class Mesh(object):
         }
 
     def __add__(self, other):
-        new_mesh = Mesh()
-        new_mesh += self
-        new_mesh += other
+        """adding two mesh objects"""
+        # copy the mesh, otherwise the input mesh get changed
+        new_mesh = Mesh(copy.copy(self.vertices), 
+                        copy.copy(self.polygons), 
+                        copy.copy(self.connection))
+        # translate to a python list for easier manipulation
+        vertices_list = self.vertices.tolist()
+        count = len(vertices_list)
+        # connection information stored in both meshes
+        intersections = (set(self.connection.keys()) &
+                         set(other.connection.keys()))
+        # create a map from connection info
+        connect_rules = dict()
+        for intersect in intersections:
+            for j, index in enumerate(other.connection[intersect]):
+                connect_rules[index] = self.connection[intersect][j]
+        # mapping other.vertices
+        replace_rules = dict()
+        for i, vertex in enumerate(other.vertices):
+            value = connect_rules.get(i)
+            if value is not None:
+                replace_rules[i] = value
+                count -= 1
+            else:
+                replace_rules[i] = i+count
+                vertices_list.append(vertex)
+        # apply the replacement rules
+        new_mesh.polygons += [
+            [replace_rules[index] for index in pol] for pol in other.polygons]
+        new_mesh.vertices = np.array(vertices_list)
+        
+        for key in other.connection.keys():
+            if key not in intersections:
+                new_mesh.connection[key] = [
+                    replace_rules[value] for value in other.connection[key]]
         return new_mesh
 
+
     def __iadd__(self, other):
-        start_value = len(self.vertices)
-        new_other_polygons = [[val + start_value for val in tri] for tri in other.polygons]
-        self.polygons = self.polygons + new_other_polygons
-
-        if len(self.vertices) == 0:
-            self.vertices = other.vertices
-        elif len(other.vertices) == 0:
-            pass
-        else:
-            self.vertices = np.concatenate([self.vertices, other.vertices])
-
+        self = self + other
         return self
 
 

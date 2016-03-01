@@ -48,10 +48,13 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     balloonings = []
     for name, baloon in transpose_columns(sheets[4]):
         if baloon:
-            upper = [[0, 0]] + baloon[:8] + [[1, 0]]
-            lower = [[0, 0]] + [[i[0], -1 * i[1]] for i in baloon[8:16]] + [[1, 0]]
-            print(upper)
-            print(lower)
+            i = 0
+            while baloon[i+1][0] > baloon[i][0]:
+                i += 1
+
+            upper = baloon[:i+1]
+            lower = baloon[i+1:]
+
             balloonings.append(BallooningBezier(upper, lower, name=name))
 
     data = {}
@@ -80,15 +83,14 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     # CUTS
     def get_cuts(names, target_name):
         objs = []
-        for name in names:
-            objs += read_elements(sheets[1], name, len_data=2)
+        for name_src in names:
+            objs += read_elements(sheets[1], name_src, len_data=2)
 
-        cuts = [{"cells": res[0], "left": res[1], "right": res[2], "type": target_name}
-                for res in objs]
+        cuts_this = [{"cells": cut[0], "left": float(cut[1]), "right": float(cut[2]), "type": target_name} for cut in objs]
 
-        return group(cuts, "cells")
+        return group(cuts_this, "cells")
 
-    cuts = get_cuts(["EKV", "EKH", "orthogonal"], "folded")
+    cuts = get_cuts(["EKV", "EKH", "folded"], "folded")
     cuts += get_cuts(["DESIGNM", "DESIGNO", "orthogonal"], "orthogonal")
 
     # Diagonals: center_left, center_right, width_l, width_r, height_l, height_r
@@ -288,47 +290,53 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
     num_rows = sheet.nrows()
     num_cols = sheet.ncols()
     linelist = []
-    current_nodes = [None for i in range(num_cols)]
-    i = j = level = 0
+    current_nodes = [None for row in range(num_cols)]
+    row = 0
+    column = 0
     count = 0
 
-    while i < num_rows:
-        val = sheet.get_cell([i, j]).value  # length or node_no
-        if j == 0:  # first (line-)floor
-            if val is not None:
-                current_nodes = [attachment_points_lower[int(sheet.get_cell([i, j]).value)]] + \
+    while row < num_rows:
+        value = sheet.get_cell([row, column]).value  # length or node_no
+
+        if value is not None:
+            if column == 0:  # first (line-)floor
+                current_nodes = [attachment_points_lower[int(sheet.get_cell([row, 0]).value)]] + \
                                 [None for __ in range(num_cols)]
-            j += 1
-        elif j + 2 < num_cols:
-            if val is None:  # ?
-                j += 2
+                column += 1
+
             else:
                 # We have a line
-                line_type_name = sheet.get_cell([i, j + 1]).value
+                line_type_name = sheet.get_cell([row, column + 1]).value
 
-                lower_node = current_nodes[j // 2]
+                lower_node = current_nodes[column // 2]
 
                 # gallery
-                if j + 2 >= num_cols-1 or sheet.get_cell([i, j + 2]).value is None:
+                if column + 2 >= num_cols-1 or sheet.get_cell([row, column + 2]).value is None:
 
-                    upper = attachment_points_upper[val]
+                    upper = attachment_points_upper[value]
                     line_length = None
-                    i += 1
-                    j = 0
+                    row += 1
+                    column = 0
                 # other line
                 else:
                     upper = BatchNode2D([0, 0])
-                    current_nodes[j // 2 + 1] = upper
-                    line_length = sheet.get_cell([i, j]).value
-                    j += 2
+                    current_nodes[column // 2 + 1] = upper
+                    line_length = sheet.get_cell([row, column]).value
+                    column += 2
 
                 linelist.append(
                     Line2D(lower_node, upper, target_length=line_length, line_type=line_type_name))
                 count += 1
 
-        elif j + 2 >= num_cols:
-            j = 0
-            i += 1
+        else:
+            if column == 0:
+                column += 1
+            elif column + 2 >= num_cols:
+                row += 1
+                column = 0
+            else:
+                column += 2
+
     return LineSet2D(linelist)
 
 
@@ -340,16 +348,18 @@ def read_elements(sheet, keyword, len_data=2):
     """
 
     elements = []
-    j = 0
-    while j < sheet.ncols():
-        if sheet.get_cell([0, j]).value == keyword:
-            for i in range(1, sheet.nrows()):
-                line = [sheet.get_cell([i, j + k]).value for k in range(len_data)]
+    column = 0
+    while column < sheet.ncols():
+        if sheet.get_cell([0, column]).value == keyword:
+            #print("found, ", j, sheet[0, j].value, sheet.ncols(), sheet[1, j].value)
+            for row in range(1, sheet.nrows()):
+                line = [sheet.get_cell([row, column + k]).value for k in range(len_data)]
+                #print(line)
                 if line[0] is not None:
-                    elements.append([i - 1] + line)
-            j += len_data
+                    elements.append([row - 1] + line)
+            column += len_data
         else:
-            j += 1
+            column += 1
     return elements
 
 

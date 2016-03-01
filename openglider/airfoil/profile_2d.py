@@ -23,6 +23,7 @@ import math
 import numpy
 
 from openglider.utils.cache import HashedList
+from openglider.utils.distribution import Distribution
 from openglider.vector.functions import norm_squared
 from openglider.vector.polygon import Polygon2D
 
@@ -187,45 +188,6 @@ class Profile2D(Polygon2D):
                           mean_camber - thickness_this * costheta])
         return cls(upper + lower[::-1][1:], name="NACA_" + str(naca))
 
-    @staticmethod
-    def cos_distribution(numpoints):
-        """
-        return cosinus distributed x-values
-        """
-        numpoints -= numpoints % 2
-        xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 - math.sin(math.pi * x))
-        return [xtemp(i/numpoints) for i in range(numpoints+1)]
-
-    @staticmethod
-    def cos_2_distribution(numpoints):
-        """
-        return cosinus distributed x-values
-        double-cosinus -> neat distribution at nose and trailing edge
-        """
-        numpoints -= numpoints % 2
-        xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 + math.cos(2 * math.pi * x)) / 2
-        return [xtemp(i/numpoints) for i in range(numpoints+1)]
-
-    @staticmethod
-    def nose_cos_distribution(pos=0.5):
-        """from cos distribution at leading edge, to a const distribution ad trailing edge"""
-        def distribution(numpoints):
-            def f(x):
-                return x ** 2 / ((-2 + pos) * pos) if x < pos else (2 * x - pos)/(-2 + pos)
-            dist_values = numpy.linspace(0, 1, int(numpoints / 2) + 1)
-            dist_values = [f(val) for val in dist_values]
-            dist_values = dist_values[::-1][:-1] + list(-numpy.array(dist_values))
-            return dist_values
-        return distribution
-
-    @staticmethod
-    def polynom_distribution(p):
-        """return a distribution f(x) = x ** p, 0 < x < 1"""
-        def distribution(numpoints):
-            dist_values = numpy.linspace(0, 1, int(numpoints / 2) + 1) ** p
-            dist_values = list(-dist_values[::-1])[:-1] + list(dist_values)
-            return dist_values
-        return distribution
 
     #@cached_property('self')
     @property
@@ -246,7 +208,7 @@ class Profile2D(Polygon2D):
 
     @numpoints.setter
     def numpoints(self, numpoints):
-        self.x_values = self.cos_distribution(numpoints)
+        self.x_values = Distribution.cos_distribution(numpoints)
 
     #todo: cached
     #@cached_property('self')
