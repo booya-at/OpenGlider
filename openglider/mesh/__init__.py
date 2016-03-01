@@ -11,6 +11,8 @@ class Mesh(object):
     def __init__(self, vertices=None, polygons=None):
         self.vertices = vertices
         self.polygons = polygons or []
+        if vertices is None:
+            self.vertices = []
 
     @classmethod
     def from_rib(cls, rib):
@@ -121,29 +123,24 @@ class Mesh(object):
         }
 
     def __add__(self, other):
-        if None in (other.vertices, other.polygons):
-            return self
-        if None in (self.vertices, self.polygons):
-            return other
-        else:
-            new_mesh = Mesh()
-            new_mesh.vertices = np.concatenate([self.vertices, other.vertices])
-            start_value = float(len(self.vertices))
-            new_other_polygons = [[val + start_value for val in tri] for tri in other.polygons]
-            new_mesh.polygons = self.polygons + new_other_polygons
-            return new_mesh
+        new_mesh = Mesh()
+        new_mesh += self
+        new_mesh += other
+        return new_mesh
 
     def __iadd__(self, other):
-        if None in (other.vertices, other.polygons):
-            return self
-        if None in (self.vertices, self.polygons):
-            return other
+        start_value = len(self.vertices)
+        new_other_polygons = [[val + start_value for val in tri] for tri in other.polygons]
+        self.polygons = self.polygons + new_other_polygons
+
+        if len(self.vertices) == 0:
+            self.vertices = other.vertices
+        elif len(other.vertices) == 0:
+            pass
         else:
-            start_value = float(len(self.vertices))
-            new_other_polygons = [[val + start_value for val in tri] for tri in other.polygons]
-            self.polygons = self.polygons + new_other_polygons
             self.vertices = np.concatenate([self.vertices, other.vertices])
-            return self
+
+        return self
 
 
 def apply_z(vertices):
