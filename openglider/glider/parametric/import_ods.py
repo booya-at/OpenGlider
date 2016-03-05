@@ -23,7 +23,7 @@ element_keywords = {
 }
 
 
-def import_ods_2d(Glider2D, filename, numpoints=4):
+def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     ods = ezodf.opendoc(filename)
     sheets = ods.sheets
 
@@ -136,8 +136,9 @@ def import_ods_2d(Glider2D, filename, numpoints=4):
                          glide=data.get("GLEITZAHL", 10),
                          **geometry)
 
-    #glider_3d = glider_2d.get_glider_3d()
-    #glider_2d.lineset.set_default_nodes2d_pos(glider_3d)
+    if calc_lineset_nodes:
+        glider_3d = glider_2d.get_glider_3d()
+        glider_2d.lineset.set_default_nodes2d_pos(glider_3d)
     return glider_2d
 
 

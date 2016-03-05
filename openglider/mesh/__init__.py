@@ -213,7 +213,6 @@ class Mesh(object):
         self.vertices = np.array([point for j, point in enumerate(self.vertices) if j in sorted_indices])
 
 
-
 def apply_z(vertices):
     v = vertices.T
     return np.array([v[0], np.zeros(len(v[0]), v[1])]).T
