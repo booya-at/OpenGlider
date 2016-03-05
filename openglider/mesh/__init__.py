@@ -11,6 +11,12 @@ class Mesh(object):
     Mesh Surface: vertices and polygons
     """
     def __init__(self, vertices=None, polygons=None, connection=None):
+        """ A mesh has vertices, polygons and connection information.
+            polygons can be:
+                line (2 indices)
+                triangle (3 vertices)
+                quadrangle (4 vertices)
+        """
         self.vertices = vertices            # np array of all vertices
         if self.vertices is None:
             self.vertices = np.array([], float).reshape(0, 3)
@@ -172,10 +178,39 @@ class Mesh(object):
                     replace_rules[value] for value in other.connection[key]]
         return new_mesh
 
-
     def __iadd__(self, other):
         self = self + other
         return self
+
+    def delete_duplicates(self, min_dist=10**(-10)):
+        """delete points that are close to each other"""
+        replace_dict = {}
+        for i, point_i in enumerate(self.vertices[:-1]):
+            if not i in replace_dict:
+                for j, point_j in enumerate(self.vertices[i+1:]):
+                    _j = j + i + 1
+                    if not _j in replace_dict:
+                        if np.linalg.norm(point_j - point_i) < min_dist:
+                            replace_dict[_j] = i
+        for j, point_j in enumerate(self.vertices):
+            if j not in replace_dict:
+                replace_dict[j] = j
+        self.apply_rules(replace_dict)
+        self.delete_vertices_not_used()
+
+    def apply_rules(self, rules):
+        """apply a dict of replacement rules to the polygons"""
+        self.polygons = [[rules[index] for index in pol] for pol in self.polygons]
+        new_connection_info = {}
+        for key in self.connection:
+            new_connection_info[key] = [rules[i] for i in self.connection[key]]
+        self.connection = new_connection_info
+
+    def delete_vertices_not_used(self):
+        """delete all vertices not used in the polygons"""
+        sorted_indices = list(sorted(set(index for pol in self.polygons for index in pol)))#
+        self.apply_rules({value: j for j, value in enumerate(sorted_indices)})
+        self.vertices = np.array([point for j, point in enumerate(self.vertices) if j in sorted_indices])
 
 
 
@@ -201,16 +236,7 @@ def map_to_2d(points):
             
 
 if __name__ == "__main__":
-    a = Mesh()
-    b = Mesh()
-    a.vertices = np.array([[0,0],[1,2],[2,3]])
-    b.vertices = np.array([[0,0],[1,2],[2,3]])
-    a.outer_faces = np.array([[0, 1, 2]])
-    b.outer_faces = np.array([[0, 1, 2]])
-    a.triangles = np.array([[0, 1, 2]])
-    b.triangles = np.array([[0, 1, 2]])
+    a = Mesh(np.array([[0,0,0], [0,1,0], [1,0,0]]), [[0,1,2]])
+    b = Mesh(np.array([[0,0,0], [0,1,0], [-1,0,0]]), [[0,2,1]])
     c = a + b
-    print(c.triangles)
-
-
-
+    c.delete_duplicates(0.1)
