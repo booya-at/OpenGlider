@@ -2,7 +2,6 @@ import collections
 
 from openglider.plots import DrawingArea
 from openglider.plots.glider.cell import PanelPlotMaker
-from openglider.plots.glider.dribs import get_dribs
 from openglider.plots.glider.ribs import RibPlot
 
 
@@ -18,30 +17,37 @@ class PlotMaker(object):
     allowance_trailing_edge = 0.024
     allowance_entry_open = 0.015
 
-    def __init__(self, glider):
-        self.glider = glider
+    def __init__(self, glider_3d):
+        self.glider_3d = glider_3d
 
-        self.panels = None
+        self.panels = collections.OrderedDict()
+        self.dribs = collections.OrderedDict()
+        self.ribs = []
 
     def get_panels(self):
-        self.panels = collections.OrderedDict()
-        self.ribs = []
-        for cell in self.glider.cells:
-            panels = PanelPlotMaker(cell).get_panels(self.glider.attachment_points)
+        self.panels.clear()
+        for cell in self.glider_3d.cells:
+            panels = PanelPlotMaker(cell).get_panels(self.glider_3d.attachment_points)
             self.panels[cell] = panels
 
         return self.panels
 
     def get_ribs(self):
-        for rib in self.glider.ribs:
+        self.ribs.clear()
+        for rib in self.glider_3d.ribs:
             rib_plot = RibPlot(rib)
             rib_plot.allowance_general = self.allowance_general
             rib_plot.allowance_trailing_edge = self.allowance_trailing_edge
-            rib_plot.flatten(self.glider)
+            rib_plot.flatten(self.glider_3d)
             self.ribs.append(rib_plot.plotpart)
 
     def get_dribs(self):
-        pass
+        self.dribs.clear()
+        for cell in self.glider_3d.cells:
+            dribs = PanelPlotMaker(cell).get_dribs()
+            self.dribs[cell] = dribs
+
+        return self.dribs
 
     def unwrap(self):
         self.get_panels()

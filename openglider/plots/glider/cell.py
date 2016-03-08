@@ -13,6 +13,9 @@ class PanelPlotMaker:
     allowance_trailing_edge = 0.012  # design
     allowance_design = 0.012  # trailing_edge
 
+    allowance_drib_folds = 0.012
+    allowance_drib_num_folds = 1
+
     insert_attachment_point_text = True
 
     def __init__(self, cell):
@@ -23,7 +26,7 @@ class PanelPlotMaker:
         self.outer = None
         self.outer_orig = None
 
-    def flatten_cell(self):
+    def _flatten_cell(self):
         # assert isinstance(cell, Cell)
         left, right = openglider.plots.projection.flatten_list(self.cell.prof1,
                                                                self.cell.prof2)
@@ -48,11 +51,11 @@ class PanelPlotMaker:
         attachment_points = attachment_points or []
         cell_parts = []
         self.x_values = self.cell.rib1.profile_2d.x_values
-        self.flatten_cell()
+        self._flatten_cell()
 
         for part_no, panel in enumerate(self.cell.panels):
-            plotpart = self.get_panel(panel)
-            self.insert_attachment_points(panel, plotpart, attachment_points)
+            plotpart = self._get_panel(panel)
+            self._insert_attachment_points(panel, plotpart, attachment_points)
             cell_parts.append(plotpart)
 
             # add marks for
@@ -61,7 +64,7 @@ class PanelPlotMaker:
 
         return cell_parts
 
-    def get_panel(self, panel):
+    def _get_panel(self, panel):
         plotpart = PlotPart(material_code=panel.material_code, name=panel.name)
 
         cut_allowances = {
@@ -69,7 +72,6 @@ class PanelPlotMaker:
             "parallel": self.allowance_trailing_edge,
             "orthogonal": self.allowance_design
         }
-
 
         front_left = get_x_value(self.x_values, panel.cut_front["left"])
         back_left = get_x_value(self.x_values, panel.cut_back["left"])
@@ -153,8 +155,7 @@ class PanelPlotMaker:
         else:
             plotpart.layers["cuts"].append(envelope)
 
-
-        self.insert_text(panel, plotpart)
+        self._insert_text(panel, plotpart)
 
         return plotpart
 
@@ -168,7 +169,7 @@ class PanelPlotMaker:
 
         return self.ballooned[which][ik], self.outer_orig[which][ik]
 
-    def insert_text(self, panel, plotpart):
+    def _insert_text(self, panel, plotpart):
         left = get_x_value(self.x_values, panel.cut_front["left"])
         right = get_x_value(self.x_values, panel.cut_front["right"])
         text = panel.name
@@ -181,7 +182,7 @@ class PanelPlotMaker:
                          height=0.8).get_vectors()
         plotpart.layers["text"] += part_text
 
-    def insert_attachment_points(self, panel, plotpart, attachment_points):
+    def _insert_attachment_points(self, panel, plotpart, attachment_points):
         for attachment_point in attachment_points:
             if attachment_point.rib == self.cell.rib1:
                 align = "left"
@@ -201,3 +202,56 @@ class PanelPlotMaker:
                                                     align=align, valign=-0.5).get_vectors()
 
                 plotpart.layers["marks"] += [PolyLine2D(self.get_p1_p2(attachment_point.rib_pos, which))]
+
+    def get_dribs(self):
+        dribs = []
+        for drib in self.cell.diagonals:
+            dribs.append(self._get_drib(drib))
+
+        return dribs
+
+    def _get_drib(self, d_rib):
+        plotpart = PlotPart(material_code=d_rib.material_code, name=d_rib.name)
+        left, right = d_rib.get_flattened(self.cell)
+        left_out = left.copy()
+        right_out = right.copy()
+
+        alw2 = self.allowance_drib_folds
+
+        left_out.add_stuff(-self.allowance_general)
+        right_out.add_stuff(self.allowance_general)
+
+        if self.allowance_drib_num_folds > 0:
+            cut_front = cuts["folded"]([[left, 0], [right, 0]],
+                                       left_out,
+                                       right_out,
+                                       -alw2,
+                                       num_folds=1)
+            cut_back = cuts["folded"]([[left, len(left) - 1],
+                                       [right, len(right) - 1]],
+                                      left_out,
+                                      right_out,
+                                      alw2,
+                                      num_folds=1)
+
+        else:
+            raise NotImplementedError
+
+        # print("left", left_out[cut_front[1]:cut_back[1]].get_length())
+        plotpart.layers["cuts"] += [left_out[cut_front[1]:cut_back[1]] +
+                                    PolyLine2D(cut_back[0]) +
+                                    right_out[cut_front[2]:cut_back[2]:-1] +
+                                    PolyLine2D(cut_front[0])[::-1]]
+
+        plotpart.layers["marks"].append(PolyLine2D([left[0], right[0]]))
+        plotpart.layers["marks"].append(PolyLine2D([left[len(left)-1], right[len(right)-1]]))
+
+        #print(left, right)
+
+        plotpart.layers["stitches"] += [left, right]
+        #print(left[0], right[0])
+        #plotpart.stitches.append(left)
+
+        plotpart.layers["text"] += Text(" {} ".format(d_rib.name), left[0], right[0], valign=0.6).get_vectors()
+
+        return plotpart

@@ -281,7 +281,7 @@ def get_lines_sheet(glider, places=3):
     return ods_sheet
 
 def get_data_sheet(glider):
-    ods_sheet = ezodf.Sheet(name="Data", size=(1,10))
+    ods_sheet = ezodf.Sheet(name="Data", size=(3, 10))
     ods_sheet[0,0].set_value("Data")
     current_row = 1
     # lower attachment_points
@@ -291,6 +291,14 @@ def get_data_sheet(glider):
             ods_sheet[current_row + i, 0].set_value("AHP{}{}".format(axis, pt_no))
             ods_sheet[current_row + i, 1].set_value(att_pt.pos_3D[i])
         current_row += 3
+
+    ods_sheet[current_row, 0].set_value("SPEED")
+    ods_sheet[current_row, 1].set_value(glider.speed)
+
+    ods_sheet[current_row+1, 0].set_value("GLIDE")
+    ods_sheet[current_row+1, 1].set_value(glider.glide)
+
+
 
     return ods_sheet
 

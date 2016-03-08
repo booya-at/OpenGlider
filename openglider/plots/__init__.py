@@ -22,7 +22,6 @@ import openglider.plots.projection
 from openglider.plots.cuts import cuts
 from openglider.plots.part import PlotPart, DrawingArea
 from openglider.plots.glider import PlotMaker
-from openglider.plots.glider.dribs import get_dribs
 
 
 def flatten_glider(glider):
@@ -34,11 +33,11 @@ def flatten_glider(glider):
 
     panels = plotter.panels
     ribs = plotter.ribs
-    dribs = get_dribs(glider)
+    dribs = plotter.dribs
 
     plots['panels'] = DrawingArea.create_raster(panels.values())
     plots['ribs'] = DrawingArea.create_raster([ribs])
-    plots["dribs"] = DrawingArea.create_raster(dribs)
+    plots["dribs"] = DrawingArea.create_raster(dribs.values())
 
     return plots
 
