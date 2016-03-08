@@ -1,5 +1,7 @@
 import copy
 
+import numpy
+
 
 class Layers(object):
     def __init__(self, **layers):
@@ -120,12 +122,14 @@ class PlotPart(object):
                 polyline.rotate(angle)
 
     def move(self, vector):
-        for layer in self.layers.values():
+        for layer_name, layer in self.layers.items():
             for vectorlist in layer:
                 vectorlist.move(vector)
 
     def move_to(self, vector):
-        self.move([vector[0] - self.min_x, vector[1] - self.min_y])
+        minx = self.min_x
+        miny = self.min_y
+        self.move([vector[0] - minx, vector[1] - miny])
 
     def intersects(self, other):
         """
@@ -144,6 +148,26 @@ class PlotPart(object):
     @property
     def area(self):
         return self.width * self.height
+
+    def minimize_area(self):
+        new_part = self.copy()
+        area = new_part.area
+        width = new_part.width
+        height = new_part.height
+        rotation = 0
+        for alpha in range(1, 90):
+            new_part.rotate(numpy.pi/180)
+            if new_part.area < area:
+                rotation = alpha
+                area = new_part.area
+                width = new_part.width
+                height = new_part.height
+
+        if width < height:
+            rotation -= 90
+
+        self.rotate(rotation*numpy.pi/180)
+        return self
 
     def scale(self, factor):
         for layer in self.layers.values():

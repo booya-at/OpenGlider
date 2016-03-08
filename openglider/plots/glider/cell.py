@@ -153,7 +153,7 @@ class PanelPlotMaker:
 
             plotpart.layers["cuts"].append(panel_front)
         else:
-            plotpart.layers["cuts"].append(envelope)
+            plotpart.layers["cuts"].append(envelope.copy())
 
         self._insert_text(panel, plotpart)
 

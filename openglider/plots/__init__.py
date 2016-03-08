@@ -17,28 +17,81 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
+import os
+import subprocess
 
 import openglider.plots.projection
+from openglider import jsonify
+from openglider.plots import spreadsheets
 from openglider.plots.cuts import cuts
 from openglider.plots.part import PlotPart, DrawingArea
 from openglider.plots.glider import PlotMaker
 
 
-def flatten_glider(glider):
-    plots = {}
+def unwrap(glider2d, outdir, sheet_height=1.45, part_dist=0.025, parts_prefix=""):
+    def fn(filename):
+        return os.path.join(outdir, filename)
 
-    # Panels!
-    plotter = PlotMaker(glider)
-    plotter.unwrap()
+    subprocess.call("mkdir -p {}".format(outdir), shell=True)
+    subprocess.call("mkdir -p {}".format(fn("dxf_2000")), shell=True)
+    subprocess.call("mkdir -p {}".format(fn("dxf_2007")), shell=True)
+    subprocess.call("mkdir -p {}".format(fn("svg")), shell=True)
+    subprocess.call("mkdir -p {}".format(fn("ntv")), shell=True)
 
-    panels = plotter.panels
-    ribs = plotter.ribs
-    dribs = plotter.dribs
+    print("get glider 3d")
+    glider = glider2d.get_glider_3d()
+    glider_complete = glider.copy_complete()
+    glider_complete.rename_parts()
+    print("flatten glider")
 
-    plots['panels'] = DrawingArea.create_raster(panels.values())
-    plots['ribs'] = DrawingArea.create_raster([ribs])
-    plots["dribs"] = DrawingArea.create_raster(dribs.values())
+    plots = PlotMaker(glider)
+    plots.unwrap()
 
-    return plots
+    all_stacked = plots.get_all_stacked()
+    all_grouped = plots.get_all_grouped()
+
+    with open(fn("patterns.json"), "w") as outfile:
+        jsonify.dump(all_stacked, outfile)
+
+    print("packing")
+
+    for material_name, pattern in all_grouped.items():
+        #new = packer.QuickPacker(pattern).pack()
+        new = pattern.copy()
+        new.rasterize()
+        new.scale(1000)  # m -> mm
+
+        new.export_svg(fn("svg/plots_{}.svg".format(material_name)))
+        new.export_dxf(fn("dxf_2000/plots_{}.dxf".format(material_name)))
+        new.export_dxf(fn("dxf_2007/plots_{}.dxf".format(material_name)), "AC1021")
+        new.export_ntv(fn("ntv/plots_{}.ntv".format(material_name)))
+    #sort_and_pack(outdir, all_parts, sheet_height, part_dist, part_dist)
+
+    stacked_all = DrawingArea()
+    for pattern in all_stacked.values():
+        stacked_all.join(pattern)
+
+    stacked_all.export_svg("svg/plots_all.svg")
+    stacked_all.export_dxf(fn("dxf_2000/plots_all.dxf"))
+    stacked_all.export_dxf(fn("dxf_2007/plots_all.dxf"), "AC1021")
+    stacked_all.export_ntv(fn("ntv/plots_all.ntv"))
 
 
+
+    # ribs = packer.pack_parts(parts["ribs"].parts, sheet_size=sheet_size)
+    # panels = packer.pack_parts(parts["panels"].parts, sheet_size=sheet_size)
+
+    # for sheet_no, sheet in enumerate(ribs):
+    #     openglider.plots.create_svg(sheet, fn("ribs_{}".format(sheet_no)))
+    # for sheet_no, sheet in enumerate(panels):
+    #     openglider.plots.create_svg(sheet, fn("panels_{}".format(sheet_no)))
+
+    print("create sketches")
+    import openglider.plots.sketches
+    sketches = openglider.plots.sketches.get_all_plots(glider2d, glider)
+    for sketch_name, sketch in sketches.items():
+        sketch.export_svg(fn(sketch_name+".svg"), add_styles=True)
+
+    print("output spreadsheets")
+    excel = openglider.plots.spreadsheets.get_glider_data(glider)
+    excel.saveas(os.path.join(outdir, "data.ods"))

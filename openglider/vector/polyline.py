@@ -223,7 +223,8 @@ class PolyLine2D(PolyLine):
         Move the whole line
         """
         assert len(vector) == 2
-        self.data += vector
+        #print(vector)
+        self.data += vector[:]
 
         return self
 

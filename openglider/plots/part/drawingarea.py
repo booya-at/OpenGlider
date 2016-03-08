@@ -25,6 +25,48 @@ class DrawingArea():
         return self.__class__([p.copy() for p in self.parts])
 
     @classmethod
+    def stack_horizontal(cls, parts, distance_x, distance_y):
+        """
+
+        :param parts:
+        :param distance_x:
+        :param distance_y:
+        :return: DrawingArea
+        """
+        rows = len(parts)
+        columns = max(len(row) for row in parts)
+        parts_copy = [[p.copy() for p in row] for row in parts]
+        all_parts = []
+
+        heights = [0 for _ in range(rows)]
+        widths = [0 for _ in range(columns)]
+
+        for row_no, row in enumerate(parts_copy):
+            # vertical
+
+            for column_no, part in enumerate(row):
+                # horizontal
+                part.minimize_area()
+                #part.move([-part.min_x, -part.min_y])
+
+                widths[column_no] = max(widths[column_no], part.width)
+                heights[row_no] = max(heights[row_no], part.height)
+
+        y = 0
+        for row_no, row in enumerate(parts):
+            x = 0
+            for column_no, part in enumerate(row):
+                part.move_to([x, y])
+
+                x += widths[column_no] + distance_x
+
+            y += heights[row_no] + distance_y
+            all_parts += row
+
+        return cls(all_parts)
+
+
+    @classmethod
     def create_raster(cls, parts, distance_x=0.2, distance_y=0.1):
         """
 
