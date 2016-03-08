@@ -1,11 +1,10 @@
 from __future__ import division
 import copy
-import itertools
 import numpy
+
 from openglider.airfoil import Profile3D
 from openglider.glider.ballooning import Ballooning
 from openglider.glider.cell import BasicCell
-from openglider.glider.cell.elements import Panel
 from openglider.utils import consistent_value, linspace
 from openglider.utils.cache import CachedObject, cached_property, HashedList
 from openglider.vector import norm
@@ -16,12 +15,13 @@ class Cell(CachedObject):
     diagonal_naming_scheme = "{cell.name}d{diagonal_no}"
     strap_naming_scheme = "{cell.name}s{strap_no}"
     panel_naming_scheme = "{cell.name}p{panel_no}"
+    minirib_naming_scheme = "{cell.name}mr{minirib_no}"
 
     def __init__(self, rib1, rib2, ballooning, miniribs=None, panels=None,
                  diagonals=None, straps=None, name="unnamed"):
         self.rib1 = rib1
         self.rib2 = rib2
-        self._miniribs = miniribs or []
+        self.miniribs = miniribs or []
         self.diagonals = diagonals or []
         self.straps = straps or []
         self.ballooning = ballooning
@@ -32,7 +32,7 @@ class Cell(CachedObject):
         return {"rib1": self.rib1,
                 "rib2": self.rib2,
                 "ballooning": self.ballooning,
-                "miniribs": self._miniribs,
+                "miniribs": self.miniribs,
                 "diagonals": self.diagonals,
                 "panels": self.panels,
                 "straps": self.straps}
@@ -47,25 +47,20 @@ class Cell(CachedObject):
         for panel_no, panel in enumerate(self.panels):
             panel.name = self.panel_naming_scheme.format(cell=self, panel=panel, panel_no=panel_no)
 
-
-    def add_minirib(self, minirib):
-        """add a minirib to the cell.
-         Minirib should be within borders, otherwise a ValueError will be thrown
-         profile:
-        """
-        self._miniribs.append(minirib)
+        for minirib_no, minirib in enumerate(self.miniribs):
+            minirib.name = self.minirib_naming_scheme.format(cell=self, minirib=minirib, minirib_no=minirib_no)
 
     @cached_property('rib1.profile_3d', 'rib2.profile_3d', 'ballooning_phi')
     def basic_cell(self):
         return BasicCell(self.rib1.profile_3d, self.rib2.profile_3d, self.ballooning_phi)
 
-    @cached_property('_miniribs', 'rib1', 'rib2')
+    @cached_property('miniribs', 'rib1', 'rib2')
     def rib_profiles_3d(self):
         """
         Get all the ribs 3d-profiles, including miniribs
         """
         profiles = [self.rib1.profile_3d]
-        profiles += [self._make_profile3d_from_minirib(mrib) for mrib in self._miniribs]
+        profiles += [self._make_profile3d_from_minirib(mrib) for mrib in self.miniribs]
         profiles += [self.rib2.profile_3d]
 
         return profiles
@@ -76,7 +71,7 @@ class Cell(CachedObject):
         shape_with_ballooning = self.basic_cell.midrib(minirib.y_value,
                                                        True).data
         shape_without_ballooning = self.basic_cell.midrib(minirib.y_value,
-                                                          True).data
+                                                          False).data
         points = []
         for xval, with_bal, without_bal in zip(
                 self.x_values, shape_with_ballooning, shape_without_ballooning):
@@ -94,23 +89,25 @@ class Cell(CachedObject):
         cells = []
         for leftrib, rightrib in zip(self.rib_profiles_3d[:-1], self.rib_profiles_3d[1:]):
             cells.append(BasicCell(leftrib, rightrib, ballooning=[]))
-        if not self._miniribs:
+        if not self.miniribs:
             return cells
-        ballooning = [self.rib1.ballooning[x] + self.rib2.ballooning[x] for x in self.x_values]
-        #for i in range(len(first.data)):
-        for index, (bl, left_point, right_point) in enumerate(itertools.izip(
-                ballooning, self.rib1.profile_3d.data, self.rib2.profile_3d.data
-        )):
+
+        for index, xvalue in enumerate(self.x_values):
+            left_point = self.rib1.profile_3d.data[index]
+            right_point = self.rib2.profile_3d.data[index]
+            bl = self.ballooning[xvalue]
+
             l = norm(right_point - left_point)  # L
             lnew = sum([norm(c.prof1.data[index] - c.prof2.data[index]) for c in cells])  # L-NEW
+
             for c in cells:
-                newval = lnew / l / bl if bl != 0 else 1
-                if newval < 1.:
-                    c.ballooning_phi.append(Ballooning.arcsinc(newval))  # B/L NEW 1 / (bl * l / lnew)
+                if bl > 0:
+                    newval = l / lnew * (bl+1/2) - 1/2
+                    #newval = l/lnew / bl
+                    #newval = lnew / l / bl if bl != 0 else 1
+                    c.ballooning_phi.append(Ballooning.arcsinc(1/(1+newval)))  # B/L NEW 1 / (bl * l / lnew)
                 else:
-                    #c.ballooning_phi.append(Ballooning.arcsinc(1.))
                     c.ballooning_phi.append(0.)
-                    #raise ValueError("mull")
         return cells
 
     @property
@@ -119,7 +116,7 @@ class Cell(CachedObject):
 
     @property
     def _yvalues(self):
-        return [0] + [mrib.y_value for mrib in self._miniribs] + [1]
+        return [0] + [mrib.y_value for mrib in self.miniribs] + [1]
 
     @property
     def x_values(self):
@@ -157,7 +154,7 @@ class Cell(CachedObject):
     def ballooning_phi(self):
         x_values = self.rib1.profile_2d.x_values
         balloon = [self.ballooning[i] for i in x_values]
-        return HashedList([Ballooning.arcsinc(1. / (1+bal)) if bal > 0 else 0 for bal in balloon])
+        return HashedList([Ballooning.arcsinc(1. / (1+2*bal)) if bal > 0 else 0 for bal in balloon])
 
     @property
     def ribs(self):

@@ -101,7 +101,9 @@ class Rib(CachedObject):
     def profile_3d(self):
         if self.profile_2d.data is not None:
             prof = self.profile_2d.copy()
-            return Profile3D(self.align_all(prof))
+            #print(self.pos)
+            return Profile3D([self.align(p) for p in prof])
+            #return Profile3D(self.align_all(prof))
             # prof.scale(self.chord)
             #return Profile3D([self.align(p, scale=False) for p in prof])
             #return Profile3D([self.align(p) for p in self.profile_2d.data], name="profile3d (rib: {})".format(self.name))

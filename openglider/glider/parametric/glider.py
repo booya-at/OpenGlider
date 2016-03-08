@@ -9,7 +9,7 @@ from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.export_ods import export_ods_2d
 from openglider.glider.parametric.import_ods import import_ods_2d
 from openglider.glider.parametric.lines import LineSet2D, UpperNode2D
-from openglider.glider.rib import RibHole, RigidFoil, Rib
+from openglider.glider.rib import RibHole, RigidFoil, Rib, MiniRib
 from openglider.glider.parametric.fitglider import fit_glider_3d
 
 
@@ -201,6 +201,12 @@ class ParametricGlider(object):
     def fit_glider_3d(cls, glider, numpoints=3):
         return fit_glider_3d(cls, glider, numpoints)
 
+    def get_front_line(self):
+        """
+        Get Nose Positions for cells
+        :return:
+        """
+
     def get_glider_3d(self, glider=None, num=50):
         """returns a new glider from parametric values"""
         glider = glider or Glider()
@@ -225,12 +231,12 @@ class ParametricGlider(object):
         rigids = self.elements.get("rigidfoils", [])
 
         cell_centers = [(p1+p2)/2 for p1, p2 in zip(x_values[:-1], x_values[1:])]
-        front_0 = shape_ribs[0][0][1]
+        offset_x = shape_ribs[0][0][1]
         for rib_no, pos in enumerate(x_values):
             front, back = shape_ribs[rib_no]
             arc = arc_pos[rib_no]
-            startpoint = np.array([-front[1] + front_0, arc[0], arc[1]])
-            #startpoint = np.array([-front[1], arc[0], arc[1]])
+            startpoint = np.array([-front[1] + offset_x, arc[0], arc[1]])
+
             chord = abs(front[1]-back[1])
             factor = profile_merge_curve(abs(pos))
             profile = self.get_merge_profile(factor)
@@ -254,9 +260,9 @@ class ParametricGlider(object):
             ribs[-1].aoa_relative = aoa_int(pos)
 
         if self.shape.has_center_cell:
-            ribs.insert(0, ribs[0].copy())
-            ribs[0].arcang *= -1
-            ribs[0].pos[1] *= -1
+            new_rib = ribs[0].copy()
+            new_rib.mirror()
+            ribs.insert(0, new_rib)
             cell_centers.insert(0, 0.)
 
         glider.cells = []
@@ -269,8 +275,17 @@ class ParametricGlider(object):
 
         glider.close_rib()
 
+        # CELL-ELEMENTS
         self.get_panels(glider)
         self.apply_diagonals(glider)
+
+        for minirib in self.elements.get("miniribs", []):
+            data = minirib.copy()
+            cells = data.pop("cells")
+            for cell_no in cells:
+                glider.cells[cell_no].miniribs.append(MiniRib(**data))
+
+        # RIB-ELEMENTS
         #self.apply_holes(glider)
 
         glider.rename_parts()

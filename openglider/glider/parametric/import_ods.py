@@ -4,6 +4,7 @@ import numbers
 
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.shape import ParametricShape
+from openglider.glider.rib import MiniRib
 
 try:
     import ezodf2 as ezodf
@@ -84,7 +85,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     def get_cuts(names, target_name):
         objs = []
         for name_src in names:
-            objs += read_elements(sheets[1], name_src, len_data=2)
+            objs += read_elements(cell_sheet, name_src, len_data=2)
 
         cuts_this = [{"cells": cut[0], "left": float(cut[1]), "right": float(cut[2]), "type": target_name} for cut in objs]
 
@@ -96,7 +97,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     # Diagonals: center_left, center_right, width_l, width_r, height_l, height_r
     # height (0,1) -> (-1,1)
     diagonals = []
-    for res in read_elements(sheets[1], "QR", len_data=6):
+    for res in read_elements(cell_sheet, "QR", len_data=6):
         height1 = res[5]
         height2 = res[6]
 
@@ -122,18 +123,30 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
                        "left": res[1],
                        "right": res[2]})
     straps = group(straps, "cells")
+    materials = get_material_codes(cell_sheet)
+
+    # minirib -> y, start (x)
+    miniribs = []
+    for minirib in read_elements(cell_sheet, "MINIRIB", len_data=2):
+        miniribs.append({
+            "yvalue": minirib[1],
+            "front_cut": minirib[2],
+            "cells": minirib[0]
+        })
+    miniribs = group(miniribs, "cells")
 
     glider_2d = Glider2D(elements={"cuts": cuts,
                                    "holes": rib_holes,
                                    "diagonals": diagonals,
                                    "rigidfoils": rigidfoils,
                                    "straps": straps,
-                                   "materials": get_material_codes(cell_sheet)},
+                                   "materials": materials,
+                                   "miniribs": miniribs},
                          profiles=profiles,
                          balloonings=balloonings,
                          lineset=tolist_lines(sheets[6], attachment_points_lower, attachment_points),
-                         speed=data.get("GESCHWINDIGKEIT", 10),
-                         glide=data.get("GLEITZAHL", 10),
+                         speed=data["SPEED"],
+                         glide=data["GLIDE"],
                          **geometry)
 
     if calc_lineset_nodes:

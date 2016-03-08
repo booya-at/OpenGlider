@@ -38,7 +38,7 @@ import openglider.graphics as Graph
 from openglider.glider.ballooning import BallooningBezier
 
 
-a = Profile2D.import_from_dat(os.path.dirname(os.path.abspath(__file__)) + "/testprofile.dat")
+profile = Profile2D.import_from_dat(os.path.dirname(os.path.abspath(__file__)) + "/common/testprofile.dat")
 #a.Numpoints = 40
 
 midribs = [
@@ -51,14 +51,14 @@ b1 = BallooningBezier()
 b2 = BallooningBezier()
 b2.amount_maximal *= 0.8
 
-r2 = Rib(a, b1, [0, 0.12, 0], 1., 20 * math.pi / 180, 2 * math.pi / 180, 0, 7)
+r2 = Rib(profile, [0, 0.12, 0], 1., 20 * math.pi / 180, 2 * math.pi / 180, 0, 7)
 r1 = r2.copy()
 r1.mirror()
-r3 = Rib(a, b2, [0.2, 0.3, -0.1], 0.8, 30 * math.pi / 180, 5 * math.pi / 180, 0, 7)
+r3 = Rib(profile, [0.2, 0.3, -0.1], 0.8, 30 * math.pi / 180, 5 * math.pi / 180, 0, 7)
 
 
-cell1 = Cell(r1, r2, midribs)
-cell2 = Cell(r2, r3, [])
+cell1 = Cell(r1, r2, b1, midribs)
+cell2 = Cell(r2, r3, b2, [])
 
 num = 20
 #ribs = [cell1.midrib(x*1./num) for x in range(num+1)]
@@ -72,7 +72,7 @@ for x in range(1, num + 1):
     ribs.append(cell2.midrib(x * 1. / num).data)
 ribs = numpy.concatenate(ribs)
 polygons = []
-points = a.numpoints
+points = profile.numpoints
 
 for i in range(2 * num):
     for j in range(points - 1):

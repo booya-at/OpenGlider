@@ -27,15 +27,14 @@ from openglider.vector.interpolate import Interpolation
 
 
 class ArcSinc:
-    def __init__(self, numpoints=openglider.config['asinc_interpolation_points']):
+    def __init__(self):
         self.start = 0.
         self.end = numpy.pi
         self.arsinc = None
-        self.interpolate(numpoints)
 
     def __call__(self, val):
         if self.arsinc is None:
-            self.interpolate()
+            self.interpolate(openglider.config['asinc_interpolation_points'])
         return self.arsinc(val)
 
     def interpolate(self, numpoints):
