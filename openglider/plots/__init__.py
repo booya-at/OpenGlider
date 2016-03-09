@@ -71,7 +71,7 @@ def unwrap(glider2d, outdir, sheet_height=1.45, part_dist=0.025, parts_prefix=""
     for pattern in all_stacked.values():
         stacked_all.join(pattern)
 
-    stacked_all.export_svg("svg/plots_all.svg")
+    stacked_all.export_svg(fn("svg/plots_all.svg"))
     stacked_all.export_dxf(fn("dxf_2000/plots_all.dxf"))
     stacked_all.export_dxf(fn("dxf_2007/plots_all.dxf"), "AC1021")
     stacked_all.export_ntv(fn("ntv/plots_all.ntv"))
@@ -89,8 +89,13 @@ def unwrap(glider2d, outdir, sheet_height=1.45, part_dist=0.025, parts_prefix=""
     print("create sketches")
     import openglider.plots.sketches
     sketches = openglider.plots.sketches.get_all_plots(glider2d, glider)
-    for sketch_name, sketch in sketches.items():
+
+    for sketch_name in ("design_upper", "design_lower"):
+        sketch = sketches.pop(sketch_name)
         sketch.export_svg(fn(sketch_name+".svg"), add_styles=True)
+
+    for sketch_name, sketch in sketches.items():
+        sketch.export_svg(fn(sketch_name+".svg"), add_styles=False)
 
     print("output spreadsheets")
     excel = openglider.plots.spreadsheets.get_glider_data(glider)

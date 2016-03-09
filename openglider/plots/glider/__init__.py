@@ -49,13 +49,13 @@ class PlotMaker(object):
 
         return self.dribs
 
-    def get_all_stacked(self, dx=None, dy=None):
+    def get_all_stacked(self, dx=0.01, dy=0.01):
         panels = self.panels
         ribs = self.ribs
         dribs = self.dribs
 
         plot_panels = DrawingArea.stack_horizontal(panels.values(), dx, dy)
-        plot_ribs = DrawingArea.stack_horizontal([ribs], dx, dy)
+        plot_ribs = DrawingArea.stack_horizontal([[rib] for rib in ribs], dx, dy)
         plot_dribs = DrawingArea.stack_horizontal(dribs.values(), dx, dy)
 
         return {
@@ -80,9 +80,6 @@ class PlotMaker(object):
             parts += [p.copy() for p in dribs]
         return DrawingArea(parts)
 
-    def get_all_parts_raster(self):
-        parts = DrawingArea.create_raster(self.panels.values())
-
-    def get_all_parts_grouped(self):
+    def get_all_grouped(self):
         return self.get_all_parts().group_materials()
 

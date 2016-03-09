@@ -2,6 +2,31 @@ import copy
 
 import numpy
 
+class Layer(object):
+    stroke = "black"
+    stroke_width = 1
+
+    def __init__(self, polylines=None):
+        self.data = polylines or []
+
+    def append(self, x):
+        self.data.append(x)
+
+    def copy(self):
+        return Layer([p.copy() for p in self])
+
+    def __iadd__(self, other):
+        self.data += other
+
+    def __add__(self, other):
+        new = self.copy()
+        new += other
+        return new
+
+
+
+
+
 
 class Layers(object):
     def __init__(self, **layers):
@@ -16,7 +41,8 @@ class Layers(object):
         item = str(item)
         if item in ("name", "material_code"):
             raise ValueError()
-        self.layers.setdefault(item, [])
+        if not item in self.layers:
+            self.layers[item] = Layer()
         return self.layers[item]
 
     def __setitem__(self, key, value):
@@ -24,7 +50,8 @@ class Layers(object):
         if key in ("name", "material_code"):
             raise ValueError()
         assert isinstance(value, list)
-        self.layers[key] = value
+        self.layers[key].clear()
+        self.layers[key] += value
 
     def __contains__(self, item):
         return item in self.layers
@@ -46,14 +73,35 @@ class Layers(object):
         layer_copy = {layer_name: [line.copy() for line in layer] for layer_name, layer in self.layers.items()}
         return Layers(**layer_copy)
 
+    def add(self, name, stroke=None, stroke_width=None):
+        layer = Layer()
+        if stroke is not None:
+            layer.stroke = stroke
+
+        if stroke_width is not None:
+            layer.stroke_width = stroke_width
+
+        self.layers[name] = layer
+        return layer
+
 
 class PlotPart(object):
     def __init__(self, cuts=None, marks=None, text=None, stitches=None, name=None, material_code="", **layers):
-        layers["cuts"] = cuts or []
-        layers["marks"] = marks or []
-        layers["stitches"] = stitches or []
-        layers["text"] = text or []
-        self.layers = Layers(**layers)
+        self.layers = Layers()
+        self.layers.add("cuts", stroke="red")
+        self.layers.add("marks")
+        self.layers.add("stitches")
+        self.layers.add("text")
+
+        layers.update({
+            "cuts": cuts or [],
+            "marks": marks or [],
+            "text": text or [],
+            "stitches": stitches or []
+        })
+
+        for layer_name, layer in layers.items():
+            self.layers[layer_name] += layer
 
         self.name = name
         self.material_code = material_code

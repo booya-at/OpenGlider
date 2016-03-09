@@ -21,7 +21,7 @@ import tempfile
 import json
 
 from common import *
-from openglider.plots import flatten_glider
+from openglider.plots import PlotMaker
 from openglider import jsonify
 from test_glider import GliderTestClass
 
@@ -63,9 +63,12 @@ class TestGlider(TestCase):
         path = self.tempfile('kite_plots.svg')
         dxfile = self.tempfile("kite_plots.dxf")
         ntvfile = self.tempfile("kite_plots.ntv")
-        plots = flatten_glider(self.glider)
-        all = plots['panels']
-        all.join(plots['ribs'])
+
+        patterns = PlotMaker(self.glider)
+        patterns.unwrap()
+
+        all = patterns.get_all_stacked()
+        
         all.export_svg(path)
         all.export_dxf(dxfile)
         all.export_ntv(ntvfile)

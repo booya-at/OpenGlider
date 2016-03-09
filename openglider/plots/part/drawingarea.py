@@ -25,7 +25,7 @@ class DrawingArea():
         return self.__class__([p.copy() for p in self.parts])
 
     @classmethod
-    def stack_horizontal(cls, parts, distance_x, distance_y):
+    def stack_horizontal(cls, parts, distance_x=0, distance_y=0):
         """
 
         :param parts:
@@ -53,7 +53,7 @@ class DrawingArea():
                 heights[row_no] = max(heights[row_no], part.height)
 
         y = 0
-        for row_no, row in enumerate(parts):
+        for row_no, row in enumerate(parts_copy):
             x = 0
             for column_no, part in enumerate(row):
                 part.move_to([x, y])
