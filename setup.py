@@ -76,7 +76,7 @@ setup(
     package_data=package_data,
     license='GPL-v3',
     # long_description=open('README.md').read(),
-    install_requires=["dxfwrite",  "ezodf",
+    install_requires=["ezodf",
                       "svgwrite",  "numpy",
                       "ezdxf", "meshpy"],
     author='Booya',

@@ -4,19 +4,13 @@ language: python
 python:
   - "2.7"
   - "3.4"
-# virtualenv:
-#   system_site_packages: true
 addons:
   apt:
     sources:
       - python-scipy
       - python3-scipy
-      - python-lxml
-      - python3-lxml
       - hgsubversion
 install:
-  - hg clone https://bitbucket.org/anantha_ani/ezdxf-mozman
-  - pip install -e ezdxf-mozman
   - pip install -r requires.txt
   - pip install coveralls
 script:

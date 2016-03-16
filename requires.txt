@@ -1,5 +1,4 @@
-dxfwrite
-ezodf2
+ezodf
 svgwrite
 numpy
 ezdxf
