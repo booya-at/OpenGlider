@@ -17,21 +17,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-from openglider.glider.cell.cell import Cell
-from openglider.glider.cell import Panel
-from openglider.glider.rib import AttachmentPoint
-from openglider.glider.rib.rib import Rib
-from openglider.lines import Line, Node, LineSet
-
-
-try:
-    import ezodf2 as ezodf
-except ImportError:
-    import ezodf
-from openglider.glider.ballooning import BallooningBezier
-from openglider.airfoil import Profile2D
-#from openglider.glider import Glider
+import ezodf
 import numpy
+
+from openglider.lines import Line, Node, LineSet
+from openglider.airfoil import Profile2D
+from openglider.glider.cell import Panel, Cell
+from openglider.glider.rib import AttachmentPoint, Rib
+from openglider.glider.ballooning import BallooningBezier
 
 
 def import_ods(filename, glider):

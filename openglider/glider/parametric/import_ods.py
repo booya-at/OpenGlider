@@ -1,22 +1,19 @@
 from __future__ import division
 
 import numbers
+import ezodf
+import numpy
+
+from openglider.airfoil import BezierProfile2D, Profile2D
+from openglider.vector.spline import Bezier, SymmetricBezier
+from openglider.vector import Interpolation
 
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.shape import ParametricShape
+from openglider.glider.parametric.lines import UpperNode2D, LowerNode2D, BatchNode2D, Line2D, LineSet2D
 from openglider.glider.rib import MiniRib
-
-try:
-    import ezodf2 as ezodf
-except ImportError:
-    import ezodf
-
-import numpy
-from openglider.airfoil import BezierProfile2D, Profile2D
 from openglider.glider.ballooning import BallooningBezier
-from openglider.vector.spline import Bezier, SymmetricBezier
-from openglider.vector import Interpolation
-from .lines import UpperNode2D, LowerNode2D, BatchNode2D, Line2D, LineSet2D
+
 
 element_keywords = {
     "cuts": ["cells", "left", "right", "type"],

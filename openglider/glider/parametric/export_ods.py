@@ -1,17 +1,12 @@
 import copy
-
 import math
 
+import ezodf
+
+import openglider.glider
 import openglider.glider.parametric.glider
 from openglider.glider.cell import DiagonalRib
 from openglider.glider.parametric.arc import ArcCurve
-
-try:
-    import ezodf2 as ezodf
-except ImportError:
-    import ezodf
-
-import openglider.glider
 
 
 def export_ods_2d(glider, filename):
