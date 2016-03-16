@@ -68,7 +68,7 @@ class TestGlider(TestCase):
         patterns.unwrap()
 
         all = patterns.get_all_stacked()
-        
+
         all.export_svg(path)
         all.export_dxf(dxfile)
         all.export_ntv(ntvfile)

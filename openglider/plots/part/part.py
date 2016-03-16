@@ -2,30 +2,18 @@ import copy
 
 import numpy
 
-class Layer(object):
+
+class Layer(list):
     stroke = "black"
     stroke_width = 1
 
-    def __init__(self, polylines=None):
-        self.data = polylines or []
-
-    def append(self, x):
-        self.data.append(x)
+    def __init__(self, polylines=None, stroke="black", stroke_width=1):
+        super(Layer, self).__init__(polylines or [])
+        self.stroke = stroke
+        self.stroke_width = stroke_width
 
     def copy(self):
         return Layer([p.copy() for p in self])
-
-    def __iadd__(self, other):
-        self.data += other
-
-    def __add__(self, other):
-        new = self.copy()
-        new += other
-        return new
-
-
-
-
 
 
 class Layers(object):
@@ -40,18 +28,18 @@ class Layers(object):
     def __getitem__(self, item):
         item = str(item)
         if item in ("name", "material_code"):
-            raise ValueError()
-        if not item in self.layers:
+            raise KeyError()
+        if item not in self.layers:
             self.layers[item] = Layer()
         return self.layers[item]
 
     def __setitem__(self, key, value):
-        key = str(key)
-        if key in ("name", "material_code"):
-            raise ValueError()
-        assert isinstance(value, list)
-        self.layers[key].clear()
-        self.layers[key] += value
+        if isinstance(value, list):
+            self.layers[key] = Layer(value)
+        elif isinstance(value, Layer):
+            self.layers[key] = value
+        else:
+            raise ValueError
 
     def __contains__(self, item):
         return item in self.layers
@@ -99,7 +87,6 @@ class PlotPart(object):
             "text": text or [],
             "stitches": stitches or []
         })
-
         for layer_name, layer in layers.items():
             self.layers[layer_name] += layer
 
@@ -222,6 +209,49 @@ class PlotPart(object):
             for p in layer:
                 p.scale(factor)
 
+    def get_svg_group(self, non_scaling_stroke=True):
+        import svgwrite
+        import svgwrite.shapes
+        import svgwrite.container
+        import svgwrite.path
+
+        # if it has an envelope use the envelope to group elements
+        if "envelope" in self.layers and len(self.layers["envelope"]) == 1:
+            envelope = self.layers["envelope"]
+            path = self.layers["envelope"][0]
+            d = "M {} {}".format(*path[0])
+            for p in path[1:]:
+                d += " L {} {}".format(*p)
+            container = svgwrite.path.Path(d)
+            container.attribs["stroke"] = envelope.stroke
+            container.attribs["stroke-width"] = str(envelope.stroke_width)
+            if non_scaling_stroke:
+                container.attribs["stroke-width"] += "px"
+                container.attribs["style"] = {"vector-effect": "non-scaling-stroke"}
+        else:
+            container = svgwrite.container.Group()
+
+        container.attribs["id"] = self.name
+        container.attribs["class"] = self.material_code
+
+        for layer_name, layer in self.layers.items():
+            layer_container = svgwrite.container.Group()
+            layer_container.attribs["class"] = layer_name
+
+            for path in layer:
+                pl = svgwrite.shapes.Polyline(path)
+                pl.attribs["stroke-width"] = str(layer.stroke_width)
+                if non_scaling_stroke:
+                    pl.attribs["stroke-width"] += "px"
+                    pl.attribs["style"] = {"vector-effect": "non-scaling-stroke"}
+                pl.attribs["stroke"] = layer.stroke
+
+                layer_container.add(pl)
+
+            container.add(layer_container)
+
+        return container
+
     def _repr_svg_(self):
         import svgwrite
         import svgwrite.container
@@ -233,6 +263,11 @@ class PlotPart(object):
         group = svgwrite.container.Group()
         group.scale(1, -1)  # svg coordinate system is x->right y->down
         drawing.add(group)
+
+        group_self = self.get_svg_group()
+        group.add(group_self)
+
+        return drawing.tostring()
         style = {
             "stroke-width": 1,
             "stroke": "black",
