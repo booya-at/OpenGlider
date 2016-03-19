@@ -23,7 +23,7 @@ class BasicCell(CachedObject):
         ##round ballooning
         return self.midrib(y).point(ik)
 
-    def midrib(self, y_value, ballooning=True, arc_argument=True):
+    def midrib(self, y_value, ballooning=True, arc_argument=True, with_numpy=False):
         if y_value == 0:              # left side
             return self.prof1
         elif y_value == 1:            # right side
@@ -36,6 +36,16 @@ class BasicCell(CachedObject):
             # 1: x1 = x*d
             # 2: x2 = R*normvekt*(cos(phi2)-cos(phi)
             # 3: norm(d)/r*(1-x) = 2*sin(phi(2))
+            if with_numpy:
+                l_phi = numpy.array([i + (0.00000000001 - i) * int(i<=0) for i in self.ballooning_phi])
+                l_psi = l_phi * 2 * y_value
+                l_h = numpy.cos(l_phi - l_psi) - numpy.cos(l_phi)
+                l_d = 0.5 - 0.5 * numpy.sin(l_phi - l_psi) / numpy.sin(l_phi)
+                l_diff = self.prof1.data - self.prof2.data
+                l_n = numpy.array(self.normvectors)
+                l_r = numpy.array([i * (i > 0) for i in self.ballooning_radius])
+                l_midrib = self.prof1.data.T - l_d * l_diff.T + (l_h * l_r) * l_n.T
+                return Profile3D(l_midrib.T)
 
             for i, _ in enumerate(self.prof1.data):  # Arc -> phi(bal) -> r  # oder so...
                 diff = self.prof1[i] - self.prof2[i]
