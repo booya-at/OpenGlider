@@ -209,7 +209,7 @@ class Panel(object):
             # todo: return polygon-data
         return ribs
 
-    def get_mesh(self, cell, numribs=0):
+    def get_mesh(self, cell, numribs=0, with_numpy=True):
         """
         Get Panel-mesh
         :param cell: cell from which the panel-mesh is build
@@ -232,7 +232,7 @@ class Panel(object):
             x2 = self.cut_back["left"] + y * (self.cut_back["right"] -
                                               self.cut_back["left"])
             back = get_x_value(xvalues, x2)
-            midrib = cell.midrib(y)
+            midrib = cell.midrib(y, with_numpy=with_numpy)
             ribs.append([x for x in midrib.get_positions(front, back)])
             points += list(midrib[front:back])
             nums.append([i + count for i, _ in enumerate(ribs[-1])])

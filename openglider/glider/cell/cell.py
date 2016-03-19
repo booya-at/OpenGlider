@@ -133,7 +133,7 @@ class Cell(CachedObject):
     def point(self, y=0, i=0, k=0):
         return self.midrib(y).point(i, k)
 
-    def midrib(self, y, ballooning=True, arc_argument=False):
+    def midrib(self, y, ballooning=True, arc_argument=False, with_numpy=False):
         if len(self._child_cells) == 1:
             return self.basic_cell.midrib(y, ballooning=ballooning)
         if ballooning:
@@ -142,7 +142,7 @@ class Cell(CachedObject):
                 i += 1
             cell = self._child_cells[i]
             y_new = (y - self._yvalues[i]) / (self._yvalues[i + 1] - self._yvalues[i])
-            return cell.midrib(y_new, arc_argument=arc_argument)
+            return cell.midrib(y_new, arc_argument=arc_argument, with_numpy=with_numpy)
         else:
             return self.basic_cell.midrib(y, ballooning=False)
 
@@ -211,7 +211,7 @@ class Cell(CachedObject):
             mean_rib += self.midrib(y).flatten().normalize()
         return mean_rib * (1. / num_midribs)
 
-    def get_mesh(self,  numribs=0):
+    def get_mesh(self,  numribs=0, with_numpy=False):
         """
         Get Cell-mesh
         :param numribs: number of miniribs to calculate
@@ -226,7 +226,7 @@ class Cell(CachedObject):
         count = 0
         for rib_no in range(numribs + 1):
             y = rib_no / max(numribs, 1)
-            midrib = self.midrib(y).data[:-1]
+            midrib = self.midrib(y, with_numpy=with_numpy).data[:-1]
             points += list(midrib)
             nums.append([i + count for i, _ in enumerate(midrib)])
             count += len(nums[-1])
