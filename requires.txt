@@ -3,3 +3,4 @@ svgwrite
 numpy
 ezdxf
 meshpy
+lxml
