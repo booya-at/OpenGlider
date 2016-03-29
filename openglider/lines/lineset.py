@@ -155,6 +155,10 @@ class LineSet():
 
         return center, drag_total
 
+    def get_normalized_drag(self):
+        """get the line drag normalized by the velocity"""
+        return self.get_drag()[1] / norm(self.v_inf)
+
     # -----CALCULATE GEO-----#
     def get_tangential_comp(self, line, pos_vec):
         upper_node_nrs = self.get_upper_influence_nodes(line)
