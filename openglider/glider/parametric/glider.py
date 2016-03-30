@@ -291,6 +291,7 @@ class ParametricGlider(object):
         glider.rename_parts()
 
         glider.lineset = self.lineset.return_lineset(glider, self.v_inf)
+        glider.lineset.glider = glider
         glider.lineset.recalc()
 
         return glider

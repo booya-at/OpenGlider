@@ -96,15 +96,13 @@ class SagMatrix():
 
 
 class Line(CachedObject):
-    def __init__(self, lower_node, upper_node, vinf,
+    def __init__(self, lower_node, upper_node, v_inf,
                  line_type=line_types.LineType.get('default'), target_length=None, number=None):
         """
         Line Class
         """
         self.number = number
         self.type = line_type  # type of line
-
-        self.v_inf = vinf
 
         self.lower_node = lower_node
         self.upper_node = upper_node
@@ -116,9 +114,15 @@ class Line(CachedObject):
         self.sag_par_1 = None
         self.sag_par_2 = None
 
+        self.lineset = None      # the parent have to be set after initializiation
+
     @property
     def v_inf_0(self):
         return normalize(self.v_inf)
+
+    @property
+    def v_inf(self):
+        return self.lineset.v_inf
 
     #@cached_property('lower_node.vec', 'upper_node.vec')
     @property
@@ -209,24 +213,19 @@ class Line(CachedObject):
         return [c1_n + self.sag_par_1, c2_n / self.length_projected + self.sag_par_2]
 
     def __json__(self):
-        if isinstance(self.v_inf, numpy.ndarray):
-            v_inf = self.v_inf.tolist()
-        else:
-            v_inf = list(self.v_inf)
         return{
             'number': self.number,
             'lower_node': self.lower_node,
             'upper_node': self.upper_node,
-            'vinf': v_inf,
+            'v_inf': None,               # remove this!
             'line_type': self.type.name,
             'target_length': self.target_length
         }
 
     @classmethod
-    def __from_json__(cls, number, lower_node, upper_node, vinf, line_type, target_length):
+    def __from_json__(cls, number, lower_node, upper_node, v_inf, line_type, target_length):
         return cls(lower_node,
                    upper_node,
-                   vinf,
                    line_types.LineType.get(line_type),
                    target_length,
                    number)

@@ -25,13 +25,13 @@ if len(sys.argv) >= 4:
 
     glider.export_3d(destfile, midribs=midribs, numpoints=numpoints)
 
-    # Print vinf, ca_projection, cw_projection
+    # Print v_inf, ca_projection, cw_projection
     alpha = math.atan(1 / glider.ribs[0].glide)
     v = glider.data["GESCHWINDIGKEIT"]
-    vinf = [-math.cos(alpha) * v, 0, -math.sin(alpha) * v]
-    ca = normalize([-vinf[2], 0, vinf[0]])
-    print("vinf ", vinf)
+    v_inf = [-math.cos(alpha) * v, 0, -math.sin(alpha) * v]
+    ca = normalize([-v_inf[2], 0, v_inf[0]])
+    print("v_inf ", v_inf)
     print("ca: ", ca)
-    print("cw: ", normalize(vinf))
+    print("cw: ", normalize(v_inf))
 else:
     print("please give me an input file + number of midribs + numpoints (0=Original)")

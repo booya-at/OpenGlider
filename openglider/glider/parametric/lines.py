@@ -142,11 +142,12 @@ class LineSet2D(object):
             upper = nodes_3d[line.upper_node]
             if lower and upper:
                 line = Line(number=line_no, lower_node=lower, upper_node=upper,
-                            vinf=v_inf, target_length=line.target_length,
+                            v_inf=None, target_length=line.target_length,
                             line_type=line.line_type)
                 lines.append(line)
 
         return LineSet(lines, v_inf)
+
 
     def set_default_nodes2d_pos(self, glider):
         lineset_3d = self.return_lineset(glider, [10,0,0])

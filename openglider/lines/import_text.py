@@ -51,7 +51,7 @@ def store_lines(values, thalist, key_dict):
     upper = key_dict["NODES"][2][upper_no]
     lower = key_dict["NODES"][2][lower_no]
     l = Line(number=try_convert(values[0], int), upper_node=upper, lower_node=lower,
-             vinf=[10, 0, 0], target_length=try_convert(values[3], float))
+             v_inf=[10, 0, 0], target_length=try_convert(values[3], float))
 
     # l.type = values[4]
     thalist.append(l)
