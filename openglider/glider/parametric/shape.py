@@ -56,8 +56,7 @@ class ParametricShape(object):
         positions = np.linspace(start, 1, num)
         return np.interp(positions, data[1], data[0])
 
-
-    ### besser mit spezieller bezier?
+    # besser mit spezieller bezier?
     @property
     def rib_dist_controlpoints(self):
         return self.rib_distribution.controlpoints[1:-1]
@@ -91,7 +90,6 @@ class ParametricShape(object):
         [ribs, front, back]
         """
         return self.get_half_shape().copy_complete()
-
 
     def __getitem__(self, pos):
         """if first argument is negativ the point is returned mirrored"""
@@ -200,5 +198,3 @@ class ParametricShape(object):
         if fixed == "aspect_ratio":
             print("set_span")
             self.scale(x=span/span_0, y=span/span_0)
-
-
