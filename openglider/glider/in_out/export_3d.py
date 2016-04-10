@@ -256,7 +256,7 @@ def export_apame(glider, path="", midribs=0, numpoints=None, *other):
     return outfile.close()
 
 
-def ppm_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, symmetric=False, distribution=None):
+def paraBEM_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, symmetric=False, distribution=None):
     """return the vertices, panels and the trailing edge of a glider, as paraBEM objects.
 
     midribs:           midribs of a cell spanwise. if num_average is greater then
