@@ -16,8 +16,9 @@ def normalize_class_names(code):
 
 
 def get_material_color(code):
+    code_upper = code.upper()
     for pattern in colour_patterns:
-        match = pattern.match(code)
+        match = pattern.match(code_upper)
         if match:
             return match.groups()[0]
 

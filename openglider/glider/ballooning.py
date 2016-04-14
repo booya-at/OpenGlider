@@ -140,8 +140,11 @@ class Ballooning(object):
     @amount_maximal.setter
     def amount_maximal(self, amount):
         factor = float(amount) / self.amount_maximal
+        self.scale(factor)
+
+    def scale(self, factor):
         self.upper.scale(1, factor)
-        self.lower.scale(1, factor)#
+        self.lower.scale(1, factor)
 
 
 class BallooningBezier(Ballooning):
@@ -197,5 +200,10 @@ class BallooningBezier(Ballooning):
         if lower is not None:
             self.lower_spline.controlpoints = lower
         Ballooning.__init__(self, self.upper_spline.interpolation(), self.lower_spline.interpolation())
+
+    def scale(self, factor):
+        super(BallooningBezier, self).scale(factor)
+        self.upper_spline.scale(1, factor)
+        self.lower_spline.scale(1, factor)
 
 

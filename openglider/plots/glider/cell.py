@@ -98,23 +98,25 @@ class PanelPlotMaker:
             self.outer[0], self.outer[1], amount_back)
 
         # spitzer schnitt
-        # links
-        if cut_front[1] >= cut_back[1]:
+        # rechts
+        if cut_front[2] >= cut_back[2]:
             cut_front_new = PolyLine2D(cut_front[0])
-            ik1, ik2 = cut_front_new.cut_with_polyline(cut_back[0],
+            _cuts = cut_front_new.cut_with_polyline(cut_back[0],
                                                        startpoint=0)
+            ik1, ik2 = next(_cuts)
 
             panel_right = PolyLine2D([])
             panel_back = PolyLine2D(cut_back[0])[ik2:]
-            panel_left = self.outer[1][cut_front[2]:cut_back[2]:-1]
+            panel_left = self.outer[1][cut_front[1]:cut_back[1]:-1]
             panel_front = cut_front_new[ik1::-1]
         # rechts
-        elif cut_front[2] >= cut_back[2]:
+        elif cut_front[1] >= cut_back[1]:
             cut_front_new = PolyLine2D(cut_front[0])
-            ik1, ik2 = cut_front_new.cut_with_polyline(cut_back[0],
-                                                       startpoint=len(
-                                                           cut_front_new) - 1)
+            _cuts = cut_front_new.cut_with_polyline(cut_back[0],
+                                                    startpoint=len(cut_front_new)-1)
+            ik1, ik2 = next(_cuts)
 
+            print(ik1, ik2, panel.name)
             panel_right = self.outer[0][cut_front[2]:cut_back[2]]
             panel_back = PolyLine2D(cut_back[0])[:ik2]
             panel_left = PolyLine2D([])

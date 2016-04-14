@@ -10,8 +10,8 @@ def diagonal_plot(glider2d, glider3d=None):
 
     for cell_no, cell in enumerate(glider3d.cells):
         for diagonal in cell.diagonals:
-            left = [p[0] for p in (diagonal.left_front, diagonal.left_back)]
-            right = [p[0] for p in (diagonal.right_front, diagonal.right_back)]
+            left = [abs(p[0]) for p in (diagonal.left_front, diagonal.left_back)]
+            right = [abs(p[0]) for p in (diagonal.right_front, diagonal.right_back)]
 
             points_left = [shape.get_shape_point(cell_no, p) for p in left]
             points_right = [shape.get_shape_point(cell_no+1, p) for p in right]
