@@ -216,7 +216,7 @@ class PlotPart(object):
         import svgwrite.path
 
         # if it has an envelope use the envelope to group elements
-        if "envelope" in self.layers and len(self.layers["envelope"]) == 1:
+        if False and "envelope" in self.layers and len(self.layers["envelope"]) == 1:
             envelope = self.layers["envelope"]
             path = self.layers["envelope"][0]
             d = "M {} {}".format(*path[0])
@@ -225,9 +225,10 @@ class PlotPart(object):
             container = svgwrite.path.Path(d)
             container.attribs["stroke"] = envelope.stroke
             container.attribs["stroke-width"] = str(envelope.stroke_width)
+            container.attribs["fill"] = "none"
             if non_scaling_stroke:
                 container.attribs["stroke-width"] += "px"
-                container.attribs["style"] = {"vector-effect": "non-scaling-stroke"}
+                container.attribs["style"] = "vector-effect: non-scaling-stroke"
         else:
             container = svgwrite.container.Group()
 
@@ -240,11 +241,12 @@ class PlotPart(object):
 
             for path in layer:
                 pl = svgwrite.shapes.Polyline(path)
+                pl.attribs["stroke"] = layer.stroke
                 pl.attribs["stroke-width"] = str(layer.stroke_width)
+                pl.attribs["fill"] = "none"
                 if non_scaling_stroke:
                     pl.attribs["stroke-width"] += "px"
-                    pl.attribs["style"] = {"vector-effect": "non-scaling-stroke"}
-                pl.attribs["stroke"] = layer.stroke
+                    pl.attribs["style"] = "vector-effect: non-scaling-stroke"
 
                 layer_container.add(pl)
 
@@ -266,19 +268,6 @@ class PlotPart(object):
 
         group_self = self.get_svg_group()
         group.add(group_self)
-
-        return drawing.tostring()
-        style = {
-            "stroke-width": 1,
-            "stroke": "black",
-            "style": "vector-effect: non-scaling-stroke",
-            "fill": "none"
-        }
-
-        for layer in self.layers.values():
-            for line in layer:
-                element = svgwrite.shapes.Polyline(line, **style)
-                group.add(element)
 
         return drawing.tostring()
 

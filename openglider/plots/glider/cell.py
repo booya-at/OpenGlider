@@ -34,9 +34,9 @@ class PanelPlotMaker:
         right_bal = right.copy()
         ballooning = [self.cell.ballooning[x] for x in self.cell.rib1.profile_2d.x_values]
         for i in range(len(left)):
-            diff = right[i] - left[i]
-            left_bal.data[i] -= diff * ballooning[i]
-            right_bal.data[i] += diff * ballooning[i]
+            diff = (right[i] - left[i]) * ballooning[i] / 2
+            left_bal.data[i] -= diff
+            right_bal.data[i] += diff
 
         self.inner = [left, right]
         self.ballooned = [left_bal, right_bal]

@@ -247,6 +247,7 @@ class DrawingArea():
         style = svgwrite.container.Style()
         styles = {}
 
+        # recursive
         def add_style(elem):
             classes = elem.attribs.get("class", "")
             normalized = normalize_class_names(classes)
@@ -280,6 +281,7 @@ class DrawingArea():
         width = 600
         height = int(width * self.height/self.width)+1
         drawing = self.get_svg_drawing()
+        self.add_svg_styles(drawing)
         drawing["width"] = "{}px".format(width)
         drawing["height"] = "{}px".format(height)
 

@@ -154,7 +154,7 @@ class Cell(CachedObject):
     def ballooning_phi(self):
         x_values = self.rib1.profile_2d.x_values
         balloon = [self.ballooning[i] for i in x_values]
-        return HashedList([Ballooning.arcsinc(1. / (1+2*bal)) if bal > 0 else 0 for bal in balloon])
+        return HashedList([Ballooning.arcsinc(1. / (1+bal)) if bal > 0 else 0 for bal in balloon])
 
     @property
     def ribs(self):
