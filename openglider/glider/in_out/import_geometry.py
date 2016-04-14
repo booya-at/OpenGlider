@@ -191,7 +191,7 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
                     line_length = sheet.get_cell([i, j]).value
                     j += 2
                 linelist.append(
-                    Line(number=count, lower_node=lower, upper_node=upper, vinf=numpy.array([10,0,0]), target_length=line_length))  #line_type=sheet.get_cell
+                    Line(number=count, lower_node=lower, upper_node=upper, v_inf=numpy.array([10,0,0]), target_length=line_length))  #line_type=sheet.get_cell
                 count += 1
                 #print("made line", linelist[-1].init_length)
                 #print(upper, lower)

@@ -14,13 +14,13 @@ class LineSet():
     """
     calculate_sag = True
 
-    def __init__(self, lines=None, v_inf=None):
-        if v_inf is None:
-            v_inf = [0, 0, 0]
-
-        self.v_inf = numpy.array(v_inf)
+    def __init__(self, lines, v_inf=None):
+        self.v_inf = v_inf
         self.lines = lines or []
+        for line in lines:
+            line.lineset = self
         self.mat = None
+        self.glider = None
 
     @property
     def lowest_lines(self):
@@ -54,10 +54,6 @@ class LineSet():
                     node.get_position()
         self._calc_geo()
         if self.calculate_sag:
-            # apply v_inf
-            for line in self.lines:
-                line.v_inf = self.v_inf
-
             self._calc_sag()
 
         return self
@@ -155,6 +151,10 @@ class LineSet():
 
         return center, drag_total
 
+    def get_normalized_drag(self):
+        """get the line drag normalized by the velocity ** 2 / 2"""
+        return self.get_drag()[1] / norm(self.v_inf) ** 2 * 2
+
     # -----CALCULATE GEO-----#
     def get_tangential_comp(self, line, pos_vec):
         upper_node_nrs = self.get_upper_influence_nodes(line)
@@ -245,4 +245,5 @@ class LineSet():
                 line.upper_node = nodes[line.upper_node]
             if isinstance(line.lower_node, int):
                 line.lower_node = nodes[line.lower_node]
-        return cls(lines, v_inf)
+        obj = cls(lines, v_inf)
+        return obj
