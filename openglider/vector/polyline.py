@@ -61,6 +61,10 @@ class PolyLine(HashedList):
         start = start if start is not None else 0
         if step is not None and step < 0:
             start, stop = stop, start
+
+        if start == stop:
+            return [start]
+
         step = sign(stop - start)
         if step > 0:
             start_round = max(int(start) + 1, 0)
@@ -163,16 +167,38 @@ class PolyLine2D(PolyLine):
         for i in rangefrom(len(self)-1, startpoint):
             try:
                 # (x,y), i, k
-                thacut = cut(self[i], self[i+1], p1, p2)
-                good_cut = 0 < thacut[1] <= 1 or thacut[1] == i == 0
-                extrapolated_front = i == 0 and thacut[1] <= 0
-                extrapolated_back = i == len(self)-2 and thacut[1] > 0
+                pos, ik1, ik2 = cut(self[i], self[i+1], p1, p2)
+                good_cut = 0 < ik1 <= 1 or ik1 == i == 0
+                extrapolated_front = i == 0 and ik1 <= 0
+                extrapolated_back = i == len(self)-2 and ik1 > 0
                 extrapolated_cut = extrapolated_front or extrapolated_back
 
                 if good_cut or extrapolate and extrapolated_cut:
-                    if cut_only_positive and thacut[2] < 0:
+                    if cut_only_positive and ik2 < 0:
                         continue
-                    yield i+thacut[1]
+                    yield i+ik1
+            except numpy.linalg.LinAlgError:
+                continue
+
+    def new_cut_2(self, p1, p2, startpoint=0, extrapolate=False, cut_only_positive=False):
+        """
+        Iterate over all cuts with the line p1p2
+        if extrapolate is true, cuts will be exceeding the lists length
+        """
+        startpoint = int(startpoint)
+        for i in rangefrom(len(self)-1, startpoint):
+            try:
+                # (x,y), i, k
+                pos, ik1, ik2 = cut(self[i], self[i+1], p1, p2)
+                good_cut = 0 < ik1 <= 1 or ik1 == i == 0
+                extrapolated_front = i == 0 and ik1 <= 0
+                extrapolated_back = i == len(self)-2 and ik1 > 0
+                extrapolated_cut = extrapolated_front or extrapolated_back
+
+                if good_cut or extrapolate and extrapolated_cut:
+                    if cut_only_positive and ik2 < 0:
+                        continue
+                    yield i+ik1, ik2
             except numpy.linalg.LinAlgError:
                 continue
 

@@ -6,7 +6,6 @@ from openglider.vector.text import Text
 from openglider.plots import cuts, PlotPart
 from openglider.vector import PolyLine2D
 
-
 class PanelPlotMaker:
     allowance_general = 0.012
     allowance_entry_open = 0.015  # entry
@@ -64,6 +63,55 @@ class PanelPlotMaker:
 
         return cell_parts
 
+    def _jojo(self, panel):
+        self.x_values = self.cell.rib1.profile_2d.x_values
+        self._flatten_cell()
+        plotpart = PlotPart(material_code=panel.material_code, name=panel.name)
+
+        cut_allowances = {
+            "folded": self.allowance_entry_open,
+            "parallel": self.allowance_trailing_edge,
+            "orthogonal": self.allowance_design
+        }
+
+        front_left = get_x_value(self.x_values, panel.cut_front["left"])
+        back_left = get_x_value(self.x_values, panel.cut_back["left"])
+        front_right = get_x_value(self.x_values, panel.cut_front["right"])
+        back_right = get_x_value(self.x_values, panel.cut_back["right"])
+
+        # allowance fallbacks
+        allowance_front = cut_allowances[panel.cut_front["type"]]
+        allowance_back = cut_allowances[panel.cut_back["type"]]
+
+        # get allowance from panel
+        amount_front = -panel.cut_front.get("amount", allowance_front)
+        amount_back = panel.cut_back.get("amount", allowance_back)
+
+        # cuts -> cut-line, index left, index right
+        cut_front = cuts[panel.cut_front["type"]](
+            [[self.ballooned[0], front_left],
+             [self.ballooned[1], front_right]],
+            self.outer[0], self.outer[1], amount_front)
+
+        cut_back = cuts[panel.cut_back["type"]](
+            [[self.ballooned[0], back_left],
+             [self.ballooned[1], back_right]],
+            self.outer[0], self.outer[1], amount_back)
+
+        panel_right = self.outer[1][cut_front.index_right:cut_back.index_right]
+        panel_back = cut_back.curve.copy()
+        panel_left = self.outer[0][cut_front.index_left:cut_back.index_left:-1]
+        panel_front = cut_front.curve.copy()
+
+        plotpart.layers["marks"] += [panel_back, panel_front]
+
+        plotpart.layers["marks"] += [
+            PolyLine2D([self.ballooned[0][front_left], self.ballooned[1][front_right]]),
+            PolyLine2D([self.ballooned[0][back_left], self.ballooned[1][back_right]])]
+
+        return plotpart
+
+
     def _get_panel(self, panel):
         plotpart = PlotPart(material_code=panel.material_code, name=panel.name)
 
@@ -97,38 +145,41 @@ class PanelPlotMaker:
              [self.ballooned[1], back_right]],
             self.outer[0], self.outer[1], amount_back)
 
+        panel_left = self.outer[0][cut_front.index_left:cut_back.index_left]
+        panel_back = cut_back.curve.copy()
+        panel_right = self.outer[1][cut_front.index_right:cut_back.index_right:-1]
+        panel_front = cut_front.curve.copy()
+
         # spitzer schnitt
         # rechts
-        if cut_front[2] >= cut_back[2]:
-            cut_front_new = PolyLine2D(cut_front[0])
-            _cuts = cut_front_new.cut_with_polyline(cut_back[0],
-                                                       startpoint=0)
-            ik1, ik2 = next(_cuts)
-
+        if cut_front.index_right >= cut_back.index_right:
             panel_right = PolyLine2D([])
-            panel_back = PolyLine2D(cut_back[0])[ik2:]
-            panel_left = self.outer[1][cut_front[1]:cut_back[1]:-1]
-            panel_front = cut_front_new[ik1::-1]
-        # rechts
-        elif cut_front[1] >= cut_back[1]:
-            cut_front_new = PolyLine2D(cut_front[0])
-            _cuts = cut_front_new.cut_with_polyline(cut_back[0],
-                                                    startpoint=len(cut_front_new)-1)
-            ik1, ik2 = next(_cuts)
 
-            print(ik1, ik2, panel.name)
-            panel_right = self.outer[0][cut_front[2]:cut_back[2]]
-            panel_back = PolyLine2D(cut_back[0])[:ik2]
+            _cuts = panel_front.cut_with_polyline(panel_back, startpoint=len(panel_front)-1)
+            try:
+                ik_front, ik_back = next(_cuts)
+                panel_back = panel_back[:ik_back]
+                panel_front = panel_front[:ik_front]
+            except StopIteration:
+                pass  # todo: fix!!
+
+        #lechts
+        if cut_front.index_left >= cut_back.index_left:
             panel_left = PolyLine2D([])
-            panel_front = cut_front_new[:ik1:-1]
 
-        else:
-            panel_right = self.outer[0][cut_front[1]:cut_back[1]]
-            panel_back = PolyLine2D(cut_back[0])
-            panel_left = self.outer[1][cut_front[2]:cut_back[2]:-1]
-            panel_front = PolyLine2D(cut_front[0])[::-1]
+            _cuts = panel_front.cut_with_polyline(panel_back, startpoint=0)
+            try:
+                ik_front, ik_back = next(_cuts)
+                panel_back = panel_back[:ik_back]
+                panel_front = panel_front[:ik_front]
+            except StopIteration:
+                pass  # todo: fix aswell!
 
-        envelope = panel_right + panel_back + panel_left + panel_front
+        panel_back = panel_back[::-1]
+        if panel_right:
+            panel_right = panel_right[::-1]
+
+        envelope = panel_right + panel_back + panel_left[::-1] + panel_front
         envelope += PolyLine2D([envelope[0]])
 
         plotpart.layers["cuts"] = []
@@ -218,12 +269,12 @@ class PanelPlotMaker:
         left_out = left.copy()
         right_out = right.copy()
 
-        alw2 = self.allowance_drib_folds
 
         left_out.add_stuff(-self.allowance_general)
         right_out.add_stuff(self.allowance_general)
 
         if self.allowance_drib_num_folds > 0:
+            alw2 = self.allowance_drib_folds
             cut_front = cuts["folded"]([[left, 0], [right, 0]],
                                        left_out,
                                        right_out,
@@ -240,10 +291,10 @@ class PanelPlotMaker:
             raise NotImplementedError
 
         # print("left", left_out[cut_front[1]:cut_back[1]].get_length())
-        plotpart.layers["cuts"] += [left_out[cut_front[1]:cut_back[1]] +
-                                    PolyLine2D(cut_back[0]) +
-                                    right_out[cut_front[2]:cut_back[2]:-1] +
-                                    PolyLine2D(cut_front[0])[::-1]]
+        plotpart.layers["cuts"] += [left_out[cut_front.index_left:cut_back.index_left] +
+                                    cut_back.curve +
+                                    right_out[cut_front.index_right:cut_back.index_right:-1] +
+                                    cut_front.curve[::-1]]
 
         plotpart.layers["marks"].append(PolyLine2D([left[0], right[0]]))
         plotpart.layers["marks"].append(PolyLine2D([left[len(left)-1], right[len(right)-1]]))
