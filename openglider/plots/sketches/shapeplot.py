@@ -4,14 +4,11 @@ from openglider.plots import DrawingArea, PlotPart
 from openglider.vector import PolyLine2D
 
 
-class ShapePlot(object):
+class ShapePlot(DrawingArea):
     def __init__(self, glider_2d, glider_3d=None):
+        super(ShapePlot, self).__init__()
         self.glider_2d = glider_2d
         self.glider_3d = glider_3d or glider_2d.get_glider_3d()
-        self.drawing = DrawingArea()
-
-    def reset(self):
-        self.drawing = DrawingArea()
 
     def insert_design(self, lower=True):
         for cell_no, cell_panels in enumerate(self.glider_2d.get_panels()):
@@ -43,7 +40,7 @@ class ShapePlot(object):
                 p3 = self.glider_2d.shape.get_shape_point(cell_no+1, right_back)
                 p4 = self.glider_2d.shape.get_shape_point(cell_no+1, rigth_front)
 
-                self.drawing.parts.append(PlotPart(
+                self.parts.append(PlotPart(
                     cuts=[PolyLine2D([p1, p2, p3, p4, p1])],
                     material_code=panel.material_code))
 
@@ -55,7 +52,7 @@ class ShapePlot(object):
                 p1 = self.glider_2d.shape.get_shape_point(cell_no, tensionstrap.left)
                 p2 = self.glider_2d.shape.get_shape_point(cell_no+1, tensionstrap.left)
                 strap = PlotPart(marks=[PolyLine2D([p1, p2])])
-                self.drawing.parts.append(strap)
+                self.parts.append(strap)
 
         return self
 
@@ -80,4 +77,4 @@ class ShapePlot(object):
             import openglider.plots.marks as marks
             cross = marks.cross(cross_left, cross_right, numpy.pi/4)
 
-            self.drawing.parts.append(PlotPart(marks=cross))
+            self.parts.append(PlotPart(marks=cross))

@@ -24,6 +24,9 @@ class DrawingArea():
     def copy(self):
         return self.__class__([p.copy() for p in self.parts])
 
+    def clear(self):
+        self.parts.clear()
+
     @classmethod
     def stack_horizontal(cls, parts, distance_x=0, distance_y=0):
         """
