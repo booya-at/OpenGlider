@@ -160,7 +160,7 @@ class ParametricGlider(object):
                     material_code = "unknown"
 
                 panel = Panel(cut1, cut2,
-                              name="cell{}p{}".format(cell_no, part_no),
+                              name="c{}p{}".format(cell_no, part_no),
                               material_code=material_code)
                 panel_lst.append(panel)
 

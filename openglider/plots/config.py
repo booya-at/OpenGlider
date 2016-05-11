@@ -27,22 +27,22 @@ sewing_config = {
     "layers":
         {"cuts": {
             "id": 'outer',
-            "stroke-width": "0.001",
+            "stroke-width": "0.1",
             "stroke": "red",
             "fill": "none"},
          "marks": {
              "id": 'marks',
-             "stroke-width": "0.001",
+             "stroke-width": "0.1",
              "stroke": "green",
              "fill": "none"},
          "text": {
              "id": 'text',
-             "stroke-width": "0.001",
+             "stroke-width": "0.1",
              "stroke": "green",
              "fill": "none"},
          "stitches": {
              "id": "stitches",
-             "stroke-width": "0.001",
+             "stroke-width": "0.1",
              "stroke": "black",
              "fill": "none"}
          }

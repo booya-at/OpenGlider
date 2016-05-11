@@ -14,7 +14,7 @@ from openglider.vector import PolyLine2D
 __author__ = 'simon'
 
 
-class DrawingArea():
+class DrawingArea(object):
     def __init__(self, parts=None):
         self.parts = parts or []
 
@@ -218,7 +218,7 @@ class DrawingArea():
                 if layer_name in config["layers"]:
                     layer_config = config["layers"][layer_name]
                 else:
-                    layer_config = {"stroke": "black", "fill": "none", "stroke-width": "0.001"}
+                    layer_config = {"stroke": "black", "fill": "none", "stroke-width": "1"}
 
                 lines = part.layers[layer_name]
 
@@ -276,12 +276,13 @@ class DrawingArea():
                 style.append("\t{};\n".format(attrib))
             style.append("}\n")
         style.append("\nline { vector-effect: non-scaling-width }")
+        style.append("\npolyline { vector-effect: non-scaling-width }")
         drawing.defs.add(style)
 
         return drawing
 
     def _repr_svg_(self):
-        width = 600
+        width = 800
         height = int(width * self.height/self.width)+1
         drawing = self.get_svg_drawing()
         self.add_svg_styles(drawing)
@@ -372,6 +373,14 @@ class DrawingArea():
             # end
             outfile.write("\n0")
 
+    def scale_a4(self):
+        width = max(self.width, self.height)
+        height = min(self.width, self.height)
+        width_a4, height_a4 = 297, 210
+
+        factor = min(width_a4/width, height_a4/height)
+        self.scale(factor)
+        return self
 
     def group_materials(self):
         dct = {}

@@ -42,6 +42,10 @@ class Shape(object):
         return [norm(p1-p2) for p1, p2 in zip(self.front, self.back)]
 
     @property
+    def cell_widths(self):
+        return [p2[0]-p1[0] for p1, p2 in zip(self.front[:-1], self.front[1:])]
+
+    @property
     def area(self):
         front, back = self.front, self.back
         area = 0
