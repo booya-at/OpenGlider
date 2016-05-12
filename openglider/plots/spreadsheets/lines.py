@@ -19,10 +19,10 @@ def create_line_tree(glider):
 
     lowest_lines.sort(key=lambda val: val[0])
 
-
     def recursive_get_upper(node):
         dct = collections.OrderedDict()
         upper_lines = lineset.get_upper_connected_lines(node)
+
         def sort_key(line):
             nodes = lineset.get_upper_influence_nodes(line)
             values = [glider.ribs.index(node.rib)*100+node.rib_pos for node in nodes]
@@ -38,7 +38,7 @@ def create_line_tree(glider):
 
 
 def output_lines(glider, ods_sheet=None, places=3):
-    #line_tree = create_line_tree(glider)
+
     line_tree = glider.lineset.create_tree()
     ods_sheet = ods_sheet or ezodf.Table(name="lines", size=(500, 500))
 
@@ -63,6 +63,7 @@ def output_lines(glider, ods_sheet=None, places=3):
         row = insert_block(line, upper, row, 1)
 
     return ods_sheet
+
 
 if __name__ == "__main__":
     from openglider.glider import ParametricGlider

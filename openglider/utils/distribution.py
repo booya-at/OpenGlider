@@ -4,6 +4,7 @@ import numpy
 
 from openglider.utils.cache import HashedList
 
+
 class Distribution(HashedList):
     def __init__(self, numpoints=20, dist_type=None, fix_points=[], type_arg=None):
         """

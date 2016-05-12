@@ -24,16 +24,16 @@ Leinen
 Rigifoils
 ---------
 
-[] Markierungen rippe
-[] Längen
+[x] Markierungen rippe
+[x] Längen
 
 Ausgaben
 --------
 
-[] Design oben
-[] Design unten
+[x] Design oben
+[x] Design unten
 [] Arc
-[] Cell/Rib numbers
+[x] Cell/Rib numbers
 [] Tech Specs
     [] Area
     [] Span

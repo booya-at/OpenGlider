@@ -1,5 +1,6 @@
 import numpy
-from openglider.vector.functions import norm, normalize
+
+from openglider.vector.functions import normalize
 from openglider.vector.polyline import PolyLine2D
 
 text_vectors = {
@@ -51,7 +52,7 @@ text_vectors = {
 }
 
 
-class Text():
+class Text(object):
     def __init__(self, text, p1, p2, size=None, align="left", height=0.8, space=0.2, valign=0.5):
         """
         Vector Text

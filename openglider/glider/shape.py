@@ -1,4 +1,4 @@
-from openglider.plots.part import PlotPart, DrawingArea
+from openglider.plots.drawing import PlotPart, DrawingArea
 from openglider.vector import PolyLine2D, norm
 
 
@@ -77,7 +77,7 @@ class Shape(object):
                 self.get_point(cell_no, 0),
                 self.get_point(cell_no, 1),
                 self.get_point(cell_no+1, 1),
-                self.get_point(cell_no+1, 0),
+                self.get_point(cell_no+1, 0)
             ]
             points.append(points[0])
             da.parts.append(PlotPart(marks=[points]))

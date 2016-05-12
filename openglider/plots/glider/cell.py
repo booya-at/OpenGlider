@@ -1,10 +1,11 @@
 import collections
 
-from openglider.airfoil import get_x_value
 import openglider.plots
+from openglider.airfoil import get_x_value
 from openglider.vector.text import Text
 from openglider.plots import cuts, PlotPart
 from openglider.vector import PolyLine2D
+
 
 class PanelPlotMaker:
     allowance_general = 0.012

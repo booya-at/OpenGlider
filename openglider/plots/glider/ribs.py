@@ -1,10 +1,10 @@
 # coding=utf-8
-import collections
 
 import numpy
 
 from openglider.airfoil import get_x_value
-from openglider.plots import PlotPart, marks
+from openglider.plots import marks
+from openglider.plots.drawing import PlotPart
 from openglider.vector import PolyLine2D
 from openglider.vector.text import Text
 

@@ -22,6 +22,7 @@ import math
 from openglider.vector.functions import normalize, rotation_2d
 from openglider.vector.polyline import PolyLine2D
 
+
 ###############CUTS####################
 # Check doc/drawings 7-9 for sketches
 # DESIGN-CUT Style
@@ -65,6 +66,7 @@ class DesignCut(object):
         self.index_right = rightcut_index
 
         return self.curve, self.index_left, self.index_right
+
 
 # OPEN-ENTRY Style
 class FoldedCut(DesignCut):

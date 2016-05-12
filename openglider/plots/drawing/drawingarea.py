@@ -1,17 +1,15 @@
-import io
 import os
-
 import math
+
 import svgwrite
 import svgwrite.container
 import svgwrite.shapes
 
 from openglider.plots import config
-from openglider.plots.part.part import PlotPart
+from openglider.plots.drawing.part import PlotPart
 from openglider.utils.css import get_material_color, normalize_class_names
 from openglider.vector import PolyLine2D
 
-__author__ = 'simon'
 
 
 class DrawingArea(object):

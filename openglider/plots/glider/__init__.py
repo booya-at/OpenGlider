@@ -1,6 +1,6 @@
 import collections
 
-from openglider.plots import DrawingArea
+from openglider.plots.drawing import DrawingArea
 from openglider.plots.glider.cell import PanelPlotMaker
 from openglider.plots.glider.ribs import RibPlot
 

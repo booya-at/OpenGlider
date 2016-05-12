@@ -1,6 +1,6 @@
 
 
-class GliderProject():
+class GliderProject(object):
     def __init__(self, glider2d, glider3d=None):
         self.glider2d = glider2d
         self.glider3d = glider3d or glider2d.get_glider_3d()

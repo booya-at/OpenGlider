@@ -20,11 +20,11 @@
 import os
 import subprocess
 
-import openglider.plots.projection
 from openglider import jsonify
-from openglider.plots import spreadsheets
+
+import openglider.plots.spreadsheets
 from openglider.plots.cuts import cuts
-from openglider.plots.part import PlotPart, DrawingArea
+from openglider.plots.drawing import PlotPart, DrawingArea
 from openglider.plots.glider import PlotMaker
 
 

@@ -1,6 +1,6 @@
 import numpy
 
-from openglider.plots import DrawingArea, PlotPart
+from openglider.plots.drawing import DrawingArea, PlotPart
 from openglider.vector import PolyLine2D
 from openglider.vector.text import Text
 
