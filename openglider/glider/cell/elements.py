@@ -278,7 +278,7 @@ class Panel(object):
                     r_i += 1
         connection_info = {cell.rib1: numpy.array(ribs[0], int), 
                            cell.rib2: numpy.array(ribs[-1], int)}            
-        return Mesh(numpy.array(points), triangles, connection_info)
+        return Mesh(numpy.array(points), triangles, connection_info, self.material_code)
 
     def mirror(self):
         left, right = self.cut_front["left"], self.cut_front["right"]

@@ -27,6 +27,7 @@ import numpy
 from openglider.airfoil import Profile2D
 from openglider.glider.in_out import IMPORT_GEOMETRY, EXPORT_3D
 from openglider.glider.shape import Shape
+from openglider.mesh import Mesh, MeshGroup
 from openglider.plots.projection import flatten_list
 from openglider.utils import consistent_value
 from openglider.utils.distribution import Distribution
@@ -94,6 +95,25 @@ class Glider(object):
         for cell_no, cell in enumerate(self.cells):
             cell.name = self.cell_naming_scheme.format(cell=cell, cell_no=cell_no)
             cell.rename_parts()
+
+    def get_panel_groups(self):
+        panels = {}
+        for cell in self.cells:
+            for panel in cell.panels:
+                panels.setdefault(panel.material_code, [])
+                panels[panel.material_code] += panel
+
+        return panels
+
+    def get_mesh(self, midribs=0):
+        meshed_ribs = [Mesh.from_rib(rib) for rib in self.ribs]
+        meshed_panels = []
+        for cell in self.cells:
+            for panel in cell.panels:
+                meshed_panels.append(panel.get_mesh(cell, midribs))
+
+        return MeshGroup(*meshed_ribs), MeshGroup(*meshed_panels)
+
 
     def return_ribs(self, num=None, ballooning=True):
         """

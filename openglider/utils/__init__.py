@@ -33,6 +33,7 @@ def consistent_value(elements, attribute):
 def linspace(start, stop, count):
     return [start + y/(count-1) * (stop-start) for y in range(count)]
 
+
 class dualmethod(object):
     """
     A Decorator to have a combined class-/instancemethod
@@ -57,6 +58,7 @@ class dualmethod(object):
 
     def __get__(self, obj, cls=None):
         obj = obj or cls
+        is_instance = not type(obj) is type
 
         def temp(*args, **kwargs):
             return self.func(obj, *args, **kwargs)
