@@ -14,12 +14,14 @@ def get_specs(glider):
         sheet[i, 0].set_value(name)
         sheet[i, 1].set_value(value)
 
-    set_spec("Name", glider.name)
+    #set_spec("Name", glider.name)
     set_spec("Cells", len(glider.cells))
     set_spec("Area", glider.area)
-    set_spec("Area Projected", glider.area_projected)
+    set_spec("Area Projected", glider.projected_area)
     set_spec("Aspect Ratio", glider.aspect_ratio)
     set_spec("Span", glider.span)
+
+    return sheet
 
 
 def get_glider_data(glider):

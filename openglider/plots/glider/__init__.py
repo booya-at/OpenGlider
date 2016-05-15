@@ -33,7 +33,7 @@ class PlotMaker(object):
         return self.panels
 
     def get_ribs(self):
-        self.ribs.clear()
+        self.ribs = []
         for rib in self.glider_3d.ribs:
             rib_plot = RibPlot(rib)
             rib_plot.allowance_general = self.allowance_general

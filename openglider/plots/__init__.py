@@ -92,10 +92,12 @@ def unwrap(glider2d, outdir, sheet_height=1.45, part_dist=0.025, parts_prefix=""
 
     for sketch_name in ("design_upper", "design_lower"):
         sketch = sketches.pop(sketch_name)
-        sketch.export_svg(fn(sketch_name+".svg"), add_styles=True)
+        sketch.drawing.scale_a4()
+        sketch.drawing.export_svg(fn(sketch_name+".svg"), add_styles=True)
 
     for sketch_name, sketch in sketches.items():
-        sketch.export_svg(fn(sketch_name+".svg"), add_styles=False)
+        sketch.drawing.scale_a4()
+        sketch.drawing.export_svg(fn(sketch_name+".svg"), add_styles=False)
 
     print("output spreadsheets")
     excel = openglider.plots.spreadsheets.get_glider_data(glider)
