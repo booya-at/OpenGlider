@@ -166,7 +166,7 @@ class Mesh(object):
             point_array = np.array([point for line in point_array for point in line])
             points2d = map_to_2d(point_array)
 
-            mesh_info = meshpy_triangle.MeshInfo()
+            mesh_info = mptriangle.MeshInfo()
             mesh_info.set_points(points2d)
             mesh = custom_triangulation(mesh_info, "Qz")
             return cls.from_indexed(point_array, list(mesh.elements))
