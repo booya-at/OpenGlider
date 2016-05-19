@@ -3,7 +3,7 @@ import numpy
 from openglider.vector.functions import normalize
 
 
-class Layer(object):
+class Plane(object):
     def __init__(self, p0, v1, v2):
         self.p0 = numpy.array(p0)
         self.v1 = numpy.array(v1)
@@ -51,3 +51,17 @@ class Layer(object):
         self.v1 = self.v1 - self.v1 * normvector
         #self.v1 = numpy.array([0, -normvector[3], normvector[2]])
         self.v2 = numpy.cross(self.v1, normvector)
+
+    @classmethod
+    def from_point_cloud(cls, points):
+        # TODO: p0
+        mat = numpy.array(points).T
+        mat = numpy.array([mat[0], mat[1], mat[2], np.ones(len(mat[0]))])
+        u, d, v = numpy.linalg.svd(mat.T)
+        n = v[-1][0:3]
+        l_n = numpy.linalg.norm(n)
+        n /= l_n
+        x = numpy.cross(n, n[::-1])
+        y = numpy.cross(n, x)
+        #return cls(p0, x,y)
+

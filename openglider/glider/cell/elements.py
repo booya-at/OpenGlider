@@ -119,7 +119,7 @@ class DiagonalRib(object):
                 self.right_back[0] + self.right_front[0]) / 4
 
 
-class DoubleDiagonalRib():
+class DoubleDiagonalRib(object):
     pass  # TODO
 
 
@@ -134,7 +134,7 @@ class TensionStrap(DiagonalRib):
                                            name)
 
 
-class TensionStrapSimple():
+class TensionStrapSimple(object):
     def __init__(self, left, right, material_code="", name=""):
         self.left = left
         self.right = right
@@ -173,7 +173,6 @@ class Panel(object):
     class CUT_TYPES:
         folded = "folded"
         orthogonal = "orthogonal"
-
 
     def __init__(self, cut_front, cut_back, material_code=None, name="unnamed"):
         self.cut_front = cut_front  # (left, right, style(int))
@@ -276,9 +275,9 @@ class Panel(object):
                 elif pos_r[r_i] < pos_l[l_i]:
                     triangles.append(right_triangle(num_l[l_i], num_r[r_i]))
                     r_i += 1
-        connection_info = {cell.rib1: numpy.array(ribs[0], int), 
-                           cell.rib2: numpy.array(ribs[-1], int)}            
-        return Mesh(numpy.array(points), triangles, connection_info, self.material_code)
+        #connection_info = {cell.rib1: numpy.array(ribs[0], int),
+        #                   cell.rib2: numpy.array(ribs[-1], int)}
+        return Mesh.from_indexed(points, triangles, name=self.name)
 
     def mirror(self):
         left, right = self.cut_front["left"], self.cut_front["right"]
@@ -286,7 +285,6 @@ class Panel(object):
 
         left, right = self.cut_back["left"], self.cut_back["right"]
         self.cut_back["left"], self.cut_back["right"] = right, left
-
 
     def _get_ik_values(self, cell, numribs=0):
         x_values = cell.rib1.profile_2d.x_values

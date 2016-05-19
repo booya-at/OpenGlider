@@ -281,7 +281,6 @@ def paraBEM_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, sym
 
     if num_average > 0:
         ribs = glider.return_average_ribs(midribs, num_average)
-        glider.close_rib()          # should be handled inside return_average_ribs
     else:
         ribs = glider.return_ribs(midribs)
     # deleting the last vertex of every rib (no trailing edge gap)

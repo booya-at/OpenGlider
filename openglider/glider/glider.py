@@ -114,15 +114,32 @@ class Glider(object):
 
         return MeshGroup(*meshed_ribs), MeshGroup(*meshed_panels)
 
+    def get_mesh_hull(self, num_midribs=0, ballooning=True):
+        ribs = self.return_ribs(num=num_midribs, ballooning=ballooning)
 
-    def return_ribs(self, num=None, ballooning=True):
+        num = len(ribs)
+        numpoints = len(ribs[0])  # points per rib
+
+        polygons = []
+        for i in range(num-1):  # because we use i+1 below
+            for k in range(numpoints - 1):  # same reason as above
+                kplus = (k+1) % (numpoints-1)
+                polygons.append([
+                    i * numpoints + k,
+                    i * numpoints + kplus,
+                    (i + 1) * numpoints + kplus,
+                    (i + 1) * numpoints + k
+                ])
+
+        return Mesh(numpy.concatenate(ribs), polygons, name="hull")
+
+    def return_ribs(self, num=0, ballooning=True):
         """
         Get a list of rib-curves
         :param num: number of midribs per cell
         :param ballooning: calculate ballooned cells
         :return: nested list of ribs [[[x,y,z],p2,p3...],rib2,rib3,..]
         """
-        num = num or 0
         num += 1
         if not self.cells:
             return numpy.array([])
@@ -152,25 +169,8 @@ class Glider(object):
     def return_average_ribs(self, num=0, num_average=8):
         glider = self.copy()
         glider.apply_mean_ribs(num_average)
+        glider.close_rib()
         return glider.return_ribs(num, ballooning=False)
-
-    @staticmethod
-    def return_polygon_indices(ribs):
-        num = len(ribs)
-        numpoints = len(ribs[0])  # points per rib
-        #ribs = numpy.concatenate(ribs)  # ribs was [[point1[x,y,z],[point2[x,y,z]],[point1[x,y,z],point2[x,y,z]]]
-        polygons = []
-        for i in range(num-1):  # because we use i+1 below
-            for k in range(numpoints - 1):  # same reason as above
-                kplus = (k+1) % (numpoints-1)
-                polygons.append(
-                    [i * numpoints + k, i * numpoints + kplus, (i + 1) * numpoints + kplus, (i + 1) * numpoints + k])
-        return polygons
-
-    def return_polygons(self, num=None):
-        ribs = self.return_ribs(num)
-        polygons = self.return_polygon_indices(ribs)
-        return polygons, numpy.concatenate(ribs)
 
     def close_rib(self, rib=-1):
         self.ribs[rib].profile_2d *= 0.

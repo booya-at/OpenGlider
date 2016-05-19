@@ -25,6 +25,24 @@ class Distribution(HashedList):
         }
         return types.get(dist_type, self.std_distribution)(numpoints, type_arg)
 
+    def get_index(self, x):
+        i, x_last, x_this = -1
+        for i, x_this in enumerate(self.data):
+            if x_this >= x:
+                break
+            x_last = x_this
+
+        dist = (x - x_last) / (x_this - x_last)
+
+        return i+dist
+
+    def find_nearest(self, x, start_ind=0):
+        index = self.get_index(x)
+        nearest = round(index)
+        while nearest <= start_ind:
+            nearest += 1
+
+
     def _insert_values(self, values):
 
         def _insert_value(value, start_ind=0):
@@ -97,9 +115,9 @@ class Distribution(HashedList):
             return dist_values
         return distribution
 
-    @staticmethod
-    def from_glider(glider, dist_type=None):
+    @classmethod
+    def from_glider(cls, glider, dist_type=None):
         insert_pts = [point.rib_pos for point in glider.attachment_points] + [0]
         def distribution(numpoints):
-            return Distribution(numpoints, dist_type=dist_type, fix_points=insert_pts)
+            return cls(numpoints, dist_type=dist_type, fix_points=insert_pts)
         return distribution
