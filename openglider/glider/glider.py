@@ -294,13 +294,11 @@ class Glider(object):
 
     @profile_numpoints.setter
     def profile_numpoints(self, numpoints):
-        self.set_profile_numpoints(numpoints)
+        self.profile_x_values = Distribution.nose_cos_distribution(0.3)(numpoints)
 
-    def set_profile_numpoints(self, numpoints, dist_function=None):
-        dist_function = dist_function or Distribution.nose_cos_distribution(0.3)
-        xvalues = dist_function(numpoints)
-        for rib in self.ribs:
-            rib.profile_2d.x_values = xvalues
+    # def set_profile_numpoints(self, numpoints, dist_function=None):
+    #     dist_function = dist_function or Distribution.nose_cos_distribution(0.3)
+    #     self.profile_x_values = dist_function(numpoints)
 
     @property
     def profile_x_values(self):

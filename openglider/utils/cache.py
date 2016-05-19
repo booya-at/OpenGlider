@@ -121,6 +121,7 @@ class HashedList(CachedObject):
     """
     Hashed List to use cached properties
     """
+    name = "unnamed"
     def __init__(self, data, name=None):
         self._data = None
         self._hash = None

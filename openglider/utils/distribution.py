@@ -42,8 +42,9 @@ class Distribution(HashedList):
             return nearest_ind
 
         start_ind = 0
-        values = [abs(i) for i in values if (i != 1 and i != -1)]
-        values = sorted(list(set(values)))
+        values = [i for i in values if (i != 1 and i != -1)]
+        values = list(set(values))
+        values.sort()
         for value in values:
             start_ind = _insert_value(value, start_ind)
         temp = self.data.tolist()
