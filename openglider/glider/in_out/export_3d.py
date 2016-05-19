@@ -9,44 +9,11 @@ def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6, copy=True):
     other = glider.copy_complete() if copy else glider
     if numpoints:
         other.profile_numpoints = numpoints
-    ribs = other.return_ribs(midribs)
 
-    panels = []
-    points = []
-    numpoints = len(ribs[0])
-    for i in range(len(ribs)):
-        for j in range(numpoints):
-            # Create two Triangles from one rectangle:
-            # Start counting from 1; i->row; j->line
-            panels.append([i * numpoints + j + 1, i * numpoints + j + 2,
-                           (i + 1) * numpoints + j + 2])
-            panels.append([(i + 1) * numpoints + j + 1, i * numpoints + j + 1,
-                           (i + 1) * numpoints + j + 2])
-            # Calculate normvectors
-            # Y-Axis
-            first = ribs[i + (i < len(ribs) - 1)][j] - ribs[i - (i > 0)][j]
-            second = ribs[i][j - (j > 0)] - ribs[i][j + (j < numpoints - 1)]
-            try:
-                points.append(
-                    (ribs[i][j], normalize(numpy.cross(first, second))))
-            except ValueError:
-                raise ValueError(
-                    "vector of length 0 at: i={0}, j={1}: {2}".format(i, j,
-                                                                      first))
-    # TODO: check!?
-    panels = panels[:2 * (len(ribs) - 1) * numpoints - 2]
-    # Write file
-    with open(path, "w") as outfile:
-        for point in points:
-            # point = point[0] * [-1, -1, -1], point[1] * [-1, -1, -1]
-            # Write Normvector
-            # {: 10.6f} 10 zeichen lang, 6 nachkommas (leerzeichen fuellen)
-            outfile.write("vn {: 10.6f} {: 10.6f} {: 10.6f}\n".format(*point[1]))
-            # Write point
-            outfile.write("v {: 10.6f} {: 10.6f} {: 10.6f}\n".format(*point[0]))
-        for polygon in panels:
-            outfile.write("f {0}//{0} {1}//{1} {2}//{2}\n".format(*polygon))
-    return True
+    mesh = glider.get_mesh(midribs=midribs)
+    mesh.export_obj(path)
+
+
 
 
 def export_json(glider, path, numpoints, midribs=0, wake_panels=1,

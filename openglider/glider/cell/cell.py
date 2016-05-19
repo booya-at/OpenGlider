@@ -243,6 +243,6 @@ class Cell(CachedObject):
                     num_r[i + 1],
                     num_l[i + 1]])
 
-        connection_info = {self.rib1: numpy.array(nums[0][:-1], int), 
-                           self.rib2: numpy.array(nums[-1][:-1], int)}            
-        return Mesh(numpy.array(points), quads, connection_info)
+        # connection_info = {self.rib1: numpy.array(nums[0][:-1], int), 
+        #                    self.rib2: numpy.array(nums[-1][:-1], int)}            
+        return Mesh(numpy.array(points), {"cell": quads}) #, connection_info)

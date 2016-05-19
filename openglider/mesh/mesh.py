@@ -43,7 +43,7 @@ class Mesh(object):
         """
         # list of all elements [[node1, n2, n3], [n1,n2],...]
         if polygons is None:
-            polygons = []
+            polygons = {}
         self.polygons = polygons
         assert all(isinstance(vertex, Vertex) for vertex in self.vertices)
         # all nodes that might be in touch with other meshes
@@ -53,16 +53,22 @@ class Mesh(object):
     @property
     def vertices(self):
         vertices = set()
-        for poly in self.polygons:
+        for poly in self.all_polygons:
             for node in poly:
                 vertices.add(node)
 
         return vertices
 
+    @property
+    def all_polygons(self):
+        return sum(self.polygons.values(), [])
+
     def get_indexed(self):
         vertices = list(self.vertices)
         indices = {node: i for i, node in enumerate(vertices)}
-        polys = [[indices[node] for node in poly] for poly in self.polygons]
+        polys = {}
+        for poly_name, polygons in self.polygons.items():
+            polys[poly_name] = [[indices[node] for node in poly] for poly in polygons]
         boundaries = {}
         for boundary_name, boundary_nodes in self.boundary_nodes.items():
             boundaries[boundary_name] = [indices[node] for node in boundary_nodes]
@@ -74,15 +80,17 @@ class Mesh(object):
         vertices = [Vertex(*node) for node in vertices]
         boundaries = boundaries or {}
         boundaries_new = {}
-        polygons_new = [[vertices[i] for i in poly] for poly in polygons]
+        polys = {}
+        for poly_name, polygons in polygons.items():
+            polys[poly_name] = [[vertices[i] for i in poly] for poly in polygons]
         for boundary_name, boundary_indices in boundaries.items():
             boundaries_new[boundary_name] = [vertices[i] for i in boundary_indices]
 
-        return cls(polygons_new, boundaries_new, name)
+        return cls(polys, boundaries_new, name)
 
     def __repr__(self):
         return "Mesh {} ({} faces)".format(self.name,
-                                           len(self.polygons))
+                                           len(self.all_polygons))
 
     @classmethod
     def from_rib(cls, rib, hole_num=10, mesh_option="Qzip"):
@@ -129,7 +137,7 @@ class Mesh(object):
         except KeyError:
             print("there was a keyerror")
             return cls()
-        return cls.from_indexed(vertices, polygons=triangles, boundaries=connection)
+        return cls.from_indexed(vertices, polygons={"ribs": triangles})# , boundaries=connection)
 
     @classmethod
     def from_diagonal(cls, diagonal, cell, insert_points=4):
@@ -169,12 +177,12 @@ class Mesh(object):
             mesh_info = mptriangle.MeshInfo()
             mesh_info.set_points(points2d)
             mesh = custom_triangulation(mesh_info, "Qz")
-            return cls.from_indexed(point_array, list(mesh.elements))
+            return cls.from_indexed(point_array, {"diagonals": list(mesh.elements)})
 
         else:
             vertices = np.array(list(left) + list(right)[::-1])
             polygon = [range(len(vertices))]
-            return cls.from_indexed(vertices, polygon)
+            return cls.from_indexed(vertices, {"diagonals": polygon})
 
     def copy(self):
         poly_copy = [[v.copy() for v in p] for p in self.polygons]
@@ -210,21 +218,24 @@ class Mesh(object):
     #    return cls.from_indexed(vertices, polygons, boundaries, name)
 
     def export_obj(self, path=None, offset=0):
-        vertices, polygons = self.get_indexed()
-        out = "o {}\n".format(self.name)
-        for vertice in vertices:
-            out += "v {:.6f} {:.6f} {:.6f}\n".format(*vertice)
+        vertices, polygons, boundaries = self.get_indexed()
+        out = ""
 
-        for obj in polygons:
-            if len(obj) == 2:
-                # line
-                code = "l"
-            else:
-                # face
-                code = "f"
+        for vertex in vertices:
+            out += "v {:.6f} {:.6f} {:.6f}\n".format(*vertex)
 
-            out += " ".join([code] + [str(x+offset+1) for x in obj])
-            out += "\n"
+        for polygon_group_name, polygons in polygons.items():
+            out += "o {}\n".format(polygon_group_name)
+            for obj in polygons:
+                if len(obj) == 2:
+                    # line
+                    code = "l"
+                else:
+                    # face
+                    code = "f"
+
+                out += " ".join([code] + [str(x+offset+1) for x in obj])
+                out += "\n"
 
         if path:
             with open(path, "w") as outfile:
@@ -233,7 +244,9 @@ class Mesh(object):
         return out
 
     def __add__(self, other):
-        self.polygons += other.polygons
+        for poly_group_name, poly_group in other.polygons.items():
+            self.polygons.setdefault(poly_group_name, [])
+            self.polygons[poly_group_name] += poly_group
         for boundary_name, boundary in other.boundary_nodes.items():
             self.boundary_nodes.setdefault(boundary_name, [])
             self.boundary_nodes[boundary_name] += boundary
@@ -270,7 +283,7 @@ class Mesh(object):
 
             self.boundary_nodes[boundary_name] = boundary_nodes
 
-        for polygon in self.polygons:
+        for polygon in self.all_polygons:
             for i, node in enumerate(polygon):
                 if node in replace_dict:
                     polygon[i] = replace_dict[node]

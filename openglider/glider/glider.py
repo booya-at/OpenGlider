@@ -106,13 +106,12 @@ class Glider(object):
         return panels
 
     def get_mesh(self, midribs=0):
-        meshed_ribs = [Mesh.from_rib(rib) for rib in self.ribs]
-        meshed_panels = []
+        mesh = sum([Mesh.from_rib(rib) for rib in self.ribs], Mesh())
         for cell in self.cells:
             for panel in cell.panels:
-                meshed_panels.append(panel.get_mesh(cell, midribs))
+                mesh += panel.get_mesh(cell, midribs)
 
-        return MeshGroup(*meshed_ribs), MeshGroup(*meshed_panels)
+        return mesh
 
     def get_mesh_hull(self, num_midribs=0, ballooning=True):
         ribs = self.return_ribs(num=num_midribs, ballooning=ballooning)
