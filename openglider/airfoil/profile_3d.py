@@ -21,7 +21,7 @@ from __future__ import division
 import numpy
 
 from openglider.utils.cache import cached_property
-from openglider.vector import Layer
+from openglider.vector import Plane
 from openglider.vector.functions import norm, normalize
 from openglider.vector.polyline import PolyLine
 from openglider.airfoil import Profile2D
@@ -56,7 +56,7 @@ class Profile3D(PolyLine):
             yvect = yvect + sign * (diff[i] - xvect * xvect.dot(diff[i]))
 
         yvect = normalize(yvect)
-        return Layer(self.data[self.noseindex], xvect, yvect)
+        return Plane(self.data[self.noseindex], xvect, yvect)
 
     def flatten(self):
         """Flatten the airfoil and return a 2d-Representative"""

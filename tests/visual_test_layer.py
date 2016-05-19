@@ -31,7 +31,7 @@ try:
     import openglider
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
-from openglider.vector import Layer
+from openglider.vector import Plane
 from openglider.graphics import Graphics, Line, Red, Point, Blue
 
 
@@ -40,7 +40,7 @@ class TestLayer(unittest.TestCase):
         p0 = [0.,0.,0.]
         v1 = [1.,0.,0.]
         v2 = [0.,1.,0.]
-        self.layer = Layer(p0, v1, v2)
+        self.layer = Plane(p0, v1, v2)
 
     def testCut(self):
         p1 = numpy.array([0., 0., -1.])

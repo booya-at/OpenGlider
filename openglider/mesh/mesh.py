@@ -7,28 +7,82 @@ import meshpy.triangle as mptriangle
 from openglider.mesh.meshpy_triangle import custom_triangulation
 
 
+class Vertex(object):
+    dmin = 10**-5
+
+    def __init__(self, x, y, z):
+        self.x = x
+        self.y = y
+        self.z = z
+
+    def __iter__(self):
+        yield self.x
+        yield self.y
+        yield self.z
+
+    def copy(self):
+        return self.__class__(*self)
+
+    def is_equal(self, other):
+        for x1, x2 in zip(self, other):
+            if abs(x1 - x2) > self.dmin:
+                return False
+        return True
+
+
 class Mesh(object):
     """
     Mesh Surface: vertices and polygons
     """
-    def __init__(self, vertices=None, polygons=None, connection=None, name="unnamed"):
+    def __init__(self, polygons=None, boundary_nodes=None, name=None):
         """ A mesh has vertices, polygons and connection information.
             polygons can be:
                 line (2 indices)
                 triangle (3 vertices)
                 quadrangle (4 vertices)
         """
-        self.vertices = vertices            # np array of all vertices
-        if self.vertices is None:
-            self.vertices = np.array([], float).reshape(0, 3)
-        self.polygons = polygons or []      # list of all element indices
-        self.connection = connection or {}  # store all the connection info
-        self.name = name
+        # list of all elements [[node1, n2, n3], [n1,n2],...]
+        if polygons is None:
+            polygons = []
+        self.polygons = polygons
+        assert all(isinstance(vertex, Vertex) for vertex in self.vertices)
+        # all nodes that might be in touch with other meshes
+        self.boundary_nodes = boundary_nodes or {}
+        self.name = name or "unnamed"
+
+    @property
+    def vertices(self):
+        vertices = set()
+        for poly in self.polygons:
+            for node in poly:
+                vertices.add(node)
+
+        return vertices
+
+    def get_indexed(self):
+        vertices = list(self.vertices)
+        indices = {node: i for i, node in enumerate(vertices)}
+        polys = [[indices[node] for node in poly] for poly in self.polygons]
+        boundaries = {}
+        for boundary_name, boundary_nodes in self.boundary_nodes.items():
+            boundaries[boundary_name] = [indices[node] for node in boundary_nodes]
+
+        return vertices, polys, boundaries
+
+    @classmethod
+    def from_indexed(cls, vertices, polygons, boundaries=None, name=None):
+        vertices = [Vertex(*node) for node in vertices]
+        boundaries = boundaries or {}
+        boundaries_new = {}
+        polygons_new = [[vertices[i] for i in poly] for poly in polygons]
+        for boundary_name, boundary_indices in boundaries.items():
+            boundaries_new[boundary_name] = [vertices[i] for i in boundary_indices]
+
+        return cls(polygons_new, boundaries_new, name)
 
     def __repr__(self):
-        return "Mesh {} ({} vertices, {} faces)".format(self.name,
-                                                        len(self.vertices),
-                                                        len(self.polygons))
+        return "Mesh {} ({} faces)".format(self.name,
+                                           len(self.polygons))
 
     @classmethod
     def from_rib(cls, rib, hole_num=10, mesh_option="Qzip"):
@@ -75,7 +129,7 @@ class Mesh(object):
         except KeyError:
             print("there was a keyerror")
             return cls()
-        return cls(vertices, triangles, connection)
+        return cls.from_indexed(vertices, polygons=triangles, boundaries=connection)
 
     @classmethod
     def from_diagonal(cls, diagonal, cell, insert_points=4):
@@ -115,16 +169,16 @@ class Mesh(object):
             mesh_info = meshpy_triangle.MeshInfo()
             mesh_info.set_points(points2d)
             mesh = custom_triangulation(mesh_info, "Qz")
-            return cls(point_array, list(mesh.elements))
+            return cls.from_indexed(point_array, list(mesh.elements))
 
         else:
             vertices = np.array(list(left) + list(right)[::-1])
             polygon = [range(len(vertices))]
-            return cls(vertices, polygon)
+            return cls.from_indexed(vertices, polygon)
 
     def copy(self):
-        poly_copy = [p[:] for p in self.polygons]
-        return self.__class__(self.vertices, poly_copy)
+        poly_copy = [[v.copy() for v in p] for p in self.polygons]
+        return self.__class__(poly_copy)
 
     def triangularize(self):
         """
@@ -132,29 +186,41 @@ class Mesh(object):
         """
         faces_new = []
         for face in self.polygons:
-            if len(face) == 3:
-                faces_new.append(face)
-            elif len(face) == 4:
+            if len(face) == 4:
                 faces_new.append(face[:3])
                 faces_new.append(face[2:] + face[:1])
+            else:
+                faces_new.append(face)
 
         return self.__class__(self.vertices, faces_new)
 
     def __json__(self):
+        vertices, polygons, boundaries = self.get_indexed()
         return {
-            "vertices": self.vertices.tolist(),
-            "polygons": self.polygons
+            "vertices": vertices,
+            "polygons": polygons,
+            "boundaries": boundaries,
+            "name": self.name
         }
 
+    __from_json__ = from_indexed
+
+    #@classmethod
+    #def __from_json__(cls, vertices, polygons, boundaries, name):
+    #    return cls.from_indexed(vertices, polygons, boundaries, name)
+
     def export_obj(self, path=None, offset=0):
+        vertices, polygons = self.get_indexed()
         out = "o {}\n".format(self.name)
-        for vertice in self.vertices:
+        for vertice in vertices:
             out += "v {:.6f} {:.6f} {:.6f}\n".format(*vertice)
 
-        for obj in self.polygons:
+        for obj in polygons:
             if len(obj) == 2:
+                # line
                 code = "l"
             else:
+                # face
                 code = "f"
 
             out += " ".join([code] + [str(x+offset+1) for x in obj])
@@ -167,74 +233,49 @@ class Mesh(object):
         return out
 
     def __add__(self, other):
-        """adding two mesh objects"""
-        # copy the mesh, otherwise the input mesh get changed
-        new_mesh = Mesh(copy.copy(self.vertices),
-                        copy.copy(self.polygons),
-                        copy.copy(self.connection))
-        # translate to a python list for easier manipulation
-        vertices_list = self.vertices.tolist()
-        count = len(vertices_list)
-        # connection information stored in both meshes
-        intersections = (set(self.connection.keys()) &
-                         set(other.connection.keys()))
-        # create a map from connection info
-        connect_rules = dict()
-        for intersect in intersections:
-            for j, index in enumerate(other.connection[intersect]):
-                connect_rules[index] = self.connection[intersect][j]
-        # mapping other.vertices
-        replace_rules = dict()
-        for i, vertex in enumerate(other.vertices):
-            value = connect_rules.get(i)
-            if value is not None:
-                replace_rules[i] = value
-                count -= 1
-            else:
-                replace_rules[i] = i+count
-                vertices_list.append(vertex)
-        # apply the replacement rules
-        new_mesh.polygons += [
-            [replace_rules[index] for index in pol] for pol in other.polygons]
-        new_mesh.vertices = np.array(vertices_list)
+        self.polygons += other.polygons
+        for boundary_name, boundary in other.boundary_nodes.items():
+            self.boundary_nodes.setdefault(boundary_name, [])
+            self.boundary_nodes[boundary_name] += boundary
 
-        for key in other.connection.keys():
-            if key not in intersections:
-                new_mesh.connection[key] = [
-                    replace_rules[value] for value in other.connection[key]]
-        return new_mesh
+        return self
 
-    def delete_duplicates(self, min_dist=10**(-10)):
+    def delete_duplicates(self, boundaries=None):
         """
-        delete points that are close to each other
+        :param boundaries: list of boundary names to be joined (None->all)
+        :return: Mesh (self)
         """
+        # make all nodes numpy array
+
+        boundaries = boundaries or self.boundary_nodes.keys()
         replace_dict = {}
-        for i, point_i in enumerate(self.vertices[:-1]):
-            if not i in replace_dict:
-                for j, point_j in enumerate(self.vertices[i+1:]):
-                    _j = j + i + 1
-                    if not _j in replace_dict:
-                        if np.linalg.norm(point_j - point_i) < min_dist:
-                            replace_dict[_j] = i
-        for j, point_j in enumerate(self.vertices):
-            if j not in replace_dict:
-                replace_dict[j] = j
-        self.apply_rules(replace_dict)
-        self.delete_vertices_not_used()
 
-    def apply_rules(self, rules):
-        """apply a dict of replacement rules to the polygons"""
-        self.polygons = [[rules[index] for index in pol] for pol in self.polygons]
-        new_connection_info = {}
-        for key in self.connection:
-            new_connection_info[key] = [rules[i] for i in self.connection[key]]
-        self.connection = new_connection_info
+        for boundary_name in boundaries:
+            replace_dict_this = {}
+            # remove duplicates
+            boundary_nodes = self.boundary_nodes[boundary_name]
+            # go through all nodes
+            for i, node1 in enumerate(boundary_nodes[:-1]):
+                # skip if already detected
+                if node1 not in replace_dict_this:
+                    for j, node2 in enumerate(boundary_nodes[i+1:]):
+                        # check distance and replace if samesame
+                        if node1 is not node2 and node1.is_equal(node2):
+                            replace_dict_this[node2] = node1
+                            print(node1.is_equal(node2), list(node1), list(node2))
 
-    def delete_vertices_not_used(self):
-        """delete all vertices not used in the polygons"""
-        sorted_indices = list(sorted(set(index for pol in self.polygons for index in pol)))#
-        self.apply_rules({value: j for j, value in enumerate(sorted_indices)})
-        self.vertices = np.array([point for j, point in enumerate(self.vertices) if j in sorted_indices])
+            for replaced_node in replace_dict_this.keys():
+                boundary_nodes.remove(replaced_node)
+            replace_dict.update(replace_dict_this)
+
+            self.boundary_nodes[boundary_name] = boundary_nodes
+
+        for polygon in self.polygons:
+            for i, node in enumerate(polygon):
+                if node in replace_dict:
+                    polygon[i] = replace_dict[node]
+
+        return self
 
 
 def apply_z(vertices):
@@ -259,7 +300,21 @@ def map_to_2d(points):
 
 
 if __name__ == "__main__":
-    a = Mesh(np.array([[0,0,0], [0,1,0], [1,0,0]]), [[0,1,2]])
-    b = Mesh(np.array([[0,0,0], [0,1,0], [-1,0,0]]), [[0,2,1]])
-    c = a + b
-    c.delete_duplicates(0.1)
+    p1 = Vertex(*[0, 0, 0])
+    p2 = Vertex(*[1, 0, 0])
+    p3 = Vertex(*[0, 1, 0])
+    p4 = Vertex(*[1, 1, 0])
+    p5 = Vertex(*[0, 0, 0])
+    print(p1)
+
+    a = [p1,p2,p3,p4]
+    b = [p1,p2,p4,p5]
+
+    m1 = Mesh([a], boundary_nodes={"j": a})
+    m2 = Mesh([b], boundary_nodes={"j": b})
+
+    print(m2.vertices)
+    m3 = m1+m2
+    print(m3.vertices)
+    m3.delete_duplicates()
+    print(m3.vertices)

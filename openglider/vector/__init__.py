@@ -23,7 +23,7 @@ import numpy
 from openglider.vector.functions import norm, norm_squared, normalize, rangefrom, vector_angle
 from openglider.vector.polyline import PolyLine, PolyLine2D
 from openglider.vector.polygon import Polygon2D
-from openglider.vector.layer import Layer
+from openglider.vector.plane import Plane
 from openglider.vector.interpolate import Interpolation
 
 def depth(arg):

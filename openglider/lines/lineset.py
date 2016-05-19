@@ -3,6 +3,7 @@ import copy
 from openglider.lines import SagMatrix
 
 from openglider.lines.functions import proj_force
+from openglider.mesh import Mesh
 from openglider.vector.functions import norm, normalize
 
 
@@ -41,6 +42,18 @@ class LineSet():
     @property
     def lower_attachment_points(self):
         return [n for n in self.nodes if n.type == 0]
+
+    def get_mesh(self, numpoints=10):
+        for line in self.lines:
+            line_points = line.get_line_points(numpoints=numpoints)
+            indices = list(range(numpoints))
+            boundary = {"line": [0]}
+            if line.upper_node.node_type == 2:
+                boundary["attachment_point"] = [numpoints]
+            else:
+                boundary["line"].append(numpoints)
+
+            line_mesh = Mesh(line_points, indices, boundary)
 
     def recalc(self):
         """
