@@ -40,9 +40,7 @@ we use python2 as vtk is not yet available for python3.
 
 Documentation
 -------------
-every module inside openglider has a README where the functionality is documented.  
- - [openglider](./openglider/README.md)  
-    the base module
+Every module inside openglider has a README where the functionality is documented. Please have a look at the [base module](./openglider/README.md).
 
 Unittests and Visual Tests
 --------------------------
@@ -72,14 +70,22 @@ While still being in an early status, here is some little screenshots to see the
 
 The plan is to build on:
 
-* python ( http://docs.python.org/2/tutorial/ )
-* vtk (visual toolkit, for 3d-output: http://www.vtk.org/)
-* freecad (Open-Source Cad, written in c++ with python API (www.freecadweb.org/)
-* xfoil//Pyxfoil for 2D-foil calculation ( http://web.mit.edu/drela/Public/web/xfoil/ ) (http://www.python-science.org/project/pyxfoil)
-* self-coded panelmethod (VSAERO) and/or apame implementation (http://www.3dpanelmethod.com/) for quick 3D-calculation
-    -> https://github.com/hiaselhans/booyapan
-* OpenFoam obj-file CFD export ( http://www.openfoam.com/)
-* Code_Aster FEM export ( http://www.code-aster.org ) - maybe calculix as we've done already, but it does currently not support membrane elements)
+* **python** ( http://docs.python.org/2/tutorial/ )
+
+* self-coded **panelmethod** (VSAERO) and/or apame implementation (http://www.3dpanelmethod.com/) for quick 3D-calculation
+    -> https://github.com/booya-at/paraBEM
+
+* **OpenFoam** obj-file CFD export ( http://www.openfoam.com/)
+
+* ecplicit non linear **FEM** (membrane, truss) for line forces and deformation analysis (https://www.github.com/booya-at/paraFEM)
+
+* **freecad** (Open-Source Cad, written in c++ with python API (www.freecadweb.org/)
+
+* **VTK** (visual toolkit, for 3d-output: http://www.vtk.org/)
+
+* ~~Code_Aster FEM export ( http://www.code-aster.org ) - maybe calculix as we've done already, but it does currently not support membrane elements)~~
+
+* ~~xfoil//Pyxfoil for 2D-foil calculation ( http://web.mit.edu/drela/Public/web/xfoil/ ) (http://www.python-science.org/project/pyxfoil)~~
 
 It will take some time, if you want to help, feel free to do so!
 
