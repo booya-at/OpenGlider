@@ -323,8 +323,8 @@ if __name__ == "__main__":
     a = [p1,p2,p3,p4]
     b = [p1,p2,p4,p5]
 
-    m1 = Mesh([a], boundary_nodes={"j": a})
-    m2 = Mesh([b], boundary_nodes={"j": b})
+    m1 = Mesh({"a": [a]}, boundary_nodes={"j": a})
+    m2 = Mesh({"b": [b]}, boundary_nodes={"j": b})
 
     print(m2.vertices)
     m3 = m1+m2
