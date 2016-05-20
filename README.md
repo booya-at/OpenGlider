@@ -1,7 +1,7 @@
 OpenGlider
 ==========
 
-[![Build Status](https://travis-ci.org/hiaselhans/OpenGlider.svg?branch=master)](https://travis-ci.org/hiaselhans/OpenGlider)
+[![Build Status](https://travis-ci.org/booya-at/OpenGlider.svg?branch=develop)](https://travis-ci.org/booya-at/OpenGlider)
 [![Coverage Status](https://img.shields.io/coveralls/hiaselhans/OpenGlider.svg)](https://coveralls.io/r/hiaselhans/OpenGlider)
 [![Documentation Status](https://readthedocs.org/projects/openglider/badge/?version=latest)](https://readthedocs.org/projects/openglider/?badge=latest)
 
@@ -16,7 +16,7 @@ Clone the git-repo first:
   ```
   git clone https://github.com/hiaselhans/OpenGlider.git
   ```
-  
+
 Install using Pip:
   ```
   cd OpenGlider
@@ -38,6 +38,11 @@ If you want to permanently install link it to the python packages or install wit
 
 we use python2 as vtk is not yet available for python3.
 
+Documentation
+-------------
+every module inside openglider has a README where the functionality is documented.  
+ - [openglider](./openglider/README.md)  
+    the base module
 
 Unittests and Visual Tests
 --------------------------

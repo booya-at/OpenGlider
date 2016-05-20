@@ -70,7 +70,6 @@ class Distribution(HashedList):
         self.data = list(l1) + list(l2) + list(l3)
         return nearest_ind
 
-
     def insert_values(self, values):
         """
         values: list of values to insert
@@ -82,7 +81,6 @@ class Distribution(HashedList):
         values.sort()
         for value in values:
             start_ind = self.insert_value(value, start_ind)
-
 
     @staticmethod
     def cos_distribution(numpoints, arg=None):
