@@ -12,7 +12,6 @@ openglider.__version__
  - [plots](./plots/README.md)  
  - [airfoil](./airfoil/README.md)  
  - [lines](./lines/README.md)  
- - [mesh](./mesh/README.md)  
  - [numeric](./numeric/README.md)  
  - graphics  
  - utils  

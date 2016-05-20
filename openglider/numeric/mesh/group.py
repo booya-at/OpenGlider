@@ -1,4 +1,4 @@
-from openglider.mesh.mesh import Mesh
+from openglider.numeric.mesh import Mesh
 
 
 class MeshGroup(object):

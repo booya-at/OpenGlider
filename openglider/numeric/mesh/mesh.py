@@ -4,7 +4,7 @@ import copy
 import numpy as np
 import meshpy.triangle as mptriangle
 
-from openglider.mesh.meshpy_triangle import custom_triangulation
+from openglider.numeric.mesh.meshpy_triangle import custom_triangulation
 
 
 class Vertex(object):

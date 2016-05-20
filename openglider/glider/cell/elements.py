@@ -24,7 +24,7 @@ import numpy
 from openglider.airfoil import get_x_value
 from openglider.plots.projection import flatten_list
 from openglider.vector import norm
-from openglider.mesh import Mesh
+from openglider.numeric.mesh import Mesh
 
 
 class DiagonalRib(object):
@@ -322,12 +322,3 @@ class Panel(object):
         lengthes_3d = [rib.get_segment_lengthes() for rib in ribs_3d]
         lengthes_2d = [rib.get_segment_lengthes() for rib in ribs_2d]
         lengthes_diff = [l3 - l2 for l3, l2 in zip(lengthes_3d, lengthes_2d)]
-
-
-
-
-
-
-
-
-

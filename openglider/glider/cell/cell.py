@@ -8,7 +8,7 @@ from openglider.glider.cell import BasicCell
 from openglider.utils import consistent_value, linspace
 from openglider.utils.cache import CachedObject, cached_property, HashedList
 from openglider.vector import norm
-from openglider.mesh import Mesh
+from openglider.numeric.mesh import Mesh
 
 
 class Cell(CachedObject):
@@ -231,7 +231,7 @@ class Cell(CachedObject):
             nums.append([i + count for i, _ in enumerate(midrib)])
             count += len(nums[-1])
             nums[-1].append(nums[-1][0])
-            
+
         quads = []
         for rib_no, _ in enumerate(nums[:-1]):
             num_l = nums[rib_no]
@@ -239,10 +239,10 @@ class Cell(CachedObject):
             for i, _ in enumerate(num_l[:-1]):
                 quads.append([
                     num_l[i],
-                    num_r[i],             
+                    num_r[i],
                     num_r[i + 1],
                     num_l[i + 1]])
 
-        # connection_info = {self.rib1: numpy.array(nums[0][:-1], int), 
-        #                    self.rib2: numpy.array(nums[-1][:-1], int)}            
+        # connection_info = {self.rib1: numpy.array(nums[0][:-1], int),
+        #                    self.rib2: numpy.array(nums[-1][:-1], int)}
         return Mesh(numpy.array(points), {"cell": quads}) #, connection_info)

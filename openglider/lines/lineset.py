@@ -3,7 +3,7 @@ import copy
 from openglider.lines import SagMatrix
 
 from openglider.lines.functions import proj_force
-from openglider.mesh import Mesh
+from openglider.numeric.mesh import Mesh
 from openglider.vector.functions import norm, normalize
 
 

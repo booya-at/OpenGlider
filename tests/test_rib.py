@@ -27,7 +27,7 @@ import common
 import openglider
 from openglider.glider.rib.rib import Rib
 from openglider.glider.rib.elements import RibHole
-from openglider.mesh import Mesh
+from openglider.numeric.mesh import Mesh
 
 
 class TestRib(unittest.TestCase):
@@ -74,5 +74,3 @@ class TestRib(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
-
-

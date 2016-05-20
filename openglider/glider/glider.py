@@ -27,7 +27,7 @@ import numpy
 from openglider.airfoil import Profile2D
 from openglider.glider.in_out import IMPORT_GEOMETRY, EXPORT_3D
 from openglider.glider.shape import Shape
-from openglider.mesh import Mesh, MeshGroup
+from openglider.numeric.mesh import Mesh, MeshGroup
 from openglider.plots.projection import flatten_list
 from openglider.utils import consistent_value
 from openglider.utils.distribution import Distribution
@@ -273,7 +273,7 @@ class Glider(object):
         front, back = flatten_list(self.get_spanwise(0), self.get_spanwise(1))
         return Shape([rot.dot(p) for p in front], [rot.dot(p) for p in back])
 
-    # delete ? 
+    # delete ?
     @property
     def arc(self):
         return [rib.pos[1:] for rib in self.ribs]
