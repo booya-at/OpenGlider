@@ -25,13 +25,13 @@ from openglider.utils.distribution import Distribution
 
 class TestProfile(unittest.TestCase):
     def setUp(self):
-        self.fixpoints = [-0.9, -0.7, -0.4, 0.1, 0.5, 0.9]
+        self.fixpoints = [-0.9, -0.8 ,0.1, 0.5, 0.9]
         self.dist_types = "cos, cos_2, nose_cos, const"
 
     def test_is_in_list(self):
         for typ in self.dist_types:
             a = Distribution(
-                numpoints=30,
+                numpoints=20,
                 fix_points=self.fixpoints,
                 dist_type=typ
                 )

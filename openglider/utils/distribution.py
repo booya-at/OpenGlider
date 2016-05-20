@@ -15,7 +15,7 @@ class Distribution(HashedList):
 
         self.data = self._values(dist_type, numpoints, type_arg)
         if fix_points:
-            self._insert_values(fix_points)
+            self.insert_values(fix_points)
 
     def _values(self, dist_type, numpoints, type_arg):
         types = {
@@ -34,7 +34,7 @@ class Distribution(HashedList):
 
         dist = (x - x_last) / (x_this - x_last)
 
-        return i+dist
+        return i + dist
 
     def find_nearest(self, x, start_ind=0):
         index = self.get_index(x)
@@ -42,33 +42,47 @@ class Distribution(HashedList):
         while nearest <= start_ind:
             nearest += 1
 
+    def insert_value(self, value, start_ind=0):
 
-    def _insert_values(self, values):
+        if start_ind  >= len(self.data):
+            self.data = list(self.data[:-1]) + [value] + [self.data[-1]]
+            return start_ind + 1
 
-        def _insert_value(value, start_ind=0):
-            # find the nearest value:
-            nearest_ind = numpy.abs(self.data[start_ind:] - value).argmin() + 1 + start_ind
-            l1 = self.data[:start_ind]
-            l2 = self.data[start_ind:nearest_ind]
-            l3 = self.data[nearest_ind:]
-            l3 = (l3 - l3[-1]) * (l3[-1] - value) / (l3[-1] - l2[-1]) + l3[-1]
-            if len(l2) < 2:
-                l2 = [value]
-            else:
-                l2 = (l2 - l2[0]) * (value - l2[0]) / (l2[-1] - l2[0]) + l2[0]
-            self.data = list(l1) + list(l2) + list(l3)
+        nearest_ind = numpy.abs(self.data[start_ind:] - value).argmin() + 1 + start_ind
+
+        if nearest_ind == len(self.data):
+            self.data = list(self.data[:-1]) + [value] + [self.data[-1]]
             return nearest_ind
 
+        l1 = self.data[:start_ind]
+        l2 = self.data[start_ind:nearest_ind]
+        l3 = self.data[nearest_ind:]
+
+        # shift all values after the insert value
+        if len(l3) > 0:
+            l3 = (l3 - l3[-1]) * (l3[-1] - value) / (l3[-1] - l2[-1]) + l3[-1]
+
+        # shift all values left to the insert value to match: l2[-1] == value
+        if len(l2) < 2:
+            l2 = [value]
+        else:
+            l2 = (l2 - l2[0]) * (value - l2[0]) / (l2[-1] - l2[0]) + l2[0]
+        self.data = list(l1) + list(l2) + list(l3)
+        return nearest_ind
+
+
+    def insert_values(self, values):
+        """
+        values: list of values to insert
+        shift the data to match values
+        """
         start_ind = 0
         values = [i for i in values if (i != 1 and i != -1)]
-        values = list(set(values))
+        values = list(set(values))       # delete duplicate and sort -1...1
         values.sort()
         for value in values:
-            start_ind = _insert_value(value, start_ind)
-        temp = self.data.tolist()
-        temp = [i for i in temp if i >= 0]
-        temp = [-i for i in temp[::-1]][:-1] + temp
-        self.data = temp
+            start_ind = self.insert_value(value, start_ind)
+
 
     @staticmethod
     def cos_distribution(numpoints, arg=None):
@@ -121,3 +135,8 @@ class Distribution(HashedList):
         def distribution(numpoints):
             return cls(numpoints, dist_type=dist_type, fix_points=insert_pts)
         return distribution
+
+
+if __name__ == "__main__":
+    a = Distribution(30, "cos", fix_points=[-0.99, -0.98, -0.97, -0.9, -0.1, 0.333, 0.9, 0.95, 0.96, 0.97])
+    print(a.data)
