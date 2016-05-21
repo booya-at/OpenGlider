@@ -1,5 +1,4 @@
 import unittest
-import os
 
 from openglider.numeric.mesh import Mesh, Vertex
 
