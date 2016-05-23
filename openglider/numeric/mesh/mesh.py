@@ -33,15 +33,17 @@ class Vertex(object):
 class Mesh(object):
     """
     Mesh Surface: vertices and polygons
+
+    A mesh has vertices, polygons and boundary information.
+    polygons can be:
+        line (2 vertices)
+        triangle (3 vertices)
+        quadrangle (4 vertices)
     """
     def __init__(self, polygons=None, boundary_nodes=None, name=None):
-        """ A mesh has vertices, polygons and connection information.
-            polygons can be:
-                line (2 indices)
-                triangle (3 vertices)
-                quadrangle (4 vertices)
         """
-        # list of all elements [[node1, n2, n3], [n1,n2],...]
+
+        """
         if polygons is None:
             polygons = {}
         self.polygons = polygons
@@ -258,7 +260,6 @@ class Mesh(object):
         :param boundaries: list of boundary names to be joined (None->all)
         :return: Mesh (self)
         """
-        # make all nodes numpy array
 
         boundaries = boundaries or self.boundary_nodes.keys()
         replace_dict = {}
@@ -294,7 +295,6 @@ class Mesh(object):
 def apply_z(vertices):
     v = vertices.T
     return np.array([v[0], np.zeros(len(v[0]), v[1])]).T
-
 
 
 def map_to_2d(points):
