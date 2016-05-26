@@ -208,7 +208,7 @@ class Profile2D(Polygon2D):
 
     @numpoints.setter
     def numpoints(self, numpoints):
-        self.x_values = Distribution.cos_distribution(numpoints)
+        self.x_values = Distribution.from_cos_distribution(numpoints)
 
     #todo: cached
     #@cached_property('self')

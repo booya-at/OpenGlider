@@ -6,24 +6,30 @@ from openglider.utils.cache import HashedList
 
 
 class Distribution(HashedList):
-    def __init__(self, numpoints=20, dist_type=None, fix_points=[], type_arg=None):
+    @classmethod
+    def new(cls, numpoints=20, dist_type=None, fixed_nodes=None, **kwargs):
         """
-        distribution(num_points=20, type="cos", fix_points=[], dist_arg=None)
-            return a list of ordered values between -1, 1 with the given fix_points
-        type: (None -> constant difference, "cos", "cos_2", "nose_cos")
-        type_arg: pass an additional argument"""
+        create a new distribution
+        Distribution.new(num_points=20, dist_type="cos", fix_points=[-0.2, 0.2])
+            -> list of 20 cos-distributed values, with shifted values so the given fix_points are included in the set
+        dist_type:
+            * linear (default)
+            * cos
+            * cos_2
+            * nose_cos
+        """
 
-        self.data = self._values(dist_type, numpoints, type_arg)
-        if fix_points:
-            self.insert_values(fix_points)
-
-    def _values(self, dist_type, numpoints, type_arg):
-        types = {
-            "cos": self.cos_distribution,
-            "cos_2": self.cos_2_distribution,
-            "nose_cos": self.nose_cos_distribution
+        _types = {
+            "cos": cls.from_cos_distribution,
+            "cos_2": cls.from_cos_2_distribution,
+            "nose_cos": cls.from_nose_cos_distribution
         }
-        return types.get(dist_type, self.std_distribution)(numpoints, type_arg)
+        dist_func = _types.get(dist_type, cls.from_linear)
+        dist = dist_func(numpoints, **kwargs)
+        if fixed_nodes:
+            dist.insert_values(fixed_nodes)
+
+        return dist
 
     def get_index(self, x):
         i, x_last, x_this = -1
@@ -82,50 +88,59 @@ class Distribution(HashedList):
         for value in values:
             start_ind = self.insert_value(value, start_ind)
 
-    @staticmethod
-    def cos_distribution(numpoints, arg=None):
+    @classmethod
+    def from_linear(cls, numpoints, start=-1, stop=1):
+        """
+        Get a linear distribution
+        """
+        return cls(numpy.linspace(start, stop, numpoints))
+
+    @classmethod
+    def from_polynom_distribution(cls, numpoints, order=2):
+        """
+        return a polynom distribution
+        f(x) = +- x^p, 0 < x < 1
+        """
+        half_numpoints = int(numpoints/2) + 1
+        second_half = [i/half_numpoints ** order for i in range(half_numpoints)]
+        first_half = [-x for x in second_half[::-1]][:-1]
+
+        return cls(first_half + second_half)
+
+    @classmethod
+    def from_cos_distribution(cls, numpoints):
         """
         return cosinus distributed x-values
+        low density at (-1) and (+1) but neat around 0
         """
-        numpoints -= numpoints % 2
+        numpoints -= numpoints % 2  # brauchts?
         xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 - numpy.sin(numpy.pi * x))
-        return [xtemp(i/numpoints) for i in range(numpoints+1)]
+        return cls([xtemp(i/numpoints) for i in range(numpoints+1)])
 
-    @staticmethod
-    def cos_2_distribution(numpoints, arg=None):
+    @classmethod
+    def from_cos_2_distribution(cls, numpoints, arg=None):
         """
         return cosinus distributed x-values
         double-cosinus -> neat distribution at nose and trailing edge
         """
         numpoints -= numpoints % 2
         xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 + numpy.cos(2 * numpy.pi * x)) / 2
-        return [xtemp(i/numpoints) for i in range(numpoints+1)]
+        return cls([xtemp(i/numpoints) for i in range(numpoints+1)])
 
-    @staticmethod
-    def nose_cos_distribution(numpoints, arg=None):
-        """from cos distribution at leading edge, to a const distribution ad trailing edge"""
-        arg = arg or 0.5
-        def distribution(numpoints):
-            def f(x):
-                return x ** 2 / ((-2 + arg) * arg) if x < arg else (2 * x - arg)/(-2 + arg)
-            dist_values = numpy.linspace(0, 1, int(numpoints / 2) + 1)
-            dist_values = [f(val) for val in dist_values]
-            dist_values = dist_values[::-1][:-1] + list(-numpy.array(dist_values))
-            return dist_values
-        return distribution
+    @classmethod
+    def from_nose_cos_distribution(cls, numpoints, border=0.5):
+        """
+        from cos distribution at leading edge, to a const distribution at +- 1
+        """
 
-    @staticmethod
-    def std_distribution(numpoints, arg=None):
-        return numpy.linspace(-1, 1, numpoints)
+        def f(x):
+            return x ** 2 / ((-2 + border) * border) if x < border else (2 * x - border)/(-2 + border)
 
-    @staticmethod
-    def polynom_distribution(p):
-        """return a distribution f(x) = x ** p, 0 < x < 1"""
-        def distribution(numpoints):
-            dist_values = numpy.linspace(0, 1, int(numpoints / 2) + 1) ** p
-            dist_values = list(-dist_values[::-1])[:-1] + list(dist_values)
-            return dist_values
-        return distribution
+        dist_values = numpy.linspace(0, 1, int(numpoints / 2) + 1)
+        first_half = [f(val) for val in dist_values[::-1][:-1]]
+        second_half = [-f(val) for val in dist_values]
+
+        return cls(first_half + second_half)
 
     @classmethod
     def from_glider(cls, glider, dist_type=None):

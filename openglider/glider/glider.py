@@ -111,6 +111,8 @@ class Glider(object):
             for panel in cell.panels:
                 mesh += panel.get_mesh(cell, midribs)
 
+        mesh += self.lineset.get_mesh()
+
         return mesh
 
     def get_mesh_hull(self, num_midribs=0, ballooning=True):
@@ -130,7 +132,7 @@ class Glider(object):
                     (i + 1) * numpoints + k
                 ])
 
-        return Mesh(numpy.concatenate(ribs), polygons, name="hull")
+        return Mesh.from_indexed(numpy.concatenate(ribs), {"hull": polygons})
 
     def return_ribs(self, num=0, ballooning=True):
         """
@@ -293,11 +295,7 @@ class Glider(object):
 
     @profile_numpoints.setter
     def profile_numpoints(self, numpoints):
-        self.profile_x_values = Distribution.nose_cos_distribution(0.3)(numpoints)
-
-    # def set_profile_numpoints(self, numpoints, dist_function=None):
-    #     dist_function = dist_function or Distribution.nose_cos_distribution(0.3)
-    #     self.profile_x_values = dist_function(numpoints)
+        self.profile_x_values = Distribution.from_nose_cos_distribution(numpoints, 0.3)
 
     @property
     def profile_x_values(self):

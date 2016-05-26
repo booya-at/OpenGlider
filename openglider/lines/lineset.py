@@ -44,16 +44,20 @@ class LineSet():
         return [n for n in self.nodes if n.type == 0]
 
     def get_mesh(self, numpoints=10):
+        mesh = Mesh()
         for line in self.lines:
             line_points = line.get_line_points(numpoints=numpoints)
             indices = list(range(numpoints))
+            line_segments = list(zip(indices[:-1], indices[1:]))
             boundary = {"line": [0]}
-            if line.upper_node.node_type == 2:
-                boundary["attachment_point"] = [numpoints]
+            if line.upper_node.type == 2:
+                boundary["attachment_point"] = [numpoints-1]
             else:
-                boundary["line"].append(numpoints)
+                boundary["line"].append(numpoints-1)
 
-            line_mesh = Mesh(line_points, indices, boundary)
+            mesh += Mesh.from_indexed(line_points, {"lineset": line_segments}, boundary)
+
+        return mesh
 
     def recalc(self):
         """
