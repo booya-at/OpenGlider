@@ -32,14 +32,12 @@ case = gliderCase(glider)
 config = case.mesh.defaultConfig
 config.numpoints = 100 # ...
 
-case.mesh.setup(config) # by default the default config is used
 case.mesh.run()
 
 # prepare the flow simulation
 config = case.flow.config
 config.visible_output = True
 
-case.flow.setup(config)
 case.flow.run()
 
 # prepare the FEM smulation
@@ -47,7 +45,6 @@ config = case.mech.config
 config.timestep = 0.0001
 config.num_vis_export = 100
 
-case.mech.setup(config)
 case.mech.run()
 
 ```
