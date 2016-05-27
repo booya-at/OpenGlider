@@ -17,27 +17,32 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-
+import random
 import unittest
+
 import numpy
+
 from openglider.utils.distribution import Distribution
 
 
 class TestProfile(unittest.TestCase):
+    num_dist = 40
+    num_fixed = 10
+
     def setUp(self):
-        self.fixpoints = [-0.9, -0.8 ,0.1, 0.5, 0.9]
+        self.fixpoints = [(random.random()-0.5)*2 for _ in range(self.num_fixed)]
+
         self.dist_types = "cos, cos_2, nose_cos, const"
 
     def test_is_in_list(self):
         for typ in self.dist_types:
-            a = Distribution(
-                numpoints=20,
-                fix_points=self.fixpoints,
+            a = Distribution.new(
+                numpoints=self.num_dist,
+                fixed_nodes=self.fixpoints,
                 dist_type=typ
                 )
-            for point in self.fixpoints:
-                self.assertAlmostEqual(min(numpy.abs(a.data - point)), 0)
-
+            for fixed in self.fixpoints:
+                self.assertAlmostEqual(min(numpy.abs(a.data - fixed)), 0)
 
 
 if __name__ == '__main__':

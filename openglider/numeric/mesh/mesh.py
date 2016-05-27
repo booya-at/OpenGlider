@@ -206,8 +206,9 @@ class Mesh(object):
 
     def __json__(self):
         vertices, polygons, boundaries = self.get_indexed()
+        vertices_new = [list(v) for v in vertices]
         return {
-            "vertices": vertices,
+            "vertices": vertices_new,
             "polygons": polygons,
             "boundaries": boundaries,
             "name": self.name

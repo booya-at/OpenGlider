@@ -277,7 +277,7 @@ class Panel(object):
                     r_i += 1
         #connection_info = {cell.rib1: numpy.array(ribs[0], int),
         #                   cell.rib2: numpy.array(ribs[-1], int)}
-        return Mesh.from_indexed(points, {"panel": triangles}, name=self.name)
+        return Mesh.from_indexed(points, {"panel_"+self.material_code: triangles}, name=self.name)
 
     def mirror(self):
         left, right = self.cut_front["left"], self.cut_front["right"]
