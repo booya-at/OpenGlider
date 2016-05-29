@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
-from .cache import recursive_getattr
+from openglider.utils.cache import recursive_getattr
 
 def sign(val):
     val = float(val)
@@ -70,7 +70,10 @@ class Config(object):
     """like a dict, but better for autocompletion"""
     def __init__(self, dct={}):
         for key, value in dct.items():
-            self.__setattr__(key, value)
+            if isinstance(value, dict):
+                self.__setattr__(key, Config(value))
+            else:
+                self.__setattr__(key, value)
 
     def __repr__(self):
         dict_repr = "{"
@@ -82,3 +85,9 @@ class Config(object):
 
     def __json__(self):
         return self.__dict__
+
+
+if __name__ == "__main__":
+    a = {"a": 1, "b":{"c":2}}
+    d = Config(a)
+    print(d.b.c)

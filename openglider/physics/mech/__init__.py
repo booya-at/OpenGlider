@@ -19,5 +19,5 @@ class structuralSimulation(object):
         # simulation config (timestep, steps,...)
 
         # visualization
-        
+    
         return conf

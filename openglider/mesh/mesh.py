@@ -1,14 +1,13 @@
 from __future__ import division
-import copy
 
 import numpy as np
 import meshpy.triangle as mptriangle
 
-from openglider.numeric.mesh.meshpy_triangle import custom_triangulation
+from openglider.mesh.meshpy_triangle import custom_triangulation
 
 
 class Vertex(object):
-    dmin = 10**-5
+    dmin = 10**-3
 
     def __init__(self, x, y, z):
         self.x = x
@@ -29,6 +28,18 @@ class Vertex(object):
                 return False
         return True
 
+    def __repr__(self):
+        return super(Vertex, self).__repr__() + " {}, {}, {}\n".format(self.x, self.y, self.z)
+
+    @staticmethod
+    def from_vertices_list(vertices):
+        return [Vertex(*v) for v in vertices]
+
+
+class Polygon(list):
+    """the polygon is a simple list, but using a Polygon-object instead of \
+       a list let you monkey-patch the object"""
+    pass
 
 class Mesh(object):
     """
@@ -51,6 +62,7 @@ class Mesh(object):
         # all nodes that might be in touch with other meshes
         self.boundary_nodes = boundary_nodes or {}
         self.name = name or "unnamed"
+        self.element_groups = []
 
     @property
     def vertices(self):
@@ -91,8 +103,9 @@ class Mesh(object):
         return cls(polys, boundaries_new, name)
 
     def __repr__(self):
-        return "Mesh {} ({} faces)".format(self.name,
-                                           len(self.all_polygons))
+        return "Mesh {} ({} faces, {} vertices)".format(self.name,
+                                           len(self.all_polygons),
+                                           len(self.vertices))
 
     @classmethod
     def from_rib(cls, rib, hole_num=10, mesh_option="Qzip"):
@@ -187,8 +200,9 @@ class Mesh(object):
             return cls.from_indexed(vertices, {"diagonals": polygon})
 
     def copy(self):
-        poly_copy = [[v.copy() for v in p] for p in self.polygons]
-        return self.__class__(poly_copy)
+        poly_copy = {key: [[v for v in p] for p in polygons]
+                     for key, polygons in self.polygons.items()}
+        return self.__class__(poly_copy, self.boundary_nodes)
 
     def triangularize(self):
         """
@@ -247,14 +261,19 @@ class Mesh(object):
         return out
 
     def __add__(self, other):
+        msh = self.copy()
         for poly_group_name, poly_group in other.polygons.items():
-            self.polygons.setdefault(poly_group_name, [])
-            self.polygons[poly_group_name] += poly_group
+            msh.polygons.setdefault(poly_group_name, [])
+            msh.polygons[poly_group_name] += poly_group
         for boundary_name, boundary in other.boundary_nodes.items():
-            self.boundary_nodes.setdefault(boundary_name, [])
-            self.boundary_nodes[boundary_name] += boundary
+            msh.boundary_nodes.setdefault(boundary_name, [])
+            msh.boundary_nodes[boundary_name] += boundary
 
-        return self
+        return msh
+
+
+    # def __iadd__(self, other):
+    #     self = self + other
 
     def delete_duplicates(self, boundaries=None):
         """
@@ -277,10 +296,11 @@ class Mesh(object):
                         # check distance and replace if samesame
                         if node1 is not node2 and node1.is_equal(node2):
                             replace_dict_this[node2] = node1
-                            print(node1.is_equal(node2), list(node1), list(node2))
 
             for replaced_node in replace_dict_this.keys():
                 boundary_nodes.remove(replaced_node)
+            print("deleted {} duplicated Vertices for boundary group <{}> ".format(
+                    len(replace_dict_this), boundary_name))
             replace_dict.update(replace_dict_this)
 
             self.boundary_nodes[boundary_name] = boundary_nodes
@@ -321,14 +341,13 @@ if __name__ == "__main__":
     p5 = Vertex(*[0, 0, 0])
     print(p1)
 
-    a = [p1,p2,p3,p4]
-    b = [p1,p2,p4,p5]
+    a = Polygon([p1,p2,p3,p4])
+    b = Polygon([p1,p2,p4,p5])
 
     m1 = Mesh({"a": [a]}, boundary_nodes={"j": a})
     m2 = Mesh({"b": [b]}, boundary_nodes={"j": b})
 
-    print(m2.vertices)
-    m3 = m1+m2
-    print(m3.vertices)
-    m3.delete_duplicates()
-    print(m3.vertices)
+    m1 += m2
+    m1.delete_duplicates()
+    print(m1.polygons)
+

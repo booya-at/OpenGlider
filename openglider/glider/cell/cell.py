@@ -8,7 +8,7 @@ from openglider.glider.cell import BasicCell
 from openglider.utils import consistent_value, linspace
 from openglider.utils.cache import CachedObject, cached_property, HashedList
 from openglider.vector import norm
-from openglider.numeric.mesh import Mesh
+from openglider.mesh import Mesh, Vertex, Polygon
 
 
 class Cell(CachedObject):
@@ -221,28 +221,23 @@ class Cell(CachedObject):
         # TODO: doesnt work for numribs=0?
         xvalues = self.rib1.profile_2d.x_values
         ribs = []
-        points = []
-        nums = []
-        count = 0
+        trailing_edge = []
         for rib_no in range(numribs + 1):
             y = rib_no / max(numribs, 1)
-            midrib = self.midrib(y, with_numpy=with_numpy).data[:-1]
-            points += list(midrib)
-            nums.append([i + count for i, _ in enumerate(midrib)])
-            count += len(nums[-1])
-            nums[-1].append(nums[-1][0])
+            rib = self.midrib(y, with_numpy=with_numpy).data
+            ribs.append(Vertex.from_vertices_list(rib))
 
         quads = []
-        for rib_no, _ in enumerate(nums[:-1]):
-            num_l = nums[rib_no]
-            num_r = nums[rib_no + 1]
-            for i, _ in enumerate(num_l[:-1]):
-                quads.append([
-                    num_l[i],
-                    num_r[i],
-                    num_r[i + 1],
-                    num_l[i + 1]])
-
-        # connection_info = {self.rib1: numpy.array(nums[0][:-1], int),
-        #                    self.rib2: numpy.array(nums[-1][:-1], int)}
-        return Mesh(numpy.array(points), {"cell": quads}) #, connection_info)
+        for rib_no, _ in enumerate(ribs[:-1]):
+            vertices_l = ribs[rib_no]
+            vertices_r = ribs[rib_no + 1]
+            for i in range(len(vertices_l) - 1):
+                pol = Polygon([
+                    vertices_l[i],
+                    vertices_r[i],
+                    vertices_r[i + 1],
+                    vertices_l[i + 1]])
+                pol.influenceFlow = True
+        for rib in ribs:
+            trailing_edge.append(rib[0])
+        return Mesh({"cell": quads}, {"ribs": ribs[0] + ribs[-1], "trailing_edge": trailing_edge})

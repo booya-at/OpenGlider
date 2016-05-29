@@ -65,6 +65,9 @@ class TestGlider(GliderTestClass):
         y = random.random()*len(self.glider.cells)
         self.glider.get_midrib(y).flatten()
 
+    def copy_complete(self):
+        self.glider.copy_complete()
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

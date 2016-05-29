@@ -24,7 +24,7 @@ import numpy
 from openglider.airfoil import get_x_value
 from openglider.plots.projection import flatten_list
 from openglider.vector import norm
-from openglider.numeric.mesh import Mesh
+from openglider.mesh import Mesh
 
 
 class DiagonalRib(object):

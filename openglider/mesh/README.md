@@ -5,7 +5,7 @@ A generic Mesh object to build connectivity information for visualiziation and s
 ### example
 
 ```python
-from openglider.numeric.mesh import Vertex, Mesh
+from openglider.mesh import Vertex, Mesh
 
 # create some vertices
 p1 = Vertex(0, 0, 0)

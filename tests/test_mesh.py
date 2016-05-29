@@ -1,9 +1,16 @@
 import unittest
 
-from openglider.numeric.mesh import Mesh, Vertex
+
+from common import *
+
+from openglider.mesh import Mesh, Vertex
+from openglider.physics import GliderCase
+import openglider
 
 
-class TestMesh(unittest.TestCase):
+class TestMesh(TestCase):
+    def setUp(self, complete=True):
+        self.glider = openglider.load("./common/demokite.json").get_glider_3d()
 
     def test_mesh(self):
         p1 = Vertex(*[0, 0, 0])
@@ -19,6 +26,10 @@ class TestMesh(unittest.TestCase):
         m3.delete_duplicates()
         for vertex in a:
             self.assertTrue(vertex in m3.vertices)
+
+    def test_GliderCase(self):
+        test = self.glider.copy_complete()
+        GliderCase(test)
 
 
 if __name__ == '__main__':

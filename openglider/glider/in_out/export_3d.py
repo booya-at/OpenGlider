@@ -3,6 +3,7 @@ import numpy
 
 # from openglider.graphics import Graphics3D, Line
 from openglider.vector.functions import norm, normalize
+from openglider.utils.distribution import Distribution
 
 
 def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6, copy=True):
@@ -244,7 +245,7 @@ def paraBEM_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, sym
     glider.close_rib()
 
     if profile_numpoints:
-        glider.set_profile_numpoints(profile_numpoints, distribution)
+        glider.profile_x_values = Distribution.from_nose_cos_distribution(profile_numpoints, 0.2)
 
     if num_average > 0:
         ribs = glider.return_average_ribs(midribs, num_average)

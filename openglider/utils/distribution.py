@@ -10,8 +10,8 @@ class Distribution(HashedList):
     def new(cls, numpoints=20, dist_type=None, fixed_nodes=None, **kwargs):
         """
         create a new distribution
-        Distribution.new(num_points=20, dist_type="cos", fix_points=[-0.2, 0.2])
-            -> list of 20 cos-distributed values, with shifted values so the given fix_points are included in the set
+        Distribution.new(num_points=20, dist_type="cos", fixed_nodes=[-0.2, 0.2])
+            -> list of 20 cos-distributed values, with shifted values so the given fixed_nodes are included in the set
         dist_type:
             * linear (default)
             * cos
@@ -146,10 +146,10 @@ class Distribution(HashedList):
     def from_glider(cls, glider, dist_type=None):
         insert_pts = [point.rib_pos for point in glider.attachment_points] + [0]
         def distribution(numpoints):
-            return cls(numpoints, dist_type=dist_type, fix_points=insert_pts)
+            return cls.new(numpoints, dist_type=dist_type, fixed_nodes=insert_pts)
         return distribution
 
 
 if __name__ == "__main__":
-    a = Distribution(30, "cos", fix_points=[-0.99, -0.98, -0.97, -0.9, -0.1, 0.333, 0.9, 0.95, 0.96, 0.97])
+    a = Distribution.new(30, "cos", fixed_nodes=[-0.99, -0.98, -0.97, -0.9, -0.1, 0.333, 0.9, 0.95, 0.96, 0.97])
     print(a.data)

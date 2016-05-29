@@ -27,7 +27,7 @@ import common
 import openglider
 from openglider.glider.rib.rib import Rib
 from openglider.glider.rib.elements import RibHole
-from openglider.numeric.mesh import Mesh
+from openglider.mesh import Mesh
 
 
 class TestRib(unittest.TestCase):
