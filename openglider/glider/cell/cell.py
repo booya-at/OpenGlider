@@ -219,7 +219,7 @@ class Cell(CachedObject):
         """
         numribs += 1
         # TODO: doesnt work for numribs=0?
-        xvalues = self.rib1.profile_2d.x_values
+
         ribs = []
         trailing_edge = []
         for rib_no in range(numribs + 1):
@@ -228,15 +228,13 @@ class Cell(CachedObject):
             ribs.append(Vertex.from_vertices_list(rib))
 
         quads = []
-        for rib_no, _ in enumerate(ribs[:-1]):
-            vertices_l = ribs[rib_no]
-            vertices_r = ribs[rib_no + 1]
-            for i in range(len(vertices_l) - 1):
+        for rib_left, rib_right in zip(ribs[:-1], ribs[1:]):
+            for i in range(len(rib_left) - 1):
                 pol = Polygon([
-                    vertices_l[i],
-                    vertices_r[i],
-                    vertices_r[i + 1],
-                    vertices_l[i + 1]])
+                    rib_left[i],
+                    rib_right[i],
+                    rib_right[i + 1],
+                    rib_left[i + 1]])
                 pol.influenceFlow = True
         for rib in ribs:
             trailing_edge.append(rib[0])

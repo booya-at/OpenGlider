@@ -1,67 +1,55 @@
-import PPM
-import PPM.vtk_export
-import PPM.pan3d
-from openglider.numeric.common import GliderCase
-from openglider.airfoil import Profile2D
+import paraBEM                            # python panel methode package
+from paraBEM.vtk_export import VtkWriter  # export to vtk file format
+#from paraBEM.utils import check_path      # check path and create directory
+#import paraBEM.pan2d as pan2d             # 2d panel-methods and solution-elements
+import paraBEM.pan3d as pan3d
 
-from openglider.glider.in_out import export_3d
-
+from openglider.physics.base import GliderCase
 
 class GliderPanelMethod(GliderCase):
-    solver = PPM.pan3d.DirichletDoublet0Source0Case3
-    wake_length = 1000
-    wake_panels = 10
+    class DefaultConf(GliderCase.DefaultConf):
+        solver = pan3d.DirichletDoublet0Source0Case3
+        wake_length = 1000
+        wake_panels = 10
+        far_field_coeff = 5
 
-    def __init__(self, glider, v_inf, midribs=0, numpoints=None):
-        self.v_inf = v_inf
+    def __init__(self, glider, config=None):
         self.glider = glider
-        self.midribs = midribs
-        self.numpoints = numpoints
+        self.config = self.DefaultConf(config)
         self.case = None
-        self.panels = None
+        self.mesh = None
 
-    def get_panels(self):
-        # x_values = Profile2D.cos_distribution(self.numpoints)
-        # glider = self.glider.copy()
-        # if self.midribs == 0:
-        #     glider.apply_mean_ribs()
-        # glider.profile_x_values = x_values
-        # ribs = glider.return_ribs(self.midribs)
-        #
-        # num = self.midribs + 1
-        # #will hold all the points
-        # ribs = []
-        # ribs_pos = []
-        # for cell_no, cell in enumerate(glider.cells):
-        #     for y in range(num):
-        #         ribs.append(cell.midrib(y * 1. / num).data)
-        #         ribs_pos
-        #
-        # ribs.append(self.cells[-1].midrib(1.).data)
-        return export_3d.PPM_Panels(self.glider, self.midribs, self.numpoints, symmetric=True)
+    def _get_case(self):
+        mesh = self.get_mesh()
+
+        vertices, panels, boundary = mesh.get_indexed()
+
+        bem_vertices = [paraBEM.PanelVector3(*v) for v in vertices]
+
+        bem_panels = [paraBEM.Panel3([bem_vertices[i] for i in panel]) for panel in panels["hull"]]
+        bem_trailing_edge = [bem_vertices[i] for i in boundary["trailing_edge"]]
+
+        case = self.config.solver(bem_panels, bem_trailing_edge)
+        if not hasattr(self.config, "v_inf"):
+            self.config.v_inf = self.glider.ribs[0].v_inf
+        case.v_inf = paraBEM.Vector3(*self.config.v_inf)
+        #case.create_wake(length=self.config.wake_length, count=self.config.wake_panels)
+        case.mom_ref_point = paraBEM.Vector3(1.25, 0, -5)  # todo!
+        case.A_ref = self.glider.area
+        case.farfield = self.config.far_field_coeff
+
+        return case
 
     def run(self):
-        self.case = self.solver()
-        self.panels = self.panels or self.get_panels()
-        self.case.panels = self.panels[1]
-        self.case.trailing_edges = self.panels[2]
-        self.case.A_ref = self.glider.area
-        self.case.vinf = PPM.Vector3(*self.v_inf)
-        self.case.create_wake(self.wake_length, self.wake_panels)
+        if self.case is None:
+            self.case = self._get_case()
         return self.case.run()
 
     def export_vtk(self, path):
-        assert self.panels is not None
-        writer = PPM.vtk_export.CaseToVTK(self.case, path)
+        assert self.case is not None
+        writer = VtkWriter(self.case, path)
         writer.write_panels()
         writer.write_wake_panels()
-
-    def get_druckinterpolation(self):
-        """
-        Mir wolln a interpolation für x = (0, rib_no), y = (-1, 1)
-        :return:
-        """
-
 
 
 

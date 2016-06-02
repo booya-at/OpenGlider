@@ -112,6 +112,7 @@ class Glider(object):
                 mesh += panel.get_mesh(cell, midribs)
 
         mesh += self.lineset.get_mesh()
+        mesh = self.get_mesh_hull(midribs)
 
         return mesh
 
@@ -122,7 +123,15 @@ class Glider(object):
         numpoints = len(ribs[0])  # points per rib
 
         polygons = []
+        boundary = {
+            "ribs": [],
+            "trailing_edge": []
+        }
         for i in range(num-1):  # because we use i+1 below
+            boundary["trailing_edge"].append(i*numpoints)
+            if not i % (num_midribs+1):
+                boundary["ribs"] += [i*numpoints+k for k in range(numpoints-1)]
+
             for k in range(numpoints - 1):  # same reason as above
                 kplus = (k+1) % (numpoints-1)
                 polygons.append([
@@ -131,8 +140,9 @@ class Glider(object):
                     (i + 1) * numpoints + kplus,
                     (i + 1) * numpoints + k
                 ])
+        print(boundary)
 
-        return Mesh.from_indexed(numpy.concatenate(ribs), {"hull": polygons})
+        return Mesh.from_indexed(numpy.concatenate(ribs), {"hull": polygons}, boundary)
 
     def return_ribs(self, num=0, ballooning=True):
         """

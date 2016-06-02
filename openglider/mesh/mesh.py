@@ -78,6 +78,9 @@ class Mesh(object):
         return sum(self.polygons.values(), [])
 
     def get_indexed(self):
+        """
+        Get [vertices, polygons, boundaries] with references by index
+        """
         vertices = list(self.vertices)
         indices = {node: i for i, node in enumerate(vertices)}
         polys = {}

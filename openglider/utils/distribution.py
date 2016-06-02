@@ -142,12 +142,9 @@ class Distribution(HashedList):
 
         return cls(first_half + second_half)
 
-    @classmethod
-    def from_glider(cls, glider, dist_type=None):
+    def add_glider_fixed_nodes(self, glider):
         insert_pts = [point.rib_pos for point in glider.attachment_points] + [0]
-        def distribution(numpoints):
-            return cls.new(numpoints, dist_type=dist_type, fixed_nodes=insert_pts)
-        return distribution
+        self.insert_values(insert_pts)
 
 
 if __name__ == "__main__":

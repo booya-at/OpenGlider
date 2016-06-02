@@ -67,25 +67,15 @@ class dualmethod(object):
 
 
 class Config(object):
-    """like a dict, but better for autocompletion"""
-    def __init__(self, dct={}):
-        for key, value in dct.items():
-            if isinstance(value, dict):
-                self.__setattr__(key, Config(value))
-            else:
-                self.__setattr__(key, value)
-
-    def __repr__(self):
-        dict_repr = "{"
-        for key, value in self.__dict__.items():
-            dict_repr += "\n    " + key + ": "
-            dict_repr += value.__repr__()
-        dict_repr += "\n}"
-        return dict_repr
+    def __init__(self, dct=None):
+        self.__dict__ = {key: value for key, value in self.__class__.__dict__.items() if not key.startswith('_')}
+        self.__dict__.update(dct or {})
 
     def __json__(self):
         return self.__dict__
 
+    def __repr__(self):
+        return self.__dict__.__repr__()
 
 if __name__ == "__main__":
     a = {"a": 1, "b":{"c":2}}
