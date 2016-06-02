@@ -7,7 +7,7 @@ class GliderCase():
     """simplification of the simulation tools."""
     class DefaultConf(Config):
         cell_numpoints = 3
-        distribution = Distribution.from_nose_cos_distribution(30,0.2)
+        distribution = Distribution.from_nose_cos_distribution(70,0.2)
 
     def __init__(self, glider, config=None):
         self.glider = glider
@@ -28,9 +28,8 @@ class GliderCase():
 
             self.glider.profile_x_values = dist
             m = Mesh(name="glider_mesh")
-            #for cell in self.glider.cells:
-            #    m += cell.get_mesh(self.config.cell_numpoints)
-            m = self.glider.get_mesh_hull(num_midribs=self.config.cell_numpoints)
+            for cell in self.glider.cells:
+                m += cell.get_mesh(self.config.cell_numpoints)
             m.delete_duplicates()
             self.mesh = m
         return self.mesh

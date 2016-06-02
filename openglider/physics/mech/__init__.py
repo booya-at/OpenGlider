@@ -1,23 +1,19 @@
 from openglider.utils import Config
-
-class structuralSimulation(object):
-    def __init__(self, baseSim, config=None):
-        self.baseSim = baseSim  # not possible without a base sim
-        self.config = config or self.defaultConfig
+from openglider.physics.base import GliderCase
+from openglider.physics.flow import GliderPanelMethod
 
 
-    def __json__(self):
-        return{
-                  "config": self.config,
-              }
-
-    @property
-    def deafaultConfig(self):
-        conf = Config()
+class GliderFemCase(GliderCase):
+    class DefaultConf(GliderCase.DefaultConf):
         # materials
-
         # simulation config (timestep, steps,...)
-
         # visualization
-    
-        return conf
+        pass
+
+    def __init__(self, glider, config=None, flow_case=None):
+        super(self, GliderFemCase).__init__(glider, config)
+        self.flow_case = flow_case or GliderPanelMethod(glider, config)
+
+    def run(self):
+        if not self.flow_case.result:
+            self.flow_case.run()

@@ -31,9 +31,9 @@ class Vertex(object):
     def __repr__(self):
         return super(Vertex, self).__repr__() + " {}, {}, {}\n".format(self.x, self.y, self.z)
 
-    @staticmethod
-    def from_vertices_list(vertices):
-        return [Vertex(*v) for v in vertices]
+    @classmethod
+    def from_vertices_list(cls, vertices):
+        return [cls(*v) for v in vertices]
 
 
 class Polygon(list):
@@ -203,7 +203,7 @@ class Mesh(object):
             return cls.from_indexed(vertices, {"diagonals": polygon})
 
     def copy(self):
-        poly_copy = {key: [[v for v in p] for p in polygons]
+        poly_copy = {key: [p[:] for p in polygons]
                      for key, polygons in self.polygons.items()}
         return self.__class__(poly_copy, self.boundary_nodes)
 
@@ -263,16 +263,19 @@ class Mesh(object):
 
         return out
 
-    def __add__(self, other):
-        msh = self.copy()
+    def __iadd__(self, other):
         for poly_group_name, poly_group in other.polygons.items():
-            msh.polygons.setdefault(poly_group_name, [])
-            msh.polygons[poly_group_name] += poly_group
+            self.polygons.setdefault(poly_group_name, [])
+            self.polygons[poly_group_name] += poly_group
         for boundary_name, boundary in other.boundary_nodes.items():
-            msh.boundary_nodes.setdefault(boundary_name, [])
-            msh.boundary_nodes[boundary_name] += boundary
+            self.boundary_nodes.setdefault(boundary_name, [])
+            self.boundary_nodes[boundary_name] += boundary
+        return self
 
-        return msh
+    # def __add__(self, other):
+    #     msh = self.copy()
+    #     msh += other
+    #     return msh
 
 
     # def __iadd__(self, other):
@@ -286,32 +289,42 @@ class Mesh(object):
 
         boundaries = boundaries or self.boundary_nodes.keys()
         replace_dict = {}
+        all_boundary_nodes = sum([self.boundary_nodes[name] for name in boundaries], [])
 
+        vertices = self.vertices
+        #print(all_boundary_nodes)
         for boundary_name in boundaries:
-            replace_dict_this = {}
-            # remove duplicates
-            boundary_nodes = self.boundary_nodes[boundary_name]
-            # go through all nodes
-            for i, node1 in enumerate(boundary_nodes[:-1]):
-                # skip if already detected
-                if node1 not in replace_dict_this:
-                    for j, node2 in enumerate(boundary_nodes[i+1:]):
-                        # check distance and replace if samesame
-                        if node1 is not node2 and node1.is_equal(node2):
-                            replace_dict_this[node2] = node1
+            print (boundary_name)
+            print(all([node in vertices for node in self.boundary_nodes[boundary_name]]))
 
-            for replaced_node in replace_dict_this.keys():
-                boundary_nodes.remove(replaced_node)
+        for i, node1 in enumerate(all_boundary_nodes[:-1]):
+            if node1 not in replace_dict:
+                for j, node2 in enumerate(all_boundary_nodes[i:]):
+                    if node1 is not node2 and node1.is_equal(node2):
+                        replace_dict[node2] = node1
+
+        for boundary_name, boundary_nodes in self.boundary_nodes.items():
+            to_remove = []
+            for i, node in enumerate(boundary_nodes):
+                if node in replace_dict:
+                    to_remove.append(i)
+            for i in to_remove[::-1]:
+                boundary_nodes.pop(i)
+
             print("deleted {} duplicated Vertices for boundary group <{}> ".format(
-                    len(replace_dict_this), boundary_name))
-            replace_dict.update(replace_dict_this)
-
-            self.boundary_nodes[boundary_name] = boundary_nodes
+                len(to_remove), boundary_name))
 
         for polygon in self.all_polygons:
             for i, node in enumerate(polygon):
                 if node in replace_dict:
                     polygon[i] = replace_dict[node]
+
+        vertices = self.vertices
+        for boundary_name in boundaries:
+            for node in self.boundary_nodes[boundary_name]:
+                if node not in vertices:
+                    print("no")
+                    print(node in replace_dict)
 
         return self
 

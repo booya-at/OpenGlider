@@ -218,24 +218,28 @@ class Cell(CachedObject):
         :return: mesh
         """
         numribs += 1
-        # TODO: doesnt work for numribs=0?
 
         ribs = []
         trailing_edge = []
+
         for rib_no in range(numribs + 1):
             y = rib_no / max(numribs, 1)
             rib = self.midrib(y, with_numpy=with_numpy).data
-            ribs.append(Vertex.from_vertices_list(rib))
+            ribs.append(Vertex.from_vertices_list(rib[:-1]))
 
         quads = []
         for rib_left, rib_right in zip(ribs[:-1], ribs[1:]):
-            for i in range(len(rib_left) - 1):
+            numpoints = len(rib_left)
+            for i in range(numpoints):
+                i_next = (i+1)%numpoints
                 pol = Polygon([
                     rib_left[i],
                     rib_right[i],
-                    rib_right[i + 1],
-                    rib_left[i + 1]])
+                    rib_right[i_next],
+                    rib_left[i_next]])
                 pol.influenceFlow = True
+
+                quads.append(pol)
         for rib in ribs:
             trailing_edge.append(rib[0])
-        return Mesh({"cell": quads}, {"ribs": ribs[0] + ribs[-1], "trailing_edge": trailing_edge})
+        return Mesh({"hull": quads}, {"ribs": ribs[0] + ribs[-1], "trailing_edge": trailing_edge})

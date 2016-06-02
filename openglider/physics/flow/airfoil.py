@@ -1,22 +1,23 @@
 import paraBEM                            # python panel methode package
 from paraBEM.vtk_export import CaseToVTK  # export to vtk file format
-import paraBEM.pan3d as pan3d
+#from paraBEM.utils import check_path      # check path and create directory
+import paraBEM.pan2d as pan2d             # 2d panel-methods and solution-elements
 
+from openglider.utils import Config
 from openglider.physics.base import GliderCase
 
 
-class GliderPanelMethod(GliderCase):
-    class DefaultConf(GliderCase.DefaultConf):
-        solver = pan3d.DirichletDoublet0Source0Case3
+class AirfoilPanelMethod(object):
+    class DefaultConf(Config):
+        solver = pan2d.DirichletDoublet0Source0Case2
         wake_length = 1000
         wake_panels = 10
         far_field_coeff = 5
 
-    def __init__(self, glider, config=None):
-        self.glider = glider.copy_complete()
+    def __init__(self, airfoil, config=None):
+        self.airfoil = airfoil
         self.config = self.DefaultConf(config)
         self.case = None
-        self.mesh = None
 
     def _get_case(self):
         mesh = self.get_mesh()

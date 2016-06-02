@@ -19,7 +19,8 @@ from openglider.glider.parametric import ParametricGlider
 
 import_dir = os.path.dirname(os.path.abspath(__file__))
 test_dir = os.path.dirname(import_dir)
-demokite = import_dir + '/demokite.ods'
+#demokite = import_dir + '/demokite.ods'
+demokite = import_dir + "/glider2d.json"
 
 
 class TestCase(unittest.TestCase):
@@ -29,7 +30,8 @@ class TestCase(unittest.TestCase):
 
     @classmethod
     def import_glider_2d(cls):
-        return ParametricGlider.import_ods(path=demokite)
+        return openglider.load(demokite)
+        #return ParametricGlider.import_ods(path=demokite)
 
     def assertEqualGlider(self, glider1, glider2, precision=None):
         self.assertEqual(len(glider1.ribs), len(glider2.ribs))

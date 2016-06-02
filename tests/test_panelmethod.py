@@ -13,6 +13,7 @@ class PanelMethodTest(TestCase):
 
     def test_run(self):
         self.glidercase.run()
+        self.glidercase.export_vtk("/tmp/glider.vtk")
 
 
 if __name__ == "__main__":
