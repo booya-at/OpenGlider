@@ -11,6 +11,7 @@ class GliderPanelMethod(GliderCase):
         wake_length = 1000
         wake_panels = 10
         far_field_coeff = 5
+        rho_air = 1.2
 
     def __init__(self, glider, config=None):
         self.glider = glider.copy_complete()
@@ -33,7 +34,7 @@ class GliderPanelMethod(GliderCase):
         if not hasattr(self.config, "v_inf"):
             self.config.v_inf = self.glider.ribs[0].v_inf
         case.v_inf = paraBEM.Vector3(*self.config.v_inf)
-        #case.create_wake(length=self.config.wake_length, count=self.config.wake_panels)
+        case.create_wake(length=self.config.wake_length, count=self.config.wake_panels)
         case.mom_ref_point = paraBEM.Vector3(1.25, 0, -5)  # todo!
         case.A_ref = self.glider.area
         case.farfield = self.config.far_field_coeff
@@ -43,7 +44,18 @@ class GliderPanelMethod(GliderCase):
     def run(self):
         if self.case is None:
             self.case = self._get_case()
-        return self.case.run()
+        temp = self.case.run()
+        self.apply_pressure()
+        self.result = True
+        return temp
+
+    def apply_pressure(self):
+        """return a pressure map (polygon -> pressure)"""
+        assert self.case is not None
+        cell_mesh = self.mesh.polygons["hull"]
+        rho = self.config.rho_air
+        for i, pan in enumerate(self.bem_panels):
+            cell_mesh[i].pressure = pan.cp * rho * self.case.v_inf.norm()**2 / 2
 
     def export_vtk(self, path):
         assert self.case is not None
