@@ -12,12 +12,14 @@ class GliderPanelMethod(GliderCase):
         wake_panels = 10
         far_field_coeff = 5
         rho_air = 1.2
+        v_inf = [10., 0., 1.]
 
     def __init__(self, glider, config=None):
         self.glider = glider.copy_complete()
         self.config = self.DefaultConf(config)
         self.case = None
         self.mesh = None
+        self.result = False
 
     def _get_case(self):
         mesh = self.get_mesh()
@@ -45,17 +47,16 @@ class GliderPanelMethod(GliderCase):
         if self.case is None:
             self.case = self._get_case()
         temp = self.case.run()
-        self.apply_pressure()
         self.result = True
         return temp
 
-    def apply_pressure(self):
+    @property
+    def pressure(self):
         """return a pressure map (polygon -> pressure)"""
         assert self.case is not None
-        cell_mesh = self.mesh.polygons["hull"]
         rho = self.config.rho_air
         for i, pan in enumerate(self.bem_panels):
-            cell_mesh[i].pressure = pan.cp * rho * self.case.v_inf.norm()**2 / 2
+            yield pan.cp * rho * self.case.v_inf.norm()**2 / 2
 
     def export_vtk(self, path):
         assert self.case is not None

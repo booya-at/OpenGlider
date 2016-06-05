@@ -7,7 +7,7 @@ from openglider.mesh.meshpy_triangle import custom_triangulation
 
 
 class Vertex(object):
-    dmin = 10**-3
+    dmin = 10**-18
 
     def __init__(self, x, y, z):
         self.x = x
