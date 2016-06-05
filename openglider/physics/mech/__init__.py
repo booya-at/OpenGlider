@@ -9,8 +9,8 @@ from paraEigen import vector3
 
 class GliderFemCase(GliderCase):
     class DefaultConf(GliderCase.DefaultConf):
-        fem_timestep = 0.0001
-        fem_steps = 10
+        fem_timestep = 0.001
+        fem_steps = 2
         fem_output = 100
         pass
 
@@ -25,12 +25,15 @@ class GliderFemCase(GliderCase):
     def run(self):
         if not self.flow_case.result:
             self.flow_case.run()
+            self.flow_case.export_vtk("/tmp/flow")
         self.fix_attachment_points()
         pressure = list(self.flow_case.pressure)
         vertices, polygons, boundary = self.mesh.get_indexed()
         rib_material = paraFEM.MembraneMaterial(1000, 0.3)
         hull_material = paraFEM.MembraneMaterial(1000, 0.3)
         nodes = [paraFEM.Node(*vertex) for vertex in vertices]
+        for node in nodes:
+            node.massInfluence = 1
         for fixed_index in polygons["attachment_points"][0]:
             nodes[fixed_index].fixed = vector3(0, 0, 0)
         elements = []
@@ -40,11 +43,11 @@ class GliderFemCase(GliderCase):
         # TODO: use a basic membrane constructor (paraFEM)
             if len(poly_nodes) == 3:
                 element = paraFEM.Membrane3(poly_nodes, hull_material)
-                element.setConstPressure(pressure[i])
+                element.setConstPressure(pressure[i] * 0.01)
                 elements.append(element)
             elif len(poly_nodes) == 4:
                 element = paraFEM.Membrane4(poly_nodes, hull_material)
-                element.setConstPressure(pressure[i])
+                element.setConstPressure(pressure[i] * 0.01)
                 elements.append(element)
 
         for i, polygon in enumerate(polygons["ribs"]):
