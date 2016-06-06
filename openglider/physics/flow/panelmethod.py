@@ -56,7 +56,7 @@ class GliderPanelMethod(GliderCase):
         assert self.case is not None
         rho = self.config.rho_air
         for i, pan in enumerate(self.bem_panels):
-            yield pan.cp * rho * self.case.v_inf.norm()**2 / 2
+            yield -(pan.cp - 1) * rho * self.case.v_inf.norm()**2 / 2
 
     def export_vtk(self, path):
         assert self.case is not None

@@ -4,8 +4,8 @@ import unittest
 from common import *
 
 from openglider.mesh import Mesh, Vertex
-from openglider.physics import GliderCase
 import openglider
+from openglider.utils.distribution import Distribution
 
 
 class TestMesh(TestCase):
@@ -27,9 +27,19 @@ class TestMesh(TestCase):
         for vertex in a:
             self.assertTrue(vertex in m3.vertices)
 
-    def test_GliderCase(self):
-        test = self.glider.copy_complete()
-        GliderCase(test)
+    def test_glider_mesh(self):
+        dist = Distribution.from_nose_cos_distribution(30, 0.2)
+        dist.add_glider_fixed_nodes(self.glider)
+
+        self.glider.profile_x_values = dist
+        m = Mesh(name="glider_mesh")
+        for cell in self.glider.cells[1:-1]:
+            m += cell.get_mesh(0)
+        for rib in self.glider.ribs:
+            m += Mesh.from_rib(rib)
+        m.delete_duplicates()
+        m.get_indexed()
+
 
 
 if __name__ == '__main__':
