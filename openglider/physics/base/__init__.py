@@ -6,8 +6,8 @@ from openglider.mesh import Mesh
 class GliderCase(object):
     """simplification of the simulation tools."""
     class DefaultConf(Config):
-        cell_numpoints = 4
-        distribution = Distribution.from_nose_cos_distribution(100, 0.2)
+        cell_numpoints = 2
+        distribution = Distribution.from_nose_cos_distribution(30, 0.2)
 
     def __init__(self, glider, config=None):
         self.glider = glider
@@ -29,8 +29,6 @@ class GliderCase(object):
             m = Mesh(name="glider_mesh")
             for cell in self.glider.cells[1:-1]:
                 m += cell.get_mesh(self.config.cell_numpoints)
-            for rib in self.glider.ribs:
-                m += Mesh.from_rib(rib)
             m.delete_duplicates()
             self.mesh = m
         return self.mesh

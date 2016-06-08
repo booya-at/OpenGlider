@@ -28,6 +28,10 @@ class LineSet():
         return [line for line in self.lines if line.lower_node.type == 0]
 
     @property
+    def uppermost_lines(self):
+        return [line for line in self.lines if line.upper_node.type == 2]
+
+    @property
     def nodes(self):
         nodes = set()
         for line in self.lines:
@@ -44,20 +48,10 @@ class LineSet():
         return [n for n in self.nodes if n.type == 0]
 
     def get_mesh(self, numpoints=10):
-        mesh = Mesh()
-        for line in self.lines:
-            line_points = line.get_line_points(numpoints=numpoints)
-            indices = list(range(numpoints))
-            line_segments = list(zip(indices[:-1], indices[1:]))
-            boundary = {"line": [0]}
-            if line.upper_node.type == 2:
-                boundary["attachment_point"] = [numpoints-1]
-            else:
-                boundary["line"].append(numpoints-1)
+        return sum([line.get_mesh(numpoints) for line in self.lines], Mesh())
 
-            mesh += Mesh.from_indexed(line_points, {"lineset": line_segments}, boundary)
-
-        return mesh
+    def get_upper_line_mesh(self, numpoints=1):
+        return sum([line.get_mesh(numpoints) for line in self.uppermost_lines], Mesh())
 
     def recalc(self):
         """
