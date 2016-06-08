@@ -74,7 +74,8 @@ class GliderFemCase(GliderCase):
         write_interval = self.config.fem_steps // self.config.fem_output or 1
 
         for i in range(self.config.fem_steps):
-            self.case.makeStep(self.config.fem_timestep)
+            ramp = 1 - (i < 100) * (1 - float(i) / 100.)
+            self.case.makeStep(self.config.fem_timestep, ramp)
             print("timestep {} of {}".format(i, self.config.fem_steps))
             if (i % write_interval) == 0:
                 self.writer.writeCase(self.case, 0.)
