@@ -3,11 +3,11 @@ from openglider.utils.distribution import Distribution
 from openglider.mesh import Mesh
 
 
-class GliderCase():
+class GliderCase(object):
     """simplification of the simulation tools."""
     class DefaultConf(Config):
-        cell_numpoints = 3
-        distribution = Distribution.from_nose_cos_distribution(70,0.2)
+        cell_numpoints = 4
+        distribution = Distribution.from_nose_cos_distribution(100, 0.2)
 
     def __init__(self, glider, config=None):
         self.glider = glider
@@ -24,12 +24,13 @@ class GliderCase():
         if self.mesh is None:
             dist = self.config.distribution.copy()
             dist.add_glider_fixed_nodes(self.glider)
-            print(dist)
 
             self.glider.profile_x_values = dist
             m = Mesh(name="glider_mesh")
-            for cell in self.glider.cells:
+            for cell in self.glider.cells[1:-1]:
                 m += cell.get_mesh(self.config.cell_numpoints)
+            for rib in self.glider.ribs:
+                m += Mesh.from_rib(rib)
             m.delete_duplicates()
             self.mesh = m
         return self.mesh

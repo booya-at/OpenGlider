@@ -11,12 +11,15 @@ class GliderPanelMethod(GliderCase):
         wake_length = 1000
         wake_panels = 10
         far_field_coeff = 5
+        rho_air = 1.2
+        v_inf = [10., 0., 1.]
 
     def __init__(self, glider, config=None):
         self.glider = glider.copy_complete()
         self.config = self.DefaultConf(config)
         self.case = None
         self.mesh = None
+        self.result = False
 
     def _get_case(self):
         mesh = self.get_mesh()
@@ -33,7 +36,7 @@ class GliderPanelMethod(GliderCase):
         if not hasattr(self.config, "v_inf"):
             self.config.v_inf = self.glider.ribs[0].v_inf
         case.v_inf = paraBEM.Vector3(*self.config.v_inf)
-        #case.create_wake(length=self.config.wake_length, count=self.config.wake_panels)
+        case.create_wake(length=self.config.wake_length, count=self.config.wake_panels)
         case.mom_ref_point = paraBEM.Vector3(1.25, 0, -5)  # todo!
         case.A_ref = self.glider.area
         case.farfield = self.config.far_field_coeff
@@ -43,7 +46,17 @@ class GliderPanelMethod(GliderCase):
     def run(self):
         if self.case is None:
             self.case = self._get_case()
-        return self.case.run()
+        temp = self.case.run()
+        self.result = True
+        return temp
+
+    @property
+    def pressure(self):
+        """return a pressure map (polygon -> pressure)"""
+        assert self.case is not None
+        rho = self.config.rho_air
+        for i, pan in enumerate(self.bem_panels):
+            yield -(pan.cp - 1) * rho * self.case.v_inf.norm()**2 / 2
 
     def export_vtk(self, path):
         assert self.case is not None

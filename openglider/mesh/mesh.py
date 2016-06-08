@@ -88,7 +88,7 @@ class Mesh(object):
             polys[poly_name] = [[indices[node] for node in poly] for poly in polygons]
         boundaries = {}
         for boundary_name, boundary_nodes in self.boundary_nodes.items():
-            boundaries[boundary_name] = [indices[node] for node in boundary_nodes]
+            boundaries[boundary_name] = [indices[node] for node in boundary_nodes if node in vertices]
 
         return vertices, polys, boundaries
 
@@ -121,7 +121,6 @@ class Mesh(object):
         profile = rib.profile_2d
         triangle_in = {}
         vertices = list(profile.data)[:-1]
-        connection = {rib: np.array(range(len(vertices)))}
         segments = [[i, i+1] for i, _ in enumerate(vertices)]
         segments[-1][-1] = 0
         triangle_in["vertices"] = vertices
@@ -155,7 +154,7 @@ class Mesh(object):
         except KeyError:
             print("there was a keyerror")
             return cls()
-        return cls.from_indexed(vertices, polygons={"ribs": triangles})# , boundaries=connection)
+        return cls.from_indexed(vertices, polygons={"ribs": triangles} , boundaries={"ribs":range(len(vertices))})
 
     @classmethod
     def from_diagonal(cls, diagonal, cell, insert_points=4):
@@ -321,11 +320,10 @@ class Mesh(object):
 
         vertices = self.vertices
         for boundary_name in boundaries:
-            for node in self.boundary_nodes[boundary_name]:
+            for i, node in enumerate(self.boundary_nodes[boundary_name]):
                 if node not in vertices:
                     print("no")
                     print(node in replace_dict)
-
         return self
 
 

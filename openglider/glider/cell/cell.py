@@ -242,4 +242,5 @@ class Cell(CachedObject):
                 quads.append(pol)
         for rib in ribs:
             trailing_edge.append(rib[0])
-        return Mesh({"hull": quads}, {"ribs": ribs[0] + ribs[-1], "trailing_edge": trailing_edge})
+        return Mesh({"hull": quads}, 
+                    {"ribs": ribs[0] + ribs[-1], "trailing_edge": trailing_edge})
