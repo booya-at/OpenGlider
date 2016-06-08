@@ -20,15 +20,9 @@ class AirfoilPanelMethod(object):
         self.case = None
 
     def _get_case(self):
-        mesh = self.get_mesh()
-
-        vertices, panels, boundary = mesh.get_indexed()
-
-        bem_vertices = [paraBEM.PanelVector3(*v) for v in vertices]
+        bem_vertices = [paraBEM.PanelVector2(*v) for v in self.airfoil]
         self.vertices = bem_vertices
-
-        self.bem_panels = [paraBEM.Panel3([bem_vertices[i] for i in panel]) for panel in panels["hull"]]
-        self.bem_trailing_edge = [bem_vertices[i] for i in boundary["trailing_edge"]]
+        self.panels = [paraBEM.Panel2([p1, p2]) for p1, p2 in zip(self.vertices[:-1], self.vertices[1:])]
 
         case = self.config.solver(self.bem_panels, self.bem_trailing_edge)
         if not hasattr(self.config, "v_inf"):

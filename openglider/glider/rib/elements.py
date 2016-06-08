@@ -17,11 +17,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-#from openglider import Profile2D
 import numpy
+
 from openglider.lines import Node
-from openglider.plots.marks import polygon
-from openglider.vector.functions import cut
+from openglider.plots.marks import Polygon
 from openglider.vector.polyline import PolyLine2D
 
 
@@ -93,7 +92,7 @@ class GibusArcs(object):
         point_2 = profile.profilepoint(self.pos + size)
 
         gib_arc = [[], []]  # first, second
-        circle = polygon(point_1, point_2, num=num_points, is_center=True)[0][1:]
+        circle = Polygon(edges=num_points)(point_1, point_2)[0][1:] # todo: is_center -> true
         is_second_run = False
         #print(circle)
         for i in range(len(circle)):
@@ -152,7 +151,9 @@ class RibHole(object):
         if scale:
             p1 *= rib.chord
             p2 *= rib.chord
-        return polygon(p1, p2, num=num, scale=self.size, is_center=False)[0]
+        poly = Polygon(scale=self.size, edges=num, name="rib_hole")
+        return poly(p1, p2)[0]
+        #return Polygon(p1, p2, num=num, scale=self.size, is_center=False)[0]
 
     def get_center(self, rib, scale=True):
         prof = rib.profile_2d

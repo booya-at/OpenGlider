@@ -110,9 +110,10 @@ class Text(object):
         for letter in self.text.upper():
             try:
                 if text_vectors[letter]:
-                    vectors.append(
-                        PolyLine2D([p1 + rot.dot(p) for p in text_vectors[letter]])
-                    )
+                    vectors.append(PolyLine2D(
+                        [p1 + rot.dot(p) for p in text_vectors[letter]],
+                        name="text"
+                    ))
                 p1 += diff
             except KeyError:
                 raise KeyError("Letter {} from word '{}' not available".format(letter, self.text.upper()))

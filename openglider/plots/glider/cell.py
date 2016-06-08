@@ -2,24 +2,27 @@ import collections
 
 import openglider.plots
 from openglider.airfoil import get_x_value
+from openglider.utils import Config
 from openglider.vector.text import Text
 from openglider.plots import cuts, PlotPart
 from openglider.vector import PolyLine2D
 
 
 class PanelPlotMaker:
-    allowance_general = 0.012
-    allowance_entry_open = 0.015  # entry
-    allowance_trailing_edge = 0.012  # design
-    allowance_design = 0.012  # trailing_edge
+    class DefaultConf(Config):
+        allowance_general = 0.012
+        allowance_entry_open = 0.015  # entry
+        allowance_trailing_edge = 0.012  # design
+        allowance_design = 0.012  # trailing_edge
 
-    allowance_drib_folds = 0.012
-    allowance_drib_num_folds = 1
+        allowance_drib_folds = 0.012
+        allowance_drib_num_folds = 1
 
-    insert_attachment_point_text = True
+        insert_attachment_point_text = True
 
-    def __init__(self, cell):
+    def __init__(self, cell, config=None):
         self.cell = cell
+        self.config = self.DefaultConf(config)
 
         self.inner = None
         self.ballooned = None
@@ -41,8 +44,8 @@ class PanelPlotMaker:
         self.inner = [left, right]
         self.ballooned = [left_bal, right_bal]
 
-        outer_left = left_bal.copy().add_stuff(-self.allowance_general)
-        outer_right = right_bal.copy().add_stuff(self.allowance_general)
+        outer_left = left_bal.copy().add_stuff(-self.config.allowance_general)
+        outer_right = right_bal.copy().add_stuff(self.config.allowance_general)
 
         self.outer_orig = [outer_left, outer_right]
         self.outer = [l.copy().check() for l in self.outer_orig]
@@ -70,9 +73,9 @@ class PanelPlotMaker:
         plotpart = PlotPart(material_code=panel.material_code, name=panel.name)
 
         cut_allowances = {
-            "folded": self.allowance_entry_open,
-            "parallel": self.allowance_trailing_edge,
-            "orthogonal": self.allowance_design
+            "folded": self.config.allowance_entry_open,
+            "parallel": self.config.allowance_trailing_edge,
+            "orthogonal": self.config.allowance_design
         }
 
         front_left = get_x_value(self.x_values, panel.cut_front["left"])
@@ -112,14 +115,13 @@ class PanelPlotMaker:
 
         return plotpart
 
-
     def _get_panel(self, panel):
         plotpart = PlotPart(material_code=panel.material_code, name=panel.name)
 
         cut_allowances = {
-            "folded": self.allowance_entry_open,
-            "parallel": self.allowance_trailing_edge,
-            "orthogonal": self.allowance_design
+            "folded": self.config.allowance_entry_open,
+            "parallel": self.config.allowance_trailing_edge,
+            "orthogonal": self.config.allowance_design
         }
 
         front_left = get_x_value(self.x_values, panel.cut_front["left"])
@@ -250,7 +252,7 @@ class PanelPlotMaker:
             if panel.cut_front[which] <= attachment_point.rib_pos <= panel.cut_back[which]:
                 left, right = self.get_point(attachment_point.rib_pos)
 
-                if self.insert_attachment_point_text:
+                if self.config.insert_attachment_point_text:
                     plotpart.layers["text"] += Text(" {} ".format(attachment_point.name), left, right,
                                                     size=0.01,  # 1cm
                                                     align=align, valign=-0.5).get_vectors()
@@ -270,12 +272,11 @@ class PanelPlotMaker:
         left_out = left.copy()
         right_out = right.copy()
 
+        left_out.add_stuff(-self.config.allowance_general)
+        right_out.add_stuff(self.config.allowance_general)
 
-        left_out.add_stuff(-self.allowance_general)
-        right_out.add_stuff(self.allowance_general)
-
-        if self.allowance_drib_num_folds > 0:
-            alw2 = self.allowance_drib_folds
+        if self.config.allowance_drib_num_folds > 0:
+            alw2 = self.config.allowance_drib_folds
             cut_front = cuts["folded"]([[left, 0], [right, 0]],
                                        left_out,
                                        right_out,

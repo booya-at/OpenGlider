@@ -4,7 +4,7 @@ import unittest
 from common import *
 
 from openglider.mesh import Mesh, Vertex
-from openglider.physics import GliderCase
+from openglider.physics.base import GliderCase
 import openglider
 
 

@@ -240,6 +240,7 @@ class ParametricGlider(object):
             chord = abs(front[1]-back[1])
             factor = profile_merge_curve(abs(pos))
             profile = self.get_merge_profile(factor)
+            profile.name = "Profile{}".format(rib_no)
             profile.x_values = profile_x_values
 
             this_rib_holes = [RibHole(ribhole["pos"], ribhole["size"]) for ribhole in rib_holes if rib_no in ribhole["ribs"]]

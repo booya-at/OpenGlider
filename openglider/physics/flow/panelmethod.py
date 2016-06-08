@@ -1,4 +1,4 @@
-import paraBEM                            # python panel methode package
+import paraBEM                            # python panel method package
 from paraBEM.vtk_export import CaseToVTK  # export to vtk file format
 import paraBEM.pan3d as pan3d
 
@@ -50,6 +50,10 @@ class GliderPanelMethod(GliderCase):
         writer = CaseToVTK(self.case, path)
         writer.write_panels()
         writer.write_wake_panels()
+
+    @property
+    def ca(self):
+        return 0
 
 
 

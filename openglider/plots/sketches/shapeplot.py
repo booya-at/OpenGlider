@@ -3,9 +3,12 @@ import numpy
 from openglider.plots.drawing import DrawingArea, PlotPart
 from openglider.vector import PolyLine2D
 from openglider.vector.text import Text
+import openglider.plots.marks as marks
 
 
 class ShapePlot(object):
+    attachment_point_mark = marks.Cross(name="attachment_point", rotation=numpy.pi/4)
+
     def __init__(self, glider_2d, glider_3d=None):
         super(ShapePlot, self).__init__()
         self.glider_2d = glider_2d
@@ -74,8 +77,8 @@ class ShapePlot(object):
             diff = (p2-center)*0.2
             cross_left = center - diff
             cross_right = center + diff
-            import openglider.plots.marks as marks
-            cross = marks.cross(cross_left, cross_right, numpy.pi/4)
+
+            cross = self.attachment_point_mark(cross_left, cross_right)
 
             self.drawing.parts.append(PlotPart(marks=cross))
 

@@ -8,61 +8,85 @@ default_scale = 0.8
 
 
 class Polygon(object):
-    def __init__(self, edges=3, scale=default_scale):
+    def __init__(self, edges=3, scale=default_scale, name=None):
         self.scale = scale
         self.num_edges = edges
+        self.name = name
+
+    def __json__(self):
+        return {"scale": self.scale, "edges": self.num_edges}
 
     def __call__(self, p1, p2):
         center = (p1+p2)/2
         diff = (p2-center) * self.scale
         points = [center + rotation_2d(math.pi*2*i/self.num_edges).dot(diff) for i in range(self.num_edges+1)]
-        return [PolyLine2D(points)]
+        return [PolyLine2D(points, name=self.name)]
 
 
 class Triangle(Polygon):
     def __init__(self, scale=default_scale):
         super(Triangle, self).__init__(3, scale)
 
-
-def polygon(p1, p2, rotation=False, num=3, scale=default_scale, is_center=False):
-    """Polygon"""
-    if not is_center:
-        center = (p1+p2)/2
-    else:
-        center = p1
-    diff = (p2-center) * scale
-
-    return [PolyLine2D([center + rotation_2d(math.pi*2*i/num+rotation).dot(diff) for i in range(num+1)])]
+    def __json__(self):
+        return {"scale": self.scale}
 
 
-def triangle(p1, p2, scale=default_scale):
-    return polygon(p1, p2, num=3, scale=scale)
+class Arrow(object):
+    def __init__(self, left=True, scale=default_scale, name=None):
+        self.left = left
+        self.scale = scale
+        self.name = name
+
+    def __json__(self):
+        return {
+            "left": self.left,
+            "scale": self.scale
+        }
+
+    def __call__(self, p1, p2):
+        d = (p2 - p1)*self.scale
+        dr = numpy.array([-d[1], d[0]])/math.sqrt(2)
+        if not self.left:
+            dr = -dr
+
+        return [PolyLine2D([p1, p1+d, p1+d/2+dr, p1], name=self.name)]
 
 
-def arrow_left(p1, p2, scale=1):
-    d = (p2 - p1)*scale
-    dr = numpy.array([-d[1], d[0]])/math.sqrt(2)
+class Line(object):
+    def __init__(self, rotation=0, offset=0, name=None):
+        self.rotation = rotation
+        self.offset = offset
+        self.name = name
 
-    return [PolyLine2D([p1, p1+d, p1+d/2+dr, p1])]
-
-
-def arrow_right(p1, p2, scale=1):
-    arrow = arrow_left(p1, p2, scale=scale)
-    arrow[0].mirror(p1, p2)
-    return arrow
-
-
-def line(p1, p2, rotation=False):
-    if not rotation:
-        return [PolyLine2D([p1, p2])]
-    else:
-        center = (p1+p2)/2
-        rot = rotation_2d(rotation)
-        return [PolyLine2D([center + rot.dot(p1-center), center+rot.dot(p2-center)])]
+    def __call__(self, p1, p2):
+        if self.rotation:
+            center = (p1+p2)/2
+            rot = rotation_2d(self.rotation)
+            return [PolyLine2D([center + rot.dot(p1-center), center+rot.dot(p2-center)], name=self.name)]
+        else:
+            return [PolyLine2D([p1, p2], name=self.name)]
 
 
-def cross(p1, p2, rotation=False):
-    return line(p1, p2, rotation=rotation) + line(p1, p2, rotation=rotation+math.pi/2)
+class Cross(Line):
+    def __call__(self, p1, p2):
+        l1 = Line(rotation=self.rotation)
+        l2 = Line(rotation=self.rotation+math.pi/2)
+        return l1(p1, p2) + l2(p1, p2)
+
+
+class Dot(object):
+    def __init__(self, *positions):
+        self.positions = positions
+
+    def __json__(self):
+        return {"pos": self.positions}
+
+    def __call__(self, p1, p2):
+        dots = []
+        for x in self.positions:
+            p = p1 + x * (p2 - p1)
+            dots.append(p)
+        return [PolyLine2D([p]) for p in dots]
 
 
 class _Modify(object):

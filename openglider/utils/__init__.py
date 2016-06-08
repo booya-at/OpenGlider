@@ -77,6 +77,12 @@ class Config(object):
     def __repr__(self):
         return self.__dict__.__repr__()
 
+    def __getitem__(self, item):
+        return self.__getattribute__(item)
+
+    def get(self, key):
+        return self.__getattribute__(key)
+
 if __name__ == "__main__":
     a = {"a": 1, "b":{"c":2}}
     d = Config(a)

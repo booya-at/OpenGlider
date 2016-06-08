@@ -1,15 +1,21 @@
 import getpass
 import platform
 
-def get(*args):
-    return config.get(*args)
+from openglider.utils import Config
 
-config = {
-    "asinc_interpolation_points": 1000,
-    "caching": True,
-    "debug": False,
-    "json_allowed_modules": [r"openglider\..*"],
-    "json_forbidden_modules": [r".*eval", r".*subprocess.*"],
-    "user": "{}/{}".format(platform.node(), getpass.getuser())
 
-}
+class GlobalConfig(Config):
+    asinc_interpolation_points = 1000
+    caching = True
+    debug = False
+    json_allowed_modules = [r"openglider\..*"]
+    json_forbidden_modules = [r".*eval", r".*subprocess.*"]
+    user = "{}/{}".format(platform.node(), getpass.getuser())
+
+
+config = GlobalConfig()
+
+
+def get(kw):
+    return config[kw]
+

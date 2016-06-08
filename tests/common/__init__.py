@@ -26,7 +26,7 @@ demokite = import_dir + "/glider2d.json"
 class TestCase(unittest.TestCase):
     @classmethod
     def import_glider(cls):
-        return openglider.glider.Glider.import_geometry(path=demokite)
+        return openglider.load(demokite)
 
     @classmethod
     def import_glider_2d(cls):

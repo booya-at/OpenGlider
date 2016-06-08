@@ -272,10 +272,10 @@ class Mesh(object):
             self.boundary_nodes[boundary_name] += boundary
         return self
 
-    # def __add__(self, other):
-    #     msh = self.copy()
-    #     msh += other
-    #     return msh
+    def __add__(self, other):
+        msh = self.copy()
+        msh += other
+        return msh
 
 
     # def __iadd__(self, other):
