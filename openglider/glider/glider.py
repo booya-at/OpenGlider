@@ -240,9 +240,11 @@ class Glider(object):
             p.get_position()
         for node in [node for node in other2.lineset.nodes if node.type != 2]:
             node.vec *= numpy.array([1, -1, 1])
-            node.force *= numpy.array([1, -1, 1])
+            if all(node.force):
+                node.force *= numpy.array([1, -1, 1])
         other2.lineset.lines += other.lineset.lines
         other2.lineset.sort_lines()
+        other2.lineset.recalc()
 
         # rename
         return other2

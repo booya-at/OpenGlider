@@ -59,10 +59,12 @@ class LineSet():
         if LineSet.calculate_sag = True, drag induced sag will be calculated
         :return: self
         """
-        for att in self.lower_attachment_points:
-            for line in self.get_upper_connected_lines(att):
-                for node in self.get_upper_influence_nodes(line):
-                    node.get_position()
+        # for att in self.lower_attachment_points:
+        #     for line in self.get_upper_connected_lines(att):
+        #         for node in self.get_upper_influence_nodes(line):
+        #             node.get_position()
+        for point in self.attachment_points:
+            point.get_position()
         self._calc_geo()
         if self.calculate_sag:
             self._calc_sag()

@@ -107,8 +107,6 @@ class GliderFemCase(GliderCase):
         for rib in self.glider.ribs:
             self.mesh += Mesh.from_rib(rib)
 
-        self.glider.lineset.recalc()
-
         if self.config.caseType == "line_forces":
             print("add uppermost lines to mesh")
             self.mesh += self.glider.lineset.get_upper_line_mesh(self.config.line_numpoints)
