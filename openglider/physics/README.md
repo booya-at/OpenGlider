@@ -1,6 +1,6 @@
-# [numeric](../README.md)
+# [physics](../README.md)
 
-the numeric-module provides functionlity for simulating a glider.
+the physics-module provides functionlity for simulating a glider.
 
 ## submodules
 
@@ -13,7 +13,7 @@ the simulation is splitted into 3 parts: mesh, flow and mech
 a base class provides easy access to all these methodes.
 
 possebility for different solver by subclassing the case class:
-    reimplement: setup(config), run()
+    reimplement: run()
 the config is a simple class which get monkey patched.
 
 To iterate flow and structural analysis simple iterating the case should be possible. The case itself should not have any simplification to do this.

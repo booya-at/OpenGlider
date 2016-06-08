@@ -218,7 +218,7 @@ class Line(CachedObject):
             boundary["attachment_points"] = [line_points[-1]]
         else:
             boundary["lines"].append(line_points[-1])
-        line_poly = {"lines": [Polygon(line_points[i:i+2]) for i in range(len(line_points)-1)]}
+        line_poly = {"lines": [Polygon(line_points[i:i + 2]) for i in range(len(line_points) - 1)]}
         return Mesh(line_poly, boundary)
 
     @property

@@ -10,7 +10,7 @@ from paraEigen import vector3
 class GliderFemCase(GliderCase):
     class DefaultConf(GliderCase.DefaultConf):
         fem_timestep = 0.00001
-        fem_steps = 2000
+        fem_steps = 1000
         fem_output = 100
         d_velocity = 10
         pressure_ramp = 200     # steps for linear pressure ramp
@@ -31,7 +31,6 @@ class GliderFemCase(GliderCase):
             self.flow_case.run()
             self.flow_case.export_vtk("/tmp/flow")
 
-        # self.fix_attachment_points()
         mesh = self.get_mesh()
         pressure = list(self.flow_case.pressure)
         vertices, polygons, boundary = mesh.get_indexed()
@@ -46,14 +45,18 @@ class GliderFemCase(GliderCase):
         hull_material.d_structural = 0
         hull_material.rho = 0.01
 
-        truss_material = paraFEM.TrussMaterial(1000)
+        truss_material = paraFEM.TrussMaterial(10)
         truss_material.d_velocity = self.config.d_velocity
         truss_material.d_structural = 0
         truss_material.rho = 0.01
 
         nodes = [paraFEM.Node(*vertex) for vertex in vertices]
-        for index in boundary["lines"]:
-            nodes[index].fixed = vector3(0, 0, 0)
+        if self.config.caseType == "full":
+            for index in boundary["lower_attachment_points"]:
+                nodes[index].fixed = vector3(0, 0, 0)
+        elif self.config.caseType == "line_forces":
+            for index in boundary["lines"]:
+                nodes[index].fixed = vector3(0, 0, 0)
         elements = []
 
         for i, polygon in enumerate(polygons["lines"]):
@@ -99,14 +102,20 @@ class GliderFemCase(GliderCase):
         if self.mesh:
             return self.mesh
         else:
+            self.glider = self.flow_case.glider
             self.mesh = self.flow_case.mesh
-        print("add ribs to mesh")
         for rib in self.glider.ribs:
             self.mesh += Mesh.from_rib(rib)
+
+        self.glider.lineset.recalc()
 
         if self.config.caseType == "line_forces":
             print("add uppermost lines to mesh")
             self.mesh += self.glider.lineset.get_upper_line_mesh(self.config.line_numpoints)
+
+        if self.config.caseType == "full":
+            print("add uppermost lines to mesh")
+            self.mesh += self.glider.lineset.get_mesh(self.config.line_numpoints)
 
         self.mesh.delete_duplicates()
         return self.mesh
