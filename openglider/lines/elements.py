@@ -27,6 +27,7 @@ from openglider.lines.functions import proj_force, proj_to_surface
 from openglider.utils.cache import cached_property, CachedObject
 from openglider.vector import PolyLine
 from openglider.vector.functions import norm, normalize
+from openglider.mesh import Mesh, Vertex, Polygon
 
 
 class SagMatrix():
@@ -205,6 +206,20 @@ class Line(CachedObject):
              self.force_projected + xi *
              self.sag_par_1 + self.sag_par_2)
         return u
+
+    def get_mesh(self, numpoints):
+        line_points = [Vertex(*point) for point in self.get_line_points(numpoints=numpoints)]
+        boundary = {"lines": []}
+        if self.lower_node.type == 0:
+            boundary["lower_attachment_points"] = [line_points[0]]
+        else:
+            boundary["lines"].append(line_points[0])
+        if self.upper_node.type == 2:
+            boundary["attachment_points"] = [line_points[-1]]
+        else:
+            boundary["lines"].append(line_points[-1])
+        line_poly = {"lines": [Polygon(line_points[i:i + 2]) for i in range(len(line_points) - 1)]}
+        return Mesh(line_poly, boundary)
 
     @property
     def _get_projected_par(self):
