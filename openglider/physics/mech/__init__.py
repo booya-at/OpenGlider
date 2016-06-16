@@ -10,10 +10,10 @@ from paraEigen import vector3
 class GliderFemCase(GliderCase):
     class DefaultConf(GliderCase.DefaultConf):
         fem_timestep = 0.00001
-        fem_steps = 1000
+        fem_steps = 10000
         fem_output = 100
-        d_velocity = 10
-        pressure_ramp = 200     # steps for linear pressure ramp
+        d_velocity = 20
+        pressure_ramp = 500     # steps for linear pressure ramp
         caseType = "line_forces"
         line_numpoints = 2
         pass
@@ -43,12 +43,12 @@ class GliderFemCase(GliderCase):
         hull_material = paraFEM.MembraneMaterial(1000, 0.3)
         hull_material.d_velocity = self.config.d_velocity
         hull_material.d_structural = 0
-        hull_material.rho = 0.01
+        hull_material.rho = 0.04
 
-        truss_material = paraFEM.TrussMaterial(10)
+        truss_material = paraFEM.TrussMaterial(0.001)
         truss_material.d_velocity = self.config.d_velocity
         truss_material.d_structural = 0
-        truss_material.rho = 0.01
+        truss_material.rho = 0.0001
 
         nodes = [paraFEM.Node(*vertex) for vertex in vertices]
         if self.config.caseType == "full":
@@ -86,8 +86,6 @@ class GliderFemCase(GliderCase):
                 elements.append(element)
         self.case = paraFEM.Case(elements)
         self.writer = paraFEM.vtkWriter("/tmp/Fem/output")
-
-        self.writer.writeCase(self.case, 0)
 
         write_interval = self.config.fem_steps // self.config.fem_output or 1
         p_ramp = self.config.pressure_ramp

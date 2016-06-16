@@ -65,7 +65,7 @@ for dirpath, dirnames, filenames in os.walk(og_dir):
 print(package_data, packages)
 setup(
     name='OpenGlider',
-    version=0.1,  #openglider.__version__,
+    version="0.1",  #openglider.__version__,
     description="tool fpr glider design",
     packages=packages,
     package_data=package_data,
