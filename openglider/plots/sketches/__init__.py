@@ -15,10 +15,13 @@ def get_all_plots(glider_2d, glider_3d=None):
     lineplan.insert_attachment_points()
 
     straps = ShapePlot(glider_2d, glider_3d)
+    straps.insert_design(lower=True)
     straps.insert_vectorstraps()
 
     diagonals = ShapePlot(glider_2d, glider_3d)
-    diagonals.insert_design()
+    diagonals.insert_design(lower=True)
+    #diagonals.insert_diagonals()
+
 
     return {
         "design_upper": design_upper,

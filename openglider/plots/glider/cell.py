@@ -1,10 +1,8 @@
-import collections
-
 import openglider.plots
 from openglider.airfoil import get_x_value
 from openglider.utils import Config
 from openglider.vector.text import Text
-from openglider.plots import cuts, PlotPart
+from openglider.plots import cuts, PlotPart, marks
 from openglider.vector import PolyLine2D
 
 
@@ -17,6 +15,10 @@ class PanelPlotMaker:
 
         allowance_drib_folds = 0.012
         allowance_drib_num_folds = 1
+
+
+        marks_laser_attachment_point = marks.Dot(0.2, 0.8)
+        marks_attachment_point = marks.Line()
 
         insert_attachment_point_text = True
 
@@ -66,54 +68,6 @@ class PanelPlotMaker:
             # - periodic indicators
 
         return cell_parts
-
-    def _jojo(self, panel):
-        self.x_values = self.cell.rib1.profile_2d.x_values
-        self._flatten_cell()
-        plotpart = PlotPart(material_code=panel.material_code, name=panel.name)
-
-        cut_allowances = {
-            "folded": self.config.allowance_entry_open,
-            "parallel": self.config.allowance_trailing_edge,
-            "orthogonal": self.config.allowance_design
-        }
-
-        front_left = get_x_value(self.x_values, panel.cut_front["left"])
-        back_left = get_x_value(self.x_values, panel.cut_back["left"])
-        front_right = get_x_value(self.x_values, panel.cut_front["right"])
-        back_right = get_x_value(self.x_values, panel.cut_back["right"])
-
-        # allowance fallbacks
-        allowance_front = cut_allowances[panel.cut_front["type"]]
-        allowance_back = cut_allowances[panel.cut_back["type"]]
-
-        # get allowance from panel
-        amount_front = -panel.cut_front.get("amount", allowance_front)
-        amount_back = panel.cut_back.get("amount", allowance_back)
-
-        # cuts -> cut-line, index left, index right
-        cut_front = cuts[panel.cut_front["type"]](
-            [[self.ballooned[0], front_left],
-             [self.ballooned[1], front_right]],
-            self.outer[0], self.outer[1], amount_front)
-
-        cut_back = cuts[panel.cut_back["type"]](
-            [[self.ballooned[0], back_left],
-             [self.ballooned[1], back_right]],
-            self.outer[0], self.outer[1], amount_back)
-
-        panel_right = self.outer[1][cut_front.index_right:cut_back.index_right]
-        panel_back = cut_back.curve.copy()
-        panel_left = self.outer[0][cut_front.index_left:cut_back.index_left:-1]
-        panel_front = cut_front.curve.copy()
-
-        plotpart.layers["marks"] += [panel_back, panel_front]
-
-        plotpart.layers["marks"] += [
-            PolyLine2D([self.ballooned[0][front_left], self.ballooned[1][front_right]]),
-            PolyLine2D([self.ballooned[0][back_left], self.ballooned[1][back_right]])]
-
-        return plotpart
 
     def _get_panel(self, panel):
         plotpart = PlotPart(material_code=panel.material_code, name=panel.name)
@@ -185,8 +139,7 @@ class PanelPlotMaker:
         envelope = panel_right + panel_back + panel_left[::-1] + panel_front
         envelope += PolyLine2D([envelope[0]])
 
-        plotpart.layers["cuts"] = []
-        plotpart.layers["envelope"] = [envelope]
+        plotpart.layers["envelope"].append(envelope)
 
         plotpart.layers["stitches"] += [
             self.ballooned[0][front_left:back_left],
@@ -257,18 +210,58 @@ class PanelPlotMaker:
                                                     size=0.01,  # 1cm
                                                     align=align, valign=-0.5).get_vectors()
 
-                plotpart.layers["marks"] += [PolyLine2D(self.get_p1_p2(attachment_point.rib_pos, which))]
+                p1, p2 = self.get_p1_p2(attachment_point.rib_pos, which)
+                plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
+                plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
 
     def get_dribs(self):
         dribs = []
         for drib in self.cell.diagonals:
-            dribs.append(self._get_drib(drib))
+            drib_plot = DribPlot(drib, self.cell, self.config)
+            dribs.append(drib_plot.flatten())
 
         return dribs
 
-    def _get_drib(self, d_rib):
-        plotpart = PlotPart(material_code=d_rib.material_code, name=d_rib.name)
-        left, right = d_rib.get_flattened(self.cell)
+
+class DribPlot(object):
+    DefaultConf = PanelPlotMaker.DefaultConf
+
+    def __init__(self, drib, cell, config):
+        self.drib = drib
+        self.cell = cell
+        self.config = self.DefaultConf(config)
+
+        self._left, self._right = None, None
+
+    def _get_flattened(self):
+        if self._left is None:
+            left, right = self.drib.get_flattened(self.cell)
+            self._left = left
+            self._right = right
+        return self._left, self._right
+
+    def get_left(self, x):
+        assert self.drib.left_front[0] <= x <= self.drib.left_back[0]
+        assert self.drib.left_front, self.drib.left_back in ((-1,-1), (1,1))
+        foil = self.cell.rib1.profile_2d
+        # -1 -> lower, 1 -> upper
+        side = 1 if self.drib.left_front[1] == -1 else -1
+        x1 = 9
+        x2 = x
+        iks = (foil.get(self.drib.left_front[0]))
+        len = self.cell.rib1.profile_2d[0]
+
+
+
+
+    def get_p1_p2(self, x, side=0):
+        # 0 l 1 r
+        x1, x2 = self.drib.cut_front[side], self.drib.cut_back[side]
+
+    def flatten(self):
+        plotpart = PlotPart(material_code=self.drib.material_code, name=self.drib.name)
+        left, right = self._get_flattened()
+
         left_out = left.copy()
         right_out = right.copy()
 
@@ -292,6 +285,8 @@ class PanelPlotMaker:
         else:
             raise NotImplementedError
 
+
+
         # print("left", left_out[cut_front[1]:cut_back[1]].get_length())
         plotpart.layers["cuts"] += [left_out[cut_front.index_left:cut_back.index_left] +
                                     cut_back.curve +
@@ -307,6 +302,7 @@ class PanelPlotMaker:
         #print(left[0], right[0])
         #plotpart.stitches.append(left)
 
-        plotpart.layers["text"] += Text(" {} ".format(d_rib.name), left[0], right[0], valign=0.6).get_vectors()
+        plotpart.layers["text"] += Text(" {} ".format(self.drib.name), left[0], right[0], valign=0.6).get_vectors()
 
         return plotpart
+

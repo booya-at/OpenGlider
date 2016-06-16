@@ -18,13 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 from distutils.core import setup
-import setuptools
+
 import os
-
-import openglider
-
-# with open('requires.txt', 'r') as req_file:
-#     requires = [l.strip() for l in req_file.readlines()]
 
 packages, package_data = [], {}
 # This is all copied 1:1 from django-project as i dont know any better way to do this
@@ -70,7 +65,7 @@ for dirpath, dirnames, filenames in os.walk(og_dir):
 print(package_data, packages)
 setup(
     name='OpenGlider',
-    version=openglider.__version__,
+    version=0.1,  #openglider.__version__,
     description="tool fpr glider design",
     packages=packages,
     package_data=package_data,

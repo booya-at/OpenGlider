@@ -77,6 +77,11 @@ class Config(object):
     def __repr__(self):
         return self.__dict__.__repr__()
 
+    def __iter__(self):
+        for key, value in self.__dict__.items():
+            yield key, value
+        #return self.__dict__.__iter__()
+
     def __getitem__(self, item):
         return self.__getattribute__(item)
 

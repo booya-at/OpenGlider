@@ -11,7 +11,7 @@ class DiagonalPlot(ShapePlot):
                 p2 = self.glider_2d.shape.get_shape_point(cell_no+1, tensionstrap.left)
                 self.drawing.parts.append(PlotPart(marks=[PolyLine2D([p1, p2])]))
 
-    def draw_diagonals(self):
+    def insert_diagonals(self):
         for cell_no, cell in enumerate(self.glider_3d.cells):
             for diagonal in cell.diagonals:
                 left = [abs(p[0]) for p in (diagonal.left_front, diagonal.left_back)]

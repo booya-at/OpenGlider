@@ -26,21 +26,20 @@ import openglider.plots.spreadsheets
 from openglider.plots.cuts import cuts
 from openglider.plots.drawing import PlotPart, DrawingArea
 from openglider.plots.glider import PlotMaker
-from openglider.utils import Config
 
 
 class Patterns(object):
     class DefaultConf(PlotMaker.DefaultConfig):
         pass
 
-    def __init__(self, glider2d, config):
+    def __init__(self, glider2d, config=None):
         self.glider_2d = glider2d
         self.config_panel = self.DefaultConf(config)
 
     def __json__(self):
         return {
             "glider2d": self.glider_2d,
-            "config": self.config
+            "config": self.config_panel
         }
 
     def unwrap(self, outdir):

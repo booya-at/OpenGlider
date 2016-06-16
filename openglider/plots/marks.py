@@ -101,16 +101,21 @@ class _Modify(object):
 
 
 class Rotate(_Modify):
-    def __init__(self, func, rotation):
+    def __init__(self, func, rotation, center=True):
         self.angle = rotation
+        self.rotation = rotation_2d(rotation)
         super(Rotate, self).__init__(func)
 
     def __repr__(self):
         return "Rotate({})->{}".format(self.angle, self.func)
 
-    def __call__(self, *args, **kwargs):
-        kwargs["rotation"] = self.angle
-        return super(Rotate, self).__call__(*args, **kwargs)
+    def __call__(self, p1, p2):
+        diff = (p2 - p1)/2
+        center = (p1 + p2)/2
+        diff_new = self.rotation.dot(diff)
+
+        p1_new, p2_new = center + diff_new, center - diff_new
+        return super(Rotate, self).__call__(p1_new, p2_new)
 
 
 class OnLine(_Modify):

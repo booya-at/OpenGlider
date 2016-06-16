@@ -92,7 +92,6 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     cuts += get_cuts(["DESIGNM", "DESIGNO", "orthogonal"], "orthogonal")
 
     # Diagonals: center_left, center_right, width_l, width_r, height_l, height_r
-    # height (0,1) -> (-1,1)
     diagonals = []
     for res in read_elements(cell_sheet, "QR", len_data=6):
         height1 = res[5]
@@ -100,6 +99,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
 
         # migration
         if file_version == 1:
+            # height (0,1) -> (-1,1)
             height1 = height1 * 2 - 1
             height2 = height2 * 2 - 1
         # ---------
@@ -109,16 +109,24 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
                           "right_front": (res[2] - res[4] / 2, height2),
                           "right_back": (res[2] + res[4] / 2, height2),
                           "cells": res[0]})
-        # todo: group
+
+    for res in read_elements(cell_sheet, "STRAP", len_data=3):
+        # [cell_no, x_left, x_right, width]
+        diagonals.append({"left_front": (res[1] - res[3]/2, -1),
+                          "left_back": (res[1] + res[3]/2, -1),
+                          "right_front": (res[2] - res[3]/2, -1),
+                          "right_back": (res[2] + res[3]/2, -1),
+                          "cells": res[0]
+                          })
+
     diagonals = group(diagonals, "cells")
+
+
 
     straps = []
     straps_keywords = ["cells", "left", "right"]
-    # straps = read_elements(cell_sheet, "VEKTLAENGE", len_data=2)
-    for res in read_elements(sheets[1], "VEKTLAENGE", len_data=2):
-        straps.append({"cells": res[0],
-                       "left": res[1],
-                       "right": res[2]})
+    for res in read_elements(cell_sheet, "VEKTLAENGE", len_data=2):
+        straps.append(zip(straps_keywords, res))
     straps = group(straps, "cells")
     materials = get_material_codes(cell_sheet)
 

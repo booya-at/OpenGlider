@@ -3,17 +3,45 @@ import copy
 import numpy
 
 
-class Layer(list):
+class Layer(object):
     stroke = "black"
     stroke_width = 1
 
-    def __init__(self, polylines=None, stroke="black", stroke_width=1):
-        super(Layer, self).__init__(polylines or [])
+    def __init__(self, polylines=None, stroke=None, stroke_width=1):
+        self.polylines = polylines or []
         self.stroke = stroke
         self.stroke_width = stroke_width
 
+    def __add__(self, other):
+        self.polylines += other
+        return self
+
+    def __iter__(self):
+        return iter(self.polylines)
+
+    def __len__(self):
+        return len(self.polylines)
+
+    def append(self, x):
+        self.polylines.append(x)
+
     def copy(self):
         return Layer([p.copy() for p in self])
+
+    def _get_dxf_attributes(self):
+        # color mapping: red->1, green->3, blue->5, black->7
+        if self.stroke == "red":
+            color = 1
+        elif self.stroke == "green":
+            color = 3
+        elif self.stroke == "blue":
+            color = 5
+        else:
+            color = 7
+
+        return {
+            "color": color,
+        }
 
 
 class Layers(object):
@@ -39,7 +67,7 @@ class Layers(object):
         elif isinstance(value, Layer):
             self.layers[key] = value
         else:
-            raise ValueError
+            raise ValueError()
 
     def __contains__(self, item):
         return item in self.layers
@@ -62,9 +90,7 @@ class Layers(object):
         return Layers(**layer_copy)
 
     def add(self, name, stroke=None, stroke_width=None):
-        layer = Layer()
-        if stroke is not None:
-            layer.stroke = stroke
+        layer = Layer(stroke=stroke)
 
         if stroke_width is not None:
             layer.stroke_width = stroke_width
@@ -77,9 +103,9 @@ class PlotPart(object):
     def __init__(self, cuts=None, marks=None, text=None, stitches=None, name=None, material_code="", **layers):
         self.layers = Layers()
         self.layers.add("cuts", stroke="red")
-        self.layers.add("marks")
-        self.layers.add("stitches")
-        self.layers.add("text")
+        self.layers.add("marks", stroke="green")
+        self.layers.add("stitches", stroke="green")
+        self.layers.add("text", stroke="blue")
 
         layers.update({
             "cuts": cuts or [],

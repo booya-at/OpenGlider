@@ -35,6 +35,8 @@ class DrawingArea(object):
         :return: DrawingArea
         """
         rows = len(parts)
+        if not rows:
+            return cls([])
         columns = max(len(row) for row in parts)
         parts_copy = [[p.copy() for p in row] for row in parts]
         all_parts = []
@@ -309,11 +311,14 @@ class DrawingArea(object):
         ms = drawing.modelspace()
 
         for part in self.parts:
-            group = drawing.groups.add()
+            group = drawing.groups.new()
             with group.edit_data() as part_group:
                 for layer_name, layer in part.layers.items():
+                    print(layer_name, layer.stroke)
                     if layer_name not in drawing.layers:
-                        drawing.layers.create(name=layer_name)
+                        attributes = layer._get_dxf_attributes()
+                        print(layer_name, layer.stroke, attributes)
+                        drawing.layers.new(name=layer_name, dxfattribs=attributes)
 
                     for elem in layer:
                         pl = ms.add_lwpolyline(elem, dxfattribs={"layer": layer_name})
