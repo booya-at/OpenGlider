@@ -262,12 +262,49 @@ class Mesh(object):
 
         return out
 
-    def export_dxf(self, path):
+    @staticmethod
+    def parse_colour_code(string):
+        import re
+        rex = re.compile(r".*#([0-9a-zA-Z]{6})")
+        color = [255, 255, 255]
+        match = rex.match(string)
+        if match:
+            color_str = match.group(1)
+            color[0] = int(color_str[:2], 16)
+            color[1] = int(color_str[2:4], 16)
+            color[2] = int(color_str[4:], 16)
+
+        return color
+
+    def export_dxf(self, path=None):
         import ezdxf
-        dwg = ezdxf.new()
+        import openglider.mesh.dxf_colours as dxfcolours
+        dwg = ezdxf.new(dxfversion="AC1015")
         ms = dwg.modelspace()
-        for poly_group_name, poly_group in self.polygons:
-            layer = dwg.layers.new(name=poly_group_name, dxfattribs={})
+        for poly_group_name, poly_group in list(self.polygons.items()):
+            color = dxfcolours.get_dxf_colour_code(*self.parse_colour_code(poly_group_name))
+            name = poly_group_name.replace("#", "_")
+            dwg.layers.new(name=name, dxfattribs={"color": color})
+
+            polys_new = list(filter(lambda poly: len(poly)>2, poly_group))
+            if polys_new:
+                mesh = Mesh({"123": polys_new})
+
+                vertices, polys, _ = mesh.get_indexed()
+                mesh_dxf = ms.add_mesh({"layer": name})
+
+                with mesh_dxf.edit_data() as mesh_data:
+                    mesh_data.vertices = [list(p) for p in vertices]
+                    mesh_data.faces = polys["123"]
+
+            lines = list(filter(lambda x: len(x)==2, poly_group))
+            if lines:
+                for line in lines:
+                    ms.add_polyline3d([list(p) for p in line], {"layer": name})
+
+        if path is not None:
+            dwg.saveas(path)
+        return dwg
 
     def export_ply(self, path):
         vertices, polygons, boundaries = self.get_indexed()
@@ -276,24 +313,18 @@ class Mesh(object):
         panels_lines = []
 
         for i, polygon_group_name in enumerate(polygons):
-            import re
-            rex = re.compile(r".*#([0-9a-zA-Z]{6})")
-            color = [255, 255, 255]
-            match = rex.match(polygon_group_name)
-            if match:
-                color_str = match.group(1)
-                color[0] = int(color_str[:2], 16)
-                color[1] = int(color_str[2:4], 16)
-                color[2] = int(color_str[4:], 16)
+            color = self.parse_colour_code(polygon_group_name)
 
-            material_lines.append(" {} {} {}".format(*color))
+            color_str = " {} {} {} 1".format(*color)
+
+            material_lines.append(" ".join([color_str]*3))
 
             for obj in polygons[polygon_group_name]:
                 if len(obj) > 2:
                     out_str = str(len(obj))
                     for x in obj:
                         out_str += " {}".format(x)
-                    #out_str += " {}\n".format(material_index)
+                    out_str += " {}".format(i)
                     panels_lines.append(out_str)
 
         with open(path, "w") as outfile:
@@ -306,11 +337,19 @@ class Mesh(object):
                 outfile.write("property float32 {}\n".format(coord))
 
 
-            #outfile.write("element material {}\n".format(len(material_lines)))
-            #outfile.write("property ambient_red uchar\n")
-            #outfile.write("property ambient_green uchar\n")
-            #outfile.write("property ambient_blue uchar\n")
-            #outfile.write("property ambient_coeff float\n")
+            # outfile.write("element material {}\n".format(len(material_lines)))
+            # outfile.write("property ambient_red uchar\n")
+            # outfile.write("property ambient_green uchar\n")
+            # outfile.write("property ambient_blue uchar\n")
+            # outfile.write("property ambient_coeff float\n")
+            # outfile.write("property diffuse_red uchar\n")
+            # outfile.write("property diffuse_green uchar\n")
+            # outfile.write("property diffuse_blue uchar\n")
+            # outfile.write("property diffuce_coeff float\n")
+            # outfile.write("property specular_red uchar\n")
+            # outfile.write("property specular_green uchar\n")
+            # outfile.write("property specular_blue uchar\n")
+            # outfile.write("property specular_coeff float\n")
 
             outfile.write("element face {}\n".format(len(panels_lines)))
             outfile.write("property list uchar uint vertex_indices\n")
@@ -322,8 +361,7 @@ class Mesh(object):
                 outfile.write("{:.6f} {:.6f} {:.6f}\n".format(*vertex))
 
             for material_line in material_lines:
-                pass
-                #outfile.write(material_line + "\n")
+                outfile.write(material_line + "\n")
 
             for panel_line in panels_lines:
                 #print(panel_line)
@@ -337,7 +375,7 @@ class Mesh(object):
         mat = collada.material.Material("material0", "mymaterial", effect)
         mesh.effects.append(effect)
         mesh.materials.append(mat)
-        mesh.
+        #mesh.
 
         vert_src = collada.source.FloatSource("cubeverts-array", numpy.array(vert_floats), ('X', 'Y', 'Z'))
 
