@@ -3,21 +3,14 @@ import collections
 from openglider.plots.drawing import DrawingArea
 from openglider.plots.glider.cell import PanelPlotMaker
 from openglider.plots.glider.ribs import RibPlot
-from openglider.utils import Config
+from openglider.plots.glider.config import PatternConfig
 
 
 class PlotMaker(object):
     PanelPlot = PanelPlotMaker
     RibPlot = RibPlot
 
-    class DefaultConfig(Config):
-        allowance_parallel = 0.012
-        allowance_orthogonal = 0.012
-        allowance_folded = 0.012
-        allowance_general = 0.012
-        allowance_diagonals = 0.012
-        allowance_trailing_edge = 0.024
-        allowance_entry_open = 0.015
+    DefaultConfig = PatternConfig
 
     def __init__(self, glider_3d, config=None):
         self.glider_3d = glider_3d
@@ -47,7 +40,7 @@ class PlotMaker(object):
     def get_dribs(self):
         self.dribs.clear()
         for cell in self.glider_3d.cells:
-            dribs = PanelPlotMaker(cell).get_dribs()
+            dribs = PanelPlotMaker(cell).get_dribs(self.glider_3d.attachment_points)
             self.dribs[cell] = dribs
 
         return self.dribs

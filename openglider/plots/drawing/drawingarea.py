@@ -314,10 +314,8 @@ class DrawingArea(object):
             group = drawing.groups.new()
             with group.edit_data() as part_group:
                 for layer_name, layer in part.layers.items():
-                    print(layer_name, layer.stroke)
                     if layer_name not in drawing.layers:
                         attributes = layer._get_dxf_attributes()
-                        print(layer_name, layer.stroke, attributes)
                         drawing.layers.new(name=layer_name, dxfattribs=attributes)
 
                     for elem in layer:

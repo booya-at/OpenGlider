@@ -22,6 +22,13 @@ class Layer(object):
     def __len__(self):
         return len(self.polylines)
 
+    def __json__(self):
+        return {
+            "polylines": self.polylines,
+            "stroke": self.stroke,
+            "stroke_width": self.stroke_width
+        }
+
     def append(self, x):
         self.polylines.append(x)
 

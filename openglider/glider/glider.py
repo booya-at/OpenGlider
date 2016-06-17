@@ -112,7 +112,7 @@ class Glider(object):
                 mesh += panel.get_mesh(cell, midribs)
 
         mesh += self.lineset.get_mesh()
-        mesh = self.get_mesh_hull(midribs)
+        mesh += self.get_mesh_hull(midribs)
 
         return mesh
 
@@ -140,7 +140,6 @@ class Glider(object):
                     (i + 1) * numpoints + kplus,
                     (i + 1) * numpoints + k
                 ])
-        print(boundary)
 
         return Mesh.from_indexed(numpy.concatenate(ribs), {"hull": polygons}, boundary)
 

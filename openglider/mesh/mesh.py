@@ -262,6 +262,91 @@ class Mesh(object):
 
         return out
 
+    def export_dxf(self, path):
+        import ezdxf
+        dwg = ezdxf.new()
+        ms = dwg.modelspace()
+        for poly_group_name, poly_group in self.polygons:
+            layer = dwg.layers.new(name=poly_group_name, dxfattribs={})
+
+    def export_ply(self, path):
+        vertices, polygons, boundaries = self.get_indexed()
+
+        material_lines = []
+        panels_lines = []
+
+        for i, polygon_group_name in enumerate(polygons):
+            import re
+            rex = re.compile(r".*#([0-9a-zA-Z]{6})")
+            color = [255, 255, 255]
+            match = rex.match(polygon_group_name)
+            if match:
+                color_str = match.group(1)
+                color[0] = int(color_str[:2], 16)
+                color[1] = int(color_str[2:4], 16)
+                color[2] = int(color_str[4:], 16)
+
+            material_lines.append(" {} {} {}".format(*color))
+
+            for obj in polygons[polygon_group_name]:
+                if len(obj) > 2:
+                    out_str = str(len(obj))
+                    for x in obj:
+                        out_str += " {}".format(x)
+                    #out_str += " {}\n".format(material_index)
+                    panels_lines.append(out_str)
+
+        with open(path, "w") as outfile:
+            outfile.write("ply\n")
+            outfile.write("format ascii 1.0\n")
+            outfile.write("comment exported using openglider\n")
+
+            outfile.write("element vertex {}\n".format(len(vertices)))
+            for coord in ("x", "y", "z"):
+                outfile.write("property float32 {}\n".format(coord))
+
+
+            #outfile.write("element material {}\n".format(len(material_lines)))
+            #outfile.write("property ambient_red uchar\n")
+            #outfile.write("property ambient_green uchar\n")
+            #outfile.write("property ambient_blue uchar\n")
+            #outfile.write("property ambient_coeff float\n")
+
+            outfile.write("element face {}\n".format(len(panels_lines)))
+            outfile.write("property list uchar uint vertex_indices\n")
+            #outfile.write("property material_index int\n")
+
+            outfile.write("end_header\n")
+
+            for vertex in vertices:
+                outfile.write("{:.6f} {:.6f} {:.6f}\n".format(*vertex))
+
+            for material_line in material_lines:
+                pass
+                #outfile.write(material_line + "\n")
+
+            for panel_line in panels_lines:
+                #print(panel_line)
+                outfile.write(panel_line + "\n")
+
+    def export_collada(self):
+        import collada
+        mesh = collada.Collada()
+
+        effect = collada.material.Effect("effect0", [], "phong", diffuse=(1,0,0), specular=(0,1,0))
+        mat = collada.material.Material("material0", "mymaterial", effect)
+        mesh.effects.append(effect)
+        mesh.materials.append(mat)
+        mesh.
+
+        vert_src = collada.source.FloatSource("cubeverts-array", numpy.array(vert_floats), ('X', 'Y', 'Z'))
+
+
+
+
+
+
+
     def __iadd__(self, other):
         for poly_group_name, poly_group in other.polygons.items():
             self.polygons.setdefault(poly_group_name, [])
@@ -289,12 +374,6 @@ class Mesh(object):
         boundaries = boundaries or self.boundary_nodes.keys()
         replace_dict = {}
         all_boundary_nodes = sum([self.boundary_nodes[name] for name in boundaries], [])
-
-        vertices = self.vertices
-        #print(all_boundary_nodes)
-        for boundary_name in boundaries:
-            print (boundary_name)
-            print(all([node in vertices for node in self.boundary_nodes[boundary_name]]))
 
         for i, node1 in enumerate(all_boundary_nodes[:-1]):
             if node1 not in replace_dict:

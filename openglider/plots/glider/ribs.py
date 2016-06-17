@@ -5,24 +5,26 @@ import numpy
 from openglider.airfoil import get_x_value
 from openglider.plots import marks
 from openglider.plots.drawing import PlotPart
-from openglider.utils import Config
+from openglider.plots.glider.config import PatternConfig
 from openglider.vector import PolyLine2D
 from openglider.vector.functions import rotation_2d, norm
 from openglider.vector.text import Text
 
 
 class RibPlot(object):
-    class DefaultConfig(Config):
+    class DefaultConfig(PatternConfig):
         allowance_general = 0.01
         allowance_trailing_edge = 0.02
 
         marks_diagonal_front = marks.Inside(marks.Arrow(left=True, name="diagonal_front"))
         marks_diagonal_back = marks.Inside(marks.Arrow(left=False, name="diagonal_back"))
-        marks_laser_diagonal = marks.Dot(0.2)
+        marks_laser_diagonal = marks.Dot(0.8)
         marks_laser_attachment_point = marks.Dot(0.2, 0.8)
 
         marks_strap = marks.Inside(marks.Line(name="strap"))
         marks_attachment_point = marks.OnLine(marks.Rotate(marks.Cross(name="attachment_point"), numpy.pi / 4))
+
+        marks_controlpoint = marks.Dot(0.2)
         marks_panel_cut = marks.Line(name="panel_cut")
         rib_text_pos = -0.005
 
@@ -38,7 +40,7 @@ class RibPlot(object):
         self.inner = self.rib.profile_2d.copy().scale(self.rib.chord)
         self.outer = self.inner.copy().add_stuff(self.config.allowance_general)
 
-        self.insert_attachment_points(glider.attachment_points)
+        self._insert_attachment_points(glider.attachment_points)
         self.insert_holes()
 
         panel_cuts = set()
@@ -74,10 +76,11 @@ class RibPlot(object):
         for rigid in self.rib.rigidfoils:
             self.plotpart.layers["marks"].append(rigid.get_flattened(self.rib))
 
-        self.add_text(self.rib.name)
+        self._insert_text(self.rib.name)
+        self.insert_controlpoints()
 
         # insert cut
-        self.cut_outer_rib()
+        self.cut_trailing_edge()
         self.plotpart.layers["stitches"].append(self.inner)
 
         return self.plotpart
@@ -101,6 +104,11 @@ class RibPlot(object):
 
         self.plotpart.layers[layer] += mark_function(inner, outer)
 
+    def insert_controlpoints(self):
+        for x in self.config.distribution_controlpoints:
+            self.insert_mark(x, self.config.marks_controlpoint, layer="marks")
+            self.insert_mark(x, self.config.marks_laser_controlpoint, layer="L0")
+
     def get_point(self, x, y=-1):
         assert x >= 0
         p = self.rib.profile_2d.profilepoint(x, y)
@@ -118,13 +126,13 @@ class RibPlot(object):
         if p1[1] == p2[1] == -1:
             self.insert_mark(p1[0], self.config.marks_diagonal_front)
             self.insert_mark(p2[0], self.config.marks_diagonal_back)
-            self.insert_mark(p1[0], self.config.marks_laser_diagonal, "laser_marks")
-            self.insert_mark(p2[0], self.config.marks_laser_diagonal, "laser_marks")
+            self.insert_mark(p1[0], self.config.marks_laser_diagonal, "L0")
+            self.insert_mark(p2[0], self.config.marks_laser_diagonal, "L0")
         elif p1[1] == p2[1] == 1:
             self.insert_mark(-p1[0], self.config.marks_diagonal_back)
             self.insert_mark(-p2[0], self.config.marks_diagonal_front)
-            self.insert_mark(-p1[0], self.config.marks_laser_diagonal, "laser_marks")
-            self.insert_mark(-p2[0], self.config.marks_laser_diagonal, "laser_marks")
+            self.insert_mark(-p1[0], self.config.marks_laser_diagonal, "L0")
+            self.insert_mark(-p2[0], self.config.marks_laser_diagonal, "L0")
         else:
             p1 = self.get_point(*p1)
             p2 = self.get_point(*p2)
@@ -134,7 +142,7 @@ class RibPlot(object):
         for hole in self.rib.holes:
             self.plotpart.layers["cuts"].append(hole.get_flattened(self.rib))
 
-    def cut_outer_rib(self):
+    def cut_trailing_edge(self):
         """
         Cut trailing edge of outer rib
         """
@@ -153,13 +161,13 @@ class RibPlot(object):
                             outer_rib[start]])
         self.plotpart.layers["cuts"] += [PolyLine2D(outer_rib[start:stop].data, name="envelope") + buerzl]
 
-    def insert_attachment_points(self, points):
+    def _insert_attachment_points(self, points):
         for attachment_point in points:
             if attachment_point.rib == self.rib:
                 self.insert_mark(attachment_point.rib_pos, self.config.marks_attachment_point)
-                self.insert_mark(attachment_point.rib_pos, self.config.marks_laser_attachment_point, "laser_marks")
+                self.insert_mark(attachment_point.rib_pos, self.config.marks_laser_attachment_point, "L0")
 
-    def add_text(self, text):
+    def _insert_text(self, text):
         inner, outer = self._get_inner_outer(self.config.rib_text_pos)
         diff = outer - inner
 
