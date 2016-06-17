@@ -110,6 +110,8 @@ class Glider(object):
         for cell in self.cells:
             for panel in cell.panels:
                 mesh += panel.get_mesh(cell, midribs)
+            for diagonal in cell.diagonals:
+                mesh += diagonal.get_mesh(cell)
 
         mesh += self.lineset.get_mesh()
         mesh += self.get_mesh_hull(midribs)

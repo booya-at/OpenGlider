@@ -106,6 +106,51 @@ class DiagonalRib(object):
 
         return left, right
 
+    def get_mesh(self, cell, insert_points=4):
+        """
+        get a mesh from a diagonal (2 poly lines)
+        """
+        left, right = self.get_3d(cell)
+        if insert_points:
+            point_array = []
+            number_array = []
+            # create array of points
+            # the outermost points build the segments
+            n_l = len(left)
+            n_r = len(right)
+            count = 0
+            for y_pos in numpy.linspace(0., 1., insert_points + 2):
+                # from left to right
+                point_line = []
+                number_line = []
+                num_points = int(n_l * (1. - y_pos) + n_r * y_pos)
+                for x_pos in numpy.linspace(0., 1., num_points):
+                    point_line.append(left[x_pos * (n_l - 1)] * (1. - y_pos) +
+                                      right[x_pos * (n_r - 1)] * y_pos)
+                    number_line.append(count)
+                    count += 1
+                point_array.append(point_line)
+                number_array.append(number_line)
+            edge = number_array[0]
+            edge += [line[-1] for line in number_array[1:]]
+            edge += number_array[-1][-2::-1] # last line reversed without the last element
+            edge += [line[0] for line in number_array[1:-1]][::-1]
+            segment = [[edge[i], edge[i +1]] for i in range(len(edge) - 1)]
+            segment.append([edge[-1], edge[0]])
+            point_array = numpy.array([point for line in point_array for point in line])
+            import openglider.mesh.mesh as _mesh
+            points2d = _mesh.map_to_2d(point_array)
+
+            mesh_info = _mesh.mptriangle.MeshInfo()
+            mesh_info.set_points(points2d)
+            mesh = _mesh.custom_triangulation(mesh_info, "Qz")
+            return Mesh.from_indexed(point_array, {"diagonals": list(mesh.elements)})
+
+        else:
+            vertices = numpy.array(list(left) + list(right)[::-1])
+            polygon = [range(len(vertices))]
+            return Mesh.from_indexed(vertices, {"diagonals": polygon})
+
     def get_flattened(self, cell, ribs_flattened=None):
         first, second = self.get_3d(cell)
         left, right = flatten_list(first, second)
