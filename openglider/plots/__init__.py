@@ -42,6 +42,15 @@ class Patterns(object):
             "config": self.config_panel
         }
 
+    def _get_patterns(self):
+        plots = PlotMaker(glider)
+        plots.unwrap()
+
+        all_stacked = plots.get_all_stacked()
+        all_grouped = plots.get_all_grouped()
+
+        return all_stacked, all_grouped
+
     def unwrap(self, outdir):
         def fn(filename):
             return os.path.join(outdir, filename)
@@ -58,11 +67,7 @@ class Patterns(object):
         glider_complete.rename_parts()
         print("flatten glider")
 
-        plots = PlotMaker(glider)
-        plots.unwrap()
-
-        all_stacked = plots.get_all_stacked()
-        all_grouped = plots.get_all_grouped()
+        all_stacked, all_grouped = self._get_patterns()
 
         with open(fn("patterns.json"), "w") as outfile:
             jsonify.dump(all_stacked, outfile)

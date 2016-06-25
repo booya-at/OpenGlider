@@ -1,65 +1,86 @@
-import numpy
-
-import openglider.plots
 from openglider.airfoil import get_x_value
-from openglider.vector.text import Text
 from openglider.plots import cuts, PlotPart
-from openglider.vector import PolyLine2D
 from openglider.plots.glider.config import PatternConfig
+from openglider.vector import PolyLine2D, vector_angle
+from openglider.vector.text import Text
+import openglider.vector.projection as projection
+from openglider.plots import DrawingArea
 
 
 class PanelPlotMaker:
     DefaultConf = PatternConfig
 
-    def __init__(self, cell, config=None):
+    def __init__(self, cell, attachment_points, config=None):
         self.cell = cell
+        self.attachment_points = [p for p in attachment_points if p.rib in self.cell.ribs]
         self.config = self.DefaultConf(config)
 
-        self.inner = None
-        self.ballooned = None
-        self.outer = None
-        self.outer_orig = None
+        self._flattened_cell = None
 
-    def _flatten_cell(self):
-        # assert isinstance(cell, Cell)
-        left, right = openglider.plots.projection.flatten_list(self.cell.prof1,
-                                                               self.cell.prof2)
-        left_bal = left.copy()
-        right_bal = right.copy()
-        ballooning = [self.cell.ballooning[x] for x in self.cell.rib1.profile_2d.x_values]
-        for i in range(len(left)):
-            diff = (right[i] - left[i]) * ballooning[i] / 2
-            left_bal.data[i] -= diff
-            right_bal.data[i] += diff
+    def _get_flatten_cell(self):
+        if self._flattened_cell is None:
+            # assert isinstance(cell, Cell)
+            left, right = projection.flatten_list(self.cell.prof1,
+                                                         self.cell.prof2)
+            left_bal = left.copy()
+            right_bal = right.copy()
+            ballooning = [self.cell.ballooning[x] for x in self.cell.rib1.profile_2d.x_values]
+            for i in range(len(left)):
+                diff = (right[i] - left[i]) * ballooning[i] / 2
+                left_bal.data[i] -= diff
+                right_bal.data[i] += diff
 
-        self.inner = [left, right]
-        self.ballooned = [left_bal, right_bal]
+            inner = [left, right]
+            ballooned = [left_bal, right_bal]
 
-        outer_left = left_bal.copy().add_stuff(-self.config.allowance_general)
-        outer_right = right_bal.copy().add_stuff(self.config.allowance_general)
+            outer_left = left_bal.copy().add_stuff(-self.config.allowance_general)
+            outer_right = right_bal.copy().add_stuff(self.config.allowance_general)
 
-        self.outer_orig = [outer_left, outer_right]
-        self.outer = [l.copy().check() for l in self.outer_orig]
+            outer_orig = [outer_left, outer_right]
+            outer = [l.copy().check() for l in outer_orig]
 
-    def get_panels(self, attachment_points=None):
-        attachment_points = attachment_points or []
-        cell_parts = []
-        self.x_values = self.cell.rib1.profile_2d.x_values
-        self._flatten_cell()
+            self._flattened_cell = [
+                inner,
+                ballooned,
+                outer,
+                outer_orig
+            ]
+
+        return self._flattened_cell
+
+    def get_panels(self):
+        cell_panels = []
+        flattened_cell = self._get_flatten_cell()
 
         for part_no, panel in enumerate(self.cell.panels):
-            plotpart = self._get_panel(panel)
-            self._insert_attachment_points(panel, plotpart, attachment_points)
-            cell_parts.append(plotpart)
+            plot = PanelPlot(panel, self.cell, flattened_cell, self.config)
+            dwg = plot.flatten(self.attachment_points)
+            cell_panels.append(dwg)
 
-            # add marks for
-            # - Attachment Points
-            # - periodic indicators
+        return DrawingArea.stack_column(cell_panels, self.config.patterns_align_dist_y)
 
-        return cell_parts
+    def get_dribs(self, attachment_points=None):
+        dribs = []
+        for drib in self.cell.diagonals:
+            drib_plot = DribPlot(drib, self.cell, self.config)
+            dribs.append(drib_plot.flatten(attachment_points))
 
-    def _get_panel(self, panel):
-        plotpart = PlotPart(material_code=panel.material_code, name=panel.name)
+        return dribs
+
+
+class PanelPlot(object):
+    DefaultConf = PanelPlotMaker.DefaultConf
+
+    def __init__(self, panel, cell, flattended_cell, config):
+        self.panel = panel
+        self.cell = cell
+        self.inner, self.ballooned, self.outer, self.outer_orig = flattended_cell
+        self.config = self.DefaultConf(config)
+
+        self.x_values = self.cell.rib1.profile_2d.x_values
+
+    def flatten(self, attachment_points):
+        plotpart = PlotPart(material_code=self.panel.material_code, name=self.panel.name)
 
         cut_allowances = {
             "folded": self.config.allowance_entry_open,
@@ -67,26 +88,26 @@ class PanelPlotMaker:
             "orthogonal": self.config.allowance_design
         }
 
-        front_left = get_x_value(self.x_values, panel.cut_front["left"])
-        back_left = get_x_value(self.x_values, panel.cut_back["left"])
-        front_right = get_x_value(self.x_values, panel.cut_front["right"])
-        back_right = get_x_value(self.x_values, panel.cut_back["right"])
+        front_left = get_x_value(self.x_values, self.panel.cut_front["left"])
+        back_left = get_x_value(self.x_values, self.panel.cut_back["left"])
+        front_right = get_x_value(self.x_values, self.panel.cut_front["right"])
+        back_right = get_x_value(self.x_values, self.panel.cut_back["right"])
 
         # allowance fallbacks
-        allowance_front = cut_allowances[panel.cut_front["type"]]
-        allowance_back = cut_allowances[panel.cut_back["type"]]
+        allowance_front = cut_allowances[self.panel.cut_front["type"]]
+        allowance_back = cut_allowances[self.panel.cut_back["type"]]
 
-        # get allowance from panel
-        amount_front = -panel.cut_front.get("amount", allowance_front)
-        amount_back = panel.cut_back.get("amount", allowance_back)
+        # get allowance from self.panel
+        amount_front = -self.panel.cut_front.get("amount", allowance_front)
+        amount_back = self.panel.cut_back.get("amount", allowance_back)
 
         # cuts -> cut-line, index left, index right
-        cut_front = cuts[panel.cut_front["type"]](
+        cut_front = cuts[self.panel.cut_front["type"]](
             [[self.ballooned[0], front_left],
              [self.ballooned[1], front_right]],
             self.outer[0], self.outer[1], amount_front)
 
-        cut_back = cuts[panel.cut_back["type"]](
+        cut_back = cuts[self.panel.cut_back["type"]](
             [[self.ballooned[0], back_left],
              [self.ballooned[1], back_right]],
             self.outer[0], self.outer[1], amount_back)
@@ -153,8 +174,11 @@ class PanelPlotMaker:
         else:
             plotpart.layers["cuts"].append(envelope.copy())
 
-        self._insert_text(panel, plotpart)
-        self._insert_controlpoints(panel, plotpart)
+        self._insert_text(plotpart)
+        self._insert_controlpoints(plotpart)
+        self._insert_attachment_points(plotpart, attachment_points=attachment_points)
+
+        self._align_upright(plotpart)
 
         return plotpart
 
@@ -163,22 +187,26 @@ class PanelPlotMaker:
         return [lst[ik] for lst in self.ballooned]
 
     def get_p1_p2(self, x, which):
-        which = {"left": 0, "right": 1}[which]
+        side = {"left": 0, "right": 1}[which]
         ik = get_x_value(self.x_values, x)
 
-        return self.ballooned[which][ik], self.outer_orig[which][ik]
+        return self.ballooned[side][ik], self.outer_orig[side][ik]
 
-    def _insert_controlpoints(self, panel, plotpart):
-        for x in self.config.distribution_controlpoints:
-            for side in ("left", "right"):
-                if panel.cut_front[side] <= x <= panel.cut_back[side]:
-                    p1, p2 = self.get_p1_p2(x, side)
-                    plotpart.layers["L0"] += self.config.marks_laser_controlpoint(p1, p2)
+    def _align_upright(self, plotpart):
+        side = "left"
 
-    def _insert_text(self, panel, plotpart):
-        left = get_x_value(self.x_values, panel.cut_front["left"])
-        right = get_x_value(self.x_values, panel.cut_front["right"])
-        text = panel.name
+        p1 = self.get_p1_p2(self.panel.cut_front[side], side)[0]
+        p2 = self.get_p1_p2(self.panel.cut_back[side], side)[0]
+
+        vector = p2 - p1
+        angle = vector_angle(vector, [0, 1])
+        plotpart.rotate(-angle)
+        return plotpart
+
+    def _insert_text(self, plotpart):
+        left = get_x_value(self.x_values, self.panel.cut_front["left"])
+        right = get_x_value(self.x_values, self.panel.cut_front["right"])
+        text = self.panel.name
         part_text = Text(text,
                          self.ballooned[0][left],
                          self.ballooned[1][right],
@@ -188,7 +216,15 @@ class PanelPlotMaker:
                          height=0.8).get_vectors()
         plotpart.layers["text"] += part_text
 
-    def _insert_attachment_points(self, panel, plotpart, attachment_points):
+    def _insert_controlpoints(self, plotpart):
+        for x in self.config.distribution_controlpoints:
+            for side in ("left", "right"):
+                if self.panel.cut_front[side] <= x <= self.panel.cut_back[side]:
+                    p1, p2 = self.get_p1_p2(x, side)
+                    plotpart.layers["L0"] += self.config.marks_laser_controlpoint(p1, p2)
+
+    def _insert_attachment_points(self, plotpart, attachment_points):
+        print("jo",  attachment_points)
         for attachment_point in attachment_points:
             if attachment_point.rib == self.cell.rib1:
                 align = "left"
@@ -199,7 +235,7 @@ class PanelPlotMaker:
 
             which = align
 
-            if panel.cut_front[which] <= attachment_point.rib_pos <= panel.cut_back[which]:
+            if self.panel.cut_front[which] <= attachment_point.rib_pos <= self.panel.cut_back[which]:
                 left, right = self.get_point(attachment_point.rib_pos)
 
                 if self.config.insert_attachment_point_text:
@@ -211,13 +247,7 @@ class PanelPlotMaker:
                 plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
                 plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
 
-    def get_dribs(self, attachment_points=None):
-        dribs = []
-        for drib in self.cell.diagonals:
-            drib_plot = DribPlot(drib, self.cell, self.config)
-            dribs.append(drib_plot.flatten(attachment_points))
 
-        return dribs
 
 
 class DribPlot(object):

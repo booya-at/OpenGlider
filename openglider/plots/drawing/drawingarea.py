@@ -1,6 +1,7 @@
 import os
 import math
 
+import numpy
 import svgwrite
 import svgwrite.container
 import svgwrite.shapes
@@ -24,6 +25,50 @@ class DrawingArea(object):
 
     def clear(self):
         self.parts.clear()
+
+    @classmethod
+    def stack_column(cls, parts, distance, center_x=True):
+        column_dwg = cls()
+        y = 0
+        widths = [part.width for part in parts]
+        max_width = max(widths)
+        for width, part in zip(widths, parts):
+            if isinstance(part, DrawingArea):
+                drawing = part
+            else:
+                drawing = cls([part])
+
+            x = (max_width - width)/2
+            drawing.move_to([x,y])
+
+            y += drawing.height
+            y += distance
+
+            column_dwg.join(drawing)
+
+        return column_dwg
+
+    @classmethod
+    def stack_row(cls, parts, distance, center_y=True):
+        row_dwg = cls()
+        x = 0
+        heights = [part.height for part in parts]
+        max_height = max(heights)
+        for height, part in zip(heights, parts):
+            if isinstance(part, DrawingArea):
+                drawing = part
+            else:
+                drawing = cls([part])
+
+            y = (max_height - height)/2
+            drawing.move_to([x,y])
+
+            x += drawing.width
+            x += distance
+
+            row_dwg.join(drawing)
+
+        return row_dwg
 
     @classmethod
     def stack_horizontal(cls, parts, distance_x=0, distance_y=0):
@@ -145,16 +190,23 @@ class DrawingArea(object):
         for part in self.parts:
             part.move(vector)
 
-    def join(self, other, position=None):
+    def move_to(self, vector):
+        diff = numpy.array(self.bbox[0])-vector
+        self.move(-diff)
+
+    def append_top(self, other, distance):
         assert isinstance(other, DrawingArea)
 
         if self.parts:
-            x0 = self.max_x + 0.2
+            y0 = self.max_y + distance
         else:
-            x0 = 0
-        x = x0 - other.min_x
-        y = 0 - other.min_y
-        other.move([x, y])
+            y0 = 0
+
+        other.move_to([0, y0])
+        self.parts += other.parts
+
+    def join(self, other):
+        assert isinstance(other, DrawingArea)
         self.parts += other.parts
 
     @classmethod
@@ -319,10 +371,14 @@ class DrawingArea(object):
                         drawing.layers.new(name=layer_name, dxfattribs=attributes)
 
                     for elem in layer:
-                        pl = ms.add_lwpolyline(elem, dxfattribs={"layer": layer_name})
-                        if len(elem) > 2 and all(elem[-1] == elem[0]):
-                            pl.closed = True
-                        part_group.append(pl)
+                        dxfattribs = {"layer": layer_name}
+                        if len(elem) == 1:
+                            dxf_obj = ms.add_point(elem[0], dxfattribs=dxfattribs)
+                        else:
+                            dxf_obj = ms.add_lwpolyline(elem, dxfattribs=dxfattribs)
+                            if len(elem) > 2 and all(elem[-1] == elem[0]):
+                                dxf_obj.closed = True
+                        part_group.append(dxf_obj)
 
         drawing.saveas(path)
         return drawing

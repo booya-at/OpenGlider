@@ -24,14 +24,13 @@ import math
 
 import numpy
 
-from openglider.airfoil import Profile2D
 from openglider.glider.in_out import IMPORT_GEOMETRY, EXPORT_3D
 from openglider.glider.shape import Shape
 from openglider.mesh import Mesh
-from openglider.plots.projection import flatten_list
 from openglider.utils import consistent_value
 from openglider.utils.distribution import Distribution
 from openglider.vector.functions import norm, rotation_2d
+from openglider.vector.projection import flatten_list
 
 
 class Glider(object):

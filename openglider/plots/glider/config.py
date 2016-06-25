@@ -4,8 +4,16 @@ from openglider.utils import Config
 from openglider.utils.distribution import Distribution
 from openglider.plots import marks
 
+from openglider.plots.cuts import cuts
 
 class PatternConfig(Config):
+    cut_entry = cuts["parallel"]
+    cut_trailing_edge =  cuts["parallel"]
+    cut_design = cuts["parallel"]
+
+    patterns_align_dist_y = 0.05
+    patterns_scale = 1000
+
     allowance_general = 0.01
     allowance_parallel = 0.01
     allowance_orthogonal = 0.01
@@ -37,3 +45,6 @@ class PatternConfig(Config):
     drib_text_position = 0.1
 
     insert_attachment_point_text = True
+
+class OtherPatternConfig(PatternConfig):
+    pass

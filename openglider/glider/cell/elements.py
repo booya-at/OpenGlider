@@ -18,13 +18,15 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
+
 import copy
+
 import numpy
 
 from openglider.airfoil import get_x_value
-from openglider.plots.projection import flatten_list
-from openglider.vector import norm
 from openglider.mesh import Mesh
+from openglider.vector import norm
+from openglider.vector.projection import flatten_list
 
 
 class DiagonalRib(object):
@@ -179,12 +181,9 @@ class TensionStrap(DiagonalRib):
                                            name)
 
 
-class TensionStrapSimple(object):
+class TensionStrapSimple(TensionStrap):
     def __init__(self, left, right, material_code="", name=""):
-        self.left = left
-        self.right = right
-        self.name = name
-        self.material_code = material_code
+        super(TensionStrapSimple, self).__init__(left, right, 0.01, material_code=material_code, name=name)
 
     def __json__(self):
         return {"left": self.left,
@@ -201,13 +200,6 @@ class TensionStrapSimple(object):
 
     def mirror(self):
         self.left, self.right = self.right, self.left
-
-    def get_3d(self, cell):
-        rib1 = cell.rib1
-        rib2 = cell.rib2
-        left = rib1.profile_3d[rib1.profile_2d(self.left)]
-        right = rib2.profile_3d[rib2.profile_2d(self.right)]
-        return [left, right]
 
 
 class Panel(object):

@@ -23,8 +23,10 @@ class PlotMaker(object):
     def get_panels(self):
         self.panels.clear()
         for cell in self.glider_3d.cells:
-            panels = PanelPlotMaker(cell, self.config).get_panels(self.glider_3d.attachment_points)
-            self.panels[cell] = panels
+            panels = self.PanelPlot(cell,
+                                    self.glider_3d.attachment_points,
+                                    self.config)
+            self.panels[cell] = panels.get_panels()
 
         return self.panels
 

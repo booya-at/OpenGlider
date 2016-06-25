@@ -19,21 +19,18 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 import math
-import sys
 import os
+import sys
 
 from openglider.plots import cuts
 from openglider.plots.glider.cell import flattened_cell
-
 
 try:
     import openglider
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
-import openglider.graphics
-import openglider.airfoil
 from openglider.glider.ballooning import BallooningBezier
-from openglider.plots.projection import flatten_list
+from vector.projection import flatten_list
 import openglider.plots
 from openglider.glider.cell.cell import Cell
 from openglider.glider.rib.rib import Rib
