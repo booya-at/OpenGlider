@@ -10,7 +10,7 @@ from openglider.plots import config
 from openglider.plots.drawing.part import PlotPart
 from openglider.utils.css import get_material_color, normalize_class_names
 from openglider.vector import PolyLine2D
-
+from openglider.vector.text import Text
 
 
 class DrawingArea(object):
@@ -112,6 +112,28 @@ class DrawingArea(object):
             all_parts += row
 
         return cls(all_parts)
+
+    def draw_border(self, border=0.1, text=None):
+        bbox = self.bbox[:]
+
+        bbox[0][0] -= border
+        bbox[0][1] -= border
+        bbox[1][0] += border
+        bbox[1][1] -= border
+        bbox[2][0] += border
+        bbox[2][1] += border
+        bbox[3][0] -= border
+        bbox[3][1] += border
+
+        bbox.append(bbox[0])
+
+        data = [PolyLine2D(bbox)]
+
+        if text is not None:
+            _text = Text(text, bbox[0], bbox[1], valign=-0.5, size=0.1)
+            data += _text.get_vectors()
+        border = PlotPart(drawing_boundary=data)
+        self.parts.append(border)
 
 
     @classmethod

@@ -224,7 +224,6 @@ class PanelPlot(object):
                     plotpart.layers["L0"] += self.config.marks_laser_controlpoint(p1, p2)
 
     def _insert_attachment_points(self, plotpart, attachment_points):
-        print("jo",  attachment_points)
         for attachment_point in attachment_points:
             if attachment_point.rib == self.cell.rib1:
                 align = "left"
