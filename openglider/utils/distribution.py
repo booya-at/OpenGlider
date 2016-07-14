@@ -89,7 +89,7 @@ class Distribution(HashedList):
             start_ind = self.insert_value(value, start_ind)
 
     @classmethod
-    def from_linear(cls, numpoints: object, start: object = -1, stop: object = 1) -> object:
+    def from_linear(cls, numpoints, start = -1, stop = 1):
         """
         Get a linear distribution
         """
