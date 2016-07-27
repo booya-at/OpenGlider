@@ -13,7 +13,7 @@ from openglider.vector import PolyLine2D
 from openglider.vector.text import Text
 
 
-class DrawingArea(object):
+class Layout(object):
     def __init__(self, parts=None):
         self.parts = parts or []
 
@@ -33,7 +33,7 @@ class DrawingArea(object):
         widths = [part.width for part in parts]
         max_width = max(widths)
         for width, part in zip(widths, parts):
-            if isinstance(part, DrawingArea):
+            if isinstance(part, Layout):
                 drawing = part
             else:
                 drawing = cls([part])
@@ -55,7 +55,7 @@ class DrawingArea(object):
         heights = [part.height for part in parts]
         max_height = max(heights)
         for height, part in zip(heights, parts):
-            if isinstance(part, DrawingArea):
+            if isinstance(part, Layout):
                 drawing = part
             else:
                 drawing = cls([part])
@@ -77,7 +77,7 @@ class DrawingArea(object):
         :param parts:
         :param distance_x:
         :param distance_y:
-        :return: DrawingArea
+        :return: Layout
         """
         rows = len(parts)
         if not rows:
@@ -143,7 +143,7 @@ class DrawingArea(object):
         :param parts: [[p1_1, p1_2], [p2_1, p2_2],...]
         :param distance_x: grid distance (x)
         :param distance_y: grid distance (y)
-        :return: DrawingArea
+        :return: Layout
         """
         parts_flat = []
         for column in parts:
@@ -217,7 +217,7 @@ class DrawingArea(object):
         self.move(-diff)
 
     def append_top(self, other, distance):
-        assert isinstance(other, DrawingArea)
+        assert isinstance(other, Layout)
 
         if self.parts:
             y0 = self.max_y + distance
@@ -228,7 +228,7 @@ class DrawingArea(object):
         self.parts += other.parts
 
     def join(self, other):
-        assert isinstance(other, DrawingArea)
+        assert isinstance(other, Layout)
         self.parts += other.parts
 
     @classmethod
@@ -466,7 +466,7 @@ class DrawingArea(object):
         for part in self.parts:
             code = part.material_code
             if code not in dct:
-                dct[code] = DrawingArea()
+                dct[code] = Layout()
             dct[code].parts.append(part)
 
         return dct

@@ -3,6 +3,8 @@ import re
 import time
 import openglider
 
+import openglider.jsonify.migration as migration
+
 __ALL__ = ['dumps', 'dump', 'loads', 'load']
 
 # Main json-export routine.
@@ -85,7 +87,11 @@ def dump(obj, fp, add_meta=True):
 
 
 def loads(obj):
-    return json.loads(obj, object_hook=object_hook)
+    try:
+        return json.loads(obj, object_hook=object_hook)
+    except:
+        data = migration.migrate(obj)
+        return loads(data)
 
 
 def load(fp):

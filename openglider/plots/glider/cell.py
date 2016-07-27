@@ -4,7 +4,7 @@ from openglider.plots.glider.config import PatternConfig
 from openglider.vector import PolyLine2D, vector_angle
 from openglider.vector.text import Text
 import openglider.vector.projection as projection
-from openglider.plots import DrawingArea
+from openglider.plots import Layout
 
 
 class PanelPlotMaker:
@@ -57,7 +57,7 @@ class PanelPlotMaker:
             dwg = plot.flatten(self.attachment_points)
             cell_panels.append(dwg)
 
-        return DrawingArea.stack_column(cell_panels, self.config.patterns_align_dist_y)
+        return Layout.stack_column(cell_panels, self.config.patterns_align_dist_y)
 
     def get_dribs(self, attachment_points=None):
         dribs = []

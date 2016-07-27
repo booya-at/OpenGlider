@@ -1,7 +1,7 @@
 import unittest
 
 import openglider
-from openglider.plots import DrawingArea
+from openglider.plots import Layout
 from openglider.plots.glider import RibPlot
 
 
@@ -15,4 +15,4 @@ class RibTest(unittest.TestCase):
     def test_rib(self):
         ribmaker = RibPlot(self.glider_3d.ribs[0])
         pp = ribmaker.flatten(self.glider_3d)
-        DrawingArea([pp]).export_svg("/tmp/rib.svg")
+        Layout([pp]).export_svg("/tmp/rib.svg")

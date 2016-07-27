@@ -1,6 +1,6 @@
 import numpy
 
-from openglider.plots.drawing import DrawingArea, PlotPart
+from openglider.plots.drawing import Layout, PlotPart
 from openglider.vector import PolyLine2D
 from openglider.vector.text import Text
 import openglider.plots.marks as marks
@@ -13,7 +13,7 @@ class ShapePlot(object):
         super(ShapePlot, self).__init__()
         self.glider_2d = glider_2d
         self.glider_3d = glider_3d or glider_2d.get_glider_3d()
-        self.drawing = DrawingArea()
+        self.drawing = Layout()
 
     def insert_design(self, lower=True):
         for cell_no, cell_panels in enumerate(self.glider_2d.get_panels()):

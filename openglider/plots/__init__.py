@@ -24,7 +24,7 @@ from openglider import jsonify
 
 import openglider.plots.spreadsheets
 from openglider.plots.cuts import cuts
-from openglider.plots.drawing import PlotPart, DrawingArea
+from openglider.plots.drawing import PlotPart, Layout
 from openglider.plots.glider import PlotMaker
 
 
@@ -86,7 +86,7 @@ class Patterns(object):
             new.export_ntv(fn("ntv/plots_{}.ntv".format(material_name)))
         #sort_and_pack(outdir, all_parts, sheet_height, part_dist, part_dist)
 
-        stacked_all = DrawingArea()
+        stacked_all = Layout()
         for pattern in all_stacked.values():
             stacked_all.join(pattern)
 

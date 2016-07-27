@@ -1,6 +1,6 @@
 import collections
 
-from openglider.plots.drawing import DrawingArea
+from openglider.plots.drawing import Layout
 from openglider.plots.glider.cell import PanelPlotMaker
 from openglider.plots.glider.ribs import RibPlot
 from openglider.plots.glider.config import PatternConfig
@@ -52,9 +52,9 @@ class PlotMaker(object):
         ribs = self.ribs
         dribs = self.dribs
 
-        plot_panels = DrawingArea.stack_horizontal(panels.values(), dx, dy)
-        plot_ribs = DrawingArea.stack_horizontal([[rib] for rib in ribs], dx, dy)
-        plot_dribs = DrawingArea.stack_horizontal(dribs.values(), dx, dy)
+        plot_panels = Layout.stack_horizontal(panels.values(), dx, dy)
+        plot_ribs = Layout.stack_horizontal([[rib] for rib in ribs], dx, dy)
+        plot_dribs = Layout.stack_horizontal(dribs.values(), dx, dy)
 
         return {
             "panels": plot_panels,
@@ -76,7 +76,7 @@ class PlotMaker(object):
             parts.append(rib.copy())
         for dribs in self.dribs.values():
             parts += [p.copy() for p in dribs]
-        return DrawingArea(parts)
+        return Layout(parts)
 
     def get_all_grouped(self):
         return self.get_all_parts().group_materials()

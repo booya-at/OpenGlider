@@ -1,4 +1,4 @@
-from openglider.plots.drawing import PlotPart, DrawingArea
+from openglider.plots.drawing import PlotPart, Layout
 from openglider.vector import PolyLine2D, norm
 
 
@@ -71,7 +71,7 @@ class Shape(object):
         return Shape(front + self.front, back + self.back)
 
     def _repr_svg_(self):
-        da = DrawingArea()
+        da = Layout()
         for cell_no in range(self.cell_no):
             points = [
                 self.get_point(cell_no, 0),
