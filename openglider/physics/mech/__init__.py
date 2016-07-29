@@ -9,11 +9,24 @@ from paraEigen import vector3
 
 class GliderFemCase(GliderCase):
     class DefaultConf(GliderCase.DefaultConf):
-        fem_timestep = 0.00001
-        fem_steps = 10000
+        fem_timestep = 1.e-06
+        fem_steps = 100000
         fem_output = 100
-        d_velocity = 20
-        pressure_ramp = 500     # steps for linear pressure ramp
+
+        # material properties
+        rib_elasticity = 3000
+        rib_nue = 0.3
+        rib_rho = 0.01
+
+        hull_elasticity = 3000
+        hull_nue = 0.3
+        hull_rho = 0.01
+
+        line_elasticity = 5000
+        line_rho = 0.01
+
+        d_velocity = 0.1
+        pressure_ramp = 20000     # steps for linear pressure ramp
         caseType = "line_forces"
         line_numpoints = 2
         pass
@@ -35,20 +48,22 @@ class GliderFemCase(GliderCase):
         pressure = list(self.flow_case.pressure)
         vertices, polygons, boundary = mesh.get_indexed()
 
-        rib_material = paraFEM.MembraneMaterial(10000, 0.3)
+        rib_material = paraFEM.MembraneMaterial(self.config.rib_elasticity,
+                                                self.config.rib_nue)
         rib_material.d_velocity = self.config.d_velocity
-        rib_material.d_structural = 0
-        rib_material.rho = 0.01
+        rib_material.d_structural = 0.
+        rib_material.rho = self.config.rib_rho
 
-        hull_material = paraFEM.MembraneMaterial(1000, 0.3)
+        hull_material = paraFEM.MembraneMaterial(self.config.hull_elasticity,
+                                                 self.config.hull_nue)
         hull_material.d_velocity = self.config.d_velocity
-        hull_material.d_structural = 0
-        hull_material.rho = 0.04
+        hull_material.d_structural = 0.
+        hull_material.rho = self.config.hull_rho
 
-        truss_material = paraFEM.TrussMaterial(0.001)
-        truss_material.d_velocity = self.config.d_velocity
+        truss_material = paraFEM.TrussMaterial(self.config.line_elasticity)
+        truss_material.d_velocity = 0.001
         truss_material.d_structural = 0
-        truss_material.rho = 0.0001
+        truss_material.rho = self.config.line_rho
 
         nodes = [paraFEM.Node(*vertex) for vertex in vertices]
         if self.config.caseType == "full":
@@ -72,7 +87,7 @@ class GliderFemCase(GliderCase):
                 element.setConstPressure(pressure[i])
                 elements.append(element)
             elif len(poly_nodes) == 4:
-                element = paraFEM.Membrane4(poly_nodes, hull_material)
+                element = paraFEM.Membrane4(poly_nodes, hull_material, False)
                 element.setConstPressure(pressure[i])
                 elements.append(element)
 
@@ -91,9 +106,9 @@ class GliderFemCase(GliderCase):
         p_ramp = self.config.pressure_ramp
         for i in range(self.config.fem_steps):
             ramp = 1 - (i < p_ramp) * (1 - float(i) / p_ramp)
-            self.case.makeStep(self.config.fem_timestep, ramp)
-            print("timestep {} of {}".format(i, self.config.fem_steps))
+            self.case.explicitStep(self.config.fem_timestep, ramp)
             if (i % write_interval) == 0:
+                print(int(i / write_interval))
                 self.writer.writeCase(self.case, 0.)
 
     def get_mesh(self):

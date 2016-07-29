@@ -6,8 +6,8 @@ from openglider.mesh import Mesh
 class GliderCase(object):
     """simplification of the simulation tools."""
     class DefaultConf(Config):
-        cell_numpoints = 2
-        distribution = Distribution.from_nose_cos_distribution(50, 0.2)
+        cell_numpoints = 3
+        distribution = Distribution.from_nose_cos_distribution(40, 0.2)
 
     def __init__(self, glider, config=None):
         self.glider = glider

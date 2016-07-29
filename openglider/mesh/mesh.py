@@ -121,6 +121,8 @@ class Mesh(object):
         profile = rib.profile_2d
         triangle_in = {}
         vertices = list(profile.data)[:-1]
+        if rib.is_closed():
+            return cls.from_indexed([], {}, {})
         segments = [[i, i+1] for i, _ in enumerate(vertices)]
         segments[-1][-1] = 0
         triangle_in["vertices"] = vertices
@@ -154,6 +156,7 @@ class Mesh(object):
         except KeyError:
             print("there was a keyerror")
             return cls()
+        print(rib.is_closed())
         return cls.from_indexed(vertices, polygons={"ribs": triangles} , boundaries={"ribs":range(len(vertices))})
 
     @classmethod

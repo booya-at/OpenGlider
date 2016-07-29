@@ -32,7 +32,7 @@ class Distribution(HashedList):
         return dist
 
     def get_index(self, x):
-        i, x_last, x_this = -1
+        i = x_last = x_this = -1
         for i, x_this in enumerate(self.data):
             if x_this >= x:
                 break
@@ -48,21 +48,37 @@ class Distribution(HashedList):
         while nearest <= start_ind:
             nearest += 1
 
-    def insert_value(self, value, start_ind=0):
+    def insert_value(self, value, start_ind=0, to_nose=True):
 
         if start_ind  >= len(self.data):
             self.data = list(self.data[:-1]) + [value] + [self.data[-1]]
             return start_ind + 1
 
         nearest_ind = numpy.abs(self.data[start_ind:] - value).argmin() + 1 + start_ind
+        nose_ind = numpy.abs(self.data[start_ind:]).argmin() + start_ind
 
         if nearest_ind == len(self.data):
             self.data = list(self.data[:-1]) + [value] + [self.data[-1]]
             return nearest_ind
 
+        # addition: tranform only from or to nose
+        if value < 0 and to_nose is True:
+            end_index = nose_ind
+        else:
+            end_index = None
+
+        if value > 0 and self.data[start_ind] < 0 and to_nose is True:
+            print("bla")
+            start_ind = nose_ind
+
+
         l1 = self.data[:start_ind]
         l2 = self.data[start_ind:nearest_ind]
-        l3 = self.data[nearest_ind:]
+        l3 = self.data[nearest_ind:end_index]
+        if end_index:
+            l4 = self.data[end_index:]
+        else:
+            l4 = []
 
         # shift all values after the insert value
         if len(l3) > 0:
@@ -73,7 +89,7 @@ class Distribution(HashedList):
             l2 = [value]
         else:
             l2 = (l2 - l2[0]) * (value - l2[0]) / (l2[-1] - l2[0]) + l2[0]
-        self.data = list(l1) + list(l2) + list(l3)
+        self.data = list(l1) + list(l2) + list(l3) + list(l4)
         return nearest_ind
 
     def insert_values(self, values):
@@ -143,8 +159,20 @@ class Distribution(HashedList):
         return cls(first_half + second_half)
 
     def add_glider_fixed_nodes(self, glider):
-        insert_pts = [point.rib_pos for point in glider.attachment_points] + [0]
+        insert_pts = [-abs(point.rib_pos) for point in glider.attachment_points] + [0]
         self.insert_values(insert_pts)
+        self.data = self.upper + [-i for i in reversed(self.upper[:-1])]
+
+    @property
+    def upper(self):
+        out = []
+        i = 0
+        while True:
+            out.append(self.data[i])
+            i += 1
+            if self.data[i] > 0:
+                break
+        return out
 
 
 if __name__ == "__main__":

@@ -132,6 +132,8 @@ class Rib(CachedObject):
             new.name = str(new.name) + "_copy"
         return new
 
+    def is_closed(self):
+        return self.profile_2d.has_zero_thickness
 
 def rib_rotation(aoa, arc, zrot):
     """
