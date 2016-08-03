@@ -29,14 +29,17 @@ class GliderFemCase(GliderCase):
         pressure_ramp = 20000     # steps for linear pressure ramp
         caseType = "line_forces"
         line_numpoints = 2
-        pass
+        vtk_fem_output = "/tmp/Fem/output"
 
     def __init__(self, glider, config=None, flow_case=None):
         super(GliderFemCase, self).__init__(glider, config)
-        self.glider = glider.copy_complete()
+        self.config = self.DefaultConf(config)
+        if not self.config.symmetric_case:
+            self.glider = glider.copy_complete()
+        else:
+            self.glider = glider
         self.flow_case = flow_case or GliderPanelMethod(glider, config)
         self.mesh = None
-        self.config = self.DefaultConf(config)
         self.case = None
 
     def run(self):
@@ -66,6 +69,17 @@ class GliderFemCase(GliderCase):
         truss_material.rho = self.config.line_rho
 
         nodes = [paraFEM.Node(*vertex) for vertex in vertices]
+
+        if self.config.symmetric_case:
+            for node in nodes:
+                if node.position.y < 0.000001:
+                    if abs(node.position.y) < 0.000001:
+                        node.fixed.y = 0
+                        if self.glider.has_center_cell:
+                            pass # apply force constraint to get the influence of the other side on a rib
+                    else:
+                        pass # apply a symmetrical position constraint
+
         if self.config.caseType == "full":
             for index in boundary["lower_attachment_points"]:
                 nodes[index].fixed = vector3(0, 0, 0)
@@ -100,7 +114,7 @@ class GliderFemCase(GliderCase):
                 element = paraFEM.Membrane4(poly_nodes, rib_material)
                 elements.append(element)
         self.case = paraFEM.Case(elements)
-        self.writer = paraFEM.vtkWriter("/tmp/Fem/output")
+        self.writer = paraFEM.vtkWriter(self.config.vtk_fem_output)
 
         write_interval = self.config.fem_steps // self.config.fem_output or 1
         p_ramp = self.config.pressure_ramp
@@ -117,7 +131,10 @@ class GliderFemCase(GliderCase):
         else:
             self.glider = self.flow_case.glider
             self.mesh = self.flow_case.mesh
-        for rib in self.glider.ribs:
+        start = 0
+        if (self.config.symmetric_case and self.glider.has_center_cell):
+            start = 1
+        for rib in self.glider.ribs[start:]:
             self.mesh += Mesh.from_rib(rib)
 
         if self.config.caseType == "line_forces":

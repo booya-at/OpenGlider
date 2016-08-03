@@ -3,6 +3,7 @@ import unittest
 from openglider.physics.mech import GliderFemCase
 from openglider.utils.distribution import Distribution
 from openglider.utils import Config
+from openglider import load
 
 from common import TestCase
 
@@ -18,15 +19,18 @@ class FemTest(TestCase):
         config = {
             "v_inf": [14, 0, 2],
             "fem_timestep": 1.e-06,
-            "fem_steps": 100000,
+            "fem_steps": 200000,
             "fem_output": 300,
-            "d_velocity": 1.5,
+            "d_velocity": 1.,
             "pressure_ramp": 100,     # steps for linear pressure ramp
             "caseType": "full",
             "line_numpoints": 10,
             "line_rho": 0.00001,
-            "cell_numpoints": 4,
-            "distribution": Distribution.from_nose_cos_distribution(60)
+            "rib_rho": 0.00001,
+            "cell_numpoints": 5,
+            "vtk_fem_output": "/tmp/Fem/testFEM",
+            "symmetric_case": True,
+            "distribution": Distribution.from_nose_cos_distribution(50, 0.2)
         }
 
         self.glidercase = GliderFemCase(self.glider3d, config)
