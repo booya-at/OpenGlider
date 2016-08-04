@@ -10,10 +10,10 @@ class PanelMethodTest(TestCase):
     def setUp(self):
         self.glider2d = self.import_glider_2d()
         self.glider3d = self.glider2d.get_glider_3d()
-        config = {"v_inf": [10,0,2],
+        config = {"v_inf": [10, 0, 2],
                   "symmetric_case": True,
-                  "cell_numpoints": 2,
-                  "distribution": Distribution.from_nose_cos_distribution(60, 0.2)
+                  "cell_numpoints": 5,
+                  "distribution": Distribution.from_nose_cos_distribution(100, 0.2)
                   }
         self.glidercase = GliderPanelMethod(self.glider3d, config)
 

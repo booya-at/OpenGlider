@@ -42,7 +42,8 @@ class PlotMaker(object):
     def get_dribs(self):
         self.dribs.clear()
         for cell in self.glider_3d.cells:
-            dribs = PanelPlotMaker(cell).get_dribs(self.glider_3d.attachment_points)
+            # missing attachmentpoints []
+            dribs = PanelPlotMaker(cell, []).get_dribs(self.glider_3d.attachment_points)
             self.dribs[cell] = dribs
 
         return self.dribs

@@ -3,14 +3,15 @@ import unittest
 import openglider
 import openglider.plots
 import openglider.plots.glider
+from common import TestCase
 
-class TestPlots(unittest.TestCase):
+class TestPlots(TestCase):
     def setUp(self, complete=True):
-        self.glider_2d = openglider.load("./common/demokite.json")
+        self.glider_2d = self.import_glider_2d()
         self.glider_3d = self.glider_2d.get_glider_3d()
         self.plotmaker = openglider.plots.PlotMaker(self.glider_3d)
 
-    @unittest.skip
+    @unittest.skip("not working")
     def test_patterns_panels(self):
         self.plotmaker.get_panels()
         dwg = self.plotmaker.get_all_stacked()["panels"]

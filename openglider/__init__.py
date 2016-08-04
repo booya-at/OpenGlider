@@ -32,7 +32,7 @@ def load(filename):
     with open(filename) as infile:
         res = openglider.jsonify.load(infile)
     if isinstance(res, dict) and "data" in res:
-        print(res["MetaData"])  # HakunaMaData
+        # print(res["MetaData"])  # HakunaMaData
         return res["data"]
 
     return res

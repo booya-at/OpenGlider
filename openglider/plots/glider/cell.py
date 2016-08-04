@@ -10,7 +10,7 @@ from openglider.plots import DrawingArea
 class PanelPlotMaker:
     DefaultConf = PatternConfig
 
-    def __init__(self, cell, attachment_points, config=None):
+    def __init__(self, cell, attachment_points=[], config=None):
         self.cell = cell
         self.attachment_points = [p for p in attachment_points if p.rib in self.cell.ribs]
         self.config = self.DefaultConf(config)

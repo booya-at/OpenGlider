@@ -20,17 +20,19 @@ class FemTest(TestCase):
             "v_inf": [14, 0, 2],
             "fem_timestep": 1.e-06,
             "fem_steps": 200000,
-            "fem_output": 300,
+            "fem_output": 100,
             "d_velocity": 1.,
             "pressure_ramp": 100,     # steps for linear pressure ramp
-            "caseType": "full",
+            "caseType": "line_forces",
             "line_numpoints": 10,
             "line_rho": 0.00001,
+            "line_elasticity": 30000,
             "rib_rho": 0.00001,
-            "cell_numpoints": 5,
+            "cell_numpoints": 0,
             "vtk_fem_output": "/tmp/Fem/testFEM",
             "symmetric_case": True,
-            "distribution": Distribution.from_nose_cos_distribution(50, 0.2)
+            "line_numpoints": 2,
+            "distribution": Distribution.from_nose_cos_distribution(30, 0.3)
         }
 
         self.glidercase = GliderFemCase(self.glider3d, config)

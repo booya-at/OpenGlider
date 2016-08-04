@@ -26,9 +26,7 @@ import openglider.glider
 
 class GliderTestClass(TestCase):
     def setUp(self, complete=True):
-        self.glider_2d = self.import_glider()
-        self.glider = self.glider_2d.get_glider_3d()
-
+        self.glider = self.import_glider()
 
 class TestGlider(GliderTestClass):
     #def __init__(self):

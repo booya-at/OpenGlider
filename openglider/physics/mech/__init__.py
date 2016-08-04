@@ -54,13 +54,13 @@ class GliderFemCase(GliderCase):
         rib_material = paraFEM.MembraneMaterial(self.config.rib_elasticity,
                                                 self.config.rib_nue)
         rib_material.d_velocity = self.config.d_velocity
-        rib_material.d_structural = 0.
+        rib_material.d_structural = 0.0
         rib_material.rho = self.config.rib_rho
 
         hull_material = paraFEM.MembraneMaterial(self.config.hull_elasticity,
                                                  self.config.hull_nue)
         hull_material.d_velocity = self.config.d_velocity
-        hull_material.d_structural = 0.
+        hull_material.d_structural = 0.0
         hull_material.rho = self.config.hull_rho
 
         truss_material = paraFEM.TrussMaterial(self.config.line_elasticity)
@@ -124,6 +124,9 @@ class GliderFemCase(GliderCase):
             if (i % write_interval) == 0:
                 print(int(i / write_interval))
                 self.writer.writeCase(self.case, 0.)
+        if self.config.caseType == "line_forces":
+            pass # store the line forces
+
 
     def get_mesh(self):
         if self.mesh:
@@ -142,7 +145,7 @@ class GliderFemCase(GliderCase):
             self.mesh += self.glider.lineset.get_upper_line_mesh(self.config.line_numpoints)
 
         if self.config.caseType == "full":
-            print("add uppermost lines to mesh")
+            print("add lines")
             self.mesh += self.glider.lineset.get_mesh(self.config.line_numpoints)
 
         self.mesh.delete_duplicates()

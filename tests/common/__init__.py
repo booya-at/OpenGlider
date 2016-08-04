@@ -21,13 +21,14 @@ import_dir = os.path.dirname(os.path.abspath(__file__))
 test_dir = os.path.dirname(import_dir)
 #demokite = import_dir + '/demokite.ods'
 # demokite = import_dir + "/glider2d_midrip.json"
-demokite = import_dir + "/glider2d.json"
+demokite = import_dir + "/demokite.json"
 
 
 class TestCase(unittest.TestCase):
     @classmethod
     def import_glider(cls):
-        return openglider.load(demokite)
+        glider_2d = cls.import_glider_2d()
+        return glider_2d.get_glider_3d()
 
     @classmethod
     def import_glider_2d(cls):

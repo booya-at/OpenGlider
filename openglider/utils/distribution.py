@@ -68,7 +68,6 @@ class Distribution(HashedList):
             end_index = None
 
         if value > 0 and self.data[start_ind] < 0 and to_nose is True:
-            print("bla")
             start_ind = nose_ind
 
 
