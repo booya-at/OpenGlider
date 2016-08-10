@@ -6,7 +6,8 @@ import io
 def migrate(jsondata):
     jsondata_new = migrate_00(jsondata)
     with io.StringIO() as stream:
-        return json.dump(jsondata_new, stream)
+        json.dump(jsondata_new, stream)
+        return stream
 
 
 def migrate_00(jsondata):
@@ -23,8 +24,9 @@ def find_nodes(jsondata, name="*", module=r"*"):
     """
     Find nodes recursive
     :param name: *to find any
+    :param module: *to search all
     :param jsondata:
-    :return:
+    :return: list of nodes
     """
     rex_name = re.compile(name)
     rex_module = re.compile(module)
@@ -52,5 +54,5 @@ def find_nodes(jsondata, name="*", module=r"*"):
 
 
 migrations = {
-    "0.00":
+    "0.00": migrate_00
 }

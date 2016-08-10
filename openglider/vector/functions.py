@@ -25,17 +25,10 @@ def normalize(vector):
         return vector / norm(vector)
     raise ValueError("Cannot normalize a vector of length Zero")
 
-def vector_angle(v1, v2):
-    prod = normalize(v1).dot(normalize(v2))
-    if abs(prod) >= 1:
-        # float errors
-        return 0.
-    angle = math.acos(prod)
-    return angle
 
-#def vector_angle(vec1, vec2):
-#    cosalpha = numpy.dot(vec1, vec2)/(norm(vec1)*norm(vec2))
-#    return numpy.arccos(cosalpha)
+def vector_angle(v1, v2):
+    return math.atan2(v1[1], v1[0]) - math.atan2(v2[1], v2[0])
+
 
 def rangefrom(maxl, startpoint=0):
     """
@@ -50,6 +43,7 @@ def rangefrom(maxl, startpoint=0):
         if maxl > startpoint - j >= 0:
             yield startpoint - j
         j += 1
+
 
 def rotation_3d(angle, axis=None):
     """

@@ -17,6 +17,9 @@ class Layout(object):
     def __init__(self, parts=None):
         self.parts = parts or []
 
+    def __iter__(self):
+        return iter(self.parts)
+
     def __json__(self):
         return {"parts": self.parts}
 
@@ -53,7 +56,7 @@ class Layout(object):
         row_dwg = cls()
         x = 0
         heights = [part.height for part in parts]
-        max_height = max(heights)
+        max_height = max(heights, default=0)
         for height, part in zip(heights, parts):
             if isinstance(part, Layout):
                 drawing = part
@@ -113,7 +116,26 @@ class Layout(object):
 
         return cls(all_parts)
 
-    def draw_border(self, border=0.1, text=None):
+    def add_text(self, text):
+        """
+        Add text to bottom-left corner
+        :param text:
+        :return:
+        """
+        bbox = self.bbox[:]
+        data = []
+        if text is not None:
+            _text = Text(text, bbox[0], bbox[1], valign=-0.5, size=0.1)
+            data += _text.get_vectors()
+
+        pp = PlotPart(drawing_boundary=data)
+        self.parts.append(pp)
+
+        return pp
+
+    def draw_border(self, border=0.1, append=True):
+        if not self.parts:
+            return PlotPart()
         bbox = self.bbox[:]
 
         bbox[0][0] -= border
@@ -129,12 +151,10 @@ class Layout(object):
 
         data = [PolyLine2D(bbox)]
 
-        if text is not None:
-            _text = Text(text, bbox[0], bbox[1], valign=-0.5, size=0.1)
-            data += _text.get_vectors()
         border = PlotPart(drawing_boundary=data)
-        self.parts.append(border)
-
+        if append:
+            self.parts.append(border)
+        return border
 
     @classmethod
     def create_raster(cls, parts, distance_x=0.2, distance_y=0.1):

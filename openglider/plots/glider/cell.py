@@ -7,69 +7,8 @@ import openglider.vector.projection as projection
 from openglider.plots import Layout
 
 
-class PanelPlotMaker:
-    DefaultConf = PatternConfig
-
-    def __init__(self, cell, attachment_points, config=None):
-        self.cell = cell
-        self.attachment_points = [p for p in attachment_points if p.rib in self.cell.ribs]
-        self.config = self.DefaultConf(config)
-
-        self._flattened_cell = None
-
-    def _get_flatten_cell(self):
-        if self._flattened_cell is None:
-            # assert isinstance(cell, Cell)
-            left, right = projection.flatten_list(self.cell.prof1,
-                                                         self.cell.prof2)
-            left_bal = left.copy()
-            right_bal = right.copy()
-            ballooning = [self.cell.ballooning[x] for x in self.cell.rib1.profile_2d.x_values]
-            for i in range(len(left)):
-                diff = (right[i] - left[i]) * ballooning[i] / 2
-                left_bal.data[i] -= diff
-                right_bal.data[i] += diff
-
-            inner = [left, right]
-            ballooned = [left_bal, right_bal]
-
-            outer_left = left_bal.copy().add_stuff(-self.config.allowance_general)
-            outer_right = right_bal.copy().add_stuff(self.config.allowance_general)
-
-            outer_orig = [outer_left, outer_right]
-            outer = [l.copy().check() for l in outer_orig]
-
-            self._flattened_cell = [
-                inner,
-                ballooned,
-                outer,
-                outer_orig
-            ]
-
-        return self._flattened_cell
-
-    def get_panels(self):
-        cell_panels = []
-        flattened_cell = self._get_flatten_cell()
-
-        for part_no, panel in enumerate(self.cell.panels):
-            plot = PanelPlot(panel, self.cell, flattened_cell, self.config)
-            dwg = plot.flatten(self.attachment_points)
-            cell_panels.append(dwg)
-
-        return Layout.stack_column(cell_panels, self.config.patterns_align_dist_y)
-
-    def get_dribs(self, attachment_points=None):
-        dribs = []
-        for drib in self.cell.diagonals:
-            drib_plot = DribPlot(drib, self.cell, self.config)
-            dribs.append(drib_plot.flatten(attachment_points))
-
-        return dribs
-
-
 class PanelPlot(object):
-    DefaultConf = PanelPlotMaker.DefaultConf
+    DefaultConf = CellPlotMaker.DefaultConf
 
     def __init__(self, panel, cell, flattended_cell, config):
         self.panel = panel
@@ -86,6 +25,12 @@ class PanelPlot(object):
             "folded": self.config.allowance_entry_open,
             "parallel": self.config.allowance_trailing_edge,
             "orthogonal": self.config.allowance_design
+        }
+
+        cut_types = {
+            "folded": self.config.cut_entry,
+            "parallel": self.config.cut_trailing_edge,
+            "orthogonal": self.config.cut_design
         }
 
         front_left = get_x_value(self.x_values, self.panel.cut_front["left"])
@@ -200,7 +145,7 @@ class PanelPlot(object):
 
         vector = p2 - p1
         angle = vector_angle(vector, [0, 1])
-        plotpart.rotate(-angle)
+        plotpart.rotate(angle)
         return plotpart
 
     def _insert_text(self, plotpart):
@@ -247,10 +192,8 @@ class PanelPlot(object):
                 plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
 
 
-
-
 class DribPlot(object):
-    DefaultConf = PanelPlotMaker.DefaultConf
+    DefaultConf = CellPlotMaker.DefaultConf
 
     def __init__(self, drib, cell, config):
         self.drib = drib
@@ -419,3 +362,86 @@ class DribPlot(object):
 
         return plotpart
 
+
+class CellPlotMaker:
+    DefaultConf = PatternConfig
+
+    def __init__(self, cell, attachment_points, config=None):
+        self.cell = cell
+        self.attachment_points_left = [p for p in attachment_points if p.rib is self.cell.rib1]
+        self.attachment_points_right = [p for p in attachment_points if p.rib is self.cell.rib2]
+        self.attachment_points = [p for p in attachment_points if p.rib in self.cell.ribs]
+        self.config = self.DefaultConf(config)
+
+        self._flattened_cell = None
+
+    def _get_flatten_cell(self):
+        if self._flattened_cell is None:
+            # assert isinstance(cell, Cell)
+            left, right = projection.flatten_list(self.cell.prof1,
+                                                  self.cell.prof2)
+            left_bal = left.copy()
+            right_bal = right.copy()
+            ballooning = [self.cell.ballooning[x] for x in self.cell.rib1.profile_2d.x_values]
+            for i in range(len(left)):
+                diff = (right[i] - left[i]) * ballooning[i] / 2
+                left_bal.data[i] -= diff
+                right_bal.data[i] += diff
+
+            inner = [left, right]
+            ballooned = [left_bal, right_bal]
+
+            outer_left = left_bal.copy().add_stuff(-self.config.allowance_general)
+            outer_right = right_bal.copy().add_stuff(self.config.allowance_general)
+
+            outer_orig = [outer_left, outer_right]
+            outer = [l.copy().check() for l in outer_orig]
+
+            self._flattened_cell = [
+                inner,
+                ballooned,
+                outer,
+                outer_orig
+            ]
+
+        return self._flattened_cell
+
+    def get_panels(self):
+        cell_panels = []
+        flattened_cell = self._get_flatten_cell()
+
+        for part_no, panel in enumerate(self.cell.panels):
+            plot = PanelPlot(panel, self.cell, flattened_cell, self.config)
+            dwg = plot.flatten(self.attachment_points)
+            cell_panels.append(dwg)
+
+        return Layout.stack_column(cell_panels, self.config.patterns_align_dist_y)
+
+    def get_dribs(self):
+        dribs = []
+        for drib in self.cell.diagonals:
+            drib_plot = DribPlot(drib, self.cell, self.config)
+            dribs.append(drib_plot.flatten(self.attachment_points))
+
+        return Layout.stack_column(dribs, self.config.patterns_align_dist_y)
+
+
+class NewCellPlotMaker(CellPlotMaker):
+    def get_panels(self):
+        panels_upper = []
+        panels_lower = []
+        flattened_cell = self._get_flatten_cell()
+
+        for part_no, panel in enumerate(self.cell.panels):
+            plot = PanelPlot(panel, self.cell, flattened_cell, self.config)
+            dwg = plot.flatten(self.attachment_points)
+            if panel.is_lower():
+                dwg.rotate(180, radians=False)
+                panels_lower.append(dwg)
+            else:
+                panels_upper.insert(0, dwg)
+
+        upper = Layout.stack_column(panels_upper, self.config.patterns_align_dist_y)
+        lower = Layout.stack_column(panels_lower, self.config.patterns_align_dist_y)
+
+        return upper, lower

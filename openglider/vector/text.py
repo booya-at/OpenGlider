@@ -85,7 +85,7 @@ class Text(object):
             "align": self.align
         }
 
-    def get_vectors(self):
+    def get_vectors(self, replace_unknown=True):
         # todo: add valign (space)
         vectors = []
         diff = (self.p2 - self.p1)/len(self.text)
@@ -108,13 +108,16 @@ class Text(object):
         p1 += numpy.array([-r_y, r_x]) * (self.valign - 0.5)
 
         for letter in self.text.upper():
-            try:
-                if text_vectors[letter]:
-                    vectors.append(PolyLine2D(
-                        [p1 + rot.dot(p) for p in text_vectors[letter]],
-                        name="text"
-                    ))
-                p1 += diff
-            except KeyError:
-                raise KeyError("Letter {} from word '{}' not available".format(letter, self.text.upper()))
+            if letter not in text_vectors:
+                if replace_unknown:
+                    letter = "_"
+                else:
+                    raise KeyError("Letter {} from word '{}' not available".format(letter, self.text.upper()))
+
+            if text_vectors[letter]:
+                vectors.append(PolyLine2D(
+                    [p1 + rot.dot(p) for p in text_vectors[letter]],
+                    name="text"
+                ))
+            p1 += diff
         return vectors

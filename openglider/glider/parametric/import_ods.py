@@ -149,7 +149,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
                                    "miniribs": miniribs},
                          profiles=profiles,
                          balloonings=balloonings,
-                         lineset=tolist_lines(sheets[6], attachment_points_lower, attachment_points),
+                         lineset=read_linesheet(sheets[6], attachment_points_lower, attachment_points),
                          speed=data["SPEED"],
                          glide=data["GLIDE"],
                          **geometry)
@@ -303,7 +303,7 @@ def transpose_columns(sheet, columnswidth=2):
     return result
 
 
-def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
+def read_linesheet(sheet, attachment_points_lower, attachment_points_upper):
     # upper -> dct {name: node}
     num_rows = sheet.nrows()
     num_cols = sheet.ncols()

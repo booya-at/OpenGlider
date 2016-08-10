@@ -1,9 +1,9 @@
 import json
 import re
 import time
-import openglider
 
-import openglider.jsonify.migration as migration
+import openglider.jsonify.migration
+
 
 __ALL__ = ['dumps', 'dump', 'loads', 'load']
 
@@ -90,7 +90,7 @@ def loads(obj):
     try:
         return json.loads(obj, object_hook=object_hook)
     except:
-        data = migration.migrate(obj)
+        data = openglider.jsonify.migration.migrate(obj)
         return loads(data)
 
 

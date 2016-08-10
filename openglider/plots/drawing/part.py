@@ -184,10 +184,10 @@ class PlotPart(object):
         return [[self.min_x, self.min_y], [self.max_x, self.min_y],
                 [self.max_x, self.max_y], [self.min_x, self.max_y]]
 
-    def rotate(self, angle):
+    def rotate(self, angle, radians=True):
         for layer in self.layers.values():
             for polyline in layer:
-                polyline.rotate(angle)
+                polyline.rotate(angle, radians=radians)
 
     def move(self, vector):
         for layer_name, layer in self.layers.items():

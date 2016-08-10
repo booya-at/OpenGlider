@@ -223,6 +223,11 @@ class Panel(object):
                 "material_code": self.material_code
                 }
 
+    def is_lower(self):
+        if self.cut_front[0] > 0 and self.cut_front[1] > 0:
+            return True
+        return False
+
     def get_3d(self, cell, numribs=0):
         """
         Get 3d-Panel

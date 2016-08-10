@@ -34,12 +34,12 @@ class Patterns(object):
 
     def __init__(self, glider2d, config=None):
         self.glider_2d = glider2d
-        self.config_panel = self.DefaultConf(config)
+        self.config = self.DefaultConf(config)
 
     def __json__(self):
         return {
             "glider2d": self.glider_2d,
-            "config": self.config_panel
+            "config": self.config
         }
 
     def _get_patterns(self):
