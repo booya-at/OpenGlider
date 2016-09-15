@@ -15,6 +15,8 @@ class Cell(CachedObject):
     diagonal_naming_scheme = "{cell.name}d{diagonal_no}"
     strap_naming_scheme = "{cell.name}s{strap_no}"
     panel_naming_scheme = "{cell.name}p{panel_no}"
+    panel_naming_scheme_upper = "{cell.name}pu{panel_no}"
+    panel_naming_scheme_lower = "{cell.name}pl{panel_no}"
     minirib_naming_scheme = "{cell.name}mr{minirib_no}"
 
     def __init__(self, rib1, rib2, ballooning, miniribs=None, panels=None,
@@ -37,18 +39,35 @@ class Cell(CachedObject):
                 "panels": self.panels,
                 "straps": self.straps}
 
-    def rename_parts(self):
+    def rename_panels(self, seperate_upper_lower=False):
+        if seperate_upper_lower:
+            upper = [panel for panel in self.panels if panel.mean_x < 0]
+            lower = [panel for panel in self.panels if panel.mean_x >= 0]
+            sort_func = lambda panel: abs(panel.mean_x)
+            upper.sort(sort_func)
+            lower.sort(sort_func)
+
+            for panel_no, panel in enumerate(upper):
+                panel.name = self.panel_naming_scheme_upper.format(cell=self, panel_no=panel_no)
+            for panel_no, panel in enumerate(lower):
+                panel.name = self.panel_naming_scheme_lower.format(cell=self, panel_no=panel_no)
+
+        else:
+            self.panels.sort(key=lambda panel: panel.mean_x)
+            for panel_no, panel in enumerate(self.panels):
+                panel.name = self.panel_naming_scheme.format(cell=self, panel=panel, panel_no=panel_no)
+
+    def rename_parts(self, seperate_upper_lower=False):
         for diagonal_no, diagonal in enumerate(self.diagonals):
             diagonal.name = self.diagonal_naming_scheme.format(cell=self, diagonal=diagonal, diagonal_no=diagonal_no)
 
         for strap_no, strap in enumerate(self.straps):
             strap.name = self.strap_naming_scheme.format(cell=self, strap=strap, strap_no=strap_no)
 
-        for panel_no, panel in enumerate(self.panels):
-            panel.name = self.panel_naming_scheme.format(cell=self, panel=panel, panel_no=panel_no)
-
         for minirib_no, minirib in enumerate(self.miniribs):
             minirib.name = self.minirib_naming_scheme.format(cell=self, minirib=minirib, minirib_no=minirib_no)
+
+        self.rename_panels(seperate_upper_lower=seperate_upper_lower)
 
     @cached_property('rib1.profile_3d', 'rib2.profile_3d', 'ballooning_phi')
     def basic_cell(self):

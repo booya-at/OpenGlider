@@ -48,7 +48,10 @@ class PatternConfig(Config):
 
     insert_attachment_point_text = True
 
+    layout_seperate_panels = False
+
 
 class OtherPatternConfig(PatternConfig):
     cut_entry = cuts["orthogonal"]
+    layout_seperate_panels = False
     #cut_trailing_edge = None

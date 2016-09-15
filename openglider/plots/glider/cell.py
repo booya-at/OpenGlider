@@ -8,7 +8,7 @@ from openglider.plots import Layout
 
 
 class PanelPlot(object):
-    DefaultConf = CellPlotMaker.DefaultConf
+    DefaultConf = PatternConfig
 
     def __init__(self, panel, cell, flattended_cell, config):
         self.panel = panel
@@ -193,7 +193,7 @@ class PanelPlot(object):
 
 
 class DribPlot(object):
-    DefaultConf = CellPlotMaker.DefaultConf
+    DefaultConf = PatternConfig
 
     def __init__(self, drib, cell, config):
         self.drib = drib
@@ -406,16 +406,29 @@ class CellPlotMaker:
 
         return self._flattened_cell
 
-    def get_panels(self):
+    def get_panels(self, panels=None):
         cell_panels = []
         flattened_cell = self._get_flatten_cell()
 
-        for part_no, panel in enumerate(self.cell.panels):
+        if panels is None:
+            panels = self.cell.panels
+
+        for part_no, panel in enumerate(panels):
             plot = PanelPlot(panel, self.cell, flattened_cell, self.config)
             dwg = plot.flatten(self.attachment_points)
             cell_panels.append(dwg)
 
         return Layout.stack_column(cell_panels, self.config.patterns_align_dist_y)
+
+    def get_panels_lower(self):
+        panels = self.cell.panels.filter(lambda panel: panel.is_lower())
+        layout = self.get_panels(panels)
+        return layout
+
+    def get_panels_upper(self):
+        panels = self.cell.panels.filter(lambda panel: panel.is_lower())
+        layout = self.get_panels(panels)
+        return layout
 
     def get_dribs(self):
         dribs = []

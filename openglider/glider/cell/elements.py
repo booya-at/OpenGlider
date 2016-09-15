@@ -223,6 +223,18 @@ class Panel(object):
                 "material_code": self.material_code
                 }
 
+    def mean_x(self):
+        """
+
+        :return:
+        """
+        total = self.cut_front[0]
+        total += self.cut_front[1]
+        total += self.cut_back[0]
+        total += self.cut_back[1]
+
+        return total/4
+
     def is_lower(self):
         if self.cut_front[0] > 0 and self.cut_front[1] > 0:
             return True
