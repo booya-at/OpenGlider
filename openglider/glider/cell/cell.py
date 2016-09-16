@@ -230,7 +230,7 @@ class Cell(CachedObject):
             mean_rib += self.midrib(y).flatten().normalize()
         return mean_rib * (1. / num_midribs)
 
-    def get_mesh(self,  numribs=0, with_numpy=False):
+    def get_mesh(self,  numribs=0, with_numpy=False, half_cell=False):
         """
         Get Cell-mesh
         :param numribs: number of miniribs to calculate
@@ -240,8 +240,10 @@ class Cell(CachedObject):
 
         ribs = []
         trailing_edge = []
-
-        for rib_no in range(numribs + 1):
+        rib_indices = range(numribs + 1)
+        if half_cell:
+            rib_indices = rib_indices[(numribs) // 2:]
+        for rib_no in rib_indices:
             y = rib_no / max(numribs, 1)
             rib = self.midrib(y, with_numpy=with_numpy).data
             ribs.append(Vertex.from_vertices_list(rib[:-1]))
@@ -261,5 +263,6 @@ class Cell(CachedObject):
                 quads.append(pol)
         for rib in ribs:
             trailing_edge.append(rib[0])
-        return Mesh({"hull": quads}, 
+        mesh = Mesh({"hull": quads}, 
                     {"ribs": ribs[0] + ribs[-1], "trailing_edge": trailing_edge})
+        return mesh

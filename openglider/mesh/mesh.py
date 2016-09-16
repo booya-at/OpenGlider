@@ -7,7 +7,7 @@ from openglider.mesh.meshpy_triangle import custom_triangulation
 
 
 class Vertex(object):
-    dmin = 10**-3
+    dmin = 10**-10
 
     def __init__(self, x, y, z):
         self.x = x
@@ -121,6 +121,8 @@ class Mesh(object):
         profile = rib.profile_2d
         triangle_in = {}
         vertices = list(profile.data)[:-1]
+        if rib.is_closed():
+            return cls.from_indexed([], {}, {})
         segments = [[i, i+1] for i, _ in enumerate(vertices)]
         segments[-1][-1] = 0
         triangle_in["vertices"] = vertices
@@ -434,6 +436,14 @@ class Mesh(object):
             for i, node in enumerate(polygon):
                 if node in replace_dict:
                     polygon[i] = replace_dict[node]
+
+        # delete duplicated nodes in every element
+        polygons = []
+        for group_name, poly_group in self.polygons.items():
+            for i, polygon in enumerate(poly_group):
+                poly_set = set(polygon)
+                new_polygon = [node for node in polygon if node in poly_set]
+                self.polygons[group_name][i] = new_polygon
 
         vertices = self.vertices
         for boundary_name in boundaries:

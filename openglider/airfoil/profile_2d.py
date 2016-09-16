@@ -188,6 +188,43 @@ class Profile2D(Polygon2D):
                           mean_camber - thickness_this * costheta])
         return cls(upper + lower[::-1][1:], name="NACA_" + str(naca))
 
+    @classmethod
+    def compute_joukowsky(cls, m=-0.1+0.1j, numpoints=100):
+        from openglider.airfoil.conformal_mapping import JoukowskyAirfoil
+        airfoil = JoukowskyAirfoil(m)
+        profile = [[c.real, c.imag] for c in airfoil.coordinates(numpoints)]
+
+        # find the smallest xvalue to reset the nose
+        x = numpy.array([i[0] for i in profile])
+        profile = cls(profile, "joukowsky_" + str(m))
+        profile.normalize()
+        profile.numpoints = numpoints
+        return profile
+
+    @classmethod
+    def compute_vandevooren(cls, tau=0.05, epsilon=0.05, numpoints=100):
+        from openglider.airfoil.conformal_mapping import VanDeVoorenAirfoil
+        airfoil = VanDeVoorenAirfoil(tau=tau, epsilon=epsilon)
+        profile = [[c.real, c.imag] for c in airfoil.coordinates(numpoints)]
+
+        # find the smallest xvalue to reset the nose
+        profile = cls(profile, "VanDeVooren_tau=" + str(tau) + "_epsilon=" + str(epsilon))
+        profile.normalize()
+        profile.numpoints = numpoints
+        return profile
+
+    @classmethod
+    def compute_trefftz(cls, m=-0.1+0.1j, tau=0.05, numpoints=100):
+        from openglider.airfoil.conformal_mapping import TrefftzKuttaAirfoil
+        airfoil = TrefftzKuttaAirfoil(midpoint=m, tau=tau)
+        profile = [[c.real, c.imag] for c in airfoil.coordinates(numpoints)]
+
+        # find the smallest xvalue to reset the nose
+        x = numpy.array([i[0] for i in profile])
+        profile = cls(profile, "TrefftzKuttaAirfoil_m=" + str(m) + "_tau=" + str(tau))
+        profile.normalize()
+        profile.numpoints = numpoints
+        return profile
 
     #@cached_property('self')
     @property
@@ -252,3 +289,11 @@ class Profile2D(Polygon2D):
             if abs(y) > 0.0001:
                 return False
         return True
+
+    @property
+    def upper_indices(self):
+        return range(0, self.noseindex)
+
+    @property
+    def lower_indices(self):
+        return range(self.noseindex + 1, len(self))

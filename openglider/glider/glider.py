@@ -376,7 +376,7 @@ class Glider(object):
         Return a list of points for a x_value
         """
         if x == 0:
-            return [rib.pos for rib in self.ribs]  # This is much faster
+            return copy.deepcopy([rib.pos for rib in self.ribs])  # This is much faster
         else:
             return [rib.align([x, 0, 0]) for rib in self.ribs]
 

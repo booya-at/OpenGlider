@@ -10,7 +10,7 @@ from openglider.utils.distribution import Distribution
 
 class TestMesh(TestCase):
     def setUp(self, complete=True):
-        self.glider = openglider.load("./common/demokite.json").get_glider_3d()
+        self.glider = self.import_glider()
 
     def test_mesh(self):
         p1 = Vertex(*[0, 0, 0])

@@ -48,7 +48,9 @@ class PlotMaker(object):
     def get_dribs(self):
         self.dribs.clear()
         for cell in self.glider_3d.cells:
-            self.dribs[cell] = self._get_cellplotmaker(cell).get_dribs()
+            # missing attachmentpoints []
+            dribs = PanelPlotMaker(cell, []).get_dribs(self.glider_3d.attachment_points)
+            self.dribs[cell] = dribs
 
         return self.dribs
 
@@ -93,4 +95,17 @@ class PlotMaker(object):
         self.get_ribs()
         self.get_dribs()
         return self
+
+    def get_all_parts(self):
+        parts = []
+        for cell in self.panels.values():
+            parts += [p.copy() for p in cell]
+        for rib in self.ribs:
+            parts.append(rib.copy())
+        for dribs in self.dribs.values():
+            parts += [p.copy() for p in dribs]
+        return DrawingArea(parts)
+
+    def get_all_grouped(self):
+        return self.get_all_parts().group_materials()
 
