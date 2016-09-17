@@ -421,12 +421,12 @@ class CellPlotMaker:
         return Layout.stack_column(cell_panels, self.config.patterns_align_dist_y)
 
     def get_panels_lower(self):
-        panels = self.cell.panels.filter(lambda panel: panel.is_lower())
+        panels = [p for p in self.cell.panels if p.is_lower()]
         layout = self.get_panels(panels)
         return layout
 
     def get_panels_upper(self):
-        panels = self.cell.panels.filter(lambda panel: panel.is_lower())
+        panels = [p for p in self.cell.panels if not p.is_lower()]
         layout = self.get_panels(panels)
         return layout
 
@@ -437,24 +437,3 @@ class CellPlotMaker:
             dribs.append(drib_plot.flatten(self.attachment_points))
 
         return Layout.stack_column(dribs, self.config.patterns_align_dist_y)
-
-
-class NewCellPlotMaker(CellPlotMaker):
-    def get_panels(self):
-        panels_upper = []
-        panels_lower = []
-        flattened_cell = self._get_flatten_cell()
-
-        for part_no, panel in enumerate(self.cell.panels):
-            plot = PanelPlot(panel, self.cell, flattened_cell, self.config)
-            dwg = plot.flatten(self.attachment_points)
-            if panel.is_lower():
-                dwg.rotate(180, radians=False)
-                panels_lower.append(dwg)
-            else:
-                panels_upper.insert(0, dwg)
-
-        upper = Layout.stack_column(panels_upper, self.config.patterns_align_dist_y)
-        lower = Layout.stack_column(panels_lower, self.config.patterns_align_dist_y)
-
-        return upper, lower

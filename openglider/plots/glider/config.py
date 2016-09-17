@@ -48,7 +48,7 @@ class PatternConfig(Config):
 
     insert_attachment_point_text = True
 
-    layout_seperate_panels = False
+    layout_seperate_panels = True
 
 
 class OtherPatternConfig(PatternConfig):

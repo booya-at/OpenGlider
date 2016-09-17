@@ -20,6 +20,19 @@ class Layout(object):
     def __iter__(self):
         return iter(self.parts)
 
+    def __iadd__(self, other):
+        if isinstance(other, Layout):
+            self.parts += other.parts
+
+        return self
+
+    def rotate(self, angle, radians=True):
+        #bbox = self.bbox
+        #x0 = (bbox[0][0] + bbox[1][0])/2
+        #y0 = (bbox[0][1] + bbox[1][1])/2
+        for part in self.parts:
+            part.rotate(angle, radians=radians)
+
     def __json__(self):
         return {"parts": self.parts}
 
@@ -34,7 +47,7 @@ class Layout(object):
         column_dwg = cls()
         y = 0
         widths = [part.width for part in parts]
-        max_width = max(widths)
+        max_width = max(widths + [0])
         for width, part in zip(widths, parts):
             if isinstance(part, Layout):
                 drawing = part
@@ -63,15 +76,70 @@ class Layout(object):
             else:
                 drawing = cls([part])
 
-            y = (max_height - height)/2
-            drawing.move_to([x,y])
+            if drawing.width > 0 or drawing.height > 0:
+                y = (max_height - height)/2
+                drawing.move_to([x,y])
 
-            x += drawing.width
-            x += distance
+                x += drawing.width
+                x += distance
 
-            row_dwg.join(drawing)
+                row_dwg.join(drawing)
 
         return row_dwg
+
+    @classmethod
+    def stack_grid(cls, parts, distance_x, distance_y, draw_grid=True):
+        all_parts = cls()
+        rows = len(parts)
+        columns = len(parts[0])
+
+        heights = [0 for _ in range(rows)]
+        widths = [0 for _ in range(columns)]
+
+        for row_no, row in enumerate(parts):
+            for column_no, part in enumerate(row):
+                widths[column_no] = max(widths[column_no], part.width)
+                heights[row_no] = max(heights[row_no], part.height)
+
+        y = 0
+        for row_no, row in enumerate(parts):
+            x = 0
+            for column_no, part in enumerate(row):
+                if isinstance(part, Layout):
+                    drawing = part
+                else:
+                    drawing = cls([part])
+                drawing.move_to([x, y])
+                all_parts += drawing
+                x += widths[column_no]
+                x += distance_x
+
+            y += heights[row_no]
+            y += distance_y
+
+        if draw_grid:
+            grid = PlotPart()
+            height = all_parts.height
+            width = all_parts.width
+
+            x = y = 0
+            for col_width in widths[:-1]:
+                x += col_width
+                x += distance_x/2
+                line = PolyLine2D([[x, 0], [x, height]])
+                grid.layers["drawing_boundary"].append(line)
+                x += distance_x/2
+
+            for row_height in heights[:-1]:
+                y += row_height
+                y += distance_y/2
+                line = PolyLine2D([[0, y], [width, y]])
+                grid.layers["drawing_boundary"].append(line)
+                y += distance_y/2
+
+                all_parts.parts.append(grid)
+
+        return all_parts
 
     @classmethod
     def stack_horizontal(cls, parts, distance_x=0, distance_y=0):
@@ -97,7 +165,7 @@ class Layout(object):
 
             for column_no, part in enumerate(row):
                 # horizontal
-                part.minimize_area()
+                #part.minimize_area()
                 #part.move([-part.min_x, -part.min_y])
 
                 widths[column_no] = max(widths[column_no], part.width)
@@ -222,17 +290,25 @@ class Layout(object):
 
     @property
     def width(self):
-        return abs(self.max_x - self.min_x)
+        try:
+            return abs(self.max_x - self.min_x)
+        except ValueError:
+            return 0
 
     @property
     def height(self):
-        return abs(self.max_y - self.min_y)
+        try:
+            return abs(self.max_y - self.min_y)
+        except ValueError:
+            return 0
 
     def move(self, vector):
         for part in self.parts:
             part.move(vector)
 
     def move_to(self, vector):
+        if not len(self.parts) > 0:
+            return
         diff = numpy.array(self.bbox[0])-vector
         self.move(-diff)
 

@@ -39,6 +39,7 @@ class TestGlider(TestCase):
         path = self.tempfile('kite.ods')
         self.glider.export_geometry(path)
 
+    @unittest.skip('obsolete')
     def test_export_obj(self):
         path = self.tempfile('kite.obj')
         self.glider.export_3d(path, midribs=5)
@@ -48,17 +49,19 @@ class TestGlider(TestCase):
         path = self.tempfile('kite.dxf')
         self.glider.export_3d(path, midribs=5)
 
+    @unittest.skip('obsolete')
     def test_export_apame(self):
         path = self.tempfile('kite.inp')
         self.glider.export_3d(path, midribs=1)
 
+    @unittest.skip('obsolete')
     def test_export_json(self):
         path = self.tempfile('kite_3d_panels.json')
         data = self.glider.export_3d(path=path, midribs=2, numpoints=10, wake_panels=3, wake_length=0.9)
         with open(path, "w") as outfile:
             json.dump(data, outfile, indent=2)
 
-    @unittest.skip("")
+    #@unittest.skip("")
     def test_export_plots(self):
         path = self.tempfile('kite_plots.svg')
         dxfile = self.tempfile("kite_plots.dxf")
@@ -67,7 +70,11 @@ class TestGlider(TestCase):
         patterns = PlotMaker(self.glider)
         patterns.unwrap()
 
-        all = patterns.get_all_stacked()
+        print(type(patterns), patterns)
+        all = patterns.get_all_grouped()
+
+        print(all)
+
 
         all.export_svg(path)
         all.export_dxf(dxfile)

@@ -15,7 +15,7 @@ class PlotMaker(object):
         self.glider_3d = glider_3d
         self.config = self.DefaultConfig(config)
 
-        self.panels = collections.OrderedDict()
+        self.panels = Layout()
         self.dribs = collections.OrderedDict()
         self.ribs = []
         self._cellplotmakers = dict()
@@ -30,8 +30,30 @@ class PlotMaker(object):
 
     def get_panels(self):
         self.panels.clear()
-        for cell in self.glider_3d.cells:
-            self.panels[cell] = self._get_cellplotmaker(cell).get_panels()
+        panels_upper = []
+        panels_lower = []
+
+        if self.config.layout_seperate_panels:
+            height = 0
+
+            for cell in self.glider_3d.cells:
+                lower = self._get_cellplotmaker(cell).get_panels_lower()
+                lower.rotate(180, radians=False)
+                upper = self._get_cellplotmaker(cell).get_panels_upper()
+                height = max(height, lower.height)
+                panels_lower.append(lower)
+                panels_upper.append(upper)
+
+            height += self.config.patterns_align_dist_y
+
+            self.panels = Layout.stack_grid([panels_lower, panels_upper], self.config.patterns_align_dist_x, self.config.patterns_align_dist_y)
+
+        else:
+            panels = []
+            for cell in self.glider_3d.cells:
+                panels.append(self._get_cellplotmaker(cell).get_panels())
+
+            self.panels = Layout.stack_row(panels, self.config.patterns_align_dist_x)
 
         return self.panels
 
@@ -49,7 +71,7 @@ class PlotMaker(object):
         self.dribs.clear()
         for cell in self.glider_3d.cells:
             # missing attachmentpoints []
-            dribs = PanelPlotMaker(cell, []).get_dribs(self.glider_3d.attachment_points)
+            dribs = self._get_cellplotmaker(cell).get_dribs()
             self.dribs[cell] = dribs
 
         return self.dribs
@@ -59,7 +81,7 @@ class PlotMaker(object):
         for rib in self.ribs:
             rib.rotate(90, radians=False)
 
-        panels = Layout.stack_row(self.panels.values(), self.config.patterns_align_dist_x)
+        panels = self.panels
         ribs = Layout.stack_row(self.ribs, self.config.patterns_align_dist_x)
         dribs = Layout.stack_row(self.dribs.values(), self.config.patterns_align_dist_x)
 
@@ -104,8 +126,8 @@ class PlotMaker(object):
             parts.append(rib.copy())
         for dribs in self.dribs.values():
             parts += [p.copy() for p in dribs]
-        return DrawingArea(parts)
+        return Layout(parts)
 
-    def get_all_grouped(self):
-        return self.get_all_parts().group_materials()
+    #def get_all_grouped(self):
+    #    return self.get_all_parts().group_materials()
 

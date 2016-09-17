@@ -228,15 +228,15 @@ class Panel(object):
 
         :return:
         """
-        total = self.cut_front[0]
-        total += self.cut_front[1]
-        total += self.cut_back[0]
-        total += self.cut_back[1]
+        total = self.cut_front["left"]
+        total += self.cut_front["right"]
+        total += self.cut_back["left"]
+        total += self.cut_back["right"]
 
         return total/4
 
     def is_lower(self):
-        if self.cut_front[0] > 0 and self.cut_front[1] > 0:
+        if self.cut_front["left"] > 0 and self.cut_front["right"] > 0:
             return True
         return False
 

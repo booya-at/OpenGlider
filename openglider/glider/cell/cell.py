@@ -39,7 +39,7 @@ class Cell(CachedObject):
                 "panels": self.panels,
                 "straps": self.straps}
 
-    def rename_panels(self, seperate_upper_lower=False):
+    def rename_panels(self, seperate_upper_lower=True):
         if seperate_upper_lower:
             upper = [panel for panel in self.panels if panel.mean_x < 0]
             lower = [panel for panel in self.panels if panel.mean_x >= 0]
@@ -53,7 +53,7 @@ class Cell(CachedObject):
                 panel.name = self.panel_naming_scheme_lower.format(cell=self, panel_no=panel_no)
 
         else:
-            self.panels.sort(key=lambda panel: panel.mean_x)
+            self.panels.sort(key=lambda panel: panel.mean_x())
             for panel_no, panel in enumerate(self.panels):
                 panel.name = self.panel_naming_scheme.format(cell=self, panel=panel, panel_no=panel_no)
 
