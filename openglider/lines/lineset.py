@@ -50,8 +50,15 @@ class LineSet():
     def get_mesh(self, numpoints=10):
         return sum([line.get_mesh(numpoints) for line in self.lines], Mesh())
 
-    def get_upper_line_mesh(self, numpoints=1):
-        return sum([line.get_mesh(numpoints) for line in self.uppermost_lines], Mesh())
+    def get_upper_line_mesh(self, numpoints=1, breaks=False):
+        mesh = Mesh()
+        for line in self.uppermost_lines:
+            if not breaks:
+                # TODO: is there a better solution???
+                if "BR" in line.upper_node.name:
+                    continue
+            mesh += line.get_mesh(numpoints)
+        return mesh
 
     def recalc(self):
         """

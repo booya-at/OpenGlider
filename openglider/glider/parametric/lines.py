@@ -49,8 +49,12 @@ class UpperNode2D(object):
         return parametric_shape[self.rib_no, self.rib_pos]
 
     def get_node(self, glider):
-        node = AttachmentPoint(glider.ribs[self.rib_no + glider.has_center_cell], self.name,
-                               self.rib_pos, [0, 0, self.force])
+        if isinstance(self.force, (list, tuple, numpy.ndarray)):
+            force = list(self.force)
+        else:
+            force = [0, 0, self.force]
+        node = AttachmentPoint(glider.ribs[self.rib_no + glider.has_center_cell],
+                               self.name, self.rib_pos, force)
         node.get_position()
         return node
 
