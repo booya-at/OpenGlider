@@ -1,3 +1,5 @@
+import numpy as np
+
 from openglider.utils import Config
 from openglider.physics.base import GliderCase
 from openglider.physics.flow import GliderPanelMethod
@@ -30,6 +32,7 @@ class GliderFemCase(GliderCase):
         caseType = "line_forces"
         line_numpoints = 2
         vtk_fem_output = "/tmp/Fem/output"
+        insert_points = 5
 
     def __init__(self, glider, config=None, flow_case=None):
         super(GliderFemCase, self).__init__(glider, config)
@@ -41,6 +44,7 @@ class GliderFemCase(GliderCase):
         self.flow_case = flow_case or GliderPanelMethod(glider, config)
         self.mesh = None
         self.case = None
+        self.result = False
 
     def run(self):
         if not self.flow_case.result:
@@ -87,11 +91,13 @@ class GliderFemCase(GliderCase):
             for index in boundary["lines"]:
                 nodes[index].fixed = vector3(0, 0, 0)
         elements = []
+        lines = []
 
         for i, polygon in enumerate(polygons["lines"]):
             poly_nodes = [nodes[index] for index in polygon]
             element = paraFEM.Truss(poly_nodes, truss_material)
             elements.append(element)
+            lines.append(element)
 
         for i, polygon in enumerate(polygons["hull"]):
             poly_nodes = [nodes[index] for index in polygon]
@@ -105,7 +111,7 @@ class GliderFemCase(GliderCase):
                 element.setConstPressure(pressure[i])
                 elements.append(element)
 
-        for i, polygon in enumerate(polygons["ribs"]):
+        for i, polygon in enumerate(polygons["ribs"]): # + polygons["diagonals"]):
             poly_nodes = [nodes[index] for index in polygon]
             if len(poly_nodes) == 3:
                 element = paraFEM.Membrane3(poly_nodes, rib_material)
@@ -113,6 +119,7 @@ class GliderFemCase(GliderCase):
             elif len(poly_nodes) == 4:
                 element = paraFEM.Membrane4(poly_nodes, rib_material)
                 elements.append(element)
+
         self.case = paraFEM.Case(elements)
         self.writer = paraFEM.vtkWriter(self.config.vtk_fem_output)
 
@@ -125,8 +132,9 @@ class GliderFemCase(GliderCase):
                 print(int(i / write_interval))
                 self.writer.writeCase(self.case, 0.)
         if self.config.caseType == "line_forces":
-            pass # store the line forces
-
+            line_map = self.get_line_map(lines)
+            for node, line in line_map.items():
+                node.force = -np.array(line.getStress())
 
     def get_mesh(self):
         if self.mesh:
@@ -139,7 +147,9 @@ class GliderFemCase(GliderCase):
             start = 1
         for rib in self.glider.ribs[start:]:
             self.mesh += Mesh.from_rib(rib)
-
+        for cell in self.glider.cells:
+            for diagonal in cell.diagonals:
+                self.mesh += Mesh.from_diagonal(diagonal, cell, self.config.insert_points)
         if self.config.caseType == "line_forces":
             print("add uppermost lines to mesh")
             self.mesh += self.glider.lineset.get_upper_line_mesh(self.config.line_numpoints)
@@ -150,3 +160,13 @@ class GliderFemCase(GliderCase):
 
         self.mesh.delete_duplicates()
         return self.mesh
+
+    def get_line_map(self, fem_case_lines):
+        line_map = {}
+        for line in fem_case_lines:
+            for node in line.nodes:
+                pos = np.array(node.position)
+                for attachment_point in self.glider.lineset.attachment_points:
+                    if (attachment_point.vec - pos).dot(attachment_point.vec - pos) < 10e-8:
+                        line_map[attachment_point] = line
+        return line_map

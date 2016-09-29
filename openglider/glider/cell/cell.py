@@ -264,5 +264,5 @@ class Cell(CachedObject):
         for rib in ribs:
             trailing_edge.append(rib[0])
         mesh = Mesh({"hull": quads}, 
-                    {"ribs": ribs[0] + ribs[-1], "trailing_edge": trailing_edge})
+                    {self.rib1.name: ribs[0], self.rib2.name: ribs[-1], "trailing_edge": trailing_edge})
         return mesh
