@@ -1,5 +1,6 @@
 from __future__ import division
 
+import math
 import numpy as np
 
 from openglider.airfoil import Profile2D
@@ -184,18 +185,18 @@ class ParametricGlider(object):
                 if cell_no in strap["cells"]:
                     dct = strap.copy()
                     dct.pop("cells")
-                    dct["name"] = "cell{}strap".format(cell_no)
-                    cell.straps.append(TensionStrapSimple(**dct))
+                    dct["name"] = "c{}s".format(cell_no)
+                    cell.straps.append(DiagonalRib(**dct))
 
-            cell.straps.sort(key=lambda s: (s.left + s.right)/2)
+            cell.straps.sort(key=lambda s: (s.get_average_x()))
 
             # Name elements
 
             for d_no, diagonal in enumerate(cell.diagonals):
-                diagonal.name = "cell{}drib{}".format(cell_no, d_no)
+                diagonal.name = "c{}d{}".format(cell_no, d_no)
 
             for s_no, strap in enumerate(cell.straps):
-                strap.name = "cell{}strap{}".format(cell_no, s_no)
+                strap.name = "c{}s{}".format(cell_no, s_no)
 
     @classmethod
     def fit_glider_3d(cls, glider, numpoints=3):
@@ -301,6 +302,12 @@ class ParametricGlider(object):
     def v_inf(self):
         angle = np.arctan(1/self.glide)
         return np.array([np.cos(angle), 0, np.sin(angle)]) * self.speed
+
+    def set_area(self, area):
+        factor = math.sqrt(area/self.shape.area)
+        self.shape.scale(factor)
+        self.lineset.scale(factor)
+        self.rescale_curves()
 
 
 ##############################################################

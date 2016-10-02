@@ -106,11 +106,11 @@ class GibusArcs(object):
 
         # Cut first and last
         gib_arc = gib_arc[1] + gib_arc[0]  # [secondlist] + [firstlist]
-        start2 = profile.new_cut(gib_arc[0], gib_arc[1], start)
+        start2 = profile.cut(gib_arc[0], gib_arc[1], start)
         #print(gib_arc)
-        stop = profile.new_cut(gib_arc[-2], gib_arc[-1], start)
+        stop = profile.cut(gib_arc[-2], gib_arc[-1], start)
         # Append Profile_List
-        gib_arc += profile.get(start2.next(), stop.next()).tolist()
+        gib_arc += profile.get(start2.next()[0], stop.next()[0]).tolist()
 
         return numpy.array(gib_arc) * rib.chord
 

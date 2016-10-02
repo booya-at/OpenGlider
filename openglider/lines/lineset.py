@@ -39,6 +39,14 @@ class LineSet():
             nodes.add(line.lower_node)
         return nodes
 
+    def scale(self, factor):
+        for p in self.lower_attachment_points:
+            p.vec = numpy.array(p.vec) * factor
+        for line in self.lines:
+            if line.target_length:
+                line.target_length *= factor
+        return self
+
     @property
     def attachment_points(self):
         return [n for n in self.nodes if n.type == 2]

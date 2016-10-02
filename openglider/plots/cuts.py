@@ -42,7 +42,7 @@ class DesignCut(object):
 
         newlist = []
         # todo: sort by distance
-        cuts_left = list(self.outer_left.new_cut_2(p1, p2, self.inner_lists[0][1], extrapolate=True))
+        cuts_left = list(self.outer_left.cut(p1, p2, self.inner_lists[0][1], extrapolate=True))
         cuts_left.sort(key=lambda cut: abs(cut[1]))
         leftcut_index = cuts_left[0][0]
         leftcut = self.outer_left[leftcut_index]
@@ -53,7 +53,7 @@ class DesignCut(object):
         for thislist in self.inner_lists:
             newlist.append(thislist[0][thislist[1]] + normvector*self.amount)
 
-        cuts_right = list(self.outer_right.new_cut_2(p1, p2, self.inner_lists[-1][1], extrapolate=True))
+        cuts_right = list(self.outer_right.cut(p1, p2, self.inner_lists[-1][1], extrapolate=True))
         cuts_right.sort(key=lambda cut: abs(cut[1]))
         rightcut_index = cuts_right[0][0]
         rightcut = self.outer_right[rightcut_index]
@@ -79,10 +79,13 @@ class FoldedCut(DesignCut):
         p2 = self.inner_lists[-1][0][self.inner_lists[-1][1]]
         normvector = normalize(rotation_2d(math.pi/2).dot(p1-p2))
 
-        left_start_index = next(self.outer_left.new_cut(p1, p2, self.inner_lists[0][1], extrapolate=True))
-        right_start_index = next(self.outer_right.new_cut(p1, p2, self.inner_lists[-1][1], extrapolate=True))
-        left_end_index = next(self.outer_left.new_cut(p1-normvector*self.amount, p2-normvector*self.amount, self.inner_lists[0][1], extrapolate=True))
-        right_end_index = next(self.outer_right.new_cut(p1-normvector*self.amount, p2-normvector*self.amount, self.inner_lists[-1][1], extrapolate=True))
+        left_start_index = next(self.outer_left.cut(p1, p2, self.inner_lists[0][1], extrapolate=True))[0]
+        right_start_index = next(self.outer_right.cut(p1, p2, self.inner_lists[-1][1], extrapolate=True))[0]
+
+        pp1 = p1 - normvector * self.amount
+        pp2 = p2 - normvector * self.amount
+        left_end_index = next(self.outer_left.cut(pp1, pp2, self.inner_lists[0][1], extrapolate=True))[0]
+        right_end_index = next(self.outer_right.cut(pp1, pp2, self.inner_lists[-1][1], extrapolate=True))[0]
 
         left_start = self.outer_left[left_start_index]
         left_end = self.outer_left[left_end_index]
@@ -127,22 +130,27 @@ class ParallelCut(DesignCut):
         p2 = self.inner_lists[-1][0][self.inner_lists[-1][1]]
         normvector = normalize(rotation_2d(math.pi/2).dot(p1-p2))
 
-        leftcut_index = next(self.outer_left.new_cut(p1, p2, self.inner_lists[0][1], extrapolate=True))
-        leftcut = self.outer_left[leftcut_index]
-        rightcut_index = next(self.outer_right.new_cut(p1, p2, self.inner_lists[-1][1], extrapolate=True))
-        rightcut = self.outer_right[rightcut_index]
+        leftcut_index = next(self.outer_left.cut(p1, p2, self.inner_lists[0][1], extrapolate=True))
+        rightcut_index = next(self.outer_right.cut(p1, p2, self.inner_lists[-1][1], extrapolate=True))
 
-        leftcuts_2 = self.outer_left.new_cut(p1-normvector*self.amount, p2-normvector*self.amount, self.inner_lists[0][1], extrapolate=True)
-        leftcut_2 = self.outer_left[next(leftcuts_2)]
-        rightcuts_2 = self.outer_right.new_cut(p1-normvector*self.amount, p2-normvector*self.amount, self.inner_lists[-1][1], extrapolate=True)
-        rightcut_2 = self.outer_right[next(rightcuts_2)]
+        self.index_left = leftcut_index[0]
+        self.index_right = rightcut_index[0]
+
+        leftcut = self.outer_left[self.index_left]
+        rightcut = self.outer_right[self.index_right]
+
+        leftcut_index_2 = self.outer_left.cut(p1 - normvector * self.amount, p2 - normvector * self.amount, self.inner_lists[0][1], extrapolate=True)
+        rightcut_index_2 = self.outer_right.cut(p1 - normvector * self.amount, p2 - normvector * self.amount, self.inner_lists[-1][1], extrapolate=True)
+
+        leftcut_2 = self.outer_left[next(leftcut_index_2)[0]]
+        rightcut_2 = self.outer_right[next(rightcut_index_2)[0]]
         diff = (leftcut-leftcut_2 + rightcut - rightcut_2)/2
 
         newlist = [leftcut, leftcut+diff, rightcut+diff, rightcut]
 
         self.curve = PolyLine2D(newlist)
-        self.index_left = leftcut_index
-        self.index_right = rightcut_index
+        self.index_left = leftcut_index[0]
+        self.index_right = rightcut_index[0]
 
         return newlist, leftcut_index, rightcut_index
 

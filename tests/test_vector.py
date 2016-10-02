@@ -127,7 +127,7 @@ class TestVector2D(TestVector3D):
 
             p1 = thalist[i]+dirr
             p2 = thalist[i]-dirr
-            neu = thalist.new_cut(p1, p2, i-1)
+            neu = thalist.cut(p1, p2, i - 1)
             #self.assertAlmostEqual(i, neu[1])
 
 class TestVectorFunctions3D(unittest.TestCase):

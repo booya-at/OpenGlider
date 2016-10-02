@@ -148,6 +148,13 @@ class LineSet2D(object):
 
         return LineSet(lines, v_inf)
 
+    def scale(self, factor):
+        for line in self.lines:
+            line.target_length *= factor
+        for node in self.get_lower_attachment_points():
+            node.pos_3d = numpy.array(node.pos_3d) * factor
+            node.pos_2d = numpy.array(node.pos_2d) * factor
+
 
     def set_default_nodes2d_pos(self, glider):
         lineset_3d = self.return_lineset(glider, [10,0,0])

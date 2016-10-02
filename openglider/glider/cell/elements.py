@@ -86,6 +86,11 @@ class DiagonalRib(object):
         self.left_front, self.right_front = self.right_front, self.left_front
         self.left_back, self.right_back = self.right_back, self.left_back
 
+    def get_center_length(self, cell):
+        p1 = cell.rib1.point(self.center_left)
+        p2 = cell.rib2.point(self.center_right)
+        return norm(p2 - p1)
+
     def get_3d(self, cell):
         """
         Get 3d-Points of a diagonal rib

@@ -8,9 +8,9 @@ from openglider.plots.cuts import cuts
 
 
 class PatternConfig(Config):
-    cut_entry = cuts["parallel"]
-    cut_trailing_edge =  cuts["parallel"]
-    cut_design = cuts["parallel"]
+    cut_entry = "parallel"
+    cut_trailing_edge = "parallel"
+    cut_design = "parallel"
 
     patterns_align_dist_y = 0.05
     patterns_align_dist_x = patterns_align_dist_y
@@ -46,12 +46,14 @@ class PatternConfig(Config):
     drib_num_folds = 1
     drib_text_position = 0.1
 
+    strap_num_folds = 0
+
     insert_attachment_point_text = True
 
     layout_seperate_panels = True
 
 
 class OtherPatternConfig(PatternConfig):
-    cut_entry = cuts["orthogonal"]
+    cut_entry = "orthogonal"
     layout_seperate_panels = False
     #cut_trailing_edge = None

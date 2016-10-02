@@ -14,7 +14,6 @@ from openglider.glider.parametric.lines import UpperNode2D, LowerNode2D, BatchNo
 from openglider.glider.rib import MiniRib
 from openglider.glider.ballooning import BallooningBezier
 
-
 element_keywords = {
     "cuts": ["cells", "left", "right", "type"],
     "a": "",
@@ -47,11 +46,11 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     for name, baloon in transpose_columns(sheets[4]):
         if baloon:
             i = 0
-            while baloon[i+1][0] > baloon[i][0]:
+            while baloon[i + 1][0] > baloon[i][0]:
                 i += 1
 
-            upper = baloon[:i+1]
-            lower = baloon[i+1:]
+            upper = baloon[:i + 1]
+            lower = baloon[i + 1:]
 
             balloonings.append(BallooningBezier(upper, lower, name=name))
 
@@ -61,7 +60,6 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     for row in datasheet.rows():
         if len(row) > 1:
             data[row[0].value] = row[1].value
-
 
     # Attachment points: rib_no, id, pos, force
     attachment_points = get_attachment_points(rib_sheet)
@@ -84,7 +82,8 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
         for name_src in names:
             objs += read_elements(cell_sheet, name_src, len_data=2)
 
-        cuts_this = [{"cells": cut[0], "left": float(cut[1]), "right": float(cut[2]), "type": target_name} for cut in objs]
+        cuts_this = [{"cells": cut[0], "left": float(cut[1]), "right": float(cut[2]), "type": target_name} for cut in
+                     objs]
 
         return group(cuts_this, "cells")
 
@@ -110,24 +109,23 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
                           "right_back": (res[2] + res[4] / 2, height2),
                           "cells": res[0]})
 
-    for res in read_elements(cell_sheet, "STRAP", len_data=3):
-        # [cell_no, x_left, x_right, width]
-        diagonals.append({"left_front": (res[1] - res[3]/2, -1),
-                          "left_back": (res[1] + res[3]/2, -1),
-                          "right_front": (res[2] - res[3]/2, -1),
-                          "right_back": (res[2] + res[3]/2, -1),
-                          "cells": res[0]
-                          })
-
     diagonals = group(diagonals, "cells")
-
-
 
     straps = []
     straps_keywords = ["cells", "left", "right"]
     for res in read_elements(cell_sheet, "VEKTLAENGE", len_data=2):
         straps.append(zip(straps_keywords, res))
+
+    for res in read_elements(cell_sheet, "STRAP", len_data=3):
+        # [cell_no, x_left, x_right, width]
+        straps.append({"left_front": (res[1] - res[3] / 2, -1),
+                       "left_back": (res[1] + res[3] / 2, -1),
+                       "right_front": (res[2] - res[3] / 2, -1),
+                       "right_back": (res[2] + res[3] / 2, -1),
+                       "cells": res[0]
+                       })
     straps = group(straps, "cells")
+
     materials = get_material_codes(cell_sheet)
 
     # minirib -> y, start (x)
@@ -200,16 +198,13 @@ def get_geometry_explicit(sheet):
 
         span_last = span
 
-
     def symmetric_fit(data):
         not_from_center = data[0][0] == 0
         mirrored = [[-p[0], p[1]] for p in data[not_from_center:]][::-1] + data
         return SymmetricBezier.fit(mirrored)
 
-
     has_center_cell = not front[0][0] == 0
     cell_no = (len(front) - 1) * 2 + has_center_cell
-
 
     start = (2 - has_center_cell) / cell_no
 
@@ -233,9 +228,11 @@ def get_geometry_explicit(sheet):
 
     }
 
+
 def get_geometry_parametric(sheet):
     raise NotImplementedError
     # todo -> raise on fail
+
 
 def get_material_codes(sheet):
     materials = read_elements(sheet, "MATERIAL", len_data=1)
@@ -280,8 +277,8 @@ def transpose_columns(sheet, columnswidth=2):
     #    raise ValueError("irregular columnswidth")
     result = []
     for col in range(num_elems):
-        first_column = col*columnswidth
-        last_column = (col+1)*columnswidth
+        first_column = col * columnswidth
+        last_column = (col + 1) * columnswidth
         columns = range(first_column, last_column)
         name = sheet[0, first_column].value
         if not isinstance(name, numbers.Number):  # py2/3: str!=unicode
@@ -329,7 +326,7 @@ def read_linesheet(sheet, attachment_points_lower, attachment_points_upper):
                 lower_node = current_nodes[column // 2]
 
                 # gallery
-                if column + 2 >= num_cols-1 or sheet.get_cell([row, column + 2]).value is None:
+                if column + 2 >= num_cols - 1 or sheet.get_cell([row, column + 2]).value is None:
 
                     upper = attachment_points_upper[value]
                     line_length = None
@@ -369,10 +366,10 @@ def read_elements(sheet, keyword, len_data=2):
     column = 0
     while column < sheet.ncols():
         if sheet.get_cell([0, column]).value == keyword:
-            #print("found, ", j, sheet[0, j].value, sheet.ncols(), sheet[1, j].value)
+            # print("found, ", j, sheet[0, j].value, sheet.ncols(), sheet[1, j].value)
             for row in range(1, sheet.nrows()):
                 line = [sheet.get_cell([row, column + k]).value for k in range(len_data)]
-                #print(line)
+                # print(line)
                 if line[0] is not None:
                     elements.append([row - 1] + line)
             column += len_data

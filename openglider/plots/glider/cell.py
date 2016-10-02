@@ -67,7 +67,7 @@ class PanelPlot(object):
         if cut_front.index_right >= cut_back.index_right:
             panel_right = PolyLine2D([])
 
-            _cuts = panel_front.cut_with_polyline(panel_back, startpoint=len(panel_front)-1)
+            _cuts = panel_front.cut_with_polyline(panel_back, startpoint=len(panel_front) - 1)
             try:
                 ik_front, ik_back = next(_cuts)
                 panel_back = panel_back[:ik_back]
@@ -75,7 +75,7 @@ class PanelPlot(object):
             except StopIteration:
                 pass  # todo: fix!!
 
-        #lechts
+        # lechts
         if cut_front.index_left >= cut_back.index_left:
             panel_left = PolyLine2D([])
 
@@ -155,7 +155,7 @@ class PanelPlot(object):
         part_text = Text(text,
                          self.ballooned[0][left],
                          self.ballooned[1][right],
-                         size=self.config.allowance_design*0.8,
+                         size=self.config.allowance_design * 0.8,
                          align="left",
                          valign=-0.5,
                          height=0.8).get_vectors()
@@ -237,7 +237,7 @@ class DribPlot(object):
             front = self.drib.right_front
             back = self.drib.right_back
 
-        if (front[1], back[1]) not in ((-1,-1), (1,1)):
+        if (front[1], back[1]) not in ((-1, -1), (1, 1)):
             return False
 
         if front[1] > 0:
@@ -310,50 +310,59 @@ class DribPlot(object):
     def _insert_text(self, plotpart):
         left, right = self._get_inner()
 
-        #text_p1 = left_out[0] + self.config.drib_text_position * (right_out[0] - left_out[0])
+        # text_p1 = left_out[0] + self.config.drib_text_position * (right_out[0] - left_out[0])
         text_p1 = left[0]
         plotpart.layers["text"] += Text(" {} ".format(self.drib.name),
                                         text_p1,
                                         right[0],
-                                        size=self.config.drib_allowance_folds*0.8,
+                                        size=self.config.drib_allowance_folds * 0.8,
                                         height=0.8,
-                                        valign=-0.5).get_vectors()
+                                        valign=0.6).get_vectors()
 
     def flatten(self, attachment_points=None):
+        return self._flatten(attachment_points, self.config.drib_num_folds)
+
+    def _flatten(self, attachment_points, num_folds):
         plotpart = PlotPart(material_code=self.drib.material_code, name=self.drib.name)
         left, right = self._get_inner()
         left_out, right_out = self._get_outer()
 
-        if self.config.drib_num_folds > 0:
+        if num_folds > 0:
             alw2 = self.config.drib_allowance_folds
             cut_front = cuts["folded"]([[left, 0], [right, 0]],
                                        left_out,
                                        right_out,
                                        -alw2,
-                                       num_folds=self.config.drib_num_folds)
+                                       num_folds=num_folds)
             cut_back = cuts["folded"]([[left, len(left) - 1],
                                        [right, len(right) - 1]],
                                       left_out,
                                       right_out,
                                       alw2,
-                                      num_folds=self.config.drib_num_folds)
+                                      num_folds=num_folds)
+
+            plotpart.layers["cuts"] += [left_out[cut_front.index_left:cut_back.index_left] +
+                                        cut_back.curve +
+                                        right_out[cut_front.index_right:cut_back.index_right:-1] +
+                                        cut_front.curve[::-1]]
 
         else:
-            raise NotImplementedError
+            p1 = next(left_out.cut(left[0], right[0], startpoint=0, extrapolate=True))[0]
+            p2 = next(left_out.cut(left[len(left)-1], right[len(right)-1], startpoint=len(left_out), extrapolate=True))[0]
+            p3 = next(right_out.cut(left[0], right[0], startpoint=0, extrapolate=True))[0]
+            p4 = next(right_out.cut(left[len(left)-1], right[len(right)-1], startpoint=len(right_out), extrapolate=True))[0]
 
-
+            outer = left_out[p1:p2]
+            outer += right_out[p3:p4][::-1]
+            outer += PolyLine2D([left_out[p1]])
+            plotpart.layers["cuts"].append(outer)
 
         # print("left", left_out[cut_front[1]:cut_back[1]].get_length())
-        plotpart.layers["cuts"] += [left_out[cut_front.index_left:cut_back.index_left] +
-                                    cut_back.curve +
-                                    right_out[cut_front.index_right:cut_back.index_right:-1] +
-                                    cut_front.curve[::-1]]
 
         plotpart.layers["marks"].append(PolyLine2D([left[0], right[0]]))
-        plotpart.layers["marks"].append(PolyLine2D([left[len(left)-1], right[len(right)-1]]))
+        plotpart.layers["marks"].append(PolyLine2D([left[len(left) - 1], right[len(right) - 1]]))
 
-
-        #print(left, right)
+        # print(left, right)
 
         plotpart.layers["stitches"] += [left, right]
 
@@ -361,6 +370,11 @@ class DribPlot(object):
         self._insert_text(plotpart)
 
         return plotpart
+
+
+class StrapPlot(DribPlot):
+    def flatten(self, attachment_points=None):
+        return self._flatten(attachment_points, self.config.strap_num_folds)
 
 
 class CellPlotMaker:
@@ -437,3 +451,11 @@ class CellPlotMaker:
             dribs.append(drib_plot.flatten(self.attachment_points))
 
         return Layout.stack_column(dribs, self.config.patterns_align_dist_y)
+
+    def get_straps(self):
+        straps = []
+        for strap in self.cell.straps:
+            plot = StrapPlot(strap, self.cell, self.config)
+            straps.append(plot.flatten(self.attachment_points))
+
+        return Layout.stack_column(straps, self.config.patterns_align_dist_y)

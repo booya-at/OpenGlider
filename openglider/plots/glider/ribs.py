@@ -52,21 +52,16 @@ class RibPlot(object):
                     panel_cuts.add(panel.cut_back["left"])
 
                 # diagonals
-                for diagonal in cell.diagonals:
+                for diagonal in cell.diagonals + cell.straps:
                     self.insert_drib_mark(diagonal, False)
-                # straps
-                for strap in cell.straps:
-                    self.insert_mark(strap.left, self.config.marks_strap)
 
             elif cell.rib2 == self.rib:
                 for panel in cell.panels:
                     panel_cuts.add(panel.cut_front["right"])
                     panel_cuts.add(panel.cut_back["right"])
 
-                for diagonal in cell.diagonals:
+                for diagonal in cell.diagonals + cell.straps:
                     self.insert_drib_mark(diagonal, True)
-                for strap in cell.straps:
-                    self.insert_mark(strap.right, self.config.marks_strap)
 
         for cut in panel_cuts:
             #print(cut, self.marks_panel_cut)
@@ -151,10 +146,10 @@ class RibPlot(object):
         t_e_allowance = self.config.allowance_trailing_edge
         p1 = inner_rib[0] + [0, 1]
         p2 = inner_rib[0] + [0, -1]
-        cuts = outer_rib.new_cut(p1, p2)
+        cuts = outer_rib.cut(p1, p2)
 
-        start = next(cuts)
-        stop = next(cuts)
+        start = next(cuts)[0]
+        stop = next(cuts)[0]
         buerzl = PolyLine2D([outer_rib[stop],
                             outer_rib[stop] + [t_e_allowance, 0],
                             outer_rib[start] + [t_e_allowance, 0],

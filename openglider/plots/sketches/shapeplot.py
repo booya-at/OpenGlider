@@ -9,11 +9,18 @@ import openglider.plots.marks as marks
 class ShapePlot(object):
     attachment_point_mark = marks.Cross(name="attachment_point", rotation=numpy.pi/4)
 
-    def __init__(self, glider_2d, glider_3d=None):
+    def __init__(self, glider_2d, glider_3d=None, drawing=None):
         super(ShapePlot, self).__init__()
         self.glider_2d = glider_2d
         self.glider_3d = glider_3d or glider_2d.get_glider_3d()
-        self.drawing = Layout()
+        self.drawing = drawing or Layout()
+
+    def copy(self):
+        glider2d = self.glider_2d
+        glider3d = self.glider_3d
+        drawing = self.drawing.copy()
+
+        return ShapePlot(glider2d, glider3d, drawing)
 
     def insert_design(self, lower=True):
         for cell_no, cell_panels in enumerate(self.glider_2d.get_panels()):

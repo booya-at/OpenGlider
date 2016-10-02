@@ -27,9 +27,6 @@ class Layout(object):
         return self
 
     def rotate(self, angle, radians=True):
-        #bbox = self.bbox
-        #x0 = (bbox[0][0] + bbox[1][0])/2
-        #y0 = (bbox[0][1] + bbox[1][1])/2
         for part in self.parts:
             part.rotate(angle, radians=radians)
 
@@ -118,7 +115,7 @@ class Layout(object):
             y += distance_y
 
         if draw_grid:
-            grid = PlotPart()
+            grid = PlotPart(material_code="grid")
             height = all_parts.height
             width = all_parts.width
 
@@ -127,14 +124,14 @@ class Layout(object):
                 x += col_width
                 x += distance_x/2
                 line = PolyLine2D([[x, 0], [x, height]])
-                grid.layers["drawing_boundary"].append(line)
+                grid.layers["grid"].append(line)
                 x += distance_x/2
 
             for row_height in heights[:-1]:
                 y += row_height
                 y += distance_y/2
                 line = PolyLine2D([[0, y], [width, y]])
-                grid.layers["drawing_boundary"].append(line)
+                grid.layers["grid"].append(line)
                 y += distance_y/2
 
                 all_parts.parts.append(grid)
@@ -322,6 +319,17 @@ class Layout(object):
 
         other.move_to([0, y0])
         self.parts += other.parts
+
+    def append_left(self, other, distance=0):
+        assert isinstance(other, Layout)
+
+        if other.parts:
+            x0 = other.width + distance
+            other.move_to([-x0, 0])
+
+        self.parts += other.parts
+
+        return self
 
     def join(self, other):
         assert isinstance(other, Layout)
@@ -561,9 +569,14 @@ class Layout(object):
         dct = {}
         for part in self.parts:
             code = part.material_code
-            if code not in dct:
-                dct[code] = Layout()
-            dct[code].parts.append(part)
+
+            if part.material_code == "grid":
+                for key in dct:
+                    dct[key].parts.append(part.copy())
+            else:
+                if code not in dct:
+                    dct[code] = Layout()
+                dct[code].parts.append(part)
 
         return dct
 

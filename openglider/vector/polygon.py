@@ -49,6 +49,6 @@ class Polygon2D(PolyLine2D):
         :returns: boolean
         """
         # using ray-casting-algorithm
-        cuts = self.new_cut(point, self.centerpoint, cut_only_positive=True)
+        cuts = self.cut(point, self.centerpoint, cut_only_positive=True)
         return bool(sum(1 for _ in cuts) % 2)
         # todo: alternative: winding number

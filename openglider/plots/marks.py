@@ -58,6 +58,13 @@ class Line(object):
         self.offset = offset
         self.name = name
 
+    def __json__(self):
+        return {
+            "rotation": self.rotation,
+            "offset": self.offset,
+            "name": self.name
+        }
+
     def __call__(self, p1, p2):
         if self.rotation:
             center = (p1+p2)/2
@@ -93,6 +100,9 @@ class _Modify(object):
     def __init__(self, func):
         self.func = func
 
+    def __json__(self):
+        return {"func": self.func}
+
     def __repr__(self):
         return "{}->{}".format(self.__class__.__name__, repr(self.func))
 
@@ -105,6 +115,10 @@ class Rotate(_Modify):
         self.angle = rotation
         self.rotation = rotation_2d(rotation)
         super(Rotate, self).__init__(func)
+
+    def __json__(self):
+        return {"func": self.func,
+                "rotation": self.angle}
 
     def __repr__(self):
         return "Rotate({})->{}".format(self.angle, self.func)

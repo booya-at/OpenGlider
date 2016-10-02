@@ -42,15 +42,6 @@ class Patterns(object):
             "config": self.config
         }
 
-    def _get_patterns(self):
-        plots = PlotMaker(glider)
-        plots.unwrap()
-
-        all_stacked = plots.get_all_stacked()
-        all_grouped = plots.get_all_grouped()
-
-        return all_stacked, all_grouped
-
     def unwrap(self, outdir):
         def fn(filename):
             return os.path.join(outdir, filename)
@@ -67,33 +58,38 @@ class Patterns(object):
         glider_complete.rename_parts()
         print("flatten glider")
 
-        all_stacked, all_grouped = self._get_patterns()
+        plots = PlotMaker(glider)
+        plots.unwrap()
+        all_patterns = plots.get_all_grouped()
 
         with open(fn("patterns.json"), "w") as outfile:
-            jsonify.dump(all_stacked, outfile)
+            jsonify.dump(plots, outfile)
 
-        print("packing")
+        #
+        # for material_name, pattern in all_grouped.items():
+        #     #new = packer.QuickPacker(pattern).pack()
+        #     new = pattern.copy()
+        #     new.rasterize()
+        #     new.scale(1000)  # m -> mm
+        #
+        #     new.export_svg(fn("svg/plots_{}.svg".format(material_name)))
+        #     new.export_dxf(fn("dxf_2000/plots_{}.dxf".format(material_name)))
+        #     new.export_dxf(fn("dxf_2007/plots_{}.dxf".format(material_name)), "AC1021")
+        #     new.export_ntv(fn("ntv/plots_{}.ntv".format(material_name)))
+        # #sort_and_pack(outdir, all_parts, sheet_height, part_dist, part_dist)
+        import openglider.plots.sketches as sketch
+        shapeplot = sketch.ShapePlot(self.glider_2d, glider)
+        design_upper = shapeplot.copy().insert_design(lower=True)
+        design_upper.insert_cell_names()
+        design_lower = shapeplot.copy().insert_design(lower=False)
 
-        for material_name, pattern in all_grouped.items():
-            #new = packer.QuickPacker(pattern).pack()
-            new = pattern.copy()
-            new.rasterize()
-            new.scale(1000)  # m -> mm
+        designs = Layout.stack_column([design_upper.drawing, design_lower.drawing], self.config.patterns_align_dist_y)
 
-            new.export_svg(fn("svg/plots_{}.svg".format(material_name)))
-            new.export_dxf(fn("dxf_2000/plots_{}.dxf".format(material_name)))
-            new.export_dxf(fn("dxf_2007/plots_{}.dxf".format(material_name)), "AC1021")
-            new.export_ntv(fn("ntv/plots_{}.ntv".format(material_name)))
-        #sort_and_pack(outdir, all_parts, sheet_height, part_dist, part_dist)
-
-        stacked_all = Layout()
-        for pattern in all_stacked.values():
-            stacked_all.join(pattern)
-
-        stacked_all.export_svg(fn("svg/plots_all.svg"))
-        stacked_all.export_dxf(fn("dxf_2000/plots_all.dxf"))
-        stacked_all.export_dxf(fn("dxf_2007/plots_all.dxf"), "AC1021")
-        stacked_all.export_ntv(fn("ntv/plots_all.ntv"))
+        all_patterns.append_left(designs)
+        all_patterns.export_svg(fn("plots_all.svg"))
+        all_patterns.export_dxf(fn("plots_all_dxf2000.dxf"))
+        all_patterns.export_dxf(fn("plots_all_dxf2007.dxf"), "AC1021")
+        all_patterns.export_ntv(fn("plots_all.ntv"))
 
 
 
@@ -107,16 +103,16 @@ class Patterns(object):
 
         print("create sketches")
         import openglider.plots.sketches
-        sketches = openglider.plots.sketches.get_all_plots(self.glider_2d, glider)
-
-        for sketch_name in ("design_upper", "design_lower"):
-            sketch = sketches.pop(sketch_name)
-            sketch.drawing.scale_a4()
-            sketch.drawing.export_svg(fn(sketch_name+".svg"), add_styles=True)
-
-        for sketch_name, sketch in sketches.items():
-            sketch.drawing.scale_a4()
-            sketch.drawing.export_svg(fn(sketch_name+".svg"), add_styles=False)
+        # sketches = openglider.plots.sketches.get_all_plots(self.glider_2d, glider)
+        #
+        # for sketch_name in ("design_upper", "design_lower"):
+        #     sketch = sketches.pop(sketch_name)
+        #     sketch.drawing.scale_a4()
+        #     sketch.drawing.export_svg(fn(sketch_name+".svg"), add_styles=True)
+        #
+        # for sketch_name, sketch in sketches.items():
+        #     sketch.drawing.scale_a4()
+        #     sketch.drawing.export_svg(fn(sketch_name+".svg"), add_styles=False)
 
         print("output spreadsheets")
         excel = openglider.plots.spreadsheets.get_glider_data(glider)
