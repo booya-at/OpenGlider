@@ -156,7 +156,7 @@ class Mesh(object):
         except KeyError:
             print("there was a keyerror")
             return cls()
-        return cls.from_indexed(vertices, polygons={"ribs": triangles} , boundaries={"ribs":range(len(vertices))})
+        return cls.from_indexed(vertices, polygons={"ribs": triangles} , boundaries={rib.name:range(len(vertices))})
 
     @classmethod
     def from_diagonal(cls, diagonal, cell, insert_points=4):
@@ -173,11 +173,11 @@ class Mesh(object):
             n_r = len(right)
             count = 0
             for y_pos in np.linspace(0., 1., insert_points + 2):
-                # from left to right
+                # from left to right, from rib1 to rib2
                 point_line = []
                 number_line = []
                 num_points = int(n_l * (1. - y_pos) + n_r * y_pos)
-                for x_pos in np.linspace(0., 1., num_points):
+                for x_pos in np.linspace(0., 1., num_points): # adding point to line
                     point_line.append(left[x_pos * (n_l - 1)] * (1. - y_pos) +
                                       right[x_pos * (n_r - 1)] * y_pos)
                     number_line.append(count)
@@ -190,13 +190,16 @@ class Mesh(object):
             edge += [line[0] for line in number_array[1:-1]][::-1]
             segment = [[edge[i], edge[i +1]] for i in range(len(edge) - 1)]
             segment.append([edge[-1], edge[0]])
-            point_array = np.array([point for line in point_array for point in line])
+            point_array = np.array([point for line in point_array for point in line]) #flatten
             points2d = map_to_2d(point_array)
 
             mesh_info = mptriangle.MeshInfo()
             mesh_info.set_points(points2d)
             mesh = custom_triangulation(mesh_info, "Qz")
-            return cls.from_indexed(point_array, {"diagonals": list(mesh.elements)})
+            return cls.from_indexed(point_array, 
+                                    {"diagonals": list(mesh.elements)}, 
+                                    {cell.rib1.name: number_array[0], 
+                                     cell.rib2.name: number_array[-1]})
 
         else:
             vertices = np.array(list(left) + list(right)[::-1])

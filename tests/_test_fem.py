@@ -19,8 +19,8 @@ class FemTest(TestCase):
         config = {
             "v_inf": [14, 0, 2],
             "fem_timestep": 1.e-06,
-            "fem_steps": 200000,
-            "fem_output": 100,
+            "fem_steps": 100,
+            "fem_output": 10,
             "d_velocity": 1.,
             "pressure_ramp": 100,     # steps for linear pressure ramp
             "caseType": "line_forces",
