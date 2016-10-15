@@ -110,6 +110,8 @@ class ParametricShape(object):
 
     def get_rib_point(self, rib_no, x):
         ribs = list(self.ribs)
+        if self.has_center_cell:
+            ribs = [ribs[0] * numpy.array([-1, 1])] + list(ribs)
         rib = ribs[rib_no]
         return numpy.array([rib[0][0], rib[0][1] + x * (rib[1][1] - rib[0][1])])
 
