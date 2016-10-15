@@ -37,7 +37,7 @@ class Layout(object):
         return self.__class__([p.copy() for p in self.parts])
 
     def clear(self):
-        self.parts.clear()
+        self.parts = []
 
     @classmethod
     def stack_column(cls, parts, distance, center_x=True):
