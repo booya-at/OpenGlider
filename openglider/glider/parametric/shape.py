@@ -98,7 +98,7 @@ class ParametricShape(object):
         neg = (rib_nr < 0)
         sign = -neg * 2 + 1
         if rib_nr <= len(ribs):
-            fr, ba = ribs[abs(rib_nr + neg * self.has_center_cell)]
+            fr, ba = ribs[abs(rib_nr + neg)]
             chord = ba[1] - fr[1]
             x = fr[0]
             y = fr[1] + rib_pos * chord
