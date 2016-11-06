@@ -4,6 +4,7 @@ import numpy as numpy
 
 from openglider.glider.shape import Shape
 from openglider.vector import Interpolation, PolyLine2D
+from openglider.vector.spline import BSpline
 
 
 class ParametricShape(object):
@@ -14,7 +15,7 @@ class ParametricShape(object):
     def __init__(self, front_curve, back_curve, rib_distribution, cell_num):
         self.front_curve = front_curve
         self.back_curve = back_curve
-        self.rib_distribution = rib_distribution
+        self.rib_distribution = BSpline(rib_distribution.controlpoints, degree=2)
         self.cell_num = cell_num
 
     def __json__(self):

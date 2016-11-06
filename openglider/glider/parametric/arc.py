@@ -15,10 +15,6 @@ class ArcCurve(object):
     def __json__(self):
         return {"curve": self.curve}
 
-    @staticmethod
-    def has_center_cell(x_values):
-        return x_values[0] != 0
-
     def get_arc_positions(self, x_values):
         """
         calculate y/z positions vor the arc-curve, given a shape's rib-x-values
@@ -85,3 +81,7 @@ class ArcCurve(object):
         arc_length = arc_pos.get_length() + arc_pos[0][0]  # add center cell
         factor = span/arc_length
         self.curve.controlpoints = [p * factor for p in self.curve.controlpoints]
+
+    @staticmethod
+    def has_center_cell(x_values):
+        return x_values[0] != 0
