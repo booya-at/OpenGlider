@@ -3,13 +3,13 @@ import collections
 from openglider.plots.drawing import Layout
 from openglider.plots.glider.cell import CellPlotMaker
 from openglider.plots.glider.ribs import RibPlot
-from openglider.plots.glider.config import PatternConfig
+from openglider.plots.glider.config import PatternConfig, OtherPatternConfig
 
 
 class PlotMaker(object):
     CellPlotMaker = CellPlotMaker
     RibPlot = RibPlot
-    DefaultConfig = PatternConfig
+    DefaultConfig = OtherPatternConfig
 
     def __init__(self, glider_3d, config=None):
         self.glider_3d = glider_3d

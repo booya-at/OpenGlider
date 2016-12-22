@@ -2,15 +2,15 @@ import numpy
 
 from openglider.utils import Config
 from openglider.utils.distribution import Distribution
-from openglider.plots import marks
-
-from openglider.plots.cuts import cuts
+from openglider.plots import marks, cuts
 
 
 class PatternConfig(Config):
-    cut_entry = "parallel"
-    cut_trailing_edge = "parallel"
-    cut_design = "parallel"
+    complete_glider = True
+
+    cut_entry = cuts.FoldedCut
+    cut_trailing_edge = cuts.ParallelCut
+    cut_design = cuts.DesignCut
 
     patterns_align_dist_y = 0.05
     patterns_align_dist_x = patterns_align_dist_y
@@ -23,6 +23,7 @@ class PatternConfig(Config):
     allowance_diagonals = 0.01
     allowance_trailing_edge = 0.02
     allowance_entry_open = 0.015
+
 
     marks_diagonal_front = marks.Inside(marks.Arrow(left=True, name="diagonal_front"))
     marks_diagonal_back = marks.Inside(marks.Arrow(left=False, name="diagonal_back"))
@@ -53,7 +54,14 @@ class PatternConfig(Config):
     layout_seperate_panels = True
 
 
+class EntryCut(cuts.SimpleCut):
+    def __init__(self, amount):
+        super(EntryCut, self).__init__(2*amount)
+
+
 class OtherPatternConfig(PatternConfig):
-    cut_entry = "orthogonal"
+    cut_entry = EntryCut
+    cut_trailing_edge = cuts.SimpleCut
+    cut_design = cuts.SimpleCut
     layout_seperate_panels = False
     #cut_trailing_edge = None

@@ -47,24 +47,25 @@ class PanelPlot(object):
         amount_back = self.panel.cut_back.get("amount", allowance_back)
 
         # cuts -> cut-line, index left, index right
-        cut_front = cuts[self.panel.cut_front["type"]](
-            [[self.ballooned[0], front_left],
-             [self.ballooned[1], front_right]],
-            self.outer[0], self.outer[1], amount_front)
+        cut_front = cut_types[self.panel.cut_front["type"]](amount_front)
+        cut_back = cut_types[self.panel.cut_back["type"]](amount_back)
 
-        cut_back = cuts[self.panel.cut_back["type"]](
-            [[self.ballooned[0], back_left],
-             [self.ballooned[1], back_right]],
-            self.outer[0], self.outer[1], amount_back)
+        cut_front_result = cut_front.apply([[self.ballooned[0], front_left],
+                                            [self.ballooned[1], front_right]],
+                                           self.outer[0], self.outer[1])
 
-        panel_left = self.outer[0][cut_front.index_left:cut_back.index_left]
-        panel_back = cut_back.curve.copy()
-        panel_right = self.outer[1][cut_front.index_right:cut_back.index_right:-1]
-        panel_front = cut_front.curve.copy()
+        cut_back_result = cut_back.apply([[self.ballooned[0], back_left],
+                                [self.ballooned[1], back_right]],
+                               self.outer[0], self.outer[1])
+
+        panel_left = self.outer[0][cut_front_result.index_left:cut_back_result.index_left]
+        panel_back = cut_back_result.curve.copy()
+        panel_right = self.outer[1][cut_front_result.index_right:cut_back_result.index_right:-1]
+        panel_front = cut_front_result.curve.copy()
 
         # spitzer schnitt
         # rechts
-        if cut_front.index_right >= cut_back.index_right:
+        if cut_front_result.index_right >= cut_back_result.index_right:
             panel_right = PolyLine2D([])
 
             _cuts = panel_front.cut_with_polyline(panel_back, startpoint=len(panel_front) - 1)
@@ -76,7 +77,7 @@ class PanelPlot(object):
                 pass  # todo: fix!!
 
         # lechts
-        if cut_front.index_left >= cut_back.index_left:
+        if cut_front_result.index_left >= cut_back_result.index_left:
             panel_left = PolyLine2D([])
 
             _cuts = panel_front.cut_with_polyline(panel_back, startpoint=0)
@@ -329,22 +330,15 @@ class DribPlot(object):
 
         if num_folds > 0:
             alw2 = self.config.drib_allowance_folds
-            cut_front = cuts["folded"]([[left, 0], [right, 0]],
-                                       left_out,
-                                       right_out,
-                                       -alw2,
-                                       num_folds=num_folds)
-            cut_back = cuts["folded"]([[left, len(left) - 1],
-                                       [right, len(right) - 1]],
-                                      left_out,
-                                      right_out,
-                                      alw2,
-                                      num_folds=num_folds)
+            cut_front = cuts.FoldedCut(-alw2, num_folds=num_folds)
+            cut_back = cuts.FoldedCut(alw2, num_folds=num_folds)
+            cut_front_result = cut_front.apply([[left, 0], [right, 0]], left_out, right_out)
+            cut_back_result = cut_back.apply([[left, len(left) - 1], [right, len(right) - 1]], left_out, right_out)
 
-            plotpart.layers["cuts"] += [left_out[cut_front.index_left:cut_back.index_left] +
-                                        cut_back.curve +
-                                        right_out[cut_front.index_right:cut_back.index_right:-1] +
-                                        cut_front.curve[::-1]]
+            plotpart.layers["cuts"] += [left_out[cut_front_result.index_left:cut_back_result.index_left] +
+                                        cut_back_result.curve +
+                                        right_out[cut_front_result.index_right:cut_back_result.index_right:-1] +
+                                        cut_front_result.curve[::-1]]
 
         else:
             p1 = next(left_out.cut(left[0], right[0], startpoint=0, extrapolate=True))[0]

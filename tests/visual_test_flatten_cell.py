@@ -68,9 +68,9 @@ openglider.graphics.Graphics2D([openglider.graphics.Line(left.data), openglider.
 
 
 ################CUTS
-outlist, leftcut, rightcut = cuts["folded"]([[left2, 0], [right2, 0]], left_out, right_out, -0.02)
+outlist, leftcut, rightcut = cuts.cuts["folded"]([[left2, 0], [right2, 0]], left_out, right_out, -0.02)
 end = 150
-outlist2, leftcut2, rightcut2 = cuts["orthogonal"]([[left2, end], [right2, end]], left_out, right_out, 0.02)
+outlist2, leftcut2, rightcut2 = cuts.cuts["orthogonal"]([[left2, end], [right2, end]], left_out, right_out, 0.02)
 
 openglider.graphics.Graphics2D([openglider.graphics.Line(left2.data[0:end]),
                                 openglider.graphics.Line(right2.data[0:end]),

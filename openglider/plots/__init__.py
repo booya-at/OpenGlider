@@ -23,7 +23,7 @@ import subprocess
 from openglider import jsonify
 
 import openglider.plots.spreadsheets
-from openglider.plots.cuts import cuts
+import openglider.plots.cuts
 from openglider.plots.drawing import PlotPart, Layout
 from openglider.plots.glider import PlotMaker
 
@@ -54,11 +54,14 @@ class Patterns(object):
 
         print("get glider 3d")
         glider = self.glider_2d.get_glider_3d()
-        glider_complete = glider.copy_complete()
-        glider_complete.rename_parts()
         print("flatten glider")
-
-        plots = PlotMaker(glider)
+        if self.config.complete_glider:
+            glider_complete = glider.copy_complete()
+            glider_complete.rename_parts()
+            plots = PlotMaker(glider_complete)
+        else:
+            plots = PlotMaker(glider)
+            
         plots.unwrap()
         all_patterns = plots.get_all_grouped()
 
