@@ -39,7 +39,7 @@ class Cell(CachedObject):
                 "panels": self.panels,
                 "straps": self.straps}
 
-    def rename_panels(self, seperate_upper_lower=True):
+    def rename_panels(self, seperate_upper_lower=False):
         if seperate_upper_lower:
             upper = [panel for panel in self.panels if panel.mean_x < 0]
             lower = [panel for panel in self.panels if panel.mean_x >= 0]
@@ -48,24 +48,24 @@ class Cell(CachedObject):
             lower.sort(sort_func)
 
             for panel_no, panel in enumerate(upper):
-                panel.name = self.panel_naming_scheme_upper.format(cell=self, panel_no=panel_no)
+                panel.name = self.panel_naming_scheme_upper.format(cell=self, panel_no=panel_no+1)
             for panel_no, panel in enumerate(lower):
-                panel.name = self.panel_naming_scheme_lower.format(cell=self, panel_no=panel_no)
+                panel.name = self.panel_naming_scheme_lower.format(cell=self, panel_no=panel_no+1)
 
         else:
             self.panels.sort(key=lambda panel: panel.mean_x())
             for panel_no, panel in enumerate(self.panels):
-                panel.name = self.panel_naming_scheme.format(cell=self, panel=panel, panel_no=panel_no)
+                panel.name = self.panel_naming_scheme.format(cell=self, panel=panel, panel_no=panel_no+1)
 
     def rename_parts(self, seperate_upper_lower=False):
         for diagonal_no, diagonal in enumerate(self.diagonals):
-            diagonal.name = self.diagonal_naming_scheme.format(cell=self, diagonal=diagonal, diagonal_no=diagonal_no)
+            diagonal.name = self.diagonal_naming_scheme.format(cell=self, diagonal=diagonal, diagonal_no=diagonal_no+1)
 
         for strap_no, strap in enumerate(self.straps):
-            strap.name = self.strap_naming_scheme.format(cell=self, strap=strap, strap_no=strap_no)
+            strap.name = self.strap_naming_scheme.format(cell=self, strap=strap, strap_no=strap_no+1)
 
         for minirib_no, minirib in enumerate(self.miniribs):
-            minirib.name = self.minirib_naming_scheme.format(cell=self, minirib=minirib, minirib_no=minirib_no)
+            minirib.name = self.minirib_naming_scheme.format(cell=self, minirib=minirib, minirib_no=minirib_no+1)
 
         self.rename_panels(seperate_upper_lower=seperate_upper_lower)
 

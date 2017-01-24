@@ -88,11 +88,11 @@ class Glider(object):
 
     def rename_parts(self):
         for rib_no, rib in enumerate(self.ribs):
-            rib.name = self.rib_naming_scheme.format(rib=rib, rib_no=rib_no)
+            rib.name = self.rib_naming_scheme.format(rib=rib, rib_no=rib_no+1)
             rib.rename_parts()
 
         for cell_no, cell in enumerate(self.cells):
-            cell.name = self.cell_naming_scheme.format(cell=cell, cell_no=cell_no)
+            cell.name = self.cell_naming_scheme.format(cell=cell, cell_no=cell_no+1)
             cell.rename_parts()
 
     def get_panel_groups(self):

@@ -6,11 +6,13 @@ import numpy
 class Layer(object):
     stroke = "black"
     stroke_width = 1
+    visible = True
 
-    def __init__(self, polylines=None, stroke=None, stroke_width=1):
+    def __init__(self, polylines=None, stroke=None, stroke_width=1, visible=True):
         self.polylines = polylines or []
         self.stroke = stroke
         self.stroke_width = stroke_width
+        self.visible = visible
 
     def __add__(self, other):
         self.polylines += other
@@ -96,11 +98,8 @@ class Layers(object):
         layer_copy = {layer_name: [line.copy() for line in layer] for layer_name, layer in self.layers.items()}
         return Layers(**layer_copy)
 
-    def add(self, name, stroke=None, stroke_width=None):
-        layer = Layer(stroke=stroke)
-
-        if stroke_width is not None:
-            layer.stroke_width = stroke_width
+    def add(self, name, **kwargs):
+        layer = Layer(**kwargs)
 
         self.layers[name] = layer
         return layer
@@ -113,6 +112,7 @@ class PlotPart(object):
         self.layers.add("marks", stroke="green")
         self.layers.add("stitches", stroke="green")
         self.layers.add("text", stroke="blue")
+        self.layers.add("envelope", stroke="white", visible=False)
 
         layers.update({
             "cuts": cuts or [],

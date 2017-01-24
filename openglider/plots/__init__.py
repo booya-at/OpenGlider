@@ -58,9 +58,9 @@ class Patterns(object):
         if self.config.complete_glider:
             glider_complete = glider.copy_complete()
             glider_complete.rename_parts()
-            plots = PlotMaker(glider_complete)
+            plots = PlotMaker(glider_complete, config=self.config)
         else:
-            plots = PlotMaker(glider)
+            plots = PlotMaker(glider, config=self.config)
             
         plots.unwrap()
         all_patterns = plots.get_all_grouped()
@@ -86,9 +86,21 @@ class Patterns(object):
         design_upper.insert_cell_names()
         design_lower = shapeplot.copy().insert_design(lower=False)
 
-        designs = Layout.stack_column([design_upper.drawing, design_lower.drawing], self.config.patterns_align_dist_y)
+        lineplan = shapeplot.copy()
+        lineplan.insert_design(lower=True)
+        lineplan.insert_attachment_points()
+        lineplan.insert_rib_numbers()
 
-        all_patterns.append_left(designs)
+        diagonals = sketch.ShapePlot(self.glider_2d, glider)
+        diagonals.insert_design(lower=True)
+        #diagonals.insert_vectorstraps()
+
+        drawings = [design_upper.drawing, design_lower.drawing, lineplan.drawing, diagonals.drawing]
+
+        designs = Layout.stack_column(drawings, self.config.patterns_align_dist_y)
+
+        all_patterns.append_left(designs, distance=self.config.patterns_align_dist_x*2)
+        all_patterns.scale(100)
         all_patterns.export_svg(fn("plots_all.svg"))
         all_patterns.export_dxf(fn("plots_all_dxf2000.dxf"))
         all_patterns.export_dxf(fn("plots_all_dxf2007.dxf"), "AC1021")

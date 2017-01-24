@@ -241,9 +241,7 @@ class Panel(object):
         return total/4
 
     def is_lower(self):
-        if self.cut_front["left"] > 0 and self.cut_front["right"] > 0:
-            return True
-        return False
+        return self.mean_x() > 0
 
     def get_3d(self, cell, numribs=0):
         """

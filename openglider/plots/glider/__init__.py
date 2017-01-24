@@ -51,8 +51,23 @@ class PlotMaker(object):
         self.panels.clear()
         panels_upper = []
         panels_lower = []
+        panels = []
+
+        for cell in self.glider_3d.cells:
+            pm = self._get_cellplotmaker(cell)
+            lower = pm.get_panels_lower()
+            upper = pm.get_panels_upper()
+            panels_lower.append(lower)
+            panels_upper.append(upper)
+            panels.append([])
 
         if self.config.layout_seperate_panels:
+            layout_lower = Layout.stack_row(panels_lower, self.config.patterns_align_dist_x)
+            layout_upper = Layout.stack_row(panels_upper, self.config.patterns_align_dist_x)
+
+            self.panels = Layout.stack_row([layout_lower, layout_upper], 2*self.config.patterns_align_dist_x, draw_grid=True)
+
+        else:
             height = 0
 
             for cell in self.glider_3d.cells:
@@ -62,17 +77,12 @@ class PlotMaker(object):
                 height = max(height, lower.height)
                 panels_lower.append(lower)
                 panels_upper.append(upper)
+                print("jodolo")
 
             height += self.config.patterns_align_dist_y
 
             self.panels = Layout.stack_grid([panels_upper, panels_lower], self.config.patterns_align_dist_x, self.config.patterns_align_dist_y)
 
-        else:
-            panels = []
-            for cell in self.glider_3d.cells:
-                panels.append(self._get_cellplotmaker(cell).get_panels())
-
-            self.panels = Layout.stack_row(panels, self.config.patterns_align_dist_x)
 
         return self.panels
 
@@ -114,7 +124,7 @@ class PlotMaker(object):
         dribs = Layout.stack_row(self.dribs.values(), self.config.patterns_align_dist_x)
         straps = Layout.stack_row(self.straps.values(), self.config.patterns_align_dist_x)
 
-        panels_grouped = panels.group_materials()
+        panels_grouped = panels.copy().group_materials()
         ribs_grouped = ribs.group_materials()
         dribs_grouped = dribs.group_materials()
         straps_grouped = straps.group_materials()
@@ -140,9 +150,11 @@ class PlotMaker(object):
             layout.parts.append(straps_border.copy())
             layout.add_text("straps_"+material_name)
 
+        panels.add_text("panels_all")
 
 
-        all_layouts = []
+
+        all_layouts = [panels]
         all_layouts += panels_grouped.values()
         all_layouts += ribs_grouped.values()
         all_layouts += dribs_grouped.values()

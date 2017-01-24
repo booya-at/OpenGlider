@@ -34,8 +34,8 @@ class CutResult():
 # Check doc/drawings 7-9 for sketches
 # DESIGN-CUT Style
 class DesignCut(object):
-    def __init__(self, amount):
-        self.amount = amount
+    def __init__(self, amount, num_folds=1):
+        self.amount = amount * num_folds
 
     @classmethod
     def __json__(cls):

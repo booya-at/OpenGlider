@@ -1,3 +1,5 @@
+import math
+
 from openglider.airfoil import get_x_value
 from openglider.plots import cuts, PlotPart
 from openglider.plots.glider.config import PatternConfig
@@ -13,9 +15,9 @@ class PanelPlot(object):
     def __init__(self, panel, cell, flattended_cell, config):
         self.panel = panel
         self.cell = cell
-        self.inner, self.ballooned, self.outer, self.outer_orig = flattended_cell
         self.config = self.DefaultConf(config)
 
+        self.inner, self.ballooned, self.outer, self.outer_orig = flattended_cell
         self.x_values = self.cell.rib1.profile_2d.x_values
 
     def flatten(self, attachment_points):
@@ -146,19 +148,30 @@ class PanelPlot(object):
 
         vector = p2 - p1
         angle = vector_angle(vector, [0, 1])
+
+        if self.config.layout_seperate_panels and self.panel.is_lower():
+            angle += math.pi
         plotpart.rotate(angle)
         return plotpart
 
     def _insert_text(self, plotpart):
-        left = get_x_value(self.x_values, self.panel.cut_front["left"])
-        right = get_x_value(self.x_values, self.panel.cut_front["right"])
+        if self.config.layout_seperate_panels and not self.panel.is_lower():
+            left = get_x_value(self.x_values, self.panel.cut_back["left"])
+            right = get_x_value(self.x_values, self.panel.cut_back["right"])
+            p2 = self.ballooned[1][right]
+            p1 = self.ballooned[0][left]
+            align = "left"
+        else:
+            left = get_x_value(self.x_values, self.panel.cut_front["left"])
+            right = get_x_value(self.x_values, self.panel.cut_front["right"])
+            p1 = self.ballooned[1][right]
+            p2 = self.ballooned[0][left]
+            align = "right"
         text = self.panel.name
-        part_text = Text(text,
-                         self.ballooned[0][left],
-                         self.ballooned[1][right],
+        part_text = Text(text, p1, p2,
                          size=self.config.allowance_design * 0.8,
-                         align="left",
-                         valign=-0.5,
+                         align=align,
+                         valign=0.6,
                          height=0.8).get_vectors()
         plotpart.layers["text"] += part_text
 
@@ -171,22 +184,33 @@ class PanelPlot(object):
 
     def _insert_attachment_points(self, plotpart, attachment_points):
         for attachment_point in attachment_points:
-            if attachment_point.rib == self.cell.rib1:
-                align = "left"
-            elif attachment_point.rib == self.cell.rib2:
-                align = "right"
-            else:
+            if attachment_point.rib not in self.cell.ribs:
                 continue
 
-            which = align
+
+            if attachment_point.rib == self.cell.rib1:
+                align = ("left", "right")
+            elif attachment_point.rib == self.cell.rib2:
+                align = ("right", "left")
+
+            which = align[0]
 
             if self.panel.cut_front[which] <= attachment_point.rib_pos <= self.panel.cut_back[which]:
                 left, right = self.get_point(attachment_point.rib_pos)
 
                 if self.config.insert_attachment_point_text:
-                    plotpart.layers["text"] += Text(" {} ".format(attachment_point.name), left, right,
+                    if self.config.layout_seperate_panels and self.panel.is_lower:
+                        # rotated later
+                        p2 = left
+                        p1 = right
+                        text_align = align[1]
+                    else:
+                        p1 = left
+                        p2 = right
+                        text_align = align[0]
+                    plotpart.layers["text"] += Text(" {} ".format(attachment_point.name), p1, p2,
                                                     size=0.01,  # 1cm
-                                                    align=align, valign=-0.5).get_vectors()
+                                                    align=text_align, valign=0.5, height=0.8).get_vectors()
 
                 p1, p2 = self.get_p1_p2(attachment_point.rib_pos, which)
                 plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
@@ -330,8 +354,8 @@ class DribPlot(object):
 
         if num_folds > 0:
             alw2 = self.config.drib_allowance_folds
-            cut_front = cuts.FoldedCut(-alw2, num_folds=num_folds)
-            cut_back = cuts.FoldedCut(alw2, num_folds=num_folds)
+            cut_front = self.config.cut_diagonal_fold(-alw2, num_folds=num_folds)
+            cut_back = self.config.cut_diagonal_fold(alw2, num_folds=num_folds)
             cut_front_result = cut_front.apply([[left, 0], [right, 0]], left_out, right_out)
             cut_back_result = cut_back.apply([[left, len(left) - 1], [right, len(right) - 1]], left_out, right_out)
 
@@ -430,6 +454,8 @@ class CellPlotMaker:
 
     def get_panels_lower(self):
         panels = [p for p in self.cell.panels if p.is_lower()]
+        if self.config.layout_seperate_panels:
+            panels = panels[::-1]
         layout = self.get_panels(panels)
         return layout
 

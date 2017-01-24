@@ -62,7 +62,7 @@ class Layout(object):
         return column_dwg
 
     @classmethod
-    def stack_row(cls, parts, distance, center_y=True):
+    def stack_row(cls, parts, distance, center_y=True, draw_grid=False):
         row_dwg = cls()
         x = 0
         heights = [part.height for part in parts]
@@ -494,7 +494,9 @@ class Layout(object):
                 for layer_name, layer in part.layers.items():
                     if layer_name not in drawing.layers:
                         attributes = layer._get_dxf_attributes()
-                        drawing.layers.new(name=layer_name, dxfattribs=attributes)
+                        dwg_layer = drawing.layers.new(name=layer_name, dxfattribs=attributes)
+                        if not layer.visible:
+                            dwg_layer.off()
 
                     for elem in layer:
                         dxfattribs = {"layer": layer_name}

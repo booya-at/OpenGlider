@@ -161,7 +161,7 @@ class ParametricGlider(object):
                     material_code = "unknown"
 
                 panel = Panel(cut1, cut2,
-                              name="c{}p{}".format(cell_no, part_no),
+                              name="c{}p{}".format(cell_no+1, part_no),
                               material_code=material_code)
                 panel_lst.append(panel)
 
@@ -185,7 +185,7 @@ class ParametricGlider(object):
                 if cell_no in strap["cells"]:
                     dct = strap.copy()
                     dct.pop("cells")
-                    dct["name"] = "c{}s".format(cell_no)
+                    dct["name"] = "c{}s".format(cell_no+1)
                     cell.straps.append(DiagonalRib(**dct))
 
             cell.straps.sort(key=lambda s: (s.get_average_x()))
@@ -193,10 +193,10 @@ class ParametricGlider(object):
             # Name elements
 
             for d_no, diagonal in enumerate(cell.diagonals):
-                diagonal.name = "c{}d{}".format(cell_no, d_no)
+                diagonal.name = "c{}d{}".format(cell_no+1, d_no)
 
             for s_no, strap in enumerate(cell.straps):
-                strap.name = "c{}s{}".format(cell_no, s_no)
+                strap.name = "c{}s{}".format(cell_no+1, s_no)
 
     @classmethod
     def fit_glider_3d(cls, glider, numpoints=3):
@@ -271,7 +271,7 @@ class ParametricGlider(object):
         for cell_no, (rib1, rib2) in enumerate(zip(ribs[:-1], ribs[1:])):
             ballooning_factor = ballooning_merge_curve(cell_centers[cell_no])
             ballooning = self.merge_ballooning(ballooning_factor)
-            cell = Cell(rib1, rib2, ballooning, name="c{}".format(cell_no))
+            cell = Cell(rib1, rib2, ballooning, name="c{}".format(cell_no+1))
 
             glider.cells.append(cell)
 

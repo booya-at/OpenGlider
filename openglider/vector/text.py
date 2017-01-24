@@ -2,6 +2,7 @@ import numpy
 
 from openglider.vector.functions import normalize
 from openglider.vector.polyline import PolyLine2D
+from openglider.plots.drawing.part import PlotPart
 
 text_vectors = {
     "1": [[0.2, 0.5], [0.6, 1.], [0.6, 0.]],
@@ -121,3 +122,7 @@ class Text(object):
                 ))
             p1 += diff
         return vectors
+
+    def get_plotpart(self, replace_unknown=True):
+        vectors = self.get_vectors(replace_unknown)
+        return PlotPart(vectors)

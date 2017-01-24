@@ -68,7 +68,7 @@ class ShapePlot(object):
 
         return self
 
-    def insert_attachment_points(self):
+    def insert_attachment_points(self, add_text=True):
         for attachment_point in self.glider_2d.lineset.get_upper_nodes():
             center = self.glider_2d.shape.get_shape_point(attachment_point.rib_no, attachment_point.rib_pos)
             if attachment_point.rib_no == len(self.glider_2d.shape.ribs)-1:
@@ -86,8 +86,15 @@ class ShapePlot(object):
             cross_right = center + diff
 
             cross = self.attachment_point_mark(cross_left, cross_right)
-
             self.drawing.parts.append(PlotPart(marks=cross))
+
+            if add_text and attachment_point.name:
+                text = Text(" {} ".format(attachment_point.name), center, p2)
+                vectors = text.get_vectors()
+                part = PlotPart(
+                    text=vectors
+                )
+                self.drawing.parts.append(part)
 
     def insert_cells(self):
         cells = []
@@ -114,7 +121,7 @@ class ShapePlot(object):
             names += text.get_vectors()
 
         self.drawing.parts.append(PlotPart(
-            marks=names,
+            text=names,
             material_code="cell_numbers")
         )
 
@@ -134,7 +141,7 @@ class ShapePlot(object):
             names += text.get_vectors()
 
         self.drawing.parts.append(PlotPart(
-            marks=names,
+            text=names,
             material_code="rib_numbers")
         )
 

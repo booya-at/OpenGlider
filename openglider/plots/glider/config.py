@@ -11,6 +11,7 @@ class PatternConfig(Config):
     cut_entry = cuts.FoldedCut
     cut_trailing_edge = cuts.ParallelCut
     cut_design = cuts.DesignCut
+    cut_diagonal_fold = cuts.FoldedCut
 
     patterns_align_dist_y = 0.05
     patterns_align_dist_x = patterns_align_dist_y
@@ -19,7 +20,6 @@ class PatternConfig(Config):
     allowance_general = 0.01
     allowance_parallel = 0.01
     allowance_orthogonal = 0.01
-    allowance_folded = 0.015
     allowance_diagonals = 0.01
     allowance_trailing_edge = 0.02
     allowance_entry_open = 0.015
@@ -54,14 +54,16 @@ class PatternConfig(Config):
     layout_seperate_panels = True
 
 
-class EntryCut(cuts.SimpleCut):
-    def __init__(self, amount):
-        super(EntryCut, self).__init__(2*amount)
-
-
 class OtherPatternConfig(PatternConfig):
-    cut_entry = EntryCut
+    complete_glider = False
+    cut_entry = cuts.SimpleCut
     cut_trailing_edge = cuts.SimpleCut
     cut_design = cuts.SimpleCut
-    layout_seperate_panels = False
+    cut_diagonal_fold = cuts.SimpleCut
+    layout_seperate_panels = True
     #cut_trailing_edge = None
+
+    allowance_design = 0.01
+    drib_allowance_folds = 0.01
+    strap_num_folds = 1
+    allowance_entry_open = 0.021
