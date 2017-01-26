@@ -37,30 +37,33 @@ def create_line_tree(glider):
     return collections.OrderedDict([(line, recursive_get_upper(line.upper_node)) for _, line in lowest_lines])
 
 
-def output_lines(glider, ods_sheet=None, places=3):
+def output_lines(glider, ods_sheet=None):
 
     line_tree = glider.lineset.create_tree()
     ods_sheet = ods_sheet or ezodf.Table(name="lines", size=(500, 500))
 
+    floors = max(glider.lineset.floors)
+
     def insert_block(line, upper, row, column):
-        length = round(line.get_stretched_length(), places)
+        length = round(line.get_stretched_length()*1000)
         ods_sheet[row, column].set_value(length)
-        ods_sheet[row, column+1].set_value(line.type.name)
+        ods_sheet[row, column + floors+3].set_value(line.type.name)
         if upper:
             for line, line_upper in upper:
-                row = insert_block(line, line_upper, row, column+2)
+                row = insert_block(line, line_upper, row, column-1)
         else:  # Insert a top node
             name = line.upper_node.name
             if not name:
                 name = "Rib_{}/{}".format(glider.ribs.index(line.upper_node.rib),
                                           line.upper_node.rib_pos)
-            ods_sheet[row, column+2].set_value(name)
+            ods_sheet[row, column-1].set_value(name)
+            ods_sheet[row, column+2+floors].set_value(name)
             row += 1
         return row
 
     row = 1
     for line, upper in line_tree:
-        row = insert_block(line, upper, row, 1)
+        row = insert_block(line, upper, row, floors)
 
     return ods_sheet
 

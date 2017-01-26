@@ -25,6 +25,14 @@ class ParametricShape(object):
             "cell_num": self.cell_num
         }
 
+    def __repr__(self):
+        return "{}\n\tcells: {}\n\tarea: {:.2f}\n\taspect_ratio: {:.2f}".format(
+            super(ParametricShape, self).__repr__(),
+            self.cell_num,
+            self.area,
+            self.aspect_ratio
+        )
+
     @property
     def has_center_cell(self):
         return self.cell_num % 2

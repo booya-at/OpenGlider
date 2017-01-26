@@ -149,8 +149,6 @@ class PanelPlot(object):
         vector = p2 - p1
         angle = vector_angle(vector, [0, 1])
 
-        if self.config.layout_seperate_panels and self.panel.is_lower():
-            angle += math.pi
         plotpart.rotate(angle)
         return plotpart
 
@@ -454,8 +452,6 @@ class CellPlotMaker:
 
     def get_panels_lower(self):
         panels = [p for p in self.cell.panels if p.is_lower()]
-        if self.config.layout_seperate_panels:
-            panels = panels[::-1]
         layout = self.get_panels(panels)
         return layout
 

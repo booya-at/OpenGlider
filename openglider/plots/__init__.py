@@ -100,7 +100,7 @@ class Patterns(object):
         designs = Layout.stack_column(drawings, self.config.patterns_align_dist_y)
 
         all_patterns.append_left(designs, distance=self.config.patterns_align_dist_x*2)
-        all_patterns.scale(100)
+        all_patterns.scale(1000)
         all_patterns.export_svg(fn("plots_all.svg"))
         all_patterns.export_dxf(fn("plots_all_dxf2000.dxf"))
         all_patterns.export_dxf(fn("plots_all_dxf2007.dxf"), "AC1021")

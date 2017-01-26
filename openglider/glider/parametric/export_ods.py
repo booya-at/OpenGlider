@@ -133,12 +133,13 @@ def get_cell_sheet(glider):
 
     # Straps
     for strap in elems["straps"]:
-        sheet.append_columns(2)
-        sheet[0, column].set_value("VEKTLAENGE")
+        sheet.append_columns(3)
+        sheet[0, column].set_value("STRAP")
         for cell_no in strap["cells"]:
-            sheet[cell_no+1, column].set_value(strap["left"])
-            sheet[cell_no+1, column+1].set_value(strap["right"])
-        column += 2
+            sheet[cell_no+1, column].set_value((strap["left_front"][0]+strap["left_back"][0])/2)
+            sheet[cell_no+1, column+1].set_value((strap["right_front"][0]+strap["right_back"][0])/2)
+            sheet[cell_no+1, column+2].set_value(0.04)
+        column += 3
 
     # Material
     max_parts = max([len(c) for c in elems["materials"]])
@@ -200,7 +201,7 @@ def get_rib_sheet(glider_2d):
         for rib_no in rigidfoil["ribs"]:
             sheet[rib_no+1, column].set_value(rigidfoil["start"])
             sheet[rib_no+1, column+1].set_value(rigidfoil["end"])
-            sheet[rib_no+1, column+1].set_value(rigidfoil["distance"])
+            sheet[rib_no+1, column+2].set_value(rigidfoil["distance"])
         column += 3
 
     return sheet

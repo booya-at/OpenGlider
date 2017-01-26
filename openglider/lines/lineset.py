@@ -55,6 +55,19 @@ class LineSet():
     def lower_attachment_points(self):
         return [n for n in self.nodes if n.type == 0]
 
+    @property
+    def floors(self):
+        def recursive_count_floors(node):
+            if node.type == 2:
+                return 1
+
+            lines = self.get_upper_connected_lines(node)
+            nodes = [line.upper_node for line in lines]
+            depths = [recursive_count_floors(node) for node in nodes]
+            return max(depths) + 1
+
+        return [recursive_count_floors(n) for n in self.lower_attachment_points]
+
     def get_mesh(self, numpoints=10):
         return sum([line.get_mesh(numpoints) for line in self.lines], Mesh())
 

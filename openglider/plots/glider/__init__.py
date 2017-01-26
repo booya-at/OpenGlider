@@ -63,6 +63,7 @@ class PlotMaker(object):
 
         if self.config.layout_seperate_panels:
             layout_lower = Layout.stack_row(panels_lower, self.config.patterns_align_dist_x)
+            layout_lower.rotate(180, radians=False)
             layout_upper = Layout.stack_row(panels_upper, self.config.patterns_align_dist_x)
 
             self.panels = Layout.stack_row([layout_lower, layout_upper], 2*self.config.patterns_align_dist_x, draw_grid=True)
