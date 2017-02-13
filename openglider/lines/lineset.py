@@ -45,6 +45,8 @@ class LineSet():
         for line in self.lines:
             if line.target_length:
                 line.target_length *= factor
+            if line.init_length:
+                line.init_length *= factor
         return self
 
     @property
@@ -226,7 +228,7 @@ class LineSet():
         for i in range(steps):
             for l in self.lines:
                 if l.target_length is not None:
-                    l.target_length = l.target_length * l.target_length / l.get_stretched_length(pre_load)
+                    l.init_length = l.target_length * l.init_length / l.get_stretched_length(pre_load)
             #print("------")
             self.recalc()
 

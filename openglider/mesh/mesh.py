@@ -28,6 +28,11 @@ class Vertex(object):
                 return False
         return True
 
+    def round(self, places):
+        self.x = round(self.x, places)
+        self.y = round(self.y, places)
+        self.z = round(self.z, places)
+
     def __repr__(self):
         return super(Vertex, self).__repr__() + " {}, {}, {}\n".format(self.x, self.y, self.z)
 
@@ -40,6 +45,7 @@ class Polygon(list):
     """the polygon is a simple list, but using a Polygon-object instead of \
        a list let you monkey-patch the object"""
     pass
+
 
 class Mesh(object):
     """
@@ -215,15 +221,19 @@ class Mesh(object):
         """
         Make triangles from quads
         """
-        faces_new = []
-        for face in self.polygons:
-            if len(face) == 4:
-                faces_new.append(face[:3])
-                faces_new.append(face[2:] + face[:1])
-            else:
-                faces_new.append(face)
+        polys_new = {}
+        for name, faces in self.polygons.items():
+            faces_new = []
+            for face in faces:
+                if len(face) == 4:
+                    faces_new.append(face[:3])
+                    faces_new.append(face[2:] + face[:1])
+                else:
+                    faces_new.append(face)
 
-        return self.__class__(self.vertices, faces_new)
+            polys_new[name] = faces_new
+
+        return self.__class__(polys_new)
 
     def __json__(self):
         vertices, polygons, boundaries = self.get_indexed()
@@ -384,11 +394,11 @@ class Mesh(object):
 
         vert_src = collada.source.FloatSource("cubeverts-array", numpy.array(vert_floats), ('X', 'Y', 'Z'))
 
+    def round(self, places):
+        for vertice in self.vertices:
+            vertice.round(places)
 
-
-
-
-
+        return self
 
     def __iadd__(self, other):
         for poly_group_name, poly_group in other.polygons.items():

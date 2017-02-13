@@ -109,6 +109,7 @@ class Line(CachedObject):
         self.upper_node = upper_node
 
         self.target_length = target_length
+        self.init_length = target_length
 
         self.force = None
 

@@ -58,38 +58,32 @@ class ShapePlot(object):
 
         return self
 
-    def insert_vectorstraps(self):
-        for cell_no, cell in enumerate(self.glider_3d.cells):
-            for tensionstrap in cell.straps:
-                p1 = self.glider_2d.shape.get_shape_point(cell_no, tensionstrap.left)
-                p2 = self.glider_2d.shape.get_shape_point(cell_no+1, tensionstrap.left)
-                strap = PlotPart(marks=[PolyLine2D([p1, p2])])
-                self.drawing.parts.append(strap)
-
-        return self
-
     def insert_attachment_points(self, add_text=True):
         for attachment_point in self.glider_2d.lineset.get_upper_nodes():
-            center = self.glider_2d.shape.get_shape_point(attachment_point.rib_no, attachment_point.rib_pos)
+            p1 = self.glider_2d.shape.get_shape_point(attachment_point.rib_no, attachment_point.rib_pos)
             if attachment_point.rib_no == len(self.glider_2d.shape.ribs)-1:
                 rib2 = attachment_point.rib_no - 1
             else:
                 rib2 = attachment_point.rib_no + 1
 
-            p2 = numpy.array(self.glider_2d.shape.get_shape_point(rib2, attachment_point.rib_pos))
-            p2[1] = center[1]
+            p2 = self.glider_2d.shape.get_shape_point(rib2, attachment_point.rib_pos)
+            p2[1] = p1[1]
 
-            center, p2 = [numpy.array(x) for x in (center, p2)]
 
-            diff = (p2-center)*0.2
-            cross_left = center - diff
-            cross_right = center + diff
+            p1, p2 = [numpy.array(x) for x in (p1, p2)]
+
+            if attachment_point.rib_no == len(self.glider_2d.shape.ribs)-1:
+                p2 = p1 + (p1-p2)
+
+            diff = (p2-p1)*0.2
+            cross_left = p1 - diff
+            cross_right = p1 + diff
 
             cross = self.attachment_point_mark(cross_left, cross_right)
             self.drawing.parts.append(PlotPart(marks=cross))
 
             if add_text and attachment_point.name:
-                text = Text(" {} ".format(attachment_point.name), center, p2)
+                text = Text(" {} ".format(attachment_point.name), p1, p2)
                 vectors = text.get_vectors()
                 part = PlotPart(
                     text=vectors
@@ -144,6 +138,32 @@ class ShapePlot(object):
             text=names,
             material_code="rib_numbers")
         )
+
+    def insert_straps(self):
+        for cell_no, cell in enumerate(self.glider_3d.cells):
+            for diagonal in cell.straps:
+                left = [abs(p[0]) for p in (diagonal.left_front, diagonal.left_back)]
+                right = [abs(p[0]) for p in (diagonal.right_front, diagonal.right_back)]
+
+                points_left = [self.glider_2d.shape.get_shape_point(cell_no, p) for p in left]
+                points_right = [self.glider_2d.shape.get_shape_point(cell_no+1, p) for p in right]
+
+                self.drawing.parts.append(PlotPart(marks=[PolyLine2D(points_left + points_right[::-1] + points_left[:1])]))
+
+        return self
+
+    def insert_diagonals(self):
+        for cell_no, cell in enumerate(self.glider_3d.cells):
+            for diagonal in cell.diagonals:
+                left = [abs(p[0]) for p in (diagonal.left_front, diagonal.left_back)]
+                right = [abs(p[0]) for p in (diagonal.right_front, diagonal.right_back)]
+
+                points_left = [self.glider_2d.shape.get_shape_point(cell_no, p) for p in left]
+                points_right = [self.glider_2d.shape.get_shape_point(cell_no+1, p) for p in right]
+
+                self.drawing.parts.append(PlotPart(marks=[PolyLine2D(points_left + points_right[::-1] + points_left[:1])]))
+
+        return self
 
     def export_a4(self, path, add_styles=False):
         new = self.drawing.copy()

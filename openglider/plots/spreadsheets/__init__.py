@@ -8,18 +8,17 @@ from openglider.plots.spreadsheets.material_list import get_material_sheets
 
 def get_specs(glider):
     sheet = ezodf.Sheet("Tech Specs", size=(100, 10))
-    i = 1
 
-    def set_spec(name, value):
-        sheet[i, 0].set_value(name)
-        sheet[i, 1].set_value(value)
+    def set_spec(name, value, line):
+        sheet[line, 0].set_value(name)
+        sheet[line, 1].set_value(value)
 
-    #set_spec("Name", glider.name)
-    set_spec("Cells", len(glider.cells))
-    set_spec("Area", glider.area)
-    set_spec("Area Projected", glider.projected_area)
-    set_spec("Aspect Ratio", glider.aspect_ratio)
-    set_spec("Span", glider.span)
+    #set_spec("Name", glider.name, 0)
+    set_spec("Cells", len(glider.cells), 1)
+    set_spec("Area", glider.area, 2)
+    set_spec("Area Projected", glider.projected_area, 3)
+    set_spec("Aspect Ratio", glider.aspect_ratio, 4)
+    set_spec("Span", glider.span, 5)
 
     return sheet
 

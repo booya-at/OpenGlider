@@ -1,6 +1,7 @@
 from openglider.plots.sketches.shapeplot import ShapePlot
 
 
+
 def get_all_plots(glider_2d, glider_3d=None):
     glider_3d = glider_3d or glider_2d.get_glider_3d()
 
@@ -16,7 +17,7 @@ def get_all_plots(glider_2d, glider_3d=None):
 
     straps = ShapePlot(glider_2d, glider_3d)
     straps.insert_design(lower=True)
-    straps.insert_vectorstraps()
+    straps.insert_straps()
 
     diagonals = ShapePlot(glider_2d, glider_3d)
     diagonals.insert_design(lower=True)

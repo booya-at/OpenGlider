@@ -114,7 +114,13 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     straps = []
     straps_keywords = ["cells", "left", "right"]
     for res in read_elements(cell_sheet, "VEKTLAENGE", len_data=2):
-        straps.append(zip(straps_keywords, res))
+        straps.append({
+            "left_front": (res[1] - 0.02, -1),
+            "left_back": (res[1] + 0.02, -1),
+            "right_front": (res[1] - 0.02, -1),
+            "right_back": (res[1] - 0.02, -1),
+            "cells": res[0]
+        })
 
     for res in read_elements(cell_sheet, "STRAP", len_data=3):
         # [cell_no, x_left, x_right, width]

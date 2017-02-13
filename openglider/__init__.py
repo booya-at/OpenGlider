@@ -38,9 +38,9 @@ def load(filename):
     return res
 
 
-def save(data, filename):
+def save(data, filename, add_meta=True):
     with open(filename,"w") as outfile:
-        openglider.jsonify.dump(data, outfile, add_meta=True)
+        openglider.jsonify.dump(data, outfile, add_meta=add_meta)
 
 
 # Monkey-patch numpy cross for pypy

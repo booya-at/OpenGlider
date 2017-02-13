@@ -146,6 +146,26 @@ class Ballooning(object):
         self.upper.scale(1, factor)
         self.lower.scale(1, factor)
 
+    def _repr_svg_(self):
+        import svgwrite
+        import svgwrite.container
+
+        height = self.amount_maximal * 2
+
+        drawing = svgwrite.Drawing(size=[800, 800*height])
+
+        drawing.viewbox(0, -height/2, 1, height)
+
+        g = svgwrite.container.Group()
+        g.scale(1, -1)
+        upper = drawing.polyline(self.upper.data, style="stroke:black; vector-effect: non-scaling-stroke; fill: none;")
+        lower = drawing.polyline([(p[0], -p[1]) for p in self.lower.data], style="stroke:black; vector-effect: non-scaling-stroke; fill: none;")
+        g.add(upper)
+        g.add(lower)
+        drawing.add(g)
+
+        return drawing.tostring()
+
 
 class BallooningBezier(Ballooning):
     def __init__(self, upper=None, lower=None, name="ballooning"):

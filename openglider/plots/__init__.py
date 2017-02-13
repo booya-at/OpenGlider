@@ -47,10 +47,6 @@ class Patterns(object):
             return os.path.join(outdir, filename)
 
         subprocess.call("mkdir -p {}".format(outdir), shell=True)
-        subprocess.call("mkdir -p {}".format(fn("dxf_2000")), shell=True)
-        subprocess.call("mkdir -p {}".format(fn("dxf_2007")), shell=True)
-        subprocess.call("mkdir -p {}".format(fn("svg")), shell=True)
-        subprocess.call("mkdir -p {}".format(fn("ntv")), shell=True)
 
         print("get glider 3d")
         glider = self.glider_2d.get_glider_3d()
@@ -59,8 +55,10 @@ class Patterns(object):
             glider_complete = glider.copy_complete()
             glider_complete.rename_parts()
             plots = PlotMaker(glider_complete, config=self.config)
+            glider_complete.lineset.iterate_target_length()
         else:
             plots = PlotMaker(glider, config=self.config)
+            glider.lineset.iterate_target_length()
             
         plots.unwrap()
         all_patterns = plots.get_all_grouped()
@@ -68,18 +66,7 @@ class Patterns(object):
         with open(fn("patterns.json"), "w") as outfile:
             jsonify.dump(plots, outfile)
 
-        #
-        # for material_name, pattern in all_grouped.items():
-        #     #new = packer.QuickPacker(pattern).pack()
-        #     new = pattern.copy()
-        #     new.rasterize()
-        #     new.scale(1000)  # m -> mm
-        #
-        #     new.export_svg(fn("svg/plots_{}.svg".format(material_name)))
-        #     new.export_dxf(fn("dxf_2000/plots_{}.dxf".format(material_name)))
-        #     new.export_dxf(fn("dxf_2007/plots_{}.dxf".format(material_name)), "AC1021")
-        #     new.export_ntv(fn("ntv/plots_{}.ntv".format(material_name)))
-        # #sort_and_pack(outdir, all_parts, sheet_height, part_dist, part_dist)
+        print("create sketches")
         import openglider.plots.sketches as sketch
         shapeplot = sketch.ShapePlot(self.glider_2d, glider)
         design_upper = shapeplot.copy().insert_design(lower=True)
@@ -92,14 +79,22 @@ class Patterns(object):
         lineplan.insert_rib_numbers()
 
         diagonals = sketch.ShapePlot(self.glider_2d, glider)
-        diagonals.insert_design(lower=True)
-        #diagonals.insert_vectorstraps()
+        diagonals.insert_cells()
+        diagonals.insert_attachment_points(add_text=False)
+        diagonals.insert_diagonals()
 
-        drawings = [design_upper.drawing, design_lower.drawing, lineplan.drawing, diagonals.drawing]
+        straps = sketch.ShapePlot(self.glider_2d, glider)
+        straps.insert_cells()
+        straps.insert_attachment_points(add_text=False)
+        straps.insert_straps()
+
+        drawings = [design_upper.drawing, design_lower.drawing, lineplan.drawing, diagonals.drawing, straps.drawing]
 
         designs = Layout.stack_column(drawings, self.config.patterns_align_dist_y)
-
         all_patterns.append_left(designs, distance=self.config.patterns_align_dist_x*2)
+
+        print("export patterns")
+
         all_patterns.scale(1000)
         all_patterns.export_svg(fn("plots_all.svg"))
         all_patterns.export_dxf(fn("plots_all_dxf2000.dxf"))
@@ -116,8 +111,6 @@ class Patterns(object):
         # for sheet_no, sheet in enumerate(panels):
         #     openglider.plots.create_svg(sheet, fn("panels_{}".format(sheet_no)))
 
-        print("create sketches")
-        import openglider.plots.sketches
         # sketches = openglider.plots.sketches.get_all_plots(self.glider_2d, glider)
         #
         # for sketch_name in ("design_upper", "design_lower"):
