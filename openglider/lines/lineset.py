@@ -98,6 +98,8 @@ class LineSet():
         self._calc_geo()
         if self.calculate_sag:
             self._calc_sag()
+        else:
+            self.calc_forces(self.lowest_lines)
 
         return self
 
@@ -200,9 +202,19 @@ class LineSet():
 
     # -----CALCULATE GEO-----#
     def get_tangential_comp(self, line, pos_vec):
-        upper_node_nrs = self.get_upper_influence_nodes(line)
         tangent = numpy.array([0., 0., 0.])
-        for node in upper_node_nrs:
+        upper_lines = self.get_upper_connected_lines(line.upper_node)
+        for l in upper_lines:
+            if (l.force is not None):
+                direction = normalize(l.upper_node.vec - line.lower_node.vec)
+                tangent += direction * l.force * direction.dot(l.diff_vector)
+            else:
+                tangent = numpy.array([0., 0., 0.])
+                break
+        else:
+            return normalize(tangent)
+        upper_node = self.get_upper_influence_nodes(line)
+        for node in upper_node:
             tangent += node.calc_force_infl(pos_vec)
         return normalize(tangent)
 

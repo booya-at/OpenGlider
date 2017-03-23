@@ -22,6 +22,7 @@ from __future__ import division
 
 import numpy
 
+import openglider
 from openglider.lines import line_types
 from openglider.lines.functions import proj_force, proj_to_surface
 from openglider.utils.cache import cached_property, CachedObject

@@ -294,6 +294,10 @@ class ParametricGlider(object):
 
         glider.lineset = self.lineset.return_lineset(glider, self.v_inf)
         glider.lineset.glider = glider
+        glider.lineset.calculate_sag = False
+        for _ in range(3):
+            glider.lineset.recalc()
+        glider.lineset.calculate_sag = True
         glider.lineset.recalc()
 
         return glider
