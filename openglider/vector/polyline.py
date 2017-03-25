@@ -138,6 +138,21 @@ class PolyLine(HashedList):
         self.data *= [x, y]
         return self
 
+    def cutByPlane(self, point_vector, normal_vector):
+        """
+        Get all cutting positions of the polyline and a plane
+        """
+        cut_list = []
+        p = point_vector
+        n = normal_vector
+        lines = numpy.array([self._data[:-1], self._data[1:]]).T
+        for line in lines:
+            direction = line[1] - line[0]
+            _lamda = n.dot(p - line[0]) / n.dot(direction)
+            if (_lamda >= 0 and _lamda < 1):
+                cut_list.append(line[0] + _lamda * direction)
+        return cut_list
+
 
 class PolyLine2D(PolyLine):
     def __add__(self, other):  # this is python default behaviour for lists
