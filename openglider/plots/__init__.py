@@ -42,14 +42,14 @@ class Patterns(object):
             "config": self.config
         }
 
-    def unwrap(self, outdir):
+    def unwrap(self, outdir, glider=None):
         def fn(filename):
             return os.path.join(outdir, filename)
 
         subprocess.call("mkdir -p {}".format(outdir), shell=True)
 
         print("get glider 3d")
-        glider = self.glider_2d.get_glider_3d()
+        glider = glider or self.glider_2d.get_glider_3d()
         print("flatten glider")
         if self.config.complete_glider:
             glider_complete = glider.copy_complete()
