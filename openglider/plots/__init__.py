@@ -50,6 +50,8 @@ class Patterns(object):
 
         print("get glider 3d")
         glider = glider or self.glider_2d.get_glider_3d()
+        else:
+            glider = glider3d
         print("flatten glider")
         if self.config.complete_glider:
             glider_complete = glider.copy_complete()
