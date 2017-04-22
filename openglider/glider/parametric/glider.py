@@ -346,7 +346,7 @@ class ParametricGlider(object):
         ]
 
     def export_lines2D_as_svg(self, file_name=None):
-        # sollte im lineset2D sein, aber des lineset hat keine möglichkeit auf diese Klasse
+        # sollte im lineset2D sein, aber des lineset hat keine moeglichkeit auf diese Klasse
         # zuzugreifen...
         border = 0.1
         bbox = self.get_line_bbox()
