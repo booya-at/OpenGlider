@@ -66,7 +66,7 @@ class Layout(object):
         row_dwg = cls()
         x = 0
         heights = [part.height for part in parts]
-        max_height = max(heights, default=0)
+        max_height = max(heights + [0])
         for height, part in zip(heights, parts):
             if isinstance(part, Layout):
                 drawing = part
