@@ -1,7 +1,13 @@
 Plots
 =====
-
 The heart of the logic: create patterns
 
-![plots](example.png)
+
+## how to use:
+
+```python
+pat = Patterns(parametric_glider)
+pat.unwrap(<file_name>, [glider3d])
+```
+
 
