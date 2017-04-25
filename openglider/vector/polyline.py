@@ -324,7 +324,8 @@ class PolyLine2D(PolyLine):
         drawing.viewbox(bbox[0][0]-border*width, -bbox[1][1]-border*height, width*(1+2*border), height*(1+2*border))
         g = svgwrite.container.Group()
         g.scale(1, -1)
-        line = drawing.polyline(self.data, style="stroke:black; vector-effect: non-scaling-stroke; fill: none;")
+        line = drawing.polyline(numpy.array(self.data, dtype=float),
+                                style="stroke:black; vector-effect: non-scaling-stroke; fill: none;")
         g.add(line)
         drawing.add(g)
 

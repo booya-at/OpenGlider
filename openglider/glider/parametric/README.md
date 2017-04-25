@@ -25,4 +25,10 @@ Further it has the following properties:
     * diagonals
     * straps
     * holes
-    * ...
+    * rigidfoils
+    ```python
+    rf = []
+    rf.append({"start":-0.2, "end":0.09, "distance":0.005, "ribs":[0, 1, 2, 3, 4})
+    par_glider.elements["rigid_foils"] = rf
+    
+    ```

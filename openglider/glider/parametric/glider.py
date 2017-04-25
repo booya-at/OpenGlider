@@ -309,7 +309,7 @@ class ParametricGlider(object):
         return np.array([np.cos(angle), 0, np.sin(angle)]) * self.speed
 
     def set_area(self, area):
-        factor = math.sqrt(area/self.shape.area)
+        factor = area/self.shape.area    # TODO: passt des schon no mit line-skalierung?
         self.shape.scale(factor)
         self.lineset.scale(factor)
         self.rescale_curves()
@@ -336,3 +336,52 @@ class ParametricGlider(object):
         rescale(self.aoa)
         rescale(self.zrot)
         self.arc.rescale(self.shape.rib_x_values)
+    def get_line_bbox(self):
+        points = []
+        for point in self.lineset.nodes:
+            points.append(point.get_2D(self.shape))
+
+        return [
+            [min([p[0] for p in points]), min([p[1] for p in points])],
+            [max([p[0] for p in points]), max([p[1] for p in points])],
+        ]
+
+    def export_lines2D_as_svg(self, file_name=None):
+        # sollte im lineset2D sein, aber des lineset hat keine moeglichkeit auf diese Klasse
+        # zuzugreifen...
+        border = 0.1
+        bbox = self.get_line_bbox()
+        width = bbox[1][0] - bbox[0][0]
+        height = bbox[1][1] - bbox[0][1]
+
+        import svgwrite
+        import svgwrite.container
+        drawing = svgwrite.Drawing(size=[800, 800*height/width])
+
+        drawing.viewbox(bbox[0][0]-border*width, -bbox[1][1]-border*height, width*(1+2*border), height*(1+2*border))
+        lines = svgwrite.container.Group()
+        lines.scale(1, -1)
+        for line in self.lineset.lines:
+            p1 = line.lower_node.get_2D(self.shape)
+            p2 = line.upper_node.get_2D(self.shape)
+            drawing_line = drawing.polyline([p1, p2], style="stroke:black; vector-effect: fill: none; stroke-width:0.01px")
+            lines.add(drawing_line)
+        drawing.add(lines)
+
+        ribs = svgwrite.container.Group()
+
+        ribs.scale(1, -1)
+        p1_old, p2_old = None, None
+        for rib in self.shape.ribs:
+            p1 = rib[0]
+            p2 = rib[1]
+            ribs.add(drawing.polyline([p1, p2], style="stroke:black; vector-effect: fill: none; stroke-width:0.01px"))
+            if p1_old and p2_old:
+                ribs.add(drawing.polyline([p1_old, p1], style="stroke:black; vector-effect: fill: none; stroke-width:0.01px"))
+                ribs.add(drawing.polyline([p2_old, p2], style="stroke:black; vector-effect: fill: none; stroke-width:0.01px"))
+            p1_old, p2_old = p1, p2
+
+        drawing.add(ribs)
+        if file_name:
+            drawing.saveas(file_name)
+        return drawing.tostring()
