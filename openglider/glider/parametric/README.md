@@ -24,6 +24,10 @@ Further it has the following properties:
 * elements
     * diagonals
     * straps
+    ```python
+    straps = []
+    straps.append({left_front:0.1, left_back:0.2, right_front:0.1, right_back:0.2, material_code="", name="unnamed"})
+    ```
     * holes
     * rigidfoils
     ```python
