@@ -60,19 +60,29 @@ class ShapePlot(object):
 
     def insert_attachment_points(self, add_text=True):
         for attachment_point in self.glider_2d.lineset.get_upper_nodes():
-            p1 = self.glider_2d.shape.get_shape_point(attachment_point.rib_no, attachment_point.rib_pos)
-            if attachment_point.rib_no == len(self.glider_2d.shape.ribs)-1:
-                rib2 = attachment_point.rib_no - 1
-            else:
-                rib2 = attachment_point.rib_no + 1
+            # glider2d does not contain the mirrored rib:
+            rib_no = attachment_point.rib_no + self.glider_2d.shape.has_center_cell
+            p1 = self.glider_2d.shape.get_shape_point(rib_no, attachment_point.rib_pos)
+            
+            # if rib_no == len(self.glider_2d.shape.ribs) - not(self.glider_2d.shape.has_center_cell):
+            #     rib2 = rib_no - 1
+            # else:
+            #     rib2 = rib_no + 1
+            reversed_direction = False
+            rib2 = rib_no + 1
+            try:
+                p2 = self.glider_2d.shape.get_shape_point(rib2, attachment_point.rib_pos)
+            except IndexError:
+                reversed_direction = True
+                rib2 = rib_no - 1
+                p2 = self.glider_2d.shape.get_shape_point(rib2, attachment_point.rib_pos)
 
-            p2 = self.glider_2d.shape.get_shape_point(rib2, attachment_point.rib_pos)
             p2[1] = p1[1]
 
 
             p1, p2 = [numpy.array(x) for x in (p1, p2)]
 
-            if attachment_point.rib_no == len(self.glider_2d.shape.ribs)-1:
+            if reversed_direction:
                 p2 = p1 + (p1-p2)
 
             diff = (p2-p1)*0.2
@@ -123,13 +133,21 @@ class ShapePlot(object):
         midrib = self.glider_2d.shape.has_center_cell
         names = []
         for rib_no, rib in enumerate(self.glider_3d.ribs):
-            rib_no = max(0, rib_no - midrib)
+            rib_no = max(0, rib_no)
             p1 = self.glider_2d.shape.get_shape_point(rib_no, -0.05)
-            p2 = self.glider_2d.shape.get_shape_point(rib_no, -0.2)
+            try:
+                p2 = self.glider_2d.shape.get_shape_point(rib_no + 1, 0)
+            except IndexError:
+                p2 = self.glider_2d.shape.get_shape_point(rib_no - 1, 0)
+            diff = abs(p1[0]- p2[0]) # cell distance
+            p2[0] = p1[0]
+            p2[1] = p1[1] + diff
 
-            if rib_no == 0 and midrib:
-                p1[0] = -p1[0]
-                p2[0] = -p2[0]
+            # notwendig?
+            # if rib_no == 0 and midrib:
+            #     p1[0] = -p1[0]
+            #     p2[0] = -p2[0]
+            #     continue
 
             text = Text(rib.name, p1, p2, valign=0)
             names += text.get_vectors()

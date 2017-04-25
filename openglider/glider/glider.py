@@ -88,7 +88,8 @@ class Glider(object):
 
     def rename_parts(self):
         for rib_no, rib in enumerate(self.ribs):
-            rib.name = self.rib_naming_scheme.format(rib=rib, rib_no=rib_no+1)
+            k = not self.has_center_cell
+            rib.name = self.rib_naming_scheme.format(rib=rib, rib_no=rib_no+k)
             rib.rename_parts()
 
         for cell_no, cell in enumerate(self.cells):

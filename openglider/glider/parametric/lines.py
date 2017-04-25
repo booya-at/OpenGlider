@@ -54,7 +54,6 @@ class UpperNode2D(object):
             force = list(self.force)
         else:
             force = list(rib.rotation_matrix.dot(numpy.array([0, self.force, 0])))
-            print(force)
         node = AttachmentPoint(glider.ribs[self.rib_no + glider.has_center_cell],
                                self.name, self.rib_pos, force)
         node.get_position()

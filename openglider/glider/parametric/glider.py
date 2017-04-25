@@ -263,6 +263,7 @@ class ParametricGlider(object):
 
         if self.shape.has_center_cell:
             new_rib = ribs[0].copy()
+            new_rib.name = "rib0"
             new_rib.mirror()
             ribs.insert(0, new_rib)
             cell_centers.insert(0, 0.)
