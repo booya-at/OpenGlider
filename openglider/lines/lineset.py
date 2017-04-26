@@ -111,7 +111,7 @@ class LineSet():
             if line.upper_node.type == 1:  # no gallery line
                 lower_point = line.lower_node.vec
                 tangential = self.get_tangential_comp(line, lower_point)
-                line.upper_node.vec = lower_point + tangential * line.target_length
+                line.upper_node.vec = lower_point + tangential * line.init_length
 
                 self._calc_geo(self.get_upper_connected_lines(line.upper_node))
 
@@ -173,6 +173,18 @@ class LineSet():
 
     def get_upper_connected_lines(self, node):
         return [line for line in self.lines if line.lower_node is node]
+
+    def get_upper_lines(self, node):
+        """
+        recursive upper lines for node
+        :param node:
+        :return:
+        """
+        lines = self.get_upper_connected_lines(node)
+        for line in lines[:]:  # copy to not mess up the loop
+            lines += self.get_upper_lines(line.upper_node)
+
+        return lines
 
     def get_lower_connected_lines(self, node):
         return [line for line in self.lines if line.upper_node is node]

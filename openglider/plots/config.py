@@ -13,7 +13,7 @@ class LaserConfig(Config):
     allowance_folded = 0.01
     allowance_general = 0.01
     allowance_diagonals = 0.01
-    allowance_trailing_edge = 0.02
+    allowance_trailing_edge = 0.01
     allowance_entry_open = 0.015
 
 sewing_config = {

@@ -12,6 +12,7 @@ from openglider.glider.parametric.import_ods import import_ods_2d
 from openglider.glider.parametric.lines import LineSet2D, UpperNode2D
 from openglider.glider.rib import RibHole, RigidFoil, Rib, MiniRib
 from openglider.glider.parametric.fitglider import fit_glider_3d
+from openglider.utils.distribution import Distribution
 
 
 class ParametricGlider(object):
@@ -23,6 +24,7 @@ class ParametricGlider(object):
     num_interpolate_ribs = 40
     num_cell_dist = 30
     num_depth_integral = 100
+    num_profile = None
 
     def __init__(self, shape, arc, aoa, profiles, profile_merge_curve,
                  balloonings, ballooning_merge_curve, lineset,
@@ -98,12 +100,12 @@ class ParametricGlider(object):
         factor = max(0, min(len(self.profiles)-1, factor))
         k = factor % 1
         i = int(factor // 1)
-        first = self.profiles[i]
+        first = self.profiles[i].copy()
         if k > 0:
             second = self.profiles[i + 1]
             airfoil = first * (1 - k) + second * k
         else:
-            airfoil = first.copy()
+            airfoil = first
         return Profile2D(airfoil.data)
 
     def get_panels(self, glider_3d=None):
@@ -198,6 +200,10 @@ class ParametricGlider(object):
             for s_no, strap in enumerate(cell.straps):
                 strap.name = "c{}s{}".format(cell_no+1, s_no)
 
+    def apply_arc(self, glider):
+        for rib, rib_pos in zip(glider.ribs, self.arc.get_arc_positions(self.shape.rib_x_values)):
+            rib.pos[2] = rib_pos[1]
+
     @classmethod
     def fit_glider_3d(cls, glider, numpoints=3):
         return fit_glider_3d(cls, glider, numpoints)
@@ -227,6 +233,8 @@ class ParametricGlider(object):
         rib_angles = self.arc.get_rib_angles(x_values)
 
         profile_x_values = self.profiles[0].x_values
+        if self.num_profile is not None:
+            profile_x_values = Distribution.from_cos_distribution(self.num_profile)
 
         rib_holes = self.elements.get("holes", [])
         rigids = self.elements.get("rigidfoils", [])
@@ -313,6 +321,22 @@ class ParametricGlider(object):
         self.shape.scale(factor)
         self.lineset.scale(factor)
         self.rescale_curves()
+
+    def set_aspect_ratio(self, aspect_ratio, remain_area=True):
+        ar0 = self.shape.aspect_ratio
+        area0 = self.shape.area
+
+
+        self.shape.scale(y=ar0 / aspect_ratio)
+
+        for p in self.lineset.get_lower_attachment_points():
+            p.pos_2D[1] *= ar0 / aspect_ratio
+
+        if remain_area:
+            self.set_area(area0)
+
+        return self.shape.aspect_ratio
+
 
 
 ##############################################################

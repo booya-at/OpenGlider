@@ -267,6 +267,9 @@ class Node(object):
     def get_diff(self):
         return self.vec - self.vec_proj
 
+    def is_upper(self):
+        return self.type == 2
+
     def __json__(self):
         return{
             'node_type': self.type,

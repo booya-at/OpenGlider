@@ -122,6 +122,11 @@ class LineSet2D(object):
 
         return list(nodes)
 
+    def get_upper_node(self, name):
+        for node in self.get_upper_nodes():
+            if node.name == name:
+                return node
+
     def get_lower_attachment_points(self):
         return [node for node in self.nodes if isinstance(node, LowerNode2D)]
 
@@ -162,7 +167,6 @@ class LineSet2D(object):
             node.pos_3D = numpy.array(node.pos_3D) * factor
             node.pos_2D = numpy.array(node.pos_2D) * factor
 
-
     def set_default_nodes2d_pos(self, glider):
         lineset_3d = self.return_lineset(glider, [10,0,0])
         lineset_3d._calc_geo()
@@ -188,6 +192,9 @@ class LineSet2D(object):
 
     def get_upper_connected_lines(self, node):
         return [line for line in self.lines if line.lower_node is node]
+
+    def get_lower_connected_lines(self, node):
+        return [line for line in self.lines if line.upper_node is node]
 
     def get_influence_nodes(self, line):
         if isinstance(line.upper_node, UpperNode2D):
