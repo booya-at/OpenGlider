@@ -214,6 +214,11 @@ class ParametricGlider(object):
         :return:
         """
 
+    def apply_aoa(self, glider, interpolation_num=50):
+        aoa_interpolation = self.aoa.interpolation(num=interpolation_num)
+        for rib, x_pos in zip(glider.ribs, self.shape.rib_x_values):
+            rib.aoa_relative = aoa_interpolation(x_pos)
+
     def get_glider_3d(self, glider=None, num=50):
         """returns a new glider from parametric values"""
         glider = glider or Glider()
