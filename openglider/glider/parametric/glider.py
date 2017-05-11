@@ -5,7 +5,7 @@ import numpy as np
 
 from openglider.airfoil import Profile2D
 from openglider.glider import Glider
-from openglider.glider.cell import Panel, DiagonalRib, TensionStrapSimple, Cell
+from openglider.glider.cell import Panel, DiagonalRib, TensionLine, Cell
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.export_ods import export_ods_2d
 from openglider.glider.parametric.import_ods import import_ods_2d
@@ -187,6 +187,12 @@ class ParametricGlider(object):
                     dct.pop("cells")
                     dct["name"] = "c{}s".format(cell_no+1)
                     cell.straps.append(DiagonalRib(**dct))
+            for tension_line in self.elements.get("tension_lines", []):
+                if cell_no in tension_line["cells"]:
+                    dct = tension_line.copy()
+                    dct.pop("cells")
+                    dct["name"] = "c{}s".format(cell_no+1)
+                    cell.straps.append(TensionLine(**dct))
 
             cell.straps.sort(key=lambda s: (s.get_average_x()))
 

@@ -186,9 +186,11 @@ class TensionStrap(DiagonalRib):
                                            name)
 
 
-class TensionStrapSimple(TensionStrap):
+class TensionLine(TensionStrap):
     def __init__(self, left, right, material_code="", name=""):
-        super(TensionStrapSimple, self).__init__(left, right, 0.01, material_code=material_code, name=name)
+        super(TensionLine, self).__init__(left, right, 0.01, material_code=material_code, name=name)
+        self.left = left
+        self.right = right
 
     def __json__(self):
         return {"left": self.left,
@@ -205,6 +207,13 @@ class TensionStrapSimple(TensionStrap):
 
     def mirror(self):
         self.left, self.right = self.right, self.left
+
+    def get_mesh(self, cell):
+        rib1 = cell.rib1
+        rib2 = cell.rib2
+        p1 = rib1.profile_3d[rib1.profile_2d(self.left)]
+        p2 = rib2.profile_3d[rib2.profile_2d(self.right)]
+        return Mesh.from_indexed([p1, p2], {"tension_lines": [[0, 1]]})
 
 
 class Panel(object):
