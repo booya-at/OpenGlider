@@ -157,7 +157,9 @@ class ParametricShape(object):
 
     ############################################################################
     # scaling stuff
-    def scale(self, x=1., y=1.):
+    def scale(self, x=1., y=None):
+        if y is None:
+            y = x
         self.front_curve.scale(x, y)
 
         # scale back to fit with front

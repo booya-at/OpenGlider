@@ -99,14 +99,17 @@ class PanelPlot(object):
 
         plotpart.layers["envelope"].append(envelope)
 
+        # sewings
         plotpart.layers["stitches"] += [
             self.ballooned[0][front_left:back_left],
             self.ballooned[1][front_right:back_right]]
 
+        # folding line
         plotpart.layers["marks"] += [
             PolyLine2D([self.ballooned[0][front_left], self.ballooned[1][front_right]]),
             PolyLine2D([self.ballooned[0][back_left], self.ballooned[1][back_right]])]
 
+        # TODO
         if False:
             if panel_right:
                 right = PolyLine2D([panel_front.last()]) + panel_right + PolyLine2D([panel_back[0]])
@@ -125,6 +128,7 @@ class PanelPlot(object):
         self._insert_text(plotpart)
         self._insert_controlpoints(plotpart)
         self._insert_attachment_points(plotpart, attachment_points=attachment_points)
+        self._insert_diagonals(plotpart)
 
         self._align_upright(plotpart)
 
@@ -179,6 +183,29 @@ class PanelPlot(object):
                 if self.panel.cut_front[side] <= x <= self.panel.cut_back[side]:
                     p1, p2 = self.get_p1_p2(x, side)
                     plotpart.layers["L0"] += self.config.marks_laser_controlpoint(p1, p2)
+
+    def _insert_diagonals(self, plotpart):
+        def insert_diagonal(x, height, side, front):
+            if height == 1:
+                xval = -x
+            elif height == -1:
+                xval = x
+            else:
+                return
+
+            if self.panel.cut_front[side] <= xval <= self.panel.cut_back[side]:
+                p1, p2 = self.get_p1_p2(xval, side)
+                plotpart.layers["L0"] += self.config.marks_laser_diagonal(p1, p2)
+                if (front and height == -1) or (not front and height == 1):
+                    plotpart.layers["marks"] += self.config.marks_diagonal_front(p1, p2)
+                else:
+                    plotpart.layers["marks"] += self.config.marks_diagonal_back(p1, p2)
+
+        for strap in self.cell.straps + self.cell.diagonals:
+            insert_diagonal(*strap.left_front, side="left", front=False)
+            insert_diagonal(*strap.left_back, side="left", front=True)
+            insert_diagonal(*strap.right_front, side="right", front=True)
+            insert_diagonal(*strap.right_back, side="right", front=False)
 
     def _insert_attachment_points(self, plotpart, attachment_points):
         for attachment_point in attachment_points:
