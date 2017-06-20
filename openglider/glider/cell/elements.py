@@ -205,6 +205,9 @@ class TensionLine(TensionStrap):
 
         return norm(left - right)
 
+    def get_center_length(self, cell):
+        return self.get_length(cell)
+
     def mirror(self):
         self.left, self.right = self.right, self.left
 
