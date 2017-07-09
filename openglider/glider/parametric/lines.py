@@ -1,6 +1,7 @@
 import copy
 import numpy
 
+from glider.rib.elements import CellAttachmentPoint
 from openglider.glider.rib import AttachmentPoint
 from openglider.lines import Node, Line, LineSet
 from openglider.utils import recursive_getattr
@@ -31,31 +32,44 @@ class LowerNode2D(object):
 
 class UpperNode2D(object):
     """stores the 2d data of an attachment point"""
-    def __init__(self, rib_no, rib_pos, force=1., name="unnamed", layer=None):
-        self.rib_no = rib_no
+    def __init__(self, cell_no, rib_pos, cell_pos=0, force=1., name="unnamed", layer=None):
+        self.cell_no = cell_no
+        self.cell_pos = cell_pos
         self.rib_pos = rib_pos  # value from 0...1
         self.force = force
         self.name = name
         self.layer = layer or ""
 
     def __json__(self):
-        return {'rib_no': self.rib_no,
+        return {'rib_no': self.cell_no,
                 'rib_pos': self.rib_pos,
                 'force': self.force,
                 'name': self.name,
                 "layer": self.layer}
 
     def get_2D(self, parametric_shape):
-        return parametric_shape[self.rib_no, self.rib_pos]
+        return parametric_shape[self.cell_no, self.rib_pos]
 
     def get_node(self, glider):
-        rib = glider.ribs[self.rib_no + glider.has_center_cell]
-        if isinstance(self.force, (list, tuple, numpy.ndarray)):
-            force = list(self.force)
+        if self.cell_pos == 0:
+            rib = glider.ribs[self.cell_no + glider.has_center_cell]
+            if isinstance(self.force, (list, tuple, numpy.ndarray)):
+                force = list(self.force)
+            else:
+                force = list(rib.rotation_matrix.dot(numpy.array([0, self.force, 0])))
+            node = AttachmentPoint(glider.ribs[self.cell_no + glider.has_center_cell],
+                                   self.name, self.rib_pos, force)
+
         else:
-            force = list(rib.rotation_matrix.dot(numpy.array([0, self.force, 0])))
-        node = AttachmentPoint(glider.ribs[self.rib_no + glider.has_center_cell],
-                               self.name, self.rib_pos, force)
+            cell = glider.cells[self.cell_no + glider.has_center_cell]
+            if isinstance(self.force, (list, tuple, numpy.ndarray)):
+                force = list(self.force)
+            else:
+                midrib = cell.midrib(self.cell_pos)
+                force = list(midrib.rotation_matrix.dot(numpy.array([0, self.force, 0])))
+
+            node = CellAttachmentPoint(cell, self.name, self.cell_pos, self.rib_pos, force)
+
         node.get_position()
         return node
 
@@ -117,7 +131,7 @@ class LineSet2D(object):
         for line in self.lines:
             node = line.upper_node
             if isinstance(node, UpperNode2D):
-                if rib_no is None or node.rib_no == rib_no:
+                if rib_no is None or node.cell_no == rib_no:
                     nodes.add(line.upper_node)
 
         return list(nodes)
@@ -239,7 +253,7 @@ class LineSet2D(object):
         temp_new = []
         for line in self.lines:
             if isinstance(line.upper_node, UpperNode2D):
-                if line.upper_node.rib_no >= len(glider.ribs):
+                if line.upper_node.cell_no >= len(glider.ribs):
                     temp.append(line)
                     self.nodes.remove(line.upper_node)
 

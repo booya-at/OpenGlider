@@ -236,8 +236,22 @@ def get_geometry_explicit(sheet):
 
 
 def get_geometry_parametric(sheet):
-    raise NotImplementedError
-    # todo -> raise on fail
+    data = {}
+    column = 0
+    while sheet[0, column].value:
+        rows = []
+        row = 1
+        while sheet[row, column].value:
+            rows.append([sheet[row, column].value, sheet[row, column+1].value])
+            row += 1
+
+        data[sheet[0, column].value] = rows
+        column += 2
+
+    print(data)
+    raise Exception
+
+    return data
 
 
 def get_material_codes(sheet):
@@ -253,13 +267,17 @@ def get_material_codes(sheet):
     return ret
 
 
-def get_attachment_points(sheet, midrib=False):
+def get_attachment_points(rib_sheet, cell_sheet, midrib=False):
+    # coming: (num, name, (cell_pos,) rib_pos, force
     # UpperNode2D(rib_no, rib_pos, force, name, layer)
     attachment_points = [UpperNode2D(args[0], args[2], args[3], args[1])
-                         for args in read_elements(sheet, "AHP", len_data=3)]
+                         for args in read_elements(rib_sheet, "AHP", len_data=3)]
+
+    cell_attachment_points = [UpperNode2D(args[0], args[2], args[3],args[4], args[1])
+                              for args in read_elements(cell_sheet, "AHP", len_data=4)]
     # attachment_points.sort(key=lambda element: element.nr)
 
-    return {node.name: node for node in attachment_points}
+    return {node.name: node for node in attachment_points + cell_attachment_points}
     # return attachment_points
 
 

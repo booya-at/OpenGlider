@@ -285,8 +285,8 @@ class SymmetricBezier(Bezier):
             self.fit(numpy.array(data), num_ctrl)
 
     @dualmethod
-    def fit(cls, data, numpoints=3):
-        bez = super(SymmetricBezier, cls).fit(data, numpoints=2*numpoints)
+    def fit(cls, data, numpoints=3, start=True, end=True):
+        bez = super(SymmetricBezier, cls).fit(data, numpoints=2*numpoints, start=start, end=start)
         bez.controlpoints = bez.controlpoints[numpoints:]
         return bez
 

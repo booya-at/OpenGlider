@@ -85,8 +85,8 @@ class PanelPlot(object):
             _cuts = panel_front.cut_with_polyline(panel_back, startpoint=0)
             try:
                 ik_front, ik_back = next(_cuts)
-                panel_back = panel_back[:ik_back]
-                panel_front = panel_front[:ik_front]
+                panel_back = panel_back[ik_back:]
+                panel_front = panel_front[ik_front:]
             except StopIteration:
                 pass  # todo: fix aswell!
 
@@ -94,7 +94,12 @@ class PanelPlot(object):
         if panel_right:
             panel_right = panel_right[::-1]
 
-        envelope = panel_right + panel_back + panel_left[::-1] + panel_front
+        #print(panel_left)
+
+        envelope = panel_right + panel_back
+        if len(panel_left) > 0:
+            envelope += panel_left[::-1]
+        envelope += panel_front
         envelope += PolyLine2D([envelope[0]])
 
         plotpart.layers["envelope"].append(envelope)
@@ -145,12 +150,14 @@ class PanelPlot(object):
         return self.ballooned[side][ik], self.outer_orig[side][ik]
 
     def _align_upright(self, plotpart):
-        side = "left"
+        def get_p1_p2(side):
+            p1 = self.get_p1_p2(self.panel.cut_front[side], side)[0]
+            p2 = self.get_p1_p2(self.panel.cut_back[side], side)[0]
 
-        p1 = self.get_p1_p2(self.panel.cut_front[side], side)[0]
-        p2 = self.get_p1_p2(self.panel.cut_back[side], side)[0]
+            return p2 - p1
 
-        vector = p2 - p1
+        vector = get_p1_p2("left")
+        vector += get_p1_p2("right")
         angle = vector_angle(vector, [0, 1])
 
         plotpart.rotate(angle)

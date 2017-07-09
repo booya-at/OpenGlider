@@ -7,6 +7,7 @@ from openglider.plots import marks, cuts
 
 class PatternConfig(Config):
     complete_glider = True
+    profile_numpoints = 250
 
     cut_entry = cuts.FoldedCut
     cut_trailing_edge = cuts.ParallelCut

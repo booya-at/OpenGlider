@@ -48,6 +48,9 @@ class Patterns(object):
 
         subprocess.call("mkdir -p {}".format(outdir), shell=True)
 
+        if self.config.profile_numpoints:
+            self.glider_2d.num_profile = self.config.profile_numpoints
+
         glider = glider or self.glider_2d.get_glider_3d()
         if self.config.complete_glider:
             glider_complete = glider.copy_complete()

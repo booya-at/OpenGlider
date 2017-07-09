@@ -25,11 +25,24 @@ from openglider.vector.polyline import PolyLine2D
 
 
 class RigidFoil(object):
-    def __init__(self, start=-0.1, end=0.1, distance=0.005):
+    def __init__(self, start=-0.1, end=0.1, distance=0.005, circle_radius=0.03):
         self.start = start
         self.end = end
         self.distance = distance
-        self.func = lambda x: distance
+        self.circle_radius = circle_radius
+        #self.func = lambda x: distance
+
+    def func(self, pos):
+        dsq = None
+        if -0.05 <= pos - self.start < self.circle_radius:
+            dsq = self.circle_radius**2 - (self.circle_radius + self.start - pos)**2
+        if -0.05 <= self.end - pos < self.circle_radius:
+            dsq = self.circle_radius**2 - (self.circle_radius + pos - self.end)**2
+
+        if dsq is not None:
+            dsq = max(dsq, 0)
+            return self.distance + (self.circle_radius - numpy.sqrt(dsq)) * 0.35
+        return self.distance
 
     def __json__(self):
         return {'start': self.start,
@@ -53,10 +66,17 @@ class RigidFoil(object):
         start = profile(self.start)
         end = profile(self.end)
 
+        positions = []
+        for p in profile[start:end]:
+            if p[1] > 0:
+                positions.append(-p[0])
+            else:
+                positions.append(p[0])
+
         outer_curve = profile[start:end].scale(rib.chord)
         normvectors = profile_normvectors[start:end]
 
-        return [p - n*self.func(p) for p, n in zip(outer_curve, normvectors)]
+        return [p - n*self.func(pos)*rib.chord for pos, p, n in zip(positions, outer_curve, normvectors)]
 
 
 class GibusArcs(object):
@@ -114,6 +134,28 @@ class GibusArcs(object):
 
         return numpy.array(gib_arc) * rib.chord
 
+
+class CellAttachmentPoint(Node):
+    def __init__(self, cell, name, cell_pos, rib_pos, force=None):
+        self.cell = cell
+        self.cell_pos = cell_pos
+        self.rib_pos = rib_pos
+        self.name = name
+        self.force = force
+
+    def __json__(self):
+        return {
+            "cell": self.cell,
+            "cell_pos": self.cell_pos,
+            "rib_pos": self.rib_pos,
+            "name": self.name,
+            "force": self.force
+        }
+
+    def get_position(self):
+        ik = self.cell.rib1.profile_2d(self.rib_pos)
+        self.vec = self.cell.midrib(self.cell_pos)[ik]
+        return self.vec
 
 # Node from lines
 class AttachmentPoint(Node):
