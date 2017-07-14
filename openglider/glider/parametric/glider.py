@@ -328,7 +328,7 @@ class ParametricGlider(object):
         return np.array([np.cos(angle), 0, np.sin(angle)]) * self.speed
 
     def set_area(self, area):
-        factor = area/self.shape.area    # TODO: passt des schon no mit line-skalierung?
+        factor = math.sqrt(area/self.shape.area)    # TODO: passt des schon no mit line-skalierung?
         self.shape.scale(factor)
         self.lineset.scale(factor)
         self.rescale_curves()

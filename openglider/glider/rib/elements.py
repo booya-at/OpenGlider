@@ -137,6 +137,7 @@ class GibusArcs(object):
 
 class CellAttachmentPoint(Node):
     def __init__(self, cell, name, cell_pos, rib_pos, force=None):
+        super(CellAttachmentPoint, self).__init__(node_type=2)
         self.cell = cell
         self.cell_pos = cell_pos
         self.rib_pos = rib_pos

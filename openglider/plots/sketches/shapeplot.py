@@ -60,9 +60,11 @@ class ShapePlot(object):
 
     def insert_attachment_points(self, add_text=True):
         for attachment_point in self.glider_2d.lineset.get_upper_nodes():
+            rib_no = attachment_point.cell_pos + attachment_point.cell_no + self.glider_2d.shape.has_center_cell
+
             # glider2d does not contain the mirrored rib:
-            rib_no = attachment_point.rib_no + self.glider_2d.shape.has_center_cell
             p1 = self.glider_2d.shape.get_shape_point(rib_no, attachment_point.rib_pos)
+            #p2 = self.glider_2d.shape.get_shape_point(rib_no+0.02, attachment_point.rib_pos)
             
             # if rib_no == len(self.glider_2d.shape.ribs) - not(self.glider_2d.shape.has_center_cell):
             #     rib2 = rib_no - 1

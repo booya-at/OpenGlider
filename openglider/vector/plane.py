@@ -30,7 +30,7 @@ class Plane(object):
 
     @property
     def translation_matrix(self):
-        return numpy.matrix(self.v1, self.v2, self.normvector).transpose()
+        return numpy.matrix([self.v1, self.v2, self.normvector]).transpose()
 
     def align(self, point_3d):
         return self.p0 + self.translation_matrix.dot(point_3d)

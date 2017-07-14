@@ -7,6 +7,7 @@ from openglider.vector import PolyLine2D, vector_angle
 from openglider.vector.text import Text
 import openglider.vector.projection as projection
 from openglider.plots import Layout
+from openglider.vector import normalize
 
 
 class PanelPlot(object):
@@ -216,35 +217,52 @@ class PanelPlot(object):
 
     def _insert_attachment_points(self, plotpart, attachment_points):
         for attachment_point in attachment_points:
-            if attachment_point.rib not in self.cell.ribs:
-                continue
+            if hasattr(attachment_point, "cell"):
+                if attachment_point.cell != self.cell:
+                    continue
+
+                cell_pos = attachment_point.cell_pos
+
+            elif hasattr(attachment_point, "rib"):
+
+                if attachment_point.rib not in self.cell.ribs:
+                    continue
 
 
-            if attachment_point.rib == self.cell.rib1:
-                align = ("left", "right")
-            elif attachment_point.rib == self.cell.rib2:
-                align = ("right", "left")
+                if attachment_point.rib == self.cell.rib1:
+                    cell_pos = 0
+                    align = ("left", "right")
+                elif attachment_point.rib == self.cell.rib2:
+                    cell_pos = 1
 
-            which = align[0]
+            cut_f_l = self.panel.cut_front["left"]
+            cut_f_r = self.panel.cut_front["right"]
+            cut_b_l = self.panel.cut_back["left"]
+            cut_b_r = self.panel.cut_back["right"]
+            cut_f = cut_f_l + cell_pos * (cut_f_r - cut_f_l)
+            cut_b = cut_b_l + cell_pos * (cut_b_r - cut_b_l)
 
-            if self.panel.cut_front[which] <= attachment_point.rib_pos <= self.panel.cut_back[which]:
+            if cut_f <= attachment_point.rib_pos <= cut_b:
                 left, right = self.get_point(attachment_point.rib_pos)
 
                 if self.config.insert_attachment_point_text:
+                    text_align = "left" if cell_pos > 0.9 else "right"
                     if self.config.layout_seperate_panels and self.panel.is_lower:
                         # rotated later
                         p2 = left
                         p1 = right
-                        text_align = align[1]
+                        text_align = text_align
                     else:
                         p1 = left
                         p2 = right
-                        text_align = align[0]
+                        text_align = text_align
                     plotpart.layers["text"] += Text(" {} ".format(attachment_point.name), p1, p2,
                                                     size=0.01,  # 1cm
                                                     align=text_align, valign=0.5, height=0.8).get_vectors()
 
-                p1, p2 = self.get_p1_p2(attachment_point.rib_pos, which)
+                p1 = left + cell_pos * (right - left)
+                p2 = p1 + normalize(right - left) * 0.008
+                #p1, p2 = self.get_p1_p2(attachment_point.rib_pos, which)
                 plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
                 plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
 
@@ -348,6 +366,8 @@ class DribPlot(object):
         attachment_points = attachment_points or []
 
         for attachment_point in attachment_points:
+            if not hasattr(attachment_point, "rib"):
+                continue
             x = attachment_point.rib_pos
             if attachment_point.rib is self.cell.rib1:
                 if not self._is_valid(x, side=0):
@@ -432,9 +452,7 @@ class CellPlotMaker:
 
     def __init__(self, cell, attachment_points, config=None):
         self.cell = cell
-        self.attachment_points_left = [p for p in attachment_points if p.rib is self.cell.rib1]
-        self.attachment_points_right = [p for p in attachment_points if p.rib is self.cell.rib2]
-        self.attachment_points = [p for p in attachment_points if p.rib in self.cell.ribs]
+        self.attachment_points = attachment_points
         self.config = self.DefaultConf(config)
 
         self._flattened_cell = None

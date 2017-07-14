@@ -169,7 +169,12 @@ class LineSet():
 
             else:
                 force = line_lower.upper_node.force
-                line_lower.force = norm(proj_force(force, normalize(vec)))
+                force_projected = proj_force(force, normalize(vec))
+                if force_projected is None:
+                    print("shit", line_lower.upper_node.name)
+                    line_lower.force = 10
+                else:
+                    line_lower.force = norm(force_projected)
 
     def get_upper_connected_lines(self, node):
         return [line for line in self.lines if line.lower_node is node]

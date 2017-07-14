@@ -258,7 +258,12 @@ class Node(object):
 
     def calc_force_infl(self, vec):
         v = numpy.array(vec)
-        return normalize(self.vec - v) * proj_force(self.force, self.vec - v)
+        force = proj_force(self.force, self.vec - v)
+        if force is None:
+            print(self.name)
+            print(self.vec-v, self.force)
+            force = 0.00001
+        return normalize(self.vec - v) * force
 
     def calc_proj_vec(self, v_inf):
         self.vec_proj = proj_to_surface(self.vec, v_inf)

@@ -1,8 +1,7 @@
 import copy
 import numpy
 
-from glider.rib.elements import CellAttachmentPoint
-from openglider.glider.rib import AttachmentPoint
+from openglider.glider.rib.elements import AttachmentPoint, CellAttachmentPoint
 from openglider.lines import Node, Line, LineSet
 from openglider.utils import recursive_getattr
 from openglider.lines import line_types
@@ -41,8 +40,9 @@ class UpperNode2D(object):
         self.layer = layer or ""
 
     def __json__(self):
-        return {'rib_no': self.cell_no,
+        return {'cell_no': self.cell_no,
                 'rib_pos': self.rib_pos,
+                "cell_pos": self.cell_pos,
                 'force': self.force,
                 'name': self.name,
                 "layer": self.layer}
@@ -51,7 +51,18 @@ class UpperNode2D(object):
         return parametric_shape[self.cell_no, self.rib_pos]
 
     def get_node(self, glider):
-        if self.cell_pos == 0:
+        if self.cell_pos > 0:
+            cell = glider.cells[self.cell_no + glider.has_center_cell]
+            if isinstance(self.force, (list, tuple, numpy.ndarray)):
+                force = list(self.force)
+            else:
+                midrib = cell.midrib(self.cell_pos)
+                force1 = numpy.array([0, self.force, 0])
+                plane = midrib.projection_layer
+                force = list(numpy.array(plane.translation_matrix.dot(force1))[0])
+
+            node = CellAttachmentPoint(cell, self.name, self.cell_pos, self.rib_pos, force)
+        else:
             rib = glider.ribs[self.cell_no + glider.has_center_cell]
             if isinstance(self.force, (list, tuple, numpy.ndarray)):
                 force = list(self.force)
@@ -60,15 +71,6 @@ class UpperNode2D(object):
             node = AttachmentPoint(glider.ribs[self.cell_no + glider.has_center_cell],
                                    self.name, self.rib_pos, force)
 
-        else:
-            cell = glider.cells[self.cell_no + glider.has_center_cell]
-            if isinstance(self.force, (list, tuple, numpy.ndarray)):
-                force = list(self.force)
-            else:
-                midrib = cell.midrib(self.cell_pos)
-                force = list(midrib.rotation_matrix.dot(numpy.array([0, self.force, 0])))
-
-            node = CellAttachmentPoint(cell, self.name, self.cell_pos, self.rib_pos, force)
 
         node.get_position()
         return node
@@ -242,7 +244,7 @@ class LineSet2D(object):
             if not nodes:
                 print("line", line)
                 #return -1
-            return sum([100*node.rib_no+node.rib_pos for node in nodes])/len(nodes)
+            return sum([100*node.cell_no+node.rib_pos for node in nodes])/len(nodes)
 
         lines.sort(key=sort_key)
 

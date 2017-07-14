@@ -62,7 +62,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
             data[row[0].value] = row[1].value
 
     # Attachment points: rib_no, id, pos, force
-    attachment_points = get_attachment_points(rib_sheet)
+    attachment_points = get_attachment_points(rib_sheet, cell_sheet)
     attachment_points_lower = get_lower_aufhaengepunkte(data)
 
     # RIB HOLES
@@ -269,15 +269,17 @@ def get_material_codes(sheet):
 
 def get_attachment_points(rib_sheet, cell_sheet, midrib=False):
     # coming: (num, name, (cell_pos,) rib_pos, force
-    # UpperNode2D(rib_no, rib_pos, force, name, layer)
-    attachment_points = [UpperNode2D(args[0], args[2], args[3], args[1])
+    # UpperNode2D(rib_no, rib_pos, cell_pos, force, name, layer)
+    attachment_points = [UpperNode2D(args[0], args[2], force=args[3], name=args[1])
                          for args in read_elements(rib_sheet, "AHP", len_data=3)]
 
-    cell_attachment_points = [UpperNode2D(args[0], args[2], args[3],args[4], args[1])
+    cell_attachment_points = [UpperNode2D(args[0], args[3], args[2],args[4], args[1])
                               for args in read_elements(cell_sheet, "AHP", len_data=4)]
     # attachment_points.sort(key=lambda element: element.nr)
 
-    return {node.name: node for node in attachment_points + cell_attachment_points}
+    dct = {node.name: node for node in (attachment_points + cell_attachment_points)}
+
+    return dct
     # return attachment_points
 
 

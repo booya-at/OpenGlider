@@ -146,7 +146,7 @@ class RibPlot(object):
         t_e_allowance = self.config.allowance_trailing_edge
         p1 = inner_rib[0] + [0, 1]
         p2 = inner_rib[0] + [0, -1]
-        cuts = outer_rib.cut(p1, p2)
+        cuts = outer_rib.cut(p1, p2, extrapolate=True)
 
         start = next(cuts)[0]
         stop = next(cuts)[0]
@@ -158,7 +158,7 @@ class RibPlot(object):
 
     def _insert_attachment_points(self, points):
         for attachment_point in points:
-            if attachment_point.rib == self.rib:
+            if hasattr(attachment_point, "rib") and attachment_point.rib == self.rib:
                 self.insert_mark(attachment_point.rib_pos, self.config.marks_attachment_point)
                 self.insert_mark(attachment_point.rib_pos, self.config.marks_laser_attachment_point, "L0")
 

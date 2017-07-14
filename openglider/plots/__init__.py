@@ -51,21 +51,7 @@ class Patterns(object):
         if self.config.profile_numpoints:
             self.glider_2d.num_profile = self.config.profile_numpoints
 
-        glider = glider or self.glider_2d.get_glider_3d()
-        if self.config.complete_glider:
-            glider_complete = glider.copy_complete()
-            glider_complete.rename_parts()
-            plots = PlotMaker(glider_complete, config=self.config)
-            glider_complete.lineset.iterate_target_length()
-        else:
-            plots = PlotMaker(glider, config=self.config)
-            glider.lineset.iterate_target_length()
-            
-        plots.unwrap()
-        all_patterns = plots.get_all_grouped()
 
-        with open(fn("patterns.json"), "w") as outfile:
-            jsonify.dump(plots, outfile)
 
         print("create sketches")
         import openglider.plots.sketches as sketch
@@ -90,6 +76,23 @@ class Patterns(object):
         straps.insert_straps()
 
         drawings = [design_upper.drawing, design_lower.drawing, lineplan.drawing, diagonals.drawing, straps.drawing]
+
+        glider = glider or self.glider_2d.get_glider_3d()
+        if self.config.complete_glider:
+            glider_complete = glider.copy_complete()
+            glider_complete.rename_parts()
+            plots = PlotMaker(glider_complete, config=self.config)
+            glider_complete.lineset.iterate_target_length()
+        else:
+            plots = PlotMaker(glider, config=self.config)
+            glider.lineset.iterate_target_length()
+            
+        plots.unwrap()
+        all_patterns = plots.get_all_grouped()
+
+        with open(fn("patterns.json"), "w") as outfile:
+            jsonify.dump(plots, outfile)
+
 
         designs = Layout.stack_column(drawings, self.config.patterns_align_dist_y)
         all_patterns.append_left(designs, distance=self.config.patterns_align_dist_x*2)
