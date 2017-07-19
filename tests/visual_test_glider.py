@@ -67,6 +67,7 @@ class TestGlider(GliderTestClass):
 
         openglider.graphics.Graphics3D(objects, points)
 
+    @unittest.skip('TODO')
     def test_show_shape(self):
         self.glider = self.glider.copy_complete()
         left, right = self.glider.shape_flattened
@@ -77,6 +78,7 @@ class TestGlider(GliderTestClass):
         data += [[left[i], right[i]] for i in range(len(left))]
         openglider.graphics.Graphics2D([openglider.graphics.Line(obj) for obj in data])
 
+    @unittest.skip('TODO')
     def test_show_shape_simple(self):
         front, back = self.glider.shape_simple
         openglider.graphics.Graphics2D([openglider.graphics.Line(obj) for obj in (front, back)])
@@ -107,6 +109,7 @@ class TestGlider(GliderTestClass):
         profs += [cell.midrib(random.random()).flatten().data + [0, (i + 1) * 0.] for i in range(num)]
         openglider.graphics.Graphics2D([openglider.graphics.Line(prof) for prof in profs])
 
+    @unittest.skip('TODO')
     def test_brake(self):
         glider = self.glider
         brake = Bezier([[0., 0.], [1., 0.], [1., -0.2]])
@@ -119,6 +122,7 @@ class TestGlider(GliderTestClass):
 
         self.show_glider(glider)
 
+    @unittest.skip('TODO')
     def test_show_glider(self):
         self.show_glider(self.glider)
 
@@ -131,11 +135,15 @@ class TestGlider(GliderTestClass):
 
         file = open(path, "r")
         data = openglider.jsonify.load(file)
-        print(data["panels"])
-        print(data["nodes"])
         graphics.Graphics([graphics.Polygon(panel["node_no"]) for panel in data["panels"] if not panel["is_wake"]],
                           #G.Graphics([G.Polygon(data["panels"][0]["node_no"])],
                           data["nodes"])
+
+    def test_singleskin(self):
+        rib = self.glider.ribs[1]
+        rib.single_skin_par = {"att_dist": 0.05, "height": 0.5}
+        print(rib.getMesh(self.glider))
+        graphics.Graphics([openglider.graphics.Line(rib.getMesh(self.glider))])
 
 
 if __name__ == '__main__':

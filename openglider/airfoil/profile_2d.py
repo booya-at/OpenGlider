@@ -297,3 +297,17 @@ class Profile2D(Polygon2D):
     @property
     def lower_indices(self):
         return range(self.noseindex + 1, len(self))
+
+    def insert_point(self, pos):
+        if pos in self.x_values:
+            pass
+        else:
+            point = self.profilepoint(pos)
+            ik = self(pos)
+            data = list(self.data)
+            data.insert(int(ik + 1), point)
+            self.data = data
+
+    def apply_function(self, foo):
+        data = numpy.array(self.data)
+        self.data = [foo(i, upper=index < self.noseindex) for index, i in enumerate(data)]

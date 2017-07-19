@@ -117,16 +117,15 @@ class Mesh(object):
                                            len(self.vertices))
 
     @classmethod
-    def from_rib(cls, rib, hole_num=10, mesh_option="Qzip"):
+    def from_rib(cls, rib, hole_num=10, mesh_option="Qzip", glider=None):
         """ Y... no additional points on boarder
             i... algorythm (other algo crash)
             p... triangulation
             q... quality
             a... area constraint
         """
-        profile = rib.profile_2d
         triangle_in = {}
-        vertices = list(profile.data)[:-1]
+        vertices = list(rib.getMesh(glider))[:-1]
         if rib.is_closed():
             return cls.from_indexed([], {}, {})
         segments = [[i, i+1] for i, _ in enumerate(vertices)]

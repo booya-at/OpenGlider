@@ -21,7 +21,7 @@ class Rib(CachedObject):
                  chord=1., arcang=0, aoa_absolute=0, zrot=0, glide=1,
                  name="unnamed rib", startpos=0.,
                  rigidfoils=None,
-                 holes=None, material_code=None):
+                 holes=None, material_code=None, single_skin_par=None):
         self.startpos = startpos
         # TODO: Startpos > Set Rotation Axis in Percent
         self.name = name
@@ -35,6 +35,7 @@ class Rib(CachedObject):
         self.holes = holes or []
         self.rigidfoils = rigidfoils or []
         self.material_code = material_code or ""
+        self.single_skin_par = single_skin_par or {}
 
     def __json__(self):
         return {"profile_2d": self.profile_2d,
@@ -45,7 +46,8 @@ class Rib(CachedObject):
                 "zrot": self.zrot,
                 "glide": self.glide,
                 "name": self.name,
-                "material_code": self.material_code}
+                "material_code": self.material_code,
+                "single_skin_par": self.single_skin_par}
 
     def align_all(self, coo, scale=True):
         """align 2d coordinates to the 3d pos of the rib"""
@@ -135,6 +137,67 @@ class Rib(CachedObject):
     def is_closed(self):
         return self.profile_2d.has_zero_thickness
 
+    def getMesh(self, glider=None):
+        """returns the outer contour of the normalized mesh in form
+           of a Polyline"""
+        profile = self.profile_2d.copy()
+        if self.single_skin_par:
+            attach_pts = glider.get_rib_attachment_points(self)
+            pos = list(set([att.rib_pos for att in attach_pts] + [1]))
+            if len(pos) > 1:
+                span_list = []
+                pos.sort()
+                for i, p in enumerate(pos[:-1]):
+                    span_list.append([p + self.single_skin_par["att_dist"] / self.chord / 2, 
+                                     pos[i + 1] - self.single_skin_par["att_dist"] / self.chord / 2])
+                for sp in span_list:
+                    # insert points
+                    profile.insert_point(sp[0])
+                    profile.insert_point(sp[1])
+
+                print("span_list: ", span_list)
+
+                # construct shifting function:
+                foo_list = []
+                for sp in span_list:
+                    # parabola from 3 points
+                    x0 = numpy.array(profile.profilepoint(sp[0]))
+                    x1 = numpy.array(profile.profilepoint(sp[1]))
+                    x_mid = (x0 + x1)[0] / 2
+                    height = abs(profile.profilepoint(-x_mid)[1] - 
+                                 profile.profilepoint(x_mid)[1])
+                    height *= self.single_skin_par["height"] # anything bewtween 0..1
+                    y_mid = profile.profilepoint(x_mid) + height
+                    x_max = numpy.array([(x1 - x0)[0] / 2, height])
+                    def foo(x, upper):
+                        if not upper and x[0] > x0[0] and x[0] < x1[0]:
+                            print(x0)
+                            return parabola(x, x0, x1, x_max)
+                        else:
+                            return x
+                    profile.apply_function(foo)
+
+        return numpy.array(profile.data)
+
+def pseudo_2d_cross(v1, v2):
+    return v1[0] * v2[1] - v1[1] * v2[0]
+
+def parabola(x, x0, x1, x_max):
+    """paraboly used for singleskin ribs
+       x, x0, x1, x_max ... numpy 2d arrays
+       xmax = numpy.sqrt((x1 - x0)**2 + (y1 - y0)**2)"""
+    norm = numpy.linalg.norm
+    x_proj = (x - x0).dot(x1 - x0) / norm(x1 - x0)**2
+    x_proj = (x_proj - 0.5) * 2
+    y_proj = -x_proj **2
+    x = numpy.array([x_proj, y_proj]) * x_max
+    c = (x1 - x0)[0] / norm(x1 - x0)
+    s = (x1 - x0)[1] / norm(x1 - x0)
+    rot = numpy.array([[c, -s], [s, c]])
+    null = - x_max
+    return rot.dot(x - null) + x0
+
+
 def rib_rotation(aoa, arc, zrot):
     """
     Rotation Matrix for Ribs, aoa, arcwide-angle and glidewise angle in radians
@@ -149,3 +212,6 @@ def rib_rotation(aoa, arc, zrot):
     #rot = rotation_3d(-math.pi/2, [0, 0, 1]).dot(rot)
 
     return rot
+
+if __name__ == "__main__":
+    printparabola()

@@ -1,6 +1,6 @@
 import numpy
 import vtk
-from functions import _isintlist
+from .functions import _isintlist
 from openglider.vector.functions import norm
 
 
