@@ -152,8 +152,8 @@ class Rib(CachedObject):
                                      pos[i + 1] - self.single_skin_par["att_dist"] / self.chord / 2])
                 for sp in span_list:
                     # insert points
-                    profile.insert_point(sp[0])
-                    profile.insert_point(sp[1])
+                    for i in numpy.linspace(sp[0], sp[1], 20):
+                        profile.insert_point(i)
 
                 print("span_list: ", span_list)
 
