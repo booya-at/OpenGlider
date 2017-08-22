@@ -4,7 +4,6 @@ from openglider.utils import sign
 from openglider.utils.cache import cached_property, HashedList
 from openglider.vector.functions import norm, normalize, rangefrom, rotation_2d, cut
 
-
 class PolyLine(HashedList):
     def __init__(self, data, name=None):
         super(PolyLine, self).__init__(data, name)
@@ -223,9 +222,11 @@ class PolyLine2D(PolyLine):
         return self
 
     @cached_property('self')
-    def normvectors(self):
+    def normvectors(self):   #RENAME: norm_point_vectors?
         """
         Return Normvectors to the List-Line, heading rhs
+        this property returns a normal for every point,
+        approximated by the 2 neighbour points (len(data) == len(normals))
         """
         rotate = lambda x: normalize(x).dot([[0, -1], [1, 0]])
         normvectors = [rotate(self.data[1] - self.data[0])]
@@ -235,6 +236,26 @@ class PolyLine2D(PolyLine):
                 rotate(self.data[j + 1] - self.data[j - 1]))
         normvectors.append(rotate(self.data[-1] - self.data[-2]))
         return normvectors
+
+    @cached_property('self')
+    def norm_segment_vectors(self):
+        """
+        return all the normals based on the segments of the data:
+        len(data) - 1 == len(normals)
+        """
+        rotate = lambda x: normalize(x).dot([[0, -1], [1, 0]])
+        normvectors = []
+        for p1, p2 in self.segments:
+            normvectors.append(rotate(normalize(p2 - p1)))
+        return numpy.array(normvectors)
+
+    @property
+    def segments(self):
+        data = self.data
+        segments = []
+        for i in range(len(self) - 1):
+            segments.append(data[i:i+2])
+        return numpy.array(segments)
 
     def move(self, vector):
         """
@@ -254,23 +275,33 @@ class PolyLine2D(PolyLine):
         newlist = []
         second = self.data[0]
         third = self.data[1]
-        newlist.append(second + self.normvectors[0] * amount)
-        i = 0
+        newlist.append(second + self.norm_segment_vectors[0] * amount)
         for i in range(1, len(self.data) - 1):
             first = second
             second = third
             third = self.data[i + 1]
-            d1 = third - second
-            d2 = second - first
+            d1 = second - first
+            d2 = third - second
             cosphi = d1.dot(d2) / numpy.sqrt(d1.dot(d1) * d2.dot(d2))
-            if cosphi > 0.9999:
+            coresize = 1e-8
+            if cosphi > 0.9999 or norm(d1) < coresize or norm(d2) < coresize:
                 newlist.append(second + self.normvectors[i] * amount / cosphi)
+            elif cosphi < -0.9999: # this is true if the direction changes 180 degree
+                n1 = self.norm_segment_vectors[i-1]
+                n2 = self.norm_segment_vectors[i]
+                newlist.append(second + self.norm_segment_vectors[i-1] * amount)
+                newlist.append(second + self.norm_segment_vectors[i] * amount)
             else:
-                a = first+self.normvectors[i-1]*amount
-                b = second+self.normvectors[i]*amount
-                c = third + self.normvectors[i+1]*amount
-                newlist.append(cut(a, b, b, c)[0])
-        newlist.append(third + self.normvectors[i + 1] * amount)
+                n1 = self.norm_segment_vectors[i-1]
+                n2 = self.norm_segment_vectors[i]
+                sign = -1. + 2. * (d2.dot(n1) > 0)
+                phi = numpy.arccos(n1.dot(n2))
+                d1 = normalize(d1)
+                ext_vec = n1 - sign * d1 * numpy.tan(phi / 2)
+                newlist.append(second + ext_vec * amount)
+
+                # newlist.append(cut(a, b, c, d)[0])
+        newlist.append(third + self.norm_segment_vectors[-1] * amount)
         self.data = newlist
 
         return self
