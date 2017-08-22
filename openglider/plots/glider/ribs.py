@@ -36,8 +36,9 @@ class RibPlot(object):
 
     def flatten(self, glider):
         self.plotpart = PlotPart(name=self.rib.name, material_code=self.rib.material_code)
-        self.x_values = self.rib.profile_2d.x_values
-        self.inner = self.rib.profile_2d.copy().scale(self.rib.chord)
+        prof2d = self.rib.getMesh(glider)
+        self.x_values = prof2d.x_values
+        self.inner = prof2d.copy().scale(self.rib.chord)
         self.outer = self.inner.copy().add_stuff(self.config.allowance_general)
 
         self._insert_attachment_points(glider.attachment_points)

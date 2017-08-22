@@ -4,6 +4,7 @@ import numpy
 from openglider.airfoil import Profile3D
 from openglider.utils.cache import CachedObject, cached_property
 from openglider.vector.functions import rotation_3d
+from numpy.linalg import norm
 
 
 class Rib(CachedObject):
@@ -140,7 +141,7 @@ class Rib(CachedObject):
     def getMesh(self, glider=None):
         """returns the outer contour of the normalized mesh in form
            of a Polyline"""
-        profile = self.profile_2d.copy()
+        profile = copy.deepcopy(self.profile_2d)
         if self.single_skin_par:
             attach_pts = glider.get_rib_attachment_points(self)
             pos = list(set([att.rib_pos for att in attach_pts] + [1]))
@@ -152,10 +153,8 @@ class Rib(CachedObject):
                                      pos[i + 1] - self.single_skin_par["att_dist"] / self.chord / 2])
                 for sp in span_list:
                     # insert points
-                    for i in numpy.linspace(sp[0], sp[1], 20):
+                    for i in numpy.linspace(sp[0], sp[1], self.single_skin_par["num_points"]):
                         profile.insert_point(i)
-
-                print("span_list: ", span_list)
 
                 # construct shifting function:
                 foo_list = []
@@ -167,17 +166,16 @@ class Rib(CachedObject):
                     height = abs(profile.profilepoint(-x_mid)[1] - 
                                  profile.profilepoint(x_mid)[1])
                     height *= self.single_skin_par["height"] # anything bewtween 0..1
-                    y_mid = profile.profilepoint(x_mid) + height
-                    x_max = numpy.array([(x1 - x0)[0] / 2, height])
+                    y_mid = profile.profilepoint(x_mid)[1] + height
+                    x_max = numpy.array([norm(x1 - x0) / 2, height])
                     def foo(x, upper):
                         if not upper and x[0] > x0[0] and x[0] < x1[0]:
-                            print(x0)
                             return parabola(x, x0, x1, x_max)
                         else:
                             return x
                     profile.apply_function(foo)
 
-        return numpy.array(profile.data)
+        return profile
 
 def pseudo_2d_cross(v1, v2):
     return v1[0] * v2[1] - v1[1] * v2[0]
@@ -186,7 +184,6 @@ def parabola(x, x0, x1, x_max):
     """paraboly used for singleskin ribs
        x, x0, x1, x_max ... numpy 2d arrays
        xmax = numpy.sqrt((x1 - x0)**2 + (y1 - y0)**2)"""
-    norm = numpy.linalg.norm
     x_proj = (x - x0).dot(x1 - x0) / norm(x1 - x0)**2
     x_proj = (x_proj - 0.5) * 2
     y_proj = -x_proj **2
@@ -214,4 +211,7 @@ def rib_rotation(aoa, arc, zrot):
     return rot
 
 if __name__ == "__main__":
-    printparabola()
+    np = numpy
+    a, b, c = np.array([0,0]), np.array([1,1]), np.array([0.5, 0.3])
+    ls = np.array([np.linspace(a[0], b[0], 50), np.linspace(a[1], b[1], 50)]).T
+    print(np.array([parabola(i, a, b, c) for i in ls]))
