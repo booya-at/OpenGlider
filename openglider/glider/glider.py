@@ -74,6 +74,18 @@ class Glider(object):
                    self.aspect_ratio,
                    len(self.cells))
 
+    def replace_ribs(self, new_ribs):
+        replace_dict = {}
+        assert(len(new_ribs) == len(self.ribs))
+        for i, rib in enumerate(self.ribs):
+            replace_dict[rib] = new_ribs[i]
+        for cell in self.cells:
+            cell.rib1 = replace_dict[cell.rib1]
+            cell.rib2 = replace_dict[cell.rib2]
+        for att in self.attachment_points:
+            att.rib = replace_dict[att.rib]
+
+
     @classmethod
     def import_geometry(cls, path, filetype=None):
         if not filetype:

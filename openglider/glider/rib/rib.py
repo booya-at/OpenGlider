@@ -7,6 +7,7 @@ from openglider.vector.functions import rotation_3d
 from numpy.linalg import norm
 
 
+
 class Rib(CachedObject):
     """
     Openglider Rib Class: contains a airfoil, needs a startpoint, angle (arcwide), angle of attack,
@@ -22,7 +23,7 @@ class Rib(CachedObject):
                  chord=1., arcang=0, aoa_absolute=0, zrot=0, glide=1,
                  name="unnamed rib", startpos=0.,
                  rigidfoils=None,
-                 holes=None, material_code=None, single_skin_par=None):
+                 holes=None, material_code=None):
         self.startpos = startpos
         # TODO: Startpos > Set Rotation Axis in Percent
         self.name = name
@@ -36,7 +37,6 @@ class Rib(CachedObject):
         self.holes = holes or []
         self.rigidfoils = rigidfoils or []
         self.material_code = material_code or ""
-        self.single_skin_par = single_skin_par or {}
 
     def __json__(self):
         return {"profile_2d": self.profile_2d,
@@ -47,8 +47,7 @@ class Rib(CachedObject):
                 "zrot": self.zrot,
                 "glide": self.glide,
                 "name": self.name,
-                "material_code": self.material_code,
-                "single_skin_par": self.single_skin_par}
+                "material_code": self.material_code}
 
     def align_all(self, coo, scale=True):
         """align 2d coordinates to the 3d pos of the rib"""
@@ -142,40 +141,66 @@ class Rib(CachedObject):
         """returns the outer contour of the normalized mesh in form
            of a Polyline"""
         profile = copy.deepcopy(self.profile_2d)
-        if self.single_skin_par:
-            attach_pts = glider.get_rib_attachment_points(self)
-            pos = list(set([att.rib_pos for att in attach_pts] + [1]))
-            if len(pos) > 1:
-                span_list = []
-                pos.sort()
-                for i, p in enumerate(pos[:-1]):
-                    span_list.append([p + self.single_skin_par["att_dist"] / self.chord / 2, 
-                                     pos[i + 1] - self.single_skin_par["att_dist"] / self.chord / 2])
-                for sp in span_list:
-                    # insert points
-                    for i in numpy.linspace(sp[0], sp[1], self.single_skin_par["num_points"]):
-                        profile.insert_point(i)
-
-                # construct shifting function:
-                foo_list = []
-                for sp in span_list:
-                    # parabola from 3 points
-                    x0 = numpy.array(profile.profilepoint(sp[0]))
-                    x1 = numpy.array(profile.profilepoint(sp[1]))
-                    x_mid = (x0 + x1)[0] / 2
-                    height = abs(profile.profilepoint(-x_mid)[1] - 
-                                 profile.profilepoint(x_mid)[1])
-                    height *= self.single_skin_par["height"] # anything bewtween 0..1
-                    y_mid = profile.profilepoint(x_mid)[1] + height
-                    x_max = numpy.array([norm(x1 - x0) / 2, height])
-                    def foo(x, upper):
-                        if not upper and x[0] > x0[0] and x[0] < x1[0]:
-                            return parabola(x, x0, x1, x_max)
-                        else:
-                            return x
-                    profile.apply_function(foo)
-
         return profile
+
+
+class SingleSkinRib(Rib):
+    def __init__(self, profile_2d=None, startpoint=None,
+                 chord=1., arcang=0, aoa_absolute=0, zrot=0, glide=1,
+                 name="unnamed rib", startpos=0.,
+                 rigidfoils=None,
+                 holes=None, material_code=None, single_skin_par=None):
+        super(SingleSkinRib, self).__init__(profile_2d, startpoint, chord, arcang,
+                                            aoa_absolute, zrot, glide, name, startpos,
+                                            rigidfoils)
+        self.single_skin_par = single_skin_par or {}
+
+    @classmethod
+    def from_rib(cls, rib, single_skin_par):
+        json_dict = rib.__json__()
+        json_dict["single_skin_par"] = single_skin_par
+        return cls(**json_dict)
+
+    def __json__(self):
+        json_dict = super(SingleSkinRib, self).__json__()
+        json_dict["single_skin_par"] = self.single_skin_par
+
+    def getMesh(self, glider):
+        profile = copy.deepcopy(self.profile_2d)
+        attach_pts = glider.get_rib_attachment_points(self)
+        pos = list(set([att.rib_pos for att in attach_pts] + [1]))
+        if len(pos) > 1:
+            span_list = []
+            pos.sort()
+            for i, p in enumerate(pos[:-1]):
+                span_list.append([p + self.single_skin_par["att_dist"] / self.chord / 2, 
+                                 pos[i + 1] - self.single_skin_par["att_dist"] / self.chord / 2])
+            for sp in span_list:
+                # insert points
+                for i in numpy.linspace(sp[0], sp[1], self.single_skin_par["num_points"]):
+                    profile.insert_point(i)
+
+            # construct shifting function:
+            foo_list = []
+            for sp in span_list:
+                # parabola from 3 points
+                x0 = numpy.array(profile.profilepoint(sp[0]))
+                x1 = numpy.array(profile.profilepoint(sp[1]))
+                x_mid = (x0 + x1)[0] / 2
+                height = abs(profile.profilepoint(-x_mid)[1] - 
+                             profile.profilepoint(x_mid)[1])
+                height *= self.single_skin_par["height"] # anything bewtween 0..1
+                y_mid = profile.profilepoint(x_mid)[1] + height
+                x_max = numpy.array([norm(x1 - x0) / 2, height])
+                def foo(x, upper):
+                    if not upper and x[0] > x0[0] and x[0] < x1[0]:
+                        return parabola(x, x0, x1, x_max)
+                    else:
+                        return x
+                profile.apply_function(foo)
+        return profile
+
+
 
 def pseudo_2d_cross(v1, v2):
     return v1[0] * v2[1] - v1[1] * v2[0]
