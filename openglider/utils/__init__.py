@@ -89,6 +89,6 @@ class Config(object):
         return self.__getattribute__(key)
 
 if __name__ == "__main__":
-    a = {"a": 1, "b":{"c":2}}
-    d = Config(a)
-    print(d.b.c)
+    a = Config({"a": 1, "b":Config({"c":2})})
+    print(a.a)
+    print(dir(a))
