@@ -57,7 +57,7 @@ class Graphics(object):
         if len(arg) == 2:
             return [arg[0], arg[1], 0.]
         elif len(arg) == 3:
-            return arg
+            return list(arg)
         else:
             raise ValueError("Only 2D- or 3D-Vectors allowed")
 

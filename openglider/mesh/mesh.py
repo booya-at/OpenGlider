@@ -19,6 +19,9 @@ class Vertex(object):
         yield self.y
         yield self.z
 
+    def __len__(self):
+        return 3
+
     def copy(self):
         return self.__class__(*self)
 
