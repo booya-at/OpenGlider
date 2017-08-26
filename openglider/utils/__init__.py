@@ -68,7 +68,10 @@ class dualmethod(object):
 
 class Config(object):
     def __init__(self, dct=None):
-        self.__dict__ = {key: value for key, value in self.__class__.__dict__.items() if not key.startswith('_')}
+        self.__dict__ = {}
+        for key, value in self.__class__.__dict__.items():
+            if not key.startswith('_') and key is not "get":
+                self.__dict__[key] = value
         self.__dict__.update(dct or {})
 
     def __json__(self):
@@ -79,7 +82,8 @@ class Config(object):
 
     def __iter__(self):
         for key, value in self.__dict__.items():
-            yield key, value
+            if key is not "get":
+                yield key, value
         #return self.__dict__.__iter__()
 
     def __getitem__(self, item):
@@ -92,3 +96,5 @@ if __name__ == "__main__":
     a = Config({"a": 1, "b":Config({"c":2})})
     print(a.a)
     print(dir(a))
+    for key, value in a:
+        print(key, value)
