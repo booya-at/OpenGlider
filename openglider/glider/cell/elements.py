@@ -27,6 +27,7 @@ from openglider.airfoil import get_x_value
 from openglider.mesh import Mesh
 from openglider.vector import norm
 from openglider.vector.projection import flatten_list
+from openglider.utils import Config
 
 
 class DiagonalRib(object):
@@ -224,9 +225,10 @@ class Panel(object):
     Glider cell-panel
     :param cut_front {'left': 0.06, 'right': 0.06, 'type': 'orthogonal'}
     """
-    class CUT_TYPES:
+    class CUT_TYPES(Config):
         folded = "folded"
         orthogonal = "orthogonal"
+        singleskin = "singleskin"
 
     def __init__(self, cut_front, cut_back, material_code=None, name="unnamed"):
         self.cut_front = cut_front  # (left, right, style(int))
