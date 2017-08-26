@@ -89,6 +89,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
 
     cuts = get_cuts(["EKV", "EKH", "folded"], "folded")
     cuts += get_cuts(["DESIGNM", "DESIGNO", "orthogonal"], "orthogonal")
+    cuts += get_cuts(["singleskin"], "singleskin")
 
     # Diagonals: center_left, center_right, width_l, width_r, height_l, height_r
     diagonals = []

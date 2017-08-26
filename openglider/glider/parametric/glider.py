@@ -150,7 +150,8 @@ class ParametricGlider(object):
                 cut1.pop("cells")
                 cut2.pop("cells")
 
-                if cut1["type"] == cut2["type"] == "folded":
+                if (cut1["type"] == cut2["type"] == "folded" or
+                    cut1["type"] == cut2["type"] == "singleskin"):
                     # entry
                     continue
 
