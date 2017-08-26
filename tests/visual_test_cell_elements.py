@@ -58,13 +58,7 @@ class TestCellElements(GliderTestClass):
 
         mesh = (panel1.get_mesh(self.cell, numribs=9) +
                 panel2.get_mesh(self.cell, numribs=9))
-        #print(triangles, points)
-        tris = mesh.vertices[mesh.polygons]
-        #print(points[triangles])
-        # elems = []
-        # for rib1, rib2 in zip(ribs[:-1], ribs[1:]):
-        #     elems.append(Graph.Polygon(list(rib1) + list(rib2)[::-1]))
-        # return elems
+        tris = mesh.all_polygons
         return [Graph.Polygon(tri) for tri in tris]
 
     def test_panel_3d(self):
