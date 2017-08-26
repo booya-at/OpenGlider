@@ -160,6 +160,8 @@ class PolyLine2D(PolyLine):
                 return other.copy()
             elif len(other.data) == 0:
                 return self.copy()
+            elif all(self.data[-1] == other.data[0]):
+                return self.__add__(other[1:])
             else:
                 return self.__class__(numpy.append(self.data, other.data, axis=0), self.name)
         else:
