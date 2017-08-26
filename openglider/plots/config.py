@@ -10,6 +10,7 @@ from openglider.utils import Config
 class LaserConfig(Config):
     allowance_parallel = 0.01
     allowance_orthogonal = 0.01
+    allowance_singleskin = 0.01
     allowance_folded = 0.01
     allowance_general = 0.01
     allowance_diagonals = 0.01
@@ -28,6 +29,7 @@ sewing_config = {
     "allowance": {
         "parallel": 0.012,
         "orthogonal": 0.012,
+        "singleskin": 0.012,
         "folded": 0.012,
         "general": 0.012,
         "diagonals": 0.012,

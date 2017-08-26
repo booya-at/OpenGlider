@@ -183,6 +183,8 @@ class ParallelCut(DesignCut):
 
         return CutResult(curve, leftcut_index[0], rightcut_index[0])
 
+
+# TODO: used?
 cuts = {"orthogonal": DesignCut,
         "folded": FoldedCut,
         "parallel": ParallelCut}

@@ -27,13 +27,15 @@ class PanelPlot(object):
         cut_allowances = {
             "folded": self.config.allowance_entry_open,
             "parallel": self.config.allowance_trailing_edge,
-            "orthogonal": self.config.allowance_design
+            "orthogonal": self.config.allowance_design,
+            "singleskin": self.config.allowance_entry_open
         }
 
         cut_types = {
             "folded": self.config.cut_entry,
             "parallel": self.config.cut_trailing_edge,
-            "orthogonal": self.config.cut_design
+            "orthogonal": self.config.cut_design,
+            "singleskin": self.config.cut_entry
         }
 
         front_left = get_x_value(self.x_values, self.panel.cut_front["left"])

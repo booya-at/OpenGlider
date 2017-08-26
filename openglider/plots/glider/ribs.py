@@ -156,56 +156,25 @@ class RibPlot(object):
                             outer_rib[start] + [t_e_allowance, 0],
                             outer_rib[start]])
 
-        # get a list of cuts from the left and right side
-        # 1. problem1: last cut for single-skin = 1!
-        # 2. no way to see if no-panel section is leading-edge or not!
 
-
-
-        folded_cuts_from_left = []
-        folded_cuts_from_right = []
+        singleskin_cut = None
         for cell in glider.cells:
             if cell.rib1 == self.rib:
                 for panel in cell.panels:
-                    if panel.cut_front["type"] == "folded":
-                        folded_cuts_from_left.append(
-                            [panel.cut_front["left"], panel.cut_back["left"]]
-                        )
+                    if panel.cut_back["type"] == "singleskin":
+                        # asserts first cut never is a singlesking cut!
+                        # asserts there are never different singleskin cuts (left, right)
+                        # asserts there is only one removed singleskin Panel!
+                        # maybe asserts no singleskin rib on stabilo
+                        singleskin_cut = panel.cut_back["left"]
+                        break
 
-            elif cell.rib2 == self.rib:
-                for panel in cell.panels:
-                    if panel.cut_front["type"] == "folded":
-                        folded_cuts_from_right.append(
-                            [panel.cut_front["right"], panel.cut_back["right"]]
-                        )
-
-        # join the two lists and only use the space where folded panels are overlapping
-        # assume panels from one side are not overlapping
-        overlapping_panels = []
-        for l_panel in folded_cuts_from_left:
-            for r_panel in folded_cuts_from_right:
-                c1 = c2 = None
-                if (l_panel[1] <= r_panel[0] or
-                    r_panel[1] <= l_panel[0]):
-                    pass
-                else:
-                    if l_panel[0] <= r_panel[0]:
-                        c1 = r_panel[0]
-                    else:
-                        c1 = l_panel[0]
-                    if l_panel[1] <= r_panel[1]:
-                        c2 = l_panel[1]
-                    else:
-                        c2 = r_panel[1]
-                    if (c1 and c2 and c1 != c2):
-                        overlapping_panels.append([c1, c2])
         contour = PolyLine2D([])
-        panel = None
-        for panel in overlapping_panels:
-            contour += PolyLine2D(outer_rib[start:panel[0]])
-            contour += PolyLine2D(inner_rib[panel[0]:panel[1]])
-            start = panel[1]
-        contour += PolyLine2D(outer_rib[start:stop])
+        if singleskin_cut:
+            contour += PolyLine2D(outer_rib[start:singleskin_cut])
+            contour += PolyLine2D(inner_rib[singleskin_cut:stop])
+        else:
+            contour += PolyLine2D(outer_rib[start:stop])
         contour += buerzl
 
         self.plotpart.layers["cuts"] += [contour]
