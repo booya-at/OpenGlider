@@ -74,6 +74,7 @@ class PolyLine(HashedList):
         values = [start] + list(range(start_round, stop_round, step)) + [stop]
         return values
 
+
     def check(self):
         # remove zero-length segments
         index = 0
@@ -160,8 +161,8 @@ class PolyLine2D(PolyLine):
                 return other.copy()
             elif len(other.data) == 0:
                 return self.copy()
-            elif all(self.data[-1] == other.data[0]):
-                return self.__add__(other[1:])
+            # elif all(self.data[-1] == other.data[0]):
+            #     return self.__add__(other[1:])
             else:
                 return self.__class__(numpy.append(self.data, other.data, axis=0), self.name)
         else:
@@ -239,6 +240,14 @@ class PolyLine2D(PolyLine):
         normvectors.append(rotate(self.data[-1] - self.data[-2]))
         return normvectors
 
+
+    @cached_property('self')
+    def tangents(self):
+        tangents = []
+        for p1, p2 in self.segments:
+            tangents.append((p2 - p1) / norm(p2 - p1))
+        return numpy.array(tangents)
+
     @cached_property('self')
     def norm_segment_vectors(self):
         """
@@ -250,6 +259,18 @@ class PolyLine2D(PolyLine):
         for p1, p2 in self.segments:
             normvectors.append(rotate(normalize(p2 - p1)))
         return numpy.array(normvectors)
+
+    def get_normal(self, ik):
+        """get normal-vector by ik-value"""
+        normals = self.norm_segment_vectors
+        if ik % 1 == 0:
+            if int(ik) == len(normals):
+                return normals[int(ik) - 1]
+            elif int(ik) == 0:
+                return normals[0]
+            else:
+                return (normals[int(ik) - 1] + normals[int(ik)]) / 2
+        return normals[int(ik)]
 
     @property
     def segments(self):

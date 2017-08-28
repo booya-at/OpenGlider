@@ -16,6 +16,8 @@ class LineSet():
     calculate_sag = True
 
     def __init__(self, lines, v_inf=None):
+        if v_inf is not None:
+            v_inf = numpy.array(v_inf)
         self.v_inf = v_inf
         self.lines = lines or []
         for line in lines:
@@ -254,6 +256,7 @@ class LineSet():
         """
         iterative method to satisfy the target length
         """
+        self.recalc()
         for i in range(steps):
             for l in self.lines:
                 if l.target_length is not None:
@@ -318,4 +321,6 @@ class LineSet():
             if isinstance(line.lower_node, int):
                 line.lower_node = nodes[line.lower_node]
         obj = cls(lines, v_inf)
+        for line in obj.lines:
+            line.lineset = obj
         return obj

@@ -70,6 +70,7 @@ class RibPlot(object):
 
         # rigidfoils
         for rigid in self.rib.rigidfoils:
+            print(rigid)
             self.plotpart.layers["marks"].append(rigid.get_flattened(self.rib))
 
         self._insert_text(self.rib.name)
@@ -96,7 +97,7 @@ class RibPlot(object):
 
         ik = get_x_value(self.x_values, position)
         inner = self.inner[ik]
-        outer = self.outer[ik]
+        outer = inner + PolyLine2D(self.inner).get_normal(ik) * self.config.allowance_general
 
         self.plotpart.layers[layer] += mark_function(inner, outer)
 
@@ -157,22 +158,29 @@ class RibPlot(object):
                             outer_rib[start]])
 
 
-        singleskin_cut = None
+        singleskin_cut_left = None
+        singleskin_cut_right = None
+
         for cell in glider.cells:
+            # asserts first cut never is a singlesking cut!
+            # asserts there is only one removed singleskin Panel!
+            # maybe asserts no singleskin rib on stabilo
             if cell.rib1 == self.rib:
                 for panel in cell.panels:
                     if panel.cut_back["type"] == "singleskin":
-                        # asserts first cut never is a singlesking cut!
-                        # asserts there are never different singleskin cuts (left, right)
-                        # asserts there is only one removed singleskin Panel!
-                        # maybe asserts no singleskin rib on stabilo
-                        singleskin_cut = panel.cut_back["left"]
+                        singleskin_cut_left = panel.cut_back["left"]
+                        break
+            if cell.rib2 == self.rib:
+                for panel in cell.panels:
+                    if panel.cut_back["type"] == "singleskin":
+                        singleskin_cut_right = panel.cut_back["right"]
                         break
 
         contour = PolyLine2D([])
-        if singleskin_cut:
-            contour += PolyLine2D(outer_rib[start:singleskin_cut])
-            contour += PolyLine2D(inner_rib[singleskin_cut:stop])
+        if singleskin_cut_left and singleskin_cut_left == singleskin_cut_right:
+            single_skin_cut = self.rib.profile_2d(singleskin_cut_left)
+            contour += PolyLine2D(outer_rib[start:single_skin_cut])
+            contour += PolyLine2D(inner_rib[single_skin_cut:stop])
         else:
             contour += PolyLine2D(outer_rib[start:stop])
         contour += buerzl

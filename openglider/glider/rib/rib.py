@@ -32,7 +32,7 @@ class Rib(CachedObject):
         self.aoa_absolute = aoa_absolute
         self.arcang = arcang
         self.zrot = zrot
-        self.pos = startpoint  # or HashedList([0, 0, 0])
+        self.pos = numpy.array(startpoint)  # or HashedList([0, 0, 0])
         self.chord = chord
         self.holes = holes or []
         self.rigidfoils = rigidfoils or []
@@ -47,6 +47,7 @@ class Rib(CachedObject):
                 "zrot": self.zrot,
                 "glide": self.glide,
                 "name": self.name,
+                "rigidfoils": self.rigidfoils,
                 "material_code": self.material_code}
 
     def align_all(self, coo, scale=True):
@@ -148,11 +149,11 @@ class SingleSkinRib(Rib):
     def __init__(self, profile_2d=None, startpoint=None,
                  chord=1., arcang=0, aoa_absolute=0, zrot=0, glide=1,
                  name="unnamed rib", startpos=0.,
-                 rigidfoils=None,
-                 holes=None, material_code=None, single_skin_par=None):
+                 rigidfoils=None, holes=None, material_code=None,
+                 single_skin_par=None):
         super(SingleSkinRib, self).__init__(profile_2d, startpoint, chord, arcang,
                                             aoa_absolute, zrot, glide, name, startpos,
-                                            rigidfoils)
+                                            rigidfoils, holes, material_code)
         self.single_skin_par = single_skin_par or {}
 
     @classmethod
@@ -164,6 +165,7 @@ class SingleSkinRib(Rib):
     def __json__(self):
         json_dict = super(SingleSkinRib, self).__json__()
         json_dict["single_skin_par"] = self.single_skin_par
+        return json_dict
 
     def getMesh(self, glider):
         profile = copy.deepcopy(self.profile_2d)

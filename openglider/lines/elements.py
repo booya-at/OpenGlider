@@ -243,6 +243,7 @@ class Line(CachedObject):
     def __from_json__(cls, number, lower_node, upper_node, v_inf, line_type, target_length):
         return cls(lower_node,
                    upper_node,
+                   v_inf,
                    line_types.LineType.get(line_type),
                    target_length,
                    number)
@@ -251,6 +252,8 @@ class Line(CachedObject):
 class Node(object):
     def __init__(self, node_type, position_vector=None):
         self.type = node_type  # lower, top, middle (0, 2, 1)
+        if position_vector is not None:
+            position_vector = numpy.array(position_vector)
         self.vec = position_vector
 
         self.vec_proj = None  # pos_proj
