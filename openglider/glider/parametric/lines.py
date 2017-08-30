@@ -169,7 +169,7 @@ class LineSet2D(object):
             if lower and upper:
                 line = Line(number=line_no, lower_node=lower, upper_node=upper,
                             v_inf=None, target_length=line.target_length,
-                            line_type=line.line_type)
+                            line_type=line.line_type, name=line.name)
                 lines.append(line)
 
         return LineSet(lines, v_inf)
@@ -273,13 +273,15 @@ class LineSet2D(object):
 
 class Line2D(object):
     def __init__(self, lower_node, upper_node, 
-                 target_length=None, line_type='default', layer=None):
+                 target_length=None, line_type='default', layer=None, name=None):
         self.lower_node = lower_node
         self.upper_node = upper_node
         self.target_length = target_length
         self.is_sorted = False
         self.line_type = line_types.LineType.get(line_type)
         self.layer = layer or ""
+        self.name = name
+
 
     def __json__(self):
         return{
@@ -287,5 +289,6 @@ class Line2D(object):
             "upper_node": self.upper_node,
             "target_length": self.target_length,
             "line_type": self.line_type.name,
-            "layer": self.layer
+            "layer": self.layer,
+            "name": self.name
             }

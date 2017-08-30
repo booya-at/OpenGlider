@@ -67,6 +67,27 @@ def output_lines(glider, ods_sheet=None):
 
     return ods_sheet
 
+def output_complex_lines_single(glider, ods_sheet=None):
+    line_tree = glider.lineset.create_tree()
+    ods_sheet = ods_sheet or ezodf.Table(name="lines", size=(500, 500))
+
+    def insert_block(line, upper, row, column):
+        length = round(line.get_stretched_length()*1000)
+        ods_sheet[row, column].set_value(line.name)
+        ods_sheet[row, column + 1].set_value(line.type.name)
+        ods_sheet[row, column + 2].set_value(length)
+        if upper:
+            for line, line_upper in upper:
+                row = insert_block(line, line_upper, row, column + 4)
+        else:  # Insert a top node
+            row += 1
+        return row
+
+    row = 1
+    for line, upper in sorted(line_tree, key=(lambda x: x[0].name)):
+        row = insert_block(line, upper, row, 0)
+    return ods_sheet
+
 
 if __name__ == "__main__":
     from openglider.glider import ParametricGlider

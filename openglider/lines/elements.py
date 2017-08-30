@@ -99,7 +99,7 @@ class SagMatrix():
 
 class Line(CachedObject):
     def __init__(self, lower_node, upper_node, v_inf,
-                 line_type=line_types.LineType.get('default'), target_length=None, number=None):
+                 line_type=line_types.LineType.get('default'), target_length=None, number=None, name=None):
         """
         Line Class
         """
@@ -116,6 +116,8 @@ class Line(CachedObject):
 
         self.sag_par_1 = None
         self.sag_par_2 = None
+
+        self.name = name or "line_name_not_set"
 
         self.lineset = None      # the parent have to be set after initializiation
 
@@ -236,7 +238,8 @@ class Line(CachedObject):
             'upper_node': self.upper_node,
             'v_inf': None,               # remove this!
             'line_type': self.type.name,
-            'target_length': self.target_length
+            'target_length': self.target_length,
+            'name': self.name
         }
 
     @classmethod
@@ -246,7 +249,8 @@ class Line(CachedObject):
                    v_inf,
                    line_types.LineType.get(line_type),
                    target_length,
-                   number)
+                   number,
+                   name)
 
 
 class Node(object):
