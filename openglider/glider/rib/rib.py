@@ -168,6 +168,9 @@ class SingleSkinRib(Rib):
         return json_dict
 
     def getMesh(self, glider):
+        '''
+        returns a modified profile2d
+        '''
         profile = copy.deepcopy(self.profile_2d)
         attach_pts = glider.get_rib_attachment_points(self)
         pos = list(set([att.rib_pos for att in attach_pts] + [1]))
@@ -175,8 +178,14 @@ class SingleSkinRib(Rib):
             span_list = []
             pos.sort()
             for i, p in enumerate(pos[:-1]):
-                span_list.append([p + self.single_skin_par["att_dist"] / self.chord / 2, 
-                                 pos[i + 1] - self.single_skin_par["att_dist"] / self.chord / 2])
+                le_gap = self.single_skin_par["att_dist"] / self.chord / 2
+                te_gap = self.single_skin_par["att_dist"] / self.chord / 2
+                if i == 0 and not self.single_skin_par["le_gap"]: 
+                    le_gap = 0
+                # len(it) - 2 == range(len(it) - 1)[-1]
+                if i == (len(pos) -2) and not self.single_skin_par["te_gap"]:
+                    te_gap = 0
+                span_list.append([p + le_gap, pos[i + 1] - te_gap])
             for sp in span_list:
                 # insert points
                 for i in numpy.linspace(sp[0], sp[1], self.single_skin_par["num_points"]):
