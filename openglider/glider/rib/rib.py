@@ -193,8 +193,10 @@ class SingleSkinRib(Rib):
 
             # construct shifting function:
             foo_list = []
-            for sp in span_list:
+            for i, sp in enumerate(span_list):
                 # parabola from 3 points
+                if self.single_skin_par["double_first"] and i == 0:
+                    continue
                 x0 = numpy.array(profile.profilepoint(sp[0]))
                 x1 = numpy.array(profile.profilepoint(sp[1]))
                 x_mid = (x0 + x1)[0] / 2

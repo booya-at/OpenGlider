@@ -19,8 +19,10 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import os
 import tempfile
-#import os
+import subprocess
+import shutil
 
 def XValues(list1, list2):
     """Get a list of Values to compare against another one and delete values if not necessary to calculate again"""
@@ -83,6 +85,39 @@ def Calcfile(aoalist, xfoutput=tempfile.gettempprefix() + '/xfoutput.dat', renum
     # xfcommand.write('\nquit')
     # xfcommand.close()
     # return cfile
+
+def calc_drag(airfoil, re=200000, cl=0.7):
+    '''
+    computes the drag (cd) of an airfoil for given lift (cl) and given Reynolds-number (re)
+    '''
+    airfoil_name = airfoil.name or 'airfoil'
+    temp_name = os.path.join(tempfile.gettempdir(), airfoil_name)
+    airfoil.export_dat(temp_name)
+
+
+    tmp_dir = os.path.join(tempfile.tempdir, "xfoil")
+    shutil.rmtree(tmp_dir)
+    os.mkdir(tmp_dir)
+    commands_name = os.path.join(tmp_dir, 'commands')
+    polars = os.path.join(tmp_dir, 'polars')
+    dump = os.path.join(tmp_dir, 'dump')
+        
+
+    commands = 'plop\ng\n\nload {airfoil}\
+                \noper\npacc\n{p_file}\n{d_file}\nvisc {re}\ncl {cl}\n\n\
+                \nquit'
+    with open(commands_name, 'w') as cmd_file:
+        cmd_file.write(commands.format(airfoil=temp_name, re=re, cl=cl, 
+                                       p_file=polars, d_file=dump))
+    process = subprocess.Popen(['xfoil < ' + commands_name], shell=True,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+    out, err = process.communicate()
+    with open(polars) as polars_file:
+        for i in range(12):
+            polars_file.readline()
+        drag = polars_file.readline().split('  ')[4]
+    return float(drag)
 
 
 def Impresults(resfile):

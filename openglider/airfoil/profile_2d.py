@@ -19,8 +19,12 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import division
+import os
 import math
 import numpy
+import tempfile
+import urllib.request
+import shutil
 
 from openglider.utils.cache import HashedList
 from openglider.utils.distribution import Distribution
@@ -311,3 +315,19 @@ class Profile2D(Polygon2D):
     def apply_function(self, foo):
         data = numpy.array(self.data)
         self.data = [foo(i, upper=index < self.noseindex) for index, i in enumerate(data)]
+
+    @classmethod
+    def from_url(cls, name='atr72sm', url='http://m-selig.ae.illinois.edu/ads/coord/'):
+        airfoil_name = name + '.dat'
+        temp_name = os.path.join(tempfile.gettempdir(), airfoil_name)
+        with urllib.request.urlopen(url + airfoil_name) as data_file, open(temp_name, 'w') as dat_file:
+            dat_file.write(data_file.read().decode('utf8'))
+        data = numpy.loadtxt(temp_name, usecols=(0, 1), skiprows=1)
+        return cls(data, name)
+
+    def calc_drag(self, re=200000, cl=0.7):
+        if not shutil.which('xfoil'):
+            print('command xfoil is not available')
+            return None
+        from openglider.airfoil.XFoilCalc import calc_drag
+        return calc_drag(self, re, cl)
