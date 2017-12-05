@@ -323,6 +323,8 @@ class Profile2D(Polygon2D):
         with urllib.request.urlopen(url + airfoil_name) as data_file, open(temp_name, 'w') as dat_file:
             dat_file.write(data_file.read().decode('utf8'))
         data = numpy.loadtxt(temp_name, usecols=(0, 1), skiprows=1)
+        if data[0, 0] > 1.5:
+            data = data[1:]
         return cls(data, name)
 
     def calc_drag(self, re=200000, cl=0.7):

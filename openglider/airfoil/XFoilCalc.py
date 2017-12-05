@@ -103,11 +103,11 @@ def calc_drag(airfoil, re=200000, cl=0.7):
     dump = os.path.join(tmp_dir, 'dump')
         
 
-    commands = 'plop\ng\n\nload {airfoil}\
-                \noper\npacc\n{p_file}\n{d_file}\nvisc {re}\ncl {cl}\n\n\
+    commands = 'plop\ng\n\nload {airfoil}\nCADD\nPANEL\
+                \noper\nv\n{re}\npacc\n{p_file}\n{d_file}\ncl\n{cl}\n\n\
                 \nquit'
     with open(commands_name, 'w') as cmd_file:
-        cmd_file.write(commands.format(airfoil=temp_name, re=re, cl=cl, 
+        cmd_file.write(commands.format(airfoil=temp_name, re=str(re), cl=cl, 
                                        p_file=polars, d_file=dump))
     process = subprocess.Popen(['xfoil < ' + commands_name], shell=True,
                                stdout=subprocess.PIPE,
@@ -116,8 +116,10 @@ def calc_drag(airfoil, re=200000, cl=0.7):
     with open(polars) as polars_file:
         for i in range(12):
             polars_file.readline()
-        drag = polars_file.readline().split('  ')[4]
-    return float(drag)
+        polars = polars_file.readline().split('  ')[1:]
+        cd = float(polars[3])
+        cm = float(polars[4])
+    return cd, cm
 
 
 def Impresults(resfile):
