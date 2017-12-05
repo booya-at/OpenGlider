@@ -23,7 +23,6 @@ import os
 import math
 import numpy
 import tempfile
-import urllib.request
 import shutil
 
 from openglider.utils.cache import HashedList
@@ -318,6 +317,11 @@ class Profile2D(Polygon2D):
 
     @classmethod
     def from_url(cls, name='atr72sm', url='http://m-selig.ae.illinois.edu/ads/coord/'):
+        try:
+            import urllib.request
+        except ImportError:
+            print('urllib not installed')
+            return None
         airfoil_name = name + '.dat'
         temp_name = os.path.join(tempfile.gettempdir(), airfoil_name)
         with urllib.request.urlopen(url + airfoil_name) as data_file, open(temp_name, 'w') as dat_file:
