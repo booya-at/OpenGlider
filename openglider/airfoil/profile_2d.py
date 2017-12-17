@@ -288,7 +288,12 @@ class Profile2D(Polygon2D):
 
     @property
     def has_zero_thickness(self):
-        for x, y in self._data:
+        # big problem when used with flap
+        if hasattr(self, 'data_without_flap'):
+            data = self.data_without_flap
+        else:
+            data = self._data
+        for x, y in data:
             if abs(y) > 0.0001:
                 return False
         return True
@@ -330,6 +335,22 @@ class Profile2D(Polygon2D):
         if data[0, 0] > 1.5:
             data = data[1:]
         return cls(data, name)
+
+    def set_flap(self, flap_begin, flap_amount):
+        @numpy.vectorize
+        def f(x, a, b):
+            c1, c2, c3 = -a**2*b/(a**2 - 2*a + 1), 2*a*b/(a**2 - 2*a + 1), -b/(a**2 - 2*a + 1)
+            if x < a:
+                return 0.
+            if x > 1:
+                return -b
+            return c1 + c2 * x + c3 * x**2
+        x, y = self.data.T
+        dy = f(x, flap_begin, flap_amount)
+        if not hasattr(self, 'data_without_flap'):
+            self.data_without_flap = self.data
+        self.data = numpy.array([x, y + dy]).T
+
 
     def calc_drag(self, re=200000, cl=0.7):
         if not shutil.which('xfoil'):

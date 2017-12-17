@@ -120,7 +120,7 @@ class Mesh(object):
                                            len(self.vertices))
 
     @classmethod
-    def from_rib(cls, rib, hole_num=10, mesh_option="Qzip", glider=None):
+    def from_rib(cls, rib, hole_num=10, mesh_option="Qzip", glider=None, filled=False):
         """ Y... no additional points on boarder
             i... algorythm (other algo crash)
             p... triangulation
@@ -150,7 +150,9 @@ class Mesh(object):
                 triangle_in["vertices"] += hole_vertices
                 triangle_in["segments"] += segments
                 triangle_in["holes"].append(hole.get_center(rib, scale=False).tolist())
-
+        if not filled:
+            vertices =  rib.align_all(vertices)
+            return cls.from_indexed(rib.align_all(triangle_in['vertices']), {'hole': triangle_in['segments']}, {})
         # _triangle_output = triangle.triangulate(triangle_in, "pziq")
         mesh_info = mptriangle.MeshInfo()
         mesh_info.set_points(triangle_in["vertices"])
