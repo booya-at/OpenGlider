@@ -34,7 +34,7 @@ from vector.projection import flatten_list
 import openglider.plots
 from openglider.glider.cell.cell import Cell
 from openglider.glider.rib.rib import Rib
-import numpy
+import numpy as np
 
 
 prof = openglider.airfoil.Profile2D.import_from_dat(os.path.dirname(os.path.abspath(__file__)) + "/common/testprofile.dat")
@@ -47,9 +47,9 @@ r2 = r1.copy()
 r2.mirror()
 
 left, right = flatten_list(r2.profile_3d.data, r1.profile_3d.data)
-ding = [numpy.array([0, 0]), numpy.array([1., 0])]
+ding = [np.array([0, 0]), np.array([1., 0])]
 
-#[numpy.array([0,0]),numpy.array([1,0])
+#[np.array([0,0]),np.array([1,0])
 
 cell = Cell(r1, r2, ballooning)
 left_bal, left2, right2, right_bal = flattened_cell(cell)

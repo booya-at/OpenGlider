@@ -19,7 +19,7 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import copy
 
-import numpy
+import numpy as np
 
 import openglider
 from openglider.vector.spline import BSpline
@@ -29,7 +29,7 @@ from openglider.vector.interpolate import Interpolation
 class ArcSinc:
     def __init__(self):
         self.start = 0.
-        self.end = numpy.pi
+        self.end = np.pi
         self.arsinc = None
 
     def __call__(self, val):
@@ -42,7 +42,7 @@ class ArcSinc:
 
         for i in range(numpoints + 1):
             phi = self.end + (i * 1. / numpoints) * (self.start - self.end)  # reverse for interpolation (increasing x_values)
-            data.append([numpy.sinc(phi / numpy.pi), phi])
+            data.append([np.sinc(phi / np.pi), phi])
 
         self.arsinc = Interpolation(data)
 

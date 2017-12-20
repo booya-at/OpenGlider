@@ -1,5 +1,5 @@
 import math
-import numpy
+import numpy as np
 
 # from openglider.graphics import Graphics3D, Line
 from openglider.vector.functions import norm, normalize
@@ -25,7 +25,7 @@ def export_json(glider, path, numpoints, midribs=0, wake_panels=1,
 
     class Node():
         def __init__(self, p, n_id=None, is_wake=False):
-            self.point = numpy.array(p)
+            self.point = np.array(p)
             self.n_id = n_id
             self.is_wake = is_wake
 
@@ -72,12 +72,12 @@ def export_json(glider, path, numpoints, midribs=0, wake_panels=1,
                     "neighbours": self.neighbour_ids(),
                     "nodes": self.node_nos}
 
-    glide_alpha = numpy.arctan(glider.glide)
+    glide_alpha = np.arctan(glider.glide)
     glider = glider.copy_complete()
     glider.profile_numpoints = numpoints
     rib_len = len(glider.ribs[0].profile_2d)
 
-    v_inf = numpy.array([numpy.sin(glide_alpha), 0, numpy.cos(glide_alpha)])
+    v_inf = np.array([np.sin(glide_alpha), 0, np.cos(glide_alpha)])
     node_ribs = [[Node(node) for node in rib[1:]] for rib in
                  glider.return_ribs(midribs)]
     nodes_flat = []
@@ -186,7 +186,7 @@ def export_apame(glider, path="", midribs=0, numpoints=None, *other):
     ribs = other.return_ribs(midribs)
     v_inf = glider.lineset.v_inf
     speed = norm(v_inf)
-    glide = numpy.arctan(v_inf[2]/v_inf[0])
+    glide = np.arctan(v_inf[2]/v_inf[0])
     # write config
     outfile = open(path, "w")
     outfile.write("APAME input file\nVERSION 3.0\n")

@@ -1,5 +1,5 @@
 import math
-import numpy
+import numpy as np
 
 from openglider.vector.functions import rotation_2d
 from openglider.vector.polyline import PolyLine2D
@@ -18,8 +18,9 @@ class Polygon(object):
 
     def __call__(self, p1, p2):
         center = (p1+p2)/2
-        diff = (p2-center) * self.scale
+        diff = (p2-center)
         points = [center + rotation_2d(math.pi*2*i/self.num_edges).dot(diff) for i in range(self.num_edges+1)]
+        points = np.array(points) * self.scale
         return [PolyLine2D(points, name=self.name)]
 
 
@@ -45,7 +46,7 @@ class Arrow(object):
 
     def __call__(self, p1, p2):
         d = (p2 - p1)*self.scale
-        dr = numpy.array([-d[1], d[0]])/math.sqrt(2)
+        dr = np.array([-d[1], d[0]])/math.sqrt(2)
         if not self.left:
             dr = -dr
 

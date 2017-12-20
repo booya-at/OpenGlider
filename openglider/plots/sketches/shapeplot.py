@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 
 from openglider.plots.drawing import Layout, PlotPart
 from openglider.vector import PolyLine2D
@@ -7,7 +7,7 @@ import openglider.plots.marks as marks
 
 
 class ShapePlot(object):
-    attachment_point_mark = marks.Cross(name="attachment_point", rotation=numpy.pi/4)
+    attachment_point_mark = marks.Cross(name="attachment_point", rotation=np.pi/4)
 
     def __init__(self, glider_2d, glider_3d=None, drawing=None):
         super(ShapePlot, self).__init__()
@@ -82,7 +82,7 @@ class ShapePlot(object):
             p2[1] = p1[1]
 
 
-            p1, p2 = [numpy.array(x) for x in (p1, p2)]
+            p1, p2 = [np.array(x) for x in (p1, p2)]
 
             if reversed_direction:
                 p2 = p1 + (p1-p2)

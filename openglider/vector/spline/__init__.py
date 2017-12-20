@@ -46,8 +46,8 @@ class SymmetricGenericSpline(SymmetricBezier):
         return obj
 
 # if __name__ == "__main__":
-#     t = numpy.linspace(0, 1, 30)
-#     curve = numpy.array(list(zip(t, numpy.sin(t))))
+#     t = np.linspace(0, 1, 30)
+#     curve = np.array(list(zip(t, np.sin(t))))
 #     constraints = [[None] * 2 for i in range(5)]
 #     constraints[0] = [1,0]
 #     print(constraints[0])

@@ -1,19 +1,19 @@
 import math
-import numpy
+import numpy as np
 
 
 def norm(vector):
     """
     Norm-Function for n-dimensional vectors
     """
-    return numpy.sqrt(numpy.vdot(vector, vector))
+    return np.sqrt(np.vdot(vector, vector))
 
 
 def norm_squared(vector):
     """
     Norm_squared
     """
-    return numpy.vdot(vector, vector)
+    return np.vdot(vector, vector)
 
 
 def normalize(vector):
@@ -52,9 +52,9 @@ def rotation_3d(angle, axis=None):
     if axis is None:
         axis = [1, 0, 0]
     # see http://en.wikipedia.org/wiki/SO%284%29#The_Euler.E2.80.93Rodrigues_formula_for_3D_rotations"""
-    a = numpy.cos(angle / 2)
-    (b, c, d) = -normalize(axis) * numpy.sin(angle / 2)
-    return numpy.array([
+    a = np.cos(angle / 2)
+    (b, c, d) = -normalize(axis) * np.sin(angle / 2)
+    return np.array([
         [a**2 + b**2 - c**2 - d**2, 2*(b*c - a*d),              2*(b*d + a*c)],
         [2*(b*c + a*d),             a**2 + c**2 - b**2 - d**2,  2 * (c*d - a*b)],
         [2*(b*d - a*c),             2*(c*d + a*b),              a**2 + d**2 - b**2 - c**2]
@@ -65,7 +65,7 @@ def rotation_2d(angle):
     """
     Return a 2D-Rotation-Matrix
     """
-    return numpy.array([[numpy.cos(angle), numpy.sin(angle)], [-numpy.sin(angle), numpy.cos(angle)]])
+    return np.array([[np.cos(angle), np.sin(angle)], [-np.sin(angle), np.cos(angle)]])
 
 
 def cut(p1, p2, p3, p4):
@@ -78,6 +78,6 @@ def cut(p1, p2, p3, p4):
     matrix = [[p2[0] - p1[0], p3[0] - p4[0]],
               [p2[1] - p1[1], p3[1] - p4[1]]]
     rhs = [p3[0] - p1[0], p3[1] - p1[1]]
-    (k, l) = numpy.linalg.solve(matrix, rhs)
+    (k, l) = np.linalg.solve(matrix, rhs)
     return p1 + k * (p2 - p1), k, l
 

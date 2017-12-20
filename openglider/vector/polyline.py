@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 
 from openglider.utils import sign
 from openglider.utils.cache import cached_property, HashedList
@@ -39,7 +39,7 @@ class PolyLine(HashedList):
         return self
 
     def join(self, *other):
-        self.data = numpy.concatenate([self.data] + list(other))
+        self.data = np.concatenate([self.data] + list(other))
         return self
 
     def point(self, x):
@@ -53,7 +53,7 @@ class PolyLine(HashedList):
         start2 = start - start % 1 + 1
         stop2 = stop - stop % 1
         data = self.data[start2:stop2]
-        return numpy.concatenate([[self[start]], data, [self[stop]]])
+        return np.concatenate([[self[start]], data, [self[stop]]])
 
     def get_positions(self, start=0, stop=None, step=None):
         stop = stop if stop is not None else len(self)-1
@@ -80,7 +80,7 @@ class PolyLine(HashedList):
         index = 0
         while index < len(self)-1:
             if norm(self[index+1] - self[index]) < 0.0000001:
-                self.data = numpy.concatenate([self[:index], self[index+1:]])
+                self.data = np.concatenate([self[:index], self[index+1:]])
             else:
                 index += 1
 
@@ -145,7 +145,7 @@ class PolyLine(HashedList):
         cut_list = []
         p = point_vector
         n = normal_vector
-        lines = numpy.array([self._data[:-1], self._data[1:]]).T
+        lines = np.array([self._data[:-1], self._data[1:]]).T
         for line in lines:
             direction = line[1] - line[0]
             _lamda = n.dot(p - line[0]) / n.dot(direction)
@@ -164,7 +164,7 @@ class PolyLine2D(PolyLine):
             # elif all(self.data[-1] == other.data[0]):
             #     return self.__add__(other[1:])
             else:
-                return self.__class__(numpy.append(self.data, other.data, axis=0), self.name)
+                return self.__class__(np.append(self.data, other.data, axis=0), self.name)
         else:
             raise ValueError("cannot append: ", self.__class__, other.__class__)
 
@@ -193,7 +193,7 @@ class PolyLine2D(PolyLine):
                     if cut_only_positive and ik2 < 0:
                         continue
                     yield i+ik1, ik2
-            except numpy.linalg.LinAlgError:
+            except np.linalg.LinAlgError:
                 continue
 
     def cut_with_polyline(self, pl, startpoint=0):
@@ -218,8 +218,8 @@ class PolyLine2D(PolyLine):
                     temp = cut(self.data[i], self.data[i + 1], self.data[j], self.data[j + 1])
                     if 0 < temp[1] < 1. and 0 < temp[2] < 1.:
                         #self.data = self.data[:i] + [temp[0]] + self.data[j + 1:]
-                        self.data = numpy.concatenate([self.data[:i], [temp[0]], self.data[j+1:]])
-                except numpy.linalg.linalg.LinAlgError:
+                        self.data = np.concatenate([self.data[:i], [temp[0]], self.data[j+1:]])
+                except np.linalg.linalg.LinAlgError:
                     continue
 
         return self
@@ -246,7 +246,7 @@ class PolyLine2D(PolyLine):
         tangents = []
         for p1, p2 in self.segments:
             tangents.append((p2 - p1) / norm(p2 - p1))
-        return numpy.array(tangents)
+        return np.array(tangents)
 
     @cached_property('self')
     def norm_segment_vectors(self):
@@ -258,7 +258,7 @@ class PolyLine2D(PolyLine):
         normvectors = []
         for p1, p2 in self.segments:
             normvectors.append(rotate(normalize(p2 - p1)))
-        return numpy.array(normvectors)
+        return np.array(normvectors)
 
     def get_normal(self, ik):
         """get normal-vector by ik-value"""
@@ -278,7 +278,7 @@ class PolyLine2D(PolyLine):
         segments = []
         for i in range(len(self) - 1):
             segments.append(data[i:i+2])
-        return numpy.array(segments)
+        return np.array(segments)
 
     def move(self, vector):
         """
@@ -305,7 +305,7 @@ class PolyLine2D(PolyLine):
             third = self.data[i + 1]
             d1 = second - first
             d2 = third - second
-            cosphi = d1.dot(d2) / numpy.sqrt(d1.dot(d1) * d2.dot(d2))
+            cosphi = d1.dot(d2) / np.sqrt(d1.dot(d1) * d2.dot(d2))
             coresize = 1e-8
             if cosphi > 0.9999 or norm(d1) < coresize or norm(d2) < coresize:
                 newlist.append(second + self.normvectors[i] * amount / cosphi)
@@ -318,9 +318,9 @@ class PolyLine2D(PolyLine):
                 n1 = self.norm_segment_vectors[i-1]
                 n2 = self.norm_segment_vectors[i]
                 sign = -1. + 2. * (d2.dot(n1) > 0)
-                phi = numpy.arccos(n1.dot(n2))
+                phi = np.arccos(n1.dot(n2))
                 d1 = normalize(d1)
-                ext_vec = n1 - sign * d1 * numpy.tan(phi / 2)
+                ext_vec = n1 - sign * d1 * np.tan(phi / 2)
                 newlist.append(second + ext_vec * amount)
 
                 # newlist.append(cut(a, b, c, d)[0])
@@ -333,9 +333,9 @@ class PolyLine2D(PolyLine):
         """
         Mirror against a line through p1 and p2
         """
-        p1 = numpy.array(p1)
-        p2 = numpy.array(p2)
-        normvector = normalize(numpy.array(p1-p2).dot([[0, -1], [1, 0]]))
+        p1 = np.array(p1)
+        p2 = np.array(p2)
+        normvector = normalize(np.array(p1-p2).dot([[0, -1], [1, 0]]))
         self.data = [point - 2*normvector.dot(point-p1)*normvector for point in self.data]
 
         return self
@@ -345,7 +345,7 @@ class PolyLine2D(PolyLine):
         Rotate counter-clockwise around a (non)given startpoint [rad]
         """
         if not radians:
-            angle = numpy.pi*angle/180
+            angle = np.pi*angle/180
         rotation_matrix = rotation_2d(angle)
         new_data = []
         for point in self.data:
@@ -378,7 +378,7 @@ class PolyLine2D(PolyLine):
         drawing.viewbox(bbox[0][0]-border*width, -bbox[1][1]-border*height, width*(1+2*border), height*(1+2*border))
         g = svgwrite.container.Group()
         g.scale(1, -1)
-        line = drawing.polyline(numpy.array(self.data, dtype=float),
+        line = drawing.polyline(np.array(self.data, dtype=float),
                                 style="stroke:black; vector-effect: non-scaling-stroke; fill: none;")
         g.add(line)
         drawing.add(g)

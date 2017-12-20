@@ -396,7 +396,7 @@ class Mesh(object):
         mesh.materials.append(mat)
         #mesh.
 
-        vert_src = collada.source.FloatSource("cubeverts-array", numpy.array(vert_floats), ('X', 'Y', 'Z'))
+        vert_src = collada.source.FloatSource("cubeverts-array", np.array(vert_floats), ('X', 'Y', 'Z'))
 
     def round(self, places):
         for vertice in self.vertices:

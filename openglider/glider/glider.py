@@ -22,7 +22,7 @@ from __future__ import division
 import copy
 import math
 
-import numpy
+import numpy as np
 
 from openglider.glider.in_out import IMPORT_GEOMETRY, EXPORT_3D
 from openglider.glider.shape import Shape
@@ -166,7 +166,7 @@ class Glider(object):
                     (i + 1) * numpoints + k
                 ])
 
-        return Mesh.from_indexed(numpy.concatenate(ribs), {"hull": polygons}, boundary)
+        return Mesh.from_indexed(np.concatenate(ribs), {"hull": polygons}, boundary)
 
     def return_ribs(self, num=0, ballooning=True):
         """
@@ -177,7 +177,7 @@ class Glider(object):
         """
         num += 1
         if not self.cells:
-            return numpy.array([])
+            return np.array([])
         #will hold all the points
         ribs = []
         for cell in self.cells:
@@ -264,9 +264,9 @@ class Glider(object):
             p.get_position()
         for node in [node for node in other2.lineset.nodes]:
             if node.type != 2:
-                node.vec *= numpy.array([1, -1, 1])
+                node.vec *= np.array([1, -1, 1])
             if all(node.force):
-                node.force *= numpy.array([1, -1, 1])
+                node.force *= np.array([1, -1, 1])
         other2.lineset.lines += other.lineset.lines
         other2.lineset.sort_lines()
         other2.lineset.recalc()
@@ -285,7 +285,7 @@ class Glider(object):
         """
         Simple (rectangular) shape representation for spline inputs
         """
-        last_pos = numpy.array([0, 0])  # y,z
+        last_pos = np.array([0, 0])  # y,z
         front = []
         back = []
         x = 0
@@ -295,7 +295,7 @@ class Glider(object):
 
             x += width * (rib.pos[1] > 0)  # x-value
             if x == 0:
-                last_pos = numpy.array([0., 0.])
+                last_pos = np.array([0., 0.])
             y_front = -rib.pos[0] + rib.chord * rib.startpos
             y_back = -rib.pos[0] + rib.chord * (rib.startpos - 1)
             front.append([x, y_front])
@@ -308,7 +308,7 @@ class Glider(object):
         """
         Projected Shape of the glider (as it would lie on the ground - flattened)
         """
-        rot = rotation_2d(numpy.pi / 2)
+        rot = rotation_2d(np.pi / 2)
         front, back = flatten_list(self.get_spanwise(0), self.get_spanwise(1))
         return Shape([rot.dot(p) for p in front], [rot.dot(p) for p in back])
 
@@ -368,8 +368,8 @@ class Glider(object):
         front[0][1] = 0  # Get only half a midrib, if there is...
         back[0][1] = 0
         for i in range(len(front) - 1):
-            area += norm(numpy.cross(front[i] - front[i + 1], back[i + 1] - front[i + 1]))
-            area += norm(numpy.cross(back[i] - back[i + 1], back[i] - front[i]))
+            area += norm(np.cross(front[i] - front[i + 1], back[i + 1] - front[i + 1]))
+            area += norm(np.cross(back[i] - back[i + 1], back[i] - front[i]))
             # By this we get twice the area of half the glider :)
             # http://en.wikipedia.org/wiki/Triangle#Using_vectors
         return area

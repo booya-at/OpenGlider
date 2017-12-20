@@ -21,7 +21,7 @@ from __future__ import division
 
 import copy
 
-import numpy
+import numpy as np
 
 from openglider.airfoil import get_x_value
 from openglider.mesh import Mesh
@@ -127,12 +127,12 @@ class DiagonalRib(object):
             n_l = len(left)
             n_r = len(right)
             count = 0
-            for y_pos in numpy.linspace(0., 1., insert_points + 2):
+            for y_pos in np.linspace(0., 1., insert_points + 2):
                 # from left to right
                 point_line = []
                 number_line = []
                 num_points = int(n_l * (1. - y_pos) + n_r * y_pos)
-                for x_pos in numpy.linspace(0., 1., num_points):
+                for x_pos in np.linspace(0., 1., num_points):
                     point_line.append(left[x_pos * (n_l - 1)] * (1. - y_pos) +
                                       right[x_pos * (n_r - 1)] * y_pos)
                     number_line.append(count)
@@ -145,7 +145,7 @@ class DiagonalRib(object):
             edge += [line[0] for line in number_array[1:-1]][::-1]
             segment = [[edge[i], edge[i +1]] for i in range(len(edge) - 1)]
             segment.append([edge[-1], edge[0]])
-            point_array = numpy.array([point for line in point_array for point in line])
+            point_array = np.array([point for line in point_array for point in line])
             import openglider.mesh.mesh as _mesh
             points2d = _mesh.map_to_2d(point_array)
 
@@ -155,7 +155,7 @@ class DiagonalRib(object):
             return Mesh.from_indexed(point_array, {"diagonals": list(mesh.elements)})
 
         else:
-            vertices = numpy.array(list(left) + list(right)[::-1])
+            vertices = np.array(list(left) + list(right)[::-1])
             polygon = [range(len(vertices))]
             return Mesh.from_indexed(vertices, {"diagonals": polygon})
 
@@ -346,8 +346,8 @@ class Panel(object):
                 elif pos_r[r_i] < pos_l[l_i]:
                     triangles.append(right_triangle(num_l[l_i], num_r[r_i]))
                     r_i += 1
-        #connection_info = {cell.rib1: numpy.array(ribs[0], int),
-        #                   cell.rib2: numpy.array(ribs[-1], int)}
+        #connection_info = {cell.rib1: np.array(ribs[0], int),
+        #                   cell.rib2: np.array(ribs[-1], int)}
         return Mesh.from_indexed(points, {"panel_"+self.material_code: triangles}, name=self.name)
 
     def mirror(self):

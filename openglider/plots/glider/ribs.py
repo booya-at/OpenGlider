@@ -1,6 +1,6 @@
 # coding=utf-8
 
-import numpy
+import numpy as np
 
 from openglider.airfoil import get_x_value
 from openglider.plots import marks
@@ -22,7 +22,7 @@ class RibPlot(object):
         marks_laser_attachment_point = marks.Dot(0.2, 0.8)
 
         marks_strap = marks.Inside(marks.Line(name="strap"))
-        marks_attachment_point = marks.OnLine(marks.Rotate(marks.Cross(name="attachment_point"), numpy.pi / 4))
+        marks_attachment_point = marks.OnLine(marks.Rotate(marks.Cross(name="attachment_point"), np.pi / 4))
 
         marks_controlpoint = marks.Dot(0.2)
         marks_panel_cut = marks.Line(name="panel_cut")
@@ -199,7 +199,7 @@ class RibPlot(object):
         diff = outer - inner
 
         p1 = inner + diff/2
-        p2 = p1 + rotation_2d(numpy.pi/2).dot(diff)
+        p2 = p1 + rotation_2d(np.pi/2).dot(diff)
 
         _text = Text(text, p1, p2, size=norm(outer-inner)*0.5, valign=0)
         #_text = Text(text, p1, p2, size=0.05)

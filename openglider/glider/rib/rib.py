@@ -1,6 +1,6 @@
 import copy
 import math
-import numpy
+import numpy as np
 from openglider.airfoil import Profile3D
 from openglider.utils.cache import CachedObject, cached_property
 from openglider.vector.functions import rotation_3d
@@ -32,7 +32,7 @@ class Rib(CachedObject):
         self.aoa_absolute = aoa_absolute
         self.arcang = arcang
         self.zrot = zrot
-        self.pos = numpy.array(startpoint)  # or HashedList([0, 0, 0])
+        self.pos = np.array(startpoint)  # or HashedList([0, 0, 0])
         self.chord = chord
         self.holes = holes or []
         self.rigidfoils = rigidfoils or []
@@ -52,12 +52,12 @@ class Rib(CachedObject):
 
     def align_all(self, coo, scale=True):
         """align 2d coordinates to the 3d pos of the rib"""
-        if not isinstance(coo, numpy.ndarray):
-            coo = numpy.array(coo)
+        if not isinstance(coo, np.ndarray):
+            coo = np.array(coo)
         if len(coo[0]) != 3:
             # adding z-value
             coo = coo.T
-            coo = numpy.array([coo[0], coo[1], numpy.zeros(len(coo[0]))]).T
+            coo = np.array([coo[0], coo[1], np.zeros(len(coo[0]))]).T
         #appply rotations matrix and transpose back
         coo = coo.dot(self.rotation_matrix.T)
         if scale:
@@ -97,7 +97,7 @@ class Rib(CachedObject):
 
     @cached_property('arcang', 'glide', 'zrot', 'aoa_absolute')
     def rotation_matrix(self):
-        zrot = numpy.arctan(self.arcang) / self.glide * self.zrot
+        zrot = np.arctan(self.arcang) / self.glide * self.zrot
         return rib_rotation(self.aoa_absolute, self.arcang, zrot)
 
     @cached_property('self')
@@ -120,12 +120,12 @@ class Rib(CachedObject):
     @staticmethod
     def __aoa_diff(arc_angle, glide):
         ##Formula for aoa rel/abs: ArcTan[Cos[alpha]/gleitzahl]-aoa[rad];
-        return numpy.arctan(numpy.cos(arc_angle) / glide)
+        return np.arctan(np.cos(arc_angle) / glide)
 
     def mirror(self):
         self.arcang = -self.arcang
         # self.zrot = -self.zrot
-        self.pos = numpy.multiply(self.pos, [1, -1., 1])
+        self.pos = np.multiply(self.pos, [1, -1., 1])
 
     def copy(self):
         new = copy.deepcopy(self)
@@ -155,6 +155,9 @@ class SingleSkinRib(Rib):
                                             aoa_absolute, zrot, glide, name, startpos,
                                             rigidfoils, holes, material_code)
         self.single_skin_par = single_skin_par or {}
+
+    def auto_holes(self):
+        pass
 
     @classmethod
     def from_rib(cls, rib, single_skin_par):
@@ -188,7 +191,7 @@ class SingleSkinRib(Rib):
                 span_list.append([p + le_gap, pos[i + 1] - te_gap])
             for sp in span_list:
                 # insert points
-                for i in numpy.linspace(sp[0], sp[1], self.single_skin_par["num_points"]):
+                for i in np.linspace(sp[0], sp[1], self.single_skin_par["num_points"]):
                     profile.insert_point(i)
 
             # construct shifting function:
@@ -197,14 +200,14 @@ class SingleSkinRib(Rib):
                 # parabola from 3 points
                 if self.single_skin_par["double_first"] and i == 0:
                     continue
-                x0 = numpy.array(profile.profilepoint(sp[0]))
-                x1 = numpy.array(profile.profilepoint(sp[1]))
+                x0 = np.array(profile.profilepoint(sp[0]))
+                x1 = np.array(profile.profilepoint(sp[1]))
                 x_mid = (x0 + x1)[0] / 2
                 height = abs(profile.profilepoint(-x_mid)[1] - 
                              profile.profilepoint(x_mid)[1])
                 height *= self.single_skin_par["height"] # anything bewtween 0..1
                 y_mid = profile.profilepoint(x_mid)[1] + height
-                x_max = numpy.array([norm(x1 - x0) / 2, height])
+                x_max = np.array([norm(x1 - x0) / 2, height])
                 def foo(x, upper):
                     if not upper and x[0] > x0[0] and x[0] < x1[0]:
                         return parabola(x, x0, x1, x_max)
@@ -221,14 +224,14 @@ def pseudo_2d_cross(v1, v2):
 def parabola(x, x0, x1, x_max):
     """paraboly used for singleskin ribs
        x, x0, x1, x_max ... numpy 2d arrays
-       xmax = numpy.sqrt((x1 - x0)**2 + (y1 - y0)**2)"""
+       xmax = np.sqrt((x1 - x0)**2 + (y1 - y0)**2)"""
     x_proj = (x - x0).dot(x1 - x0) / norm(x1 - x0)**2
     x_proj = (x_proj - 0.5) * 2
     y_proj = -x_proj **2
-    x = numpy.array([x_proj, y_proj]) * x_max
+    x = np.array([x_proj, y_proj]) * x_max
     c = (x1 - x0)[0] / norm(x1 - x0)
     s = (x1 - x0)[1] / norm(x1 - x0)
-    rot = numpy.array([[c, -s], [s, c]])
+    rot = np.array([[c, -s], [s, c]])
     null = - x_max
     return rot.dot(x - null) + x0
 
@@ -236,7 +239,7 @@ def parabola(x, x0, x1, x_max):
 def rib_rotation(aoa, arc, zrot):
     """
     Rotation Matrix for Ribs, aoa, arcwide-angle and glidewise angle in radians
-    return -> numpy.array
+    return -> np.array
     """
     # Rotate Arcangle, rotate from lying to standing (x-z)
     rot = rotation_3d(-arc + math.pi / 2, [-1, 0, 0])

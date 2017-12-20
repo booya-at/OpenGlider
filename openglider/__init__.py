@@ -20,7 +20,7 @@
 __version__ = '0.01'
 __author__ = 'Booya'
 
-import numpy
+import numpy as np
 
 from openglider.config import config
 import openglider.jsonify
@@ -47,10 +47,10 @@ def save(data, filename, add_meta=True):
 try:
     import __pypy__
     def cross(a,b):
-        return numpy.array([a[1]*b[2]-a[2]*b[1],
+        return np.array([a[1]*b[2]-a[2]*b[1],
                             -a[0]*b[2]+a[2]*b[0],
                             a[0]*b[1]-a[1]*b[0]
                             ])
-    numpy.cross = cross
+    np.cross = cross
 except ImportError:
     pass

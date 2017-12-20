@@ -40,8 +40,8 @@ def import_lines(path):
 def store_nodes(values, thalist, key_dict):
     n = Node(try_convert(values[0], int))
     n.type = try_convert(values[1], int)
-    n.vec = numpy.array([try_convert(x, float) for x in values[2:5]])
-    n.force = numpy.array([try_convert(x, float) for x in values[5:8]])
+    n.vec = np.array([try_convert(x, float) for x in values[2:5]])
+    n.force = np.array([try_convert(x, float) for x in values[5:8]])
     thalist.append(n)
 
 
@@ -64,7 +64,7 @@ def store_calc_par(values, calc_par, key_dict):
     speed = calc_par["SPEED"] = try_convert(values[3], float)
     glide = calc_par["GLIDE"] = try_convert(values[4], float)
     calc_par["V_INF"] = (
-        speed * normalize(numpy.array([glide, 0., 1.])))
+        speed * normalize(np.array([glide, 0., 1.])))
 
 
 def try_convert(str, form):

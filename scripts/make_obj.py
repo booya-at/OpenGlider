@@ -2,7 +2,7 @@
 import sys
 import os
 import math
-import numpy
+import numpy as np
 from openglider.glider import Glider
 from openglider.vector.functions import normalize
 

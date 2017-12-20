@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import copy
 from openglider.lines import SagMatrix
 
@@ -17,7 +17,7 @@ class LineSet():
 
     def __init__(self, lines, v_inf=None):
         if v_inf is not None:
-            v_inf = numpy.array(v_inf)
+            v_inf = np.array(v_inf)
         self.v_inf = v_inf
         self.lines = lines or []
         for line in lines:
@@ -43,7 +43,7 @@ class LineSet():
 
     def scale(self, factor):
         for p in self.lower_attachment_points:
-            p.vec = numpy.array(p.vec) * factor
+            p.vec = np.array(p.vec) * factor
         for line in self.lines:
             if line.target_length:
                 line.target_length *= factor
@@ -160,14 +160,14 @@ class LineSet():
                 lines_upper = self.get_upper_connected_lines(upper_node)
                 self.calc_forces(lines_upper)
 
-                force = numpy.zeros(3)
+                force = np.zeros(3)
                 for line in lines_upper:
                     if line.force is None:
                         print("error line force not set: {}".format(line))
                     else:
                         force += line.force * line.diff_vector
                 # vec = line_lower.upper_node.vec - line_lower.lower_node.vec
-                line_lower.force = norm(numpy.dot(force, normalize(vec)))
+                line_lower.force = norm(np.dot(force, normalize(vec)))
 
             else:
                 force = line_lower.upper_node.force
@@ -207,7 +207,7 @@ class LineSet():
         centers = [line.get_line_point(0.5) for line in self.lines]
         drag = [line.drag_total for line in self.lines]
 
-        center = numpy.array([0, 0, 0])
+        center = np.array([0, 0, 0])
         drag_total = sum(drag)
         for p, drag in zip(centers, drag):
             center = center + p*drag
@@ -221,14 +221,14 @@ class LineSet():
 
     # -----CALCULATE GEO-----#
     def get_tangential_comp(self, line, pos_vec):
-        tangent = numpy.array([0., 0., 0.])
+        tangent = np.array([0., 0., 0.])
         upper_lines = self.get_upper_connected_lines(line.upper_node)
         for l in upper_lines:
             if (l.force is not None):
                 direction = normalize(l.upper_node.vec - line.lower_node.vec)
                 tangent += direction * l.force * direction.dot(l.diff_vector)
             else:
-                tangent = numpy.array([0., 0., 0.])
+                tangent = np.array([0., 0., 0.])
                 break
         else:
             return normalize(tangent)

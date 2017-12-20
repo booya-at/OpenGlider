@@ -1,6 +1,6 @@
 import functools
 
-import numpy
+import numpy as np
 
 from openglider.plots import marks
 from openglider.plots.marks import Inside, OnLine
@@ -23,7 +23,7 @@ sewing_config = {
         "diagonal_front": Inside(marks.Arrow(left=True)),
         "diagonal_back": Inside(marks.Arrow(left=False)),
         "strap": Inside(marks.Line()),
-        "attachment-point": OnLine(marks.Cross(rotation=numpy.pi / 4)),
+        "attachment-point": OnLine(marks.Cross(rotation=np.pi / 4)),
         "panel-cut": marks.Line()
     },
     "allowance": {

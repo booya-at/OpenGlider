@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import ezodf
-import numpy
+import numpy as np
 
 from openglider.lines import Line, Node, LineSet
 from openglider.airfoil import Profile2D
@@ -66,20 +66,20 @@ def import_ods(filename, glider):
         chord = line[1]  # Rib-Chord
         span = line[2]  # spanwise-length (flat)
         alpha1 = alpha2  # angle before the rib
-        alpha2 += line[4] * numpy.pi / 180  # angle after the rib
-        alpha = (span > 0) * (alpha1 + alpha2) * 0.5 + line[6] * numpy.pi / 180  # rib's angle
+        alpha2 += line[4] * np.pi / 180  # angle after the rib
+        alpha = (span > 0) * (alpha1 + alpha2) * 0.5 + line[6] * np.pi / 180  # rib's angle
         x = line[3]  # x-value -> front/back (ribwise)
-        y += numpy.cos(alpha1) * (span - span_last)  # y-value -> spanwise
-        z -= numpy.sin(alpha1) * (span - span_last)  # z-axis -> up/down
-        aoa = line[5] * numpy.pi / 180
-        zrot = line[7] * numpy.pi / 180
+        y += np.cos(alpha1) * (span - span_last)  # y-value -> spanwise
+        z -= np.sin(alpha1) * (span - span_last)  # z-axis -> up/down
+        aoa = line[5] * np.pi / 180
+        zrot = line[7] * np.pi / 180
         span_last = span
 
         profile = merge(line[8], profiles)
         ballooning = merge(line[9], balloonings)
 
         lastrib = thisrib
-        thisrib = Rib(profile, numpy.array([x, y, z]), chord, alpha, aoa, zrot, data["GLIDE"],
+        thisrib = Rib(profile, np.array([x, y, z]), chord, alpha, aoa, zrot, data["GLIDE"],
                       name="Rib ({})".format(i))
         if i == 1 and y != 0:  # Middle-cell
             #print("midrib!", y)
@@ -99,7 +99,7 @@ def import_ods(filename, glider):
     attachment_points_lower = get_lower_aufhaengepunkte(glider.data)
 
     for p in attachment_points:
-        p.force = numpy.array([0, 0, 10])
+        p.force = np.array([0, 0, 10])
         p.get_position()
 
     glider.lineset = tolist_lines(sheets[6], attachment_points_lower, attachment_points)
@@ -135,7 +135,7 @@ def get_lower_aufhaengepunkte(data):
                 aufhaengepunkte[pos] = [None, None, None]
             aufhaengepunkte[pos][xyz[key[3].upper()]] = data[key]
     for node in aufhaengepunkte:
-        aufhaengepunkte[node] = Node(0, numpy.array(aufhaengepunkte[node]))
+        aufhaengepunkte[node] = Node(0, np.array(aufhaengepunkte[node]))
     return aufhaengepunkte
 
 
@@ -191,7 +191,7 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
                     line_length = sheet.get_cell([i, j]).value
                     j += 2
                 linelist.append(
-                    Line(number=count, lower_node=lower, upper_node=upper, v_inf=numpy.array([10,0,0]), target_length=line_length))  #line_type=sheet.get_cell
+                    Line(number=count, lower_node=lower, upper_node=upper, v_inf=np.array([10,0,0]), target_length=line_length))  #line_type=sheet.get_cell
                 count += 1
                 #print("made line", linelist[-1].init_length)
                 #print(upper, lower)
@@ -200,7 +200,7 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
             i += 1
 
     #print(len(linelist))
-    return LineSet(linelist, v_inf=numpy.array([10,0,0]))
+    return LineSet(linelist, v_inf=np.array([10,0,0]))
 
 
 def read_elements(sheet, keyword, len_data=2):

@@ -21,7 +21,7 @@ from __future__ import division
 import os
 import random
 import sys
-import numpy
+import numpy as np
 
 
 try:
@@ -51,7 +51,7 @@ class TestGlider(GliderTestClass):
         right.mirror()
         ribs = left.return_ribs(num)
         polygons = left.return_polygon_indices(ribs)
-        points = numpy.concatenate(ribs)
+        points = np.concatenate(ribs)
         objects = []
         objects += [openglider.graphics.Red]
         objects += map(openglider.graphics.Polygon, polygons)

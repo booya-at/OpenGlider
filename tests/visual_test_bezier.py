@@ -2,7 +2,7 @@ import random
 import os
 import unittest
 
-import numpy
+import numpy as np
 
 import sys
 from openglider.vector import PolyLine
@@ -33,8 +33,8 @@ class TestBezier(unittest.TestCase):
             Red,
             Line(self.profile.data),
             Green,
-            Line(map(upper, numpy.linspace(0, 1, 100))),
-            Line(map(lower, numpy.linspace(0, 1, 100))),
+            Line(map(upper, np.linspace(0, 1, 100))),
+            Line(map(lower, np.linspace(0, 1, 100))),
             Line(upper.controlpoints),
             Line(lower.controlpoints)
             ])
@@ -42,15 +42,15 @@ class TestBezier(unittest.TestCase):
     def test_bezier_interpolation(self):
         self.curve.controlpoints = self.points
         interpolation = self.curve.interpolation(num=20)
-        func = lambda x: numpy.array([x, interpolation(x)])
+        func = lambda x: np.array([x, interpolation(x)])
         Graphics2D([
-            Line(map(func, numpy.linspace(0, 1, 20))),
+            Line(map(func, np.linspace(0, 1, 20))),
             Green,
             Line(self.points)
             ])
 
     def test_symmetric_bezier_fit(self):
-        curve = [[x,numpy.cos(x)] for x in numpy.linspace(-1,1,30)]
+        curve = [[x,np.cos(x)] for x in np.linspace(-1,1,30)]
         lower = SymmetricBezier.fit(curve, numpoints=5)
         Graphics([
             Red,
@@ -93,8 +93,8 @@ class TestBSpline(unittest.TestCase):
             Red,
             Line(self.profile.data),
             Green,
-            Line(map(upper, numpy.linspace(0, 1, 100))),
-            Line(map(lower, numpy.linspace(0, 1, 100))),
+            Line(map(upper, np.linspace(0, 1, 100))),
+            Line(map(lower, np.linspace(0, 1, 100))),
             Line(upper.controlpoints),
             Line(lower.controlpoints)
             ])
@@ -102,15 +102,15 @@ class TestBSpline(unittest.TestCase):
     def test_bspline_interpolation(self):
         self.curve.controlpoints = self.points
         interpolation = self.curve.interpolation(num=20)
-        func = lambda x: numpy.array([x, interpolation(x)])
+        func = lambda x: np.array([x, interpolation(x)])
         Graphics2D([
-            Line(map(func, numpy.linspace(0, 1, 20))),
+            Line(map(func, np.linspace(0, 1, 20))),
             Green,
             Line(self.points)
             ])
 
     def test_symmetric_bspline_fit(self):
-        curve = [[x,numpy.cos(x)] for x in numpy.linspace(-1,1,30)]
+        curve = [[x,np.cos(x)] for x in np.linspace(-1,1,30)]
         lower = SymmetricBSpline.fit(curve, numpoints=5)
         Graphics([
             Red,

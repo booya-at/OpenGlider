@@ -17,7 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-import numpy
+import numpy as np
 
 from openglider.lines import Node
 from openglider.plots.marks import Polygon
@@ -41,7 +41,7 @@ class RigidFoil(object):
 
         if dsq is not None:
             dsq = max(dsq, 0)
-            return self.distance + (self.circle_radius - numpy.sqrt(dsq)) * 0.35
+            return self.distance + (self.circle_radius - np.sqrt(dsq)) * 0.35
         return self.distance
 
     def __json__(self):
@@ -132,7 +132,7 @@ class GibusArcs(object):
         # Append Profile_List
         gib_arc += profile.get(start2.next()[0], stop.next()[0]).tolist()
 
-        return numpy.array(gib_arc) * rib.chord
+        return np.array(gib_arc) * rib.chord
 
 
 class CellAttachmentPoint(Node):

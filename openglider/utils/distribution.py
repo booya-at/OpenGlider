@@ -1,6 +1,6 @@
 from __future__ import division
 
-import numpy
+import numpy as np
 
 from openglider.utils.cache import HashedList
 
@@ -54,8 +54,8 @@ class Distribution(HashedList):
             self.data = list(self.data[:-1]) + [value] + [self.data[-1]]
             return start_ind + 1
 
-        nearest_ind = numpy.abs(self.data[start_ind:] - value).argmin() + 1 + start_ind
-        nose_ind = numpy.abs(self.data[start_ind:]).argmin() + start_ind
+        nearest_ind = np.abs(self.data[start_ind:] - value).argmin() + 1 + start_ind
+        nose_ind = np.abs(self.data[start_ind:]).argmin() + start_ind
 
         if nearest_ind == len(self.data):
             self.data = list(self.data[:-1]) + [value] + [self.data[-1]]
@@ -108,7 +108,7 @@ class Distribution(HashedList):
         """
         Get a linear distribution
         """
-        return cls(numpy.linspace(start, stop, numpoints))
+        return cls(np.linspace(start, stop, numpoints))
 
     @classmethod
     def from_polynom_distribution(cls, numpoints, order=2):
@@ -129,7 +129,7 @@ class Distribution(HashedList):
         low density at (-1) and (+1) but neat around 0
         """
         numpoints -= numpoints % 2  # brauchts?
-        xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 - numpy.sin(numpy.pi * x))
+        xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 - np.sin(np.pi * x))
         return cls([xtemp(i/numpoints) for i in range(numpoints+1)])
 
     @classmethod
@@ -139,7 +139,7 @@ class Distribution(HashedList):
         double-cosinus -> neat distribution at nose and trailing edge
         """
         numpoints -= numpoints % 2
-        xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 + numpy.cos(2 * numpy.pi * x)) / 2
+        xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 + np.cos(2 * np.pi * x)) / 2
         return cls([xtemp(i/numpoints) for i in range(numpoints+1)])
 
     @classmethod
@@ -151,7 +151,7 @@ class Distribution(HashedList):
         def f(x):
             return x ** 2 / ((-2 + border) * border) if x < border else (2 * x - border)/(-2 + border)
 
-        dist_values = numpy.linspace(0, 1, int(numpoints / 2) + 1)
+        dist_values = np.linspace(0, 1, int(numpoints / 2) + 1)
         first_half = [f(val) for val in dist_values[::-1][:-1]]
         second_half = [-f(val) for val in dist_values]
 

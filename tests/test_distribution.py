@@ -20,7 +20,7 @@
 import random
 import unittest
 
-import numpy
+import numpy as np
 
 from openglider.utils.distribution import Distribution
 
@@ -42,7 +42,7 @@ class TestProfile(unittest.TestCase):
                 dist_type=typ
                 )
             for fixed in self.fixpoints:
-                self.assertAlmostEqual(min(numpy.abs(a.data - fixed)), 0)
+                self.assertAlmostEqual(min(np.abs(a.data - fixed)), 0)
 
 
 if __name__ == '__main__':
