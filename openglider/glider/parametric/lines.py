@@ -67,7 +67,7 @@ class UpperNode2D(object):
             if isinstance(self.force, (list, tuple, np.ndarray)):
                 force = list(self.force)
             else:
-                force = list(rib.rotation_matrix.dot(np.array([0, self.force, 0])))
+                force = list(rib.rotation_matrix(np.array([0, self.force, 0])))
             node = AttachmentPoint(glider.ribs[self.cell_no + glider.has_center_cell],
                                    self.name, self.rib_pos, force)
 

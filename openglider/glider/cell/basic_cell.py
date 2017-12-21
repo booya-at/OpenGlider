@@ -23,7 +23,7 @@ class BasicCell(CachedObject):
         ##round ballooning
         return self.midrib(y).point(ik)
 
-    def midrib(self, y_value, ballooning=True, arc_argument=True, with_numpy=False):
+    def midrib(self, y_value, ballooning=True, arc_argument=True, with_numpy=True):
         if y_value == 0:              # left side
             return self.prof1
         elif y_value == 1:            # right side

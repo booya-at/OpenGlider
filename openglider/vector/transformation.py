@@ -11,6 +11,12 @@ class Transformation(object):
         self.mat = np.array(mat)
 
     def __call__(self, vec):
+        vec = np.array(vec)
+        assert len(vec.shape) == 1
+        vec = np.array([vec])
+        return self.apply(vec)[0]
+
+    def apply(self, vec):
         if len(vec[0]) == 2:
             return vec.dot(self.mat[:2,:2]) + self.mat[-1,:2]
         elif len(vec[0]) == 3:
@@ -19,6 +25,9 @@ class Transformation(object):
             return vec.dot(self.mat[:4,:4])
 
     def dot(self, other):
+        return Transformation(self.mat.dot(other.mat))
+
+    def __mul__(self, other):
         return Transformation(self.mat.dot(other.mat))
 
 
@@ -61,17 +70,16 @@ class Scale(Transformation):
             scale_values = np.ones(3)
         elif isinstance(scale_values, (int, float)):
             scale_values = np.ones(3) * scale_values
-        assert len(scale_values) == 3
-        scale_values = np.array(list(scale_values) + [1.])
-        mat = np.diag(scale_values)
+        _scale_values = np.ones(4)
+        _scale_values[:len(scale_values)] = scale_values
+        mat = np.diag(_scale_values)
         super(Scale, self).__init__(mat)
 
 
-class Translate(Transformation):
+class Translation(Transformation):
     def __init__(self, vec=None):
         if vec is None:
             vec = np.zeros(3)
-        assert len(vec) == 3
         mat = np.eye(4)
-        mat[-1,:3] = vec
-        super(Translate, self).__init__(mat)
+        mat[-1,:len(vec)] = vec
+        super(Translation, self).__init__(mat)

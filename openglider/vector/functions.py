@@ -81,3 +81,12 @@ def cut(p1, p2, p3, p4):
     (k, l) = np.linalg.solve(matrix, rhs)
     return p1 + k * (p2 - p1), k, l
 
+
+def set_dimension(array, dim=3):
+    array = np.array(array)
+    if len(array.shape) == 1:
+        array = np.array([array]).T
+    ext_array = np.zeros((array.shape[0], dim))
+    for i, col in enumerate(array.T):
+        ext_array.T[i] = col
+    return ext_array
