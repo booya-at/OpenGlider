@@ -22,7 +22,8 @@ from __future__ import division
 import numpy as np
 
 from openglider.utils.cache import HashedList
-from openglider.vector import norm, mirror2D_x, Interpolation
+from openglider.vector import norm, Interpolation
+from openglider.vector.transformation import Reflection
 from openglider.utils import dualmethod
 
 
@@ -226,24 +227,19 @@ class Bezier(HashedList):
         self.controlpoints = [p*[x,y] for p in self.controlpoints]
 
     def get_matrix(self, num=50):
-        degree = len(self._data)
-        if self._matrix is not None:
-            if len(self._matrix) == num and len(self._matrix[0]) == degree:
-                return self._matrix
-        self._matrix = np.ndarray([num, degree])
-        functions = self.basefactory(degree)
-        for row, value in enumerate(np.linspace(0, 1 , num)):
-            for col, foo in enumerate(functions):
-                self._matrix[row, col] = foo(value)
-        return self._matrix
+        num_points = len(self._data)
+        if self._matrix is not None and self._matrix.shape == (num, num_points):
+            return self._matrix
+        else:
+            self._matrix = np.ndarray([num, num_points])
+            functions = self.basefactory(num_points)
+            for row, value in enumerate(np.linspace(0, 1 , num)):
+                for col, foo in enumerate(functions):
+                    self._matrix[row, col] = foo(value)
+            return self._matrix
 
     def get_sequence(self, num=50):
         return np.dot(self.get_matrix(num), self._data)
-        # data = []
-        # for i in range(num):
-        #     point = self(i / (num - 1))
-        #     data.append(point)
-        # return np.array(data)
 
     def get_length(self, num):
         seq = self.get_sequence(num=num)
@@ -255,7 +251,7 @@ class Bezier(HashedList):
 
 class SymmetricBezier(Bezier):
     def __init__(self, controlpoints=None, mirror=None):
-        self._mirror = mirror or mirror2D_x
+        self._mirror = mirror or Reflection([1., 0., 0.])
         super(SymmetricBezier, self).__init__(controlpoints=None)
         if controlpoints:
             self.controlpoints = controlpoints
@@ -272,7 +268,8 @@ class SymmetricBezier(Bezier):
 
     @controlpoints.setter
     def controlpoints(self, controlpoints):
-        self.data = np.array(list(self._mirror(controlpoints)[::-1]) + list(controlpoints))
+        cpts = np.array(controlpoints)
+        self.data = np.array(list(self._mirror.apply(cpts)[::-1]) + list(cpts))
 
     @property
     def numpoints(self):

@@ -115,7 +115,8 @@ class Rib(CachedObject):
         return np.arctan(np.cos(arc_angle) / glide)
 
     def mirror(self):
-        self.arcang = -self.arcang
+        self.arcang *= -1.
+        self.xrot *= -1.
         # self.zrot = -self.zrot
         self.pos = np.multiply(self.pos, [1, -1., 1])
 
@@ -158,8 +159,18 @@ class SingleSkinRib(Rib):
                                             material_code=material_code)
         self.single_skin_par = single_skin_par or {}
 
-    def auto_holes(self):
-        pass
+    def apply_continued_min(self):
+        data = self.profile_2d.data
+        x, y = data.T
+        min_index = y.argmin()
+        y_min = y[min_index]
+        new_y = []
+        for i, xy in enumerate(data):
+            if i > min_index and xy[0] < self.single_skin_par['continued_min_end']:
+                new_y += [y_min]
+            else:
+                new_y += [xy[1]]
+        self.profile_2d.data = np.array([x, new_y]).T
 
     @classmethod
     def from_rib(cls, rib, single_skin_par):
@@ -176,6 +187,8 @@ class SingleSkinRib(Rib):
         '''
         returns a modified profile2d
         '''
+        if self.single_skin_par['continued_min']:
+            self.apply_continued_min()
         profile = copy.deepcopy(self.profile_2d)
         attach_pts = glider.get_rib_attachment_points(self)
         pos = list(set([att.rib_pos for att in attach_pts] + [1]))
