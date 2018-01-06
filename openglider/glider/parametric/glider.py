@@ -81,7 +81,7 @@ class ParametricGlider(object):
     @property
     def attachment_points(self):
         """coordinates of the attachment_points"""
-        return [a_p.get_2d(self)
+        return [a_p.get_2D(self)
                 for a_p in self.lineset.nodes
                 if isinstance(a_p, UpperNode2D)]
 

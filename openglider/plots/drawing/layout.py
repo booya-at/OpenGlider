@@ -453,8 +453,8 @@ class Layout(object):
             for attrib in attribs:
                 style.append("\t{};\n".format(attrib))
             style.append("}\n")
-        style.append("\nline { vector-effect: non-scaling-width }")
-        style.append("\npolyline { vector-effect: non-scaling-width }")
+        style.append("\nline { vector-effect: non-scaling-stroke; stroke-width: 1; }")
+        style.append("\npolyline { vector-effect: non-scaling-stroke; stroke-width: 1; }")
         drawing.defs.add(style)
 
         return drawing
