@@ -1,5 +1,5 @@
 from openglider.plots.sketches.shapeplot import ShapePlot
-
+from openglider.plots.sketches.lineplan import LinePlan
 
 
 def get_all_plots(glider_2d, glider_3d=None):
