@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
-import numpy
+import numpy as np
 
 from openglider.utils.cache import cached_property
 from openglider.vector import Plane
@@ -49,7 +49,7 @@ class Profile3D(PolyLine):
         diff = [p - p1 for p in self.data]
 
         xvect = normalize(-diff[self.noseindex])
-        yvect = numpy.array([0, 0, 0])
+        yvect = np.array([0, 0, 0])
 
         for i in range(len(diff)):
             sign = 1 - 2 * (i > self.noseindex)
@@ -68,7 +68,7 @@ class Profile3D(PolyLine):
     def normvectors(self):
         layer = self.projection_layer
         profnorm = layer.normvector
-        get_normvector = lambda x: normalize(numpy.cross(x, profnorm))
+        get_normvector = lambda x: normalize(np.cross(x, profnorm))
 
         vectors = [get_normvector(self.data[1] - self.data[0])]
         for i in range(1, len(self.data) - 1):
@@ -88,7 +88,7 @@ class Profile3D(PolyLine):
             first = second
             second = third
             third = element
-            tangent = numpy.array([0, 0, 0])
+            tangent = np.array([0, 0, 0])
             for vec in [third-second, second-first]:
                 try:
                     tangent = tangent + normalize(vec)

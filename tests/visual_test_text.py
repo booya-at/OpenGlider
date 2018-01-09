@@ -25,7 +25,7 @@ import unittest
 import os
 import math
 import sys
-import numpy
+import numpy as np
 from openglider.vector import norm
 from openglider.vector.text import Text
 
@@ -42,8 +42,8 @@ from openglider.glider.ballooning import BallooningBezier
 
 class TestCell(unittest.TestCase):
     def setUp(self, numpoints=100):
-        self.p1 = numpy.array([random.random(), random.random()])
-        self.d = numpy.array([random.random(), random.random()]) * 100
+        self.p1 = np.array([random.random(), random.random()])
+        self.d = np.array([random.random(), random.random()]) * 100
         self.l = norm(self.d)
         self.p2 = self.p1 + self.d
 

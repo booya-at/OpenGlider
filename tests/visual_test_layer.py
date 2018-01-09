@@ -25,7 +25,7 @@ import unittest
 import os
 import math
 import sys
-import numpy
+import numpy as np
 
 try:
     import openglider
@@ -43,8 +43,8 @@ class TestLayer(unittest.TestCase):
         self.layer = Plane(p0, v1, v2)
 
     def testCut(self):
-        p1 = numpy.array([0., 0., -1.])
-        p2 = numpy.array([1., 1., 1.])
+        p1 = np.array([0., 0., -1.])
+        p2 = np.array([1., 1., 1.])
         res = self.layer.cut(p1, p2)[2]
         openglider.graphics.Graphics([openglider.graphics.Line([p2, p1]),
                   Blue,
@@ -55,7 +55,7 @@ class TestLayer(unittest.TestCase):
                   ])
 
     def testProjection(self):
-        p1 = numpy.array([1., 1., -1.])
+        p1 = np.array([1., 1., -1.])
         res = self.layer.projection(p1)
         res = self.layer.point(*res)
         openglider.graphics.Graphics([openglider.graphics.Line([p1, self.layer.p0]),

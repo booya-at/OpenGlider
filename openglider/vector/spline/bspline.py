@@ -97,15 +97,15 @@ class SymmetricBSpline(SymmetricBezier):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    import numpy
+    import numpy as np
 
     data = [[-0.2, 0.], [-0.5, 0.5], [-1., 0.], [-2, 3]]
     curve = SymmetricBSpline(data)
     values = curve.get_sequence(20)
     cp = curve.controlpoints
-    curve_pts = [curve(i) for i in numpy.linspace(0.,  1, 100)]
+    curve_pts = [curve(i) for i in np.linspace(0.,  1, 100)]
     # for i in curve.basefactory(5):
-    #     plt.plot(*zip(*[[x, i(x)] for x in numpy.linspace(0., 1, 100)]))
+    #     plt.plot(*zip(*[[x, i(x)] for x in np.linspace(0., 1, 100)]))
     plt.show()
     plt.plot(*zip(*values))
     # plt.plot(*zip(*curve_pts))

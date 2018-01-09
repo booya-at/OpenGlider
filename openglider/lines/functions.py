@@ -19,19 +19,19 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import division
-import numpy
+import numpy as np
 import traceback
 
 
 def proj_force(force, vec):
-    proj = numpy.dot(vec, force)
+    proj = np.dot(vec, force)
     try:
         assert proj**2 >= 0.00001
     except AssertionError as e:
         print("shit", vec, force, proj)
         return None
-    return numpy.dot(force, force) / proj
+    return np.dot(force, force) / proj
 
 
 def proj_to_surface(vec, n_vec):
-    return vec - numpy.array(n_vec) * numpy.dot(n_vec, vec) / numpy.dot(n_vec, n_vec)
+    return vec - np.array(n_vec) * np.dot(n_vec, vec) / np.dot(n_vec, n_vec)

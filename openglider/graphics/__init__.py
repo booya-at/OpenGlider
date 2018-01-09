@@ -157,10 +157,10 @@ def show(*graphics):
 
 
 def listlineplot(points):
-    if isinstance(points, numpy.ndarray):
+    if isinstance(points, np.ndarray):
         points = points.tolist()
     if depth(points) == 2:
-        Graphics2D([Line(numpy.transpose(numpy.array([map(float, range(len(points))), points])))])
+        Graphics2D([Line(np.transpose(np.array([map(float, range(len(points))), points])))])
     if depth(points) == 3 and len(points[1]) == 2:
         Graphics2D([Line(tofloat(points))])
     if depth(points) == 3 and len(points[1]) == 3:
@@ -176,7 +176,7 @@ def draw_glider(glider, num=0, mirror=True, panels=True):
     ribs = temp.return_ribs(num)
 
     if panels:
-        points = numpy.concatenate(ribs)
+        points = np.concatenate(ribs)
         polygons = temp.return_polygon_indices(ribs)
         Graphics([Polygon(polygon) for polygon in polygons], points)
     else:

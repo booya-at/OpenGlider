@@ -17,7 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-import numpy
+import numpy as np
 from openglider.vector.functions import norm, normalize, rotation_3d
 from openglider.vector.polyline import PolyLine, PolyLine2D
 
@@ -156,7 +156,7 @@ class TestVectorFunctions3D(unittest.TestCase):
             rot = rot.dot(rotation_matrix)
 
             for vector in self.vectors:
-                p1 = rot.dot(numpy.array(vector) * scale)
+                p1 = rot.dot(np.array(vector) * scale)
                 p2 = rot.dot(vector) * scale
                 for i in range(3):
                     self.assertAlmostEqual(p1[i], p2[i])

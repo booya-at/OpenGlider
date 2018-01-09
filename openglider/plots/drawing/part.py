@@ -1,6 +1,6 @@
 import copy
 
-import numpy
+import numpy as np
 
 
 class Layer(object):
@@ -224,7 +224,7 @@ class PlotPart(object):
         height = new_part.height
         rotation = 0
         for alpha in range(1, 90):
-            new_part.rotate(numpy.pi/180)
+            new_part.rotate(np.pi/180)
             if new_part.area < area:
                 rotation = alpha
                 area = new_part.area
@@ -234,7 +234,7 @@ class PlotPart(object):
         if width < height:
             rotation -= 90
 
-        self.rotate(rotation*numpy.pi/180)
+        self.rotate(rotation*np.pi/180)
         return self
 
     def scale(self, factor):

@@ -3,7 +3,7 @@ import sys
 import os
 import unittest
 import random
-import numpy
+import numpy as np
 
 try:
     import openglider
@@ -16,8 +16,8 @@ import openglider.plots.marks as marks
 
 class TestMarks(unittest.TestCase):
     def setUp(self):
-        self.p1 = numpy.array([0, 0])
-        self.p2 = numpy.array([random.random(), random.random()])
+        self.p1 = np.array([0, 0])
+        self.p2 = np.array([random.random(), random.random()])
 
     def show(self, obj):
         openglider.graphics.Graphics2D([

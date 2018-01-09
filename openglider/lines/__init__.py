@@ -19,7 +19,7 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
 
-import numpy
+import numpy as np
 from numpy import dot
 
 from openglider.lines.elements import Line, Node, SagMatrix

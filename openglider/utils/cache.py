@@ -1,5 +1,5 @@
 import copy
-import numpy
+import numpy as np
 
 import openglider
 
@@ -137,7 +137,7 @@ class HashedList(CachedObject):
         return self.data[item]
 
     def __setitem__(self, key, value):
-        self.data[key] = numpy.array(value)
+        self.data[key] = np.array(value)
         self._hash = None
 
     def __hash__(self):
@@ -165,9 +165,9 @@ class HashedList(CachedObject):
     @data.setter
     def data(self, data):
         if data is not None:
-            data = list(data)  # numpy.array(zip(x,y)) is shit
-            self._data = numpy.array(data)
-            #self._data = numpy.array(data)
+            data = list(data)  # np.array(zip(x,y)) is shit
+            self._data = np.array(data)
+            #self._data = np.array(data)
             #self._data = [np.array(vector) for vector in data]  # 1,5*execution time
             self._hash = None
         else:

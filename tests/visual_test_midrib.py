@@ -22,7 +22,7 @@ import math
 import sys
 import os
 
-import numpy
+import numpy as np
 
 from openglider.glider.cell.cell import Cell
 from openglider.glider.rib.minirib import MiniRib
@@ -70,7 +70,7 @@ for x in range(num + 1):
     ribs.append(cell1.midrib(x * 1. / num).data)
 for x in range(1, num + 1):
     ribs.append(cell2.midrib(x * 1. / num).data)
-ribs = numpy.concatenate(ribs)
+ribs = np.concatenate(ribs)
 polygons = []
 points = profile.numpoints
 

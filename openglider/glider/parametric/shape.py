@@ -1,6 +1,6 @@
 from __future__ import division
 import math
-import numpy as numpy
+import numpy as np
 
 from openglider.glider.shape import Shape
 from openglider.vector import Interpolation, PolyLine2D
@@ -54,15 +54,15 @@ class ParametricShape(object):
         interpolation = Interpolation([[p[1], p[0]] for p in data])
         start = self.has_center_cell / self.cell_num
         num = self.cell_num // 2 + 1
-        return [[interpolation(i), i] for i in numpy.linspace(start, 1, num)]
+        return [[interpolation(i), i] for i in np.linspace(start, 1, num)]
 
     @property
     def fast_interpolation(self):
         data = self.rib_distribution.get_sequence(self.num_distribution_interpolation).T
         start = self.has_center_cell / self.cell_num
         num = self.cell_num // 2 + 1
-        positions = numpy.linspace(start, 1, num)
-        return numpy.interp(positions, data[1], data[0])
+        positions = np.linspace(start, 1, num)
+        return np.interp(positions, data[1], data[0])
 
     # besser mit spezieller bezier?
     @property
@@ -119,9 +119,9 @@ class ParametricShape(object):
     def get_rib_point(self, rib_no, x):
         ribs = list(self.ribs)
         if self.has_center_cell:
-            ribs = [ribs[0] * numpy.array([-1, 1])] + list(ribs)
+            ribs = [ribs[0] * np.array([-1, 1])] + list(ribs)
         rib = ribs[rib_no]
-        return numpy.array([rib[0][0], rib[0][1] + x * (rib[1][1] - rib[0][1])])
+        return np.array([rib[0][0], rib[0][1] + x * (rib[1][1] - rib[0][1])])
 
     def get_shape_point(self, rib_no, x):
         k = rib_no%1
@@ -140,7 +140,7 @@ class ParametricShape(object):
         Return A(x)
         """
         num = self.num_depth_integral
-        x_values = numpy.linspace(0, self.span, num)
+        x_values = np.linspace(0, self.span, num)
         front_int = self.front_curve.interpolation(num=num)
         back_int = self.back_curve.interpolation(num=num)
         integrated_depth = [0.]
@@ -202,7 +202,7 @@ class ParametricShape(object):
         if fixed == "span":
             self.scale(y=ar0 / ar)
         elif fixed == "area":
-            self.scale(x=numpy.sqrt(ar / ar0), y=numpy.sqrt(ar0 / ar))
+            self.scale(x=np.sqrt(ar / ar0), y=np.sqrt(ar0 / ar))
 
     @property
     def span(self):

@@ -17,12 +17,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
+import numpy as np
 import math
-import numpy
 
 from openglider.lines import Node
 from openglider.plots.marks import Polygon
 from openglider.vector.polyline import PolyLine2D
+from openglider.vector.functions import set_dimension
 from openglider.vector.spline import Bezier
 from openglider.vector import norm
 
@@ -44,7 +45,7 @@ class RigidFoil(object):
 
         if dsq is not None:
             dsq = max(dsq, 0)
-            return self.distance + (self.circle_radius - numpy.sqrt(dsq)) * 0.35
+            return self.distance + (self.circle_radius - np.sqrt(dsq)) * 0.35
         return self.distance
 
     def __json__(self):
@@ -167,7 +168,7 @@ class GibusArcs(object):
         # Append Profile_List
         gib_arc += profile.get(start2.next()[0], stop.next()[0]).tolist()
 
-        return numpy.array(gib_arc) * rib.chord
+        return np.array(gib_arc) * rib.chord
 
 
 class CellAttachmentPoint(Node):
@@ -214,24 +215,28 @@ class AttachmentPoint(Node):
 
 
 class RibHole(object):
-    def __init__(self, pos, size=0.5):
+    def __init__(self, pos, size=0.5, horizontal_shift=0.):
         self.pos = pos
         self.size = size
+        self.horizontal_shift = horizontal_shift
 
     def get_3d(self, rib, num=20):
-        hole = self.get_flattened(rib, num=num)
-        return [rib.align([p[0], p[1], 0], scale=False) for p in hole]
+        hole = self.get_points(rib, num=num)
+        return rib.align_all(set_dimension(hole, 3))
 
     def get_flattened(self, rib, num=80, scale=True):
+        points = self.get_points(rib, num).data
+        if scale:
+            points *= rib.chord
+        return PolyLine2D(points)
+        #return Polygon(p1, p2, num=num, scale=self.size, is_center=False)[0]
+
+    def get_points(self, rib, num=80):
         prof = rib.profile_2d
         p1 = prof[prof(self.pos)]
         p2 = prof[prof(-self.pos)]
-        if scale:
-            p1 *= rib.chord
-            p2 *= rib.chord
         poly = Polygon(scale=self.size, edges=num, name="rib_hole")
-        return poly(p1, p2)[0]
-        #return Polygon(p1, p2, num=num, scale=self.size, is_center=False)[0]
+        return poly(p1, p2, horizontal_shift=self.horizontal_shift)[0]
 
     def get_center(self, rib, scale=True):
         prof = rib.profile_2d
@@ -240,7 +245,7 @@ class RibHole(object):
         if scale:
             p1 *= rib.chord
             p2 *= rib.chord
-        return (p1 + p2) / 2
+        return (p1 + p2) / 2 + (p2 - p1) / 2 * self.horizontal_shift
 
 
 class Mylar(object):

@@ -19,10 +19,11 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
 
-import numpy
+import numpy as np
 
 from openglider.utils.cache import HashedList
-from openglider.vector import norm, mirror2D_x, Interpolation
+from openglider.vector import norm, Interpolation
+from openglider.vector.transformation import Reflection
 from openglider.utils import dualmethod
 
 
@@ -68,7 +69,7 @@ class Bezier(HashedList):
         dim = len(self.data[0])
         assert 0 <= value <= 1, "value must be in the range (0,1), not {}".format(value)
 
-        val = numpy.zeros(dim)
+        val = np.zeros(dim)
         base = self.basefactory(len(self.data))
         for i, point in enumerate(self.data):
             val += point * base[i](value)
@@ -84,11 +85,11 @@ class Bezier(HashedList):
     @numpoints.setter
     def numpoints(self, num_ctrl, num_points=50):
         if not num_ctrl == self.numpoints:
-            data = [self(i) for i in numpy.linspace(0, 1, num_points)]
+            data = [self(i) for i in np.linspace(0, 1, num_points)]
             self.fit(data, num_ctrl)
 
     def change_base(self, base, num_points=50):
-        data = [self(i) for i in numpy.linspace(0, 1, num_points)]
+        data = [self(i) for i in np.linspace(0, 1, num_points)]
         self.basefactory = base
         self._matrix = None
         self.fit(data, self.numpoints)
@@ -108,20 +109,20 @@ class Bezier(HashedList):
         if start (/ end) is True, the first (/ last) point of the Curve is included
         """
         base = this.basefactory(numpoints)
-        matrix = numpy.matrix(
+        matrix = np.matrix(
             [[base[column](row * 1. / (len(points) - 1))
                 for column in range(len(base))]
                     for row in range(len(points))])
 
         if not start and not end:
-            matrix = numpy.linalg.pinv(matrix)
-            out = numpy.array(matrix * points)
+            matrix = np.linalg.pinv(matrix)
+            out = np.array(matrix * points)
             return out
         else:
-            A1 = numpy.array(matrix)
+            A1 = np.array(matrix)
             A2 = []
             points2 = []
-            points1 = numpy.array(points)
+            points1 = np.array(points)
             solution = []
 
             if start:
@@ -137,15 +138,15 @@ class Bezier(HashedList):
                 A1 = A1[:, :-1]
                 points2.append(points[-1])
                 points1 = points[:-1]
-            A1_inv = numpy.linalg.inv(numpy.dot(A1.T, A1))
-            A2 = numpy.array(A2).T
-            points1 = numpy.array(points).T
-            points2 = numpy.array(points2).T
+            A1_inv = np.linalg.inv(np.dot(A1.T, A1))
+            A2 = np.array(A2).T
+            points1 = np.array(points).T
+            points2 = np.array(points2).T
             for dim, point in enumerate(points1):
-                rhs1 = numpy.array(A1.T.dot(point))
-                rhs2 = numpy.array((A1.T.dot(A2)).dot(points2[dim])).T
-                solution.append(numpy.array(A1_inv.dot(rhs1 - rhs2)))
-            solution = numpy.matrix(solution).T.tolist()
+                rhs1 = np.array(A1.T.dot(point))
+                rhs2 = np.array((A1.T.dot(A2)).dot(points2[dim])).T
+                solution.append(np.array(A1_inv.dot(rhs1 - rhs2)))
+            solution = np.matrix(solution).T.tolist()
             if start:
                 solution.insert(0, points[0])
             if end:
@@ -169,13 +170,13 @@ class Bezier(HashedList):
 
         # create the base matrix:
         base = this.basefactory(num_ctrl_pts)
-        matrix = numpy.array(
+        matrix = np.array(
             [[base[column](row * 1. / (len(points) - 1))
                 for column in range(len(base))]
                     for row in range(len(points))])
 
         # create the b vector for each dim
-        b = numpy.array(list(zip(*points)))
+        b = np.array(list(zip(*points)))
 
         # fit
         solution = []
@@ -184,9 +185,9 @@ class Bezier(HashedList):
             constraints = [[index, val] for index, val in enumerate(constraints_T[i]) if val != None]
             solution.append(this.constraint_least_square_sol(matrix, b[i], constraints))
         if type(this) == type:
-            return this(numpy.array(solution).transpose())
+            return this(np.array(solution).transpose())
         else:
-            this.controlpoints = numpy.array(solution).transpose()
+            this.controlpoints = np.array(solution).transpose()
             return this
 
 
@@ -196,9 +197,9 @@ class Bezier(HashedList):
         A(n x m)...matrix with n >= m + c_n (n=num_cols, m=num_rows, c_n=num_constraints)
         constraint: dict of "indeces: value" couples  [[0, 1.], [10, 3.]]"""
         # create  vector from the known values
-        u_fix = numpy.zeros(A.shape[1])
+        u_fix = np.zeros(A.shape[1])
         u_sol_index = list(range(len(u_fix)))
-        u = numpy.zeros(A.shape[1])
+        u = np.zeros(A.shape[1])
         for key, val in constraint:
             u_fix[key] = val
 
@@ -206,11 +207,11 @@ class Bezier(HashedList):
         rhs =  A.T.dot(b) - ((A.T).dot(A)).dot(u_fix)
         mat = A.T.dot(A)
         for i, key in enumerate(constraint):
-            mat = numpy.delete(mat, key[0] - i, 0)
-            mat = numpy.delete(mat, key[0] - i, 1)
-            rhs = numpy.delete(rhs, key[0] - i, 0)
+            mat = np.delete(mat, key[0] - i, 0)
+            mat = np.delete(mat, key[0] - i, 1)
+            rhs = np.delete(rhs, key[0] - i, 0)
             u_sol_index.pop(key[0] - i)
-        u_sol = numpy.linalg.solve(mat, rhs.transpose())
+        u_sol = np.linalg.solve(mat, rhs.transpose())
 
         # insert the known values in the solution
         for i, index in enumerate(u_sol_index):
@@ -226,24 +227,19 @@ class Bezier(HashedList):
         self.controlpoints = [p*[x,y] for p in self.controlpoints]
 
     def get_matrix(self, num=50):
-        degree = len(self._data)
-        if self._matrix is not None:
-            if len(self._matrix) == num and len(self._matrix[0]) == degree:
-                return self._matrix
-        self._matrix = numpy.ndarray([num, degree])
-        functions = self.basefactory(degree)
-        for row, value in enumerate(numpy.linspace(0, 1 , num)):
-            for col, foo in enumerate(functions):
-                self._matrix[row, col] = foo(value)
-        return self._matrix
+        num_points = len(self._data)
+        if self._matrix is not None and self._matrix.shape == (num, num_points):
+            return self._matrix
+        else:
+            self._matrix = np.ndarray([num, num_points])
+            functions = self.basefactory(num_points)
+            for row, value in enumerate(np.linspace(0, 1 , num)):
+                for col, foo in enumerate(functions):
+                    self._matrix[row, col] = foo(value)
+            return self._matrix
 
     def get_sequence(self, num=50):
-        return numpy.dot(self.get_matrix(num), self._data)
-        # data = []
-        # for i in range(num):
-        #     point = self(i / (num - 1))
-        #     data.append(point)
-        # return numpy.array(data)
+        return np.dot(self.get_matrix(num), self._data)
 
     def get_length(self, num):
         seq = self.get_sequence(num=num)
@@ -255,7 +251,7 @@ class Bezier(HashedList):
 
 class SymmetricBezier(Bezier):
     def __init__(self, controlpoints=None, mirror=None):
-        self._mirror = mirror or mirror2D_x
+        self._mirror = mirror or Reflection([1., 0., 0.])
         super(SymmetricBezier, self).__init__(controlpoints=None)
         if controlpoints:
             self.controlpoints = controlpoints
@@ -272,7 +268,8 @@ class SymmetricBezier(Bezier):
 
     @controlpoints.setter
     def controlpoints(self, controlpoints):
-        self.data = numpy.array(list(self._mirror(controlpoints)[::-1]) + list(controlpoints))
+        cpts = np.array(controlpoints)
+        self.data = np.array(list(self._mirror.apply(cpts)[::-1]) + list(cpts))
 
     @property
     def numpoints(self):
@@ -281,8 +278,8 @@ class SymmetricBezier(Bezier):
     @numpoints.setter
     def numpoints(self, num_ctrl, num_points=50):
         if not num_ctrl == self.numpoints:
-            data = [self(i) for i in numpy.linspace(0, 1, num_points)]
-            self.fit(numpy.array(data), num_ctrl)
+            data = [self(i) for i in np.linspace(0, 1, num_points)]
+            self.fit(np.array(data), num_ctrl)
 
     @dualmethod
     def fit(cls, data, numpoints=3, start=True, end=True):

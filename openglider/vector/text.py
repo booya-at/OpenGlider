@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 
 from openglider.vector.functions import normalize
 from openglider.vector.polyline import PolyLine2D
@@ -67,8 +67,8 @@ class Text(object):
         :param valign: vertical align ( -0.5: bottom, 0: centered, 0.5: top)
         """
         self.text = text
-        self.p1 = numpy.array(p1[:])
-        self.p2 = numpy.array(p2[:])
+        self.p1 = np.array(p1[:])
+        self.p2 = np.array(p2[:])
         self.size = size
         self.height = height
         self.space = space
@@ -104,9 +104,9 @@ class Text(object):
 
         r_x, r_y = diff[0], diff[1]
 
-        rot = numpy.array([[r_x, -r_y*self.height], [r_y, r_x*self.height]])
+        rot = np.array([[r_x, -r_y*self.height], [r_y, r_x*self.height]])
 
-        p1 += numpy.array([-r_y, r_x]) * (self.valign - 0.5)
+        p1 += np.array([-r_y, r_x]) * (self.valign - 0.5)
 
         for letter in self.text.upper():
             if letter not in text_vectors:

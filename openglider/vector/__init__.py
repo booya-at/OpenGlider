@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
-import numpy
+import numpy as np
 
 from openglider.vector.functions import norm, norm_squared, normalize, rangefrom, vector_angle
 from openglider.vector.polyline import PolyLine, PolyLine2D
@@ -39,7 +39,7 @@ def arrtype(arg):
     """
     ##2d-point//argof2d-points//3d-point//argof3d-points
     ##2d-p: depth 1
-    ##equivalent numpy.rank?
+    ##equivalent np.rank?
 
     # TODO: Room for improvement here!
     # todo: remove!
@@ -70,7 +70,7 @@ class mirror_func:
             direction = [1., 0., 0.]
         if len(direction) == 2:
             x, y = normalize(direction)
-            self.matrix = numpy.array(
+            self.matrix = np.array(
                 [
                     [1 - 2 * x ** 2, -2 * x * y],
                     [-2 * x * y, 1 - 2 * y ** 2]
@@ -78,7 +78,7 @@ class mirror_func:
             )
         else:
             x, y, z = normalize(direction)
-            self.matrix = numpy.array(
+            self.matrix = np.array(
                 [
                     [1 - 2 * x ** 2, -2 * x * y, -2 * x * z],
                     [-2 * x * y, 1 - 2 * y ** 2, -2 * y * z],
@@ -87,10 +87,10 @@ class mirror_func:
             )
 
     def __call__(self, vec):
-        if len(vec) == 2 and not isinstance(vec[0], (numpy.ndarray, list, tuple)):
-            return numpy.dot(vec, self.matrix).tolist()
+        if len(vec) == 2 and not isinstance(vec[0], (np.ndarray, list, tuple)):
+            return np.dot(vec, self.matrix).tolist()
         else:
-            return numpy.array([self(i) for i in vec]).tolist()
+            return np.array([self(i) for i in vec]).tolist()
 
 
 mirror2D_x = mirror_func(direction=[1., 0.])

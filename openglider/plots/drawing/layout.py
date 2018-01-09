@@ -1,7 +1,7 @@
 import os
 import math
 
-import numpy
+import numpy as np
 import svgwrite
 import svgwrite.container
 import svgwrite.shapes
@@ -306,7 +306,7 @@ class Layout(object):
     def move_to(self, vector):
         if not len(self.parts) > 0:
             return
-        diff = numpy.array(self.bbox[0])-vector
+        diff = np.array(self.bbox[0])-vector
         self.move(-diff)
 
     def append_top(self, other, distance):

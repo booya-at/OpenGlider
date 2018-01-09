@@ -1,6 +1,6 @@
 from __future__ import division
 import copy
-import numpy
+import numpy as np
 
 from openglider.airfoil import Profile3D
 from openglider.glider.ballooning import Ballooning
@@ -189,17 +189,17 @@ class Cell(CachedObject):
         p1_2 = self.rib1.align([1, 0, 0])
         p2_1 = self.rib2.align([0, 0, 0])
         p2_2 = self.rib2.align([1, 0, 0])
-        return 0.5 * (norm(numpy.cross(p1_2 - p1_1, p2_1 - p1_1)) + norm(numpy.cross(p2_2 - p2_1, p2_2 - p1_2)))
+        return 0.5 * (norm(np.cross(p1_2 - p1_1, p2_1 - p1_1)) + norm(np.cross(p2_2 - p2_1, p2_2 - p1_2)))
 
     @property
     def projected_area(self):
         """ return the z component of the crossproduct
             of the cell diagonals"""
-        p1_1 = numpy.array(self.rib1.align([0, 0, 0]))
-        p1_2 = numpy.array(self.rib1.align([1, 0, 0]))
-        p2_1 = numpy.array(self.rib2.align([0, 0, 0]))
-        p2_2 = numpy.array(self.rib2.align([1, 0, 0]))
-        return -0.5 * numpy.cross(p2_1 - p1_2, p2_2 - p1_1)[-1]
+        p1_1 = np.array(self.rib1.align([0, 0, 0]))
+        p1_2 = np.array(self.rib1.align([1, 0, 0]))
+        p2_1 = np.array(self.rib2.align([0, 0, 0]))
+        p2_2 = np.array(self.rib2.align([1, 0, 0]))
+        return -0.5 * np.cross(p2_1 - p1_2, p2_2 - p1_1)[-1]
 
     @property
     def aspect_ratio(self):
@@ -226,7 +226,7 @@ class Cell(CachedObject):
 
     def mean_rib(self, num_midribs=8):
         mean_rib = self.midrib(0).flatten().normalize()
-        for y in numpy.linspace(0, 1, num_midribs)[1:]:
+        for y in np.linspace(0, 1, num_midribs)[1:]:
             mean_rib += self.midrib(y).flatten().normalize()
         return mean_rib * (1. / num_midribs)
 

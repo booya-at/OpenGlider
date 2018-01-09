@@ -17,7 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-import numpy
+import numpy as np
 
 from openglider.vector.functions import norm, normalize
 from openglider.vector.polyline import PolyLine2D
@@ -34,13 +34,13 @@ def point2d(p1_3d, p1_2d, p2_3d, p2_2d, point_3d):
     diff_3d = normalize(diff_point - diff_3d * diff_3d.dot(diff_point))
     diff_2d = diff_2d.dot([[0, 1], [-1, 0]])  # Rotate 90deg
 
-    return numpy.array(point_2d + diff_2d * diff_3d.dot(diff_point))
+    return np.array(point_2d + diff_2d * diff_3d.dot(diff_point))
 
 
 def flatten_list(list1, list2):
     index_left = index_right = 0
-    flat_left = [numpy.array([0, 0])]
-    flat_right = [numpy.array([norm(list1[0]-list2[0]), 0])]
+    flat_left = [np.array([0, 0])]
+    flat_right = [np.array([norm(list1[0]-list2[0]), 0])]
 
     # def which(i, j):
     #     diff = list1[i] - list2[j]

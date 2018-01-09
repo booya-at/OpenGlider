@@ -20,7 +20,7 @@
 
 from __future__ import division
 
-import numpy
+import numpy as np
 
 import openglider
 from openglider.lines import line_types
@@ -34,9 +34,9 @@ from openglider.mesh import Mesh, Vertex, Polygon
 class SagMatrix():
     def __init__(self, number_of_lines):
         size = number_of_lines * 2
-        self.matrix = numpy.zeros([size, size])
-        self.rhs = numpy.zeros(size)
-        self.solution = numpy.zeros(size)
+        self.matrix = np.zeros([size, size])
+        self.rhs = np.zeros(size)
+        self.solution = np.zeros(size)
 
     def __str__(self):
         return str(self.matrix) + "\n" + str(self.rhs)
@@ -69,7 +69,7 @@ class SagMatrix():
         infl_list = []
         vec = line.diff_vector_projected
         for u in upper_lines:
-            infl = u.force_projected * numpy.dot(vec, u.diff_vector_projected)
+            infl = u.force_projected * np.dot(vec, u.diff_vector_projected)
             infl_list.append(infl)
         sum_infl = sum(infl_list)
         for k in range(len(upper_lines)):
@@ -89,7 +89,7 @@ class SagMatrix():
             line.length_projected ** 2 / line.force_projected / 2
 
     def solve_system(self):
-        self.solution = numpy.linalg.solve(self.matrix, self.rhs)
+        self.solution = np.linalg.solve(self.matrix, self.rhs)
 
     def get_sag_parameters(self, line_nr):
         return [
@@ -227,8 +227,8 @@ class Line(CachedObject):
 
     @property
     def _get_projected_par(self):
-        c1_n = numpy.dot(self.lower_node.get_diff(), self.v_inf_0)
-        c2_n = numpy.dot(self.upper_node.get_diff(), self.v_inf_0)
+        c1_n = np.dot(self.lower_node.get_diff(), self.v_inf_0)
+        c2_n = np.dot(self.upper_node.get_diff(), self.v_inf_0)
         return [c1_n + self.sag_par_1, c2_n / self.length_projected + self.sag_par_2]
 
     def __json__(self):
@@ -252,19 +252,46 @@ class Line(CachedObject):
                    number,
                    name)
 
+    def get_ribs(self, glider):
+        '''
+        return the connected ribs
+        '''
+        lineset = glider.lineset
+        att_pnts = lineset.get_upper_influence_nodes(self)
+        return set([att_pnt.rib for att_pnt in att_pnts])
+
+    def get_rib_normal(self, glider):
+        '''
+        return the rib normal of the connected rib(s)
+        '''
+        ribs = self.get_ribs(glider)
+        result = np.array([0., 0., 0.])
+        for rib in ribs:
+            result += rib.normalized_normale
+        return result / np.linalg.norm(result)
+
+    def squared_rib_line_norm(self, glider):
+        '''
+        returns the squared norm of the cross-product of
+        the line direction and the normal-direction of
+        the connected rib(s)
+        '''
+        return self.diff_vector.dot(self.get_rib_normal(glider))**2
 
 class Node(object):
-    def __init__(self, node_type, position_vector=None):
+    def __init__(self, node_type, position_vector=None, attachment_point=None):
         self.type = node_type  # lower, top, middle (0, 2, 1)
         if position_vector is not None:
-            position_vector = numpy.array(position_vector)
+            position_vector = np.array(position_vector)
         self.vec = position_vector
 
         self.vec_proj = None  # pos_proj
-        self.force = numpy.array([None, None, None])  # top-node force
+        self.force = np.array([None, None, None])  # top-node force
+        self.attachment_point = attachment_point
+
 
     def calc_force_infl(self, vec):
-        v = numpy.array(vec)
+        v = np.array(vec)
         force = proj_force(self.force, self.vec - v)
         if force is None:
             print(self.name)

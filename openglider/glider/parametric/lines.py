@@ -1,5 +1,5 @@
 import copy
-import numpy
+import numpy as np
 
 from openglider.glider.rib.elements import AttachmentPoint, CellAttachmentPoint
 from openglider.lines import Node, Line, LineSet
@@ -26,7 +26,7 @@ class LowerNode2D(object):
         return self.pos_2D
 
     def get_node(self, glider):
-        return Node(node_type=0, position_vector=numpy.array(self.pos_3D))
+        return Node(node_type=0, position_vector=np.array(self.pos_3D))
 
 
 class UpperNode2D(object):
@@ -53,21 +53,21 @@ class UpperNode2D(object):
     def get_node(self, glider):
         if self.cell_pos > 0:
             cell = glider.cells[self.cell_no + glider.has_center_cell]
-            if isinstance(self.force, (list, tuple, numpy.ndarray)):
+            if isinstance(self.force, (list, tuple, np.ndarray)):
                 force = list(self.force)
             else:
                 midrib = cell.midrib(self.cell_pos)
-                force1 = numpy.array([0, self.force, 0])
+                force1 = np.array([0, self.force, 0])
                 plane = midrib.projection_layer
-                force = list(numpy.array(plane.translation_matrix.dot(force1))[0])
+                force = list(np.array(plane.translation_matrix.dot(force1))[0])
 
             node = CellAttachmentPoint(cell, self.name, self.cell_pos, self.rib_pos, force)
         else:
             rib = glider.ribs[self.cell_no + glider.has_center_cell]
-            if isinstance(self.force, (list, tuple, numpy.ndarray)):
+            if isinstance(self.force, (list, tuple, np.ndarray)):
                 force = list(self.force)
             else:
-                force = list(rib.rotation_matrix.dot(numpy.array([0, self.force, 0])))
+                force = list(rib.rotation_matrix(np.array([0, self.force, 0])))
             node = AttachmentPoint(glider.ribs[self.cell_no + glider.has_center_cell],
                                    self.name, self.rib_pos, force)
 
@@ -180,8 +180,8 @@ class LineSet2D(object):
             if target_length is not None:
                 line.target_length *= factor
         for node in self.get_lower_attachment_points():
-            node.pos_3D = numpy.array(node.pos_3D) * factor
-            node.pos_2D = numpy.array(node.pos_2D) * factor
+            node.pos_3D = np.array(node.pos_3D) * factor
+            node.pos_2D = np.array(node.pos_2D) * factor
 
     def set_default_nodes2d_pos(self, glider):
         lineset_3d = self.return_lineset(glider, [10,0,0])

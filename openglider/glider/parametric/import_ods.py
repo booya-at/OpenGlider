@@ -2,7 +2,7 @@ from __future__ import division
 
 import numbers
 import ezodf
-import numpy
+import numpy as np
 
 from openglider.airfoil import BezierProfile2D, Profile2D
 from openglider.vector.spline import Bezier, SymmetricBezier
@@ -187,12 +187,12 @@ def get_geometry_explicit(sheet):
         chord = line[1]
         span = line[2]
         x = line[3]
-        y += numpy.cos(alpha) * (span - span_last)
-        z -= numpy.sin(alpha) * (span - span_last)
+        y += np.cos(alpha) * (span - span_last)
+        z -= np.sin(alpha) * (span - span_last)
 
-        alpha += line[4] * numpy.pi / 180  # angle after the rib
+        alpha += line[4] * np.pi / 180  # angle after the rib
 
-        aoa.append([span, line[5] * numpy.pi / 180])
+        aoa.append([span, line[5] * np.pi / 180])
         arc.append([y, z])
         front.append([span, -x])
         back.append([span, -x - chord])
@@ -201,7 +201,7 @@ def get_geometry_explicit(sheet):
         profile_merge.append([span, line[8]])
         ballooning_merge.append([span, line[9]])
 
-        zrot.append([span, line[7] * numpy.pi / 180])
+        zrot.append([span, line[7] * np.pi / 180])
 
         span_last = span
 
@@ -215,10 +215,10 @@ def get_geometry_explicit(sheet):
 
     start = (2 - has_center_cell) / cell_no
 
-    const_arr = [0.] + numpy.linspace(start, 1, len(front) - (not has_center_cell)).tolist()
+    const_arr = [0.] + np.linspace(start, 1, len(front) - (not has_center_cell)).tolist()
     rib_pos = [0.] + [p[0] for p in front[not has_center_cell:]]
     rib_pos_int = Interpolation(zip(rib_pos, const_arr))
-    rib_distribution = [[i, rib_pos_int(i)] for i in numpy.linspace(0, rib_pos[-1], 30)]
+    rib_distribution = [[i, rib_pos_int(i)] for i in np.linspace(0, rib_pos[-1], 30)]
 
     rib_distribution = Bezier.fit(rib_distribution)
 

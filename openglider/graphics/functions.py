@@ -20,7 +20,7 @@
 
 
 import vtk
-import numpy
+import numpy as np
 
 from openglider.vector import depth
 # Quick graphics lib to imitate mathematicas graphics functions
