@@ -91,7 +91,7 @@ class Rib(CachedObject):
     @cached_property('arcang', 'glide', 'zrot', 'xrot', 'aoa_absolute')
     def rotation_matrix(self):
         zrot = np.arctan(self.arcang) / self.glide * self.zrot
-        return rib_rotation(self.aoa_absolute, self.arcang, zrot)
+        return rib_rotation(self.aoa_absolute, self.arcang, zrot, self.xrot)
 
     @cached_property('arcang', 'glide', 'zrot', 'xrot', 'aoa_absolute', 'chord', 'pos')
     def transformation(self):
@@ -136,6 +136,22 @@ class Rib(CachedObject):
            of a Polyline"""
         profile = copy.deepcopy(self.profile_2d)
         return profile
+
+    @property
+    def normalized_normale(self):
+        return self.rotation_matrix(np.array([0., 0., 1.]))
+
+    def get_attachment_points(self, glider, brake=True):
+        return glider.get_rib_attachment_points(self, brake=brake)
+
+    def get_lines(self, glider, brake=False):
+        att = self.get_attachment_points(glider, brake=brake)
+        connected_lines = set()
+        for line in glider.lineset.lines:
+            if line.upper_node in att:
+                connected_lines.add(line)
+        return list(connected_lines)
+
 
 
 class SingleSkinRib(Rib):

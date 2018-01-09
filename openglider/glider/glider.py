@@ -412,12 +412,13 @@ class Glider(object):
             points += self.lineset.get_upper_influence_nodes(line)
         return points
 
-    def get_rib_attachment_points(self, rib):
+    def get_rib_attachment_points(self, rib, brake=True):
         attach_pts = []
         for att in self.attachment_points:
             if hasattr(att, "rib"):
                 if att.rib == rib:
-                    attach_pts.append(att)
+                    if not ((not brake) and att.rib_pos == 1.):
+                        attach_pts.append(att)
         return attach_pts
 
     def get_cell_attachment_points(self, cell):

@@ -252,9 +252,34 @@ class Line(CachedObject):
                    number,
                    name)
 
+    def get_ribs(self, glider):
+        '''
+        return the connected ribs
+        '''
+        lineset = glider.lineset
+        att_pnts = lineset.get_upper_influence_nodes(self)
+        return set([att_pnt.rib for att_pnt in att_pnts])
+
+    def get_rib_normal(self, glider):
+        '''
+        return the rib normal of the connected rib(s)
+        '''
+        ribs = self.get_ribs(glider)
+        result = np.array([0., 0., 0.])
+        for rib in ribs:
+            result += rib.normalized_normale
+        return result / np.linalg.norm(result)
+
+    def squared_rib_line_norm(self, glider):
+        '''
+        returns the squared norm of the cross-product of
+        the line direction and the normal-direction of
+        the connected rib(s)
+        '''
+        return self.diff_vector.dot(self.get_rib_normal(glider))**2
 
 class Node(object):
-    def __init__(self, node_type, position_vector=None):
+    def __init__(self, node_type, position_vector=None, attachment_point=None):
         self.type = node_type  # lower, top, middle (0, 2, 1)
         if position_vector is not None:
             position_vector = np.array(position_vector)
@@ -262,6 +287,8 @@ class Node(object):
 
         self.vec_proj = None  # pos_proj
         self.force = np.array([None, None, None])  # top-node force
+        self.attachment_point = attachment_point
+
 
     def calc_force_infl(self, vec):
         v = np.array(vec)

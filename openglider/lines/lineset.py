@@ -324,3 +324,11 @@ class LineSet():
         for line in obj.lines:
             line.lineset = obj
         return obj
+
+    def __getitem__(self, name):
+        if isinstance(name, list):
+            return [self[n] for n in name]
+        for line in self.lines:
+            if name == line.name:
+                return line
+        raise KeyError(name)
