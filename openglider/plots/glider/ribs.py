@@ -13,8 +13,8 @@ from openglider.vector.text import Text
 
 class RibPlot(object):
     class DefaultConfig(PatternConfig):
-        allowance_general = 0.01
-        allowance_trailing_edge = 0.02
+        #allowance_general = 0.01
+        #allowance_trailing_edge = 0.02
 
         marks_diagonal_front = marks.Inside(marks.Arrow(left=True, name="diagonal_front"))
         marks_diagonal_back = marks.Inside(marks.Arrow(left=False, name="diagonal_back"))
@@ -70,8 +70,10 @@ class RibPlot(object):
 
         # rigidfoils
         for rigid in self.rib.rigidfoils:
-            print(rigid)
             self.plotpart.layers["marks"].append(rigid.get_flattened(self.rib))
+
+        for curve in self.rib.curves:
+            self.plotpart.layers["marks"].append(curve.get_flattened(self.rib))
 
         self._insert_text(self.rib.name)
         self.insert_controlpoints()

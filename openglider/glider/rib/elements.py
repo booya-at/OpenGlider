@@ -18,11 +18,14 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
+import math
 
 from openglider.lines import Node
 from openglider.plots.marks import Polygon
 from openglider.vector.polyline import PolyLine2D
 from openglider.vector.functions import set_dimension
+from openglider.vector.spline import Bezier
+from openglider.vector import norm
 
 
 class RigidFoil(object):
@@ -62,22 +65,54 @@ class RigidFoil(object):
         return flat
 
     def _get_flattened(self, rib):
+        max_segment = 0.005  # 5mm
         profile = rib.profile_2d
         profile_normvectors = PolyLine2D(profile.normvectors)
+
         start = profile(self.start)
         end = profile(self.end)
 
-        positions = []
+        point_range = []
+        last_node = None
         for p in profile[start:end]:
-            if p[1] > 0:
-                positions.append(-p[0])
+            sign = -1 if p[1] > 0 else +1
+
+            if last_node is not None:
+                diff = norm(p - last_node) * rib.chord
+                if diff > max_segment:
+                    segments = int(math.ceil(diff/max_segment))
+                    point_range += list(numpy.linspace(point_range[-1], sign*p[0], segments))[1:]
+                else:
+                    point_range.append(sign*p[0])
             else:
-                positions.append(p[0])
+                point_range.append(sign*p[0])
 
-        outer_curve = profile[start:end].scale(rib.chord)
-        normvectors = profile_normvectors[start:end]
+            last_node = p
 
-        return [p - n*self.func(pos)*rib.chord for pos, p, n in zip(positions, outer_curve, normvectors)]
+        indices = [profile(x) for x in point_range]
+
+        return [(profile[index] - profile_normvectors[index]*self.func(x))*rib.chord for index, x in zip(indices, point_range)]
+
+
+class FoilCurve(object):
+    def __init__(self, front=0, end=0.17):
+        self.front = front
+        self.end = end
+
+    def get_flattened(self, rib, numpoints=30):
+        curve = [
+            [self.end, 0.75],
+            [self.end-0.05, 1],
+            [self.front, 0],
+            [self.end-0.05, -1],
+            [self.end, -0.75]
+        ]
+        profile = rib.profile_2d
+
+        cp = [profile.align(point)*rib.chord for point in curve]
+
+
+        return Bezier(cp).interpolation(numpoints)
 
 
 class GibusArcs(object):

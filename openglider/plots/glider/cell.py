@@ -7,7 +7,7 @@ from openglider.vector import PolyLine2D, vector_angle
 from openglider.vector.text import Text
 import openglider.vector.projection as projection
 from openglider.plots import Layout
-from openglider.vector import normalize
+from openglider.vector import normalize, norm
 
 
 class PanelPlot(object):
@@ -245,10 +245,46 @@ class PanelPlot(object):
             cut_b = cut_b_l + cell_pos * (cut_b_r - cut_b_l)
 
             if cut_f <= attachment_point.rib_pos <= cut_b:
-                left, right = self.get_point(attachment_point.rib_pos)
+                rib_pos = attachment_point.rib_pos
+                left, right = self.get_point(rib_pos)
+
+                p1 = left + cell_pos * (right - left)
+                d = normalize(right - left) * 0.008  # 8mm
+                if cell_pos == 1:
+                    p2 = p1 + d
+                else:
+                    p2 = p1 - d
+                #p1, p2 = self.get_p1_p2(attachment_point.rib_pos, which)
+                plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
+                plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
 
                 if self.config.insert_attachment_point_text:
-                    text_align = "left" if cell_pos > 0.9 else "right"
+                    text_align = "left" if cell_pos > 0.7 else "right"
+
+                    if text_align == "right":
+                        d1 = norm(self.get_point(cut_f_l)[0] - left)
+                        d2 = norm(self.get_point(cut_b_l)[0] - left)
+                    else:
+                        d1 = norm(self.get_point(cut_f_r)[1] - right)
+                        d2 = norm(self.get_point(cut_b_r)[1] - right)
+
+                    bl = self.ballooned[0]
+                    br = self.ballooned[1]
+
+                    text_height = 0.01 * 0.8
+                    dmin = text_height + 0.001
+
+                    if d1 < dmin and d2 + d1 > 2*dmin:
+                        offset = dmin - d1
+                        ik = get_x_value(self.x_values, rib_pos)
+                        left = bl[bl.extend(ik, offset)]
+                        right = br[br.extend(ik, offset)]
+                    elif d2 < dmin and d1 + d2 > 2*dmin:
+                        offset = dmin - d2
+                        ik = get_x_value(self.x_values, rib_pos)
+                        left = bl[bl.extend(ik, -offset)]
+                        right = br[br.extend(ik, -offset)]
+
                     if self.config.layout_seperate_panels and self.panel.is_lower:
                         # rotated later
                         p2 = left
@@ -260,13 +296,7 @@ class PanelPlot(object):
                         text_align = text_align
                     plotpart.layers["text"] += Text(" {} ".format(attachment_point.name), p1, p2,
                                                     size=0.01,  # 1cm
-                                                    align=text_align, valign=0.5, height=0.8).get_vectors()
-
-                p1 = left + cell_pos * (right - left)
-                p2 = p1 + normalize(right - left) * 0.008
-                #p1, p2 = self.get_p1_p2(attachment_point.rib_pos, which)
-                plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
-                plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
+                                                    align=text_align, valign=0, height=0.8).get_vectors()
 
 
 class DribPlot(object):

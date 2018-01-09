@@ -24,6 +24,8 @@ import numpy as np
 
 from openglider.config import config
 import openglider.jsonify
+#import openglider.glider
+#from openglider.glider.project import GliderProject
 
 
 def load(filename):

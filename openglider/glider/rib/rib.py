@@ -6,6 +6,7 @@ from openglider.airfoil import Profile3D
 from openglider.utils.cache import CachedObject, cached_property
 from openglider.vector.functions import rotation_3d, set_dimension
 from openglider.vector.transformation import Rotation, Scale, Translation
+from openglider.glider.rib.elements import FoilCurve
 from numpy.linalg import norm
 
 
@@ -40,6 +41,7 @@ class Rib(CachedObject):
         self.holes = holes or []
         self.rigidfoils = rigidfoils or []
         self.material_code = material_code or ""
+        self.curves = [FoilCurve()]
 
     def __json__(self):
         return {"profile_2d": self.profile_2d,
