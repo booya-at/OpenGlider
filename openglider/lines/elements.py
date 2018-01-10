@@ -252,7 +252,7 @@ class Line(CachedObject):
                    number,
                    name)
 
-    def get_ribs(self, glider):
+    def get_connected_ribs(self, glider):
         '''
         return the connected ribs
         '''
@@ -264,19 +264,20 @@ class Line(CachedObject):
         '''
         return the rib normal of the connected rib(s)
         '''
-        ribs = self.get_ribs(glider)
+        ribs = self.get_connected_ribs(glider)
         result = np.array([0., 0., 0.])
         for rib in ribs:
             result += rib.normalized_normale
         return result / np.linalg.norm(result)
 
-    def squared_rib_line_norm(self, glider):
+    def rib_line_norm(self, glider):
         '''
         returns the squared norm of the cross-product of
         the line direction and the normal-direction of
         the connected rib(s)
         '''
-        return self.diff_vector.dot(self.get_rib_normal(glider))**2
+        return self.diff_vector.dot(self.get_rib_normal(glider))
+
 
 class Node(object):
     def __init__(self, node_type, position_vector=None, attachment_point=None):

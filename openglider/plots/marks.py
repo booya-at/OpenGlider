@@ -3,7 +3,7 @@ import numpy as np
 
 from openglider.vector.functions import rotation_2d
 from openglider.vector.polyline import PolyLine2D
-from openglider.vector.transformation import Translation, Scale
+from openglider.vector.transformation import Translation, Scale, Rotation
 
 default_scale = 0.8
 
@@ -17,12 +17,15 @@ class Polygon(object):
     def __json__(self):
         return {"scale": self.scale, "edges": self.num_edges}
 
-    def __call__(self, p1, p2, horizontal_shift=0.):
+    def __call__(self, p1, p2, horizontal_shift=0., rotation=None):
         phi = np.linspace(0, np.pi * 2, self.num_edges + 1)
         points = np.array([np.cos(phi), np.sin(phi)]).T
-        move = Translation((p1 + p2) / 2 + (p2 - p1) / 2 * horizontal_shift)
+        delta = (p2 - p1) / 2 * horizontal_shift + (p1 + p2) / 2
+        move_1 = Translation(p1)
+        move_2 = Translation((p2 - p1) / 2 * (1 + horizontal_shift))
+        rot = Rotation(rotation)
         scale = Scale(np.linalg.norm(p2 - p1) / 2 * self.scale)
-        points = (scale * move).apply(points)
+        points = (scale * move_2 * rot * move_1).apply(points)
         return [PolyLine2D(points, name=self.name)]
 
 

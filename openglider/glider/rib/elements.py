@@ -26,6 +26,7 @@ from openglider.vector.polyline import PolyLine2D
 from openglider.vector.functions import set_dimension
 from openglider.vector.spline import Bezier
 from openglider.vector import norm
+from openglider.vector.transformation import Rotation, Translation
 
 
 class RigidFoil(object):
@@ -81,7 +82,7 @@ class RigidFoil(object):
                 diff = norm(p - last_node) * rib.chord
                 if diff > max_segment:
                     segments = int(math.ceil(diff/max_segment))
-                    point_range += list(numpy.linspace(point_range[-1], sign*p[0], segments))[1:]
+                    point_range += list(np.linspace(point_range[-1], sign*p[0], segments))[1:]
                 else:
                     point_range.append(sign*p[0])
             else:
@@ -215,10 +216,11 @@ class AttachmentPoint(Node):
 
 
 class RibHole(object):
-    def __init__(self, pos, size=0.5, horizontal_shift=0.):
+    def __init__(self, pos, size=0.5, horizontal_shift=0., rotation=0.):
         self.pos = pos
         self.size = size
         self.horizontal_shift = horizontal_shift
+        self.rotation = rotation  # rotation about p1
 
     def get_3d(self, rib, num=20):
         hole = self.get_points(rib, num=num)
@@ -236,7 +238,7 @@ class RibHole(object):
         p1 = prof[prof(self.pos)]
         p2 = prof[prof(-self.pos)]
         poly = Polygon(scale=self.size, edges=num, name="rib_hole")
-        return poly(p1, p2, horizontal_shift=self.horizontal_shift)[0]
+        return poly(p1, p2, horizontal_shift=self.horizontal_shift, rotation=self.rotation)[0]
 
     def get_center(self, rib, scale=True):
         prof = rib.profile_2d
@@ -245,7 +247,10 @@ class RibHole(object):
         if scale:
             p1 *= rib.chord
             p2 *= rib.chord
-        return (p1 + p2) / 2 + (p2 - p1) / 2 * self.horizontal_shift
+        move_1 = Translation(p1)
+        move_2 = Translation((p2 - p1) / 2 * (1 + self.horizontal_shift))
+        rot = Rotation(self.rotation)
+        return (move_2 * rot * move_1)([0., 0.]) 
 
 
 class Mylar(object):
