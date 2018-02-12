@@ -194,7 +194,8 @@ class SingleSkinRib(Rib):
     def from_rib(cls, rib, single_skin_par):
         json_dict = rib.__json__()
         json_dict["single_skin_par"] = single_skin_par
-        return cls(**json_dict)
+        single_skin_rib = cls(**json_dict)
+        return single_skin_rib
 
     def __json__(self):
         json_dict = super(SingleSkinRib, self).__json__()
