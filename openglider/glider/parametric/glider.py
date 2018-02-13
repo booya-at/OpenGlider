@@ -285,6 +285,7 @@ class ParametricGlider(object):
             new_rib = ribs[0].copy()
             new_rib.name = "rib0"
             new_rib.mirror()
+            new_rib.mirrored_rib = ribs[0]
             ribs.insert(0, new_rib)
             cell_centers.insert(0, 0.)
 
