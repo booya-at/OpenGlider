@@ -185,7 +185,7 @@ class SingleSkinRib(Rib):
         new_y = []
         for i, xy in enumerate(data):
             if i > min_index and xy[0] < self.single_skin_par['continued_min_end']:
-                new_y += [y_min]
+                new_y += [y_min + (xy[0] - data[min_index][0]) * np.tan(self.single_skin_par['continued_min_angle'])]
             else:
                 new_y += [xy[1]]
         self.profile_2d.data = np.array([x, new_y]).T
@@ -222,7 +222,9 @@ class SingleSkinRib(Rib):
                 if i == (len(pos) -2) and not self.single_skin_par["te_gap"]:
                     te_gap = 0
                 span_list.append([p + le_gap, pos[i + 1] - te_gap])
-            for sp in span_list:
+            for k, sp in enumerate(span_list):
+                if self.single_skin_par["double_first"] and k == 0:
+                    continue # do not insert points between att for double-first ribs
                 # insert points
                 for i in np.linspace(sp[0], sp[1], self.single_skin_par["num_points"]):
                     profile.insert_point(i)
