@@ -390,6 +390,7 @@ class Layout(object):
 
         for part in self.parts:
             part_group = svgwrite.container.Group()
+            part_layer_groups = {}
 
             for layer_name in part.layers:
                 # todo: simplify
@@ -400,13 +401,23 @@ class Layout(object):
 
                 lines = part.layers[layer_name]
 
+                if layer_name not in part_layer_groups:
+                    part_layer_group = svgwrite.container.Group()
+                    #group.elementname = layer_name
+                    part_group.add(part_layer_group)
+                    part_layer_groups[layer_name] = part_layer_group
+                else:
+                    part_layer_group = part_layer_groups[layer_name]
+
+
                 for line in lines:
                     element = svgwrite.shapes.Polyline(line, **layer_config)
                     classes = [layer_name]
                     if part.material_code:
+                        classes.append(normalize_class_names(part.material_code))
                         classes.append(part.material_code)
                     element.attribs["class"] = " ".join(classes)
-                    part_group.add(element)
+                    part_layer_group.add(element)
 
             group.add(part_group)
 

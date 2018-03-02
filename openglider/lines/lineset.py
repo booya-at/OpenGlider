@@ -5,6 +5,7 @@ from openglider.lines import SagMatrix
 from openglider.lines.functions import proj_force
 from openglider.mesh import Mesh
 from openglider.vector.functions import norm, normalize
+from openglider.utils.table import Table
 
 
 class LineSet():
@@ -102,6 +103,9 @@ class LineSet():
             self._calc_sag()
         else:
             self.calc_forces(self.lowest_lines)
+            for line in self.lines:
+                line.sag_par_1 = line.sag_par_2  = None
+
 
         return self
 
@@ -260,7 +264,9 @@ class LineSet():
         for i in range(steps):
             for l in self.lines:
                 if l.target_length is not None:
-                    l.init_length = l.target_length * l.init_length / l.get_stretched_length(pre_load)
+                    diff = l.get_stretched_length(pre_load) - l.target_length
+                    l.init_length -= diff
+                    #l.init_length = l.target_length * l.init_length / l.get_stretched_length(pre_load)
             #print("------")
             self.recalc()
 
@@ -296,6 +302,55 @@ class LineSet():
         lines.sort(key=sort_key)
 
         return [(line, self.create_tree(line.upper_node)) for line in lines]
+
+    def get_table(self, start_node=None):
+        line_tree = self.create_tree(start_node=start_node)
+        table = Table()
+
+        floors = max(self.floors)
+
+        def insert_block(line, upper, row, column):
+            length = round(line.get_stretched_length()*1000)
+            table.set(column, row, length)
+            table.set(column + floors + 3, row, line.type.name)
+            if upper:
+                for line, line_upper in upper:
+                    row = insert_block(line, line_upper, row, column-1)
+            else:  # Insert a top node
+                name = line.upper_node.name
+                if not name:
+                    name = "XXX"
+                table.set(column-1, row, name)
+                table.set(column+2+floors, row, name)
+                row += 1
+            return row
+
+        row = 1
+        for line, upper in line_tree:
+            row = insert_block(line, upper, row, floors)
+
+        return table
+
+    def get_table_2(self):
+        line_tree = self.create_tree()
+        table = Table()
+
+        def insert_block(line, upper, row, column):
+            length = round(line.get_stretched_length()*1000)
+            table[row, column] = line.name
+            table[row, column + 1] = line.type.name
+            table[row, column + 2] = length
+            if upper:
+                for line, line_upper in upper:
+                    row = insert_block(line, line_upper, row, column + 4)
+            else:  # Insert a top node
+                row += 1
+            return row
+
+        row = 1
+        for line, upper in sorted(line_tree, key=(lambda x: x[0].name)):
+            row = insert_block(line, upper, row, 0)
+        return table
 
     def copy(self):
         return copy.deepcopy(self)

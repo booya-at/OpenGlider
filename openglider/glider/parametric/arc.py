@@ -57,6 +57,10 @@ class ArcCurve(object):
 
         return cell_angles
 
+    @classmethod
+    def from_cell_angles(cls, angles, x_values):
+        pass
+
     def get_rib_angles(self, x_values):
         """
         Calculate rib rotation angles given a shape's rib-x-values

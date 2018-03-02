@@ -103,8 +103,7 @@ def import_ods(filename, glider):
         p.get_position()
 
     glider.lineset = tolist_lines(sheets[6], attachment_points_lower, attachment_points)
-    glider.lineset._calc_geo()
-    glider.lineset._calc_sag()
+    glider.lineset.recalc()
 
     ####################################PANELS##########################################################
     cuts = [cut+[1, glider.data["Designzugabe"]] for cut in read_elements(sheets[1], "DESIGNO")]

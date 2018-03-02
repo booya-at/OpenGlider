@@ -13,6 +13,7 @@ from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.parametric.lines import UpperNode2D, LowerNode2D, BatchNode2D, Line2D, LineSet2D
 from openglider.glider.rib import MiniRib
 from openglider.glider.ballooning import BallooningBezier
+from openglider.utils.table import Table
 
 element_keywords = {
     "cuts": ["cells", "left", "right", "type"],
@@ -145,6 +146,9 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
         })
     miniribs = group(miniribs, "cells")
 
+    lineset_table = Table.from_ods_sheet(sheets[6])
+    lineset = LineSet2D.read_input_table(lineset_table, attachment_points_lower, attachment_points)
+
     glider_2d = Glider2D(elements={"cuts": cuts,
                                    "holes": rib_holes,
                                    "diagonals": diagonals,
@@ -154,7 +158,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
                                    "miniribs": miniribs},
                          profiles=profiles,
                          balloonings=balloonings,
-                         lineset=read_linesheet(sheets[6], attachment_points_lower, attachment_points),
+                         lineset=lineset,
                          speed=data["SPEED"],
                          glide=data["GLIDE"],
                          **geometry)
@@ -325,61 +329,6 @@ def transpose_columns(sheet, columnswidth=2):
             element.append(row)
         result.append((name, element))
     return result
-
-
-def read_linesheet(sheet, attachment_points_lower, attachment_points_upper):
-    # upper -> dct {name: node}
-    num_rows = sheet.nrows()
-    num_cols = sheet.ncols()
-    linelist = []
-    current_nodes = [None for row in range(num_cols)]
-    row = 0
-    column = 0
-    count = 0
-
-    while row < num_rows:
-        value = sheet.get_cell([row, column]).value  # length or node_no
-
-        if value is not None:
-            if column == 0:  # first (line-)floor
-                current_nodes = [attachment_points_lower[int(sheet.get_cell([row, 0]).value)]] + \
-                                [None for __ in range(num_cols)]
-                column += 1
-
-            else:
-                # We have a line
-                line_type_name = sheet.get_cell([row, column + 1]).value
-
-                lower_node = current_nodes[column // 2]
-
-                # gallery
-                if column + 2 >= num_cols - 1 or sheet.get_cell([row, column + 2]).value is None:
-
-                    upper = attachment_points_upper[value]
-                    line_length = None
-                    row += 1
-                    column = 0
-                # other line
-                else:
-                    upper = BatchNode2D([0, 0])
-                    current_nodes[column // 2 + 1] = upper
-                    line_length = sheet.get_cell([row, column]).value
-                    column += 2
-
-                linelist.append(
-                    Line2D(lower_node, upper, target_length=line_length, line_type=line_type_name))
-                count += 1
-
-        else:
-            if column == 0:
-                column += 1
-            elif column + 2 >= num_cols:
-                row += 1
-                column = 0
-            else:
-                column += 2
-
-    return LineSet2D(linelist)
 
 
 def read_elements(sheet, keyword, len_data=2):

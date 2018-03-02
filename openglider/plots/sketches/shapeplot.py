@@ -23,6 +23,7 @@ class ShapePlot(object):
         return ShapePlot(glider2d, glider3d, drawing)
 
     def insert_design(self, lower=True):
+        part = PlotPart()
         for cell_no, cell_panels in enumerate(self.glider_2d.get_panels()):
 
             def match(panel):
@@ -52,13 +53,39 @@ class ShapePlot(object):
                 p3 = self.glider_2d.shape.get_shape_point(cell_no+1, right_back)
                 p4 = self.glider_2d.shape.get_shape_point(cell_no+1, rigth_front)
 
-                self.drawing.parts.append(PlotPart(
-                    cuts=[PolyLine2D([p1, p2, p3, p4, p1])],
-                    material_code=panel.material_code))
+                part.layers[panel.material_code].append(PolyLine2D([p1, p2, p3, p4, p1]))
+
+                #self.drawing.parts.append(PlotPart(
+                #    cuts=[PolyLine2D([p1, p2, p3, p4, p1])],
+                #    material_code=panel.material_code))
+
+        self.drawing.parts.append(part)
 
         return self
 
+    def insert_baseline(self, pct=None):
+        if pct is None:
+            pct = self.glider_2d.shape.baseline_pos
+
+        part = PlotPart()
+        line = self.glider_2d.shape.get_baseline(pct)
+        part.layers["marks"].append(line)
+        self.drawing.parts.append(part)
+
+    def insert_grid(self, num=11):
+        import numpy as np
+        part = PlotPart()
+
+        for p in np.linspace(0, 1, num):
+            line = self.glider_2d.shape.get_baseline(p)
+            part.layers["marks"].append(line)
+
+        self.drawing.parts.append(part)
+        self.insert_cells()
+        return self
+
     def insert_attachment_points(self, add_text=True):
+        part = PlotPart()
         for attachment_point in self.glider_2d.lineset.get_upper_nodes():
             rib_no = attachment_point.cell_pos + attachment_point.cell_no + self.glider_2d.shape.has_center_cell
 
@@ -92,15 +119,14 @@ class ShapePlot(object):
             cross_right = p1 + diff
 
             cross = self.attachment_point_mark(cross_left, cross_right)
-            self.drawing.parts.append(PlotPart(marks=cross))
+            part.layers["marks"] += cross
 
             if add_text and attachment_point.name:
                 text = Text(" {} ".format(attachment_point.name), p1, p2)
                 vectors = text.get_vectors()
-                part = PlotPart(
-                    text=vectors
-                )
-                self.drawing.parts.append(part)
+                part.layers["text"] += vectors
+
+        self.drawing.parts.append(part)
 
     def insert_cells(self):
         cells = []

@@ -4,12 +4,14 @@ import numpy as np
 
 from openglider.glider.shape import Shape
 from openglider.vector import Interpolation, PolyLine2D
+from openglider.utils.table import Table
 
 
 class ParametricShape(object):
     num_shape_interpolation = 50
     num_distribution_interpolation = 50
     num_depth_integral = 50
+    baseline_pos = 0.25
 
     def __init__(self, front_curve, back_curve, rib_distribution, cell_num):
         self.front_curve = front_curve
@@ -32,6 +34,18 @@ class ParametricShape(object):
             self.area,
             self.aspect_ratio
         )
+
+    @property
+    def baseline(self):
+        return self.get_baseline(self.baseline_pos)
+
+    def get_baseline(self, pct):
+        shape = self.get_half_shape()
+        line = []
+        for i in range(shape.rib_no):
+            line.append(shape.get_point(i, pct))
+
+        return PolyLine2D(line)
 
     @property
     def has_center_cell(self):
@@ -221,3 +235,5 @@ class ParametricShape(object):
         if fixed == "aspect_ratio":
             print("set_span")
             self.scale(x=span/span_0, y=span/span_0)
+        else:
+            self.scale(x=span/span_0, y=1)

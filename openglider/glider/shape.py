@@ -30,6 +30,10 @@ class Shape(object):
         return len(self.front) - 1
 
     @property
+    def rib_no(self):
+        return len(self.front)
+
+    @property
     def ribs(self):
         return list(zip(self.front.data.tolist(), self.back.data.tolist()))
 

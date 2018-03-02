@@ -13,6 +13,7 @@ from openglider.glider.parametric.lines import LineSet2D, UpperNode2D
 from openglider.glider.rib import RibHole, RigidFoil, Rib, MiniRib
 from openglider.glider.parametric.fitglider import fit_glider_3d
 from openglider.utils.distribution import Distribution
+from openglider.utils.table import Table
 
 
 class ParametricGlider(object):
@@ -24,6 +25,7 @@ class ParametricGlider(object):
     num_interpolate_ribs = 40
     num_cell_dist = 30
     num_depth_integral = 100
+    num_interpolate = 30
     num_profile = None
 
     def __init__(self, shape, arc, aoa, profiles, profile_merge_curve,
@@ -64,6 +66,36 @@ class ParametricGlider(object):
 
     export_ods = export_ods_2d
 
+    def get_geomentry_table(self):
+        table = Table()
+        table.insert_row(["", "Ribs", "Chord", "X", "Y", "%", "Arc", "Arc_diff", "AOA", "Z-rotation", "Y-rotation", "profile-merge", "ballooning-merge"])
+        shape = self.shape.get_half_shape()
+        for rib_no in range(self.shape.half_rib_num):
+            table[1+rib_no, 1] = rib_no+1
+
+        for rib_no, chord in enumerate(shape.chords):
+            table[1+rib_no, 2] = chord
+
+        for rib_no, p in enumerate(self.shape.baseline):
+            table[1+rib_no, 3] = p[0]
+            table[1+rib_no, 4] = p[1]
+            table[1+rib_no, 5] = self.shape.baseline_pos
+
+        last_angle = 0
+        for cell_no, angle in enumerate(self.get_arc_angles()):
+            angle = angle * 180 / math.pi
+            table[1+cell_no, 6] = angle
+            table[1+cell_no, 7] = angle - last_angle
+            last_angle = angle
+
+        for rib_no, aoa in enumerate(self.get_aoa()):
+            table[1+rib_no, 8] = aoa * 180 / math.pi
+            table[1+rib_no, 9] = 0
+            table[1+rib_no, 10] = 0
+
+        return table
+
+
     @property
     def arc_positions(self):
         return self.arc.get_arc_positions(self.shape.rib_x_values)
@@ -74,7 +106,8 @@ class ParametricGlider(object):
         :param arc_curve:
         :return: rotation angles
         """
-        arc_curve = ArcCurve(self.arc)
+        #arc_curve = ArcCurve(self.arc)
+        arc_curve = self.arc
 
         return arc_curve.get_rib_angles(self.shape.rib_x_values)
 
@@ -221,10 +254,20 @@ class ParametricGlider(object):
         :return:
         """
 
+    def get_aoa(self):
+        aoa_interpolation = self.aoa.interpolation(num=self.num_interpolate)
+
+        return [aoa_interpolation(x) for x in self.shape.rib_x_values]
+
+
     def apply_aoa(self, glider, interpolation_num=50):
         aoa_interpolation = self.aoa.interpolation(num=interpolation_num)
         for rib, x_pos in zip(glider.ribs, self.shape.rib_x_values):
             rib.aoa_relative = aoa_interpolation(x_pos)
+
+    def get_profile_merge(self):
+        profile_merge_curve = self.profile_merge_curve.interpolation(num=self.num_interpolate)
+        return [profile_merge_curve(abs(x)) for x in self.shape.rib_x_values]
 
     def get_glider_3d(self, glider=None, num=50):
         """returns a new glider from parametric values"""

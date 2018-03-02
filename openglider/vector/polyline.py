@@ -3,6 +3,8 @@ import numpy as np
 from openglider.utils import sign
 from openglider.utils.cache import cached_property, HashedList
 from openglider.vector.functions import norm, normalize, rangefrom, rotation_2d, cut
+from openglider.utils.table import Table
+
 
 class PolyLine(HashedList):
     def __init__(self, data, name=None):
@@ -37,6 +39,15 @@ class PolyLine(HashedList):
         assert len(other) == 2
         self.scale(*other)
         return self
+
+    def get_table(self):
+        table = Table()
+
+        for i, p in enumerate(self):
+            for j, coord in enumerate(p):
+                table.set(j, i, coord)
+
+        return table
 
     def join(self, *other):
         self.data = np.concatenate([self.data] + list(other))

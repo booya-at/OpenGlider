@@ -7,6 +7,7 @@ import openglider.glider
 import openglider.glider.parametric.glider
 from openglider.glider.cell import DiagonalRib
 from openglider.glider.parametric.arc import ArcCurve
+from openglider.utils.table import Table
 
 
 def export_ods_2d(glider, filename):
@@ -14,7 +15,9 @@ def export_ods_2d(glider, filename):
     assert isinstance(glider, openglider.glider.parametric.glider.ParametricGlider)
 
     doc.sheets.append(get_geom_sheet(glider))
-    doc.sheets.append(get_cell_sheet(glider))
+    cell_sheet = get_cell_sheet(glider).get_ods_sheet()
+    cell_sheet.name = "Cell Elements"
+    doc.sheets.append(cell_sheet)
     doc.sheets.append(get_rib_sheet(glider))
     doc.sheets.append(get_airfoil_sheet(glider))
     doc.sheets.append(get_ballooning_sheet(glider))
@@ -91,66 +94,107 @@ def get_geom_sheet(glider_2d):
 
 
 def get_cell_sheet(glider):
+    cell_num = glider.shape.half_cell_num
     row_num = glider.shape.half_cell_num
-    sheet_name = "Cell Elements"
-    sheet = ezodf.Sheet(name=sheet_name, size=(row_num+1, 1))
-    elems = glider.elements
+    table = Table()
 
     for i in range(1, row_num+1):
-        sheet[i, 0].set_value(str(i))
+        table[i, 0] = str(i)
 
-    column = 1
+    elems = glider.elements
 
+    table.append_right(glider.lineset.get_attachment_point_table())
     # cuts
-    for cut in elems["cuts"]:
-        sheet.append_columns(2)
-        # folded = EKV
-        # orthogonal = DESIGNM
-        sheet[0, column].set_value(cut["type"])
-        for cell_no in cut["cells"]:
-            sheet[cell_no+1, column].set_value(cut["left"])
-            sheet[cell_no+1, column+1].set_value(cut["right"])
-        column += 2
+    cuts_table = Table()
+    cuts_per_cell = []
+    for cell_no in range(cell_num):
+        cuts_this = []
+        for cut in elems["cuts"]:
+            if cell_no in cut["cells"]:
+                cuts_this.append((cut["left"], cut["right"], cut["type"]))
+
+        cuts_this.sort(key=lambda x: sum(x[:2]))
+        cuts_per_cell.append(cuts_this)
+
+    def find_next(cut, cell_no):
+        cuts_this = cuts_per_cell[cell_no]
+        for new_cut in cuts_this:
+            if cut[1] == new_cut[0] and new_cut[2] == cut[2]:
+                cuts_this.remove(new_cut)
+                return new_cut
+
+    def add_column(cell_no):
+        cuts_this = cuts_per_cell[cell_no]
+        if not cuts_this:
+            return False
+
+        cut = cuts_this[0]
+        column = Table()
+        column[0, 0] = cut[2]
+        column.insert_row(cut[:2], cell_no+1)
+        cuts_this.remove(cut)
+
+
+        for cell_no_temp in range(cell_no+1, cell_num):
+            cut_next = find_next(cut, cell_no_temp)
+            if not cut_next:
+                break
+            column.insert_row(cut_next[:2], cell_no_temp)
+            cut = cut_next
+
+        cuts_table.append_right(column)
+
+        return column
+
+    for cell_no in range(cell_num):
+        while add_column(cell_no):
+            pass
+
+    table.append_right(cuts_table)
 
     # Diagonals
     for diagonal in elems["diagonals"]:
+        diagonal_table = Table()
         diagonal = copy.copy(diagonal)
-        sheet.append_columns(6)
-        sheet[0, column].set_value("QR")
+        diagonal_table[0, 0] = "QR"
         cells = diagonal.pop("cells")
         _diagonal = DiagonalRib(**diagonal)
 
         for cell_no in cells:
             # center_left, center_right, width_left, width_right, height_left, height_right
 
-            sheet[cell_no+1, column].set_value(_diagonal.center_left)
-            sheet[cell_no+1, column+1].set_value(_diagonal.center_right)
-            sheet[cell_no+1, column+2].set_value(_diagonal.width_left)
-            sheet[cell_no+1, column+3].set_value(_diagonal.width_right)
-            sheet[cell_no+1, column+4].set_value(_diagonal.left_front[1])
-            sheet[cell_no+1, column+5].set_value(_diagonal.right_front[1])
-        column += 6
+            diagonal_table[cell_no+1, 0] = _diagonal.center_left
+            diagonal_table[cell_no+1, 1] = _diagonal.center_right
+            diagonal_table[cell_no+1, 2] = _diagonal.width_left
+            diagonal_table[cell_no+1, 3] = _diagonal.width_right
+            diagonal_table[cell_no+1, 4] = _diagonal.left_front[1]
+            diagonal_table[cell_no+1, 5] = _diagonal.right_front[1]
+
+        table.append_right(diagonal_table)
 
     # Straps
     for strap in elems["straps"]:
-        sheet.append_columns(3)
-        sheet[0, column].set_value("STRAP")
+        strap_table = Table()
+        strap_table[0, 0] = "STRAP"
         for cell_no in strap["cells"]:
-            sheet[cell_no+1, column].set_value((strap["left_front"][0]+strap["left_back"][0])/2)
-            sheet[cell_no+1, column+1].set_value((strap["right_front"][0]+strap["right_back"][0])/2)
-            sheet[cell_no+1, column+2].set_value(0.04)
-        column += 3
+            strap_table[cell_no+1, 0] = (strap["left_front"][0]+strap["left_back"][0])/2
+            strap_table[cell_no+1, 1] = (strap["right_front"][0]+strap["right_back"][0])/2
+            strap_table[cell_no+1, 2] = 0.04
+
+        table.append_right(strap_table)
 
     # Material
-    max_parts = max([len(c) for c in elems["materials"]])
-    sheet.append_columns(max_parts)
-    for part_no in range(max_parts):
-        sheet[0, column+part_no].set_value("MATERIAL")
+    material_table = Table()
     for cell_no, cell in enumerate(elems["materials"]):
         for part_no, part in enumerate(cell):
-            sheet[cell_no+1, column+part_no].set_value(part)
+            material_table[cell_no+1, part_no] = part
 
-    return sheet
+    for part_no in range(material_table.num_columns):
+        material_table[0, part_no] = "MATERIAL"
+
+    table.append_right(material_table)
+
+    return table
 
 
 def get_rib_sheet(glider_2d):

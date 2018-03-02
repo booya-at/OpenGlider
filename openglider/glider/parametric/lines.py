@@ -1,10 +1,13 @@
 import copy
+import re
+
 import numpy as np
 
 from openglider.glider.rib.elements import AttachmentPoint, CellAttachmentPoint
 from openglider.lines import Node, Line, LineSet
 from openglider.utils import recursive_getattr
 from openglider.lines import line_types
+from openglider.utils.table import Table
 
 
 class LowerNode2D(object):
@@ -46,6 +49,9 @@ class UpperNode2D(object):
                 'force': self.force,
                 'name': self.name,
                 "layer": self.layer}
+
+    def __repr__(self):
+        return "<UpperNode2D name:{} cell_no:{} cell_pos: {} rib:pos:{}".format(self.name, self.cell_no, self.cell_pos, self.rib_pos)
 
     def get_2D(self, parametric_shape):
         return parametric_shape[self.cell_no, self.rib_pos]
@@ -97,6 +103,7 @@ class BatchNode2D(object):
 
 
 class LineSet2D(object):
+    regex_node = re.compile(r"([a-zA-Z]*)([0-9]*)")
     def __init__(self, line_list):
         self.lines = line_list
 
@@ -249,6 +256,141 @@ class LineSet2D(object):
         lines.sort(key=sort_key)
 
         return [(line, self.create_tree(line.upper_node)) for line in lines]
+
+    def get_input_table(self):
+        table = Table()
+
+        lower_nodes = self.get_lower_attachment_points()
+        line_trees = [self.create_tree(node) for node in lower_nodes]
+
+        def insert_block(line, upper, row, column):
+            table[row, column+1] = line.line_type.name
+            if upper:
+                table[row, column] = round(line.target_length, 3)
+                for line, line_upper in upper:
+                    row = insert_block(line, line_upper, row, column+2)
+            else:  # Insert a top node
+                name = line.upper_node.name
+                if not name:
+                    name = "Rib_{}/{}".format(line.upper_node.rib_no,
+                                              line.upper_node.rib_pos)
+                table[row, column] = name
+                row += 1
+            return row
+
+        row = 0
+        for node_no, tree in enumerate(line_trees):
+            table[row, 0] = node_no
+            for line, upper in tree:
+                row = insert_block(line, upper, row, 1)
+
+        return table
+
+    @classmethod
+    def read_input_table(cls, sheet, attachment_points_lower, attachment_points_upper):
+
+        # upper -> dct {name: node}
+        num_rows = sheet.num_rows
+        num_cols = sheet.num_columns
+
+        linelist = []
+        current_nodes = [None for row in range(num_cols)]
+        row = 0
+        column = 0
+        count = 0
+
+        while row < num_rows:
+            value = sheet[row, column]  # length or node_no
+
+            if value is not None:
+                if column == 0:  # first (line-)floor
+                    current_nodes = [attachment_points_lower[int(sheet[row, 0])]] + \
+                                    [None for __ in range(num_cols)]
+                    column += 1
+
+                else:
+                    # We have a line
+                    line_type_name = sheet[row, column + 1]
+
+                    lower_node = current_nodes[column // 2]
+
+                    # gallery
+                    if column + 2 >= num_cols - 1 or sheet[row, column + 2] is None:
+
+                        upper = attachment_points_upper[value]
+                        line_length = None
+                        row += 1
+                        column = 0
+                    # other line
+                    else:
+                        upper = BatchNode2D([0, 0])
+                        current_nodes[column // 2 + 1] = upper
+                        line_length = sheet[row, column]
+                        column += 2
+
+                    linelist.append(
+                        Line2D(lower_node, upper, target_length=line_length, line_type=line_type_name))
+                    count += 1
+
+            else:
+                if column == 0:
+                    column += 1
+                elif column + 2 >= num_cols:
+                    row += 1
+                    column = 0
+                else:
+                    column += 2
+
+        return cls(linelist)
+
+    def get_attachment_point_table(self):
+        nodes = self.get_upper_nodes()
+        node_groups = {}
+        num_cells = 0
+        tables = []
+
+        # sort by layer
+        for node in nodes:
+            match = self.regex_node.match(node.name)
+            if match:
+                layer_name = match.group(1)
+            else:
+                layer_name = "none"
+
+            node_groups.setdefault(layer_name, [])
+            node_groups[layer_name].append(node)
+            num_cells = max(num_cells, node.cell_no)
+
+        groups = list(node_groups.keys())
+
+        # per layer table
+        def sorted(x):
+            res = 0
+            for i, character in enumerate(x[::-1]):
+                res += (26**i)*(ord(character)-64)
+
+            return res
+
+        groups.sort(key=sorted)
+        for key in groups:
+            table = Table()
+            group_nodes = node_groups[key]
+            for cell_no in range(num_cells):
+                cell_nodes = filter(lambda n: n.cell_no == cell_no, group_nodes)
+                for i, node in enumerate(cell_nodes):
+                    # name, cell_pos, rib_pos, force
+                    table[0, 4*i] = "ATP"
+                    table[cell_no+1, 4*i] = node.name
+                    table[cell_no+1, 4*i+1] = node.cell_pos
+                    table[cell_no+1, 4*i+2] = node.rib_pos
+                    table[cell_no+1, 4*i+3] = node.force
+
+            tables.append(table)
+
+        total_table = Table()
+        for table in tables:
+            total_table.append_right(table)
+        return total_table
 
     def delete_not_connected(self, glider):
         temp = []
