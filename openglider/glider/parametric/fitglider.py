@@ -21,7 +21,7 @@ def fit_glider_3d(cls, glider, numpoints=3):
 
     def symmetric_fit(polyline, numpoints=numpoints):
         mirrored = PolyLine2D(polyline[1:]).mirror([0, 0], [0, 1])
-        symmetric = mirrored[::-1].join(polyline[glider.has_center_cell:])
+        symmetric = mirrored[::-1].join(polyline[int(glider.has_center_cell):])
         return SymmetricBezier.fit(symmetric, numpoints=numpoints)
 
     front_bezier = symmetric_fit(front)

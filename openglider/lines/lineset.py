@@ -11,8 +11,6 @@ from openglider.utils.table import Table
 class LineSet():
     """
     Set of different lines
-    TODO:
-        -add stretch
     """
     calculate_sag = True
 
@@ -25,6 +23,7 @@ class LineSet():
             line.lineset = self
         self.mat = None
         self.glider = None
+        
 
     @property
     def lowest_lines(self):
@@ -86,7 +85,7 @@ class LineSet():
             mesh += line.get_mesh(numpoints)
         return mesh
 
-    def recalc(self):
+    def recalc(self, calculate_sag=True):
         """
         Recalculate Lineset Geometry.
         if LineSet.calculate_sag = True, drag induced sag will be calculated
@@ -96,6 +95,7 @@ class LineSet():
         #     for line in self.get_upper_connected_lines(att):
         #         for node in self.get_upper_influence_nodes(line):
         #             node.get_position()
+        self.calculate_sag = calculate_sag
         for point in self.attachment_points:
             point.get_position()
         self._calc_geo()
@@ -105,8 +105,6 @@ class LineSet():
             self.calc_forces(self.lowest_lines)
             for line in self.lines:
                 line.sag_par_1 = line.sag_par_2  = None
-
-
         return self
 
     def _calc_geo(self, start=None):

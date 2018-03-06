@@ -22,7 +22,6 @@ from __future__ import division
 
 import numpy as np
 
-import openglider
 from openglider.lines import line_types
 from openglider.lines.functions import proj_force, proj_to_surface
 from openglider.utils.cache import cached_property, CachedObject
@@ -243,7 +242,7 @@ class Line(CachedObject):
         }
 
     @classmethod
-    def __from_json__(cls, number, lower_node, upper_node, v_inf, line_type, target_length):
+    def __from_json__(cls, number, lower_node, upper_node, v_inf, line_type, target_length, name):
         return cls(lower_node,
                    upper_node,
                    v_inf,

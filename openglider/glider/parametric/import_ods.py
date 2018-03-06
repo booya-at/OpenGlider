@@ -210,7 +210,7 @@ def get_geometry_explicit(sheet):
         span_last = span
 
     def symmetric_fit(data):
-        not_from_center = data[0][0] == 0
+        not_from_center = int(data[0][0] == 0)
         mirrored = [[-p[0], p[1]] for p in data[not_from_center:]][::-1] + data
         return SymmetricBezier.fit(mirrored)
 
