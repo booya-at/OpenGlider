@@ -25,7 +25,6 @@ from openglider.vector.polyline import PolyLine, PolyLine2D
 __author__ = 'simon'
 import unittest
 import random
-from openglider import vector
 
 def makelists(self, dim):
     self.vectors = []
@@ -143,9 +142,9 @@ class TestVectorFunctions3D(unittest.TestCase):
         for axis in self.vectors:
             rotation_matrix = rotation_3d(angle, axis)
             rot = rot.dot(rotation_matrix)
-            for vector in self.vectors:
-                self.assertAlmostEqual(norm(rot.dot(vector)), norm(vector))
-                self.assertAlmostEqual(norm(rotation_matrix.dot(vector)), norm(vector))
+            for v in self.vectors:
+                self.assertAlmostEqual(norm(rot.dot(v)), norm(v))
+                self.assertAlmostEqual(norm(rotation_matrix.dot(v)), norm(v))
 
     def test_rotation_scale_2(self):
         rot = rotation_3d(0, [1,0,0])
@@ -155,9 +154,9 @@ class TestVectorFunctions3D(unittest.TestCase):
             rotation_matrix = rotation_3d(angle, axis)
             rot = rot.dot(rotation_matrix)
 
-            for vector in self.vectors:
-                p1 = rot.dot(np.array(vector) * scale)
-                p2 = rot.dot(vector) * scale
+            for v in self.vectors:
+                p1 = rot.dot(np.array(v) * scale)
+                p2 = rot.dot(v) * scale
                 for i in range(3):
                     self.assertAlmostEqual(p1[i], p2[i])
 
