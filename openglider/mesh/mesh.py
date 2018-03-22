@@ -3,15 +3,12 @@ from __future__ import division
 import numpy as np
 
 try:
-    from poly_tri_py import PolyTri
+    from poly_tri_cpp import PolyTri
     USE_POLY_TRI = True
 except ImportError:
     USE_POLY_TRI = False
-
-import meshpy.triangle as mptriangle
-from openglider.mesh.meshpy_triangle import custom_triangulation
-
-
+    import meshpy.triangle as mptriangle
+    from openglider.mesh.meshpy_triangle import custom_triangulation
 
 
 class Vertex(object):
@@ -146,12 +143,10 @@ class Mesh(object):
                 for nr, hole in enumerate(rib.holes):
                     start_index = len(vertices)
                     hole_vertices = hole.get_flattened(rib, num=hole_num, scale=False).data[:-1]
-                    print(hole_vertices)
                     hole_boundary = list(range(len(hole_vertices))) + [0]
                     hole_boundary = np.array(hole_boundary) + start_index
                     boundaries.append(list(hole_boundary))
                     vertices += list(hole_vertices)
-                    print(hole_vertices)
             p = PolyTri(np.array(vertices), boundaries, holes=True)
             vertices =  rib.align_all(vertices)
             return cls.from_indexed(vertices, polygons={"ribs": p.get_tris()} , boundaries={rib.name:range(len(vertices))})
