@@ -1,9 +1,17 @@
 from __future__ import division
 
 import numpy as np
-import meshpy.triangle as mptriangle
 
+try:
+    from poly_tri_py import PolyTri
+    USE_POLY_TRI = True
+except ImportError:
+    USE_POLY_TRI = False
+
+import meshpy.triangle as mptriangle
 from openglider.mesh.meshpy_triangle import custom_triangulation
+
+
 
 
 class Vertex(object):
@@ -127,46 +135,68 @@ class Mesh(object):
             q... quality
             a... area constraint
         """
-        triangle_in = {}
-        vertices = list(rib.getMesh(glider))[:-1]
-        if rib.is_closed():
-            return cls.from_indexed([], {}, {})
-        segments = [[i, i+1] for i, _ in enumerate(vertices)]
-        segments[-1][-1] = 0
-        triangle_in["vertices"] = vertices
-        triangle_in["segments"] = segments
+        if USE_POLY_TRI:
+            vertices = list(rib.getMesh(glider))[:-1]
+            boundaries = []
+            boundary =list(range(len(vertices))) + [0]
+            boundary.reverse()
+            boundaries.append(boundary)
 
-        # adding the vertices and segments of the holes
-        # to get TRIANGLE know where to remove triangles
-        # a list of points which lay inside the holes
-        # must be passed
-        if len(rib.holes) > 0 and hole_num > 3:
-            triangle_in["holes"] = []
-            for nr, hole in enumerate(rib.holes):
-                start_index = len(triangle_in["vertices"])
-                hole_vertices = hole.get_flattened(rib, num=hole_num, scale=False)
-                segments = [[i + start_index, i + start_index + 1] for i, _ in enumerate(hole_vertices)]
-                segments[-1][-1] = start_index
-                triangle_in["vertices"] += hole_vertices
-                triangle_in["segments"] += segments
-                triangle_in["holes"].append(hole.get_center(rib, scale=False).tolist())
-        if not filled:
+            if len(rib.holes) > 0 and hole_num > 3:
+                for nr, hole in enumerate(rib.holes):
+                    start_index = len(vertices)
+                    hole_vertices = hole.get_flattened(rib, num=hole_num, scale=False).data[:-1]
+                    print(hole_vertices)
+                    hole_boundary = list(range(len(hole_vertices))) + [0]
+                    hole_boundary = np.array(hole_boundary) + start_index
+                    boundaries.append(list(hole_boundary))
+                    vertices += list(hole_vertices)
+                    print(hole_vertices)
+            p = PolyTri(np.array(vertices), boundaries, holes=True)
             vertices =  rib.align_all(vertices)
-            return cls.from_indexed(rib.align_all(triangle_in['vertices']), {'hole': triangle_in['segments']}, {})
-        # _triangle_output = triangle.triangulate(triangle_in, "pziq")
-        mesh_info = mptriangle.MeshInfo()
-        mesh_info.set_points(triangle_in["vertices"])
-        mesh_info.set_facets(triangle_in["segments"])
-        if "holes" in triangle_in:
-            mesh_info.set_holes(triangle_in["holes"])
-        mesh = custom_triangulation(mesh_info, mesh_option)  # see triangle options
-        try:
-            triangles = list(mesh.elements)
-            vertices = rib.align_all(mesh.points)
-        except KeyError:
-            print("there was a keyerror")
-            return cls()
-        return cls.from_indexed(vertices, polygons={"ribs": triangles} , boundaries={rib.name:range(len(vertices))})
+            return cls.from_indexed(vertices, polygons={"ribs": p.get_tris()} , boundaries={rib.name:range(len(vertices))})
+
+        else:
+            triangle_in = {}
+            vertices = list(rib.getMesh(glider))[:-1]
+            if rib.is_closed():
+                return cls.from_indexed([], {}, {})
+            segments = [[i, i+1] for i, _ in enumerate(vertices)]
+            segments[-1][-1] = 0
+            triangle_in["vertices"] = vertices
+            triangle_in["segments"] = segments
+
+            # adding the vertices and segments of the holes
+            # to get TRIANGLE know where to remove triangles
+            # a list of points which lay inside the holes
+            # must be passed
+            if len(rib.holes) > 0 and hole_num > 3:
+                triangle_in["holes"] = []
+                for nr, hole in enumerate(rib.holes):
+                    start_index = len(triangle_in["vertices"])
+                    hole_vertices = hole.get_flattened(rib, num=hole_num, scale=False)
+                    segments = [[i + start_index, i + start_index + 1] for i, _ in enumerate(hole_vertices)]
+                    segments[-1][-1] = start_index
+                    triangle_in["vertices"] += hole_vertices
+                    triangle_in["segments"] += segments
+                    triangle_in["holes"].append(hole.get_center(rib, scale=False).tolist())
+            if not filled:
+                vertices =  rib.align_all(vertices)
+                return cls.from_indexed(rib.align_all(triangle_in['vertices']), {'hole': triangle_in['segments']}, {})
+            # _triangle_output = triangle.triangulate(triangle_in, "pziq")
+            mesh_info = mptriangle.MeshInfo()
+            mesh_info.set_points(triangle_in["vertices"])
+            mesh_info.set_facets(triangle_in["segments"])
+            if "holes" in triangle_in:
+                mesh_info.set_holes(triangle_in["holes"])
+            mesh = custom_triangulation(mesh_info, mesh_option)  # see triangle options
+            try:
+                triangles = list(mesh.elements)
+                vertices = rib.align_all(mesh.points)
+            except KeyError:
+                print("there was a keyerror")
+                return cls()
+            return cls.from_indexed(vertices, polygons={"ribs": triangles} , boundaries={rib.name:range(len(vertices))})
 
     @classmethod
     def from_diagonal(cls, diagonal, cell, insert_points=4):
