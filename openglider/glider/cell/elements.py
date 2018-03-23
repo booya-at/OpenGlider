@@ -351,11 +351,16 @@ class Panel(object):
         return Mesh.from_indexed(points, {"panel_"+self.material_code: triangles}, name=self.name)
 
     def mirror(self):
-        left, right = self.cut_front["left"], self.cut_front["right"]
-        self.cut_front["left"], self.cut_front["right"] = right, left
-
-        left, right = self.cut_back["left"], self.cut_back["right"]
-        self.cut_back["left"], self.cut_back["right"] = right, left
+        front = self.cut_front
+        self.cut_front = {
+            "right": front["left"],
+            "left": front["right"]
+        }
+        back = self.cut_back
+        self.cut_back = {
+            "right": back["left"],
+            "left": back["right"]
+        }
 
     def _get_ik_values(self, cell, numribs=0):
         x_values = cell.rib1.profile_2d.x_values

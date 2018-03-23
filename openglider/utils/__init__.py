@@ -34,6 +34,23 @@ def linspace(start, stop, count):
     return [start + y/(count-1) * (stop-start) for y in range(count)]
 
 
+# list_lengths = [len(l) for l in lists]
+# list_lengths_set = set(list_lengths)
+# list_length = list_lengths[0]
+# assert len(list_lengths_set) == 1
+# assert list_length > len(lists)
+# self.lists = lists
+class ZipCmp(object):
+    def __init__(self, list):
+        self.list = list
+
+    def __iter__(self):
+        for x, y in zip(self.list[:-1], self.list[1:]):
+            yield x, y
+
+
+
+
 class dualmethod(object):
     """
     A Decorator to have a combined class-/instancemethod

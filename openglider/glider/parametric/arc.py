@@ -1,6 +1,7 @@
 import numpy as np
 
 from openglider.vector import PolyLine2D
+from openglider.vector.spline import SymmetricBezier, SymmetricBSpline
 
 
 class ArcCurve(object):
@@ -37,7 +38,7 @@ class ArcCurve(object):
         # rescale
         return positions
 
-    def get_cell_angles(self, x_values):
+    def get_cell_angles(self, x_values, rad=True):
         """
         Calculate cell rotation angles given a shape's rib-x-values
         :param x_values:
@@ -53,13 +54,32 @@ class ArcCurve(object):
 
         for l, r in zip(arc_positions_lst[:-1], arc_positions_lst[1:]):
             d = r - l
-            cell_angles.append(np.arctan2(-d[1], d[0]))
+            angle = np.arctan2(-d[1], d[0])
+            if rad:
+                cell_angles.append(angle)
+            else:
+                cell_angles.append(angle * 180 / np.pi)
 
         return cell_angles
 
     @classmethod
-    def from_cell_angles(cls, angles, x_values):
-        pass
+    def from_cell_angles(cls, angles, x_values, rad=True):
+        last_pos = np.array([0,0])
+        last_x = 0
+        curve = []
+        for i, x in enumerate(x_values):
+            angle = angles[i]
+            l = x - last_x
+            d = np.array([np.cos(angle), -np.sin(angle)])
+            last_pos = last_pos + d * l
+            last_x = x
+
+            curve.append(last_pos)
+
+        curve = [p * [-1, 1] for p in curve[::-1]] + curve
+        spline = SymmetricBSpline.fit(curve, numpoints=8)
+        return cls(spline)
+
 
     def get_rib_angles(self, x_values):
         """

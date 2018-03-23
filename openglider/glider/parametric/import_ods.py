@@ -344,6 +344,7 @@ def read_elements(sheet, keyword, len_data=2):
         if sheet.get_cell([0, column]).value == keyword:
             # print("found, ", j, sheet[0, j].value, sheet.ncols(), sheet[1, j].value)
             for row in range(1, sheet.nrows()):
+                #print(row)
                 line = [sheet.get_cell([row, column + k]).value for k in range(len_data)]
                 # print(line)
                 if line[0] is not None:

@@ -14,6 +14,7 @@ from openglider.glider.rib import RibHole, RigidFoil, Rib, MiniRib
 from openglider.glider.parametric.fitglider import fit_glider_3d
 from openglider.utils.distribution import Distribution
 from openglider.utils.table import Table
+from openglider.utils import ZipCmp
 
 
 class ParametricGlider(object):
@@ -161,35 +162,40 @@ class ParametricGlider(object):
 
         for cell_no, panel_lst in enumerate(cells):
             _cuts = self.elements.get("cuts", [])
-            cuts = [cut for cut in _cuts if cell_no in cut["cells"]]
+            cuts = [cut.copy() for cut in _cuts if cell_no in cut["cells"]]
+            for cut in cuts:
+                cut.pop("cells")
 
             # add trailing edge (2x)
             all_values = [c["left"] for c in cuts] + [c["right"] for c in cuts]
+            #print(all_values, 1 in all_values)
             if -1 not in all_values:
-                cuts.append({"cells": [cell_no], "type": "parallel",
+                cuts.append({"type": "parallel",
                              "left": -1, "right": -1})
             if 1 not in all_values:
-                cuts.append({"cells": [cell_no], "type": "parallel",
+                cuts.append({"type": "parallel",
                             "left": 1, "right": 1})
 
             cuts.sort(key=lambda cut: cut["left"])
-            cuts.sort(key=lambda cut: cut["right"])
+            for i, (cut1, cut2) in enumerate(ZipCmp(cuts)):
+                #print(cut1["left"], cut2["left"], cut2["right"], i, len(cuts))
+                if cut1["right"] > cut2["right"]:
+                    error_str = "Invalid cut: C{} {:.02f}/{:.02f}/{} + {:.02f}/{:.02f}/{}".format(
+                        cell_no+1,
+                        cut1["left"], cut1["right"], cut1["type"],
+                        cut2["left"], cut2["right"], cut2["type"],
+                    )
+                    raise ValueError(error_str)
 
-            part_no = 0
-            for cut_no in range(len(cuts)-1):
-                cut1 = cuts[cut_no].copy()
-                cut2 = cuts[cut_no+1].copy()
 
-                cut1.pop("cells")
-                cut2.pop("cells")
+
+                part_no = i
 
                 if (cut1["type"] == cut2["type"] == "folded" or
                     cut1["type"] == cut2["type"] == "singleskin"):
                     # entry
                     continue
 
-                assert cut2["left"] >= cut1["left"]
-                assert cut2["right"] >= cut1["right"]
 
                 try:
                     material_code = self.elements["materials"][cell_no][part_no]
@@ -197,11 +203,10 @@ class ParametricGlider(object):
                     material_code = "unknown"
 
                 panel = Panel(cut1, cut2,
-                              name="c{}p{}".format(cell_no+1, part_no),
+                              name="c{}p{}".format(cell_no+1, part_no+1),
                               material_code=material_code)
                 panel_lst.append(panel)
 
-                part_no += 1
 
         return cells
 

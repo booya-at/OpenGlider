@@ -68,7 +68,9 @@ def get_geom_sheet(glider_2d):
     geom_page[0, 4].set_value("Arc")
     last_angle = 0
     cell_angles = glider_2d.arc.get_cell_angles(glider_2d.shape.rib_x_values)
-    for i, angle in enumerate(cell_angles + [0]):
+    if glider_2d.shape.has_center_cell:
+        cell_angles = cell_angles[1:]
+    for i, angle in enumerate(cell_angles + [cell_angles[-1]]):
         this_angle = angle * 180/math.pi
 
         geom_page[i+1, 4].set_value(this_angle-last_angle)

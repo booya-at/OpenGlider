@@ -181,6 +181,9 @@ class CellAttachmentPoint(Node):
         self.name = name
         self.force = force
 
+    def __repr__(self):
+        return "<Attachment point '{}' ({})>".format(self.name, self.rib_pos)
+
     def __json__(self):
         return {
             "cell": self.cell,
@@ -203,6 +206,9 @@ class AttachmentPoint(Node):
         self.rib_pos = rib_pos
         self.name = name
         self.force = force
+
+    def __repr__(self):
+        return "<Attachment point '{}' ({})>".format(self.name, self.rib_pos)
 
     def __json__(self):
         return {"rib": self.rib,

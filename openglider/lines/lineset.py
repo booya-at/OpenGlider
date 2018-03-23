@@ -295,7 +295,16 @@ class LineSet():
 
         def sort_key(line):
             nodes = self.get_upper_influence_nodes(line)
-            return sum([100*node.vec[1]+node.vec[0] for node in nodes])/len(nodes)
+            val_x = 0
+            val_rib_pos = 0
+            for node in nodes:
+                if hasattr(node, "rib_pos"):
+                    val_rib_pos += node.rib_pos
+                else:
+                    val_rib_pos += 1000*node.vec[0]
+                val_x += node.vec[1]
+
+            return (10*val_rib_pos + val_x) / len(nodes)
 
         lines.sort(key=sort_key)
 

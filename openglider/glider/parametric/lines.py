@@ -251,7 +251,9 @@ class LineSet2D(object):
             if not nodes:
                 print("line", line)
                 #return -1
-            return sum([100*node.cell_no+node.rib_pos for node in nodes])/len(nodes)
+            val = sum([100*(node.cell_no+node.cell_pos)+100*node.rib_pos for node in nodes])/len(nodes)
+            #print(line.name, val)
+            return val
 
         lines.sort(key=sort_key)
 

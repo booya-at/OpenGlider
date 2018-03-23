@@ -1,4 +1,6 @@
 import copy
+import time
+
 import numpy as np
 
 import openglider
@@ -105,10 +107,16 @@ def hash_attributes(class_instance, hashlist):
         except TypeError:  # Lists p.e.
             if openglider.config['debug']:
                 print("bad cache: "+str(class_instance.__class__.__name__)+" attribute: "+attribute)
-            try:
-                thahash = hash(frozenset(el))
-            except TypeError:
-                thahash = hash(str(el))
+
+            hash_func = getattr(el, "__hash__", None)
+            hash_func = None
+            if hash_func is not None:
+                thahash = el.__hash__()
+            else:
+                try:
+                    thahash = hash(frozenset(el))
+                except TypeError:
+                    thahash = hash(str(el))
 
         value = c_mul(1000003, value) ^ thahash
     value = value ^ len(hashlist)
@@ -143,6 +151,7 @@ class HashedList(CachedObject):
     def __hash__(self):
         if self._hash is None:
             self._hash = hash(str(self.data))
+            #self._hash = hash("{}/{}".format(id(self), time.time()))
         return self._hash
 
     def __len__(self):
