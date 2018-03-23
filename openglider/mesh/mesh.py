@@ -3,13 +3,14 @@ from __future__ import division
 import numpy as np
 
 try:
-    from poly_tri_cpp import PolyTri
-    USE_POLY_TRI = True
-except ImportError:
-    USE_POLY_TRI = False
     import meshpy.triangle as mptriangle
     from openglider.mesh.meshpy_triangle import custom_triangulation
-
+    USE_POLY_TRI = False
+except ImportError as e:
+    print("!!!!NOT ABLE TO IMPORT MESHPY, MESH-CREATION WILL BE SLOW")
+    print(e)
+    from .poly_tri import PolyTri
+    USE_POLY_TRI = True
 
 class Vertex(object):
     dmin = 10**-10
@@ -147,9 +148,13 @@ class Mesh(object):
                     hole_boundary = np.array(hole_boundary) + start_index
                     boundaries.append(list(hole_boundary))
                     vertices += list(hole_vertices)
-            p = PolyTri(np.array(vertices), boundaries, holes=True)
+            tris = PolyTri(np.array(vertices), boundaries, holes=True, delaunay=True).get_tris()
+            if not tris:
+                print(np.array(vertices))
+                print(boundaries)
+                print(tris)
             vertices =  rib.align_all(vertices)
-            return cls.from_indexed(vertices, polygons={"ribs": p.get_tris()} , boundaries={rib.name:range(len(vertices))})
+            return cls.from_indexed(vertices, polygons={"ribs": tris} , boundaries={rib.name:range(len(vertices))})
 
         else:
             triangle_in = {}
@@ -219,20 +224,23 @@ class Mesh(object):
                     count += 1
                 point_array.append(point_line)
                 number_array.append(number_line)
-            edge = number_array[0]
-            edge += [line[-1] for line in number_array[1:]]
-            edge += number_array[-1][-2::-1] # last line reversed without the last element
-            edge += [line[0] for line in number_array[1:-1]][::-1]
-            segment = [[edge[i], edge[i +1]] for i in range(len(edge) - 1)]
-            segment.append([edge[-1], edge[0]])
+            # edge = number_array[0]
+            # edge += [line[-1] for line in number_array[1:]]
+            # edge += number_array[-1][-2::-1] # last line reversed without the last element
+            # edge += [line[0] for line in number_array[1:-1]][::-1]
+            # segment = [[edge[i], edge[i +1]] for i in range(len(edge) - 1)]
+            # segment.append([edge[-1], edge[0]])
             point_array = np.array([point for line in point_array for point in line]) #flatten
             points2d = map_to_2d(point_array)
-
-            mesh_info = mptriangle.MeshInfo()
-            mesh_info.set_points(points2d)
-            mesh = custom_triangulation(mesh_info, "Qz")
+            if USE_POLY_TRI:
+                tris = PolyTri(np.array(points2d)).get_tris()
+            else:
+                mesh_info = mptriangle.MeshInfo()
+                mesh_info.set_points(points2d)
+                mesh = custom_triangulation(mesh_info, "Qz")
+                tris = list(mesh.elements)
             return cls.from_indexed(point_array, 
-                                    {"diagonals": list(mesh.elements)}, 
+                                    {"diagonals": tris}, 
                                     {cell.rib1.name: number_array[0], 
                                      cell.rib2.name: number_array[-1]})
 
