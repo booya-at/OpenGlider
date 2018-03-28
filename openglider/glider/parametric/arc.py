@@ -108,6 +108,9 @@ class ArcCurve(object):
         span_projected = arc_curve.last()[0]
         return span_projected / arc_curve.get_length()
 
+    def get_circle(self):
+        p1, p2 = self.curve.get_sequence(2)
+
     def rescale(self, x_values):
         span = x_values[-1]
         arc_pos = self.get_arc_positions(x_values)

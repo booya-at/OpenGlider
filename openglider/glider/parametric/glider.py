@@ -274,7 +274,7 @@ class ParametricGlider(object):
         profile_merge_curve = self.profile_merge_curve.interpolation(num=self.num_interpolate)
         return [profile_merge_curve(abs(x)) for x in self.shape.rib_x_values]
 
-    def get_glider_3d(self, glider=None, num=50):
+    def get_glider_3d(self, glider=None, num=50, num_profile=None):
         """returns a new glider from parametric values"""
         glider = glider or Glider()
         ribs = []
@@ -292,9 +292,10 @@ class ParametricGlider(object):
         arc_pos = list(self.arc.get_arc_positions(x_values))
         rib_angles = self.arc.get_rib_angles(x_values)
 
-        profile_x_values = self.profiles[0].x_values
         if self.num_profile is not None:
             profile_x_values = Distribution.from_cos_distribution(self.num_profile)
+        else:
+            profile_x_values = self.profiles[0].x_values
 
         rib_holes = self.elements.get("holes", [])
         rigids = self.elements.get("rigidfoils", [])

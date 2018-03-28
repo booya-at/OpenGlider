@@ -1,5 +1,7 @@
-from openglider.vector import PolyLine2D
-from openglider.vector.functions import cut
+import numpy
+
+from openglider.vector.polyline import PolyLine2D
+from openglider.vector.functions import cut, rotation_2d, vector_angle
 
 
 class Polygon2D(PolyLine2D):
@@ -52,3 +54,49 @@ class Polygon2D(PolyLine2D):
         cuts = self.cut(point, self.centerpoint, cut_only_positive=True)
         return bool(sum(1 for _ in cuts) % 2)
         # todo: alternative: winding number
+
+
+class CirclePart(object):
+    def __init__(self, p1, p2, p3):
+        self.p1 = p1
+        self.p2 = p2
+        self.p3 = p3
+
+        l1 = numpy.array(p2) - numpy.array(p1)
+        l2 = numpy.array(p3) - numpy.array(p2)
+
+        n1 = numpy.array([-l1[1], l1[0]])
+        n2 = numpy.array([-l2[1], l2[0]])
+
+        c1 = p1 + l1/2
+        c2 = p2 + l2/2
+
+        d1 = c1 + n1
+        d2 = c2 + n2
+
+        self.center, i, k = cut(c1, d1, c2, d2)
+        self.r = numpy.array(p1) - self.center
+
+    def get_sequence(self, num=20):
+        lst = []
+        end = vector_angle(self.r, numpy.array(self.p3) - self.center)
+        for angle in numpy.linspace(0, end, num):
+            lst.append(self.center + rotation_2d(angle).dot(self.r))
+
+        return PolyLine2D(lst)
+
+    def _repr_svg_(self):
+
+        svg = "<svg>"
+        def point(p, color="red"):
+            return '<circle cx="{}" cy="{}" r="1" stroke="{}" fill="transparent" stroke-width="5"/>'.format(p[0], p[1], color)
+
+        svg += point(self.center, "blue")
+
+
+        svg += point(self.p1)
+        svg += point(self.p2)
+        svg += point(self.p3)
+
+        svg += "</svg>"
+        return svg

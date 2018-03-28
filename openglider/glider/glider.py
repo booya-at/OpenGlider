@@ -113,21 +113,19 @@ class Glider(object):
         for cell in self.cells:
             for panel in cell.panels:
                 panels.setdefault(panel.material_code, [])
-                panels[panel.material_code] += panel
+                panels[panel.material_code].append(panel)
 
         return panels
 
     def get_mesh(self, midribs=0):
-        mesh = sum([Mesh.from_rib(rib) for rib in self.ribs], Mesh())
+        mesh = sum([Mesh.from_rib(rib, filled=True) for rib in self.ribs], Mesh())
 
         for cell in self.cells:
-            for panel in cell.panels:
-                mesh += panel.get_mesh(cell, midribs)
             for diagonal in cell.diagonals:
                 mesh += diagonal.get_mesh(cell)
 
         mesh += self.lineset.get_mesh()
-        mesh += self.get_mesh_panels()
+        mesh += self.get_mesh_panels(num_midribs=midribs)
         mesh += self.get_mesh_hull(midribs)
 
         return mesh
@@ -139,7 +137,6 @@ class Glider(object):
                 mesh += panel.get_mesh(cell, num_midribs)
 
         return mesh
-
 
     def get_mesh_hull(self, num_midribs=0, ballooning=True):
         ribs = self.return_ribs(num=num_midribs, ballooning=ballooning)
