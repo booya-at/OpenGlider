@@ -37,13 +37,16 @@ class BasicCell(CachedObject):
             # 2: x2 = R*normvekt*(cos(phi2)-cos(phi)
             # 3: norm(d)/r*(1-x) = 2*sin(phi(2))
             if with_numpy:
-                l_phi = np.array([i + (0.00000000001 - i) * int(i<=0) for i in self.ballooning_phi])
+                l_phi = np.array(self.ballooning_phi)
+                l_n = np.array(self.normvectors)
+                l_r = np.array(self.ballooning_radius)
+                l_diff = self.prof1.data - self.prof2.data
+
+                l_phi = l_phi  + (1e-10 - l_phi) * (l_phi <= 0.)
                 l_psi = l_phi * 2 * y_value
                 l_h = np.cos(l_phi - l_psi) - np.cos(l_phi)
-                l_d = 0.5 - 0.5 * np.sin(l_phi - l_psi) / np.sin(l_phi)
-                l_diff = self.prof1.data - self.prof2.data
-                l_n = np.array(self.normvectors)
-                l_r = np.array([i * (i > 0) for i in self.ballooning_radius])
+                l_d = 0.5 * (1 - np.sin(l_phi - l_psi) / np.sin(l_phi))
+                l_r = l_r * (l_r > 0.)
                 l_midrib = self.prof1.data.T - l_d * l_diff.T + (l_h * l_r) * l_n.T
                 return Profile3D(l_midrib.T)
 
@@ -70,28 +73,23 @@ class BasicCell(CachedObject):
     def normvectors(self, j=None):
         prof1 = self.prof1.data
         prof2 = self.prof2.data
-        p1 = self.prof1.tangents
-        p2 = self.prof2.tangents
+        p1 = np.array(self.prof1.tangents)
+        p2 = np.array(self.prof2.tangents)
         # cross differenzvektor, tangentialvektor
-        return [normalize(np.cross(p1[i] + p2[i], prof1[i] - prof2[i])) for i in range(len(prof1))]
+        return np.cross(p1 + p2, prof1 - prof2, axis=1)
 
     @cached_property('ballooning_phi')
     def ballooning_cos_phi(self):
         tolerance = 0.00001
-        return [np.cos(phi) if phi > tolerance else 0 for phi in self.ballooning_phi]
+        phi = np.array(self.ballooning_phi)
+        return np.cos(phi)
 
     @cached_property('ballooning_phi', 'prof1', 'prof2')
     def ballooning_radius(self):
-        tolerance = 0.00001
-        return [norm(p1-p2)/(2*np.sin(phi)) if phi>tolerance else 0
-                for p1, p2, phi in zip(self.prof1, self.prof2, self.ballooning_phi)]
-        # radius = []
-        # for i, phi in enumerate(self.ballooning_phi):
-        #     if round(phi, 5) > 0:
-        #         radius.append(norm(self.prof1.data[i] - self.prof2.data[i]) / (2*np.sin(phi)))
-        #     else:
-        #         radius.append(0)
-        # return radius
+        p1 = self.prof1.data
+        p2 = self.prof2.data
+        phi = np.array(self.ballooning_phi)
+        return np.linalg.norm(p1 - p2, axis=1) / (2 * np.sin(phi) + (phi == 0)) * (phi != 0)
 
     def copy(self):
         return copy.deepcopy(self)
