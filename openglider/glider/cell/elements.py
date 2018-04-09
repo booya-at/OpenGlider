@@ -257,7 +257,7 @@ class Panel(object):
     def is_lower(self):
         return self.mean_x() > 0
 
-    def get_3d(self, cell, numribs=0):
+    def get_3d(self, cell, numribs=0, with_numpy=False):
         """
         Get 3d-Panel
         :param glider: glider class
@@ -275,11 +275,11 @@ class Panel(object):
             x2 = self.cut_back["left"] + y * (self.cut_back["right"] -
                                               self.cut_back["left"])
             back = get_x_value(xvalues, x2)
-            ribs.append(cell.midrib(y).get(front, back))
+            ribs.append(cell.midrib(y, with_numpy).get(front, back))
             # todo: return polygon-data
         return ribs
 
-    def get_mesh(self, cell, numribs=0, with_numpy=True):
+    def get_mesh(self, cell, numribs=0, with_numpy=False):
         """
         Get Panel-mesh
         :param cell: cell from which the panel-mesh is build

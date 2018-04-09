@@ -154,7 +154,7 @@ class Cell(CachedObject):
 
     def midrib(self, y, ballooning=True, arc_argument=False, with_numpy=False):
         if len(self._child_cells) == 1:
-            return self.basic_cell.midrib(y, ballooning=ballooning)
+            return self.basic_cell.midrib(y, ballooning=ballooning, with_numpy=with_numpy)
         if ballooning:
             i = 0
             while self._yvalues[i + 1] < y:
