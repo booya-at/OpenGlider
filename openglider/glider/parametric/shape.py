@@ -76,7 +76,7 @@ class ParametricShape(object):
         start = self.has_center_cell / self.cell_num
         num = self.cell_num // 2 + 1
         positions = np.linspace(start, 1, num)
-        return np.interp(positions, data[1], data[0])
+        return np.array([np.interp(positions, data[1], data[0]), positions]).T
 
     # besser mit spezieller bezier?
     @property
@@ -232,8 +232,7 @@ class ParametricShape(object):
         span_0 = self.span
         if fixed == "area":
             self.scale(x=span / span_0, y=span_0 / span)
-        if fixed == "aspect_ratio":
-            print("set_span")
+        elif fixed == "aspect_ratio":
             self.scale(x=span/span_0, y=span/span_0)
         else:
             self.scale(x=span/span_0, y=1)
