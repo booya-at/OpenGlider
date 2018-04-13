@@ -77,7 +77,9 @@ class BasicCell(CachedObject):
         p1 = np.array(self.prof1.tangents)
         p2 = np.array(self.prof2.tangents)
         # cross differenzvektor, tangentialvektor
-        return np.cross(p1 + p2, prof1 - prof2, axis=1)
+        normal_vec = np.cross(p1 + p2, prof1 - prof2, axis=1).T
+        normal_vec /= np.linalg.norm(normal_vec, axis=0)
+        return normal_vec.T
 
     @cached_property('ballooning_phi')
     def ballooning_cos_phi(self):
