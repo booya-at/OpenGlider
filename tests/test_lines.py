@@ -16,7 +16,7 @@ class TestLines(unittest.TestCase):
         key_dict = import_lines(path)
         # print(key_dict["LINES"][2])
         thalines = LineSet(
-            key_dict["LINES"][2], key_dict["CALCPAR"][2]["V_INF"])
+            key_dict["LINES"][2], [10, 0, 1])
         thalines._calc_geo()
 
         thalines._calc_sag()
