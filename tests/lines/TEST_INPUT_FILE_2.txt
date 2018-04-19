@@ -4,17 +4,9 @@ NODES
 #   n_nr	TYP		x		y		z			fx			fy			fz      
 	0		0		0.		0.		0.			None		None		None
 	1		1		None	None	None		None		None 		None
-	2		2		0.		0.		1.			0			0 			3
+	2		2		0.		0.		1.			0			0 			10
 
 LINES
 #   l_nr    LOWER 	UPPER	LENGTH	TYP
-	0		0		1		0.5		liros
-	1		1		2		None	liros
-
-LINEPAR
-#	TYP		CW		B		STRETCH
-	liros	1.		0.1		0.1
-
-CALCPAR
-#	GEOSTEPS		SAGSTEPS		ITER		SPEED		GLIDE
-	2				10				10			10			9999999
+	0		0		1		0.5		liros.ltc45
+	1		1		2		None	liros.ltc45

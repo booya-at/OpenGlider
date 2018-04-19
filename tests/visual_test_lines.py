@@ -1,5 +1,6 @@
 import unittest
 import os
+import numpy as np
 
 from openglider.lines.import_text import import_lines
 from openglider.lines import LineSet
@@ -17,11 +18,13 @@ class TestLines(unittest.TestCase):
         key_dict = import_lines(path)
         # print(key_dict["LINES"][2])
         thalines = LineSet(
-            key_dict["LINES"][2], key_dict["CALCPAR"][2]["V_INF"])
-        thalines._calc_geo()
-
-        thalines._calc_sag()
-        objects = map(lambda line: graph.Line(line.get_line_points()), thalines.lines)
+            key_dict["LINES"][2], np.array([100, 0, 1]))
+        # for line in thalines.lines:
+        #     line.lineset = thalines
+        
+        for _ in range(3):
+            thalines.recalc(True)
+        objects = map(lambda line: graph.Line(line.get_line_points(100)), thalines.lines)
         graph.Graphics3D(objects)
 
     def test_case_1(self):

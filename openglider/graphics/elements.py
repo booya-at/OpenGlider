@@ -30,7 +30,7 @@ class GraphicObject(object):
         colour = self.colour or graphics.default_colour
         if isinstance(colour, RGBColour):
             colour = colour.colour
-        graphics.colours.InsertNextTupleValue(colour)
+        graphics.colours.InsertNextTuple(colour)
         return cell, pointnums
 
 

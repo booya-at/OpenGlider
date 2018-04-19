@@ -192,7 +192,7 @@ class Line(CachedObject):
         """
         if self.sag_par_1 is None or self.sag_par_2 is None:
             sag=False
-        return [self.get_line_point(i / (numpoints - 1), sag=sag) for i in range(numpoints)]
+        return np.array([self.get_line_point(i / (numpoints - 1), sag=sag) for i in range(numpoints)])
 
     def get_line_point(self, x, sag=True):
         """pos(x) [x,y,z], x: [0,1]"""
@@ -298,6 +298,9 @@ class Node(object):
             print(self.vec-v, self.force)
             force = 0.00001
         return normalize(self.vec - v) * force
+
+    def get_position(self):
+        pass
 
     def calc_proj_vec(self, v_inf):
         self.vec_proj = proj_to_surface(self.vec, v_inf)

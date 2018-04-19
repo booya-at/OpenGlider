@@ -83,7 +83,7 @@ class Graphics(object):
         self.data.SetPoints(self.points)
 
         # Set element types (zb: self.data.SetPolys(poly_cell)
-        for el_cls, el_cell_array in self.vtk_cells.iteritems():
+        for el_cls, el_cell_array in self.vtk_cells.items():
             if el_cls.element_setter is not None:
                 getattr(self.data, el_cls.element_setter)(el_cell_array)
 
