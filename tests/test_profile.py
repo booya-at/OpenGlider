@@ -18,11 +18,14 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+import tempfile
 import unittest
 from common import import_dir
 from openglider.airfoil import Profile2D
 from test_vector import *
 
+TEMPDIR =  tempfile.gettempdir()
 
 class TestProfile(unittest.TestCase):
     def setUp(self):
@@ -35,7 +38,7 @@ class TestProfile(unittest.TestCase):
         self.assertEqual(num + 1 - num % 2, self.prof.numpoints)
 
     def test_export(self):
-        path = "/tmp/prof.dat"
+        path = os.path.join(TEMPDIR, "prof.dat")
         self.prof.export_dat(path)
 
     def test_profilepoint(self):

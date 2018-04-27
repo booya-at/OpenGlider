@@ -1,9 +1,12 @@
 import unittest
 
+import tempfile
+import os
 from common import *
 from openglider import jsonify
 from openglider.glider import ParametricGlider
 
+TEMPDIR =  tempfile.gettempdir()
 
 class GliderTestCase2D(TestCase):
     def setUp(self):
@@ -23,7 +26,7 @@ class GliderTestCase2D(TestCase):
         self.assertEqualGlider2D(self.glider2d, imp)
 
     def test_export_ods(self):
-        exp = self.glider2d.export_ods("/tmp/test.ods")
+        exp = self.glider2d.export_ods(os.path.join(TEMPDIR, "test.ods"))
 
     def test_set_area(self):
         self.glider2d.shape.set_area(10)
