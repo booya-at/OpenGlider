@@ -177,7 +177,9 @@ class ParametricGlider(object):
                             "left": 1, "right": 1})
 
             cuts.sort(key=lambda cut: cut["left"])
-            for i, (cut1, cut2) in enumerate(ZipCmp(cuts)):
+
+            for cut1, cut2 in ZipCmp(cuts):
+                part_no = len(panel_lst)
                 #print(cut1["left"], cut2["left"], cut2["right"], i, len(cuts))
                 if cut1["right"] > cut2["right"]:
                     error_str = "Invalid cut: C{} {:.02f}/{:.02f}/{} + {:.02f}/{:.02f}/{}".format(
@@ -186,10 +188,6 @@ class ParametricGlider(object):
                         cut2["left"], cut2["right"], cut2["type"],
                     )
                     raise ValueError(error_str)
-
-
-
-                part_no = i
 
                 if (cut1["type"] == cut2["type"] == "folded" or
                     cut1["type"] == cut2["type"] == "singleskin"):
