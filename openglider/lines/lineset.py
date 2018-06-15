@@ -359,6 +359,15 @@ class LineSet():
             row = insert_block(line, upper, row, 0)
         return table
 
+    def get_upper_connected_force(self, node):
+        '''
+        get the sum of the forces of all upper-connected lines
+        '''
+        force = np.array([0, 0, 0])
+        for line in self.get_upper_connected_lines():
+            force += line.force
+        return force
+
     def copy(self):
         return copy.deepcopy(self)
 

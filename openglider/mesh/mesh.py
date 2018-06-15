@@ -133,6 +133,7 @@ class Mesh(object):
             q... quality
             a... area constraint
         """
+        global USE_POLY_TRI
         if USE_POLY_TRI:
             vertices = list(rib.getMesh(glider))[:-1]
             boundaries = []

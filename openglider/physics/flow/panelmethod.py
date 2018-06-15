@@ -13,6 +13,7 @@ class GliderPanelMethod(GliderCase):
         far_field_coeff = 5
         rho_air = 1.2
         v_inf = [10., 0., 1.]
+        vtk_flow_output = "/tmp/flow/"
 
     def __init__(self, glider, config=None):
         self.config = self.DefaultConf(config)
@@ -72,9 +73,9 @@ class GliderPanelMethod(GliderCase):
                 cp = 1
             yield -(cp - 1) * rho * self.case.v_inf.norm()**2 / 2
 
-    def export_vtk(self, path):
+    def export_vtk(self):
         assert self.case is not None
-        writer = CaseToVTK(self.case, path)
+        writer = CaseToVTK(self.case, self.config.vtk_flow_output)
         writer.write_panels()
         writer.write_wake_panels()
 

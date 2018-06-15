@@ -181,6 +181,17 @@ class LineSet2D(object):
 
         return LineSet(lines, v_inf)
 
+    def scale_forces(self, glider, node, weight):
+        '''
+        scales all forces to match a certain weight in a node
+        '''
+        # get upper connected force of the node
+        # use z-direction of this force
+        # compute scaling
+        # scale all forces
+        pass
+
+
     def scale(self, factor):
         for line in self.lines:
             target_length = getattr(line, "target_length", None)
