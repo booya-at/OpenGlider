@@ -8,7 +8,6 @@ from openglider.glider import ParametricGlider
 from openglider.glider.parametric.lines import UpperNode2D
 
 import paraFEM
-from paraEigen import vector3
 
 
 class GliderFemCase(GliderCase):
@@ -79,7 +78,7 @@ class GliderFemCase(GliderCase):
             for node in self.nodes:
                 if node.position[1] < 0.000001:
                     if abs(node.position[1]) < 0.000001:
-                        node.fixed = vector3(1, 0, 1)
+                        node.fixed = np.array([1, 0, 1])
                         if self.glider.has_center_cell:
                             pass # apply force constraint to get the influence of the other side on a rib
                     else:
@@ -87,10 +86,10 @@ class GliderFemCase(GliderCase):
 
         if self.config.caseType == "full":
             for index in boundary["lower_attachment_points"]:
-                self.nodes[index].fixed = vector3(0, 0, 0)
+                self.nodes[index].fixed = np.array([0, 0, 0])
         elif self.config.caseType == "line_forces":
             for index in boundary["lines"]:
-                self.nodes[index].fixed = vector3(0, 0, 0)
+                self.nodes[index].fixed = np.array([0, 0, 0])
         self.elements = []
         self.lines = []
 

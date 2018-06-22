@@ -246,7 +246,10 @@ class SingleSkinRib(Rib):
                 x_max = np.array([norm(x1 - x0) / 2, height])
                 def foo(x, upper):
                     if not upper and x[0] > x0[0] and x[0] < x1[0]:
-                        return parabola(x, x0, x1, x_max)
+                        if self.single_skin_par["straight_te"] and i == len(span_list) - 1:
+                            return straight_line(x, x0, x1)
+                        else:
+                            return parabola(x, x0, x1, x_max)
                     else:
                         return x
                 profile.apply_function(foo)
@@ -257,8 +260,14 @@ class SingleSkinRib(Rib):
 def pseudo_2d_cross(v1, v2):
     return v1[0] * v2[1] - v1[1] * v2[0]
 
+
+def straight_line(x, x0, x1):
+    x_proj = (x - x0).dot(x1 - x0) / norm(x1 - x0)**2
+    print(x1)
+    return x0 + (x1 - x0) * x_proj
+
 def parabola(x, x0, x1, x_max):
-    """paraboly used for singleskin ribs
+    """parabola used for singleskin ribs
        x, x0, x1, x_max ... numpy 2d arrays
        xmax = np.sqrt((x1 - x0)**2 + (y1 - y0)**2)"""
     x_proj = (x - x0).dot(x1 - x0) / norm(x1 - x0)**2
