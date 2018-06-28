@@ -371,7 +371,7 @@ class LineSet():
         '''
         force = np.array([0, 0, 0])
         for line in self.get_upper_connected_lines():
-            force += line.force
+            force += line.force * line.diff_vector
         return force
 
     def get_residual_force(self, node):
