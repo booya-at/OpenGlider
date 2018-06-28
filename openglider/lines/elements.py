@@ -297,7 +297,7 @@ class Node(object):
             print(self.name)
             print(self.vec-v, self.force)
             force = 0.00001
-        return normalize(self.vec - v) * force
+        return normalize(self.vec - v) * force 
 
     def get_position(self):
         pass

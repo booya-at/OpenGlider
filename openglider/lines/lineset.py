@@ -225,6 +225,8 @@ class LineSet():
     def get_tangential_comp(self, line, pos_vec):
         tangent = np.array([0., 0., 0.])
         upper_lines = self.get_upper_connected_lines(line.upper_node)
+
+        # first we try to use already computed forces
         for l in upper_lines:
             if (l.force is not None):
                 direction = normalize(l.upper_node.vec - line.lower_node.vec)
@@ -233,7 +235,11 @@ class LineSet():
                 tangent = np.array([0., 0., 0.])
                 break
         else:
+            # if break was never called we return the direction of the line computed by the forces.
             return normalize(tangent)
+
+        # if there are no computed forces available, use all the uppermost forces to compute
+        # the direction of the line
         upper_node = self.get_upper_influence_nodes(line)
         for node in upper_node:
             tangent += node.calc_force_infl(pos_vec)
@@ -367,6 +373,19 @@ class LineSet():
         for line in self.get_upper_connected_lines():
             force += line.force
         return force
+
+    def get_residual_force(self, node):
+        '''
+        compute the residual force in a node to due simplified computation of lines
+        '''
+        residual_force = np.zeros(3)
+        upper_lines = self.get_upper_connected_lines(node)
+        lower_lines = self.get_lower_connected_lines(node)
+        for line in upper_lines:
+            residual_force += line.force * line.diff_vector
+        for line in lower_lines:
+            residual_force -= line.force * line.diff_vector
+        return residual_force
 
     def copy(self):
         return copy.deepcopy(self)
