@@ -285,10 +285,6 @@ class Mesh(object):
 
     __from_json__ = from_indexed
 
-    #@classmethod
-    #def __from_json__(cls, vertices, polygons, boundaries, name):
-    #    return cls.from_indexed(vertices, polygons, boundaries, name)
-
     def export_obj(self, path=None, offset=0):
         vertices, polygons, boundaries = self.get_indexed()
         out = ""
@@ -316,7 +312,7 @@ class Mesh(object):
         return out
 
     @staticmethod
-    def parse_colour_code(string):
+    def parse_color_code(string):
         import re
         rex = re.compile(r".*#([0-9a-zA-Z]{6})")
         color = [255, 255, 255]
@@ -335,7 +331,7 @@ class Mesh(object):
         dwg = ezdxf.new(dxfversion="AC1015")
         ms = dwg.modelspace()
         for poly_group_name, poly_group in list(self.polygons.items()):
-            color = dxfcolours.get_dxf_colour_code(*self.parse_colour_code(poly_group_name))
+            color = dxfcolours.get_dxf_colour_code(*self.parse_color_code(poly_group_name))
             name = poly_group_name.replace("#", "_")
             dwg.layers.new(name=name, dxfattribs={"color": color})
 
@@ -366,7 +362,7 @@ class Mesh(object):
         panels_lines = []
 
         for i, polygon_group_name in enumerate(polygons):
-            color = self.parse_colour_code(polygon_group_name)
+            color = self.parse_color_code(polygon_group_name)
 
             color_str = " {} {} {} 1".format(*color)
 
