@@ -263,7 +263,6 @@ def pseudo_2d_cross(v1, v2):
 
 def straight_line(x, x0, x1):
     x_proj = (x - x0).dot(x1 - x0) / norm(x1 - x0)**2
-    print(x1)
     return x0 + (x1 - x0) * x_proj
 
 def parabola(x, x0, x1, x_max):
