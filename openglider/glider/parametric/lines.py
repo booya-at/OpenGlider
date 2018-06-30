@@ -57,7 +57,7 @@ class UpperNode2D(object):
         return parametric_shape[self.cell_no, self.rib_pos]
 
     def get_node(self, glider):
-        if self.cell_pos > 0:
+        if self.cell_pos > 0: # attachment point between two ribs
             cell = glider.cells[self.cell_no + glider.has_center_cell]
             if isinstance(self.force, (list, tuple, np.ndarray)):
                 force = list(self.force)
@@ -65,18 +65,17 @@ class UpperNode2D(object):
                 midrib = cell.midrib(self.cell_pos)
                 force1 = np.array([0, self.force, 0])
                 plane = midrib.projection_layer
-                force = list(np.array(plane.translation_matrix.dot(force1))[0])
+                force = np.array(plane.translation_matrix.dot(force1))[0]
 
             node = CellAttachmentPoint(cell, self.name, self.cell_pos, self.rib_pos, force)
-        else:
+        else: # attachment point on the rib
             rib = glider.ribs[self.cell_no + glider.has_center_cell]
             if isinstance(self.force, (list, tuple, np.ndarray)):
                 force = list(self.force)
             else:
-                force = list(rib.rotation_matrix(np.array([0, self.force, 0])))
+                force = rib.rotation_matrix(np.array([0, self.force, 0]))
             node = AttachmentPoint(glider.ribs[self.cell_no + glider.has_center_cell],
                                    self.name, self.rib_pos, force)
-
 
         node.get_position()
         return node

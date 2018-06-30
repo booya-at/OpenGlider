@@ -275,7 +275,7 @@ class Glider(object):
         for rib in self.ribs:
             rib.pos *= faktor
             rib.chord *= faktor
-            # todo: scale lines,
+        self.lineset.scale(faktor)
 
     @property
     def shape_simple(self, cut_center=True):
