@@ -143,6 +143,10 @@ class Rib(CachedObject):
     def normalized_normale(self):
         return self.rotation_matrix(np.array([0., 0., 1.]))
 
+    @property
+    def in_plane_normale(self):
+        return self.rotation_matrix(np.array([0., 1., 0.]))
+
     def get_attachment_points(self, glider, brake=True):
         return glider.get_rib_attachment_points(self, brake=brake)
 

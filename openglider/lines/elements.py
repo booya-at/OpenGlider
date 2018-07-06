@@ -121,6 +121,19 @@ class Line(CachedObject):
         self.lineset = None      # the parent have to be set after initializiation
 
     @property
+    def has_geo(self):
+        """
+        true if upper and lower nodes of the line were already computed
+        """
+        #the node vectors can be None or numpy.arrays. So we have to check for both types
+        try:
+            return all(list(self.lower_node.vec) + 
+                       list(self.upper_node.vec))
+        except TypeError:
+            # one of the nodes vec is None
+            return False
+
+    @property
     def v_inf_0(self):
         return normalize(self.v_inf)
 

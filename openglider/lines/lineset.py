@@ -164,6 +164,7 @@ class LineSet():
             vec = line_lower.diff_vector
             if line_lower.upper_node.type != 2:  # not a gallery line
                 # recursive force-calculation
+                # setting the force from top to down
                 lines_upper = self.get_upper_connected_lines(upper_node)
                 self.calc_forces(lines_upper)
 
@@ -228,27 +229,28 @@ class LineSet():
 
     # -----CALCULATE GEO-----#
     def get_tangential_comp(self, line, pos_vec):
-        tangent = np.array([0., 0., 0.])
-        upper_lines = self.get_upper_connected_lines(line.upper_node)
-
+        #upper_lines = self.get_upper_connected_lines(line.upper_node)
         # first we try to use already computed forces
-        for l in upper_lines:
-            if (l.force is not None):
-                direction = normalize(l.upper_node.vec - line.lower_node.vec)
-                tangent += direction * l.force * direction.dot(l.diff_vector)
-            else:
-                tangent = np.array([0., 0., 0.])
-                break
-        else:
-            # if break was never called we return the direction of the line computed by the forces.
-            return normalize(tangent)
+        # and shift the upper node by residual force
+        # we have to make sure to not overcompansate the residual force
+        if line.has_geo:
+            r = self.get_residual_force(line.upper_node)
+            if norm(r) == 0:
+                return line.diff_vector
+            z = r / np.linalg.norm(r)
+            v0 = line.upper_node.vec - line.lower_node.vec
+            s = norm(r) / line.force * norm(v0) - v0.dot(z)
+            return normalize(v0 + s * z * 0.1)
 
-        # if there are no computed forces available, use all the uppermost forces to compute
-        # the direction of the line
-        upper_node = self.get_upper_influence_nodes(line)
-        for node in upper_node:
-            tangent += node.calc_force_infl(pos_vec)
-        return normalize(tangent)
+        else:
+            # if there are no computed forces available, use all the uppermost forces to compute
+            # the direction of the line
+
+            tangent = np.array([0., 0., 0.])
+            upper_node = self.get_upper_influence_nodes(line)
+            for node in upper_node:
+                tangent += node.calc_force_infl(pos_vec)
+            return normalize(tangent)
 
     def get_upper_influence_nodes(self, line=None):
         """
