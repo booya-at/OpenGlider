@@ -229,7 +229,7 @@ class LineSet():
 
     # -----CALCULATE GEO-----#
     def get_tangential_comp(self, line, pos_vec):
-        #upper_lines = self.get_upper_connected_lines(line.upper_node)
+        # upper_lines = self.get_upper_connected_lines(line.upper_node)
         # first we try to use already computed forces
         # and shift the upper node by residual force
         # we have to make sure to not overcompansate the residual force
