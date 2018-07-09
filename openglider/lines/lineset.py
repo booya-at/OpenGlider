@@ -233,7 +233,7 @@ class LineSet():
         # first we try to use already computed forces
         # and shift the upper node by residual force
         # we have to make sure to not overcompansate the residual force
-        if line.has_geo:
+        if line.has_geo and line.force is not None:
             r = self.get_residual_force(line.upper_node)
             if norm(r) == 0:
                 return line.diff_vector
