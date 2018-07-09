@@ -5,7 +5,7 @@ import ezodf
 import numpy as np
 
 from openglider.airfoil import BezierProfile2D, Profile2D
-from openglider.vector.spline import Bezier, SymmetricBezier
+from openglider.vector.spline import Bezier, SymmetricBezier, SymmetricBSpline
 from openglider.vector import Interpolation
 
 from openglider.glider.parametric.arc import ArcCurve
@@ -37,6 +37,8 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
 
     # profiles = [BezierProfile2D(profile) for profile in transpose_columns(sheets[3])]
     profiles = [Profile2D(profile, name) for name, profile in transpose_columns(sheets[3])]
+    for foil in profiles:
+        foil.normalize()
 
     try:
         geometry = get_geometry_parametric(sheets[5])
@@ -209,10 +211,13 @@ def get_geometry_explicit(sheet):
 
         span_last = span
 
-    def symmetric_fit(data):
+    def symmetric_fit(data, bspline=False):
         not_from_center = int(data[0][0] == 0)
         mirrored = [[-p[0], p[1]] for p in data[not_from_center:]][::-1] + data
-        return SymmetricBezier.fit(mirrored)
+        if bspline:
+            return SymmetricBSpline.fit(mirrored)
+        else:
+            return SymmetricBezier.fit(mirrored)
 
     has_center_cell = not front[0][0] == 0
     cell_no = (len(front) - 1) * 2 + has_center_cell
@@ -234,8 +239,8 @@ def get_geometry_explicit(sheet):
         "arc": arc_curve,
         "aoa": symmetric_fit(aoa),
         "zrot": symmetric_fit(zrot),
-        "profile_merge_curve": symmetric_fit(profile_merge),
-        "ballooning_merge_curve": symmetric_fit(ballooning_merge)
+        "profile_merge_curve": symmetric_fit(profile_merge, bspline=True),
+        "ballooning_merge_curve": symmetric_fit(ballooning_merge, bspline=True)
 
     }
 

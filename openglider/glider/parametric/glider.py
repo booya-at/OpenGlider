@@ -194,7 +194,6 @@ class ParametricGlider(object):
                     # entry
                     continue
 
-
                 try:
                     material_code = self.elements["materials"][cell_no][part_no]
                 except (KeyError, IndexError):

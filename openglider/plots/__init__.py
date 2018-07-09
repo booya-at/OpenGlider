@@ -25,18 +25,9 @@ class Patterns(object):
             "config": self.config
         }
 
-    def unwrap(self, outdir, glider=None):
-        def fn(filename):
-            return os.path.join(outdir, filename)
-
-        subprocess.call("mkdir -p {}".format(outdir), shell=True)
-
-        if self.config.profile_numpoints:
-            self.glider_2d.num_profile = self.config.profile_numpoints
-
-
-
+    def _get_sketches(self, outdir, glider=None):
         print("create sketches")
+        glider = glider or self.glider_2d.get_glider_3d()
         import openglider.plots.sketches as sketch
         shapeplot = sketch.ShapePlot(self.glider_2d, glider)
         design_upper = shapeplot.copy().insert_design(lower=True)
@@ -60,7 +51,21 @@ class Patterns(object):
 
         drawings = [design_upper.drawing, design_lower.drawing, lineplan.drawing, diagonals.drawing, straps.drawing]
 
+        return drawings
+
+    def unwrap(self, outdir, glider=None):
+        def fn(filename):
+            return os.path.join(outdir, filename)
+
+        subprocess.call("mkdir -p {}".format(outdir), shell=True)
+
+        if self.config.profile_numpoints:
+            self.glider_2d.num_profile = self.config.profile_numpoints
+
         glider = glider or self.glider_2d.get_glider_3d()
+
+        drawings = self._get_sketches(outdir, glider)
+
         if self.config.complete_glider:
             glider_complete = glider.copy_complete()
             glider_complete.rename_parts()
@@ -75,7 +80,6 @@ class Patterns(object):
 
         with open(fn("patterns.json"), "w") as outfile:
             jsonify.dump(plots, outfile)
-
 
         designs = Layout.stack_column(drawings, self.config.patterns_align_dist_y)
         all_patterns.append_left(designs, distance=self.config.patterns_align_dist_x*2)

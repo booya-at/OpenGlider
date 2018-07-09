@@ -356,6 +356,22 @@ class Glider(object):
         self.scale(faktor)
 
     @property
+    def trailing_edge_length(self):
+        d = 0
+        for i, cell in enumerate(self.cells):
+            ballooning = (cell.ballooning[1] + cell.ballooning[-1])/2
+            vektor = cell.prof1.point(-1) - cell.prof2.point(-1)
+
+            diff = norm(vektor) * (1 + ballooning)
+
+            if i==0 and self.has_center_cell:
+                diff /= 2  # upper+lower/2 but normally 2 times (symmetry)
+
+            d += 2*diff
+
+        return d
+
+    @property
     def area(self):
         area = 0.
         if len(self.ribs) == 0:
