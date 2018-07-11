@@ -398,7 +398,7 @@ class PolyTri(object):
         if create_key:
             return [make_key(*edge) for edge in zip(_tri[:-1], _tri[1:])]
         else:
-            return [[*edge] for edge in zip(_tri[:-1], _tri[1:])]
+            return [list(edge) for edge in zip(_tri[:-1], _tri[1:])]
 
     def is_intersecting(self, edge1, edge2):
         if edge1[0] in edge2 or edge1[1] in edge2:
@@ -411,7 +411,7 @@ class PolyTri(object):
         s = p22 - p21
         r = p21 - p11
         try:
-            c1, c2 = np.linalg.inv(np.array([t, -s]).T) @ r
+            c1, c2 = np.linalg.inv(np.array([t, -s]).T).dot(r)
         except np.linalg.linalg.LinAlgError:
             return False
         return (0 < c1 < 1) and (0 < c2 < 1)

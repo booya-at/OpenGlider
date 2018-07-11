@@ -149,6 +149,8 @@ class Mesh(object):
                     hole_boundary = np.array(hole_boundary) + start_index
                     boundaries.append(list(hole_boundary))
                     vertices += list(hole_vertices)
+            if not filled:
+                return cls.from_indexed(rib.align_all(vertices), {'hole': boundaries}, {})
             tris = PolyTri(np.array(vertices), boundaries, holes=True, delaunay=True).get_tris()
             if not tris:
                 print(np.array(vertices))

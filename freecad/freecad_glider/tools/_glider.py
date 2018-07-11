@@ -45,7 +45,7 @@ def mesh_sep(mesh, color, draw_lines=False):
     _polygons = []
     _lines = []
     for i in polygons:
-        if len(i) > 2:
+        if len(i) > 2 and not draw_lines:
             _polygons += i
             _polygons.append(-1)
         _lines += i
