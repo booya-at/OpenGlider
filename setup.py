@@ -81,5 +81,6 @@ setup(
                       ],
     author='Booya',
     url='www.openglider.org',
-    download_url="https://github.com/hiaselhans/OpenGlider/tarball/0.01dev0"
+    download_url="https://github.com/hiaselhans/OpenGlider/tarball/0.01dev0",
+    include_package_data=True
 )
