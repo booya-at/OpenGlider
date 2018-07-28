@@ -368,6 +368,7 @@ class CutPoint(Marker):
         self.max= self.parametric_glider.shape[self.rib_nr, 1.][1]
         self.min= self.parametric_glider.shape[self.rib_nr, 0.][1]
         self.points = [point]
+        self.on_drag_release.append(self.get_rib_pos)
 
     def update_position(self):
         self.points = [self.get_2D()]
@@ -384,7 +385,8 @@ class CutPoint(Marker):
         te = self.parametric_glider.shape[self.rib_nr, 1][1]
         chord = le - te
         sign = ((self.rib_pos >= 0) * 2 - 1)
-        return round(sign * (abs(le - self.pos[1])) / chord, 3)
+        self.rib_pos = round(sign * (abs(le - self.pos[1])) / chord, 3)
+        return self.rib_pos
 
     def __eq__(self, other):
         if isinstance(other, CutPoint):
