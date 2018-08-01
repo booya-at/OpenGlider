@@ -2,7 +2,7 @@ import numpy as np
 
 from openglider.airfoil import Profile2D
 from openglider.vector.spline import Bezier
-from openglider.vector.spline.bspline import BSpline
+from openglider.vector.spline.bspline import BSpline, BSpline3
 from openglider.vector import norm, Interpolation
 
 
@@ -10,14 +10,15 @@ class BezierProfile2D(Profile2D):
     # TODO make new fit bezier method to set the second x value of the
     # controllpoints to zero.
     def __init__(self, data=None, name=None,
-                 upper_spline=None, lower_spline=None):
+                 upper_spline=None, lower_spline=None,
+                 control_num_lower=8, control_num_upper=8):
         super(BezierProfile2D, self).__init__(data=data, name=name)
         self.close()
         self.normalize()
         self.upper_spline = None
         self.lower_spline = None
-        self.upper_spline = upper_spline or self.fit_upper()
-        self.lower_spline = lower_spline or self.fit_lower()
+        self.upper_spline = upper_spline or self.fit_upper(control_num=control_num_upper)
+        self.lower_spline = lower_spline or self.fit_lower(control_num=control_num_lower)
 
     def __json__(self):
         dct = super(BezierProfile2D, self).__json__()

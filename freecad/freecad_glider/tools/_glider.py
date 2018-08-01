@@ -231,7 +231,11 @@ class OGGlider(OGBaseObject):
             self.obj = obj
 
             # backward compatibility (remove this)
-            self.obj.ViewObject.Proxy.addProperties(self.obj.ViewObject)
+            try:
+                self.obj.ViewObject.Proxy.addProperties(self.obj.ViewObject)
+            except AttributeError:
+                # this doesn't work always
+                pass
 
             if App.GuiUp and not self.obj.ViewObject.Proxy:
                 self.restore_view_provider()

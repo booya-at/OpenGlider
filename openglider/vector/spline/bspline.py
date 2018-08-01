@@ -79,9 +79,12 @@ class BSpline(Bezier):
         obj.basefactory = BSplineBase(degree)
         return obj
 
+class BSpline3(BSpline):
+    basefactory = BSplineBase(3)
+
 
 class SymmetricBSpline(SymmetricBezier):
-    basefactory = BSplineBase(3)
+    basefactory = BSplineBase(2)
 
     def __json__(self):
         out = super(SymmetricBSpline, self).__json__()
@@ -94,6 +97,8 @@ class SymmetricBSpline(SymmetricBezier):
         obj.basefactory = BSplineBase(degree)
         return obj
 
+class SymmetricBSpline3(SymmetricBSpline):
+    basefactory = BSplineBase(3)
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
