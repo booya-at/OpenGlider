@@ -1,3 +1,4 @@
+import os
 import numpy
 from pivy import coin
 from PySide import QtGui, QtCore
@@ -7,6 +8,7 @@ import FreeCADGui as Gui
 
 from openglider.airfoil import BezierProfile2D
 from openglider.vector import normalize, norm
+from openglider import jsonify
 from ._tools import BaseTool
 from . import pivy_primitives as pp
 
@@ -23,7 +25,6 @@ class AirfoilTool(BaseTool):
         self.Qdelete_button = QtGui.QPushButton('delete', self.base_widget)
         self.Qnew_button = QtGui.QPushButton('new', self.base_widget)
         self.Qcopy_button = QtGui.QPushButton('copy', self.base_widget)
-        self.Qairfoil_name = QtGui.QLineEdit()
 
         self.Qairfoil_widget = QtGui.QWidget()
         self.Qairfoil_layout = QtGui.QFormLayout(self.Qairfoil_widget)
@@ -52,7 +53,6 @@ class AirfoilTool(BaseTool):
         # airfoil widget
         self.form.insert(0, self.Qairfoil_widget)
         self.Qairfoil_widget.setWindowTitle('airfoil')
-        self.Qairfoil_layout.addWidget(self.Qairfoil_name)
         self.Qairfoil_layout.addWidget(self.Qimport_button)
         self.Qairfoil_layout.addWidget(self.Qexport_button)
         self.Qairfoil_layout.addWidget(self.Qfit_button)
@@ -80,15 +80,14 @@ class AirfoilTool(BaseTool):
         self.layout.addWidget(self.Qdelete_button)
         self.layout.addWidget(self.Qcopy_button)
         self.QList_View.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
-        self.QList_View.currentTextChanged.connect(self.change_text)
 
         # connections
+        self.QList_View.itemChanged.connect(self.update_airfoil)
         self.Qimport_button.clicked.connect(self.import_file_dialog)
         self.Qexport_button.clicked.connect(self.export_file_dialog)
         self.Qnew_button.clicked.connect(self.create_airfoil)
         self.Qdelete_button.clicked.connect(self.delete_airfoil)
         self.QList_View.currentRowChanged.connect(self.update_selection)
-        self.Qairfoil_name.textChanged.connect(self.update_name)
         self.Qfit_button.clicked.connect(self.spline_edit)
         self.Qcopy_button.clicked.connect(self.copy_airfoil)
 
@@ -102,22 +101,34 @@ class AirfoilTool(BaseTool):
             parent=None,
             caption='import airfoil',
             directory='~',
-            filter='*.dat',
-            selectedFilter='*.dat')
+            filter='*.dat *.json',
+            selectedFilter='*.dat *.json')
         if filename[0] != '':
-            self.QList_View.addItem(
-                QAirfoil_item(
-                    BezierProfile2D.import_from_dat(filename[0])))
+            name, format = os.path.splitext(filename[0])
+            if format == ".dat":
+                self.QList_View.addItem(
+                    QAirfoil_item(
+                        BezierProfile2D.import_from_dat(filename[0])))
+            elif format == ".json":
+                with open(filename[0], "r") as fp:
+                    airfoil = jsonify.load(fp)["data"]
+                    self.QList_View.addItem(
+                        QAirfoil_item(airfoil))
 
     def export_file_dialog(self):
         filename = QtGui.QFileDialog.getSaveFileName(
             parent=None,
             caption='import airfoil',
             directory='~',
-            filter='*.dat',
-            selectedFilter='*.dat')
+            filter='*.dat *.json',
+            selectedFilter='*.dat *.json')
         if filename[0] != '':
-            self.current_airfoil.export_dat(filename[0] + filename[1][1:])
+            name, format = os.path.splitext(filename[0])
+            if format == ".dat":
+                self.current_airfoil.export_dat(filename[0])
+            elif format == ".json":
+                with open(filename[0], "w") as fp:
+                    jsonify.dump(self.current_airfoil, fp)
 
     def copy_airfoil(self):
         self.QList_View.addItem(
@@ -125,7 +136,9 @@ class AirfoilTool(BaseTool):
                 deepcopy(self.current_airfoil)))
 
     def change_text(self):
-        self.QList_View.currentItem().rename()
+        print("change_text")
+        if self.QList_View.currentItem():
+            self.QList_View.currentItem().rename()
 
     def create_airfoil(self):
         j = 0
@@ -158,18 +171,23 @@ class AirfoilTool(BaseTool):
             self.previous_foil.apply_splines()
             self.unset_edit_mode()
         if self.QList_View.currentItem():
-            self.Qairfoil_name.setText(self.QList_View.currentItem().text())
             self.previous_foil = self.current_airfoil
             self.update_airfoil()
 
     def update_name(self, *args):
-        name = self.Qairfoil_name.text()
         self.QList_View.currentItem().airfoil.name = name
         self.QList_View.currentItem().setText(name)
 
-    def update_airfoil(self, *args):
+    def update_airfoil(self, *args, thin=False):
         self.airfoil_sep.removeAllChildren()
-        self.airfoil_sep += [pp.Line(pp.vector3D(self.current_airfoil), width=2).object]
+        for index in range(self.QList_View.count()):
+            airfoil_item = self.QList_View.item(index)
+            if airfoil_item.checkState() or index == self.QList_View.currentRow():
+                airfoil = airfoil_item.airfoil
+                width = 0.5
+                if index == self.QList_View.currentRow() and not thin:
+                    width = 2
+                self.airfoil_sep += [pp.Line(pp.vector3D(airfoil), width=width).object]
 
     def spline_edit(self):
         if self.is_edit:
@@ -184,13 +202,14 @@ class AirfoilTool(BaseTool):
 
     def set_edit_mode(self):
         if self.current_airfoil is not None:
+            self.QList_View.setEnabled(False)
             airfoil = self.current_airfoil
             self.Qnum_points_upper.setValue(len(airfoil.upper_spline.controlpoints))
             self.Qnum_points_lower.setValue(len(airfoil.lower_spline.controlpoints))
             self.is_edit = True
             self.Qnum_points_upper.setDisabled(False)
             self.Qnum_points_lower.setDisabled(False)
-            self.airfoil_sep.removeAllChildren()
+            self.update_airfoil(thin=True)
             self.spline_sep.removeAllChildren()
             self.airfoil_sep += [pp.Line(self.current_airfoil.data).object]
             self.upper_cpc = pp.ControlPointContainer(view=self.view)
@@ -266,6 +285,7 @@ class AirfoilTool(BaseTool):
 
     def unset_edit_mode(self):
         if self.is_edit:
+            self.QList_View.setEnabled(True)
             self.Qnum_points_upper.setDisabled(True)
             self.Qnum_points_lower.setDisabled(True)
             self.upper_cpc.on_drag = []
@@ -300,6 +320,7 @@ class AirfoilTool(BaseTool):
         profiles = []
         for index in range(self.QList_View.count()):
             airfoil = self.QList_View.item(index).airfoil
+            airfoil.name = self.QList_View.item(index).text()
             airfoil.apply_splines()
             profiles.append(airfoil)
         super(AirfoilTool, self).accept()
@@ -315,8 +336,11 @@ class QAirfoil_item(QtGui.QListWidgetItem):
     def __init__(self, airfoil):
         self.airfoil = airfoil
         super(QAirfoil_item, self).__init__()
-        self.setText(self.airfoil.name)
         self.setFlags(self.flags() | QtCore.Qt.ItemIsEditable)
+        self.setFlags(self.flags() | QtCore.Qt.ItemIsUserCheckable)
+        self.setText(self.airfoil.name)
+        self.setCheckState(QtCore.Qt.Unchecked)
 
     def rename(self):
+        print("renaming")
         self.airfoil.name = self.text()
