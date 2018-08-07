@@ -178,7 +178,7 @@ class AirfoilTool(BaseTool):
         self.QList_View.currentItem().airfoil.name = name
         self.QList_View.currentItem().setText(name)
 
-    def update_airfoil(self, *args, thin=False):
+    def update_airfoil(self, thin=False, *args):
         self.airfoil_sep.removeAllChildren()
         for index in range(self.QList_View.count()):
             airfoil_item = self.QList_View.item(index)
