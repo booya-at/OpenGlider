@@ -341,13 +341,13 @@ class OGGliderVP(OGBaseVP):
     def _updateData(self, fp, prop='all'):
         if not self.getGliderInstance():
             return
-        if not hasattr(fp, 'Visibility') or not fp.Visibility:
+        if not 'Visibility' in fp.PropertiesList or not fp.Visibility:
             return
         if prop in ['x', 'y', 'z']:
             self.trans.translation = fp.x, fp.y, fp.z
         if prop in ['Visibility'] and fp.Proxy.recompute:
             prop = 'all'
-        if not hasattr(fp, 'half_glider'):
+        if not 'half_glider' in fp.PropertiesList:
             return  # the vieprovider isn't set up at this moment
                     # but calls already the update function
         if prop == 'profile_num' and fp.profile_num < 20:
@@ -357,7 +357,7 @@ class OGGliderVP(OGBaseVP):
                 self.glider = self.getGliderInstance().copy_complete()
             else:
                 self.glider = self.getGliderInstance().copy()
-        if hasattr(fp, 'ribs'):      # check for last attribute to be restored
+        if 'ribs' in fp.PropertiesList:      # check for last attribute to be restored
             if prop in ['all', 'profile_num', 'num_ribs', 'half_glider']:
                 self.vis_glider.removeChild(self.vis_glider.getByName('hull'))
 
@@ -383,7 +383,7 @@ class OGGliderVP(OGBaseVP):
                                    glider_changed=glider_changed,
                                    fill_ribs=fp.fill_ribs)
                 fp.Proxy.recompute = False
-        if hasattr(fp, 'line_num'):
+        if 'line_num' in fp.PropertiesList:
             if prop in ['line_num', 'half_glider', 'all']:
                 self.update_lines(fp.line_num)
 

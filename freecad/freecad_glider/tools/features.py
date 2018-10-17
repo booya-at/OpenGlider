@@ -56,7 +56,7 @@ class BaseFeature(OGBaseObject):
     def onDocumentRestored(self, obj):
         if not hasattr(self, 'obj'):
             self.obj = obj
-            if (hasattr(self.obj.parent.ViewObject, "Visibility") and
+            if ("Visibility" in self.obj.parent.ViewObject.PropertiesList and
                  self.obj.parent.ViewObject.Visibility):
                 self.obj.parent.ViewObject.Visibility = False
             self.obj.parent.Proxy.onDocumentRestored(self.obj.parent)
