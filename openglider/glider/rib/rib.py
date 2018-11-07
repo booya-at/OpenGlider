@@ -80,11 +80,11 @@ class Rib(CachedObject):
 
     @property
     def aoa_relative(self):
-        return self.aoa_absolute + self.__aoa_diff(self.arcang, self.glide)
+        return self.aoa_absolute + self._aoa_diff(self.arcang, self.glide)
 
     @aoa_relative.setter
     def aoa_relative(self, aoa):
-        self.aoa_absolute = aoa - self.__aoa_diff(self.arcang, self.glide)
+        self.aoa_absolute = aoa - self._aoa_diff(self.arcang, self.glide)
 
     @cached_property('profile_3d')
     def normvectors(self):
@@ -112,7 +112,7 @@ class Rib(CachedObject):
         return self.align(self.profile_2d.point(x_value))
 
     @staticmethod
-    def __aoa_diff(arc_angle, glide):
+    def _aoa_diff(arc_angle, glide):
         ##Formula for aoa rel/abs: ArcTan[Cos[alpha]/gleitzahl]-aoa[rad];
         return np.arctan(np.cos(arc_angle) / glide)
 

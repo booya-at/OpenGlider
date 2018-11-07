@@ -3,7 +3,7 @@ from pivy import coin
 from PySide import QtGui
 
 from ._tools import BaseTool, text_field, input_field, spline_select
-from .pivy_primitives import Line, ControlPointContainer, vector3D, vector2D
+from .pivy_primitives import Line, Point, ControlPointContainer, vector3D, vector2D
 
 
 def refresh():
@@ -25,11 +25,10 @@ class ArcTool(BaseTool):
             [self.parametric_glider.arc.curve], self.update_spline_type, self.base_widget)
         self.shape = coin.SoSeparator()
         self.circle = coin.SoSeparator()
+        self.attachment_point = coin.SoSeparator()
         self.task_separator.addChild(self.shape)
         self.task_separator.addChild(self.circle)
-
-        self.setup_widget()
-        self.setup_pivy()
+        self.task_separator.addChild(self.attachment_point)
 
     def setup_widget(self):
 
@@ -50,6 +49,9 @@ class ArcTool(BaseTool):
         self.arc_cpc.drag_release.append(self.update_real_arc)
         self.task_separator.addChild(self.arc_cpc)
 
+        for p in self.parametric_glider.lineset.get_lower_attachment_points():
+            self.attachment_point.addChild(Point(x=p.pos_3D[0], y=p.pos_3D[2], z=0, color="green"))
+
         self.update_spline()
         self.update_real_arc()
         self.update_num()
@@ -68,6 +70,9 @@ class ArcTool(BaseTool):
         p1, p2, p3 = self.parametric_glider.arc.curve.get_sequence(num=3)
         circle = CirclePart(p1, p2, p3)
         self.circle.addChild(Line(circle.get_sequence(), color="blue").object)
+        self.circle.addChild(Point(*circle.center))
+        self.circle.addChild(Line([p2, circle.center, p3]).object)
+
 
     def update_spline_type(self):
         self.arc_cpc.control_pos = self.parametric_glider.arc.curve.controlpoints

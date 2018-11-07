@@ -12,8 +12,8 @@ class GliderPanelMethod(GliderCase):
         wake_panels = 10
         far_field_coeff = 5
         rho_air = 1.2
-        v_inf = [10., 0., 1.]
-        vtk_flow_output = "/tmp/flow/"
+        v_inf = None
+        vtk_flow_output = "."
 
     def __init__(self, glider, config=None):
         self.config = self.DefaultConf(config)
@@ -43,9 +43,10 @@ class GliderPanelMethod(GliderCase):
                     panel.set_symmetric()
 
         case = self.config.solver(self.bem_panels, self.bem_trailing_edge)
-        if not hasattr(self.config, "v_inf"):
-            self.config.v_inf = self.glider.ribs[0].v_inf
-        case.v_inf = paraBEM.Vector3(*self.config.v_inf)
+        v_inf = getattr(self.config, "v_inf", None)
+        if v_inf is None:
+            v_inf = self.glider.lineset.v_inf
+        case.v_inf = paraBEM.Vector3(*v_inf)
         case.create_wake(length=self.config.wake_length, count=self.config.wake_panels)
         case.mom_ref_point = paraBEM.Vector3(1.25, 0, -5)  # todo
         case.A_ref = self.glider.area
@@ -73,9 +74,10 @@ class GliderPanelMethod(GliderCase):
                 cp = 1
             yield -(cp - 1) * rho * self.case.v_inf.norm()**2 / 2
 
-    def export_vtk(self):
+    def export_vtk(self, dir=None):
         assert self.case is not None
-        writer = CaseToVTK(self.case, self.config.vtk_flow_output)
+        dir = dir or self.config.vtk_flow_output
+        writer = CaseToVTK(self.case, dir)
         writer.write_panels()
         writer.write_wake_panels()
 

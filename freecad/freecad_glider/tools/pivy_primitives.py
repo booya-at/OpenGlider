@@ -19,6 +19,24 @@ COL_STD = COLORS['black']
 COL_OVR = COLORS['red']
 COL_SEL = COLORS['yellow']
 
+class Point(coin.SoSeparator):
+    def __init__(self, x, y, z=0, color="red"):
+        super(Point, self).__init__()
+        self.marker = coin.SoMarkerSet()
+        self.material = coin.SoMaterial()
+        self.coordinate = coin.SoCoordinate3()
+
+
+        self.material.setName('mat')
+        self.marker.markerIndex = coin.SoMarkerSet.CIRCLE_FILLED_9_9
+        self.material.diffuseColor.setValue(COLORS[color])
+
+        self.addChild(self.coordinate)
+        self.addChild(self.material)
+        self.addChild(self.marker)
+
+        self.coordinate.point.setValue(x, y, z)
+
 
 class ControlPoint(coin.SoSeparator):
     lock = False
@@ -235,14 +253,14 @@ class Line1(coin.SoSeparator):
 
 
 class Marker(coin.SoSeparator):
-    def __init__(self, points=[], color='black'):
+    def __init__(self, points=None, color='black'):
         super(Marker, self).__init__()
         self.marker = coin.SoMarkerSet()
         self.marker.markerIndex = coin.SoMarkerSet.CIRCLE_FILLED_9_9
         self.data = coin.SoCoordinate3()
         self.color = coin.SoMaterial()
         self.color.diffuseColor = COLORS[color]
-        self.update(points)
+        self.update(points or [])
         self += [self.color, self.data, self.marker]
 
     def update(self, points=None):

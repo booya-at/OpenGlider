@@ -160,7 +160,7 @@ class BaseTool(object):
     def setup_widget(self):
         pass
 
-    def add_pivy(self):
+    def setup_pivy(self):
         pass
 
     @property

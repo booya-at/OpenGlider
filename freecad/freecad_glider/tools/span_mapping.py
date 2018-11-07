@@ -4,6 +4,7 @@ import numpy as np
 from pivy import coin
 from PySide import QtGui
 
+from openglider.glider.rib import Rib
 from ._tools import BaseTool, text_field, input_field, spline_select
 from . import pivy_primitives as pp
 from . import pivy_primitives_new as ppn
@@ -21,11 +22,14 @@ class SpanMappingTool(BaseTool):
         self._grid_y_diff = self.grid_y_diff / self.value_scale
         pts = np.array(self.spline.controlpoints) * self.scale
         pts = list(map(pp.vector3D, pts))
-        self.aoa_cpc = pp.ControlPointContainer(pts, self.view)
+
+        self.spline_controlpoints = pp.ControlPointContainer(pts, self.view)
+        self.spline_curve = pp.Line([], color='red', width=2)
+
         self.shape = coin.SoSeparator()
         self.coords = coin.SoSeparator()
         self.grid = coin.SoSeparator()
-        self.aoa_spline = pp.Line([], color='red', width=2)
+
         self.ribs = self.parametric_glider.shape.ribs
         self.front = [rib[0] for rib in self.ribs]
         self.back = [rib[1] for rib in self.ribs]
@@ -37,9 +41,9 @@ class SpanMappingTool(BaseTool):
         self.spline_select = spline_select(
             [self.spline], self.update_spline_type, self.base_widget)
 
-        self.setup_widget()
-        self.setup_pivy()
-        self.update_num()
+        #self.setup_widget()
+        #self.setup_pivy()
+        #self.update_num()
 
     @property
     def spline(self):
@@ -49,15 +53,20 @@ class SpanMappingTool(BaseTool):
         return self.parametric_glider.zrot
 
     def setup_pivy(self):
-        self.aoa_cpc.control_points[-1].constraint = lambda pos: [
+        #fix last node (span)
+        self.spline_controlpoints.control_points[-1].constraint = lambda pos: [
 
             self.parametric_glider.shape.span, pos[1], pos[2]]
-        childs = [self.aoa_cpc, self.shape, self.aoa_spline.object,
+        childs = [self.spline_controlpoints, self.shape, self.spline_curve.object,
                   self.coords, self.grid]
         self.task_separator += childs
+        self.draw_shape()
         self.update_aoa()
         self.update_grid(drag_release=True)
         self.draw_shape()
+
+        self.spline_controlpoints.on_drag.append(self.on_drag)
+        self.spline_controlpoints.drag_release.append(self.on_release)
 
     def setup_widget(self):
         self.layout.setWidget(0, text_field, QtGui.QLabel('num_points'))
@@ -69,13 +78,17 @@ class SpanMappingTool(BaseTool):
         self.Qnum_aoa.setMaximum(5)
         self.Qnum_aoa.setMinimum(2)
         self.Qnum_aoa.valueChanged.connect(self.update_num)
-        self.aoa_cpc.on_drag.append(self.update_aoa)
-        def _update_1(*arg):
-            self.update_grid(drag_release=True)
-        def _update_2(*arg):
-            self.update_grid(drag_release=False)
-        self.aoa_cpc.on_drag.append(_update_2)
-        self.aoa_cpc.drag_release.append(_update_1)
+
+
+
+    def on_drag(self):
+        self.update_grid(drag_release=False)
+        self.update_aoa()
+        return
+
+    def on_release(self):
+        self.update_grid(drag_release=True)
+        return
 
     def draw_shape(self):
         self.shape.removeAllChildren()
@@ -86,21 +99,21 @@ class SpanMappingTool(BaseTool):
 
     def update_aoa(self):
         self.spline.controlpoints = (
-            np.array([i[:-1] for i in self.aoa_cpc.control_pos]) /
+            np.array([i[:-1] for i in self.spline_controlpoints.control_pos]) /
             self.scale).tolist()
-        self.aoa_spline.update(
+        self.spline_curve.update(
             self.spline.get_sequence(num=self.num_on_drag) * self.scale)
 
     def update_spline_type(self):
-        self.aoa_cpc.control_pos = np.array(self.spline.controlpoints) * self.scale
-        self.aoa_cpc.control_points[-1].constraint = lambda pos: [
+        self.spline_controlpoints.control_pos = np.array(self.spline.controlpoints) * self.scale
+        self.spline_controlpoints.control_points[-1].constraint = lambda pos: [
             self.parametric_glider.shape.span, pos[1], pos[2]]
         self.update_aoa()
 
     def update_grid(self, drag_release=False):
         self.coords.removeAllChildren()
         pts = self.spline.get_sequence(num=self.num_on_drag)
-        self.aoa_spline.update(pts * self.scale)
+        self.spline_curve.update(pts * self.scale)
         max_x = max([i[0] for i in pts])
         max_y = max([i[1] for i in pts])
         min_y = min([i[1] for i in pts])
@@ -119,12 +132,12 @@ class SpanMappingTool(BaseTool):
         self._update_grid(self.x_grid, y_grid, drag_release)
 
     def accept(self):
-        self.aoa_cpc.remove_callbacks()
+        self.spline_controlpoints.remove_callbacks()
         super(SpanMappingTool, self).accept()
         self.update_view_glider()
 
     def reject(self):
-        self.aoa_cpc.remove_callbacks()
+        self.spline_controlpoints.remove_callbacks()
         super(SpanMappingTool, self).reject()
 
     def grid_points(self, grid_x, grid_y):
@@ -173,8 +186,8 @@ class SpanMappingTool(BaseTool):
 
     def update_num(self):
         self.spline.numpoints = self.Qnum_aoa.value()
-        self.aoa_cpc.control_pos = np.array(self.spline.controlpoints) * self.scale
-        self.aoa_cpc.control_points[-1].constraint = lambda pos: [
+        self.spline_controlpoints.control_pos = np.array(self.spline.controlpoints) * self.scale
+        self.spline_controlpoints.control_points[-1].constraint = lambda pos: [
             self.parametric_glider.shape.span, pos[1], pos[2]]
         self.update_aoa()
 
@@ -184,6 +197,13 @@ class AoaTool(SpanMappingTool):
     scale = np.array([1., 10.])
     grid_y_diff = 1
     widget_name = 'AoA'
+
+    def __init__(self, obj):
+        super(AoaTool, self).__init__(obj)
+
+        arc_angles = self.parametric_glider.get_arc_angles()
+        self.aoa_diff = [Rib._aoa_diff(arc_angle, self.parametric_glider.glide) for arc_angle in arc_angles]
+        self.aoa_absolute_curve = pp.Line([], color='blue', width=2)
 
     @property
     def spline(self):
@@ -195,6 +215,26 @@ class AoaTool(SpanMappingTool):
         self.QGlide.setValue(self.parametric_glider.glide)
         self.layout.setWidget(3, text_field, QtGui.QLabel('glidenumber'))
         self.layout.setWidget(3, input_field, self.QGlide)
+
+
+    def setup_pivy(self):
+        super(AoaTool, self).setup_pivy()
+        self.task_separator.addChild(self.aoa_absolute_curve.object)
+
+    def update_aoa(self):
+        self.spline.controlpoints = (
+            np.array([i[:-1] for i in self.spline_controlpoints.control_pos]) /
+            self.scale).tolist()
+
+        x_values = self.parametric_glider.shape.rib_x_values
+        aoa_values = self.parametric_glider.get_aoa()
+        self.spline_curve.update([[x * self.scale[0], aoa * self.scale[1]] for x, aoa in zip(x_values, aoa_values)])
+        self.aoa_absolute_curve.update([[x*self.scale[0], (aoa - aoa_diff) * self.scale[1]] for x, aoa, aoa_diff in zip(x_values, aoa_values, self.aoa_diff)])
+
+
+    #def get_aoa_absolute(self):
+    #    arcangles = self.parametric_glider.get_arc_angles()
+    #    for arcangle, aoa in zip()
 
     def accept(self):
         self.parametric_glider.glide = self.QGlide.value()

@@ -49,7 +49,10 @@ class BaseCommand(object):
             return True
 
     def Activated(self):
-        Gui.Control.showDialog(self.tool(self.glider_obj))
+        tool = self.tool(self.glider_obj)
+        tool.setup_widget()
+        tool.setup_pivy()
+        Gui.Control.showDialog(tool)
     
     @property
     def glider_obj(self):
