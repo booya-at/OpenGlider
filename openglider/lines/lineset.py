@@ -223,6 +223,14 @@ class LineSet():
 
         return center, drag_total
 
+    def get_weight(self):
+        weight = 0
+        for line in self.lines:
+            weight += line.get_weight()
+
+        return weight
+
+
     def get_normalized_drag(self):
         """get the line drag normalized by the velocity ** 2 / 2"""
         return self.get_drag()[1] / norm(self.v_inf) ** 2 * 2

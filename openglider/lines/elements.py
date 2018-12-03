@@ -195,6 +195,11 @@ class Line(CachedObject):
         """
         return self.ortho_pressure * self.length_projected
 
+    def get_weight(self):
+        if self.type.weight is None:
+            raise ValueError("Line of type {} has no weight set".format(self.type.name))
+        return self.type.weight * self.length_with_sag
+
     @cached_property('force', 'lower_node.vec', 'upper_node.vec')
     def force_projected(self):
         return self.force * self.length_projected / self.length_no_sag

@@ -40,12 +40,16 @@ def export_2d(glider):
         caption='export glider',
         directory='~',
         filter=file_types)
+    if hasattr(glider, "getParametricGlider"):
+        glider_2d = glider.getParametricGlider()
+    else:
+        glider_2d = glider.ParametricGlider
     if filename[0] != "":
         if filename[0].endswith(".ods"):
-            glider.ParametricGlider.export_ods(filename[0])
+            glider_2d.export_ods(filename[0])
         elif filename[0].endswith('.json'):
             with open(filename[0], 'w') as exportfile:
-                dump(glider.ParametricGlider, exportfile)
+                dump(glider_2d, exportfile)
         else:
             FreeCAD.Console.PrintError('\nonly .ods and .json are supported')
 

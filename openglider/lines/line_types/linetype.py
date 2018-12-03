@@ -26,7 +26,7 @@ from openglider.vector import Interpolation
 class LineType():
     types = {}
 
-    def __init__(self, name, thickness, stretch_curve, min_break_load=None, cw=1.1):
+    def __init__(self, name, thickness, stretch_curve, min_break_load=None, weight=None, cw=1.1):
         """
         Line Type
         Attributes:
@@ -35,6 +35,7 @@ class LineType():
             - thickness (in mm)
             - stretch curve: [[force [N], stretch_in_%],...]
             - resistance: minimal break strength
+            - weight in g/m
         """
         self.name = name
         self.types[name] = self
@@ -44,6 +45,7 @@ class LineType():
             stretch_curve.insert(0, [0, 0])
         self.stretch_curve = stretch_curve
         self.stretch_interpolation = Interpolation(stretch_curve, extrapolate=True)
+        self.weight = weight
 
         self.min_break_load = min_break_load
 

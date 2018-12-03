@@ -880,22 +880,31 @@ class LineObserveTool(BaseTool):
         self.force_factor.setMinimum(1)
         self.force_factor.setValue(10)
 
-        self.layout.setWidget(0, text_field, QtGui.QLabel("force"))
-        self.layout.setWidget(0, input_field, self.force)
 
-        self.layout.setWidget(1, text_field, QtGui.QLabel("length"))
-        self.layout.setWidget(1, input_field, self.length)
+        try:
+            weight = self.g3d.lineset.get_weight()
+        except ValueError:
+            weight = 0
 
-        self.layout.setWidget(2, text_field, QtGui.QLabel("force-factor"))
-        self.layout.setWidget(2, input_field, self.force_factor)
+
+        self.layout.setWidget(0, text_field, QtGui.QLabel("total weight: {:.01f}g".format(2*weight)))
+
+        self.layout.setWidget(1, text_field, QtGui.QLabel("force"))
+        self.layout.setWidget(1, input_field, self.force)
+
+        self.layout.setWidget(2, text_field, QtGui.QLabel("length"))
+        self.layout.setWidget(2, input_field, self.length)
+
+        self.layout.setWidget(3, text_field, QtGui.QLabel("force-factor"))
+        self.layout.setWidget(3, input_field, self.force_factor)
 
 
         self.recalc_button = QtGui.QPushButton("recompute")
         self.sag_check = QtGui.QCheckBox("sag")
         self.sag_check.setTristate(False)
         self.sag_check.setCheckState(QtCore.Qt.CheckState(False))
-        self.layout.setWidget(3, input_field, self.recalc_button)
-        self.layout.setWidget(3, text_field, self.sag_check)
+        self.layout.setWidget(4, input_field, self.recalc_button)
+        self.layout.setWidget(4, text_field, self.sag_check)
 
 
         self.force_factor.sliderReleased.connect(self.draw_residual_forces)
