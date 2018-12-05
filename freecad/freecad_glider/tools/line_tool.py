@@ -106,8 +106,8 @@ class LineTool(BaseTool):
         self.disabled_color = (0.5, 0.5, 0.5)
 
         # setup the GUI
-        self.setup_widget()
-        self.setup_pivy()
+        # self.setup_widget()
+        # self.setup_pivy()
 
 
     def setup_pivy(self):        
@@ -835,7 +835,7 @@ class LineSelectionSeperator(InteractionSeparator):
     def get_data(self):
         line_force = np.zeros(3)
         line_length = np.zeros(3)
-        node_force = np.zeros(3)
+        line_weight = 0
         for obj in self.selected_objects:
             if isinstance(obj, GliderLine):
                 line_force += obj.line.force * obj.line.diff_vector
@@ -845,7 +845,11 @@ class LineSelectionSeperator(InteractionSeparator):
                     line_length[2] += obj.line.get_stretched_length()
                 except ValueError:
                     pass
-        return line_force, line_length
+                try:
+                    line_weight += obj.line.get_weight()
+                except ValueError as e:
+                    print(e)
+        return line_force, line_length, line_weight
 
 
 class GliderLine(Line):
@@ -880,14 +884,15 @@ class LineObserveTool(BaseTool):
         self.force_factor.setMinimum(1)
         self.force_factor.setValue(10)
 
+        self.weight = QtGui.QLabel("weight: {:5.1f} kg".format(0))
 
-        try:
-            weight = self.g3d.lineset.get_weight()
-        except ValueError:
-            weight = 0
+        # try:
+        #     weight = self.g3d.lineset.get_weight()
+        # except ValueError:
+        #     weight = 0
 
 
-        self.layout.setWidget(0, text_field, QtGui.QLabel("total weight: {:.01f}g".format(2*weight)))
+        # self.layout.setWidget(0, text_field, QtGui.QLabel("total weight: {:.01f}g".format(2*weight)))
 
         self.layout.setWidget(1, text_field, QtGui.QLabel("force"))
         self.layout.setWidget(1, input_field, self.force)
@@ -895,16 +900,19 @@ class LineObserveTool(BaseTool):
         self.layout.setWidget(2, text_field, QtGui.QLabel("length"))
         self.layout.setWidget(2, input_field, self.length)
 
-        self.layout.setWidget(3, text_field, QtGui.QLabel("force-factor"))
-        self.layout.setWidget(3, input_field, self.force_factor)
+        self.layout.setWidget(3, text_field, QtGui.QLabel("weight"))
+        self.layout.setWidget(3, input_field, self.weight)
+
+        self.layout.setWidget(4, text_field, QtGui.QLabel("force-factor"))
+        self.layout.setWidget(4, input_field, self.force_factor)
 
 
         self.recalc_button = QtGui.QPushButton("recompute")
         self.sag_check = QtGui.QCheckBox("sag")
         self.sag_check.setTristate(False)
         self.sag_check.setCheckState(QtCore.Qt.CheckState(False))
-        self.layout.setWidget(4, input_field, self.recalc_button)
-        self.layout.setWidget(4, text_field, self.sag_check)
+        self.layout.setWidget(5, input_field, self.recalc_button)
+        self.layout.setWidget(5, text_field, self.sag_check)
 
 
         self.force_factor.sliderReleased.connect(self.draw_residual_forces)
@@ -949,13 +957,14 @@ class LineObserveTool(BaseTool):
                     arrow.set_color("red")
                     self.arrows += arrow
 
-    def selection_changed(self, force, length):
+    def selection_changed(self, force, length, weight):
         self.force.setText("x: {:5.1f} N\n"\
                            "y: {:5.1f} N\n"\
                            "z: {:5.1f} N".format(*force))
         self.length.setText("length without sag: {:5.3f} m\n"\
                             "length with sag:    {:5.3f} m\n"\
                             "stretched lengths   {:5.3f} m".format(*length))
+        self.weight.setText("weight: {:5.1f} kg".format(weight))
 
     def accept(self):
         self.line_sep.unregister()
