@@ -197,8 +197,17 @@ class Line(CachedObject):
 
     def get_weight(self):
         if self.type.weight is None:
-            raise ValueError("Line of type {} has no weight set".format(self.type.name))
-        return self.type.weight * self.length_with_sag
+            text = ("predicting weight of linetype {} by line-thickness. " +
+                    "Please enter line_weight in openglider/lines/line_types").format(self.type.name)
+            print(text)
+            weight = self.type.predict_weight()
+        else:
+            weight = self.type.weight
+        try:
+            return weight * self.length_with_sag
+        except ValueError:
+            # computing weight without sag
+            return weight * self.length_no_sag
 
     @cached_property('force', 'lower_node.vec', 'upper_node.vec')
     def force_projected(self):

@@ -50,8 +50,13 @@ class BaseCommand(object):
 
     def Activated(self):
         tool = self.tool(self.glider_obj)
-        tool.setup_widget()
-        tool.setup_pivy()
+        #################################################################################
+        # @simon Diese Funktionen sind nur zur Strukturierung und nicht zwingend nötig.
+        # deswegen sollten sie intern im __init__ aufgerufen werden.
+        # Außer es gibt einen Grund des extern zu machen. 
+        # tool.setup_widget()
+        # tool.setup_pivy()
+        ##################################################################################
         Gui.Control.showDialog(tool)
     
     @property

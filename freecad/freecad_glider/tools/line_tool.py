@@ -106,8 +106,8 @@ class LineTool(BaseTool):
         self.disabled_color = (0.5, 0.5, 0.5)
 
         # setup the GUI
-        # self.setup_widget()
-        # self.setup_pivy()
+        self.setup_widget()
+        self.setup_pivy()
 
 
     def setup_pivy(self):        
@@ -845,10 +845,7 @@ class LineSelectionSeperator(InteractionSeparator):
                     line_length[2] += obj.line.get_stretched_length()
                 except ValueError:
                     pass
-                try:
-                    line_weight += obj.line.get_weight()
-                except ValueError as e:
-                    print(e)
+                line_weight += obj.line.get_weight()
         return line_force, line_length, line_weight
 
 
@@ -867,11 +864,11 @@ class LineObserveTool(BaseTool):
     def __init__(self, obj):
         super(LineObserveTool, self).__init__(obj)
         self.g3d = self.obj.Proxy.getGliderInstance()
-        self.setup_qt()
+        self.setup_widget()
         self.g3d.lineset.recalc(False)
         self.draw_glider()
 
-    def setup_qt(self):
+    def setup_widget(self):
         self.force = QtGui.QLabel("x: {:5.1f} N\n"\
                                   "y: {:5.1f} N\n"\
                                   "z: {:5.1f} N".format(0, 0, 0))
@@ -884,7 +881,7 @@ class LineObserveTool(BaseTool):
         self.force_factor.setMinimum(1)
         self.force_factor.setValue(10)
 
-        self.weight = QtGui.QLabel("weight: {:5.1f} kg".format(0))
+        self.weight = QtGui.QLabel("weight: {:5.1f} g".format(0))
 
         # try:
         #     weight = self.g3d.lineset.get_weight()
@@ -964,7 +961,7 @@ class LineObserveTool(BaseTool):
         self.length.setText("length without sag: {:5.3f} m\n"\
                             "length with sag:    {:5.3f} m\n"\
                             "stretched lengths   {:5.3f} m".format(*length))
-        self.weight.setText("weight: {:5.1f} kg".format(weight))
+        self.weight.setText("weight: {:5.1f} g".format(weight))
 
     def accept(self):
         self.line_sep.unregister()

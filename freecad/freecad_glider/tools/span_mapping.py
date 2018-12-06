@@ -41,9 +41,9 @@ class SpanMappingTool(BaseTool):
         self.spline_select = spline_select(
             [self.spline], self.update_spline_type, self.base_widget)
 
-        #self.setup_widget()
-        #self.setup_pivy()
-        #self.update_num()
+        self.setup_widget()
+        self.setup_pivy()
+        self.update_num()
 
     @property
     def spline(self):

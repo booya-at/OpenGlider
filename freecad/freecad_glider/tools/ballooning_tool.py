@@ -38,6 +38,7 @@ class BallooningTool(BaseTool):
         self.lower_cpc = ControlPointContainer([], self.view)
         self.previous_foil = None
         self.is_edit = False
+
         self.setup_widget()
         self.setup_pivy()
 

@@ -52,6 +52,10 @@ class LineType():
     def get_stretch_factor(self, force):
         return 1 + self.stretch_interpolation(force) / 100
 
+    def predict_weight(self):
+        t_mm = self.thickness * 1000.
+        return 0.134 * t_mm + 0.6859 * t_mm ** 2
+
     @classmethod
     def get(cls, name):
         try:

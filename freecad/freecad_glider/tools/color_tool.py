@@ -25,8 +25,8 @@ class ColorTool(BaseTool):
 
 
         # setup the GUI
-        # self.setup_widget()
-        # self.setup_pivy()
+        self.setup_widget()
+        self.setup_pivy()
 
     def setup_widget(self):
         self.Qcolore_select = QtGui.QPushButton('select color')

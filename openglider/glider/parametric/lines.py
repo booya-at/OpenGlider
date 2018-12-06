@@ -51,7 +51,7 @@ class UpperNode2D(object):
                 "layer": self.layer}
 
     def __repr__(self):
-        return "<UpperNode2D name:{} cell_no:{} cell_pos: {} rib:pos:{}".format(self.name, self.cell_no, self.cell_pos, self.rib_pos)
+        return "<UpperNode2D name:{} cell_no:{} cell_pos: {} rib_pos:{}".format(self.name, self.cell_no, self.cell_pos, self.rib_pos)
 
     def get_2D(self, parametric_shape):
         return parametric_shape[self.cell_no, self.rib_pos]

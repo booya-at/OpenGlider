@@ -30,6 +30,9 @@ class ArcTool(BaseTool):
         self.task_separator.addChild(self.circle)
         self.task_separator.addChild(self.attachment_point)
 
+        self.setup_widget()
+        self.setup_pivy()
+
     def setup_widget(self):
 
         self.Qnum_arc.setMaximum(5)
