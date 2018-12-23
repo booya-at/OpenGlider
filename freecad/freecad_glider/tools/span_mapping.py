@@ -80,7 +80,6 @@ class SpanMappingTool(BaseTool):
         self.Qnum_aoa.valueChanged.connect(self.update_num)
 
 
-
     def on_drag(self):
         self.update_grid(drag_release=False)
         self.update_aoa()
@@ -201,10 +200,6 @@ class AoaTool(SpanMappingTool):
     def __init__(self, obj):
         super(AoaTool, self).__init__(obj)
 
-        arc_angles = self.parametric_glider.get_arc_angles()
-        self.aoa_diff = [Rib._aoa_diff(arc_angle, self.parametric_glider.glide) for arc_angle in arc_angles]
-        self.aoa_absolute_curve = pp.Line([], color='blue', width=2)
-
     @property
     def spline(self):
         return self.parametric_glider.aoa
@@ -219,6 +214,11 @@ class AoaTool(SpanMappingTool):
 
     def setup_pivy(self):
         super(AoaTool, self).setup_pivy()
+
+        arc_angles = self.parametric_glider.get_arc_angles()
+        self.aoa_diff = [Rib._aoa_diff(arc_angle, self.parametric_glider.glide) for arc_angle in arc_angles]
+        self.aoa_absolute_curve = pp.Line([], color='blue', width=2)
+
         self.task_separator.addChild(self.aoa_absolute_curve.object)
 
     def update_aoa(self):
@@ -229,7 +229,8 @@ class AoaTool(SpanMappingTool):
         x_values = self.parametric_glider.shape.rib_x_values
         aoa_values = self.parametric_glider.get_aoa()
         self.spline_curve.update([[x * self.scale[0], aoa * self.scale[1]] for x, aoa in zip(x_values, aoa_values)])
-        self.aoa_absolute_curve.update([[x*self.scale[0], (aoa - aoa_diff) * self.scale[1]] for x, aoa, aoa_diff in zip(x_values, aoa_values, self.aoa_diff)])
+        if hasattr(self, "aoa_absolute_curve"):
+            self.aoa_absolute_curve.update([[x*self.scale[0], (aoa - aoa_diff) * self.scale[1]] for x, aoa, aoa_diff in zip(x_values, aoa_values, self.aoa_diff)])
 
 
     #def get_aoa_absolute(self):
