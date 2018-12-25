@@ -2,7 +2,12 @@ from __future__ import division
 from __future__ import absolute_import
 from meshpy.triangle import MeshInfo
 
-import meshpy._triangle as internals
+try:
+    import meshpy._triangle as internals
+    # old API
+except ImportError:
+    import meshpy._internals as internals
+    # new API (pybind11)
 
 
 def custom_triangulation(mesh_info, opts=""):
