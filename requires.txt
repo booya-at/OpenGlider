@@ -1,4 +1,4 @@
-ezodf
+pyexcel-ezodf
 svgwrite
 numpy
 ezdxf

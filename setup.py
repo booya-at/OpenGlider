@@ -72,9 +72,7 @@ setup(
     package_data=package_data,
     license='GPL-v3',
     # long_description=open('README.md').read(),
-    install_requires=["ezodf",
-                      "pyexcel",
-                      "pyexcel-ods",
+    install_requires=["pyexcel-ezodf",
                       "svgwrite",
                       "numpy",
                       "ezdxf"
