@@ -299,10 +299,10 @@ class Arrow(Line):
         self.set_arrow_direction()
 
     def set_arrow_direction(self):
-        pts = np.array(self.pos)
+        pts = self.pos
         self.arrow_translate.translation = tuple(pts[-1])
         direction = pts[-1] - pts[-2]
-        direction /= np.linalg.norm(direction)
+        direction.normalize()
         _rot = coin.SbRotation()
         _rot.setValue(coin.SbVec3f(0, 1, 0), coin.SbVec3f(*direction))
         self.arrow_rot.rotation.setValue(_rot)
