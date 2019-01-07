@@ -1,1 +1,0 @@
-from openglider.physics.flow.panelmethod import GliderPanelMethod
