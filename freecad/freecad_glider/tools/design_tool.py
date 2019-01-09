@@ -402,7 +402,7 @@ class CutPoint(Marker):
         for point in point_set:
             if point == self:
                 return point
-        return false
+        return False
 
     @property
     def pos(self):

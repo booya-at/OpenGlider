@@ -55,17 +55,17 @@ def export_2d(glider):
 
 
 def import_2d(glider):
-    file_name = QtGui.QFileDialog.getOpenFileName(
+    filename = QtGui.QFileDialog.getOpenFileName(
         parent=None,
         caption='import glider',
         directory='~')
     if filename[0].endswith('.json'):
-        with open(file_name, 'r') as importfile:
+        with open(filename, 'r') as importfile:
             glider.ParametricGlider = load(importfile)['data']
             glider.ParametricGlider.get_glider_3d(glider.GliderInstance)
             glider.ViewObject.Proxy.updateData()
-    elif file_name.endswith('ods'):
-        glider.ParametricGlider = ParametricGlider.import_ods(file_name)
+    elif filename.endswith('ods'):
+        glider.ParametricGlider = ParametricGlider.import_ods(filename)
         glider.ParametricGlider.get_glider_3d(glider.GliderInstance)
         glider.ViewObject.Proxy.updateData()
     else:

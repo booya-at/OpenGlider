@@ -174,7 +174,7 @@ class AirfoilTool(BaseTool):
             self.previous_foil = self.current_airfoil
             self.update_airfoil()
 
-    def update_name(self, *args):
+    def update_name(self, name):
         self.QList_View.currentItem().airfoil.name = name
         self.QList_View.currentItem().setText(name)
 

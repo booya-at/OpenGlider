@@ -358,6 +358,8 @@ class PanelTool(BaseTool):
 
 
 def create_fem_dict(par_glider):
+    # not yet working
+    
     # create a paraBEM object and compute the pressure
 
     # create a dict with:
@@ -370,11 +372,12 @@ def create_fem_dict(par_glider):
         distribution=Distribution.from_nose_cos_distribution(0.2),
         symmetric=True
         )
-    case.A_ref = par_glider.flat_area
-    case.v_inf = paraBEM.Vector(glider.v_inf)
-    self.case.farfield = 5
-    self.case.create_wake(9999, 10)
-    self.case.run()
+
+    # case.A_ref = par_glider.flat_area
+    # case.v_inf = paraBEM.Vector(glider.v_inf)
+    # self.case.farfield = 5
+    # self.case.create_wake(9999, 10)
+    # self.case.run()
 
 
 class VelCalculator(QtGui.QDialog):

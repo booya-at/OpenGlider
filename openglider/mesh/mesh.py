@@ -419,6 +419,7 @@ class Mesh(object):
                 outfile.write(panel_line + "\n")
 
     def export_collada(self):
+        # not yet working
         import collada
         mesh = collada.Collada()
 
@@ -428,7 +429,7 @@ class Mesh(object):
         mesh.materials.append(mat)
         #mesh.
 
-        vert_src = collada.source.FloatSource("cubeverts-array", np.array(vert_floats), ('X', 'Y', 'Z'))
+        # vert_src = collada.source.FloatSource("cubeverts-array", np.array(vert_floats), ('X', 'Y', 'Z'))
 
     def round(self, places):
         for vertice in self.vertices:
