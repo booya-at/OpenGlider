@@ -19,6 +19,7 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 __version__ = '0.01'
 __author__ = 'Booya'
+__path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
 import numpy as np
 
