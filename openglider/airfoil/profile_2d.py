@@ -109,6 +109,14 @@ class Profile2D(Polygon2D):
                 i += 1
             self.noseindex = i
 
+    def get_data(self, negative_x=False):
+        if not negative_x:
+            return self.data
+        else:
+            data = np.array(self.data)
+            data[:,0] *= np.array([-1.] * self.noseindex + [1.] * (len(self) - self.noseindex))
+            return data
+
     def __add__(self, other, conservative=False):
         """
         Mix 2 Profiles

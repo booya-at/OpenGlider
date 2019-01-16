@@ -445,6 +445,16 @@ class Glider(object):
                     attach_pts.append(att)
         return attach_pts
 
+    def get_main_attachment_point(self):
+        """
+        convention: "main" in main-attachment-point-name
+        """
+        for att in self.lineset.lower_attachment_points:
+            if "main" in att.name:
+                return att
+        else:
+            raise AttributeError("no 'main' attachment-point found.")
+
     @property
     def has_center_cell(self):
         return abs(self.ribs[0].pos[1]) > 1.e-5

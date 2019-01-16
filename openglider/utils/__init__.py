@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
+import inspect
 from openglider.utils.cache import recursive_getattr
 
 def sign(val):
@@ -86,7 +87,8 @@ class dualmethod(object):
 class Config(object):
     def __init__(self, dct=None):
         self.__dict__ = {}
-        for key, value in self.__class__.__dict__.items():
+        items = inspect.getmembers(self.__class__, lambda a:not(inspect.isroutine(a)))
+        for key, value in items:
             if not key.startswith('_') and key is not "get":
                 self.__dict__[key] = value
         self.__dict__.update(dct or {})

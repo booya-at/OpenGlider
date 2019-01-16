@@ -185,16 +185,19 @@ class LineTool(BaseTool):
         self.attach_x_val = QtGui.QDoubleSpinBox()
         self.attach_y_val = QtGui.QDoubleSpinBox()
         self.attach_z_val = QtGui.QDoubleSpinBox()
+        self.attach_name = QtGui.QLineEdit()
 
         for spinbox in [
                 self.attach_x_val, self.attach_y_val, self.attach_z_val]:
             spinbox.setMaximum(10.)
             spinbox.setMinimum(-10.)
             spinbox.valueChanged.connect(self.update_lw_att_pos)
+        self.attach_name.textChanged.connect(self.update_lw_att_name)
 
         self.lw_att_lay.addWidget(self.attach_x_val)
         self.lw_att_lay.addWidget(self.attach_y_val)
         self.lw_att_lay.addWidget(self.attach_z_val)
+        self.lw_att_lay.addWidget(self.attach_name)
 
         self.up_att_force = QtGui.QDoubleSpinBox()
         self.up_att_force.setSingleStep(0.1)
@@ -503,6 +506,7 @@ class LineTool(BaseTool):
                 self.attach_x_val.setValue(x)
                 self.attach_y_val.setValue(y)
                 self.attach_z_val.setValue(z)
+                self.attach_name.setText(selected_objs[0].name)
             elif show_upper_att_widget(selected_objs):
                 self.tool_widget.setCurrentWidget(self.up_att_wid)
                 self.up_att_force.setValue(selected_objs[0].force)
@@ -536,6 +540,11 @@ class LineTool(BaseTool):
         z = self.attach_z_val.value()
         for obj in self.shape.selected_objects:
             obj.pos_3D = [x, y, z]
+
+    def update_lw_att_name(self, *args):
+        name = self.attach_name.text()
+        for obj in self.shape.selected_objects:
+            obj.name = name
 
     def update_up_att_force(self, *args):
         for obj in self.shape.selected_objects:
@@ -642,10 +651,12 @@ class NodeMarker(Marker):
         super(NodeMarker, self).__init__([pos], dynamic=True)
         self._node = node
         self.par_glider = par_glider
+        self.name = node.name
 
     @property
     def node(self):
         self._node.pos_2D = list(self.pos)[:-1]
+        self._node.name = self.name
         return self._node
 
     @property

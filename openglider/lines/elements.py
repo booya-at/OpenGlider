@@ -306,7 +306,7 @@ class Line(CachedObject):
 
 
 class Node(object):
-    def __init__(self, node_type, position_vector=None, attachment_point=None):
+    def __init__(self, node_type, position_vector=None, attachment_point=None, name=None):
         self.type = node_type  # lower, top, middle (0, 2, 1)
         if position_vector is not None:
             position_vector = np.array(position_vector)
@@ -315,6 +315,7 @@ class Node(object):
         self.vec_proj = None  # pos_proj
         self.force = np.array([None, None, None])  # top-node force
         self.attachment_point = attachment_point
+        self.name = name or "name_not_set"
 
 
     def calc_force_infl(self, vec):

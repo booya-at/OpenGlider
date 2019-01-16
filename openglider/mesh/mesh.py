@@ -53,7 +53,13 @@ class Vertex(object):
 class Polygon(list):
     """the polygon is a simple list, but using a Polygon-object instead of \
        a list let you monkey-patch the object"""
-    pass
+    @property
+    def center(self):
+        center = np.array([0, 0, 0], dtype=float)
+        for vert in self:
+            center += np.array(list(vert))
+        return center / len(self)
+    
 
 
 class Mesh(object):
@@ -492,7 +498,7 @@ class Mesh(object):
         for group_name, poly_group in self.polygons.items():
             for i, polygon in enumerate(poly_group):
                 poly_set = set(polygon)
-                new_polygon = [node for node in polygon if node in poly_set]
+                new_polygon = Polygon([node for node in polygon if node in poly_set])
                 self.polygons[group_name][i] = new_polygon
 
         vertices = self.vertices

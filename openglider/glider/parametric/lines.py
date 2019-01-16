@@ -29,7 +29,7 @@ class LowerNode2D(object):
         return self.pos_2D
 
     def get_node(self, glider):
-        return Node(node_type=0, position_vector=np.array(self.pos_3D))
+        return Node(node_type=0, position_vector=np.array(self.pos_3D), name=self.name)
 
 
 class UpperNode2D(object):

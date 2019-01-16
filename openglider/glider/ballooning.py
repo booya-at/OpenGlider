@@ -77,9 +77,14 @@ class Ballooning(object):
         else:
             raise ValueError("Ballooning only between -1 and 1")
 
-    def __call__(self, arg):
+    def __call__(self, xval):
         """Get Ballooning Arc (phi) for a certain XValue"""
-        return self.phi(1. / (self[arg] + 1))
+        return self.phi(1. / (self[xval] + 1))
+
+    def get_tension_factor(self, xval):
+        """Get the tension due to ballooning"""
+        return 1. / 2. / np.tan(self(xval))
+
 
     def __add__(self, other):
         """Add another Ballooning to this one, needed for merging purposes"""
