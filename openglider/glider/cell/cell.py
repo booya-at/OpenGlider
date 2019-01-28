@@ -7,7 +7,7 @@ from openglider.glider.ballooning import Ballooning
 from openglider.glider.cell import BasicCell
 from openglider.utils import consistent_value, linspace
 from openglider.utils.cache import CachedObject, cached_property, HashedList
-from openglider.vector import norm
+from openglider.vector import norm, normalize
 from openglider.mesh import Mesh, Vertex, Polygon
 
 
@@ -72,6 +72,15 @@ class Cell(CachedObject):
     @cached_property('rib1.profile_3d', 'rib2.profile_3d', 'ballooning_phi')
     def basic_cell(self):
         return BasicCell(self.rib1.profile_3d, self.rib2.profile_3d, self.ballooning_phi)
+
+    def get_normvector(self):
+        p1 = self.rib1.point(-1)
+        p2 = self.rib2.point(0)
+
+        p4 = self.rib1.point(0)
+        p3 = self.rib2.point(-1)
+
+        return normalize(np.cross(p1-p2, p3-p4))
 
     @cached_property('miniribs', 'rib1', 'rib2')
     def rib_profiles_3d(self):

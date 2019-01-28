@@ -290,7 +290,10 @@ class ParametricGlider(object):
         rib_angles = self.arc.get_rib_angles(x_values)
 
         if self.num_profile is not None:
-            profile_x_values = Distribution.from_cos_distribution(self.num_profile)
+            num_profile = self.num_profile
+
+        if num_profile is not None:
+            profile_x_values = Distribution.from_cos_distribution(num_profile)
         else:
             profile_x_values = self.profiles[0].x_values
 
