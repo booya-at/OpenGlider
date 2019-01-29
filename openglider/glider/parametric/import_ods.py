@@ -1,6 +1,8 @@
 from __future__ import division
 
 import numbers
+import re
+
 import ezodf
 import numpy as np
 
@@ -296,14 +298,17 @@ def get_attachment_points(rib_sheet, cell_sheet, midrib=False):
 def get_lower_aufhaengepunkte(data):
     aufhaengepunkte = {}
     xyz = {"X": 0, "Y": 1, "Z": 2}
+    regex = re.compile("AHP([XYZ])(.*)")
     for key in data:
-        if key is not None and "AHP" in key:
-            pos = int(key[4])
-            aufhaengepunkte.setdefault(pos, [0, 0, 0])
-            which = key[3].upper()
-            aufhaengepunkte[pos][xyz[which]] = data[key]
-    return {nr: LowerNode2D([0, 0], pos, nr)
-            for nr, pos in aufhaengepunkte.items()}
+        if key is not None:
+            res = regex.match(key)
+            if res:
+                coord, pos = res.groups()
+
+                aufhaengepunkte.setdefault(pos, [0, 0, 0])
+                aufhaengepunkte[pos][xyz[coord]] = data[key]
+    return {name: LowerNode2D([0, 0], pos, name)
+            for name, pos in aufhaengepunkte.items()}
 
 
 def transpose_columns(sheet, columnswidth=2):

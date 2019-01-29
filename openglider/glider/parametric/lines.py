@@ -18,6 +18,9 @@ class LowerNode2D(object):
         self.name = name
         self.layer = layer or ""
 
+    def __repr__(self):
+        return "<LowerNode2D {}>".format(self.name)
+
     def __json__(self):
         return{
             "pos_2D": self.pos_2D,
@@ -272,9 +275,6 @@ class LineSet2D(object):
     def get_input_table(self):
         table = Table()
 
-        lower_nodes = self.get_lower_attachment_points()
-        line_trees = [self.create_tree(node) for node in lower_nodes]
-
         def insert_block(line, upper, row, column):
             table[row, column+1] = line.line_type.name
             if upper:
@@ -291,8 +291,9 @@ class LineSet2D(object):
             return row
 
         row = 0
-        for node_no, tree in enumerate(line_trees):
-            table[row, 0] = node_no
+        for node in self.get_lower_attachment_points():
+            tree = self.create_tree(node)
+            table[row, 0] = node.name
             for line, upper in tree:
                 row = insert_block(line, upper, row, 1)
 
@@ -316,7 +317,10 @@ class LineSet2D(object):
 
             if value is not None:
                 if column == 0:  # first (line-)floor
-                    current_nodes = [attachment_points_lower[int(sheet[row, 0])]] + \
+                    lower_node_name = sheet[row, 0]
+                    if not type(lower_node_name) == str:
+                        lower_node_name = str(int(lower_node_name))
+                    current_nodes = [attachment_points_lower[lower_node_name]] + \
                                     [None for __ in range(num_cols)]
                     column += 1
 

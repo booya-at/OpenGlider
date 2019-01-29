@@ -12,6 +12,7 @@ except ImportError as e:
     from .poly_tri import PolyTri
     USE_POLY_TRI = True
 
+
 class Vertex(object):
     dmin = 10**-10
 

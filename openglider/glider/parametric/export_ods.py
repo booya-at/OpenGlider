@@ -294,6 +294,10 @@ def get_parametric_sheet(glider):
 
 
 def get_lines_sheet(glider, places=3):
+    table = glider.lineset.get_input_table()
+    ods_sheet = table.get_ods_sheet("Lines")
+    return ods_sheet
+
     lower_nodes = glider.lineset.get_lower_attachment_points()
 
     line_trees = [glider.lineset.create_tree(node) for node in lower_nodes]
@@ -330,7 +334,7 @@ def get_data_sheet(glider):
     for pt_no, att_pt in enumerate(glider.lineset.get_lower_attachment_points()):
         ods_sheet.append_rows(3)
         for i, axis in enumerate(['X', 'Y', 'Z']):
-            ods_sheet[current_row + i, 0].set_value("AHP{}{}".format(axis, pt_no))
+            ods_sheet[current_row + i, 0].set_value("AHP{}{}".format(axis, att_pt.name))
             ods_sheet[current_row + i, 1].set_value(att_pt.pos_3D[i])
         current_row += 3
 
