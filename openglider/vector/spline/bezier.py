@@ -103,12 +103,12 @@ class Bezier(HashedList):
        self.data = points
 
     @dualmethod
-    def fit(this, points, numpoints=5, start=True, end=True):
+    def fit(self, points, numpoints=5, start=True, end=True):
         """
         Fit to a given set of points with a certain number of spline-points (default=3)
         if start (/ end) is True, the first (/ last) point of the Curve is included
         """
-        base = this.basefactory(numpoints)
+        base = self.basefactory(numpoints)
         matrix = np.matrix(
             [[base[column](row * 1. / (len(points) - 1))
                 for column in range(len(base))]
@@ -152,14 +152,14 @@ class Bezier(HashedList):
             if end:
                 solution.append(points[-1])
 
-        if type(this) == type:  # classmethod
-            return this(solution)
+        if type(self) == type:  # classmethod
+            return self(solution)
         else:
-            this.controlpoints = solution
-            return this
+            self.controlpoints = solution
+            return self
 
     @dualmethod
-    def constraint_fit(this, points, constraint):
+    def constraint_fit(self, points, constraint):
         """constraint is a matrix in size of the controlpointmatrix
         constraint values have a value others are set to None
         points is [[x0,y0,z0], X1, X2, ...]"""
@@ -169,7 +169,7 @@ class Bezier(HashedList):
         num_ctrl_pts = len(constraint)
 
         # create the base matrix:
-        base = this.basefactory(num_ctrl_pts)
+        base = self.basefactory(num_ctrl_pts)
         matrix = np.array(
             [[base[column](row * 1. / (len(points) - 1))
                 for column in range(len(base))]
@@ -183,12 +183,12 @@ class Bezier(HashedList):
         constraints_T = list(zip(*constraint))
         for i in range(dim):
             constraints = [[index, val] for index, val in enumerate(constraints_T[i]) if val != None]
-            solution.append(this.constraint_least_square_sol(matrix, b[i], constraints))
-        if type(this) == type:
-            return this(np.array(solution).transpose())
+            solution.append(self.constraint_least_square_sol(matrix, b[i], constraints))
+        if type(self) == type:
+            return self(np.array(solution).transpose())
         else:
-            this.controlpoints = np.array(solution).transpose()
-            return this
+            self.controlpoints = np.array(solution).transpose()
+            return self
 
 
     @staticmethod

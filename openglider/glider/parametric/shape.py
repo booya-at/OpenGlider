@@ -92,6 +92,19 @@ class ParametricShape(object):
     def rib_x_values(self):
         return [p[0] for p in self.rib_dist_interpolation]
 
+    @property
+    def cell_x_values(self):
+        ribs = self.rib_x_values
+        if self.has_center_cell:
+            ribs.insert(0, -ribs[0])
+
+        cells = []
+        for x1, x2 in zip(ribs[:-1], ribs[1:]):
+            cells.append((x1+x2)/2)
+
+        return cells
+
+
     def get_half_shape(self):
         """
         Return shape of the glider:

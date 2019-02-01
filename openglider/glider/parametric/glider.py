@@ -271,6 +271,10 @@ class ParametricGlider(object):
         profile_merge_curve = self.profile_merge_curve.interpolation(num=self.num_interpolate)
         return [profile_merge_curve(abs(x)) for x in self.shape.rib_x_values]
 
+    def get_ballooning_merge(self):
+        ballooning_merge_curve = self.ballooning_merge_curve.interpolation(num=self.num_interpolate)
+        return [ballooning_merge_curve(abs(x) for x in self.shape.cell_x_values)]
+
     def get_glider_3d(self, glider=None, num=50, num_profile=None):
         """returns a new glider from parametric values"""
         glider = glider or Glider()
@@ -372,6 +376,18 @@ class ParametricGlider(object):
         glider.lineset.recalc()
 
         return glider
+
+    def apply_ballooning(self, glider3d):
+        for ballooning in self.balloonings:
+            ballooning.apply_splines()
+        cell_centers = self.shape.cell_x_values
+        ballooning_merge_curve = self.ballooning_merge_curve.interpolation(num=self.num_interpolate)
+        for cell_no, cell in enumerate(glider3d.cells):
+            ballooning_factor = ballooning_merge_curve(cell_centers[cell_no])
+            ballooning = self.merge_ballooning(ballooning_factor)
+            cell.ballooning = ballooning
+
+        return glider3d
 
     @property
     def v_inf(self):

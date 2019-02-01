@@ -189,7 +189,7 @@ class BallooningBezier(Ballooning):
     @property
     def points(self):
         upper = list(self.upper_spline.get_sequence())
-        lower = map(lambda x: [x[0], -x[1]], self.lower_spline.get_sequence()[::-1])
+        lower = [(p[0], -p[1]) for p in self.lower_spline.get_sequence()][::-1]
         return upper + lower
 
     def apply_splines(self):
@@ -231,4 +231,109 @@ class BallooningBezier(Ballooning):
         self.upper_spline.scale(1, factor)
         self.lower_spline.scale(1, factor)
 
+
+class BallooningBezierNeu(Ballooning):
+    def __init__(self, spline):
+        self.spline_curve = BSpline(spline)
+        super(BallooningBezierNeu, self).__init__(None, None)
+        self.apply_splines()
+
+    def __json__(self):
+        return {"spline": []}
+
+    def __getitem__(self, xval):
+        """Get Ballooning Value (%) for a certain XValue"""
+        if -1 <= xval <= 1:
+            return self.upper(xval)
+        else:
+            raise ValueError("Ballooning only between -1 and 1")
+
+    @classmethod
+    def from_classic(cls, ballooning, numpoints=14):
+        upper = ballooning.upper.data
+        lower = ballooning.lower.data
+
+        data = [(-p[0], p[1]) for p in upper[::-1]] + list(lower)
+
+        spline = BSpline.fit(data, numpoints=numpoints)
+        #return data
+        return cls(spline.controlpoints)
+
+    @property
+    def points(self):
+        return [(p[0], max(0, p[1])) for p in self.spline_curve.get_sequence(200)]
+
+    @property
+    def interpolation(self):
+        return Interpolation(self.points)
+
+    def apply_splines(self):
+        points = self.points
+        interpolation = Interpolation(points)
+        self.upper = interpolation
+
+    def __imul__(self, factor):  # TODO: Check consistency
+        """Multiplication of BezierBallooning"""
+        self.scale(factor)
+        return self
+
+    def __add__(self, other):
+        upper = []
+        lower = []
+        for point in self.upper.data:
+            x, y = point
+            if x <= 0:
+                upper.append([-x, y+other[x]])
+
+            if x >= 0:
+                lower.append([x, y+other[x]])
+
+        p0 = [0, self[0]+other[0]]
+        upper.append(p0)
+        lower.insert(0, p0)
+
+        return Ballooning(Interpolation(upper[::-1]), Interpolation(lower))
+
+
+    @property
+    def numpoints(self):
+        return len(self.upper)
+
+    @numpoints.setter
+    def numpoints(self, numpoints):
+        Ballooning.__init__(self, self.spline_curve.interpolation(numpoints), None)
+
+    @property
+    def controlpoints(self):
+        return self.spline_curve.controlpoints
+
+    @controlpoints.setter
+    def controlpoints(self, controlpoints):
+        self.spline_curve.controlpoints = controlpoints
+        Ballooning.__init__(self, self.spline_curve.interpolation(), None)
+
+    def scale(self, factor):
+        self.spline_curve.scale(1, factor)
+
+    @property
+    def amount_maximal(self):
+        return max([p[1] for p in self.upper])
+
+    def _repr_svg_(self):
+        import svgwrite
+        import svgwrite.container
+
+        height = self.amount_maximal
+
+        drawing = svgwrite.Drawing(size=[800, 800*height])
+
+        drawing.viewbox(-1, -height/2, 2, height)
+
+        g = svgwrite.container.Group()
+        g.scale(1, -1)
+        upper = drawing.polyline(self.upper.data, style="stroke:black; vector-effect: non-scaling-stroke; fill: none;")
+        g.add(upper)
+        drawing.add(g)
+
+        return drawing.tostring()
 
