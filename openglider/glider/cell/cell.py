@@ -93,6 +93,20 @@ class Cell(CachedObject):
 
         return profiles
 
+    @property
+    def connected_panels(self):
+        panels = []
+        p0 = self.panels[0]
+        for p in self.panels[1:]:
+            joined_panel = p0 + p
+            if not joined_panel:
+                panels.append(p0)
+                p0 = p
+            else:
+                p0 = joined_panel
+        panels.append(p0)
+        return panels
+
     def _make_profile3d_from_minirib(self, minirib):
         # self.basic_cell.prof1 = self.prof1
         # self.basic_cell.prof2 = self.prof2

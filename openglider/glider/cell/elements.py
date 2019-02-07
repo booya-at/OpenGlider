@@ -254,6 +254,19 @@ class Panel(object):
 
         return total/4
 
+    def __radd__(self, other):
+        """needed for sum(panels)"""
+        if not isinstance(other, Panel):
+            return self
+
+    def __add__(self, other):
+        if self.cut_front == other.cut_back:
+            return Panel(other.cut_front, self.cut_back, material_code=self.material_code)
+        elif self.cut_back == other.cut_front:
+            return Panel(self.cut_front, other.cut_back, material_code=self.material_code)
+        else:
+            return None
+
     def is_lower(self):
         return self.mean_x() > 0
 

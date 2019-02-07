@@ -83,7 +83,11 @@ class Ballooning(object):
 
     def get_tension_factor(self, xval):
         """Get the tension due to ballooning"""
-        return 1. / 2. / np.tan(self(xval))
+        value =  2. * np.tan(self(xval))
+        if 0. in value:
+            return value
+        else:
+            return 1. / value
 
 
     def __add__(self, other):

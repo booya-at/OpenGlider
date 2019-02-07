@@ -34,21 +34,27 @@ input_field = QtGui.QFormLayout.FieldRole
 
 
 def export_2d(glider):
-    file_types = "OpenOffice (*.ods);;JSON (*json)"
+    file_types = "OpenOffice *.ods;;JSON *.json"
     filename = QtGui.QFileDialog.getSaveFileName(
         parent=None,
         caption='export glider',
         directory='~',
         filter=file_types)
-    if hasattr(glider, "getParametricGlider"):
-        glider_2d = glider.getParametricGlider()
+    if hasattr(glider.Proxy, "getParametricGlider"):
+        glider_2d = glider.Proxy.getParametricGlider()
     else:
         glider_2d = glider.ParametricGlider
+    print(filename)
     if filename[0] != "":
-        if filename[0].endswith(".ods"):
-            glider_2d.export_ods(filename[0])
-        elif filename[0].endswith('.json'):
-            with open(filename[0], 'w') as exportfile:
+        ext = filename[1].split(".")[-1]
+        name = filename[0]
+        print(ext)
+        if not (name.endswith(".ods") or name.endswith(".json")):
+            name = name + "." + ext
+        if name.endswith(".ods"):
+            glider_2d.export_ods(name)
+        elif name.endswith('.json'):
+            with open(name, 'w') as exportfile:
                 dump(glider_2d, exportfile)
         else:
             FreeCAD.Console.PrintError('\nonly .ods and .json are supported')
