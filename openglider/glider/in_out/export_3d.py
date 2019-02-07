@@ -11,7 +11,7 @@ def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6, copy=True):
     if numpoints:
         other.profile_numpoints = numpoints
 
-    mesh = glider.get_mesh(midribs=midribs)
+    mesh = other.get_mesh(midribs=midribs)
     mesh.export_obj(path)
 
 
@@ -140,8 +140,6 @@ def export_json(glider, path, numpoints, midribs=0, wake_panels=1,
                 panel.neighbours[3] = row[j + 1]
             else:
                 panel.neighbours[3] = row[0]
-
-    print(panels[10].is_wake, panels[10].neighbours[1].is_wake, panels[10].neighbours[3].is_wake)
 
     # for pan in panels:
     #    pan.get_neighbours(panels)

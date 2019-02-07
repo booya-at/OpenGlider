@@ -20,6 +20,8 @@
 
 import inspect
 from openglider.utils.cache import recursive_getattr
+import openglider.jsonify
+import json
 
 def sign(val):
     val = float(val)
@@ -91,7 +93,8 @@ class Config(object):
         for key, value in items:
             if not key.startswith('_') and key is not "get":
                 self.__dict__[key] = value
-        self.__dict__.update(dct or {})
+
+        self.update(dct)
 
     def __json__(self):
         return self.__dict__
@@ -108,8 +111,29 @@ class Config(object):
     def __getitem__(self, item):
         return self.__getattribute__(item)
 
-    def get(self, key):
-        return self.__getattribute__(key)
+    def get(self, key, default=None):
+        if hasattr(self, key):
+            return self.__getattribute__(key)
+        else:
+            return default
+
+    def update(self, dct):
+        if dct is None:
+            return
+
+        self.__dict__.update(dct)
+
+    def write(self, filename):
+        with open(filename, "w") as jsonfile:
+            openglider.jsonify.dump(self, jsonfile)
+
+    @classmethod
+    def read(cls, filename):
+        with open(filename, "r") as jsonfile:
+            data = json.load(jsonfile)
+
+        return cls(data["data"]["data"])
+
 
 if __name__ == "__main__":
     a = Config({"a": 1, "b":Config({"c":2})})
