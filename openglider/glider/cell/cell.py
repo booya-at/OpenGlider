@@ -93,8 +93,7 @@ class Cell(CachedObject):
 
         return profiles
 
-    @property
-    def connected_panels(self):
+    def get_connected_panels(self):
         panels = []
         p0 = self.panels[0]
         for p in self.panels[1:]:

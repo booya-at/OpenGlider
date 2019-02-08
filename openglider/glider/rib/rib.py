@@ -54,6 +54,7 @@ class Rib(CachedObject):
                 "glide": self.glide,
                 "name": self.name,
                 "rigidfoils": self.rigidfoils,
+                "holes": self.holes,
                 "material_code": self.material_code}
 
     def align_all(self, data):

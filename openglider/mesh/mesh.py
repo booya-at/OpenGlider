@@ -20,6 +20,7 @@ class Vertex(object):
         self.x = x
         self.y = y
         self.z = z
+        self.attributes = {}
 
     def __iter__(self):
         yield self.x
@@ -60,6 +61,10 @@ class Polygon(list):
         for vert in self:
             center += np.array(list(vert))
         return center / len(self)
+
+    def get_node_average(self, attribute):
+        attribute_list = [n.attributes[attribute] for n in self]
+        return sum(attribute_list)/len(attribute_list)
     
 
 
@@ -115,13 +120,20 @@ class Mesh(object):
         return vertices, polys, boundaries
 
     @classmethod
-    def from_indexed(cls, vertices, polygons, boundaries=None, name=None):
+    def from_indexed(cls, vertices, polygons, boundaries=None, name=None, node_attributes=None):
         vertices = [Vertex(*node) for node in vertices]
+
+        if node_attributes is not None:
+            for node, attributes in zip(vertices, node_attributes):
+                node.attributes.update(attributes)
+
         boundaries = boundaries or {}
         boundaries_new = {}
         polys = {}
+
         for poly_name, polygons in polygons.items():
-            polys[poly_name] = [[vertices[i] for i in poly] for poly in polygons]
+            polys[poly_name] = [Polygon([vertices[i] for i in poly]) for poly in polygons]
+
         for boundary_name, boundary_indices in boundaries.items():
             boundaries_new[boundary_name] = [vertices[i] for i in boundary_indices]
 
