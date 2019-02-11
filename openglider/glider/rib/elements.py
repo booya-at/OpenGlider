@@ -216,6 +216,7 @@ class AttachmentPoint(Node):
                 "rib_pos": self.rib_pos,
                 "force": self.force}
 
+
     def get_position(self):
         self.vec = self.rib.profile_3d[self.rib.profile_2d(self.rib_pos)]
         return self.vec
@@ -224,6 +225,8 @@ class AttachmentPoint(Node):
 class RibHole(object):
     def __init__(self, pos, size=0.5, horizontal_shift=0., rotation=0.):
         self.pos = pos
+        if isinstance(size, (list, tuple)):
+            size = np.array(list(size))
         self.size = size
         self.horizontal_shift = horizontal_shift
         self.rotation = rotation  # rotation about p1
@@ -256,7 +259,14 @@ class RibHole(object):
         move_1 = Translation(p1)
         move_2 = Translation((p2 - p1) / 2 * (1 + self.horizontal_shift))
         rot = Rotation(self.rotation)
-        return (move_2 * rot * move_1)([0., 0.]) 
+        return (move_2 * rot * move_1)([0., 0.])
+
+    def __json__(self):
+        return {
+            "pos": self.pos,
+            "size": self.size,
+            "horizontal_shift": self.horizontal_shift,
+            "rotation": self.rotation}
 
 
 class Mylar(object):

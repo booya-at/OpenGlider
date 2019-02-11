@@ -220,6 +220,7 @@ class SingleSkinRib(Rib):
         profile = copy.deepcopy(self.profile_2d)
         attach_pts = glider.get_rib_attachment_points(self)
         pos = list(set([att.rib_pos for att in attach_pts] + [1]))
+
         if len(pos) > 1:
             span_list = []
             pos.sort()

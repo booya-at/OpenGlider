@@ -50,9 +50,12 @@ def export_2d(glider):
     if filename[0] != "":
         ext = filename[1].split(".")[-1]
         name = filename[0]
-        name = name + "." + ext
-        if ext == ".json":
+        if not name.endswith(".json") and not name.endswith(".ods"):
+            name = name + "." + ext
+        if name.endswith(".json"):
             if "3d" in filename[1]:
+                print(name)
+                print(glider_3d)
                 openglider.save(glider_3d, name)
             elif "2d" in filename[1]:
                 openglider.save(glider_2d, name)

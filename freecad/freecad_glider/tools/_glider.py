@@ -527,6 +527,7 @@ def draw_glider(glider, vis_glider=None, midribs=0, hole_num=10, profile_num=20,
     else:
         if hasattr(rib_sep, 'whichChild'):
             rib_sep.whichChild = coin.SO_SWITCH_NONE
+    return vis_glider
 
 def draw_aoa(glider, sep=None):
     sep = sep or coin.SoSeparator()

@@ -17,15 +17,19 @@ class Vertex(object):
     dmin = 10**-10
 
     def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
+        self.set_values(x, y, z)
         self.attributes = {}
 
     def __iter__(self):
         yield self.x
         yield self.y
         yield self.z
+
+    def set_values(self, x, y, z):
+        self.x = x
+        self.y = y
+        self.z = z
+
 
     def __len__(self):
         return 3
