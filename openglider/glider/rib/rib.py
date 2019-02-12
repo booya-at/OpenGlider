@@ -237,6 +237,7 @@ class SingleSkinRib(Rib):
                 if self.single_skin_par["double_first"] and k == 0:
                     continue # do not insert points between att for double-first ribs
                 # insert points
+                profile.remove_points(sp[0], sp[1])
                 for i in np.linspace(sp[0], sp[1], self.single_skin_par["num_points"]):
                     profile.insert_point(i)
 

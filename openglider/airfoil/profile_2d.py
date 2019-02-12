@@ -324,6 +324,15 @@ class Profile2D(Polygon2D):
             data.insert(int(ik + 1), point)
             self.data = data
 
+    def remove_points(self, start, end):
+        new_data = []
+        for i, x in enumerate(self.x_values):
+            if not (x > start and x < end):
+                new_data.append(self.data[i])
+        self.data = np.array(new_data)
+
+
+
     def apply_function(self, foo):
         data = np.array(self.data)
         self.data = [foo(i, upper=index < self.noseindex) for index, i in enumerate(data)]
