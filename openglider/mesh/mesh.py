@@ -158,7 +158,7 @@ class Mesh(object):
         """
         global USE_POLY_TRI
         if USE_POLY_TRI:
-            vertices = list(rib.getMesh(glider))[:-1]
+            vertices = list(rib.get_hull(glider))[:-1]
             boundaries = []
             boundary =list(range(len(vertices))) + [0]
             boundary.reverse()
@@ -184,7 +184,7 @@ class Mesh(object):
 
         else:
             triangle_in = {}
-            vertices = list(rib.getMesh(glider))[:-1]
+            vertices = list(rib.get_hull(glider))[:-1]
             if rib.is_closed():
                 return cls.from_indexed([], {}, {})
             segments = [[i, i+1] for i, _ in enumerate(vertices)]

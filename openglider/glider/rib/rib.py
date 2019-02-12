@@ -134,7 +134,7 @@ class Rib(CachedObject):
     def is_closed(self):
         return self.profile_2d.has_zero_thickness
 
-    def getMesh(self, glider=None):
+    def get_hull(self, glider=None):
         """returns the outer contour of the normalized mesh in form
            of a Polyline"""
         profile = copy.deepcopy(self.profile_2d)
@@ -184,7 +184,7 @@ class SingleSkinRib(Rib):
 
         # we have to apply this function once for the profile2d
         # this will change the position of the attachmentpoints!
-        # therefor it shouldn't be placed int the getMesh function
+        # therefor it shouldn't be placed int the get_hull function
         if self.single_skin_par['continued_min']: 
             self.apply_continued_min()
 
@@ -213,7 +213,7 @@ class SingleSkinRib(Rib):
         json_dict["single_skin_par"] = self.single_skin_par
         return json_dict
 
-    def getMesh(self, glider):
+    def get_hull(self, glider):
         '''
         returns a modified profile2d
         '''
@@ -243,7 +243,7 @@ class SingleSkinRib(Rib):
 
             # construct shifting function:
             foo_list = []
-            for i, sp in enumerate(span_list):
+            for i, sp in enumerate(span_list[:-1]):
                 # parabola from 3 points
                 if self.single_skin_par["double_first"] and i == 0:
                     continue

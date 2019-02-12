@@ -333,7 +333,7 @@ class Profile2D(Polygon2D):
 
     def nearest_x_value(self, x):
         min_x_value = None
-        min_index = None
+        min_diff = None
         for i_x in self.x_values:
             diff = abs(x - i_x)
             if not min_x_value or diff < min_diff:
