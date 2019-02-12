@@ -189,13 +189,14 @@ class SingleSkinRib(Rib):
             self.apply_continued_min()
 
     def apply_continued_min(self):
+        self.profile_2d.insert_point(self.single_skin_par['continued_min_end'])
         data = self.profile_2d.data
         x, y = data.T
         min_index = y.argmin()
         y_min = y[min_index]
         new_y = []
         for i, xy in enumerate(data):
-            if i > min_index and xy[0] < self.single_skin_par['continued_min_end']:
+            if i > min_index and (self.single_skin_par['continued_min_end'] - xy[0]) > -1e-8:
                 new_y += [y_min + (xy[0] - data[min_index][0]) * np.tan(self.single_skin_par['continued_min_angle'])]
             else:
                 new_y += [xy[1]]
@@ -224,26 +225,48 @@ class SingleSkinRib(Rib):
         if len(pos) > 1:
             span_list = []
             pos.sort()
+            # computing the bow start and end point
             for i, p in enumerate(pos[:-1]):
+
+                # the profile  has a normed chord of 1
+                # so we have to normalize the "att_dist" which is the thickness of
+                # rib between two bows. normally something like 2cm
                 le_gap = self.single_skin_par["att_dist"] / self.chord / 2
                 te_gap = self.single_skin_par["att_dist"] / self.chord / 2
+
+                # le_gap is the gap between the FIRST BOW start and the attachment point next
+                # to this point.
                 if i == 0 and not self.single_skin_par["le_gap"]: 
                     le_gap = 0
-                # len(it) - 2 == range(len(it) - 1)[-1]
+
+                # te_gap is the gap between the LAST BOW end and the trailing edge
                 if i == (len(pos) -2) and not self.single_skin_par["te_gap"]:
                     te_gap = 0
+
+
                 span_list.append([p + le_gap, pos[i + 1] - te_gap])
             for k, sp in enumerate(span_list):
                 if self.single_skin_par["double_first"] and k == 0:
                     continue # do not insert points between att for double-first ribs
-                # insert points
-                profile.remove_points(sp[0], sp[1])
-                for i in np.linspace(sp[0], sp[1], self.single_skin_par["num_points"]):
+
+                # first we insert the start and end point of the bow
+                profile.insert_point(sp[0])
+                profile.insert_point(sp[1])
+
+                # now we remove all points between these two points
+                # we have to use a tolerance to not delete the start and end points of the bow.
+                # problem: the x-value of a point inserted in a profile can have a slightly different
+                # x-value
+                profile.remove_points(sp[0], sp[1], tolerance=1e-5)
+
+                # insert sequence of xvalues between start and end. endpoint=False is necessary because 
+                # start and end are already inserted.
+                for i in np.linspace(sp[0], sp[1], self.single_skin_par["num_points"], endpoint=False):
                     profile.insert_point(i)
 
             # construct shifting function:
             foo_list = []
-            for i, sp in enumerate(span_list[:-1]):
+            for i, sp in enumerate(span_list):
                 # parabola from 3 points
                 if self.single_skin_par["double_first"] and i == 0:
                     continue
@@ -265,7 +288,6 @@ class SingleSkinRib(Rib):
                         return x
                 profile.apply_function(foo)
         return profile
-
 
 
 def pseudo_2d_cross(v1, v2):

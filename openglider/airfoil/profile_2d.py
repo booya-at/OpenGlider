@@ -324,10 +324,11 @@ class Profile2D(Polygon2D):
             data.insert(int(ik + 1), point)
             self.data = data
 
-    def remove_points(self, start, end):
+    def remove_points(self, start, end, tolerance=None):
         new_data = []
+        tolerance = 0. or tolerance
         for i, x in enumerate(self.x_values):
-            if not (x > start and x < end):
+            if not (x > (start + tolerance) and x < (end - tolerance)):
                 new_data.append(self.data[i])
         self.data = np.array(new_data)
 
