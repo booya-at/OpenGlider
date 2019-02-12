@@ -7,6 +7,7 @@ from PySide import QtGui
 from pivy import coin
 import FreeCADGui as Gui
 import FreeCAD as App
+import openglider
 from openglider.jsonify import dump, load
 from openglider.vector.spline import BernsteinBase, BSplineBase
 from openglider.glider import ParametricGlider
@@ -34,7 +35,7 @@ input_field = QtGui.QFormLayout.FieldRole
 
 
 def export_2d(glider):
-    file_types = "OpenOffice *.ods;;JSON *.json"
+    file_types = "OpenOffice *.ods;;JSON 2d *.json;;JSON 3d *.json"
     filename = QtGui.QFileDialog.getSaveFileName(
         parent=None,
         caption='export glider',
@@ -42,22 +43,24 @@ def export_2d(glider):
         filter=file_types)
     if hasattr(glider.Proxy, "getParametricGlider"):
         glider_2d = glider.Proxy.getParametricGlider()
+        glider_3d = glider.Proxy.getGliderInstance()
     else:
         glider_2d = glider.ParametricGlider
-    print(filename)
+        glider_3d = glider.GliderInstance
     if filename[0] != "":
         ext = filename[1].split(".")[-1]
         name = filename[0]
-        print(ext)
-        if not (name.endswith(".ods") or name.endswith(".json")):
+        if not name.endswith(".json") and not name.endswith(".ods"):
             name = name + "." + ext
+        if name.endswith(".json"):
+            if "3d" in filename[1]:
+                print(name)
+                print(glider_3d)
+                openglider.save(glider_3d, name)
+            elif "2d" in filename[1]:
+                openglider.save(glider_2d, name)
         if name.endswith(".ods"):
             glider_2d.export_ods(name)
-        elif name.endswith('.json'):
-            with open(name, 'w') as exportfile:
-                dump(glider_2d, exportfile)
-        else:
-            FreeCAD.Console.PrintError('\nonly .ods and .json are supported')
 
 
 def import_2d(glider):
