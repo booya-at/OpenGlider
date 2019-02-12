@@ -314,8 +314,9 @@ class Profile2D(Polygon2D):
     def lower_indices(self):
         return range(self.noseindex + 1, len(self))
 
-    def insert_point(self, pos):
-        if pos in self.x_values:
+    def insert_point(self, pos, tolerance=1e-5):
+        nearest_x_value = self.nearest_x_value(pos)
+        if abs(nearest_x_value - pos) < tolerance:
             pass
         else:
             point = self.profilepoint(pos)
