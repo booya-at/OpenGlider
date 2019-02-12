@@ -498,8 +498,9 @@ class Mesh(object):
             for i in to_remove[::-1]:
                 boundary_nodes.pop(i)
 
-            print("deleted {} duplicated Vertices for boundary group <{}> ".format(
-                len(to_remove), boundary_name))
+            if to_remove:
+                print("deleted {} duplicated Vertices for boundary group <{}> ".format(
+                    len(to_remove), boundary_name))
 
         for polygon in self.all_polygons:
             for i, node in enumerate(polygon):
