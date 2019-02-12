@@ -213,10 +213,13 @@ class TensionLine(TensionStrap):
         self.left, self.right = self.right, self.left
 
     def get_mesh(self, cell):
+        boundaries = {}
         rib1 = cell.rib1
         rib2 = cell.rib2
         p1 = rib1.profile_3d[rib1.profile_2d(self.left)]
         p2 = rib2.profile_3d[rib2.profile_2d(self.right)]
+        boundaries[rib1.name] = [p1]
+        boundaries[rib2.name] = [p2]
         return Mesh.from_indexed([p1, p2], {"tension_lines": [[0, 1]]})
 
 
