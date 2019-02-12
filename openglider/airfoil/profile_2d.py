@@ -331,6 +331,15 @@ class Profile2D(Polygon2D):
                 new_data.append(self.data[i])
         self.data = np.array(new_data)
 
+    def nearest_x_value(self, x):
+        min_x_value = None
+        min_index = None
+        for i_x in self.x_values:
+            diff = abs(x - i_x)
+            if not min_x_value or diff < min_diff:
+                min_diff = diff
+                min_x_value = i_x
+        return min_x_value
 
 
     def apply_function(self, foo):
