@@ -474,6 +474,25 @@ class Mesh(object):
         msh += other
         return msh
 
+    def __getitem__(self, item):
+        polys = self.polygons[item]
+        new_mesh = Mesh(polygons={item: polys})
+        vertices = new_mesh.vertices
+        boundaries = {}
+
+        for boundary_name, boundary_nodes in self.boundary_nodes.items():
+            new_vertices = []
+            for node in boundary_nodes:
+                if node in vertices:
+                    new_vertices.append(node)
+
+            if new_vertices:
+                boundaries[boundary_name] = new_vertices
+
+        new_mesh.boundary_nodes = boundaries
+
+        return new_mesh
+
 
     # def __iadd__(self, other):
     #     self = self + other
