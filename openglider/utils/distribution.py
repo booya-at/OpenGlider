@@ -175,12 +175,12 @@ class Distribution(HashedList):
 
     def make_symmetric_from_lower(self):
         lower = []
-        for i in self.data:
-            if i >= 0:
-                lower.append(i)
+        for x in self.data:
+            if x > 0:
+                lower.append(x)
         lower = np.array(lower)
         upper = -lower
-        new_dist = sorted(set(upper.tolist() + lower.tolist()))
+        new_dist = sorted(set(upper.tolist() + lower.tolist() + [0]))
         self.data = new_dist
 
 

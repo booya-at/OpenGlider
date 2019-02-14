@@ -248,7 +248,8 @@ class Profile2D(Polygon2D):
     @x_values.setter
     def x_values(self, xval):
         """Set X-Values of airfoil to defined points."""
-        self.data = [self[self(x)] for x in xval]
+        data = [(abs(x), self[self(x)][1]) for x in xval]
+        self.data = np.array(data)
 
     @property
     def numpoints(self):

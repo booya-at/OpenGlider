@@ -56,18 +56,43 @@ class Vertex(object):
         return [cls(*v) for v in vertices]
 
 
-class Polygon(list):
+class Polygon(object):
     """the polygon is a simple list, but using a Polygon-object instead of \
        a list let you monkey-patch the object"""
+    def __init__(self, nodes, attributes=None):
+        self.nodes = nodes
+        self.attributes = attributes or {}
+
+    def __json__(self):
+        data = {
+            "nodes": self.nodes
+        }
+        if self.attributes:
+            data["attributes"] = self.attributes
+
+        return data
+
+    def __iter__(self):
+        return self.nodes.__iter__()
+
+    def __setitem__(self, key, value):
+        return self.nodes.__setitem__(key, value)
+
+    def __getitem__(self, item):
+        return self.nodes.__getitem__(item)
+
+    def copy(self):
+        return self.__class__(self.nodes[:], self.attributes)
+
     @property
     def center(self):
         center = np.array([0, 0, 0], dtype=float)
-        for vert in self:
+        for vert in self.nodes:
             center += np.array(list(vert))
-        return center / len(self)
+        return center / len(self.nodes)
 
     def get_node_average(self, attribute):
-        attribute_list = [n.attributes[attribute] for n in self]
+        attribute_list = [n.attributes[attribute] for n in self.nodes]
         return sum(attribute_list)/len(attribute_list)
     
 
@@ -90,6 +115,10 @@ class Mesh(object):
             polygons = {}
         self.polygons = polygons
         assert all(isinstance(vertex, Vertex) for vertex in self.vertices)
+        for poly_group in polygons:
+            for poly in polygons[poly_group]:
+                if not isinstance(poly, Polygon):
+                    raise Exception("Not a polygon: {} ({})".format(poly, poly_group))
         # all nodes that might be in touch with other meshes
         self.boundary_nodes = boundary_nodes or {}
         self.name = name or "unnamed"
@@ -100,6 +129,8 @@ class Mesh(object):
         vertices = set()
         for poly in self.all_polygons:
             for node in poly:
+                if not isinstance(node, Vertex):
+                    raise Exception("Not a Vertex: {} ({})".format(node, poly))
                 vertices.add(node)
 
         return vertices
@@ -116,7 +147,14 @@ class Mesh(object):
         indices = {node: i for i, node in enumerate(vertices)}
         polys = {}
         for poly_name, polygons in self.polygons.items():
-            polys[poly_name] = [[indices[node] for node in poly] for poly in polygons]
+            poly_group = []
+            for poly in polygons:
+                poly_indices = [indices[node] for node in poly]
+                new_poly = Polygon(poly_indices, attributes=poly.attributes)
+                poly_group.append(new_poly)
+
+            polys[poly_name] = poly_group
+
         boundaries = {}
         for boundary_name, boundary_nodes in self.boundary_nodes.items():
             boundaries[boundary_name] = [indices[node] for node in boundary_nodes if node in vertices]
@@ -136,7 +174,14 @@ class Mesh(object):
         polys = {}
 
         for poly_name, polygons in polygons.items():
-            polys[poly_name] = [Polygon([vertices[i] for i in poly]) for poly in polygons]
+            new_poly_group = []
+            for poly in polygons:
+                poly_vertices = [vertices[i] for i in poly]
+                poly_attributes = getattr(poly, "attributes", {})
+                new_poly = Polygon(poly_vertices, attributes=poly_attributes)
+                new_poly_group.append(new_poly)
+
+            polys[poly_name] = new_poly_group
 
         for boundary_name, boundary_indices in boundaries.items():
             boundaries_new[boundary_name] = [vertices[i] for i in boundary_indices]
@@ -276,7 +321,7 @@ class Mesh(object):
             return cls.from_indexed(vertices, {"diagonals": polygon})
 
     def copy(self):
-        poly_copy = {key: [p[:] for p in polygons]
+        poly_copy = {key: [p.copy() for p in polygons]
                      for key, polygons in self.polygons.items()}
         return self.__class__(poly_copy, self.boundary_nodes)
 
@@ -301,6 +346,7 @@ class Mesh(object):
     def __json__(self):
         vertices, polygons, boundaries = self.get_indexed()
         vertices_new = [list(v) for v in vertices]
+
         return {
             "vertices": vertices_new,
             "polygons": polygons,
@@ -536,6 +582,7 @@ class Mesh(object):
             for i, polygon in enumerate(poly_group):
                 poly_set = set(polygon)
                 new_polygon = Polygon([node for node in polygon if node in poly_set])
+                new_polygon.attributes = polygon.attributes
                 self.polygons[group_name][i] = new_polygon
 
         vertices = self.vertices

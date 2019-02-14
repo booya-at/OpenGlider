@@ -3,7 +3,7 @@ import re
 import time
 
 import openglider.jsonify.migration
-
+from openglider.utils import recursive_getattr
 
 __ALL__ = ['dumps', 'dump', 'loads', 'load']
 
@@ -18,8 +18,13 @@ class Encoder(json.JSONEncoder):
         if obj.__class__.__module__ == 'numpy':
             return obj.tolist()
         elif hasattr(obj, "__json__"):
-            return {"_type": obj.__class__.__name__,
-                    "_module": obj.__class__.__module__,
+            type_str = str(obj.__class__)
+            module = obj.__class__.__module__
+            type_regex = "<class '{}\.(.*)'>".format(module.replace(".", "\."))
+            class_name = re.match(type_regex, type_str).group(1)
+
+            return {"_type": class_name,
+                    "_module": module,
                     "data": obj.__json__()}
         else:
             return super(Encoder, self).default(obj)
@@ -36,11 +41,8 @@ def get_element(_module, _name):
         if match:
             fromlist = [str(w) for w in _module.split(".")]
             module = __import__(_module, fromlist=fromlist)
-            if hasattr(module, _name):
-                obj = getattr(module, _name)
-                return obj
-            else:
-                raise LookupError("No element of type {} found (module: {})".format(_name, _module))
+            obj = recursive_getattr(module, _name)
+            return obj
 
 
 def object_hook(dct):

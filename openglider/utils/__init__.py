@@ -97,7 +97,9 @@ class Config(object):
         self.update(dct)
 
     def __json__(self):
-        return self.__dict__
+        return {
+            "dct": self.__dict__
+        }
 
     def __repr__(self):
         return self.__dict__.__repr__()
