@@ -84,6 +84,9 @@ class Polygon(object):
     def copy(self):
         return self.__class__(self.nodes[:], self.attributes)
 
+    def __len__(self):
+        return len(self.nodes)
+
     @property
     def center(self):
         center = np.array([0, 0, 0], dtype=float)
