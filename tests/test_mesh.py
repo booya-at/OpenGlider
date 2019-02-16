@@ -3,7 +3,7 @@ import unittest
 
 from common import *
 
-from openglider.mesh import Mesh, Vertex
+from openglider.mesh import Mesh, Vertex, Polygon
 import openglider
 from openglider.utils.distribution import Distribution
 
@@ -18,8 +18,8 @@ class TestMesh(TestCase):
         p3 = Vertex(*[0, 1, 0])
         p4 = Vertex(*[1, 1, 0])
         p5 = Vertex(*[0, 0, 0])
-        a = [p1, p2, p3, p4]
-        b = [p1, p2, p4, p5]
+        a = Polygon([p1, p2, p3, p4])
+        b = Polygon([p1, p2, p4, p5])
         m1 = Mesh({"a": [a]}, boundary_nodes={"j": a})
         m2 = Mesh({"b": [b]}, boundary_nodes={"j": b})
         m3 = m1 + m2
