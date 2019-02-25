@@ -558,7 +558,7 @@ class Mesh(object):
 
         boundaries = boundaries or self.boundary_nodes.keys()
         replace_dict = {}
-        all_boundary_nodes = sum([self.boundary_nodes[name] for name in boundaries], [])
+        all_boundary_nodes = sum([self.boundary_nodes[name] for name in boundaries], Polygon([]))
 
         for i, node1 in enumerate(all_boundary_nodes[:-1]):
             if node1 not in replace_dict:
