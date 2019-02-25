@@ -251,9 +251,9 @@ class PanelTool(BaseTool):
         self.stream.removeAllChildren()
         if self.case:
             point = list(self.marker.points[0].getValue())
-            points = numpy.random.random((self.Qstream_points.value(), 3)) - numpy.array([0.5, 0.5, 0.5])
+            points = np.random.random((self.Qstream_points.value(), 3)) - np.array([0.5, 0.5, 0.5])
             points *= self.Qstream_radius.value()
-            points += numpy.array(point)
+            points += np.array(point)
             points = points.tolist()
             for p in points:
                 pts = self.stream_line(p, self.Qstream_interval.value(), self.Qstream_num.value())
@@ -326,7 +326,7 @@ class PanelTool(BaseTool):
 
         shape_hint = coin.SoShapeHints()
         shape_hint.vertexOrdering = coin.SoShapeHints.COUNTERCLOCKWISE
-        shape_hint.creaseAngle = numpy.pi / 2
+        shape_hint.creaseAngle = np.pi / 2
         self.glider_result.addChild(shape_hint)
         self.glider_result.addChild(vertex_property)
         for panels in pols:
@@ -335,8 +335,8 @@ class PanelTool(BaseTool):
             self.glider_result.addChild(face_set)
 
 
-        p1 = numpy.array(self.case.center_of_pressure)
-        f = numpy.array(self.case.force)
+        p1 = np.array(self.case.center_of_pressure)
+        f = np.array(self.case.force)
         line = Line([p1, p1 + f])
         self.glider_result.addChild(line)
 
@@ -350,10 +350,10 @@ class PanelTool(BaseTool):
                 return 0
         max_val=self.Qmax_val.value()
         min_val=self.Qmin_val.value()
-        red = numpy.array(COLORS['red'])
-        blue = numpy.array(COLORS['blue'])
-        yellow = numpy.array(COLORS['yellow'])
-        white = numpy.array(COLORS['white'])
+        red = np.array(COLORS['red'])
+        blue = np.array(COLORS['blue'])
+        yellow = np.array(COLORS['yellow'])
+        white = np.array(COLORS['white'])
         norm_val = (value - min_val) / (max_val - min_val)
         return list(f(3, 0, norm_val) * red + f(3,1,norm_val) * yellow + f(3,2,norm_val) * white + f(3,3,norm_val) * blue)
 

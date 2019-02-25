@@ -4,8 +4,8 @@ from copy import deepcopy
 
 from pivy import coin
 
-import FreeCAD as App
-import FreeCADGui as Gui
+import FreeCAD
+import FreeCADGui
 import openglider
 from openglider.glider import ParametricGlider
 from openglider.jsonify import dump, load
@@ -123,7 +123,7 @@ class BaseTool(object):
         self.obj = obj
         self.parametric_glider = deepcopy(self.obj.Proxy.getParametricGlider())
         self._vis_object = []
-        for obj in App.ActiveDocument.Objects:
+        for obj in FreeCAD.ActiveDocument.Objects:
             try:
                 if obj.ViewObject.Visibility:
                     obj.ViewObject.Visibility = False
@@ -131,8 +131,8 @@ class BaseTool(object):
             except Exception:
                 pass
         self.obj.ViewObject.Visibility = not self.hide
-        self.view = Gui.ActiveDocument.ActiveView
-        Gui.Selection.clearSelection()
+        self.view = FreeCADGui.ActiveDocument.ActiveView
+        FreeCADGui.Selection.clearSelection()
         if self.turn:
             self.view.viewTop()
 
@@ -162,13 +162,13 @@ class BaseTool(object):
         for obj in self._vis_object:
             obj.ViewObject.Visibility = True
         self.scene.removeChild(self.task_separator)
-        Gui.Control.closeDialog()
+        FreeCADGui.Control.closeDialog()
 
     def reject(self):
         for obj in self._vis_object:
             obj.ViewObject.Visibility = True
         self.scene.removeChild(self.task_separator)
-        Gui.Control.closeDialog()
+        FreeCADGui.Control.closeDialog()
 
     def setup_widget(self):
         pass

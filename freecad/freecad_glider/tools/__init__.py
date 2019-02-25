@@ -1,7 +1,7 @@
 import os
 
-import FreeCAD as App
-import FreeCADGui as Gui
+import FreeCAD
+import FreeCADGui
 import openglider
 from openglider import jsonify
 from PySide import QtGui
@@ -16,9 +16,9 @@ from . import shape_tool, span_mapping
 try:
     from importlib import reload
 except ImportError:
-    App.Console.PrintError('this is python2\n')
-    App.Console.PrintWarning('there is a newer version (python3)\n')
-    App.Console.PrintMessage('try to motivate dev to port to python3\n')
+    FreeCAD.Console.PrintError('this is python2\n')
+    FreeCAD.Console.PrintWarning('there is a newer version (python3)\n')
+    FreeCAD.Console.PrintMessage('try to motivate dev to port to python3\n')
 
 
 
@@ -50,11 +50,11 @@ class BaseCommand(object):
         # tool.setup_widget()
         # tool.setup_pivy()
         ##################################################################################
-        Gui.Control.showDialog(tool)
+        FreeCADGui.Control.showDialog(tool)
     
     @property
     def glider_obj(self):
-        obj = Gui.Selection.getSelection()
+        obj = FreeCADGui.Selection.getSelection()
         if len(obj) > 0:
             obj = obj[0]
             if check_glider(obj):
@@ -63,7 +63,7 @@ class BaseCommand(object):
 
     @property
     def feature(self):
-        obj = Gui.Selection.getSelection()
+        obj = FreeCADGui.Selection.getSelection()
         if len(obj) > 0:
             obj = obj[0]
             if check_glider(obj):
@@ -84,8 +84,8 @@ class ViewCommand(object):
         return True
 
     def Activated(self):
-        Gui.activeDocument().activeView().setCameraType("Perspective")
-        cam = Gui.ActiveDocument.ActiveView.getCameraNode()
+        FreeCADGui.activeDocument().activeView().setCameraType("Perspective")
+        cam = FreeCADGui.ActiveDocument.ActiveView.getCameraNode()
         cam.heightAngle = 0.4
 
 
@@ -124,7 +124,7 @@ class CreateGlider(BaseCommand):
         vp = glider.OGGliderVP(glider_object.ViewObject)
         vp.updateData()
         FreeCAD.ActiveDocument.recompute()
-        Gui.SendMsgToActiveView('ViewFit')
+        FreeCADGui.SendMsgToActiveView('ViewFit')
         return glider_object
 
 
@@ -143,7 +143,7 @@ class PatternCommand(BaseCommand):
 
     def Activated(self):
         proceed = False
-        obj = Gui.Selection.getSelection()
+        obj = FreeCADGui.Selection.getSelection()
         if len(obj) > 0:
             obj = obj[0]
             if check_glider(obj):
