@@ -20,8 +20,8 @@ class TestMesh(TestCase):
         p5 = Vertex(*[0, 0, 0])
         a = Polygon([p1, p2, p3, p4])
         b = Polygon([p1, p2, p4, p5])
-        m1 = Mesh({"a": [a]}, boundary_nodes={"j": a})
-        m2 = Mesh({"b": [b]}, boundary_nodes={"j": b})
+        m1 = Mesh({"a": [a]}, boundary_nodes={"j": list(a)})
+        m2 = Mesh({"b": [b]}, boundary_nodes={"j": list(b)})
         m3 = m1 + m2
         m3.delete_duplicates()
         for vertex in a:
