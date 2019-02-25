@@ -1,12 +1,13 @@
 from __future__ import division
 
-from PySide import QtGui, QtCore
 import numpy as np
+
 import FreeCAD as App
 from openglider.glider.cell.elements import Panel
+from PySide import QtCore, QtGui
 
-from ._tools import BaseTool, input_field, text_field, coin
-from .pivy_primitives_new import Line, Marker, InteractionSeparator, vector3D
+from ._tools import BaseTool, coin, input_field, text_field
+from .pivy_primitives_new import InteractionSeparator, Line, Marker, vector3D
 
 
 def refresh():

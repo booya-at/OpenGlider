@@ -1,9 +1,11 @@
 from __future__ import division
-from PySide import QtGui
+
 from pivy import coin
 
-from ._tools import BaseTool, input_field
+from PySide import QtGui
+
 from ._glider import draw_glider, draw_lines
+from ._tools import BaseTool, input_field
 from .table import base_table_widget
 
 

@@ -1,6 +1,8 @@
-from pivy import coin
-import FreeCAD as App
 import numpy as np
+from pivy import coin
+
+import FreeCAD as App
+
 
 def depth(l):
     return isinstance(l, (list, tuple, np.ndarray)) and max(map(depth, l)) + 1

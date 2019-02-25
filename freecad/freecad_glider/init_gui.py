@@ -1,4 +1,7 @@
 import os
+
+from pivy import coin
+
 try:
     import FreeCADGui as Gui
     import FreeCAD
@@ -6,7 +9,6 @@ except ImportError:
     print('module not loaded with freecad')
 
 
-from pivy import coin
 
 # as long as this isn't part of std pivy:
 ########################################################################################

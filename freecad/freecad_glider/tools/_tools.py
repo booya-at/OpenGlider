@@ -1,16 +1,16 @@
 from __future__ import division
 
 from copy import deepcopy
-import FreeCAD
 
-from PySide import QtGui
 from pivy import coin
-import FreeCADGui as Gui
+
 import FreeCAD as App
+import FreeCADGui as Gui
 import openglider
+from openglider.glider import ParametricGlider
 from openglider.jsonify import dump, load
 from openglider.vector.spline import BernsteinBase, BSplineBase
-from openglider.glider import ParametricGlider
+from PySide import QtGui
 
 
 def hex_to_rgb(hex_string):

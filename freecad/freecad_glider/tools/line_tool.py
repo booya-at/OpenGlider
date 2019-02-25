@@ -1,27 +1,29 @@
 from __future__ import division
 
 import sys
+import traceback
+
+import numpy as np
+
+import FreeCAD as App
+import FreeCADGui as Gui
+from openglider.glider.parametric.lines import (BatchNode2D, Line2D, LineSet2D,
+                                                LowerNode2D, UpperNode2D)
+from openglider.lines.line_types import LineType
+from PySide import QtCore, QtGui
+
+from ._glider import draw_glider, draw_lines
+from ._tools import BaseTool, input_field, text_field
+from .pivy_primitives_new import Arrow, InteractionSeparator
+from .pivy_primitives_new import Line as _Line
+from .pivy_primitives_new import Marker as _Marker
+from .pivy_primitives_new import Object3D, coin, vector3D
+
 if sys.version_info.major > 2:
     from importlib import reload
 
-from PySide import QtGui, QtCore
-import traceback
-import numpy as np
-import FreeCAD as App
-import FreeCADGui as Gui
 
-from ._tools import BaseTool, input_field, text_field
-from ._glider import draw_glider, draw_lines
-from .pivy_primitives_new import vector3D
-from .pivy_primitives_new import InteractionSeparator, Object3D, Arrow
-from .pivy_primitives_new import Line as _Line
-from .pivy_primitives_new import Marker as _Marker
-from .pivy_primitives_new import coin
 
-from openglider.glider.parametric.lines import UpperNode2D, LowerNode2D, \
-    BatchNode2D, Line2D, LineSet2D
-from openglider.lines.line_types import LineType
-import numpy as np
 
 
 def refresh():

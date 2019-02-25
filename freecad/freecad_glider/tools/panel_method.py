@@ -1,18 +1,19 @@
 from __future__ import division
-import FreeCADGui as Gui
-from PySide import QtGui, QtCore
 
-import numpy
-import numpy as np
 from copy import deepcopy
 
+import matplotlib.pyplot as plt
+import numpy as np
+
+import FreeCADGui as Gui
 from openglider.glider.in_out.export_3d import paraBEM_Panels
 from openglider.utils.distribution import Distribution
+from PySide import QtCore, QtGui
+
 from ._tools import BaseTool, input_field, text_field
-from .pivy_primitives_new import InteractionSeparator, Marker, coin, Line, COLORS
+from .pivy_primitives_new import (COLORS, InteractionSeparator, Line, Marker,
+                                  coin)
 
-
-import matplotlib.pyplot as plt
 
 def refresh():
     pass

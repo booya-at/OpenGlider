@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
+
 import numpy as np
 from pivy import coin
-from PySide import QtGui
 
 from openglider.glider.rib import Rib
-from ._tools import BaseTool, text_field, input_field, spline_select
+from PySide import QtGui
+
 from . import pivy_primitives as pp
 from . import pivy_primitives_new as ppn
+from ._tools import BaseTool, input_field, spline_select, text_field
+
 
 class SpanMappingTool(BaseTool):
     num_on_drag = 80

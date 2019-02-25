@@ -1,9 +1,11 @@
-from openglider.vector.polygon import CirclePart
 from pivy import coin
+
+from openglider.vector.polygon import CirclePart
 from PySide import QtGui
 
-from ._tools import BaseTool, text_field, input_field, spline_select
-from .pivy_primitives import Line, Point, ControlPointContainer, vector3D, vector2D
+from ._tools import BaseTool, input_field, spline_select, text_field
+from .pivy_primitives import (ControlPointContainer, Line, Point, vector2D,
+                              vector3D)
 
 
 def refresh():

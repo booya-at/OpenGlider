@@ -2,17 +2,16 @@ from __future__ import division
 
 import time
 
-from openglider.vector.polygon import CirclePart
 from pivy import coin
-from PySide import QtGui, QtCore
 
 import FreeCAD as App
 import FreeCADGui as Gui
-
+from openglider.vector.polygon import CirclePart
 from openglider.vector.spline import Bezier
+from PySide import QtCore, QtGui
 
-from ._tools import BaseTool, text_field, input_field
-from .pivy_primitives import Line, vector3D, vector2D, ControlPointContainer
+from ._tools import BaseTool, input_field, text_field
+from .pivy_primitives import ControlPointContainer, Line, vector2D, vector3D
 
 
 def refresh():
@@ -329,4 +328,3 @@ class ShapeTool(BaseTool):
                 sep += Line(rib, color=col, width=width).object
             for i in dist_line:
                 sep += Line([[0, i[1]], i, [i[0], 0]], color='grey').object
-

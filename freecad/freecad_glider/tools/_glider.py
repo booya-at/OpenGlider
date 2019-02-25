@@ -1,13 +1,14 @@
 from __future__ import division
+
 import os
+
 import numpy as np
 
 import FreeCAD as App
-
-from openglider import jsonify
-from openglider import mesh
+from openglider import jsonify, mesh
 from openglider.glider import ParametricGlider
 from openglider.glider.cell.elements import TensionLine
+
 from . import pivy_primitives_new as prim
 from ._tools import coin, hex_to_rgb
 

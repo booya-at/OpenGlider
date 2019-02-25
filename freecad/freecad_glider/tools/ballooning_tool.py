@@ -1,11 +1,13 @@
 from __future__ import division
 
-from PySide import QtGui, QtCore
 import numpy
+
 import FreeCADGui as Gui
-from ._tools import BaseTool, QtGui, spline_select
-from .pivy_primitives import Line, vector3D, ControlPointContainer, coin
 from openglider.glider.ballooning import BallooningBezier
+from PySide import QtCore, QtGui
+
+from ._tools import BaseTool, QtGui, spline_select
+from .pivy_primitives import ControlPointContainer, Line, coin, vector3D
 
 
 def refresh():

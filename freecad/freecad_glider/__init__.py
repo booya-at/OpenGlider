@@ -17,5 +17,3 @@ def show_lineset_points(glider, pattern=None):
 		vertices += [Part.Vertex(point[1], -point[0], point[2])]
 	compound = Part.Compound(vertices)
 	Part.show(compound)
-
-

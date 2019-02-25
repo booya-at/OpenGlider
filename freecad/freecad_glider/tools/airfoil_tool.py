@@ -1,16 +1,18 @@
 import os
-import numpy
-from pivy import coin
-from PySide import QtGui, QtCore
 from copy import deepcopy
 
-import FreeCADGui as Gui
+import numpy
+from pivy import coin
 
-from openglider.airfoil import BezierProfile2D
-from openglider.vector import normalize, norm
+import FreeCADGui as Gui
 from openglider import jsonify
-from ._tools import BaseTool
+from openglider.airfoil import BezierProfile2D
+from openglider.vector import norm, normalize
+from PySide import QtCore, QtGui
+
 from . import pivy_primitives as pp
+from ._tools import BaseTool
+
 
 def refresh():
     pass

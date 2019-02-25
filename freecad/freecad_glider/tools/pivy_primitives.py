@@ -1,9 +1,8 @@
 import numpy as np
-
 from pivy import coin
+
 import FreeCAD as App
 from openglider.vector.spline import Bezier
-
 
 COLORS ={
     'black': (0, 0, 0),

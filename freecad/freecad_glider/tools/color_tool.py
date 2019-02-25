@@ -1,11 +1,13 @@
 from __future__ import division
 
-from PySide import QtGui, QtCore
 import numpy as np
-import FreeCAD as App
 
-from ._tools import BaseTool, input_field, text_field, coin, hex_to_rgb, rgb_to_hex
-from .pivy_primitives_new import Polygon, InteractionSeparator, vector3D
+import FreeCAD as App
+from PySide import QtCore, QtGui
+
+from ._tools import (BaseTool, coin, hex_to_rgb, input_field, rgb_to_hex,
+                     text_field)
+from .pivy_primitives_new import InteractionSeparator, Polygon, vector3D
 
 
 def refresh():

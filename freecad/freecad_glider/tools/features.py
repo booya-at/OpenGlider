@@ -1,11 +1,13 @@
-from ._glider import OGBaseObject, OGGliderVP
-
-import os
 import copy
+import os
+
 import numpy as np
+
 import FreeCAD as App
 from openglider.airfoil.profile_2d import Profile2D
-from openglider.glider.rib import SingleSkinRib, RibHole
+from openglider.glider.rib import RibHole, SingleSkinRib
+
+from ._glider import OGBaseObject, OGGliderVP
 
 
 class BaseFeature(OGBaseObject):

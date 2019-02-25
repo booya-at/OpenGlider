@@ -1,9 +1,17 @@
 import os
 
-import FreeCAD
 import FreeCAD as App
 import FreeCADGui as Gui
+import openglider
+from openglider import jsonify
 from PySide import QtGui
+
+from . import _glider as glider
+from . import _tools as tools
+from . import (airfoil_tool, arc_tool, ballooning_tool, cell_tool, color_tool,
+               design_tool, features, line_tool)
+from . import panel_method as pm
+from . import shape_tool, span_mapping
 
 try:
     from importlib import reload
@@ -12,21 +20,6 @@ except ImportError:
     App.Console.PrintWarning('there is a newer version (python3)\n')
     App.Console.PrintMessage('try to motivate dev to port to python3\n')
 
-from . import _glider as glider
-from . import _tools as tools
-from . import airfoil_tool
-from . import shape_tool
-from . import arc_tool
-from . import span_mapping
-from . import ballooning_tool
-from . import line_tool
-from . import panel_method as pm
-from . import cell_tool
-from . import design_tool
-from . import color_tool
-from . import features
-import openglider
-from openglider import jsonify
 
 
 #   -import export                                          -?
