@@ -87,6 +87,10 @@ class Polygon(object):
     def __len__(self):
         return len(self.nodes)
 
+    def __add__(self, other):
+        assert isinstance(other, Polygon)
+        self.nodes += other.nodes
+
     @property
     def center(self):
         center = np.array([0, 0, 0], dtype=float)
