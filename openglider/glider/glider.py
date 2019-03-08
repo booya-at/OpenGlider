@@ -49,8 +49,11 @@ class Glider(object):
             cell.rib1 = ribs.index(cell.rib1)
             cell.rib2 = ribs.index(cell.rib2)
 
-        for att in new.lineset.attachment_points:
-            att.rib = ribs.index(att.rib)
+        for att_point in new.lineset.attachment_points:
+            if hasattr(att_point, "rib"):
+                att_point.rib = ribs.index(att_point.rib)
+            if hasattr(att_point, "cell"):
+                att_point.cell = new.cells.index(att_point.cell)
 
         return {"cells": new.cells,
                 "ribs": ribs,
@@ -64,9 +67,12 @@ class Glider(object):
                 cell.rib1 = ribs[cell.rib1]
             if isinstance(cell.rib2, int):
                 cell.rib2 = ribs[cell.rib2]
+
         for att in lineset.attachment_points:
-            if isinstance(att.rib, int):
+            if hasattr(att, "rib") and isinstance(att.rib, int):
                 att.rib = ribs[att.rib]
+            if hasattr(att, "cell") and isinstance(att.cell, int):
+                att.cell = cells[att.cell]
         return cls(cells, lineset=lineset)
 
     def __repr__(self):

@@ -279,6 +279,7 @@ class BallooningBezierNeu(Ballooning):
     def __imul__(self, factor):  # TODO: Check consistency
         """Multiplication of BezierBallooning"""
         self.scale(factor)
+        self.apply_splines()
         return self
 
     def __add__(self, other):

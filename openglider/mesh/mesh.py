@@ -81,6 +81,9 @@ class Polygon(object):
     def __getitem__(self, item):
         return self.nodes.__getitem__(item)
 
+    def __len__(self):
+        return self.nodes.__len__()
+
     def copy(self):
         return self.__class__(self.nodes[:], self.attributes)
 
@@ -386,8 +389,9 @@ class Mesh(object):
         if path:
             with open(path, "w") as outfile:
                 outfile.write(out)
-
-        return out
+            return path
+        else:
+            return out
 
     @staticmethod
     def parse_color_code(string):
@@ -565,6 +569,7 @@ class Mesh(object):
                 for j, node2 in enumerate(all_boundary_nodes[i:]):
                     if node1 is not node2 and node1.is_equal(node2):
                         replace_dict[node2] = node1
+                        node1.attributes.update(node2.attributes)
 
         for boundary_name, boundary_nodes in self.boundary_nodes.items():
             to_remove = []
