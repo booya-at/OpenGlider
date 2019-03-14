@@ -453,3 +453,14 @@ class GliderScaleFeatureCommand(GliderFeatureCommand):
         features.ScaleFeature(feature, self.glider_obj)
         vp = glider.OGGliderVP(feature.ViewObject)
         vp.updateData()
+
+class GliderBallooningMultiplierFeatureCommand(GliderFeatureCommand):
+    def GetResources(self):
+        return {'Pixmap': 'ballooning_feature.svg' , 'MenuText': 'Features', 'ToolTip': 'multiply balloonings'}
+
+    def Activated(self):
+        feature = FreeCAD.ActiveDocument.addObject('App::FeaturePython', 'ballooningFeature')
+        self.glider_obj.ViewObject.Visibility = False
+        features.BallooningMultiplier(feature, self.glider_obj)
+        vp = features.VBallooningFeature(feature.ViewObject)
+        vp.updateData()

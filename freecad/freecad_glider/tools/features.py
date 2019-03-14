@@ -113,7 +113,20 @@ class BallooningFeature(BaseFeature):
         ballooning = self.obj.parent.Proxy.getParametricGlider().balloonings[self.obj.ballooning]
         for i, cell in enumerate(glider.cells):
             if i in self.obj.cells:
-                cell.ballooning = ballooning
+                cell.ballooning = ballooning.copy()
+        return glider
+
+class BallooningMultiplier(BaseFeature):
+    def __init__(self, obj, parent):
+        super(BallooningMultiplier, self).__init__(obj, parent)
+        obj.addProperty('App::PropertyFloatList', 'mutiply_values', 'not yet', 'every cell gets on float')
+        obj.mutiply_values = [1.] * len(self.obj.parent.Proxy.getGliderInstance().cells)
+    
+    def getGliderInstance(self):
+        glider = copy.deepcopy(self.obj.parent.Proxy.getGliderInstance())
+        balloonings = self.obj.parent.Proxy.getParametricGlider().balloonings
+        for i, cell in enumerate(glider.cells):
+            cell.ballooning *= self.obj.mutiply_values[i]
         return glider
 
 

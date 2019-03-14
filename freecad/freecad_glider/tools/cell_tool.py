@@ -128,8 +128,9 @@ class diagonals_table(base_table_widget):
         if len(str_row) != 9:
             return None
         try:
-            return list(map(float, str_row[:-1]) + [map(int, str_row[-1].split(','))])
-        except TypeError:
+            return list(map(float, str_row[:-1])) + [list(map(int, str_row[-1].split(',')))]
+        except TypeError as e:
+            print(e)
             print('something wrong with row ' + str(n_row))
             return None
 
@@ -169,7 +170,7 @@ class vector_table(base_table_widget):
         if len(str_row) != 3:
             return None
         try:
-            return list(map(float, str_row[:-1]) + [map(int, str_row[-1].split(','))])
-        except TypeError:
+            return list(map(float, str_row[:-1])) + [list(map(int, str_row[-1].split(',')))]
+        except TypeError as e:
             print('something wrong with row ' + str(n_row))
             return None
