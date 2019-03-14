@@ -344,7 +344,6 @@ class Profile2D(Polygon2D):
                 min_x_value = i_x
         return min_x_value
 
-
     def apply_function(self, foo):
         data = np.array(self.data)
         self.data = [foo(i, upper=index < self.noseindex) for index, i in enumerate(data)]

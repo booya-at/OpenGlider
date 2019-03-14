@@ -90,7 +90,7 @@ class LineSet():
             mesh += line.get_mesh(numpoints)
         return mesh
 
-    def recalc(self, calculate_sag=True):
+    def recalc(self, calculate_sag=True, recalc_all=False):
         """
         Recalculate Lineset Geometry.
         if LineSet.calculate_sag = True, drag induced sag will be calculated
@@ -100,6 +100,9 @@ class LineSet():
         #     for line in self.get_upper_connected_lines(att):
         #         for node in self.get_upper_influence_nodes(line):
         #             node.get_position()
+        if recalc_all:
+            for line in self.lines:
+                line.force = None
         self.calculate_sag = calculate_sag
         for point in self.attachment_points:
             point.get_position()
@@ -289,10 +292,18 @@ class LineSet():
             #print("------")
             self.recalc()
 
-    def sort_lines(self):
-        # ?
-        for i, line in enumerate(self.lines):
-            line.number = i
+    def sort_lines(self, lines):
+        new_lines_list = []
+        for line in lines:
+            attachment_points = self.get_upper_influence_nodes(line)
+            x = sum(p.rib_pos for p in attachment_points) / len(attachment_points)
+            new_lines_list.append((x, line))
+
+        new_lines_list.sort(key=lambda x: x[0])
+
+        return [line for x, line in new_lines_list]
+
+
 
     @property
     def total_length(self):

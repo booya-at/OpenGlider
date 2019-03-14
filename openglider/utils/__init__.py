@@ -139,7 +139,7 @@ class Config(object):
         with open(filename, "r") as jsonfile:
             data = json.load(jsonfile)
 
-        return cls(data["data"]["data"])
+        return cls(data["data"]["data"]["dct"])
 
 
 if __name__ == "__main__":

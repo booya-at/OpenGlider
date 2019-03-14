@@ -343,5 +343,10 @@ class Node(object):
     def __json__(self):
         return{
             'node_type': self.type,
-            'position_vector': list(self.vec)
+            'position_vector': list(self.vec),
+            "name": self.name
         }
+
+    def copy(self):
+        return self.__class__(self.type, self.vec, self.attachment_point, self.name)
+
