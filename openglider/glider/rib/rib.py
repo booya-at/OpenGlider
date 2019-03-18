@@ -189,7 +189,7 @@ class SingleSkinRib(Rib):
             self.apply_continued_min()
 
     def apply_continued_min(self):
-        self.profile_2d.insert_point(self.single_skin_par['continued_min_end'])
+        self.profile_2d.move_nearest_point(self.single_skin_par['continued_min_end'])
         data = self.profile_2d.data
         x, y = data.T
         min_index = y.argmin()

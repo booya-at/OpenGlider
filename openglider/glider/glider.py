@@ -279,7 +279,7 @@ class Glider(object):
             if all(node.force):
                 node.force *= np.array([1, -1, 1])
         other2.lineset.lines += other.lineset.lines
-        other2.lineset.sort_lines()
+        other2.lineset._set_line_indices()
         other2.lineset.recalc()
 
         # rename

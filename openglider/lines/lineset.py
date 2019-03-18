@@ -292,9 +292,13 @@ class LineSet():
             #print("------")
             self.recalc()
 
-    def sort_lines(self, lines):
+    def _set_line_indices(self):
+        for i, line in enumerate(self.lines):
+            line.number = i
+
+    def sort_lines(self):
         new_lines_list = []
-        for line in lines:
+        for line in self.lines:
             attachment_points = self.get_upper_influence_nodes(line)
             x = sum(p.rib_pos for p in attachment_points) / len(attachment_points)
             new_lines_list.append((x, line))

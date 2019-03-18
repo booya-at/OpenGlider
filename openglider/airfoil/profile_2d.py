@@ -334,6 +334,14 @@ class Profile2D(Polygon2D):
                 new_data.append(self.data[i])
         self.data = np.array(new_data)
 
+    def move_nearest_point(self, pos):
+        ik = self(pos)
+        diff = ik % 1.
+        if diff < 0.5:
+            self.data[int(ik)] = self.profilepoint(pos)
+        else:
+            self.data[int(ik) + 1] = self.profilepoint(pos)
+
     def nearest_x_value(self, x):
         min_x_value = None
         min_diff = None

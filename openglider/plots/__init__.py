@@ -78,8 +78,8 @@ class Patterns(object):
         plots.unwrap()
         all_patterns = plots.get_all_grouped()
 
-        with open(fn("patterns.json"), "w") as outfile:
-            jsonify.dump(plots, outfile)
+        # with open(fn("patterns.json"), "w") as outfile:
+        #     jsonify.dump(plots, outfile)
 
         designs = Layout.stack_column(drawings, self.config.patterns_align_dist_y)
         all_patterns.append_left(designs, distance=self.config.patterns_align_dist_x*2)
