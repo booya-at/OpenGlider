@@ -137,7 +137,8 @@ class PanelPlot(object):
         self._insert_controlpoints(plotpart)
         self._insert_attachment_points(plotpart, attachment_points=attachment_points)
         self._insert_diagonals(plotpart)
-        self._insert_center_rods(plotpart)
+        # self._insert_center_rods(plotpart)
+        # TODO: add in parametric way
 
         self._align_upright(plotpart)
 

@@ -41,7 +41,9 @@ class Rib(CachedObject):
         self.holes = holes or []
         self.rigidfoils = rigidfoils or []
         self.material_code = material_code or ""
-        self.curves = [FoilCurve()]
+        # self.curves = [FoilCurve()]
+        # TODO: add in paramteric way
+        self.curves = []
 
     def __json__(self):
         return {"profile_2d": self.profile_2d,
