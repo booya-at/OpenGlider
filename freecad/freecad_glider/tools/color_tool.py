@@ -84,7 +84,8 @@ class ColorTool(BaseTool):
         for cell in self.panels:
             cell_colors = []
             for panel in cell:
-                cell_colors.append(rgb_to_hex(panel.vis_panel._std_color))
+                # TODO: make this parametric
+                cell_colors.append(rgb_to_hex(panel.vis_panel._std_color, "skytex32_"))
             colors.append(cell_colors)
 
         self.parametric_glider.elements['materials'] = colors

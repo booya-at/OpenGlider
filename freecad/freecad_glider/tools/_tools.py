@@ -15,16 +15,23 @@ from PySide import QtGui
 
 def hex_to_rgb(hex_string):
     try:
-        value = hex_string.split('#')[1]
+        split = hex_string.split('#')
+        if len(split) > 1:
+            prefix, value = split
+        else:
+            value = split
         lv = len(value)
         return tuple(int(value[i:i + lv // 3], 16) / 256. for i in range(0, lv, lv // 3))
-    except IndexError:
+    except (IndexError, ValueError) as e:
         return (.7, .7, .7)
 
-def rgb_to_hex(color_tuple):
+def rgb_to_hex(color_tuple, prefix=None):
     assert(all(0 <= i <= 1 for i in color_tuple))
     c = tuple(int(i * 255) for i in color_tuple)
-    return '#%02x%02x%02x' % c
+    hex_c = '#%02x%02x%02x' % c
+    if prefix:
+        hex_c = prefix + hex_c
+    return hex_c
 
 
 def refresh():
