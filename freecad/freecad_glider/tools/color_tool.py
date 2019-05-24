@@ -7,7 +7,7 @@ from PySide import QtCore, QtGui
 
 from ._tools import (BaseTool, coin, hex_to_rgb, input_field, rgb_to_hex,
                      text_field)
-from .pivy_primitives_new import InteractionSeparator, Polygon, vector3D
+from .pivy_primitives import InteractionSeparator, Polygon, vector3D
 
 
 def refresh():

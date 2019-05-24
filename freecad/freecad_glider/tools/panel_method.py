@@ -11,7 +11,7 @@ from openglider.utils.distribution import Distribution
 from PySide import QtCore, QtGui
 
 from ._tools import BaseTool, input_field, text_field
-from .pivy_primitives_new import (COLORS, InteractionSeparator, Line, Marker,
+from .pivy_primitives import (COLORS, InteractionSeparator, Line, Marker,
                                   coin)
 
 

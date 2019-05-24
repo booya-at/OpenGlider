@@ -7,8 +7,8 @@ from pivy import coin
 from openglider.glider.rib import Rib
 from PySide import QtGui
 
-from . import pivy_primitives as pp
-from . import pivy_primitives_new as ppn
+from . import pivy_primitives_old as pp
+from . import pivy_primitives as ppn
 from ._tools import BaseTool, input_field, spline_select, text_field
 
 

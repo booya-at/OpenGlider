@@ -14,10 +14,10 @@ from PySide import QtCore, QtGui
 
 from ._glider import draw_glider, draw_lines
 from ._tools import BaseTool, input_field, text_field
-from .pivy_primitives_new import Arrow, InteractionSeparator
-from .pivy_primitives_new import Line as _Line
-from .pivy_primitives_new import Marker as _Marker
-from .pivy_primitives_new import Object3D, coin, vector3D
+from .pivy_primitives import Arrow, InteractionSeparator
+from .pivy_primitives import Line as _Line
+from .pivy_primitives import Marker as _Marker
+from .pivy_primitives import Object3D, coin, vector3D
 
 if sys.version_info.major > 2:
     from importlib import reload

@@ -11,7 +11,7 @@ from openglider.vector.spline import Bezier
 from PySide import QtCore, QtGui
 
 from ._tools import BaseTool, input_field, text_field
-from .pivy_primitives import ControlPointContainer, Line, vector2D, vector3D
+from .pivy_primitives_old import ControlPointContainer, Line, vector2D, vector3D
 
 
 def refresh():

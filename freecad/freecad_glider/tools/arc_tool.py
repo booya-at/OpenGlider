@@ -4,7 +4,7 @@ from openglider.vector.polygon import CirclePart
 from PySide import QtGui
 
 from ._tools import BaseTool, input_field, spline_select, text_field
-from .pivy_primitives import (ControlPointContainer, Line, Point, vector2D,
+from .pivy_primitives_old import (ControlPointContainer, Line, Point, vector2D,
                               vector3D)
 
 

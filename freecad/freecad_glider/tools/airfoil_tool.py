@@ -10,7 +10,7 @@ from openglider.airfoil import BezierProfile2D
 from openglider.vector import norm, normalize
 from PySide import QtCore, QtGui
 
-from . import pivy_primitives as pp
+from . import pivy_primitives_old as pp
 from ._tools import BaseTool
 
 
