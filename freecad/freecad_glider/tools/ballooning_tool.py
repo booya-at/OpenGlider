@@ -6,7 +6,7 @@ import FreeCADGui as Gui
 from openglider.glider.ballooning import BallooningBezier
 from PySide import QtCore, QtGui
 
-from ._tools import BaseTool, QtGui, spline_select
+from .tools import BaseTool, QtGui, spline_select
 from .pivy_primitives_old import ControlPointContainer, Line, coin, vector3D
 
 

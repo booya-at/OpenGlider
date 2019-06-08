@@ -3,10 +3,10 @@ from pivy import coin
 from openglider.vector.polygon import CirclePart
 from PySide import QtGui
 
-from ._tools import BaseTool, input_field, spline_select, text_field
-from .pivy_primitives_old import (ControlPointContainer, Line, Point, vector2D,
-                              vector3D)
-
+from .tools import BaseTool, input_field, spline_select, text_field
+#from .pivy_primitives_old import (ControlPointContainer, Line, Point, vector2D,
+#                               vector3D)
+from pivy_primitives import InteractionSeparator, Line, Point, vector3D, vector2D
 
 def refresh():
     pass
@@ -21,7 +21,8 @@ class ArcTool(BaseTool):
         super(ArcTool, self).__init__(obj)
 
         controlpoints = list(map(vector3D, self.parametric_glider.arc.curve.controlpoints))
-        self.arc_cpc = ControlPointContainer(controlpoints, self.view)
+        self.arc_cpc = InteractionSeparator()
+        self.arc_cpc.register(self.view)
         self.Qnum_arc = QtGui.QSpinBox(self.base_widget)
         self.spline_select = spline_select(
             [self.parametric_glider.arc.curve], self.update_spline_type, self.base_widget)

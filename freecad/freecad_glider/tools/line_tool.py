@@ -12,8 +12,8 @@ from openglider.glider.parametric.lines import (BatchNode2D, Line2D, LineSet2D,
 from openglider.lines.line_types import LineType
 from PySide import QtCore, QtGui
 
-from ._glider import draw_glider, draw_lines
-from ._tools import BaseTool, input_field, text_field
+from .glider import draw_glider, draw_lines
+from .tools import BaseTool, input_field, text_field
 from .pivy_primitives import Arrow, InteractionSeparator
 from .pivy_primitives import Line as _Line
 from .pivy_primitives import Marker as _Marker

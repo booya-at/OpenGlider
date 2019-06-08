@@ -4,8 +4,8 @@ from pivy import coin
 
 from PySide import QtGui
 
-from ._glider import draw_glider, draw_lines
-from ._tools import BaseTool, input_field
+from .glider import draw_glider, draw_lines
+from .tools import BaseTool, input_field
 from .table import base_table_widget
 
 

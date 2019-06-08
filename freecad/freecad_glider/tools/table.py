@@ -2,7 +2,7 @@ from __future__ import division
 
 from PySide import QtCore, QtGui
 
-from ._tools import BaseTool, input_field, text_field
+from .tools import BaseTool, input_field, text_field
 
 
 def refresh():

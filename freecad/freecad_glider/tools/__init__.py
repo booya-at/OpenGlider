@@ -6,8 +6,8 @@ import openglider
 from openglider import jsonify
 from PySide import QtGui
 
-from . import _glider as glider
-from . import _tools as tools
+from . import glider
+from . import tools
 from . import (airfoil_tool, arc_tool, ballooning_tool, cell_tool, color_tool,
                design_tool, features, line_tool)
 from . import panel_method as pm

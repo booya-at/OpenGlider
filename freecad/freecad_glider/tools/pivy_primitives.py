@@ -21,6 +21,9 @@ def vector3D(vec):
     else:
         return [vector3D(i) for i in vec]
 
+def vector2D(vec):
+    return vec[0:2]
+
 
 COLORS = {
     'black': (0, 0, 0),

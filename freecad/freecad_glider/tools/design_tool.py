@@ -6,7 +6,7 @@ import FreeCAD as App
 from openglider.glider.cell.elements import Panel
 from PySide import QtCore, QtGui
 
-from ._tools import BaseTool, coin, input_field, text_field
+from .tools import BaseTool, coin, input_field, text_field
 from .pivy_primitives import InteractionSeparator, Line, Marker, vector3D
 
 
