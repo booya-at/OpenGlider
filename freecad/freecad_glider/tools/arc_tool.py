@@ -4,9 +4,9 @@ from openglider.vector.polygon import CirclePart
 from PySide import QtGui
 
 from .tools import BaseTool, input_field, spline_select, text_field
-#from .pivy_primitives_old import (ControlPointContainer, Line, Point, vector2D,
-#                               vector3D)
-from pivy_primitives import InteractionSeparator, Line, Point, vector3D, vector2D
+from .pivy_primitives_old import (ControlPointContainer, Line, Point, vector2D,
+                              vector3D)
+
 
 def refresh():
     pass
@@ -21,8 +21,7 @@ class ArcTool(BaseTool):
         super(ArcTool, self).__init__(obj)
 
         controlpoints = list(map(vector3D, self.parametric_glider.arc.curve.controlpoints))
-        self.arc_cpc = InteractionSeparator()
-        self.arc_cpc.register(self.view)
+        self.arc_cpc = ControlPointContainer(controlpoints, self.view)
         self.Qnum_arc = QtGui.QSpinBox(self.base_widget)
         self.spline_select = spline_select(
             [self.parametric_glider.arc.curve], self.update_spline_type, self.base_widget)
@@ -55,8 +54,8 @@ class ArcTool(BaseTool):
         self.arc_cpc.drag_release.append(self.update_real_arc)
         self.task_separator.addChild(self.arc_cpc)
 
-        for p in self.parametric_glider.lineset.get_lower_attachment_points():
-            self.attachment_point.addChild(Point(x=p.pos_3D[0], y=p.pos_3D[2], z=0, color="green"))
+        # for p in self.parametric_glider.lineset.get_lower_attachment_points():
+        #     self.attachment_point.addChild(Point(x=p.pos_3D[0], y=p.pos_3D[2], z=0, color="green"))
 
         self.update_spline()
         self.update_real_arc()

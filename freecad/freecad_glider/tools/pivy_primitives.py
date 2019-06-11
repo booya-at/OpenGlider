@@ -165,6 +165,9 @@ class Line(Object3D):
         self.addChild(self.drawstyle)
         self.addChild(self.line)
 
+    def set_width(self, width):
+        self.drawstyle.lineWidth = width
+
 class Polygon(Object3D):
     def __init__(self, points, dynamic=False):
         super(Polygon, self).__init__(points, dynamic)
