@@ -250,7 +250,10 @@ class LineSet():
 
             for con_line in self.get_connected_lines(line.upper_node):
                 s += con_line.get_correction_influence(r)
-
+            # the additional factor is needed for stability. A better aproach would be to
+            # compute the compansation factor s with a system of linear equation. The movement
+            # of the upper node has impact on the compansation of residual force
+            # of the lower node (and the other way).
             return normalize(line.diff_vector + r / s * 0.3)
 
             # if norm(r) == 0:
