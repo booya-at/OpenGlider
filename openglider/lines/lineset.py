@@ -246,12 +246,19 @@ class LineSet():
         # we have to make sure to not overcompansate the residual force
         if line.has_geo and line.force is not None:
             r = self.get_residual_force(line.upper_node)
-            if norm(r) == 0:
-                return line.diff_vector
-            z = r / np.linalg.norm(r)
-            v0 = line.upper_node.vec - line.lower_node.vec
-            s = norm(r) / line.force * norm(v0) - v0.dot(z)
-            return normalize(v0 + s * z * 0.1)
+            s = 0
+
+            for con_line in self.get_connected_lines(line.upper_node):
+                s += con_line.get_correction_influence(r)
+
+            return normalize(line.diff_vector + r / s * 0.3)
+
+            # if norm(r) == 0:
+            #     return line.diff_vector
+            # z = r / np.linalg.norm(r)
+            # v0 = line.upper_node.vec - line.lower_node.vec
+            # s = norm(r)  * (norm(v0) / line.force - v0.dot(z))
+            # return normalize(v0 + s * z * 0.1)
 
         else:
             # if there are no computed forces available, use all the uppermost forces to compute

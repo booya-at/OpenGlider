@@ -304,6 +304,18 @@ class Line(CachedObject):
         '''
         return self.diff_vector.dot(self.get_rib_normal(glider))
 
+    def get_correction_influence(self, residual_force):
+        '''
+        returns an influence factor [force / length] which is a proposal for
+        the correction of a residual force if the line is moved in the direction
+        of the residual force
+        '''
+        diff = self.diff_vector
+        l = np.linalg.norm(diff)
+        r = np.linalg.norm(residual_force)
+        f = 1. - (residual_force / r) @ (diff / l)
+        return f * self.force / l
+
 
 class Node(object):
     def __init__(self, node_type, position_vector=None, attachment_point=None, name=None):
