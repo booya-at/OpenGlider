@@ -9,6 +9,7 @@ from openglider.utils import consistent_value, linspace
 from openglider.utils.cache import CachedObject, cached_property, HashedList
 from openglider.vector import norm, normalize
 from openglider.mesh import Mesh, Vertex, Polygon
+import openglider.vector.projection
 
 
 class Cell(CachedObject):
@@ -174,7 +175,7 @@ class Cell(CachedObject):
     def point(self, y=0, i=0, k=0):
         return self.midrib(y).point(i, k)
 
-    def midrib(self, y, ballooning=True, arc_argument=False, with_numpy=False):
+    def midrib(self, y, ballooning=True, arc_argument=True, with_numpy=False):
         if len(self._child_cells) == 1:
             return self.basic_cell.midrib(y, ballooning=ballooning, with_numpy=with_numpy)
         if ballooning:
@@ -320,3 +321,23 @@ class Cell(CachedObject):
         mesh = Mesh({"hull": quads}, 
                     {self.rib1.name: ribs[0], self.rib2.name: ribs[-1]})
         return mesh
+
+    def get_flattened_cell(self, midribs=10):
+        left, right = openglider.vector.projection.flatten_list(self.prof1, self.prof2)
+        left_bal = left.copy()
+        right_bal = right.copy()
+        ballooning = [self.ballooning[x] for x in self.rib1.profile_2d.x_values]
+        for i in range(len(left)):
+            diff = (right[i] - left[i]) * ballooning[i] / 2
+            left_bal.data[i] -= diff
+            right_bal.data[i] += diff
+
+        inner = []
+        for x in openglider.utils.linspace(0, 1, 2 + midribs):
+            l1 = left_bal * (1-x)
+            l2 = right_bal * x
+            inner.append(l1.add(l2))
+
+        #ballooned = [left_bal, right_bal]
+
+        return inner

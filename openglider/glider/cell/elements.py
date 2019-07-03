@@ -22,6 +22,7 @@ from __future__ import division
 import copy
 
 import numpy as np
+import math
 
 from openglider.airfoil import get_x_value
 from openglider.mesh import Mesh
@@ -34,7 +35,13 @@ class DiagonalRib(object):
     def __init__(self, left_front, left_back, right_front, right_back, material_code="", name="unnamed"):
         """
         [left_front, left_back, right_front, right_back]
-            -> Cut: (x_value, height)
+        -> Cut: (x_value, height)
+        :param left_front as x-value
+        :param left_back as x-value
+        :param right_front as x-value
+        :param right_back as x-value
+        :param material_code: color/material (optional)
+        :param name: optional name of DiagonalRib (optional)
         """
         # Attributes
         self.left_front = left_front
@@ -194,17 +201,32 @@ class DoubleDiagonalRib(object):
 
 class TensionStrap(DiagonalRib):
     def __init__(self, left, right, width, material_code=None, name=""):
+        """
+        Similar to a Diagonalrib but always connected to the bottom-sail.
+        :param left: left center of TensionStrap as x-value
+        :param right: right center of TesnionStrap as x-value
+        :param width: width of TensionStrap
+        :param material_code: color/material-name (optional)
+        :param name: name of TensionStrap (optional)
+        """
         width /= 2
-        super(TensionStrap, self).__init__((left - width, -1),
-                                           (left + width, -1),
-                                           (right - width, -1),
-                                           (right + width, -1),
+        super(TensionStrap, self).__init__((left - width / 2, -1),
+                                           (left + width / 2, -1),
+                                           (right - width / 2, -1),
+                                           (right + width / 2, -1),
                                            material_code,
                                            name)
 
 
 class TensionLine(TensionStrap):
     def __init__(self, left, right, material_code="", name=""):
+        """
+        Similar to a TensionStrap but with fixed width (0.01)
+        :param left: left center of TensionStrap as x-value
+        :param right: right center of TesnionStrap as x-value
+        :param material_code: color/material-name
+        :param name: optional argument names
+        """
         super(TensionLine, self).__init__(left, right, 0.01, material_code=material_code, name=name)
         self.left = left
         self.right = right
@@ -245,6 +267,12 @@ class Panel(object):
     :param cut_front {'left': 0.06, 'right': 0.06, 'type': 'orthogonal'}
     """
     class CUT_TYPES(Config):
+        """
+        all available cut_types:
+        - folded: start end of open panel (entry)
+        - orthogonal: design cuts
+        - singleskin-cut: start/end of a open singleskin-section (used for different rib-modifications)
+        """
         folded = "folded"
         orthogonal = "orthogonal"
         singleskin = "singleskin"
@@ -264,7 +292,7 @@ class Panel(object):
     def mean_x(self):
         """
 
-        :return:
+        :return: center point of the panel as x-values
         """
         total = self.cut_front["left"]
         total += self.cut_front["right"]
@@ -289,7 +317,7 @@ class Panel(object):
     def is_lower(self):
         return self.mean_x() > 0
 
-    def get_3d(self, cell, numribs=0, with_numpy=False):
+    def get_3d(self, cell, numribs=0, midribs=None, with_numpy=False):
         """
         Get 3d-Panel
         :param glider: glider class
@@ -300,6 +328,12 @@ class Panel(object):
         ribs = []
         for i in range(numribs + 1):
             y = i / numribs
+
+            if midribs is None:
+                midrib = cell.midrib(y, with_numpy)
+            else:
+                midrib = midribs[i]
+
             x1 = self.cut_front["left"] + y * (self.cut_front["right"] -
                                                self.cut_front["left"])
             front = get_x_value(xvalues, x1)
@@ -307,16 +341,17 @@ class Panel(object):
             x2 = self.cut_back["left"] + y * (self.cut_back["right"] -
                                               self.cut_back["left"])
             back = get_x_value(xvalues, x2)
-            ribs.append(cell.midrib(y, with_numpy).get(front, back))
+            ribs.append(midrib.get(front, back))
             # todo: return polygon-data
         return ribs
 
     def get_mesh(self, cell, numribs=0, with_numpy=False):
         """
         Get Panel-mesh
-        :param cell: cell from which the panel-mesh is build
-        :param numribs: number of miniribs to calculate
-        :return: mesh
+        :param cell: the parent cell of the panel
+        :param numribs: number of interpolation steps between ribs
+        :param with_numpy: compute midribs with numpy (faster if available)
+        :return: mesh objects consisting of triangles and quadrangles
         """
         numribs += 1
         # TODO: doesnt work for numribs=0?
@@ -342,6 +377,7 @@ class Panel(object):
 
         triangles = []
 
+        # helper functions
         def left_triangle(l_i, r_i):
             return [l_i + 1, l_i, r_i]
 
@@ -383,6 +419,9 @@ class Panel(object):
         return Mesh.from_indexed(points, {"panel_"+self.material_code: triangles}, name=self.name)
 
     def mirror(self):
+        """
+        mirrors the cuts of the panel
+        """
         front = self.cut_front
         self.cut_front = {
             "right": front["left"],
@@ -395,10 +434,15 @@ class Panel(object):
         }
 
     def _get_ik_values(self, cell, numribs=0):
+        """
+        :param cell: the parent cell of the panel
+        :param numribs: number of interpolation steps between ribs
+        :return: [[front_ik_0, back_ik_0], ...[front_ik_n, back_ik_n]] with n is numribs + 1
+        """
         x_values = cell.rib1.profile_2d.x_values
         ik_values = []
 
-        for i in range(numribs+1):
+        for i in range(numribs+2):
             y = i/numribs
             x_front = self.cut_front["left"] + y * (self.cut_front["right"] -
                                                     self.cut_front["left"])
@@ -413,20 +457,72 @@ class Panel(object):
 
         return ik_values
 
-    def integrate_3d_shaping(self, cell, inner_2d, midribs=None):
+    def integrate_3d_shaping(self, cell, sigma, inner_2d, midribs=None):
+        """
+        :param cell: the parent cell of the panel
+        :param sigma: std-deviation parameter of gaussian distribution used to weight the length differences.
+        :param inner_2d: list of 2D polylines (flat representation of the cell)s
+        :param midribs: precomputed midribs, None by default
+        :return: front, back (lists of lenghts) with legth equal to number of midribs
+        """
         numribs = len(inner_2d) - 2
-        if midribs is None:
+        if midribs is None or len(midribs) != len(inner_2d):
             midribs = cell.get_midribs(numribs)
 
-        ribs_3d = self.get_3d(cell, numribs, midribs)
+        ribs = [cell.prof1] + midribs + [cell.prof2]
+
+        # ! vorn + hinten < gesamt !
+
         positions = self._get_ik_values(cell, numribs)
-        ribs_2d = []
 
-        for inner_rib, positions in zip(inner_2d, positions):
-            ribs_2d.append(inner_rib.get(*positions))
+        front = []
+        back = []
 
-        # influence factor: e^-(x/stofffaktor)
-        # integral(x1, x2, e^-x) = -e^-x1 + e^-x2
-        lengthes_3d = [rib.get_segment_lengthes() for rib in ribs_3d]
-        lengthes_2d = [rib.get_segment_lengthes() for rib in ribs_2d]
-        lengthes_diff = [l3 - l2 for l3, l2 in zip(lengthes_3d, lengthes_2d)]
+        ff = math.sqrt(math.pi/2)*sigma
+
+        for rib_no in range(numribs + 2):
+            x1, x2 = positions[rib_no]
+            rib_2d = inner_2d[rib_no][x1:x2]
+            rib_3d = ribs[rib_no][x1:x2]
+
+            lengthes_2d = rib_2d.get_segment_lengthes()
+            lengthes_3d = rib_3d.get_segment_lengthes()
+
+            distance = 0
+            amount_front = 0
+            # influence factor: e^-(x^2/(2*sigma^2))
+            # -> sigma = einflussfaktor [m]
+            # integral = sqrt(pi/2)*sigma * [ erf(x / (sqrt(2)*sigma) ) ]
+
+            for l2d, l3d in zip(lengthes_2d, lengthes_3d):
+                factor = (l3d - l2d) / l3d
+                x = math.erf( (distance + l3d) / (sigma*math.sqrt(2))) - math.erf(distance / (sigma*math.sqrt(2)))
+
+                amount_front += factor * x
+                distance += l3d
+
+            distance = 0
+            amount_back = 0
+
+            for l2d, l3d in zip(lengthes_2d[::-1], lengthes_3d[::-1]):
+                factor = (l3d - l2d) / l3d
+                x = math.erf( (distance + l3d) / (sigma*math.sqrt(2))) - math.erf(distance / (sigma*math.sqrt(2)))
+                amount_back += factor * x
+                distance += l3d
+
+            total = 0
+            for l2d, l3d in zip(lengthes_2d, lengthes_3d):
+                total += l3d - l2d
+
+            amount_front *= ff
+            amount_back *= ff
+
+            if amount_front + amount_back > total:
+                normalization = total / (amount_front + amount_back)
+                amount_front *= normalization
+                amount_back *= normalization
+
+            front.append(amount_front)
+            back.append(amount_back)
+
+        return front, back

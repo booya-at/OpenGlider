@@ -36,9 +36,18 @@ class PolyLine(HashedList):
 
     def __imul__(self, other):
         """Scale self"""
-        assert len(other) == 2
-        self.scale(*other)
+        try:
+            scale = float(other)
+            self.scale(scale)
+        except TypeError:
+            self.scale(*other)
+
         return self
+
+    def add(self, other):
+        new = self.copy()
+        new.data += other.data
+        return new
 
     def get_table(self):
         table = Table()
@@ -61,8 +70,8 @@ class PolyLine(HashedList):
         return self[len(self) - 1]
 
     def get(self, start, stop):
-        start2 = start - start % 1 + 1
-        stop2 = stop - stop % 1
+        start2 = int(start - start % 1 + 1)
+        stop2 = int(stop - stop % 1)
         data = self.data[start2:stop2]
         return np.concatenate([[self[start]], data, [self[stop]]])
 
@@ -142,6 +151,13 @@ class PolyLine(HashedList):
             if (next_value > len(self) and direction > 0) or (next_value < 0 and direction < 0):
                 break
         return length + norm(self[second] - self[first])
+
+    def get_segment_lengthes(self):
+        lengths = []
+        for p1, p2 in zip(self.data[:-1], self.data[1:]):
+            lengths.append(norm(p2 - p1))
+
+        return lengths
 
     def scale(self, x, y=None):
         if y is None:

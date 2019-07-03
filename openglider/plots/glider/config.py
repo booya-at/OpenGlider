@@ -13,6 +13,9 @@ class PatternConfig(Config):
     cut_trailing_edge = cuts.ParallelCut
     cut_design = cuts.DesignCut
     cut_diagonal_fold = cuts.FoldedCut
+    cut_3d = cuts.Cut3d
+
+    midribs = 10
 
     patterns_align_dist_y = 0.05
     patterns_align_dist_x = patterns_align_dist_y

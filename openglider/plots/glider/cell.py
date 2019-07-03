@@ -8,6 +8,7 @@ from openglider.vector.text import Text
 import openglider.vector.projection as projection
 from openglider.plots import Layout
 from openglider.vector import normalize, norm
+import openglider.utils
 
 
 class PanelPlot(object):
@@ -18,7 +19,13 @@ class PanelPlot(object):
         self.cell = cell
         self.config = self.DefaultConf(config)
 
-        self.inner, self.ballooned, self.outer, self.outer_orig = flattended_cell
+        self._flattened_cell = flattended_cell
+
+        self.inner = flattended_cell["inner"]
+        self.ballooned = flattended_cell["ballooned"]
+        self.outer = flattended_cell["outer"]
+        self.outer_orig = flattended_cell["outer_orig"]
+
         self.x_values = self.cell.rib1.profile_2d.x_values
 
     def flatten(self, attachment_points):
@@ -35,7 +42,8 @@ class PanelPlot(object):
             "folded": self.config.cut_entry,
             "parallel": self.config.cut_trailing_edge,
             "orthogonal": self.config.cut_design,
-            "singleskin": self.config.cut_entry
+            "singleskin": self.config.cut_entry,
+            "3d": self.config.cut_3d
         }
 
         front_left = get_x_value(self.x_values, self.panel.cut_front["left"])
@@ -549,33 +557,25 @@ class CellPlotMaker:
         self._flattened_cell = None
 
     def _get_flatten_cell(self):
-        if self._flattened_cell is None:
-            # assert isinstance(cell, Cell)
-            left, right = projection.flatten_list(self.cell.prof1,
-                                                  self.cell.prof2)
-            left_bal = left.copy()
-            right_bal = right.copy()
-            ballooning = [self.cell.ballooning[x] for x in self.cell.rib1.profile_2d.x_values]
-            for i in range(len(left)):
-                diff = (right[i] - left[i]) * ballooning[i] / 2
-                left_bal.data[i] -= diff
-                right_bal.data[i] += diff
+        inner = self.cell.get_flattened_cell(self.config.midribs)
 
-            inner = [left, right]
-            ballooned = [left_bal, right_bal]
+        left_bal = inner[0]
+        right_bal = inner[-1]
+        ballooned = [left_bal, right_bal]
 
-            outer_left = left_bal.copy().add_stuff(-self.config.allowance_general)
-            outer_right = right_bal.copy().add_stuff(self.config.allowance_general)
+        outer_left = left_bal.copy().add_stuff(-self.config.allowance_general)
+        outer_right = right_bal.copy().add_stuff(self.config.allowance_general)
 
-            outer_orig = [outer_left, outer_right]
-            outer = [l.copy().check() for l in outer_orig]
+        outer_orig = [outer_left, outer_right]
+        outer = [l.copy().check() for l in outer_orig]
 
-            self._flattened_cell = [
-                inner,
-                ballooned,
-                outer,
-                outer_orig
-            ]
+
+        self._flattened_cell = {
+            "inner": inner,
+            "ballooned": ballooned,
+            "outer": outer,
+            "outer_orig": outer_orig
+        }
 
         return self._flattened_cell
 

@@ -103,6 +103,10 @@ class SimpleCut(DesignCut):
         return CutResult(curve, leftcut_index[0], rightcut_index[0])
 
 
+class Cut3d(DesignCut):
+    def apply(self, inner_lists, outer_left, outer_right):
+        pass
+
 
 # OPEN-ENTRY Style
 class FoldedCut(DesignCut):
