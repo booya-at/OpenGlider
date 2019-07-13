@@ -56,7 +56,7 @@ Gui.addIconPath(os.path.join(Dir, 'icons'))
 class gliderWorkbench(Gui.Workbench):
     MenuText = 'glider'
     ToolTip = 'glider workbench'
-    Icon = 'glider_workbench.svg'
+    Icon = os.path.join(Dir, 'icons', 'glider_workbench.svg')
     toolBox = [
         'CreateGlider',
         'ImportGlider',
