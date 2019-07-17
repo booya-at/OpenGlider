@@ -94,13 +94,14 @@ class BallooningTool(BaseTool):
             self.grid += [Line(l, color='grey').object]
 
         self.grid += (Line([[0, 0, -0.001], [1,0,-0.001]], color="red").object, )
-        for l in y_points_upper[::10]:
+        for l in y_points_upper + [[grid_x[-1], 0., 0.]]:
             textsep = coin.SoSeparator()
             text = coin.SoText2()
             trans = coin.SoTranslation()
             trans.translation = l
-            text.string = str(l[1])
-            textsep += [trans, textsep, text]
+            text.string = "{0:.1f} %".format(abs(l[1]) / self.scale_y * 100)
+            textsep += [trans, text]
+            self.grid += textsep
 
     def create_ballooning(self):
         j = 0

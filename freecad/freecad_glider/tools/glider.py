@@ -324,7 +324,7 @@ class OGGliderVP(OGBaseVP):
         self.seperator.setName('baseseperator')
         self.material.diffuseColor = (.7, .7, .7)
         _rot = coin.SbRotation()
-        _rot.setValue(coin.SbVec3f(0, 1, 0), coin.SbVec3f(1, 0, 0))
+        _rot.setValue(coin.SbVec3f(0, 1, 0), coin.SbVec3f(-1, 0, 0))
         rot = coin.SoRotation()
         rot.rotation.setValue(_rot)
         self.trans = coin.SoTranslation()
