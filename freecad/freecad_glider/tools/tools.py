@@ -41,19 +41,13 @@ text_field = QtGui.QFormLayout.LabelRole
 input_field = QtGui.QFormLayout.FieldRole
 
 
-def export_2d(glider):
+def export_glider(glider_2d, glider_3d):
     file_types = "OpenOffice *.ods;;JSON 2d *.json;;JSON 3d *.json"
     filename = QtGui.QFileDialog.getSaveFileName(
         parent=None,
         caption='export glider',
         directory='~',
         filter=file_types)
-    if hasattr(glider.Proxy, "getParametricGlider"):
-        glider_2d = glider.Proxy.getParametricGlider()
-        glider_3d = glider.Proxy.getGliderInstance()
-    else:
-        glider_2d = glider.ParametricGlider
-        glider_3d = glider.GliderInstance
     if filename[0] != "":
         ext = filename[1].split(".")[-1]
         name = filename[0]

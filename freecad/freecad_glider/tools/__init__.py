@@ -106,9 +106,16 @@ class Gl2dExport(BaseCommand):
                 'ToolTip': 'export 2D'}
 
     def Activated(self):
-        obj = self.glider_obj
-        if obj:
-            tools.export_2d(obj)
+        proceed = False
+        obj = FreeCADGui.Selection.getSelection()
+        if len(obj) > 0:
+            obj = obj[0]
+            if check_glider(obj):
+                proceed = True
+        if proceed:
+            glider_2d = obj.Proxy.getParametricGlider()
+            glider_3d = obj.Proxy.getGliderInstance()
+            tools.export_glider(glider_2d, glider_3d)
 
 
 class CreateGlider(BaseCommand):

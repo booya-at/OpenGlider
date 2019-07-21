@@ -62,7 +62,7 @@ class Profile3D(PolyLine):
         """Flatten the airfoil and return a 2d-Representative"""
         layer = self.projection_layer
         return Profile2D([layer.projection(p) for p in self.data],
-                         name=self.name or '' + "_flattened")
+                         name=self.name or 'profile' + "_flattened")
 
     @cached_property('self')
     def normvectors(self):

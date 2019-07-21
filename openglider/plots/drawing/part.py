@@ -256,7 +256,7 @@ class PlotPart(object):
             for p in path[1:]:
                 d += " L {} {}".format(*p)
             container = svgwrite.path.Path(d)
-            container.attribs["stroke"] = envelope.stroke
+            container.attribs["stroke"] = envelope.stroke or "red"
             container.attribs["stroke-width"] = str(envelope.stroke_width)
             container.attribs["fill"] = "none"
             if non_scaling_stroke:
@@ -274,7 +274,7 @@ class PlotPart(object):
 
             for path in layer:
                 pl = svgwrite.shapes.Polyline(path)
-                pl.attribs["stroke"] = layer.stroke
+                pl.attribs["stroke"] = layer.stroke or "black"
                 pl.attribs["stroke-width"] = str(layer.stroke_width)
                 pl.attribs["fill"] = "none"
                 if non_scaling_stroke:

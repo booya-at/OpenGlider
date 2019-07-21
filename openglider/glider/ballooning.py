@@ -203,10 +203,13 @@ class BallooningBezier(Ballooning):
     def __imul__(self, factor):  # TODO: Check consistency
         """Multiplication of BezierBallooning"""
         # Multiplicate as normal interpolated ballooning, then refit
-        Ballooning.__imul__(self, factor)
+        #Ballooning.__imul__(self, factor)
         # print("JO")
-        self.upper_spline.fit(self.upper.data)
-        self.lower_spline.fit(self.lower.data)
+        #self.upper_spline.fit(self.upper.data)
+        #self.lower_spline.fit(self.lower.data)
+        self.controlpoints = [
+            [[x[0], x[1]*factor] for x in lst] for lst in self.controlpoints
+        ]
         return self
 
     @property

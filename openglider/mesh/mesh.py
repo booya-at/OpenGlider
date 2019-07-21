@@ -204,7 +204,7 @@ class Mesh(object):
                                            len(self.vertices))
 
     @classmethod
-    def from_rib(cls, rib, hole_num=10, mesh_option="Qzip", glider=None, filled=False):
+    def from_rib(cls, rib, hole_num=10, mesh_option="QYqazip", glider=None, filled=False):
         """ Y... no additional points on boarder
             i... algorythm (other algo crash)
             p... triangulation
@@ -241,6 +241,7 @@ class Mesh(object):
             triangle_in = {}
             vertices = list(rib.get_hull(glider))[:-1]
             if rib.is_closed():
+                # stabi
                 return cls.from_indexed([], {}, {})
             segments = [[i, i+1] for i, _ in enumerate(vertices)]
             segments[-1][-1] = 0
@@ -262,7 +263,6 @@ class Mesh(object):
                     triangle_in["segments"] += segments
                     triangle_in["holes"].append(hole.get_center(rib, scale=False).tolist())
             if not filled:
-                vertices =  rib.align_all(vertices)
                 return cls.from_indexed(rib.align_all(triangle_in['vertices']), {'hole': triangle_in['segments']}, {})
             # _triangle_output = triangle.triangulate(triangle_in, "pziq")
             mesh_info = mptriangle.MeshInfo()
@@ -277,7 +277,7 @@ class Mesh(object):
             except KeyError:
                 print("there was a keyerror")
                 return cls()
-            return cls.from_indexed(vertices, polygons={"ribs": triangles} , boundaries={rib.name:range(len(vertices))})
+            return cls.from_indexed(vertices, polygons={"ribs": triangles} , boundaries={rib.name: range(len(vertices))})
 
     @classmethod
     def from_diagonal(cls, diagonal, cell, insert_points=4):
@@ -407,17 +407,17 @@ class Mesh(object):
 
         return color
 
-    def export_dxf(self, path=None):
+    def export_dxf(self, path=None, version="AC1021"):
         import ezdxf
         import openglider.mesh.dxf_colours as dxfcolours
-        dwg = ezdxf.new(dxfversion="AC1015")
+        dwg = ezdxf.new(dxfversion=version)
         ms = dwg.modelspace()
         for poly_group_name, poly_group in list(self.polygons.items()):
             color = dxfcolours.get_dxf_colour_code(*self.parse_color_code(poly_group_name))
             name = poly_group_name.replace("#", "_")
             dwg.layers.new(name=name, dxfattribs={"color": color})
 
-            polys_new = list(filter(lambda poly: len(poly)>2, poly_group))
+            polys_new = list(filter(lambda poly: len(poly) > 2, poly_group))
             if polys_new:
                 mesh = Mesh({"123": polys_new})
 
@@ -425,10 +425,11 @@ class Mesh(object):
                 mesh_dxf = ms.add_mesh({"layer": name})
 
                 with mesh_dxf.edit_data() as mesh_data:
+                    print("jo export {} faces".format(len(polys["123"])))
                     mesh_data.vertices = [list(p) for p in vertices]
                     mesh_data.faces = polys["123"]
 
-            lines = list(filter(lambda x: len(x)==2, poly_group))
+            lines = list(filter(lambda x: len(x) == 2, poly_group))
             if lines:
                 for line in lines:
                     ms.add_polyline3d([list(p) for p in line], {"layer": name})

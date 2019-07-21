@@ -261,6 +261,30 @@ class TensionLine(TensionStrap):
         return Mesh.from_indexed([p1, p2], {"tension_lines": [[0, 1]]}, boundaries=boundaries)
 
 
+class PanelCut(object):
+    def __init__(self, left, right, style=0, is_3d=False):
+        self.left = left
+        self.right = right
+        self.style = style
+        self.is_3d = is_3d
+        self.amount_3d = []
+
+    def add_3d_amount(self, amount):
+        self.amount_3d.append(amount)
+
+    def get_3d_amount(self):
+        if len(self.amount_3d) == 0:
+            return 0
+
+        return sum(self.amount_3d) / len(self.amount_3d)
+
+    @property
+    def mean_x(self):
+        return (self.left + self.right) / 2
+
+
+
+
 class Panel(object):
     """
     Glider cell-panel
@@ -272,10 +296,12 @@ class Panel(object):
         - folded: start end of open panel (entry)
         - orthogonal: design cuts
         - singleskin-cut: start/end of a open singleskin-section (used for different rib-modifications)
+        - 3d: 3d design cut
         """
         folded = "folded"
         orthogonal = "orthogonal"
         singleskin = "singleskin"
+        shape_3d = "shape_3d"
 
     def __init__(self, cut_front, cut_back, material_code=None, name="unnamed"):
         self.cut_front = cut_front  # (left, right, style(int))

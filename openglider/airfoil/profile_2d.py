@@ -388,7 +388,7 @@ class Profile2D(Polygon2D):
         self.data = np.array([x, y + dy]).T
 
 
-    def calc_drag(self, re=200000, cl=0.7):
+    def calc_drag(self, re=2e6, cl=0.7):
         if not shutil.which('xfoil'):
             print('command xfoil is not available')
             return None

@@ -162,7 +162,6 @@ class Rib(CachedObject):
         return list(connected_lines)
 
 
-
 class SingleSkinRib(Rib):
     def __init__(self, profile_2d=None, startpoint=None,
                  chord=1., arcang=0, aoa_absolute=0, zrot=0, xrot=0., glide=1,
@@ -227,17 +226,18 @@ class SingleSkinRib(Rib):
         if len(pos) > 1:
             span_list = []
             pos.sort()
-            # computing the bow start and end point
+            # computing the bow start and end points (back to front)
             for i, p in enumerate(pos[:-1]):
 
                 # the profile  has a normed chord of 1
                 # so we have to normalize the "att_dist" which is the thickness of
                 # rib between two bows. normally something like 2cm
+                # length of the flat part at the attachment point
                 le_gap = self.single_skin_par["att_dist"] / self.chord / 2
                 te_gap = self.single_skin_par["att_dist"] / self.chord / 2
 
                 # le_gap is the gap between the FIRST BOW start and the attachment point next
-                # to this point.
+                # to this point. (before)
                 if i == 0 and not self.single_skin_par["le_gap"]: 
                     le_gap = 0
 
@@ -245,11 +245,11 @@ class SingleSkinRib(Rib):
                 if i == (len(pos) -2) and not self.single_skin_par["te_gap"]:
                     te_gap = 0
 
-
                 span_list.append([p + le_gap, pos[i + 1] - te_gap])
+
             for k, sp in enumerate(span_list):
                 if self.single_skin_par["double_first"] and k == 0:
-                    continue # do not insert points between att for double-first ribs
+                    continue # do not insert points between att for double-first ribs (a-b)
 
                 # first we insert the start and end point of the bow
                 profile.insert_point(sp[0])

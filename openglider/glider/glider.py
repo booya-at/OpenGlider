@@ -132,7 +132,7 @@ class Glider(object):
         return panels
 
     def get_mesh(self, midribs=0):
-        mesh = sum([Mesh.from_rib(rib, filled=True) for rib in self.ribs], Mesh())
+        mesh = sum([Mesh.from_rib(rib, filled=True, glider=self, mesh_option='QYqazip') for rib in self.ribs], Mesh())
 
         for cell in self.cells:
             for diagonal in cell.diagonals:

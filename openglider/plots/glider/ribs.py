@@ -2,6 +2,7 @@
 
 import numpy as np
 
+import openglider.glider
 from openglider.airfoil import get_x_value
 from openglider.plots import marks
 from openglider.plots.drawing import PlotPart
@@ -79,7 +80,7 @@ class RibPlot(object):
         self.insert_controlpoints()
 
         # insert cut
-        self.cut_trailing_edge(glider)
+        self.draw_rib(glider)
         self.plotpart.layers["stitches"].append(self.inner)
 
         return self.plotpart
@@ -141,7 +142,7 @@ class RibPlot(object):
         for hole in self.rib.holes:
             self.plotpart.layers["cuts"].append(hole.get_flattened(self.rib))
 
-    def cut_trailing_edge(self, glider):
+    def draw_rib(self, glider):
         """
         Cut trailing edge of outer rib
         """
@@ -154,41 +155,18 @@ class RibPlot(object):
 
         start = next(cuts)[0]
         stop = next(cuts)[0]
+
+        contour = PolyLine2D([])
+
         buerzl = PolyLine2D([outer_rib[stop],
                             outer_rib[stop] + [t_e_allowance, 0],
                             outer_rib[start] + [t_e_allowance, 0],
                             outer_rib[start]])
 
-
-        singleskin_cut_left = None
-        singleskin_cut_right = None
-
-        for cell in glider.cells:
-            # asserts first cut never is a singlesking cut!
-            # asserts there is only one removed singleskin Panel!
-            # maybe asserts no singleskin rib on stabilo
-            if cell.rib1 == self.rib:
-                for panel in cell.panels:
-                    if panel.cut_back["type"] == "singleskin":
-                        singleskin_cut_left = panel.cut_back["left"]
-                        break
-            if cell.rib2 == self.rib:
-                for panel in cell.panels:
-                    if panel.cut_back["type"] == "singleskin":
-                        singleskin_cut_right = panel.cut_back["right"]
-                        break
-
-        contour = PolyLine2D([])
-        if singleskin_cut_left and singleskin_cut_left == singleskin_cut_right:
-            single_skin_cut = self.rib.profile_2d(singleskin_cut_left)
-            contour += PolyLine2D(outer_rib[start:single_skin_cut])
-            contour += PolyLine2D(inner_rib[single_skin_cut:stop])
-        else:
-            contour += PolyLine2D(outer_rib[start:stop])
+        contour += PolyLine2D(outer_rib[start:stop])
         contour += buerzl
 
         self.plotpart.layers["cuts"] += [contour]
-
 
     def _insert_attachment_points(self, points):
         for attachment_point in points:
@@ -206,3 +184,72 @@ class RibPlot(object):
         _text = Text(text, p1, p2, size=norm(outer-inner)*0.5, valign=0)
         #_text = Text(text, p1, p2, size=0.05)
         self.plotpart.layers["text"] += _text.get_vectors()
+
+
+class SingleSkinRibPlot(RibPlot):
+    def _get_inner_outer(self, x_value):
+        # TODO: shift when after the endpoint
+        ik = get_x_value(self.x_values, x_value)
+        inner = self.inner[ik]
+        outer = self.outer[ik]
+        return inner, outer
+
+    def draw_rib(self, glider):
+        """
+        Cut trailing edge of outer rib
+        """
+        outer_rib = self.outer
+        inner_rib = self.inner
+        t_e_allowance = self.config.allowance_trailing_edge
+        p1 = inner_rib[0] + [0, 1]
+        p2 = inner_rib[0] + [0, -1]
+        cuts = outer_rib.cut(p1, p2, extrapolate=True)
+
+        start = next(cuts)[0]
+        stop = next(cuts)[0]
+
+        contour = PolyLine2D([])
+
+        if isinstance(self.rib, openglider.glider.rib.SingleSkinRib):
+            # outer is going from the back back until the singleskin cut
+
+            singleskin_cut_left = None
+            singleskin_cut_right = None
+
+            for cell in glider.cells:
+                # asserts first cut never is a singlesking cut!
+                # asserts there is only one removed singleskin Panel!
+                # maybe asserts no singleskin rib on stabilo
+                if cell.rib1 == self.rib:
+                    for panel in cell.panels:
+                        if panel.cut_back["type"] == "singleskin":
+                            singleskin_cut_left = panel.cut_back["left"]
+                            break
+                if cell.rib2 == self.rib:
+                    for panel in cell.panels:
+                        if panel.cut_back["type"] == "singleskin":
+                            singleskin_cut_right = panel.cut_back["right"]
+                            break
+
+
+            single_skin_cut = self.rib.profile_2d(singleskin_cut_left)
+
+            buerzl = PolyLine2D([inner_rib[0],
+                                 inner_rib[0] + [t_e_allowance, 0],
+                                 outer_rib[start] + [t_e_allowance, 0],
+                                 outer_rib[start]])
+            contour += PolyLine2D(outer_rib[start:single_skin_cut])
+            contour += PolyLine2D(inner_rib[single_skin_cut:stop])
+            contour += buerzl
+
+        else:
+
+            buerzl = PolyLine2D([outer_rib[stop],
+                                 outer_rib[stop] + [t_e_allowance, 0],
+                                 outer_rib[start] + [t_e_allowance, 0],
+                                 outer_rib[start]])
+
+            contour += PolyLine2D(outer_rib[start:stop])
+            contour += buerzl
+
+        self.plotpart.layers["cuts"] += [contour]

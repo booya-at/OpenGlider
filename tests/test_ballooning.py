@@ -25,12 +25,16 @@ from openglider.glider import ballooning
 
 
 class TestBallooningBezier(unittest.TestCase):
-    def setUp(self):
+    @classmethod
+    def get_ballooning(cls):
         num = random.randint(10, 30)
         x_values = [i/(num-1) for i in range(num)]
-        upper = [[x, random.random()*10] for x in x_values]
-        lower = [[x, random.random()*10] for x in x_values]
-        self.ballooning = ballooning.BallooningBezier(upper, lower)
+        upper = [[x, random.random()*0.1] for x in x_values]
+        lower = [[x, random.random()*0.1] for x in x_values]
+        return ballooning.BallooningBezier(upper, lower)
+
+    def setUp(self):
+        self.ballooning = self.get_ballooning()
 
     def test_multiplication(self):
         for i in range(100):
@@ -40,9 +44,13 @@ class TestBallooningBezier(unittest.TestCase):
             self.assertAlmostEqual(temp[val], self.ballooning[val] * factor)
 
     def test_addition(self):
-        for i in range(100):
-            val = random.random()
-            self.assertAlmostEqual(2 * self.ballooning[val], (self.ballooning + self.ballooning)[val])
+        num = 100
+        x_values = [(i-num)/num for i in range(2*num+1)]
+        b1 = self.get_ballooning()
+        b2 = self.get_ballooning()
+        mixed = b1 + b2
+        for x in x_values:
+            self.assertAlmostEqual(b1[x]+b2[x], mixed[x], places=2)
 
 
 if __name__ == '__main__':

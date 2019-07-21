@@ -24,10 +24,11 @@ from openglider.vector.polyline import PolyLine2D
 
 
 class CutResult():
-    def __init__(self, curve, index_left, index_right):
+    def __init__(self, curve, index_left, index_right, inner_indices):
         self.curve = curve
         self.index_left = index_left
         self.index_right = index_right
+        self.inner_indices = inner_indices
 
 
 ###############CUTS####################
@@ -45,7 +46,7 @@ class DesignCut(object):
     def __from_json__(cls, **kwargs):
         return cls
 
-    def apply(self, inner_lists, outer_left, outer_right):
+    def apply(self, inner_lists, outer_left, outer_right, amount_3d=None):
         p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
         p2 = inner_lists[-1][0][inner_lists[-1][1]]
         normvector = normalize(rotation_2d(math.pi/2).dot(p1-p2))
@@ -73,11 +74,11 @@ class DesignCut(object):
 
         curve = PolyLine2D(newlist)
 
-        return CutResult(curve, leftcut_index, rightcut_index)
+        return CutResult(curve, leftcut_index, rightcut_index, [x[1] for x in inner_lists])
 
 
 class SimpleCut(DesignCut):
-    def apply(self, inner_lists, outer_left, outer_right):
+    def apply(self, inner_lists, outer_left, outer_right, amount_3d=None):
         p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
         p2 = inner_lists[-1][0][inner_lists[-1][1]]
         normvector = normalize(rotation_2d(math.pi/2).dot(p1-p2))
@@ -100,12 +101,53 @@ class SimpleCut(DesignCut):
 
         curve = PolyLine2D([leftcut, leftcut+diff_l, rightcut+diff_r, rightcut])
 
-        return CutResult(curve, leftcut_index[0], rightcut_index[0])
+        return CutResult(curve, leftcut_index[0], rightcut_index[0], [x[1] for x in inner_lists])
 
 
-class Cut3d(DesignCut):
-    def apply(self, inner_lists, outer_left, outer_right):
-        pass
+class Cut3D(DesignCut):
+    def apply(self, inner_lists, outer_left, outer_right, amount_3d=None):
+        """
+
+        :param inner_lists:
+        :param outer_left:
+        :param outer_right:
+        :param amount_3d: list of 3d-shaping amounts
+        :return:
+        """
+
+        inner_new = []
+        point_list = []
+
+        for offset, lst in zip(amount_3d, inner_lists):
+            curve, ik = lst
+            ik_new = curve.extend(ik, offset)
+            inner_new.append([curve, ik_new])
+
+        p1 = inner_new[0][0][inner_new[0][1]]  # [[list1,pos1],[list2,pos2],...]
+        p2 = inner_new[-1][0][inner_new[-1][1]]
+        normvector = normalize(rotation_2d(math.pi/2).dot(p1-p2))
+
+        leftcut_index = next(outer_left.cut(p1, p2, inner_lists[0][1], extrapolate=True))
+        rightcut_index = next(outer_right.cut(p1, p2, inner_lists[-1][1], extrapolate=True))
+
+        index_left = leftcut_index[0]
+        index_right = rightcut_index[0]
+
+        leftcut = outer_left[index_left]
+        rightcut = outer_right[index_right]
+
+        point_list.append(leftcut)
+        point_list.append(leftcut+normvector*self.amount)
+
+        for curve, ik in inner_new:
+            point_list.append(curve[ik] + normvector*self.amount)
+
+        point_list.append(rightcut+normvector*self.amount)
+        point_list.append(rightcut)
+
+        curve = PolyLine2D(point_list)
+
+        return CutResult(curve, index_left, index_right, [x[1] for x in inner_new])
 
 
 # OPEN-ENTRY Style
@@ -114,7 +156,7 @@ class FoldedCut(DesignCut):
         self.num_folds = num_folds
         super(FoldedCut, self).__init__(amount)
 
-    def apply(self, inner_lists, outer_left, outer_right):
+    def apply(self, inner_lists, outer_left, outer_right, amount_3d=None):
         p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
         p2 = inner_lists[-1][0][inner_lists[-1][1]]
         normvector = normalize(rotation_2d(math.pi/2).dot(p1-p2))
@@ -154,7 +196,7 @@ class FoldedCut(DesignCut):
 
         curve = new_left+new_right[::-1]
 
-        return CutResult(curve, left_start_index, right_start_index)
+        return CutResult(curve, left_start_index, right_start_index, [x[1] for x in inner_lists])
 
 
 # TRAILING-EDGE Style
@@ -162,7 +204,7 @@ class ParallelCut(DesignCut):
     """
     Cut to continue in a parrallel way (trailing-edge)
     """
-    def apply(self, inner_lists, outer_left, outer_right):
+    def apply(self, inner_lists, outer_left, outer_right, amount_3d=None):
         p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
         p2 = inner_lists[-1][0][inner_lists[-1][1]]
         normvector = normalize(rotation_2d(math.pi/2).dot(p1-p2))
@@ -185,7 +227,7 @@ class ParallelCut(DesignCut):
 
         curve = PolyLine2D([leftcut, leftcut+diff, rightcut+diff, rightcut])
 
-        return CutResult(curve, leftcut_index[0], rightcut_index[0])
+        return CutResult(curve, leftcut_index[0], rightcut_index[0], [x[1] for x in inner_lists])
 
 
 # TODO: used?

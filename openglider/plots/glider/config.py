@@ -11,9 +11,9 @@ class PatternConfig(Config):
 
     cut_entry = cuts.FoldedCut
     cut_trailing_edge = cuts.ParallelCut
-    cut_design = cuts.DesignCut
+    cut_design = cuts.Cut3D
     cut_diagonal_fold = cuts.FoldedCut
-    cut_3d = cuts.Cut3d
+    cut_3d = cuts.Cut3D
 
     midribs = 10
 
@@ -53,6 +53,8 @@ class PatternConfig(Config):
 
     strap_num_folds = 0
 
+    sigma_3d_cut = 0.035
+
     insert_attachment_point_text = True
 
     layout_seperate_panels = True
@@ -65,7 +67,7 @@ class OtherPatternConfig(PatternConfig):
     cut_design = cuts.SimpleCut
     cut_diagonal_fold = cuts.SimpleCut
     layout_seperate_panels = True
-    #cut_trailing_edge = None
+    #draw_rib = None
 
     allowance_design = 0.01
     drib_allowance_folds = 0.01
