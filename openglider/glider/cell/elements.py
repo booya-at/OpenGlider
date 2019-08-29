@@ -301,7 +301,7 @@ class Panel(object):
         folded = "folded"
         orthogonal = "orthogonal"
         singleskin = "singleskin"
-        shape_3d = "shape_3d"
+        cut_3d = "cut_3d"
 
     def __init__(self, cut_front, cut_back, material_code=None, name="unnamed"):
         self.cut_front = cut_front  # (left, right, style(int))
