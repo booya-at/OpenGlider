@@ -59,7 +59,7 @@ class Arrow(object):
 
 
 class Line(object):
-    def __init__(self, rotation=0, offset=0, name=None):
+    def __init__(self, rotation=0., offset=0., name=None):
         self.rotation = rotation
         self.offset = offset
         self.name = name

@@ -87,8 +87,12 @@ class RibPlot(object):
 
     def _get_inner_outer(self, x_value):
         ik = get_x_value(self.x_values, x_value)
+
+        #ik = get_x_value(self.x_values, position)
         inner = self.inner[ik]
-        outer = self.outer[ik]
+        outer = inner + PolyLine2D(self.inner).get_normal(ik) * self.config.allowance_general
+        #inner = self.inner[ik]
+        # outer = self.outer[ik]
         return inner, outer
 
     def insert_mark(self, position, mark_function, layer="marks"):
@@ -98,9 +102,7 @@ class RibPlot(object):
         if mark_function is None:
             return
 
-        ik = get_x_value(self.x_values, position)
-        inner = self.inner[ik]
-        outer = inner + PolyLine2D(self.inner).get_normal(ik) * self.config.allowance_general
+        inner, outer = self._get_inner_outer(position)
 
         self.plotpart.layers[layer] += mark_function(inner, outer)
 
@@ -187,12 +189,43 @@ class RibPlot(object):
 
 
 class SingleSkinRibPlot(RibPlot):
+    skin_cut = None
+
     def _get_inner_outer(self, x_value):
         # TODO: shift when after the endpoint
-        ik = get_x_value(self.x_values, x_value)
-        inner = self.inner[ik]
-        outer = self.outer[ik]
-        return inner, outer
+        inner, outer = super(SingleSkinRibPlot, self)._get_inner_outer(x_value)
+
+        if self.skin_cut is None or x_value < self.skin_cut:
+            return inner, outer
+        else:
+            return inner, inner + (inner - outer)
+
+    def _get_singleskin_cut(self, glider):
+        if self.skin_cut is None:
+            singleskin_cut = None
+
+            for cell in glider.cells:
+                # asserts first cut never is a singlesking cut!
+                # asserts there is only one removed singleskin Panel!
+                # maybe asserts no singleskin rib on stabilo
+                if cell.rib1 == self.rib:
+                    for panel in cell.panels:
+                        if panel.cut_back["type"] == "singleskin":
+                            singleskin_cut = panel.cut_back["left"]
+                            break
+                if cell.rib2 == self.rib:
+                    for panel in cell.panels:
+                        if panel.cut_back["type"] == "singleskin":
+                            singleskin_cut = panel.cut_back["right"]
+                            break
+
+            self.skin_cut = singleskin_cut
+
+        return self.skin_cut
+
+    def flatten(self, glider):
+        self._get_singleskin_cut(glider)
+        return super(SingleSkinRibPlot, self).flatten(glider)
 
     def draw_rib(self, glider):
         """
@@ -213,25 +246,7 @@ class SingleSkinRibPlot(RibPlot):
         if isinstance(self.rib, openglider.glider.rib.SingleSkinRib):
             # outer is going from the back back until the singleskin cut
 
-            singleskin_cut_left = None
-            singleskin_cut_right = None
-
-            for cell in glider.cells:
-                # asserts first cut never is a singlesking cut!
-                # asserts there is only one removed singleskin Panel!
-                # maybe asserts no singleskin rib on stabilo
-                if cell.rib1 == self.rib:
-                    for panel in cell.panels:
-                        if panel.cut_back["type"] == "singleskin":
-                            singleskin_cut_left = panel.cut_back["left"]
-                            break
-                if cell.rib2 == self.rib:
-                    for panel in cell.panels:
-                        if panel.cut_back["type"] == "singleskin":
-                            singleskin_cut_right = panel.cut_back["right"]
-                            break
-
-
+            singleskin_cut_left = self._get_singleskin_cut(glider)
             single_skin_cut = self.rib.profile_2d(singleskin_cut_left)
 
             buerzl = PolyLine2D([inner_rib[0],

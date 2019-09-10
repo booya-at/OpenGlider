@@ -7,7 +7,7 @@ from openglider.glider.ballooning import Ballooning
 from openglider.glider.cell import BasicCell
 from openglider.utils import consistent_value, linspace
 from openglider.utils.cache import CachedObject, cached_property, HashedList
-from openglider.vector import norm, normalize
+from openglider.vector import norm, normalize, PolyLine2D
 from openglider.mesh import Mesh, Vertex, Polygon
 import openglider.vector.projection
 
@@ -332,6 +332,42 @@ class Cell(CachedObject):
             left_bal.data[i] -= diff
             right_bal.data[i] += diff
 
+
+
+        def _normalize(line, target_lengths):
+            new_line = [line[0]]
+            last_node = line[0]
+            segments = line.get_segments()
+            for segment, target_length in zip(segments, target_lengths):
+                scale = target_length / norm(segment)
+                last_node = last_node + scale * segment
+                new_line.append(last_node)
+
+            return PolyLine2D(new_line)
+        #
+        left_bal_2 = _normalize(left_bal, left.get_segment_lengthes())
+        right_bal_2 = _normalize(right_bal, right.get_segment_lengthes())
+        right_bal_3 = right_bal_2.copy()
+        left_bal_3 = left_bal_2.copy()
+
+        debug_lines = []
+        debug_lines2 = []
+
+        for i in range(len(left_bal)):
+            diff = left_bal_2[i] - right_bal_2[i]
+
+            dist_new = norm(diff)
+            dist_orig = norm(left_bal[i] - right_bal[i])
+
+            diff_per_side = normalize(diff) * ((dist_new - dist_orig) / 2)
+
+            right_bal_2[i] += diff_per_side
+            left_bal_2[i] -= diff_per_side
+
+            debug_lines.append(PolyLine2D([left_bal_2[i], right_bal_2[i]]))
+            debug_lines2.append(PolyLine2D([left_bal[i], right_bal[i]]))
+
+
         inner = []
         for x in openglider.utils.linspace(0, 1, 2 + midribs):
             l1 = left_bal * (1-x)
@@ -340,4 +376,13 @@ class Cell(CachedObject):
 
         #ballooned = [left_bal, right_bal]
 
-        return inner
+        return {
+            "inner": inner,
+            "ballooned": [left_bal, right_bal],
+            "ballooned_new": [left_bal_2, right_bal_2],
+            "ballooned_new_copy": [left_bal_3, right_bal_3],
+            "debug": [left, right],
+            "debug_1": debug_lines,
+            "debug_2": debug_lines2
+            }
+

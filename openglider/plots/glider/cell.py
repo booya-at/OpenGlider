@@ -1,4 +1,5 @@
 import math
+import numpy as np
 
 from openglider.airfoil import get_x_value
 from openglider.plots import cuts, PlotPart
@@ -68,11 +69,29 @@ class PanelPlot(object):
         inner_front = [(line, ik[0]) for line, ik in zip(self.inner, ik_values)]
         inner_back = [(line, ik[1]) for line, ik in zip(self.inner, ik_values)]
 
-        shape_3d_amount_front = self.panel.cut_front.get("amount_3d", None)
-        shape_3d_amount_back = self.panel.cut_back.get("amount_3d", None)
+        shape_3d_amount_front = [-x for x in self.panel.cut_front["amount_3d"]]
+        shape_3d_amount_back = self.panel.cut_back["amount_3d"]
 
-        if shape_3d_amount_front is not None:
-            shape_3d_amount_front = [-x for x in shape_3d_amount_front]
+        # calculate difference rib->panel
+        for j in (0, -1):  # left, right
+            profile = [self.cell.prof1, self.cell.prof2][j]
+            line_2d = self.inner[j][ik_values[j][0]:ik_values[j][-1]]
+            line_3d = profile[ik_values[j][0]:ik_values[j][-1]]
+            diff = line_3d.get_length() - line_2d.get_length()
+
+            shape_3d_amount_front[j] = -diff/2
+            shape_3d_amount_back[j] = diff/2
+
+            if diff > 0.003 or self.panel.name in ("c16p1", "c17p1"):
+                print(self.panel.name, j, diff, line_2d.get_length(), line_3d.get_length())
+
+        if self.panel.cut_front["type"] != "cut_3d":
+            dist = np.linspace(shape_3d_amount_front[0], shape_3d_amount_front[-1], len(shape_3d_amount_front))
+            shape_3d_amount_front = list(dist)
+
+        if self.panel.cut_back["type"] != "cut_3d":
+            dist = np.linspace(shape_3d_amount_back[0], shape_3d_amount_back[-1], len(shape_3d_amount_back))
+            shape_3d_amount_back = list(dist)
 
         cut_front_result = cut_front.apply(inner_front, self.outer[0], self.outer[1], shape_3d_amount_front)
         cut_back_result = cut_back.apply(inner_back, self.outer[0], self.outer[1], shape_3d_amount_back)
@@ -120,6 +139,11 @@ class PanelPlot(object):
         envelope += PolyLine2D([envelope[0]])
 
         plotpart.layers["envelope"].append(envelope)
+
+        if self.config.debug:
+            line1, line2 = self._flattened_cell["debug"]
+            plotpart.layers["debug"].append(line1[ik_values[0][0]:ik_values[0][1]])
+            plotpart.layers["debug"].append(line2[ik_values[-1][0]:ik_values[-1][1]])
 
         # sewings
         plotpart.layers["stitches"] += [
@@ -571,11 +595,9 @@ class CellPlotMaker:
 
     def _get_flatten_cell(self):
         if self._flattened_cell is None:
-            inner = self.cell.get_flattened_cell(self.config.midribs)
+            flattened_cell = self.cell.get_flattened_cell(self.config.midribs)
 
-            left_bal = inner[0]
-            right_bal = inner[-1]
-            ballooned = [left_bal, right_bal]
+            left_bal, right_bal = flattened_cell["ballooned"]
 
             outer_left = left_bal.copy().add_stuff(-self.config.allowance_general)
             outer_right = right_bal.copy().add_stuff(self.config.allowance_general)
@@ -583,12 +605,10 @@ class CellPlotMaker:
             outer_orig = [outer_left, outer_right]
             outer = [l.copy().check() for l in outer_orig]
 
-            self._flattened_cell = {
-                "inner": inner,
-                "ballooned": ballooned,
-                "outer": outer,
-                "outer_orig": outer_orig
-            }
+            flattened_cell["outer"] = outer
+            flattened_cell["outer_orig"] = outer_orig
+
+            self._flattened_cell = flattened_cell
 
         return self._flattened_cell
 
@@ -615,25 +635,18 @@ class CellPlotMaker:
 
         def get_amount(cut):
             cut_key = cut_hash(cut)
-            return cuts_3d[cut_key]
+            data = cuts_3d[cut_key]
+            return data
 
         for panel in self.cell.panels:
-            cut_types = panel.cut_front["type"], panel.cut_back["type"]
-            if "cut_3d" in cut_types:
-                amount_front, amount_back = panel.integrate_3d_shaping(self.cell, self.config.sigma_3d_cut, inner)
+            amount_front, amount_back = panel.integrate_3d_shaping(self.cell, self.config.sigma_3d_cut, inner)
 
-                if panel.cut_front["type"] == "cut_3d":
-                    add_amount(panel.cut_front, amount_front)
-
-                if panel.cut_back["type"] == "cut_3d":
-                    add_amount(panel.cut_back, amount_back)
+            add_amount(panel.cut_front, amount_front)
+            add_amount(panel.cut_back, amount_back)
 
         for panel in self.cell.panels:
-            if panel.cut_front["type"] == "cut_3d":
-                panel.cut_front["amount_3d"] = get_amount(panel.cut_front)
-
-            if panel.cut_back["type"] == "cut_3d":
-                panel.cut_back["amount_3d"] = get_amount(panel.cut_back)
+            panel.cut_front["amount_3d"] = get_amount(panel.cut_front)
+            panel.cut_back["amount_3d"] = get_amount(panel.cut_back)
 
     def get_panels(self, panels=None):
         cell_panels = []

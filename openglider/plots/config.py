@@ -17,6 +17,7 @@ class LaserConfig(Config):
     allowance_trailing_edge = 0.01
     allowance_entry_open = 0.015
 
+
 sewing_config = {
     "marks": {
         "diagonal": Inside(marks.Triangle()),
@@ -37,28 +38,38 @@ sewing_config = {
         "entry_open": 0.015
     },
     "scale": 1000,
-    "layers":
-        {"cuts": {
+    "layers": {
+        "cuts": {
             "id": 'outer',
             "stroke-width": "0.1",
             "stroke": "red",
             "fill": "none"},
-         "marks": {
-             "id": 'marks',
-             "stroke-width": "0.1",
-             "stroke": "green",
-             "fill": "none"},
-         "text": {
-             "id": 'text',
-             "stroke-width": "0.1",
-             "stroke": "green",
-             "fill": "none"},
-         "stitches": {
-             "id": "stitches",
-             "stroke-width": "0.1",
-             "stroke": "black",
-             "fill": "none"}
-         }
-
+        "marks": {
+            "id": 'marks',
+            "stroke-width": "0.1",
+            "stroke": "green",
+            "fill": "none"},
+        "debug": {
+            "id": 'marks',
+            "stroke-width": "0.1",
+            "stroke": "grey",
+            "fill": "none"},
+        "inner": {
+            "id": "inner",
+            "stroke-width": "0.1",
+            "stroke": "green",
+            "fill": "none"
+        },
+        "text": {
+            "id": 'text',
+            "stroke-width": "0.1",
+            "stroke": "green",
+            "fill": "none"},
+        "stitches": {
+            "id": "stitches",
+            "stroke-width": "0.1",
+            "stroke": "black",
+            "fill": "none"}
+    }
 
 }

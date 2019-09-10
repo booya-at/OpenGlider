@@ -7,11 +7,12 @@ from openglider.plots import marks, cuts
 
 class PatternConfig(Config):
     complete_glider = True
+    debug = False
     profile_numpoints = 250
 
     cut_entry = cuts.FoldedCut
     cut_trailing_edge = cuts.ParallelCut
-    cut_design = cuts.Cut3D
+    cut_design = cuts.ParallelCut
     cut_diagonal_fold = cuts.FoldedCut
     cut_3d = cuts.Cut3D
 
@@ -53,7 +54,7 @@ class PatternConfig(Config):
 
     strap_num_folds = 0
 
-    sigma_3d_cut = 0.035
+    sigma_3d_cut = 0.06
 
     insert_attachment_point_text = True
 

@@ -154,10 +154,18 @@ class PolyLine(HashedList):
 
     def get_segment_lengthes(self):
         lengths = []
-        for p1, p2 in zip(self.data[:-1], self.data[1:]):
-            lengths.append(norm(p2 - p1))
+        segments = self.get_segments()
+        for s in segments:
+            lengths.append(norm(s))
 
         return lengths
+
+    def get_segments(self):
+        segments = []
+        for p1, p2 in zip(self.data[:-1], self.data[1:]):
+            segments.append(p2 - p1)
+
+        return segments
 
     def scale(self, x, y=None):
         if y is None:

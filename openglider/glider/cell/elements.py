@@ -466,10 +466,12 @@ class Panel(object):
         :return: [[front_ik_0, back_ik_0], ...[front_ik_n, back_ik_n]] with n is numribs + 1
         """
         x_values = cell.rib1.profile_2d.x_values
-        ik_values = []
+        ik_values = [
+            [get_x_value(x_values, self.cut_front["left"]), get_x_value(x_values, self.cut_back["left"])]
+        ]
 
-        for i in range(numribs+2):
-            y = i/numribs
+        for i in range(numribs):
+            y = float(i+1)/(numribs+1)
             x_front = self.cut_front["left"] + y * (self.cut_front["right"] -
                                                     self.cut_front["left"])
 
@@ -481,6 +483,10 @@ class Panel(object):
 
             ik_values.append([front, back])
 
+        ik_values.append(
+            [get_x_value(x_values, self.cut_front["right"]), get_x_value(x_values, self.cut_back["right"])]
+        )
+
         return ik_values
 
     def integrate_3d_shaping(self, cell, sigma, inner_2d, midribs=None):
@@ -489,7 +495,7 @@ class Panel(object):
         :param sigma: std-deviation parameter of gaussian distribution used to weight the length differences.
         :param inner_2d: list of 2D polylines (flat representation of the cell)s
         :param midribs: precomputed midribs, None by default
-        :return: front, back (lists of lenghts) with legth equal to number of midribs
+        :return: front, back (lists of lenghts) with length equal to number of midribs
         """
         numribs = len(inner_2d) - 2
         if midribs is None or len(midribs) != len(inner_2d):
@@ -540,13 +546,27 @@ class Panel(object):
             for l2d, l3d in zip(lengthes_2d, lengthes_3d):
                 total += l3d - l2d
 
+
             amount_front *= ff
             amount_back *= ff
 
-            if amount_front + amount_back > total:
-                normalization = total / (amount_front + amount_back)
-                amount_front *= normalization
-                amount_back *= normalization
+            if self.cut_front["type"] != "cut_3d" and self.cut_back["type"] != "cut_3d":
+                if abs(amount_front + amount_back) > abs(total):
+                    normalization = abs(total / (amount_front + amount_back))
+                    amount_front *= normalization
+                    amount_back *= normalization
+
+            if rib_no == 0 or rib_no == numribs+1:
+                amount_front = 0
+                amount_back = 0
+            #
+            # # compare profile with rib
+            # if rib_no == 0 or rib_no == numribs+1:
+            #     diff = rib_3d.get_length() - rib_2d.get_length()
+            #     amount_front = diff / 2
+            #     amount_back = diff / 2
+            #     if abs(diff > 0.001):
+            #         print(self.name, rib_no, diff, rib_3d.get_length(), rib_2d.get_length())
 
             front.append(amount_front)
             back.append(amount_back)

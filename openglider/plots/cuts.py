@@ -46,9 +46,34 @@ class DesignCut(object):
     def __from_json__(cls, **kwargs):
         return cls
 
+    def get_p1_p2(self, inner_lists, amount_3d):
+        l1, ik1 = inner_lists[0]
+        l2, ik2 = inner_lists[-1]
+
+        if amount_3d is not None:
+            ik1_new = l1.extend(ik1, amount_3d[0])
+            ik2_new = l2.extend(ik2, amount_3d[-1])
+
+            return l1[ik1_new], l2[ik2_new]
+
+        return l1[ik1], l2[ik2]
+
+    def _get_indices(self, inner_lists, amount_3d):
+        indices = []
+        for i, lst in enumerate(inner_lists):
+            line, ik = lst
+            if amount_3d is not None:
+                ik = line.extend(ik, amount_3d[i])
+
+            indices.append(ik)
+
+        return indices
+
     def apply(self, inner_lists, outer_left, outer_right, amount_3d=None):
-        p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
-        p2 = inner_lists[-1][0][inner_lists[-1][1]]
+        #p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
+        #p2 = inner_lists[-1][0][inner_lists[-1][1]]
+        p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
+        indices = self._get_indices(inner_lists, amount_3d)
         normvector = normalize(rotation_2d(math.pi/2).dot(p1-p2))
 
         newlist = []
@@ -74,13 +99,14 @@ class DesignCut(object):
 
         curve = PolyLine2D(newlist)
 
-        return CutResult(curve, leftcut_index, rightcut_index, [x[1] for x in inner_lists])
+        return CutResult(curve, leftcut_index, rightcut_index, indices)
 
 
 class SimpleCut(DesignCut):
     def apply(self, inner_lists, outer_left, outer_right, amount_3d=None):
-        p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
-        p2 = inner_lists[-1][0][inner_lists[-1][1]]
+        p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
+        indices = self._get_indices(inner_lists, amount_3d)
+
         normvector = normalize(rotation_2d(math.pi/2).dot(p1-p2))
 
         leftcut_index = next(outer_left.cut(p1, p2, inner_lists[0][1], extrapolate=True))
@@ -101,7 +127,7 @@ class SimpleCut(DesignCut):
 
         curve = PolyLine2D([leftcut, leftcut+diff_l, rightcut+diff_r, rightcut])
 
-        return CutResult(curve, leftcut_index[0], rightcut_index[0], [x[1] for x in inner_lists])
+        return CutResult(curve, leftcut_index[0], rightcut_index[0], indices)
 
 
 class Cut3D(DesignCut):
@@ -123,8 +149,7 @@ class Cut3D(DesignCut):
             ik_new = curve.extend(ik, offset)
             inner_new.append([curve, ik_new])
 
-        p1 = inner_new[0][0][inner_new[0][1]]  # [[list1,pos1],[list2,pos2],...]
-        p2 = inner_new[-1][0][inner_new[-1][1]]
+        p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
         normvector = normalize(rotation_2d(math.pi/2).dot(p1-p2))
 
         leftcut_index = next(outer_left.cut(p1, p2, inner_lists[0][1], extrapolate=True))
@@ -157,8 +182,9 @@ class FoldedCut(DesignCut):
         super(FoldedCut, self).__init__(amount)
 
     def apply(self, inner_lists, outer_left, outer_right, amount_3d=None):
-        p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
-        p2 = inner_lists[-1][0][inner_lists[-1][1]]
+        p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
+        indices = self._get_indices(inner_lists, amount_3d)
+
         normvector = normalize(rotation_2d(math.pi/2).dot(p1-p2))
 
         left_start_index = next(outer_left.cut(p1, p2, inner_lists[0][1], extrapolate=True))[0]
@@ -196,7 +222,7 @@ class FoldedCut(DesignCut):
 
         curve = new_left+new_right[::-1]
 
-        return CutResult(curve, left_start_index, right_start_index, [x[1] for x in inner_lists])
+        return CutResult(curve, left_start_index, right_start_index, indices)
 
 
 # TRAILING-EDGE Style
@@ -205,8 +231,9 @@ class ParallelCut(DesignCut):
     Cut to continue in a parrallel way (trailing-edge)
     """
     def apply(self, inner_lists, outer_left, outer_right, amount_3d=None):
-        p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
-        p2 = inner_lists[-1][0][inner_lists[-1][1]]
+        p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
+        indices = self._get_indices(inner_lists, amount_3d)
+
         normvector = normalize(rotation_2d(math.pi/2).dot(p1-p2))
 
         leftcut_index = next(outer_left.cut(p1, p2, inner_lists[0][1], extrapolate=True))
@@ -227,7 +254,11 @@ class ParallelCut(DesignCut):
 
         curve = PolyLine2D([leftcut, leftcut+diff, rightcut+diff, rightcut])
 
-        return CutResult(curve, leftcut_index[0], rightcut_index[0], [x[1] for x in inner_lists])
+        iks = [x[1] for x in inner_lists]
+
+        iks[0] = inner_lists[0][0].extend()
+
+        return CutResult(curve, leftcut_index[0], rightcut_index[0], indices)
 
 
 # TODO: used?

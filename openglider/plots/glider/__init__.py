@@ -2,7 +2,7 @@ import collections
 
 from openglider.plots.drawing import Layout
 from openglider.plots.glider.cell import CellPlotMaker
-from openglider.plots.glider.ribs import RibPlot
+from openglider.plots.glider.ribs import RibPlot, SingleSkinRibPlot
 from openglider.plots.glider.config import PatternConfig, OtherPatternConfig
 
 
@@ -88,9 +88,13 @@ class PlotMaker(object):
         return self.panels
 
     def get_ribs(self, rotate=False):
+        from openglider.glider.rib.rib import SingleSkinRib
         self.ribs = []
         for rib in self.glider_3d.ribs:
-            rib_plot = RibPlot(rib, self.config)
+            if isinstance(rib, SingleSkinRib):
+                rib_plot = SingleSkinRibPlot(rib)
+            else:
+                rib_plot = RibPlot(rib, self.config)
 
             rib_plot.flatten(self.glider_3d)
             if rotate:
