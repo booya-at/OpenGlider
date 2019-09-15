@@ -1,7 +1,7 @@
 import os
 from copy import deepcopy
 
-import numpy
+import numpy as np
 from pivy import coin
 
 import FreeCADGui as Gui
@@ -35,11 +35,14 @@ class AirfoilTool(BaseTool):
         self.Qfit_button = QtGui.QPushButton('modify with handles')
         self.Qnum_points_upper = QtGui.QSpinBox(self.base_widget)
         self.Qnum_points_lower = QtGui.QSpinBox(self.base_widget)
+        self.Qshow_pressure_dist = QtGui.QCheckBox("show pressure", parent=self.base_widget)
+        self.Qalpha = QtGui.QDoubleSpinBox(parent=self.base_widget)
 
         self.airfoil_sep = coin.SoSeparator()
         self.spline_sep = coin.SoSeparator()
         self.upper_spline = coin.SoSeparator()
         self.lower_spline = coin.SoSeparator()
+        self.pressure_sep = coin.SoSeparator()
         self.ctrl_upper = None
         self.ctrl_lower = None
         self.upper_cpc = None
@@ -60,6 +63,8 @@ class AirfoilTool(BaseTool):
         self.Qairfoil_layout.addWidget(self.Qfit_button)
         self.Qairfoil_layout.addWidget(self.Qnum_points_upper)
         self.Qairfoil_layout.addWidget(self.Qnum_points_lower)
+        self.Qairfoil_layout.addWidget(self.Qshow_pressure_dist)
+        self.Qairfoil_layout.addWidget(self.Qalpha)
 
 
         self.Qnum_points_upper.setMaximum(10)
@@ -71,6 +76,10 @@ class AirfoilTool(BaseTool):
         self.Qnum_points_lower.setMinimum(4)
         self.Qnum_points_lower.setDisabled(True)
         self.Qnum_points_lower.valueChanged.connect(self.fit_lower_spline)
+
+        self.Qshow_pressure_dist.setDisabled(True)
+        self.Qalpha.setDisabled(True)
+        self.Qalpha.setValue(9.0)
 
         # selection widget
         self.layout.addWidget(self.QList_View)
@@ -92,9 +101,11 @@ class AirfoilTool(BaseTool):
         self.QList_View.currentRowChanged.connect(self.update_selection)
         self.Qfit_button.clicked.connect(self.spline_edit)
         self.Qcopy_button.clicked.connect(self.copy_airfoil)
+        self.Qshow_pressure_dist.stateChanged.connect(self.pressure_vis)
+        self.Qalpha.valueChanged.connect(self.pressure_vis)
 
     def setup_pivy(self):
-        self.task_separator += [self.airfoil_sep, self.spline_sep]
+        self.task_separator += [self.airfoil_sep, self.spline_sep, self.pressure_sep]
         self.update_selection()
         Gui.SendMsgToActiveView('ViewFit')
 
@@ -211,6 +222,8 @@ class AirfoilTool(BaseTool):
             self.is_edit = True
             self.Qnum_points_upper.setDisabled(False)
             self.Qnum_points_lower.setDisabled(False)
+            self.Qshow_pressure_dist.setDisabled(False)
+            self.Qshow_pressure_dist.setDisabled(False)
             self.update_airfoil(thin=True)
             self.spline_sep.removeAllChildren()
             self.airfoil_sep += [pp.Line(self.current_airfoil.data).object]
@@ -235,9 +248,13 @@ class AirfoilTool(BaseTool):
 
     def upper_on_change(self):
         self._update_upper_spline(100)
+        if self.Qshow_pressure_dist.isChecked():
+            self.pressure_vis()
 
     def lower_on_change(self):
         self._update_lower_spline(100)
+        if self.Qshow_pressure_dist.isChecked():
+            self.pressure_vis()
 
     def upper_drag_release(self):
         self._update_upper_spline(200)
@@ -290,6 +307,8 @@ class AirfoilTool(BaseTool):
             self.QList_View.setEnabled(True)
             self.Qnum_points_upper.setDisabled(True)
             self.Qnum_points_lower.setDisabled(True)
+            self.Qshow_pressure_dist.setDisabled(True)
+            self.Qshow_pressure_dist.setChecked(False)
             self.upper_cpc.on_drag = []
             self.lower_cpc.on_drag = []
             self.upper_cpc.drag_release = []
@@ -332,6 +351,47 @@ class AirfoilTool(BaseTool):
     def reject(self):
         self.unset_edit_mode()
         super(AirfoilTool, self).reject()
+
+    def pressure_vis(self):
+        self.pressure_sep.removeAllChildren()
+        if self.Qshow_pressure_dist.isChecked():
+            self.Qalpha.setEnabled(True)
+            self.show_pressure()
+        else:
+            print("is unchecked")
+            self.Qalpha.setEnabled(False)
+        
+    def show_pressure(self):
+        try:
+            import paraBEM
+            from paraBEM.pan2d import DirichletDoublet0Source0Case2
+        except ImportError:
+            print("paraBem is not installed")
+            print("this functionality will not work")
+            return False
+        # 1. get the panels from the airfoil
+        self.current_airfoil.apply_splines()
+        coords = self.current_airfoil.data[:-1]
+        pans = []
+        vertices = []
+        vertices = [paraBEM.PanelVector2(*i) for i in coords]
+        vertices[0].wake_vertex = True
+        for i, coord in enumerate(coords):
+            j = (i+1 if (i + 1) < len(coords) else 0)
+            pan = paraBEM.Panel2([vertices[i], vertices[j]])
+            pans.append(pan)
+        # 2. compute pressure
+        case = DirichletDoublet0Source0Case2(pans)
+        alpha = np.deg2rad(self.Qalpha.value())
+        case.v_inf = paraBEM.Vector2(np.cos(alpha), np.sin(alpha))
+        case.run()
+        for pan in pans:
+            p0 = pan.center
+            p1 = p0 + pan.n * pan.cp * 0.03
+            l = [[*p0, 0.], [*p1, 0.]]  # adding z-value
+            self.pressure_sep += pp.Line(l).object
+
+
 
 
 class QAirfoil_item(QtGui.QListWidgetItem):
