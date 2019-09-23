@@ -222,8 +222,14 @@ class AirfoilTool(BaseTool):
             self.is_edit = True
             self.Qnum_points_upper.setDisabled(False)
             self.Qnum_points_lower.setDisabled(False)
-            self.Qshow_pressure_dist.setDisabled(False)
-            self.Qshow_pressure_dist.setDisabled(False)
+            try:
+                import paraBEM
+                from paraBEM.pan2d import DirichletDoublet0Source0Case2
+            except ImportError:
+                print("pressure visualization neeeds paraBEM")
+            else:
+                self.Qshow_pressure_dist.setDisabled(False)
+                self.Qshow_pressure_dist.setDisabled(False)
             self.update_airfoil(thin=True)
             self.spline_sep.removeAllChildren()
             self.airfoil_sep += [pp.Line(self.current_airfoil.data).object]
@@ -362,13 +368,9 @@ class AirfoilTool(BaseTool):
             self.Qalpha.setEnabled(False)
         
     def show_pressure(self):
-        try:
-            import paraBEM
-            from paraBEM.pan2d import DirichletDoublet0Source0Case2
-        except ImportError:
-            print("paraBem is not installed")
-            print("this functionality will not work")
-            return False
+        import paraBEM
+        from paraBEM.pan2d import DirichletDoublet0Source0Case2
+
         # 1. get the panels from the airfoil
         self.current_airfoil.apply_splines()
         coords = self.current_airfoil.data[:-1]
@@ -390,6 +392,7 @@ class AirfoilTool(BaseTool):
             p1 = p0 + pan.n * pan.cp * 0.03
             l = [[*p0, 0.], [*p1, 0.]]  # adding z-value
             self.pressure_sep += pp.Line(l).object
+        return True
 
 
 
