@@ -24,9 +24,10 @@ def get_specs(glider):
 
 def get_glider_data(glider):
     specsheet = get_specs(glider)
+    glider.lineset.recalc(iterations=30)
     linesheet = glider.lineset.get_table()
     linesheet2 = glider.lineset.get_table_2()
-    linesheet = glider.lineset.get_table_2()
+    # linesheet = glider.lineset.get_table_2()
     rigidfoils = get_rigidfoils(glider)
     straps = get_straps(glider)
     material_sheets = get_material_sheets(glider)

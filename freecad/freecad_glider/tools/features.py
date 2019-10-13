@@ -66,7 +66,7 @@ class BaseFeature(OGBaseObject):
             if App.GuiUp and not self.obj.ViewObject.Proxy:
                 self.restore_view_provider()  # defined in parent class
             # backward compatibility (remove this)
-            self.obj.Proxy.addProperties()
+            # self.obj.Proxy.addProperties()
 
             self.obj.ViewObject.Proxy.recompute = True
             # we have blocked the automatic update mechanism. so now we have to call it manually

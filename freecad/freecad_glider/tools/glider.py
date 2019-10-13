@@ -79,7 +79,7 @@ def _addProperty(obj, name, value, group, docs, p_type=None):
     property_list:
     property_name property_value, property_group, property_docs
     '''
-    if hasattr(obj, name):
+    if name in obj.PropertiesList:
         return
     type_dict = {
         bool: 'App::PropertyBool',
@@ -340,6 +340,7 @@ class OGGliderVP(OGBaseVP):
         self._updateData(self.view_obj, prop)
 
     def _updateData(self, fp, prop='all'):
+        print(prop)
         if not self.getGliderInstance():
             return
         if not 'Visibility' in fp.PropertiesList or not fp.Visibility:

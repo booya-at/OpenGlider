@@ -16,7 +16,7 @@ class PatternConfig(Config):
     cut_diagonal_fold = cuts.FoldedCut
     cut_3d = cuts.Cut3D
 
-    midribs = 10
+    midribs = 50
 
     patterns_align_dist_y = 0.05
     patterns_align_dist_x = patterns_align_dist_y
@@ -54,7 +54,7 @@ class PatternConfig(Config):
 
     strap_num_folds = 0
 
-    sigma_3d_cut = 0.06
+    sigma_3d_cut = 0.03
 
     insert_attachment_point_text = True
 
