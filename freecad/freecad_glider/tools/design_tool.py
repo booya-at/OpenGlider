@@ -378,7 +378,7 @@ class CutPoint(Marker):
         try:
             return list(self.parametric_glider.shape[self.rib_nr, abs(self.rib_pos)] + [0])
         except IndexError:
-            raise 'index ' + self.rib_nr + ' out of range'
+            raise IndexError('index ' + self.rib_nr + ' out of range')
 
     def get_rib_pos(self):
         # we have to do this 
@@ -543,6 +543,8 @@ class CutLine(Line):
     def get_cut_dict(cls):
         cuts = [line.get_dict() for line in cls.upper_line_list + cls.lower_line_list]
         cuts = sorted(cuts, key=lambda x: x['right'])
+        if not cuts:
+            return []
         sorted_cuts = [cuts[0]]
         for cut in cuts[1:]:
             for key in ['type', 'left', 'right']:

@@ -336,11 +336,11 @@ class PanelPlot(object):
                         # rotated later
                         p2 = left
                         p1 = right
-                        text_align = text_align
+                        # text_align = text_align
                     else:
                         p1 = left
                         p2 = right
-                        text_align = text_align
+                        # text_align = text_align
                     plotpart.layers["text"] += Text(" {} ".format(attachment_point.name), p1, p2,
                                                     size=0.01,  # 1cm
                                                     align=text_align, valign=0, height=0.8).get_vectors()
