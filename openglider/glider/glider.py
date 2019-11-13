@@ -136,7 +136,7 @@ class Glider(object):
         mesh = Mesh()
         for rib in self.ribs:
             if not rib.profile_2d.has_zero_thickness:
-                mesh += Mesh.from_rib(rib, filled=True, glider=self, mesh_option='QYzipa0.0005')
+                mesh += rib.get_mesh(filled=True, glider=self)
 
         for cell in self.cells:
             for diagonal in cell.diagonals:
