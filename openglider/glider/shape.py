@@ -42,6 +42,10 @@ class Shape(object):
         return [self.ribs, self.front, self.back]
 
     @property
+    def span(self):
+        return
+
+    @property
     def chords(self):
         return [norm(p1-p2) for p1, p2 in zip(self.front, self.back)]
 

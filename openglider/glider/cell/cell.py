@@ -225,6 +225,16 @@ class Cell(CachedObject):
         return -0.5 * np.cross(p2_1 - p1_2, p2_2 - p1_1)[-1]
 
     @property
+    def centroid(self):
+        p1_1 = np.array(self.rib1.align([0, 0, 0]))
+        p1_2 = np.array(self.rib1.align([1, 0, 0]))
+        p2_1 = np.array(self.rib2.align([0, 0, 0]))
+        p2_2 = np.array(self.rib2.align([1, 0, 0]))
+
+        centroid = (p1_1 + p1_2 + p2_1 + p2_2) / 4
+        return centroid
+
+    @property
     def aspect_ratio(self):
         return self.span ** 2 / self.area
 

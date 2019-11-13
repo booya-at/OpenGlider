@@ -7,6 +7,7 @@ from pivy import coin
 import FreeCAD as App
 import FreeCADGui as Gui
 from openglider.vector.polygon import CirclePart
+from openglider.vector import PolyLine2D
 from openglider.vector.spline import Bezier
 from PySide import QtCore, QtGui
 
@@ -52,6 +53,7 @@ class ShapeTool(BaseTool):
 
         self.circle_front = coin.SoSeparator()
         self.circle_back = coin.SoSeparator()
+        self.center_line = coin.SoSeparator()
 
         self.setup_widget()
         self.setup_pivy()
@@ -165,6 +167,8 @@ class ShapeTool(BaseTool):
         self.task_separator.addChild(self.cell_dist_cpc)
         self.task_separator.addChild(self.circle_front)
         self.task_separator.addChild(self.circle_back)
+        self.task_separator.addChild(self.center_line)
+
 
         # set drag_release callbacks
         self.front_cpc.on_drag.append(self.update_shape)
@@ -311,12 +315,25 @@ class ShapeTool(BaseTool):
         sep += (Line(points, color='grey').object)
         self.shape += (Line(dist_line, color='red', width=2).object)
 
+        # draw circles
         self.circle_front.removeAllChildren()
         self.circle_back.removeAllChildren()
         circle_front = CirclePart(*self.parametric_glider.shape.front_curve.get_sequence(3))
         circle_back = CirclePart(*self.parametric_glider.shape.back_curve.get_sequence(3))
         self.circle_front.addChild(Line(circle_front.get_sequence(), color="red").object)
         self.circle_back.addChild(Line(circle_back.get_sequence(), color="red").object)
+
+        # draw center line
+        self.center_line.removeAllChildren()
+        center_line = []
+        for rib_no in range(_shape.rib_no):
+            center_line.append(_shape.get_point(rib_no, 0.5))
+        self.center_line.addChild(Line(center_line, color="red").object)
+        y = _shape.get_point(0,0.5)[1]
+        x = _shape.get_point(_shape.rib_no-1, 0)[0] * 1.2
+        center_line2 = PolyLine2D([[-x, y], [x, y]])
+        self.center_line.addChild(Line(center_line2, color="red").object)
+
 
         if not preview:
             for rib in ribs:

@@ -104,7 +104,6 @@ class ParametricShape(object):
 
         return cells
 
-
     def get_half_shape(self):
         """
         Return shape of the glider:

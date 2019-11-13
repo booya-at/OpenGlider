@@ -109,6 +109,7 @@ class Glider(object):
         return glider
 
     def export_3d(self, path="", *args, **kwargs):
+        # todo: fix
         filetype = path.split(".")[-1]
         return EXPORT_3D[filetype](self, path, *args, **kwargs)
 
@@ -132,7 +133,10 @@ class Glider(object):
         return panels
 
     def get_mesh(self, midribs=0):
-        mesh = sum([Mesh.from_rib(rib, filled=True, glider=self, mesh_option='QYqazip') for rib in self.ribs], Mesh())
+        mesh = Mesh()
+        for rib in self.ribs:
+            if not rib.profile_2d.has_zero_thickness:
+                mesh += Mesh.from_rib(rib, filled=True, glider=self, mesh_option='QYzipa0.0005')
 
         for cell in self.cells:
             for diagonal in cell.diagonals:
@@ -211,12 +215,6 @@ class Glider(object):
 
         for i in range(len(self.ribs))[:-1]:
             self.ribs[i].profile_2d = (ribs[i] + ribs[i+1]) * 0.5
-
-    def return_average_ribs(self, num=0, num_average=8):
-        glider = self.copy()
-        glider.apply_mean_ribs(num_average)
-        glider.close_rib()
-        return glider.return_ribs(num, ballooning=False)
 
     def close_rib(self, rib=-1):
         self.ribs[rib].profile_2d *= 0.
@@ -378,10 +376,10 @@ class Glider(object):
 
             diff = norm(vektor) * (1 + ballooning)
 
-            if i==0 and self.has_center_cell:
-                diff /= 2  # upper+lower/2 but normally 2 times (symmetry)
-
-            d += 2*diff
+            if i == 0 and self.has_center_cell:
+                d += diff
+            else:
+                d += 2 * diff
 
         return d
 
@@ -431,6 +429,22 @@ class Glider(object):
             return copy.deepcopy([rib.pos for rib in self.ribs])  # This is much faster
         else:
             return [rib.align([x, 0, 0]) for rib in self.ribs]
+
+    @property
+    def centroid(self):
+        area = 0
+        p = 0
+
+        for i, cell in enumerate(self.cells):
+            cell_area = cell.area
+            if i == 0 and self.has_center_cell:
+                p += cell.centroid[0] * cell_area
+                area += cell.area
+            else:
+                p += 2 * cell.centroid[0] * cell_area
+                area += 2 * cell.area
+
+        return p / area
 
     @property
     def attachment_points(self):

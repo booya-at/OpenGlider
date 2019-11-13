@@ -6,6 +6,7 @@ from openglider.airfoil import Profile3D
 from openglider.utils.cache import CachedObject, cached_property
 from openglider.vector.functions import rotation_3d, set_dimension
 from openglider.vector.transformation import Rotation, Scale, Translation
+from openglider.mesh import Mesh, triangulate
 from openglider.glider.rib.elements import FoilCurve
 from numpy.linalg import norm
 
@@ -161,6 +162,41 @@ class Rib(CachedObject):
                 connected_lines.add(line)
         return list(connected_lines)
 
+    def get_mesh(self, hole_num=10, glider=None, filled=False, max_area=None):
+        if self.is_closed():
+            # stabi
+            # TODO: return line
+            return Mesh.from_indexed([], {}, {})
+
+        vertices = list(self.get_hull(glider))[:-1]
+        boundary = [list(range(len(vertices))) + [0]]
+        hole_centers = []
+
+        if len(self.holes) > 0 and hole_num > 3:
+            for nr, hole in enumerate(self.holes):
+                start_index = len(vertices)
+                hole_vertices = list(hole.get_flattened(self, num=hole_num, scale=False))[:-1]
+                hole_indices = list(range(len(hole_vertices))) + [0]
+                vertices += hole_vertices
+                boundary.append([start_index + i for i in hole_indices])
+                hole_centers.append(hole.get_center(self, scale=False).tolist())
+
+        if not filled:
+            segments = []
+            for lst in boundary:
+                segments += triangulate.Triangulation.get_segments(lst)
+            return Mesh.from_indexed(self.align_all(vertices), {'rib': segments}, {})
+        else:
+            tri = triangulate.Triangulation(vertices, boundary, hole_centers)
+            if max_area is not None:
+                tri.meshpy_restrict_area = max_area
+            mesh = tri.triangulate()
+
+            triangles = list(mesh.elements)
+            vertices = self.align_all(mesh.points)
+
+            return Mesh.from_indexed(vertices, polygons={"ribs": triangles} , boundaries={self.name: list(range(len(vertices)))})
+
 
 class SingleSkinRib(Rib):
     def __init__(self, profile_2d=None, startpoint=None,
@@ -215,7 +251,7 @@ class SingleSkinRib(Rib):
         json_dict["single_skin_par"] = self.single_skin_par
         return json_dict
 
-    def get_hull(self, glider):
+    def get_hull(self, glider=None):
         '''
         returns a modified profile2d
         '''
@@ -299,6 +335,7 @@ def pseudo_2d_cross(v1, v2):
 def straight_line(x, x0, x1):
     x_proj = (x - x0).dot(x1 - x0) / norm(x1 - x0)**2
     return x0 + (x1 - x0) * x_proj
+
 
 def parabola(x, x0, x1, x_max):
     """parabola used for singleskin ribs

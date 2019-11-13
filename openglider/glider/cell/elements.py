@@ -25,7 +25,7 @@ import numpy as np
 import math
 
 from openglider.airfoil import get_x_value
-from openglider.mesh import Mesh
+from openglider.mesh import Mesh, triangulate
 from openglider.vector import norm
 from openglider.vector.projection import flatten_list
 from openglider.utils import Config
@@ -170,10 +170,12 @@ class DiagonalRib(object):
             if project_3d:
                 points2d = _mesh.map_to_2d(point_array)
 
-            mesh_info = _mesh.mptriangle.MeshInfo()
-            mesh_info.set_points(points2d)
-            mesh_info.set_facets(segment)
-            mesh = _mesh.custom_triangulation(mesh_info, "Qz")
+            tri = triangulate.Triangulation(points2d, [edge])
+            mesh = tri.triangulate(options="Qz")
+            # mesh_info = _mesh.mptriangle.MeshInfo()
+            # mesh_info.set_points(points2d)
+            # mesh_info.set_facets(segment)
+            # mesh = _mesh.custom_triangulation(mesh_info, "Qz")
 
             return Mesh.from_indexed(point_array, {"diagonals": list(mesh.elements)}, boundaries={"diagonals": edge})
 

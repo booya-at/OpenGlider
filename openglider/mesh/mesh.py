@@ -1,16 +1,10 @@
 from __future__ import division
 
 import numpy as np
-
-try:
-    import meshpy.triangle as mptriangle
-    from openglider.mesh.meshpy_triangle import custom_triangulation
-    USE_POLY_TRI = False
-except ImportError as e:
-    print("!!!!NOT ABLE TO IMPORT MESHPY, MESH-CREATION WILL BE SLOW")
-    print(e)
-    from .poly_tri import PolyTri
-    USE_POLY_TRI = True
+import openglider.vector as vector
+import openglider.mesh.triangulate as triangulate
+from openglider.mesh.poly_tri import PolyTri
+USE_POLY_TRI = False
 
 
 class Vertex(object):
@@ -104,7 +98,6 @@ class Polygon(object):
     def get_node_average(self, attribute):
         attribute_list = [n.attributes[attribute] for n in self.nodes]
         return sum(attribute_list)/len(attribute_list)
-    
 
 
 class Mesh(object):
@@ -202,133 +195,6 @@ class Mesh(object):
         return "Mesh {} ({} faces, {} vertices)".format(self.name,
                                            len(self.all_polygons),
                                            len(self.vertices))
-
-    @classmethod
-    def from_rib(cls, rib, hole_num=10, mesh_option="QYqazip", glider=None, filled=False):
-        """ Y... no additional points on boarder
-            i... algorythm (other algo crash)
-            p... triangulation
-            q... quality
-            a... area constraint
-        """
-        global USE_POLY_TRI
-        if USE_POLY_TRI:
-            vertices = list(rib.get_hull(glider))[:-1]
-            boundaries = []
-            boundary =list(range(len(vertices))) + [0]
-            boundary.reverse()
-            boundaries.append(boundary)
-
-            if len(rib.holes) > 0 and hole_num > 3:
-                for nr, hole in enumerate(rib.holes):
-                    start_index = len(vertices)
-                    hole_vertices = hole.get_flattened(rib, num=hole_num, scale=False).data[:-1]
-                    hole_boundary = list(range(len(hole_vertices))) + [0]
-                    hole_boundary = np.array(hole_boundary) + start_index
-                    boundaries.append(list(hole_boundary))
-                    vertices += list(hole_vertices)
-            if not filled:
-                return cls.from_indexed(rib.align_all(vertices), {'hole': boundaries}, {})
-            tris = PolyTri(np.array(vertices), boundaries, holes=True, delaunay=True).get_tris()
-            if not tris:
-                print(np.array(vertices))
-                print(boundaries)
-                print(tris)
-            vertices =  rib.align_all(vertices)
-            return cls.from_indexed(vertices, polygons={"ribs": tris} , boundaries={rib.name:range(len(vertices))})
-
-        else:
-            triangle_in = {}
-            vertices = list(rib.get_hull(glider))[:-1]
-            if rib.is_closed():
-                # stabi
-                return cls.from_indexed([], {}, {})
-            segments = [[i, i+1] for i, _ in enumerate(vertices)]
-            segments[-1][-1] = 0
-            triangle_in["vertices"] = vertices
-            triangle_in["segments"] = segments
-
-            # adding the vertices and segments of the holes
-            # to get TRIANGLE know where to remove triangles
-            # a list of points which lay inside the holes
-            # must be passed
-            if len(rib.holes) > 0 and hole_num > 3:
-                triangle_in["holes"] = []
-                for nr, hole in enumerate(rib.holes):
-                    start_index = len(triangle_in["vertices"])
-                    hole_vertices = hole.get_flattened(rib, num=hole_num, scale=False)
-                    segments = [[i + start_index, i + start_index + 1] for i, _ in enumerate(hole_vertices)]
-                    segments[-1][-1] = start_index
-                    triangle_in["vertices"] += hole_vertices
-                    triangle_in["segments"] += segments
-                    triangle_in["holes"].append(hole.get_center(rib, scale=False).tolist())
-            if not filled:
-                return cls.from_indexed(rib.align_all(triangle_in['vertices']), {'hole': triangle_in['segments']}, {})
-            # _triangle_output = triangle.triangulate(triangle_in, "pziq")
-            mesh_info = mptriangle.MeshInfo()
-            mesh_info.set_points(triangle_in["vertices"])
-            mesh_info.set_facets(triangle_in["segments"])
-            if "holes" in triangle_in:
-                mesh_info.set_holes(triangle_in["holes"])
-            mesh = custom_triangulation(mesh_info, mesh_option)  # see triangle options
-            try:
-                triangles = list(mesh.elements)
-                vertices = rib.align_all(mesh.points)
-            except KeyError:
-                print("there was a keyerror")
-                return cls()
-            return cls.from_indexed(vertices, polygons={"ribs": triangles} , boundaries={rib.name: range(len(vertices))})
-
-    @classmethod
-    def from_diagonal(cls, diagonal, cell, insert_points=4):
-        """
-        get a mesh from a diagonal (2 poly lines)
-        """
-        left, right = diagonal.get_3d(cell)
-        if insert_points:
-            point_array = []
-            number_array = []
-            # create array of points
-            # the outermost points build the segments
-            n_l = len(left)
-            n_r = len(right)
-            count = 0
-            for y_pos in np.linspace(0., 1., insert_points + 2):
-                # from left to right, from rib1 to rib2
-                point_line = []
-                number_line = []
-                num_points = int(n_l * (1. - y_pos) + n_r * y_pos)
-                for x_pos in np.linspace(0., 1., num_points): # adding point to line
-                    point_line.append(left[x_pos * (n_l - 1)] * (1. - y_pos) +
-                                      right[x_pos * (n_r - 1)] * y_pos)
-                    number_line.append(count)
-                    count += 1
-                point_array.append(point_line)
-                number_array.append(number_line)
-            # edge = number_array[0]
-            # edge += [line[-1] for line in number_array[1:]]
-            # edge += number_array[-1][-2::-1] # last line reversed without the last element
-            # edge += [line[0] for line in number_array[1:-1]][::-1]
-            # segment = [[edge[i], edge[i +1]] for i in range(len(edge) - 1)]
-            # segment.append([edge[-1], edge[0]])
-            point_array = np.array([point for line in point_array for point in line]) #flatten
-            points2d = map_to_2d(point_array)
-            if USE_POLY_TRI:
-                tris = PolyTri(np.array(points2d)).get_tris()
-            else:
-                mesh_info = mptriangle.MeshInfo()
-                mesh_info.set_points(points2d)
-                mesh = custom_triangulation(mesh_info, "Qz")
-                tris = list(mesh.elements)
-            return cls.from_indexed(point_array, 
-                                    {"diagonals": tris}, 
-                                    {cell.rib1.name: number_array[0], 
-                                     cell.rib2.name: number_array[-1]})
-
-        else:
-            vertices = np.array(list(left) + list(right)[::-1])
-            polygon = [range(len(vertices))]
-            return cls.from_indexed(vertices, {"diagonals": polygon})
 
     def copy(self):
         poly_copy = {key: [p.copy() for p in polygons]
@@ -605,6 +471,37 @@ class Mesh(object):
                     print("no")
                     print(node in replace_dict)
         return self
+
+    def polygon_size(self):
+        size_min = float("inf")
+        size_max = float("-inf")
+        count = 0
+        sum = 0
+
+        for poly in self.all_polygons:
+            if len(poly) in (3, 4):
+                sides = []
+                for i in range(len(poly)):
+                    i_plus = i+1
+                    if i_plus == len(poly):
+                        i_plus = 0
+                    side = np.array(list(poly[i])) - np.array(list(poly[i_plus]))
+                    sides.append(side)
+
+                if len(poly) == 3:
+                    size_poly = 0.5 * vector.norm(np.cross(sides[0], sides[1]))
+                elif len(poly) == 4:
+                    size_poly = 0.5 * (vector.norm(np.cross(sides[0], sides[1])) + vector.norm(np.cross(sides[2], sides[3])))
+                else:
+                    size_poly = 0
+
+                sum += size_poly
+                count += 1
+
+                size_min = min(size_min, size_poly)
+                size_max = max(size_max, size_poly)
+
+        return size_min, size_max, sum/count
 
 
 def apply_z(vertices):

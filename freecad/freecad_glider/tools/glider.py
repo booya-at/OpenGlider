@@ -502,20 +502,22 @@ def draw_glider(glider, vis_glider=None, midribs=0, hole_num=10, profile_num=20,
         line_msh = mesh.Mesh()
         for rib in glider.ribs:
             if not rib.profile_2d.has_zero_thickness:
-                msh += mesh.Mesh.from_rib(rib, hole_num, mesh_option='QYqazip', glider=glider, filled=fill_ribs)
+                msh += rib.get_mesh(hole_num, glider=glider, filled=fill_ribs)
         if msh.vertices is not None:
             rib_sep += [mesh_sep(msh, (.3, .3, .3), draw_lines = not fill_ribs)]
 
         msh = mesh.Mesh()
         for cell in glider.cells:
             for diagonal in cell.diagonals:
-                msh += mesh.Mesh.from_diagonal(diagonal, cell, insert_points=4)
+                msh += diagonal.get_mesh(cell, insert_points=4)
+                #msh += mesh.Mesh.from_diagonal(diagonal, cell, insert_points=4)
 
             for strap in cell.straps:
                 if isinstance(strap, TensionLine):
                     line_msh += strap.get_mesh(cell)
                 else:
-                    msh += mesh.Mesh.from_diagonal(strap, cell, insert_points=4)
+                    msh += strap.get_mesh(cell, insert_points=4)
+                    #msh += mesh.Mesh.from_diagonal(strap, cell, insert_points=4)
 
         if msh.vertices is not None:
             rib_sep += [mesh_sep(msh, (.3, .3, .3))]

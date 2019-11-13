@@ -11,10 +11,9 @@ def make_key(i1, i2):
 
 
 class PolyTri(object):
-
     small = 1e-10
 
-    def __init__(self, pts, boundaries=None, delaunay=True, holes=True, border=[]):
+    def __init__(self, pts, boundaries=None, delaunay=True, holes=True, border=None):
 
         # data structures
         self.pts = pts[:]  # copy
@@ -25,7 +24,7 @@ class PolyTri(object):
         self.delaunay = delaunay
         self.appliedBoundary_edges = None
         self.boundaries = boundaries
-        self.border = border
+        self.border = border or []
 
         # compute center of gravity
 
