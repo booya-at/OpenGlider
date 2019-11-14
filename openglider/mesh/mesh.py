@@ -1,5 +1,7 @@
 from __future__ import division
 
+import copy
+
 import numpy as np
 import openglider.vector as vector
 import openglider.mesh.triangulate as triangulate
@@ -29,7 +31,9 @@ class Vertex(object):
         return 3
 
     def copy(self):
-        return self.__class__(*self)
+        new = self.__class__(*self)
+        new.attributes = self.attributes.copy()
+        return new
 
     def is_equal(self, other):
         for x1, x2 in zip(self, other):
@@ -142,6 +146,20 @@ class Mesh(object):
     def all_polygons(self):
         return sum(self.polygons.values(), [])
 
+    def copy(self):
+        return copy.deepcopy(self)
+
+    def mirror(self, axis="x"):
+        for vertex in self.vertices:
+            setattr(vertex, axis, -getattr(vertex, axis))
+
+        for name, group in self.polygons.items():
+            for polygon in group:
+                polygon.nodes = polygon.nodes[::-1]
+
+        return self
+
+
     def get_indexed(self):
         """
         Get [vertices, polygons, boundaries] with references by index
@@ -196,10 +214,10 @@ class Mesh(object):
                                            len(self.all_polygons),
                                            len(self.vertices))
 
-    def copy(self):
-        poly_copy = {key: [p.copy() for p in polygons]
-                     for key, polygons in self.polygons.items()}
-        return self.__class__(poly_copy, self.boundary_nodes)
+    # def copy(self):
+    #     poly_copy = {key: [p.copy() for p in polygons]
+    #                  for key, polygons in self.polygons.items()}
+    #     return self.__class__(poly_copy, self.boundary_nodes)
 
     def triangularize(self):
         """
