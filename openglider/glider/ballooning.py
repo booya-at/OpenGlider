@@ -75,7 +75,7 @@ class Ballooning(object):
             #return -self.lower.xpoint(xval)[1]
             return self.lower(xval)
         else:
-            raise ValueError("Ballooning only between -1 and 1")
+            raise ValueError("Value {} not between -1 and 1".format(xval))
 
     def __call__(self, xval):
         """Get Ballooning Arc (phi) for a certain XValue"""
@@ -240,8 +240,9 @@ class BallooningBezier(Ballooning):
 
 
 class BallooningBezierNeu(Ballooning):
-    def __init__(self, spline):
+    def __init__(self, spline, name="ballooning_neu"):
         self.spline_curve = BSpline(spline)
+        self.name = name
         super(BallooningBezierNeu, self).__init__(None, None)
         self.apply_splines()
 
@@ -253,7 +254,7 @@ class BallooningBezierNeu(Ballooning):
         if -1 <= xval <= 1:
             return self.upper(xval)
         else:
-            raise ValueError("Ballooning only between -1 and 1")
+            raise ValueError("Value {} not between -1 and 1".format(xval))
 
     @classmethod
     def from_classic(cls, ballooning, numpoints=14):
@@ -268,7 +269,18 @@ class BallooningBezierNeu(Ballooning):
 
     @property
     def points(self):
-        return [(p[0], max(0, p[1])) for p in self.spline_curve.get_sequence(200)]
+        data = []
+        last_x = float("-inf")
+        for p in self.spline_curve.get_sequence(200):
+            x = p[0]
+            y = max(0, p[1])
+            if last_x < x and -1 <= x <= 1:
+                last_x = x
+                data.append((x, y))
+
+        return data
+
+        #return [(p[0], max(0, p[1])) for p in self.spline_curve.get_sequence(200)]
 
     @property
     def interpolation(self):

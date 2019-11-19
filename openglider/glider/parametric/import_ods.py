@@ -14,7 +14,7 @@ from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.parametric.lines import UpperNode2D, LowerNode2D, BatchNode2D, Line2D, LineSet2D
 from openglider.glider.rib import MiniRib
-from openglider.glider.ballooning import BallooningBezier
+from openglider.glider.ballooning import BallooningBezier, BallooningBezierNeu
 from openglider.utils.table import Table
 
 element_keywords = {
@@ -48,16 +48,35 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
         geometry = get_geometry_explicit(sheets[0])
 
     balloonings = []
-    for name, baloon in transpose_columns(sheets[4]):
+    for i, (name, baloon) in enumerate(transpose_columns(sheets[4])):
+        ballooning_type = str(sheets[4][0,2*i+1].value).upper()
         if baloon:
-            i = 0
-            while baloon[i + 1][0] > baloon[i][0]:
-                i += 1
+            if ballooning_type == "V1":
+                i = 0
+                while baloon[i + 1][0] > baloon[i][0]:
+                    i += 1
 
-            upper = baloon[:i + 1]
-            lower = baloon[i + 1:]
+                upper = baloon[:i + 1]
+                lower = [(x, -y) for x, y in baloon[i + 1:]]
 
-            balloonings.append(BallooningBezier(upper, lower, name=name))
+                balloonings.append(BallooningBezier(upper, lower, name=name))
+
+            elif ballooning_type == "V2":
+                i = 0
+                while baloon[i + 1][0] > baloon[i][0]:
+                    i += 1
+
+                upper = baloon[:i + 1]
+                lower = baloon[i + 1:]
+
+                balloonings.append(BallooningBezier(upper, lower, name=name))
+
+            elif ballooning_type == "V3":
+                balloonings.append(BallooningBezierNeu(baloon))
+
+            else:
+                raise ValueError("No ballooning type specified")
+
 
     data = {}
     datasheet = sheets[-1]
@@ -260,7 +279,7 @@ def get_geometry_parametric(sheet):
         data[sheet[0, column].value] = rows
         column += 2
 
-    print(data)
+    #print(data)
     raise Exception
 
     return data

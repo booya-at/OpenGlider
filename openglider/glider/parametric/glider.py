@@ -2,6 +2,7 @@ from __future__ import division
 
 import math
 import numpy as np
+import copy
 
 from openglider.airfoil import Profile2D
 from openglider.glider import Glider
@@ -66,6 +67,9 @@ class ParametricGlider(object):
         return import_ods_2d(cls, path)
 
     export_ods = export_ods_2d
+
+    def copy(self):
+        return copy.deepcopy(self)
 
     def get_geomentry_table(self):
         table = Table()
