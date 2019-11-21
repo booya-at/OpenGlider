@@ -246,10 +246,6 @@ class ParametricGlider(object):
             for s_no, strap in enumerate(cell.straps):
                 strap.name = "c{}s{}".format(cell_no+1, s_no)
 
-    def apply_arc(self, glider):
-        for rib, rib_pos in zip(glider.ribs, self.arc.get_arc_positions(self.shape.rib_x_values)):
-            rib.pos[2] = rib_pos[1]
-
     @classmethod
     def fit_glider_3d(cls, glider, numpoints=3):
         return fit_glider_3d(cls, glider, numpoints)
@@ -278,6 +274,27 @@ class ParametricGlider(object):
     def get_ballooning_merge(self):
         ballooning_merge_curve = self.ballooning_merge_curve.interpolation(num=self.num_interpolate)
         return [ballooning_merge_curve(abs(x) for x in self.shape.cell_x_values)]
+
+    def apply_shape_and_arc(self, glider):
+        x_values = self.shape.rib_x_values
+        shape_ribs = self.shape.ribs
+        arc_pos = list(self.arc.get_arc_positions(x_values))
+        offset_x = shape_ribs[0][0][1]
+
+        line = []
+
+        for rib_no, x in enumerate(x_values):
+            front, back = shape_ribs[rib_no]
+            arc = arc_pos[rib_no]
+            startpoint = np.array([-front[1] + offset_x, arc[0], arc[1]])
+
+            line.append(startpoint)
+
+        if self.shape.has_center_cell:
+            line.insert(0, line[0] * [1, -1, 1])
+
+        for rib_no, p in enumerate(line):
+            glider.ribs[rib_no].pos = p
 
     def get_glider_3d(self, glider=None, num=50, num_profile=None):
         """returns a new glider from parametric values"""
