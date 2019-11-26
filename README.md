@@ -30,13 +30,15 @@ Or manually install all dependencies (using distro-repos, easy_install or pip)
 * (svgwrite)
 * (vtk)
 
-If you want to permanently install link it to the python packages or install with setup.py
 
+Install with conda
+------------------
+
+We are providing packages of openglider and dependencies via conda. To install conda download [https://docs.conda.io/en/latest/miniconda.html](miniconda) and follow install instructions. Once you have a working base-environment you can create a new environment for openglider:
 ```
-  python2 setup.py develop
+conda create -n openglider openglider freecad meshpy -c conda-forge -c openglider
 ```
 
-we use python2 as vtk is not yet available for python3.
 
 Documentation
 -------------
