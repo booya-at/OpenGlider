@@ -109,7 +109,7 @@ class Rib(CachedObject):
         if self.profile_2d.data is not None:
             return Profile3D(self.align_all(self.profile_2d.data))
         else:
-            raise ValueError("no 2d-profile present for tha rib at rib {}".format(
+            raise ValueError("no 2d-profile present for the rib at rib {}".format(
                 self.name))
 
     def point(self, x_value):
@@ -221,7 +221,7 @@ class SingleSkinRib(Rib):
 
         # we have to apply this function once for the profile2d
         # this will change the position of the attachmentpoints!
-        # therefor it shouldn't be placed int the get_hull function
+        # therefore it shouldn't be placed int the get_hull function
         if self.single_skin_par['continued_min']: 
             self.apply_continued_min()
 

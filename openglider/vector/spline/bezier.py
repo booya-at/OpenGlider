@@ -195,8 +195,8 @@ class Bezier(HashedList):
     def constraint_least_square_sol(A, b, constraint):
         """return u for minimized |A.u-b| with u containing the constraint points.
         A(n x m)...matrix with n >= m + c_n (n=num_cols, m=num_rows, c_n=num_constraints)
-        constraint: dict of "indeces: value" couples  [[0, 1.], [10, 3.]]"""
-        # create  vector from the known values
+        constraint: dict of "indices: value" couples  [[0, 1.], [10, 3.]]"""
+        # create vector from the known values
         u_fix = np.zeros(A.shape[1])
         u_sol_index = list(range(len(u_fix)))
         u = np.zeros(A.shape[1])

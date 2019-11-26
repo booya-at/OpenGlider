@@ -147,7 +147,7 @@ class PolyLine(HashedList):
             length += norm(self[next_value] - self[first])
             first = next_value
             next_value += direction
-            # Fasten up aswell
+            # Fasten up as well
             if (next_value > len(self) and direction > 0) or (next_value < 0 and direction < 0):
                 break
         return length + norm(self[second] - self[first])

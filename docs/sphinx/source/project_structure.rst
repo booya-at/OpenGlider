@@ -35,7 +35,7 @@ whereas <0 significates a point on the upper surface, 0==nose, >0 -> lower surfa
 Glider
 ------
 
-A glider consits of cells, which themselves consist of ribs, miniribs,..
+A glider consists of cells, which themselves consist of ribs, miniribs,..
 It can also contain a LineSet
 In order to create a glider you have to create ribs first, then create cells from the ribs.
 Openglider defines ballooning per rib.

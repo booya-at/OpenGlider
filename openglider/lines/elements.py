@@ -118,7 +118,7 @@ class Line(CachedObject):
 
         self.name = name or "line_name_not_set"
 
-        self.lineset = None      # the parent have to be set after initializiation
+        self.lineset = None      # the parent have to be set after initialization
 
     @property
     def has_geo(self):

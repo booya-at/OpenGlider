@@ -165,7 +165,7 @@ class PolyTri(object):
     def flipOneEdge(self, edge, delaunay=True, check_self_intersection=False):
         """
         Flip one edge then update the data structures
-        @return set of edges to interate over at next iteration
+        @return set of edges to iterate over at next iteration
         """
 
         # start with empty set
@@ -253,7 +253,7 @@ class PolyTri(object):
                 v[i] = iTri1
         res.add(e)
 
-        # updating the remining points
+        # updating the remaining points
         # assume iTri2 is not connected to edge U newTri1
         for i in newTri1:
             if i in edge:

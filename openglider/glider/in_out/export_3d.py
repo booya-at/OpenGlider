@@ -46,7 +46,7 @@ def export_json(glider, path, numpoints, midribs=0, wake_panels=1,
         def is_wake(self):
             return any([tha_node.is_wake for tha_node in self.nodes])
 
-        # This is just lazyness..
+        # This is just laziness..
         def get_neighbours(self, panel_list):
             self.neighbours = [self.get_neighbour(self.nodes[0], self.nodes[1],
                                                   pan_list=panel_list),
@@ -232,7 +232,7 @@ def paraBEM_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, sym
     symmetric:         set to True if a symmetric result is expected (this will
                        reduce evaluation time)
     """
-    # paraBEM is not a dependency of openglider so if problems occure here, get the module.
+    # paraBEM is not a dependency of openglider so if problems occur here, get the module.
     import paraBEM
 
     if symmetric:

@@ -228,7 +228,7 @@ class FoldedCut(DesignCut):
 # TRAILING-EDGE Style
 class ParallelCut(DesignCut):
     """
-    Cut to continue in a parrallel way (trailing-edge)
+    Cut to continue in a parallel way (trailing-edge)
     """
     def apply(self, inner_lists, outer_left, outer_right, amount_3d=None):
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)

@@ -566,7 +566,7 @@ class LineTool(BaseTool):
         self.shape += [Line(vector3D(self.front)), Line(vector3D(self.back))]
         self.shape += list(map(Line, vector3D(self.ribs)))
         shape = self.parametric_glider.shape
-        # make own seperator for shape
+        # make own separator for shape
         nodes = {}
         for node in self.parametric_glider.lineset.nodes:
             if isinstance(node, UpperNode2D):
@@ -601,7 +601,7 @@ class LineTool(BaseTool):
         self.show_layer()
 
     def accept(self):
-        '''glider 2d will recive the 2d information
+        '''glider 2d will receive the 2d information
             the attachmentpoints are already stored.
             the other points are stored into the batch_points list
         '''

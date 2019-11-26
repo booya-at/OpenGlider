@@ -10,7 +10,7 @@ Classes
 -------
 
 - [] Xfoil integration for Profiles (XFLR5-API??)
-- [] Cells -> seperate midpoint from midrib, diagonals,..
+- [] Cells -> separate midpoint from midrib, diagonals,..
 - [] 4-/5-cell diagonals,
     - [] form: x^2 function (reverse line-blowout: |\_/| )
     - [] cut with central rib
@@ -72,7 +72,7 @@ Flattening
 Input
 -----
 
-- [] Create dragable spline-curves
+- [] Create draggable spline-curves
 - [] Wizards for shape, AOA , curvature,... (with matplotlib)
 - [] (choose between Blender, FreeCAD)
 

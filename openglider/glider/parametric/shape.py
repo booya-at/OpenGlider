@@ -126,7 +126,7 @@ class ParametricShape(object):
         return self.get_half_shape().copy_complete()
 
     def __getitem__(self, pos):
-        """if first argument is negativ the point is returned mirrored"""
+        """if first argument is negative the point is returned mirrored"""
         rib_nr, rib_pos = pos
         ribs = self.ribs
         neg = (rib_nr < 0)
