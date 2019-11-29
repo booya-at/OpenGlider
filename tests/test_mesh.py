@@ -36,7 +36,7 @@ class TestMesh(TestCase):
         for cell in self.glider.cells[1:-1]:
             m += cell.get_mesh(0)
         for rib in self.glider.ribs:
-            m += Mesh.from_rib(rib)
+            m += rib.get_mesh()
         m.delete_duplicates()
         m.get_indexed()
 

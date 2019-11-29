@@ -67,7 +67,7 @@ class TestRib(unittest.TestCase):
 
     def test_mesh(self):
         self.rib.holes.append(RibHole(0.2))
-        Mesh.from_rib(self.rib)
+        self.rib.get_mesh()
 
 
 
