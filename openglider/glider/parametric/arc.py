@@ -9,7 +9,7 @@ class ArcCurve(object):
     """
     _
     """
-    num_interpolation_points = 50
+    num_interpolation_points = 100
 
     def __init__(self, curve):
         self.curve = curve
@@ -83,7 +83,6 @@ class ArcCurve(object):
         curve = [p * [-1, 1] for p in curve[::-1]] + curve
         spline = SymmetricBSpline.fit(curve, numpoints=8)
         return cls(spline)
-
 
     def get_rib_angles(self, x_values):
         """

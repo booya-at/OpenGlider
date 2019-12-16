@@ -14,6 +14,7 @@ class GliderProject(object):
                  glider: openglider.glider.parametric.glider.ParametricGlider,
                  glider_3d: openglider.glider.glider.Glider = None,
                  filename: str = None,
+                 name: str = "unnamed",
                  modified: datetime.datetime = None
                  ):
         self.glider = glider
@@ -22,7 +23,7 @@ class GliderProject(object):
 
         self.glider_3d = glider_3d
         self.filename = filename
-        self.name = "unnamed"
+        self.name = name
         self.modified = modified or datetime.datetime.now()
 
         self.setup()
@@ -84,8 +85,11 @@ class GliderProject(object):
         self.glider.get_glider_3d(self.glider_3d)
 
     def __json__(self):
-        return {"glider2d": self.glider,
-                "glider3d": self.glider_3d}
+        return {"glider": self.glider,
+                "glider_3d": self.glider_3d,
+                "name": self.name,
+                #"modified": self.modified
+                }
 
     def get_data(self):
         area = self.glider_3d.area

@@ -4,6 +4,7 @@ import math
 import numpy as np
 import copy
 
+from openglider.glider.parametric.shape import ParametricShape
 from openglider.airfoil import Profile2D
 from openglider.glider import Glider
 from openglider.glider.cell import Panel, DiagonalRib, TensionLine, Cell
@@ -34,7 +35,7 @@ class ParametricGlider(object):
                  balloonings, ballooning_merge_curve, lineset,
                  speed, glide, zrot, elements=None):
         self.zrot = zrot or aoa
-        self.shape = shape
+        self.shape: ParametricShape = shape
         self.arc = arc
         self.aoa = aoa
         self.profiles = profiles or []

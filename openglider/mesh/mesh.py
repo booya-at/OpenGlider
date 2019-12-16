@@ -79,9 +79,6 @@ class Polygon(object):
     def __getitem__(self, item):
         return self.nodes.__getitem__(item)
 
-    def __len__(self):
-        return self.nodes.__len__()
-
     def copy(self):
         return self.__class__(self.nodes[:], self.attributes)
 
