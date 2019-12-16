@@ -4,12 +4,12 @@ import re
 import ezodf
 
 
-class Table():
+class Table:
     rex = re.compile(r"([A-Z]*)([0-9]*)")
 
     @classmethod
     def str_decrypt(cls, str):
-        result = cls.rex.match(str)
+        result = cls.rex.match(str.upper())
         if result:
             column, row = result.groups()
             column_no = 0
@@ -25,18 +25,17 @@ class Table():
     @classmethod
     def str_encrypt(cls, column, row):
 
-        return cls.tochar(column+1)+str(row+1)
+        return cls.column_to_char(column + 1) + str(row + 1)
 
     @classmethod
-    def tochar(cls, x):
-        base=26
+    def column_to_char(cls, x):
+        base = 26
         out = ""
         #x -= 1
         while x:
             out += chr(((x-1) % base)+65)
             x = int((x-1)/base)
         return out[::-1]
-
 
     def __init__(self, rows=0, columns=0):
         self.dct = {}
@@ -157,7 +156,7 @@ class Table():
     def _repr_html_(self):
         html = "<table><thead><td></td>"
         for column_no in range(self.num_columns):
-            html += "<td>{}</td>".format(self.tochar(column_no+1))
+            html += "<td>{}</td>".format(self.column_to_char(column_no + 1))
 
         html += "</thead>"
         for row_no in range(self.num_rows):

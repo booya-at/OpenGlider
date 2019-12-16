@@ -59,6 +59,15 @@ class ParametricShape(object):
     def half_rib_num(self):
         return self.half_cell_num + 1 - self.has_center_cell
 
+    def rescale_curves(self):
+        span = self.span
+
+        dist_scale = span / self.rib_distribution.controlpoints[-1][0]
+        self.rib_distribution.scale(dist_scale, 1)
+
+        back_scale = span / self.back_curve.controlpoints[-1][0]
+        self.back_curve.scale(back_scale, 1)
+
     @property
     def rib_dist_interpolation(self):
         """

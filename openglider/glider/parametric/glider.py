@@ -261,7 +261,6 @@ class ParametricGlider(object):
 
         return [aoa_interpolation(x) for x in self.shape.rib_x_values]
 
-
     def apply_aoa(self, glider, interpolation_num=50):
         aoa_interpolation = self.aoa.interpolation(num=interpolation_num)
         for rib, x_pos in zip(glider.ribs, self.shape.rib_x_values):
@@ -282,6 +281,7 @@ class ParametricGlider(object):
         offset_x = shape_ribs[0][0][1]
 
         line = []
+        chords = []
 
         for rib_no, x in enumerate(x_values):
             front, back = shape_ribs[rib_no]
@@ -289,12 +289,15 @@ class ParametricGlider(object):
             startpoint = np.array([-front[1] + offset_x, arc[0], arc[1]])
 
             line.append(startpoint)
+            chords.append(abs(front[1]-back[1]))
 
         if self.shape.has_center_cell:
             line.insert(0, line[0] * [1, -1, 1])
+            chords.insert(0, chords[0])
 
         for rib_no, p in enumerate(line):
             glider.ribs[rib_no].pos = p
+            glider.ribs[rib_no].chord = chords[rib_no]
 
     def get_glider_3d(self, glider=None, num=50, num_profile=None):
         """returns a new glider from parametric values"""

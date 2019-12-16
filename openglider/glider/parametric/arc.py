@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 
 from openglider.vector import PolyLine2D
@@ -15,6 +16,9 @@ class ArcCurve(object):
 
     def __json__(self):
         return {"curve": self.curve}
+
+    def copy(self):
+        return copy.deepcopy(self)
 
     @staticmethod
     def has_center_cell(x_values):
@@ -112,8 +116,12 @@ class ArcCurve(object):
         p1, p2 = self.curve.get_sequence(2)
 
     def rescale(self, x_values):
-        span = x_values[-1]
-        arc_pos = self.get_arc_positions(x_values)
-        arc_length = arc_pos.get_length() + arc_pos[0][0]  # add center cell
-        factor = span/arc_length
-        self.curve.controlpoints = [p * factor for p in self.curve.controlpoints]
+        positions = self.get_arc_positions(x_values)
+        diff = [0, -positions[0][1]]
+        self.curve.controlpoints = [p + diff for p in self.curve.controlpoints]
+
+        arc_curve = PolyLine2D([self.curve(i) for i in np.linspace(0.5, 1, self.num_interpolation_points)])
+        arc_curve_length = arc_curve.get_length()
+        scale_factor = x_values[-1] / arc_curve_length
+
+        self.curve.controlpoints = [p * scale_factor for p in self.curve.controlpoints]

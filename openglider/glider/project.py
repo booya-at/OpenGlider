@@ -4,6 +4,7 @@ import datetime
 
 import openglider.glider.parametric
 import openglider.glider.glider
+import openglider.utils.table
 
 
 class GliderProject(object):
@@ -42,6 +43,23 @@ class GliderProject(object):
         self.modified = datetime.datetime.now()
 
         return self.name
+
+    def get_data_table(self):
+        table = openglider.utils.table.Table()
+        table["A1"] = "Cells"
+        table["B1"] = str(self.glider.shape.cell_num)
+        table["A2"] = "Area"
+        table["B2"] = "{:.02f} m²".format(self.glider_3d.area)
+        table["A3"] = "Area projected"
+        table["B3"] = "{:.02f} m²".format(self.glider_3d.projected_area)
+
+        flattening = 100 * (1 - self.glider_3d.projected_area / self.glider_3d.area)
+        table["A4"] = "Flattening"
+        table["B4"] = "{:.01f} %".format(flattening)
+        table["A5"] = "Aspect Ratio"
+        table["B5"] = "{:.02f}".format(self.glider_3d.aspect_ratio)
+
+        return table
 
     def setup(self):
         #self.name = self.glider.name
