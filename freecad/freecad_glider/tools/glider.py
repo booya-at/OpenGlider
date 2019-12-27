@@ -12,6 +12,11 @@ from openglider.glider.cell.elements import TensionLine
 from . import pivy_primitives as prim
 from .tools import coin, hex_to_rgb
 
+DEBUG=False
+
+def debug_print(*args):
+    if DEBUG:
+        print(*args)
 
 def coin_SoSwitch(parent, name):
     switch = coin.SoSwitch()
@@ -128,6 +133,7 @@ class OGBaseObject(object):
     def restore_view_provider(self):
         # adding the Proxy to the ViewObject (FeaturePython)
         # this is necessary if the glider was modified outside of FreeCAD
+        debug_print("restoring the viewprovider")
         OGGliderVP(self.obj.ViewObject)
 
 
@@ -137,8 +143,8 @@ class OGBaseVP(object):
         self.view_obj = view_obj
         self.obj = view_obj.Object
 
-    def addProperty(self, name, value, group, docs, p_type=None):
-        _addProperty(self.view_obj, name, value, group, docs, p_type)        
+    def addProperty(self, name, value, group, docs, p_type=None, view_obj=None):
+        _addProperty(view_obj or self.view_obj, name, value, group, docs, p_type)        
 
     def attach(self, view_obj):
         self.view_obj = view_obj
@@ -148,7 +154,7 @@ class OGBaseVP(object):
         pass
 
     def getDisplayModes(self, obj):
-        mod = ['out']
+        mod = ['glider']
         return(mod)
 
     def __getstate__(self):
@@ -219,7 +225,6 @@ class OGGlider(OGBaseObject):
         return out
 
     def __setstate__(self, state):
-        print("OBJECT!!!!!!!!!!!!")
         # seld.obj is not yet available! 
         obj = App.ActiveDocument.getObject(state['name'])
         obj.ParametricGlider = jsonify.loads(state['ParametricGlider'])['data']
@@ -286,6 +291,17 @@ class OGGliderVP(OGBaseVP):
         view_obj.addProperty('App::PropertyBool',
                              'half_glider', 'visuals',
                              'show only one half')
+        view_obj.addProperty('App::PropertyBool',
+                             'fill_ribs', 'visuals', "fill ribs with polygons")
+        view_obj.addProperty('App::PropertyFloat',
+                             'x', 'postion', "set x-position")
+        view_obj.addProperty('App::PropertyFloat',
+                             'y', 'postion', "set y-position")
+        view_obj.addProperty('App::PropertyFloat',
+                             'z', 'postion', "set z-position")
+
+        self.addProperty('fill_ribs', False, 'visuals', 'fill ribs', view_obj=view_obj)
+
         view_obj.num_ribs = get_parameter('default_num_cell_points')
         view_obj.profile_num = get_parameter('default_num_prof_points')
         view_obj.line_num = get_parameter('default_num_line_points')
@@ -293,16 +309,12 @@ class OGGliderVP(OGBaseVP):
         view_obj.ribs = True
         view_obj.half_glider = get_parameter('default_show_half_glider')
         view_obj.hole_num = get_parameter('default_num_hole_points')
-        self.addProperties(view_obj)
-        self.recompute = False
-        super(OGGliderVP, self).__init__(view_obj)
+        view_obj.fill_ribs = False
+        view_obj.x = 0.
+        view_obj.y = 0.
+        view_obj.z = 0.
 
-    def addProperties(self, view_object):
-        self.view_obj = view_object
-        self.addProperty('fill_ribs', False, 'visuals', 'fill ribs')
-        self.addProperty('x', 0., 'position', 'set x position')
-        self.addProperty('y', 0., 'position', 'set y position')
-        self.addProperty('z', 0., 'position', 'set x position')
+        super(OGGliderVP, self).__init__(view_obj)
 
 
     def getGliderInstance(self):
@@ -313,6 +325,7 @@ class OGGliderVP(OGBaseVP):
             return None
 
     def attach(self, view_obj):
+        
         super(OGGliderVP, self).attach(view_obj)
         self.vis_glider = coin.SoSeparator()
         self.vis_lines = coin.SoSeparator()
@@ -328,22 +341,23 @@ class OGGliderVP(OGBaseVP):
         rot = coin.SoRotation()
         rot.rotation.setValue(_rot)
         self.trans = coin.SoTranslation()
-        self.trans.translation = view_obj.x, view_obj.y, view_obj.z
+        # self.trans.translation = view_obj.x, view_obj.y, view_obj.z
         self.seperator += [self.trans, rot, self.vis_glider, self.vis_lines]
         pick_style = coin.SoPickStyle()
         pick_style.style.setValue(coin.SoPickStyle.BOUNDING_BOX)
         self.vis_glider += [pick_style]
         self.vis_lines += [pick_style]
-        view_obj.addDisplayMode(self.seperator, 'out')
+        view_obj.addDisplayMode(self.seperator, 'glider')
 
     def updateData(self, prop='all', *args):
         self._updateData(self.view_obj, prop)
 
     def _updateData(self, fp, prop='all'):
-        print(prop)
         if not self.getGliderInstance():
+            debug_print("not self.getGliderInstance")
             return
         if not 'Visibility' in fp.PropertiesList or not fp.Visibility:
+            debug_print("not visibility")
             return
         if prop in ['x', 'y', 'z']:
             self.trans.translation = fp.x, fp.y, fp.z
@@ -411,11 +425,9 @@ class OGGliderVP(OGBaseVP):
         return {"name": self.view_obj.Object.Name}
 
     def __setstate__(self, state):
-        print("VIEWPROVIDER!!!!!!!!!!!!!!!!!!!!!!!!")
         self.recompute = False
         obj = App.ActiveDocument.getObject(state['name'])
         view_obj = obj.ViewObject
-        self.addProperties(view_obj)
 
 def draw_lines(glider, line_num=2, vis_lines=None):
     vis_lines = vis_lines or coin.SoSeparator()
@@ -436,6 +448,7 @@ def draw_lines(glider, line_num=2, vis_lines=None):
 def draw_glider(glider, vis_glider=None, midribs=0, hole_num=10, profile_num=20,
                   hull='panels', ribs=False, elements=False, fill_ribs=True):
     '''draw the glider to the visglider seperator'''
+    debug_print("draw glider")
     glider.profile_numpoints = profile_num
 
     vis_glider = vis_glider or coin.SoSeparator()
