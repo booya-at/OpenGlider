@@ -64,6 +64,17 @@ class LineSet():
     def lower_attachment_points(self):
         return [n for n in self.nodes if n.type == 0]
 
+    def get_main_attachment_point(self):
+        main_attachment_point = None
+        for ap in self.lower_attachment_points:
+            if ap.name == "main":
+                main_attachment_point = ap
+
+        if main_attachment_point is None:
+            raise Exception("No 'main' attachment point")
+
+        return main_attachment_point
+
     @property
     def floors(self):
         def recursive_count_floors(node):
@@ -277,19 +288,24 @@ class LineSet():
                 tangent += node.calc_force_infl(pos_vec)
             return normalize(tangent)
 
-    def get_upper_influence_nodes(self, line=None):
+    def get_upper_influence_nodes(self, line=None, node=None):
         """
         get the points that have influence on the line and
         are connected to the wing
         """
-        upper_node = line.upper_node
-        if upper_node.type == 2:
-            return [upper_node]
+        if line is not None:
+            node = line.upper_node
+
+        if node is None:
+            raise ValueError("Must either provide a node or line")
+
+        if node.type == 2:
+            return [node]
         else:
-            upper_lines = self.get_upper_connected_lines(upper_node)
+            upper_lines = self.get_upper_connected_lines(node)
             result = []
             for upper_line in upper_lines:
-                result += self.get_upper_influence_nodes(upper_line)
+                result += self.get_upper_influence_nodes(line=upper_line)
             return result
 
     def iterate_target_length(self, steps=10, pre_load=50):

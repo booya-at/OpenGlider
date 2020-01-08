@@ -264,8 +264,13 @@ class ParametricGlider(object):
 
     def apply_aoa(self, glider, interpolation_num=50):
         aoa_interpolation = self.aoa.interpolation(num=interpolation_num)
-        for rib, x_pos in zip(glider.ribs, self.shape.rib_x_values):
-            rib.aoa_relative = aoa_interpolation(x_pos)
+        aoa_values = [aoa_interpolation(x) for x in self.shape.rib_x_values]
+
+        if self.shape.has_center_cell:
+            aoa_values.insert(0, aoa_values[0])
+
+        for rib, aoa in zip(glider.ribs, aoa_values):
+            rib.aoa_relative = aoa
 
     def get_profile_merge(self):
         profile_merge_curve = self.profile_merge_curve.interpolation(num=self.num_interpolate)

@@ -495,3 +495,7 @@ class Glider(object):
     def glide(self, glide):
         for rib in self.ribs:
             rib.glide = glide
+
+        angle = np.arctan(1/glide)
+        speed = norm(self.lineset.v_inf)
+        self.lineset.v_inf = np.array([np.cos(angle), 0, np.sin(angle)]) * speed

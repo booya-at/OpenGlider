@@ -59,6 +59,12 @@ class GliderProject(object):
         table["B4"] = "{:.01f} %".format(flattening)
         table["A5"] = "Aspect Ratio"
         table["B5"] = "{:.02f}".format(self.glider_3d.aspect_ratio)
+        table["A6"] = "Attachment point z"
+
+        z = self.glider_3d.lineset.get_main_attachment_point().vec[2]
+        table["B6"] = "{:.03f}".format(z)
+        table["A7"] = "Att. z (relative to span)"
+        table["B7"] = "{:.01f} %".format(z / self.glider.shape.span * 100)
 
         return table
 

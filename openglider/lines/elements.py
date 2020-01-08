@@ -97,6 +97,9 @@ class SagMatrix():
 
 
 class Line(CachedObject):
+    rho_air = 1.2
+
+
     def __init__(self, lower_node, upper_node, v_inf,
                  line_type=line_types.LineType.get('default'), target_length=None, number=None, name=None):
         """
@@ -185,7 +188,7 @@ class Line(CachedObject):
         drag per meter (projected)
         :return: 1/2 * cw * d * v^2
         """
-        return 1 / 2 * self.type.cw * self.type.thickness * norm(self.v_inf) ** 2
+        return 1 / 2 * self.type.cw * self.type.thickness * self.rho_air * norm(self.v_inf) ** 2
 
     @cached_property('lower_node.vec', 'upper_node.vec', 'v_inf')
     def drag_total(self):

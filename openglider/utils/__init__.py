@@ -19,9 +19,11 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 import inspect
+import json
+
 from openglider.utils.cache import recursive_getattr
 import openglider.jsonify
-import json
+
 
 def sign(val):
     val = float(val)
@@ -32,6 +34,7 @@ def consistent_value(elements, attribute):
     vals = [recursive_getattr(element, attribute) for element in elements]
     if vals[1:] == vals[:-1]:
         return vals[0]
+
 
 def linspace(start, stop, count):
     return [start + y/(count-1) * (stop-start) for y in range(count)]

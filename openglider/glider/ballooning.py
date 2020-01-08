@@ -196,6 +196,12 @@ class BallooningBezier(Ballooning):
         lower = [(p[0], -p[1]) for p in self.lower_spline.get_sequence()][::-1]
         return upper + lower
 
+    def get_points(self, n=150):
+        n_2 = int(n / 2)
+        upper = [(-p[0], p[1]) for p in self.upper_spline.get_sequence(n_2)][::-1]
+        lower = [p for p in self.lower_spline.get_sequence(n_2)]
+        return upper + lower
+
     def apply_splines(self):
         self.upper = self.upper_spline.interpolation()
         self.lower = self.lower_spline.interpolation()
@@ -269,9 +275,12 @@ class BallooningBezierNeu(Ballooning):
 
     @property
     def points(self):
+        return self.get_points()
+        
+    def get_points(self, n=200):
         data = []
         last_x = float("-inf")
-        for p in self.spline_curve.get_sequence(200):
+        for p in self.spline_curve.get_sequence(n):
             x = p[0]
             y = max(0, p[1])
             if last_x < x and -1 <= x <= 1:
