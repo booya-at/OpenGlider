@@ -27,7 +27,7 @@ def coin_SoSwitch(parent, name):
 importpath = os.path.join(os.path.dirname(__file__), '..', 'demokite.ods')
 
 
-# a list of all deafault parameters
+# a list of all default parameters
 preference_table = {'default_show_half_glider': (bool, True),
                     'default_show_panels': (bool, False),
                     'default_num_prof_points': (int, 20),

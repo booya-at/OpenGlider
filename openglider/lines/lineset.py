@@ -258,16 +258,16 @@ class LineSet():
         # upper_lines = self.get_upper_connected_lines(line.upper_node)
         # first we try to use already computed forces
         # and shift the upper node by residual force
-        # we have to make sure to not overcompansate the residual force
+        # we have to make sure to not overcompensate the residual force
         if line.has_geo and line.force is not None:
             r = self.get_residual_force(line.upper_node)
             s = 0
 
             for con_line in self.get_connected_lines(line.upper_node):
                 s += con_line.get_correction_influence(r)
-            # the additional factor is needed for stability. A better aproach would be to
-            # compute the compansation factor s with a system of linear equation. The movement
-            # of the upper node has impact on the compansation of residual force
+            # the additional factor is needed for stability. A better approach would be to
+            # compute the compensation factor s with a system of linear equation. The movement
+            # of the upper node has impact on the compensation of residual force
             # of the lower node (and the other way).
             return normalize(line.diff_vector + r / s * 0.3)
 

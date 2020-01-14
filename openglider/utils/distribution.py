@@ -61,7 +61,7 @@ class Distribution(HashedList):
             self.data = list(self.data[:-1]) + [value] + [self.data[-1]]
             return nearest_ind
 
-        # addition: tranform only from or to nose
+        # addition: transform only from or to nose
         if value < 0 and to_nose is True:
             end_index = nose_ind
         else:

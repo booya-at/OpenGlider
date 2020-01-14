@@ -3,7 +3,7 @@ from .functions import normalize
 
 class Transformation(object):
     '''
-    Transformation represented by a 4x4 matrix. This includes transfomation + translation.
+    Transformation represented by a 4x4 matrix. This includes transformation + translation.
     '''
     def __init__(self, mat):
         # mat is a 4 x 4 matrix

@@ -124,7 +124,7 @@ class PanelPlot(object):
                 panel_back = panel_back[ik_back:]
                 panel_front = panel_front[ik_front:]
             except StopIteration:
-                pass  # todo: fix aswell!
+                pass  # todo: fix as well!
 
         panel_back = panel_back[::-1]
         if panel_right:

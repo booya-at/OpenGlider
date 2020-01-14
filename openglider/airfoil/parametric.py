@@ -72,7 +72,7 @@ class BezierProfile2D(Profile2D):
         self.data = np.array(upper.tolist() + lower[1:].tolist())
 
     def make_smooth_dist(self, points, num=70, dist=None, upper=True):
-        # make array [[lenght, x, y], ...]
+        # make array [[length, x, y], ...]
         if not dist:
             return points
         length = [0]

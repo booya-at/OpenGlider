@@ -382,7 +382,7 @@ class Panel(object):
         :return: mesh objects consisting of triangles and quadrangles
         """
         numribs += 1
-        # TODO: doesnt work for numribs=0?
+        # TODO: doesn't work for numribs=0?
         xvalues = cell.rib1.profile_2d.x_values
         ribs = []
         points = []
@@ -497,7 +497,7 @@ class Panel(object):
         :param sigma: std-deviation parameter of gaussian distribution used to weight the length differences.
         :param inner_2d: list of 2D polylines (flat representation of the cell)s
         :param midribs: precomputed midribs, None by default
-        :return: front, back (lists of lenghts) with length equal to number of midribs
+        :return: front, back (lists of lengths) with length equal to number of midribs
         """
         numribs = len(inner_2d) - 2
         if midribs is None or len(midribs) != len(inner_2d):

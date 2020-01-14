@@ -226,7 +226,7 @@ class AirfoilTool(BaseTool):
                 import paraBEM
                 from paraBEM.pan2d import DirichletDoublet0Source0Case2
             except ImportError:
-                print("pressure visualization neeeds paraBEM")
+                print("pressure visualization needs paraBEM")
             else:
                 self.Qshow_pressure_dist.setDisabled(False)
                 self.Qshow_pressure_dist.setDisabled(False)

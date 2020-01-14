@@ -165,7 +165,7 @@ class LineSet2D(object):
         #v_inf = v_inf or glider.v_inf
         lines = []
         # now get the connected lines
-        # get the other point (change the nodes if necesarry)
+        # get the other point (change the nodes if necessary)
         for node in self.get_lower_attachment_points():
             self.sort_lines(node)
         self.delete_not_connected(glider)
