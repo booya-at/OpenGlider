@@ -8,7 +8,7 @@ from openglider.vector.functions import norm, normalize
 from openglider.utils.table import Table
 
 
-class LineSet():
+class LineSet(object):
     """
     Set of different lines
     """
@@ -23,6 +23,15 @@ class LineSet():
             line.lineset = self
         self.mat = None
         self.glider = None
+
+    def __repr__(self):
+        return """
+        {}
+        Lines: {}
+        Length: {}
+        """.format(super(LineSet, self).__repr__(),
+                   len(self.lines),
+                   self.total_length)
         
 
     @property
