@@ -14,7 +14,7 @@ class GliderProject(object):
                  glider: openglider.glider.parametric.glider.ParametricGlider,
                  glider_3d: openglider.glider.glider.Glider = None,
                  filename: str = None,
-                 name: str = "unnamed",
+                 name: str = None,
                  modified: datetime.datetime = None
                  ):
         self.glider = glider
@@ -67,6 +67,16 @@ class GliderProject(object):
         table["B7"] = "{:.01f} %".format(z / self.glider.shape.span * 100)
 
         return table
+
+    def save(self, filename):
+        if filename.endswith(".ods"):
+            self.glider.export_ods(filename)
+        elif filename.endswith(".json"):
+            openglider.save(self, filename)
+        else:
+            raise ValueError("Invalid Extension ({})".format(filename))
+        
+        self.filename = filename
 
     def setup(self):
         #self.name = self.glider.name

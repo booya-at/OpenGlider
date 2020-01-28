@@ -5,7 +5,7 @@ from openglider.utils import Config
 
 
 class GlobalConfig(Config):
-    asinc_interpolation_points = 1000
+    asinc_interpolation_points = 2000
     caching = True
     debug = False
     json_allowed_modules = [r"openglider\..*"]

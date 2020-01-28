@@ -48,7 +48,7 @@ class ArcSinc:
 
     @property
     def numpoints(self):
-        return len(self.arsinc.x)
+        return len(self.arsinc.data)
 
     @numpoints.setter
     def numpoints(self, numpoints):
@@ -269,7 +269,7 @@ class BallooningBezierNeu(Ballooning):
 
         data = [(-p[0], p[1]) for p in upper[::-1]] + list(lower)
 
-        spline = BSpline.fit(data, numpoints=numpoints)
+        spline = BSpline.fit(points=data, numpoints=numpoints)
         #return data
         return cls(spline.controlpoints)
 
@@ -277,7 +277,7 @@ class BallooningBezierNeu(Ballooning):
     def points(self):
         return self.get_points()
         
-    def get_points(self, n=200):
+    def get_points(self, n=300):
         data = []
         last_x = float("-inf")
         for p in self.spline_curve.get_sequence(n):

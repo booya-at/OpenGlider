@@ -5,6 +5,7 @@ import ezodf
 
 import openglider.glider
 import openglider.glider.parametric.glider
+from openglider.glider.ballooning import BallooningBezierNeu
 from openglider.glider.cell import DiagonalRib
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.utils.table import Table
@@ -255,18 +256,27 @@ def get_rib_sheet(glider_2d):
 
 def get_ballooning_sheet(glider_2d):
     balloonings = glider_2d.balloonings
-    row_num = max([len(b.upper_spline.controlpoints)+len(b.lower_spline.controlpoints) for b in balloonings])+1
-    sheet = ezodf.Sheet(name="Balloonings", size=(row_num, 2*len(balloonings)))
+    table = Table()
+    #row_num = max([len(b.upper_spline.controlpoints)+len(b.lower_spline.controlpoints) for b in balloonings])+1
+    #sheet = ezodf.Sheet(name="Balloonings", size=(row_num, 2*len(balloonings)))
 
     for ballooning_no, ballooning in enumerate(balloonings):
         #sheet.append_columns(2)
-        sheet[0, 2*ballooning_no].set_value("ballooning_{}".format(ballooning_no))
-        pts = list(ballooning.upper_spline.controlpoints) + list(ballooning.lower_spline.controlpoints)
-        for i, point in enumerate(pts):
-            sheet[i+1, 2*ballooning_no].set_value(point[0])
-            sheet[i+1, 2*ballooning_no+1].set_value(point[1])
+        table[0, 2*ballooning_no] = "ballooning_{}".format(ballooning_no)
+        if type(ballooning) is BallooningBezierNeu:
+            table[0, 2*ballooning_no+1] = "V3"
+            pts = ballooning.controlpoints
+        else:
+            table[0, 2*ballooning_no+1] = "V2"
+            pts = list(ballooning.upper_spline.controlpoints) + list(ballooning.lower_spline.controlpoints)
 
-    return sheet
+        for i, point in enumerate(pts):
+            table[i+1, 2*ballooning_no] = point[0]
+            table[i+1, 2*ballooning_no+1] = point[1]
+
+    ods_sheet = table.get_ods_sheet()
+    ods_sheet.name = "Balloonings"
+    return ods_sheet
 
 
 def get_parametric_sheet(glider):
