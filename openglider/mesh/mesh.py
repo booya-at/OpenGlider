@@ -26,7 +26,6 @@ class Vertex(object):
         self.y = y
         self.z = z
 
-
     def __len__(self):
         return 3
 
