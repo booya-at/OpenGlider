@@ -63,16 +63,17 @@ class BaseFeature(OGBaseObject):
                 self.obj.parent.ViewObject.Visibility = False
             self.obj.parent.Proxy.onDocumentRestored(self.obj.parent)
 
+            from . import backward_comatipility as bc
+            bc.version_update(obj)
+
+            # if we have modified the glider without gui, the view-provider is empty and we
+            # have to resore it:
             if App.GuiUp and not self.obj.ViewObject.Proxy:
                 self.restore_view_provider()  # defined in parent class
-            # backward compatibility (remove this)
-            # self.obj.Proxy.addProperties()
 
             self.obj.ViewObject.Proxy.recompute = True
             # we have blocked the automatic update mechanism. so now we have to call it manually
             if self.obj.ViewObject.Visibility:
-                print(self)
-                print("updating the view")
                 self.obj.ViewObject.Proxy.updateData(prop='Visibility')
 #########################################################################################
 
@@ -184,7 +185,6 @@ class SingleSkinRibFeature(BaseFeature):
     def getGliderInstance(self):
         glider = copy.deepcopy(self.obj.parent.Proxy.getGliderInstance())
         new_ribs = []
-        self.addProperties()
 
         single_skin_par = {'att_dist': self.obj.att_dist,
                            'height': self.obj.height,
@@ -221,7 +221,7 @@ class SingleSkinRibFeature(BaseFeature):
                     att_pnt.rib_pos < self.obj.max_hole_pos):
                     att_pnt.rib.holes.append(RibHole(att_pnt.rib_pos,
                                                      size=hole_size,
-                                                     horizontal_shift=self.obj.horizontal_shift))
+                                                     vertical_shift=self.obj.vertical_shift))
         for i, rib in enumerate(glider.ribs):
             rib.xrot = self.obj.xrot[i]
 
@@ -239,7 +239,7 @@ class SingleSkinRibFeature(BaseFeature):
         self.addProperty('hole_height', 0.7, 'hole', 'height of ellipse')
         self.addProperty('hole_width', 0.3, 'hole', 'width of ellipse')
         self.addProperty('max_hole_pos', 1., 'hole', 'maximal relative position of hole')
-        self.addProperty('horizontal_shift', 0.2, 'hole', 'relative horizontal shift')
+        self.addProperty('vertical_shift', 0.2, 'hole', 'relative vertical shift')
         self.addProperty('min_hole_pos', 0.2, 'hole', 'minimal relative position of hole')
         self.addProperty('continued_min', False, 'bows', 'add an offset to the airfoil')
         self.addProperty('continued_min_end', 0.9, 'bows', 'no idea')
@@ -269,7 +269,6 @@ class FlapFeature(BaseFeature):
     def getGliderInstance(self):
         glider = copy.deepcopy(self.obj.parent.Proxy.getGliderInstance())
         new_ribs = []
-        self.addProperties()
 
         for i, rib in enumerate(glider.ribs):
             if i in self.obj.flap_ribs:
@@ -292,7 +291,6 @@ class HoleFeature(BaseFeature):
 
         ribs = [rib for i, rib in enumerate(glider.ribs) if i in self.obj.ribs]
         new_ribs = []
-        self.addProperties()
 
         hole_size = np.array([self.obj.hole_width, self.obj.hole_height])
         if self.obj.holes:
@@ -302,7 +300,7 @@ class HoleFeature(BaseFeature):
                     att_pnt.rib_pos < self.obj.max_hole_pos):
                     att_pnt.rib.holes.append(RibHole(att_pnt.rib_pos,
                                                      size=hole_size,
-                                                     horizontal_shift=self.obj.horizontal_shift,
+                                                     vertical_shift=self.obj.vertical_shift,
                                                      rotation=self.obj.rotation))
 
         return glider
@@ -313,7 +311,7 @@ class HoleFeature(BaseFeature):
         self.addProperty('hole_height', 0.7, 'hole', 'height of ellipse')
         self.addProperty('hole_width', 0.3, 'hole', 'width of ellipse')
         self.addProperty('max_hole_pos', 1., 'hole', 'maximal relative position of hole')
-        self.addProperty('horizontal_shift', 0.2, 'hole', 'relative horizontal shift')
+        self.addProperty('vertical_shift', 0.2, 'hole', 'relative vertical shift')
         self.addProperty('min_hole_pos', 0.2, 'hole', 'minimal relative position of hole')
         self.addProperty('rotation', 0.0, 'hole', 'docs')
 

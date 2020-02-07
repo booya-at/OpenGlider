@@ -5,6 +5,7 @@ import os
 import numpy as np
 
 import FreeCAD as App
+import openglider
 from openglider import jsonify, mesh
 from openglider.glider import ParametricGlider
 from openglider.glider.cell.elements import TensionLine
@@ -30,6 +31,7 @@ importpath = os.path.join(os.path.dirname(__file__), '..', 'demokite.ods')
 # a list of all default parameters
 preference_table = {'default_show_half_glider': (bool, True),
                     'default_show_panels': (bool, False),
+                    'default_fill_ribs': (bool, True),
                     'default_num_prof_points': (int, 20),
                     'default_num_cell_points': (int, 0),
                     'default_num_line_points': (int, 2),
@@ -79,7 +81,7 @@ def mesh_sep(mesh, color, draw_lines=False):
         sep += [line_mat, line_set]
     return sep
 
-def _addProperty(obj, name, value, group, docs, p_type=None):
+def addProperty(obj, name, value, group, docs, p_type=None):
     '''
     property_list:
     property_name property_value, property_group, property_docs
@@ -118,7 +120,16 @@ def _addProperty(obj, name, value, group, docs, p_type=None):
 
 class OGBaseObject(object):
     def __init__(self, obj):
+        obj.addProperty('App::PropertyString',
+                'openglider_version', 'metadata',
+                'the version of openglider used to create this glider', 1)
+
+        obj.addProperty('App::PropertyString',
+                'freecad_version', 'metadata',
+                'the version of openglider used to create this glider', 1)
         obj.Proxy = self
+        obj.openglider_version = openglider.__version__
+        obj.freecad_version = "{}.{}".format(*App.Version())
         self.obj = obj
 
     def addProperties(self):
@@ -128,7 +139,7 @@ class OGBaseObject(object):
         pass
 
     def addProperty(self, name, value, group, docs, p_type=None):
-        _addProperty(self.obj, name, value, group, docs, p_type)
+        addProperty(self.obj, name, value, group, docs, p_type)
 
     def restore_view_provider(self):
         # adding the Proxy to the ViewObject (FeaturePython)
@@ -144,7 +155,7 @@ class OGBaseVP(object):
         self.obj = view_obj.Object
 
     def addProperty(self, name, value, group, docs, p_type=None, view_obj=None):
-        _addProperty(view_obj or self.view_obj, name, value, group, docs, p_type)        
+        addProperty(view_obj or self.view_obj, name, value, group, docs, p_type)        
 
     def attach(self, view_obj):
         self.view_obj = view_obj
@@ -235,20 +246,18 @@ class OGGlider(OGBaseObject):
     def onDocumentRestored(self, obj):
         if not hasattr(self, 'obj'):  # make sure this function is only run once
             self.obj = obj
+            from . import backward_comatipility as bc
 
-            # backward compatibility (remove this)
-            try:
-                self.obj.ViewObject.Proxy.addProperties(self.obj.ViewObject)
-            except AttributeError:
-                # this doesn't work always
-                pass
+            bc.version_update(obj)
 
+            # if we have modified the glider without gui, the view-provider is empty and we
+            # have to resore it:
             if App.GuiUp and not self.obj.ViewObject.Proxy:
                 self.restore_view_provider()
             self.obj.ViewObject.Proxy.recompute = True
             # we have blocked the automatic update mechanism. so now we have to call it manually
-            if self.obj.ViewObject.Visibility:
-                self.obj.ViewObject.Proxy.updateData(prop='Visibility')
+            # if self.obj.ViewObject.Visibility:
+            #     self.obj.ViewObject.Proxy.updateData(prop='Visibility')
 ##################################################################################
 
 # the update system on file-open of freecad is difficult.
@@ -309,7 +318,7 @@ class OGGliderVP(OGBaseVP):
         view_obj.ribs = True
         view_obj.half_glider = get_parameter('default_show_half_glider')
         view_obj.hole_num = get_parameter('default_num_hole_points')
-        view_obj.fill_ribs = False
+        view_obj.fill_ribs = get_parameter('default_fill_ribs')
         view_obj.x = 0.
         view_obj.y = 0.
         view_obj.z = 0.

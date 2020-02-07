@@ -10,44 +10,6 @@ except ImportError:
 
 
 
-# as long as this isn't part of std pivy:
-########################################################################################
-def SoGroup__iadd__(self, other):
-    if isinstance(other, (list, tuple)):
-        for other_i in other:
-            self.__iadd__(other_i)
-        return self
-    else:
-        try:
-            self.addChild(other)
-            return self
-        except TypeError as e:
-            raise TypeError(str(self.__class__) + " accepts only objects of type pivy.coin.SoNode")
-
-def SoGroup__isub__(self, other):
-    if isinstance(other, (list, tuple)):
-        for other_i in other:
-            self.__isub__(other_i)
-        return self
-    else:
-        try:
-            self.removeChild(other)
-            return self
-        except TypeError as e:
-            raise TypeError(str(self.__class__) + " can't remove child of type " + str(type(other)))
-
-
-def SoGroup_getByName(self, name):
-    for child in self:
-        if name == child.getName():
-            return child
-    return None
-
-
-coin.SoGroup.__iadd__ = SoGroup__iadd__
-coin.SoGroup.__isub__ = SoGroup__isub__
-coin.SoGroup.getByName = SoGroup_getByName
-########################################################################################
 
 Dir = os.path.abspath(os.path.dirname(__file__))
 Gui.addIconPath(os.path.join(Dir, 'icons'))
@@ -151,8 +113,7 @@ class gliderWorkbench(Gui.Workbench):
         self.appendToolbar('GliderView', self.viewBox)
         self.appendToolbar('Develop', self.devBox)
 
-
-        Gui.addPreferencePage(Dir + '/ui/preferences.ui', 'Display')
+        # Gui.addPreferencePage(Dir + '/ui/preferences.ui', 'glider')
 
     def Activated(self):
         pass

@@ -224,12 +224,12 @@ class AttachmentPoint(Node):
 
 
 class RibHole(object):
-    def __init__(self, pos, size=0.5, horizontal_shift=0., rotation=0.):
+    def __init__(self, pos, size=0.5, vertical_shift=0., rotation=0.):
         self.pos = pos
         if isinstance(size, (list, tuple)):
             size = np.array(list(size))
         self.size = size
-        self.horizontal_shift = horizontal_shift
+        self.vertical_shift = vertical_shift
         self.rotation = rotation  # rotation about p1
 
     def get_3d(self, rib, num=20):
@@ -250,9 +250,9 @@ class RibHole(object):
 
         phi = np.linspace(0, np.pi * 2, num + 1)
         points = np.array([np.cos(phi), np.sin(phi)]).T
-        #delta = (p2 - p1) / 2 * self.horizontal_shift + (p1 + p2) / 2
+        #delta = (p2 - p1) / 2 * self.vertical_shift + (p1 + p2) / 2
         move_1 = Translation(p1)
-        move_2 = Translation((p2 - p1) / 2 * (1 + self.horizontal_shift))
+        move_2 = Translation((p2 - p1) / 2 * (1 + self.vertical_shift))
         rot = Rotation(self.rotation)
         scale = Scale(np.linalg.norm(p2 - p1) / 2 * self.size)
         points = (scale * move_2 * rot * move_1).apply(points)
@@ -267,7 +267,7 @@ class RibHole(object):
             p1 *= rib.chord
             p2 *= rib.chord
         move_1 = Translation(p1)
-        move_2 = Translation((p2 - p1) / 2 * (1 + self.horizontal_shift))
+        move_2 = Translation((p2 - p1) / 2 * (1 + self.vertical_shift))
         rot = Rotation(self.rotation)
         return (move_2 * rot * move_1)([0., 0.])
 
@@ -275,7 +275,7 @@ class RibHole(object):
         return {
             "pos": self.pos,
             "size": self.size,
-            "horizontal_shift": self.horizontal_shift,
+            "vertical_shift": self.vertical_shift,
             "rotation": self.rotation}
 
 
