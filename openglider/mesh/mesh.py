@@ -5,8 +5,6 @@ import logging
 
 import numpy as np
 import openglider.vector as vector
-import openglider.mesh.triangulate as triangulate
-from openglider.mesh.poly_tri import PolyTri
 USE_POLY_TRI = False
 logger = logging.getLogger(__name__)
 
@@ -27,7 +25,6 @@ class Vertex(object):
         self.x = x
         self.y = y
         self.z = z
-
 
     def __len__(self):
         return 3

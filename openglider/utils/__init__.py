@@ -94,7 +94,7 @@ class Config(object):
         self.__dict__ = {}
         items = inspect.getmembers(self.__class__, lambda a:not(inspect.isroutine(a)))
         for key, value in items:
-            if not key.startswith('_') and key is not "get":
+            if not key.startswith('_') and key != "get":
                 self.__dict__[key] = value
 
         self.update(dct)
