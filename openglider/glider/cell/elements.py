@@ -26,7 +26,7 @@ import math
 
 from openglider.airfoil import get_x_value
 from openglider.mesh import Mesh, triangulate
-from openglider.vector import norm
+from openglider.vector import norm, PolyLine
 from openglider.vector.projection import flatten_list
 from openglider.utils import Config
 
@@ -114,7 +114,7 @@ class DiagonalRib(object):
                 return rib.profile_3d[front:back]
             else:
 
-                return [rib.align(rib.profile_2d.align(p) + [0]) for p in (cut_front, cut_back)]
+                return PolyLine([rib.align(rib.profile_2d.align(p) + [0]) for p in (cut_front, cut_back)])
 
         left = get_list(cell.rib1, self.left_front, self.left_back)
         right = get_list(cell.rib2, self.right_front, self.right_back)

@@ -1,5 +1,6 @@
-Glider
-======
+#Glider
+
+## glider_3d
 
 ![demokite](glider.png)
 
@@ -19,3 +20,14 @@ print(glider.area)
 glider.area=19  # sqm
 glider.aspect_ratio = 7
 ```
+
+
+## ParametricGlider
+
+A parametric glider holds user-input (splinecurves) and other data to build a glider_3d.
+
+
+
+## GliderProject
+
+A GliderProject consists of a ParametricGlider and a Glider3D.

@@ -208,7 +208,6 @@ class LineSet(object):
                 force = line_lower.upper_node.force
                 force_projected = proj_force(force, normalize(vec))
                 if force_projected is None:
-                    print("shit", line_lower.upper_node.name)
                     line_lower.force = 10
                 else:
                     line_lower.force = norm(force_projected)
@@ -335,9 +334,12 @@ class LineSet(object):
         for i, line in enumerate(self.lines):
             line.number = i
 
-    def sort_lines(self):
+    def sort_lines(self, lines=None):
         new_lines_list = []
-        for line in self.lines:
+        if lines is None:
+            lines = self.lines
+            
+        for line in lines:
             attachment_points = self.get_upper_influence_nodes(line)
             x = sum(p.rib_pos for p in attachment_points) / len(attachment_points)
             new_lines_list.append((x, line))

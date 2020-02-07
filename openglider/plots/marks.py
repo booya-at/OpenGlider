@@ -17,15 +17,11 @@ class Polygon(object):
     def __json__(self):
         return {"scale": self.scale, "edges": self.num_edges}
 
-    def __call__(self, p1, p2, horizontal_shift=0., rotation=None):
-        phi = np.linspace(0, np.pi * 2, self.num_edges + 1)
-        points = np.array([np.cos(phi), np.sin(phi)]).T
-        delta = (p2 - p1) / 2 * horizontal_shift + (p1 + p2) / 2
-        move_1 = Translation(p1)
-        move_2 = Translation((p2 - p1) / 2 * (1 + horizontal_shift))
-        rot = Rotation(rotation)
-        scale = Scale(np.linalg.norm(p2 - p1) / 2 * self.scale)
-        points = (scale * move_2 * rot * move_1).apply(points)
+    def __call__(self, p1, p2):
+        center = (p1+p2)/2
+        diff = self.scale*(p2-center)
+        points = [center + rotation_2d(math.pi*2*i/self.num_edges).dot(diff) for i in range(self.num_edges+1)]
+        #points = np.array(points) * self.scale
         return [PolyLine2D(points, name=self.name)]
 
 

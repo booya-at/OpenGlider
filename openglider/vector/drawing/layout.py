@@ -6,14 +6,47 @@ import svgwrite
 import svgwrite.container
 import svgwrite.shapes
 
-from openglider.plots import config
-from openglider.plots.drawing.part import PlotPart
+from openglider.vector.drawing.part import PlotPart
 from openglider.utils.css import get_material_color, normalize_class_names
 from openglider.vector import PolyLine2D
 from openglider.vector.text import Text
 
 
 class Layout(object):
+    layer_config = {
+        "cuts": {
+            "id": 'outer',
+            "stroke-width": "0.1",
+            "stroke": "red",
+            "fill": "none"},
+        "marks": {
+            "id": 'marks',
+            "stroke-width": "0.1",
+            "stroke": "green",
+            "fill": "none"},
+        "debug": {
+            "id": 'marks',
+            "stroke-width": "0.1",
+            "stroke": "grey",
+            "fill": "none"},
+        "inner": {
+            "id": "inner",
+            "stroke-width": "0.1",
+            "stroke": "green",
+            "fill": "none"
+        },
+        "text": {
+            "id": 'text',
+            "stroke-width": "0.1",
+            "stroke": "green",
+            "fill": "none"},
+        "stitches": {
+            "id": "stitches",
+            "stroke-width": "0.1",
+            "stroke": "black",
+            "fill": "none"}
+    }
+
     def __init__(self, parts=None):
         self.parts = parts or []
 
@@ -384,7 +417,12 @@ class Layout(object):
         #return blocks
         return dwg
 
-    def get_svg_group(self, config=config.sewing_config):
+    def get_svg_group(self, config=None):
+        _config = self.layer_config.copy()
+        if config is not None:
+            _config.update(config)
+        config = _config
+
         group = svgwrite.container.Group()
         group.scale(1, -1)  # svg coordinate system is x->right y->down
 
@@ -394,8 +432,8 @@ class Layout(object):
 
             for layer_name in part.layers:
                 # todo: simplify
-                if layer_name in config["layers"]:
-                    layer_config = config["layers"][layer_name]
+                if layer_name in config:
+                    layer_config = config[layer_name]
                 else:
                     layer_config = {"stroke": "black", "fill": "none", "stroke-width": "1"}
 
@@ -408,7 +446,6 @@ class Layout(object):
                     part_layer_groups[layer_name] = part_layer_group
                 else:
                     part_layer_group = part_layer_groups[layer_name]
-
 
                 for line in lines:
                     element = svgwrite.shapes.Polyline(line, **layer_config)

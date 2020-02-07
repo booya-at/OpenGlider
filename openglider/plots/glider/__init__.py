@@ -1,6 +1,6 @@
 import collections
 
-from openglider.plots.drawing import Layout
+from openglider.vector.drawing import Layout
 from openglider.plots.glider.cell import CellPlotMaker
 from openglider.plots.glider.ribs import RibPlot, SingleSkinRibPlot
 from openglider.plots.glider.config import PatternConfig, OtherPatternConfig

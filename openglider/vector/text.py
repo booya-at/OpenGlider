@@ -2,7 +2,7 @@ import numpy as np
 
 from openglider.vector.functions import normalize
 from openglider.vector.polyline import PolyLine2D
-from openglider.plots.drawing.part import PlotPart
+from openglider.vector.drawing.part import PlotPart
 
 text_vectors = {
     "1": [[0.2, 0.5], [0.6, 1.], [0.6, 0.]],

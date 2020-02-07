@@ -2,7 +2,7 @@ import numpy as np
 
 from openglider.vector import PolyLine2D
 from openglider.vector.text import Text
-from openglider.plots.drawing import Layout, PlotPart
+from openglider.vector.drawing import Layout, PlotPart
 import openglider.plots.marks as marks
 
 

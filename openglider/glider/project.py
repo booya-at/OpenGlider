@@ -2,8 +2,8 @@ import os
 import re
 import datetime
 
-import openglider.glider.parametric
-import openglider.glider.glider
+from openglider.glider.glider import Glider
+from openglider.glider.parametric import ParametricGlider
 import openglider.utils.table
 
 
@@ -11,8 +11,8 @@ class GliderProject(object):
     _regex_revision_no = re.compile(r"(.*)_rev([0-9]*)$")
 
     def __init__(self,
-                 glider: openglider.glider.parametric.glider.ParametricGlider,
-                 glider_3d: openglider.glider.glider.Glider = None,
+                 glider: ParametricGlider,
+                 glider_3d: Glider = None,
                  filename: str = None,
                  name: str = None,
                  modified: datetime.datetime = None
@@ -40,31 +40,32 @@ class GliderProject(object):
 
         revision_nr += 1
 
-        self.name = "{}_rev{:03d}".format(name, revision_nr)
+        self.name = f"{name}_rev{revision_nr:03d}"
         self.modified = datetime.datetime.now()
 
         return self.name
 
     def get_data_table(self):
         table = openglider.utils.table.Table()
-        table["A1"] = "Cells"
-        table["B1"] = str(self.glider.shape.cell_num)
-        table["A2"] = "Area"
-        table["B2"] = "{:.02f} m²".format(self.glider_3d.area)
-        table["A3"] = "Area projected"
-        table["B3"] = "{:.02f} m²".format(self.glider_3d.projected_area)
+        table["A1"] = "Area"
+        table["B1"] = f"{self.glider_3d.area:.02f} m²"
+        table["A2"] = "Area projected"
+        table["B2"] = f"{self.glider_3d.projected_area:.02f} m²"
+        table["A3"] = "Aspect Ratio"
+        table["B3"] = f"{self.glider_3d.aspect_ratio:.02f}"
 
         flattening = 100 * (1 - self.glider_3d.projected_area / self.glider_3d.area)
         table["A4"] = "Flattening"
-        table["B4"] = "{:.01f} %".format(flattening)
-        table["A5"] = "Aspect Ratio"
-        table["B5"] = "{:.02f}".format(self.glider_3d.aspect_ratio)
+        table["B4"] = f"{flattening:.01f} %"
+        table["A5"] = "Cells"
+        table["B5"] = str(self.glider.shape.cell_num)
         table["A6"] = "Attachment point z"
 
         z = self.glider_3d.lineset.get_main_attachment_point().vec[2]
-        table["B6"] = "{:.03f}".format(z)
+        table["B6"] = f"{z:.03f}"
         table["A7"] = "Att. z (relative to span)"
-        table["B7"] = "{:.01f} %".format(z / self.glider.shape.span * 100)
+        z_rel = z / self.glider.shape.span * 100
+        table["B7"] = f"{z_rel:.01f} %"
 
         return table
 
@@ -93,7 +94,7 @@ class GliderProject(object):
 
     @classmethod
     def import_ods(cls, path):
-        glider_2d = openglider.glider.parametric.ParametricGlider.import_ods(path)
+        glider_2d = ParametricGlider.import_ods(path)
 
         return cls(glider_2d)
 

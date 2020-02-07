@@ -1,12 +1,14 @@
 from __future__ import division
 
 import copy
+import logging
 
 import numpy as np
 import openglider.vector as vector
 import openglider.mesh.triangulate as triangulate
 from openglider.mesh.poly_tri import PolyTri
 USE_POLY_TRI = False
+logger = logging.getLogger(__name__)
 
 
 class Vertex(object):
@@ -306,7 +308,8 @@ class Mesh(object):
                 mesh_dxf = ms.add_mesh({"layer": name})
 
                 with mesh_dxf.edit_data() as mesh_data:
-                    print("jo export {} faces".format(len(polys["123"])))
+                    num_posys = len(polys["123"])
+                    logger.info(f"Exporting {num_polys} faces")
                     mesh_data.vertices = [list(p) for p in vertices]
                     mesh_data.faces = polys["123"]
 
@@ -462,8 +465,8 @@ class Mesh(object):
                 boundary_nodes.pop(i)
 
             if to_remove:
-                print("deleted {} duplicated Vertices for boundary group <{}> ".format(
-                    len(to_remove), boundary_name))
+                count = len(to_remove)
+                logger.info(f"deleted {count} duplicated Vertices for boundary group <{boundary_name}> ")
 
         for polygon in self.all_polygons:
             for i, node in enumerate(polygon):
@@ -483,8 +486,7 @@ class Mesh(object):
         for boundary_name in boundaries:
             for i, node in enumerate(self.boundary_nodes[boundary_name]):
                 if node not in vertices:
-                    print("no")
-                    print(node in replace_dict)
+                    logger.warning(f"uiuiui, {node} in replace dict is not in vertices")
         return self
 
     def polygon_size(self):

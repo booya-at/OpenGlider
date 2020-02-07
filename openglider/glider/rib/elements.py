@@ -21,12 +21,12 @@ import numpy as np
 import math
 
 from openglider.lines import Node
-from openglider.plots.marks import Polygon
+from openglider.vector.polygon import Circle
 from openglider.vector.polyline import PolyLine2D
 from openglider.vector.functions import set_dimension
 from openglider.vector.spline import Bezier
 from openglider.vector import norm
-from openglider.vector.transformation import Rotation, Translation
+from openglider.vector.transformation import Rotation, Translation, Scale
 
 
 class RigidFoil(object):
@@ -149,7 +149,8 @@ class GibusArcs(object):
         point_2 = profile.profilepoint(self.pos + size)
 
         gib_arc = [[], []]  # first, second
-        circle = Polygon(edges=num_points)(point_1, point_2)[0][1:] # todo: is_center -> true
+        circle = Circle(point_1, point_2).get_sequence()[1:]
+        #circle = Polygon(edges=num_points)(point_1, point_2)[0][1:] # todo: is_center -> true
         is_second_run = False
         #print(circle)
         for i in range(len(circle)):
@@ -246,8 +247,17 @@ class RibHole(object):
         prof = rib.profile_2d
         p1 = prof[prof(self.pos)]
         p2 = prof[prof(-self.pos)]
-        poly = Polygon(scale=self.size, edges=num, name="rib_hole")
-        return poly(p1, p2, horizontal_shift=self.horizontal_shift, rotation=self.rotation)[0]
+
+        phi = np.linspace(0, np.pi * 2, num + 1)
+        points = np.array([np.cos(phi), np.sin(phi)]).T
+        #delta = (p2 - p1) / 2 * self.horizontal_shift + (p1 + p2) / 2
+        move_1 = Translation(p1)
+        move_2 = Translation((p2 - p1) / 2 * (1 + self.horizontal_shift))
+        rot = Rotation(self.rotation)
+        scale = Scale(np.linalg.norm(p2 - p1) / 2 * self.size)
+        points = (scale * move_2 * rot * move_1).apply(points)
+
+        return PolyLine2D(points, name=f"{rib.name}-hole")
 
     def get_center(self, rib, scale=True):
         prof = rib.profile_2d

@@ -30,7 +30,7 @@ try:
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 from openglider.glider.ballooning import BallooningBezier
-from vector.projection import flatten_list
+from openglider.vector.projection import flatten_list
 import openglider.plots
 from openglider.glider.cell.cell import Cell
 from openglider.glider.rib.rib import Rib

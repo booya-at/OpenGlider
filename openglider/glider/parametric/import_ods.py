@@ -5,6 +5,7 @@ import re
 
 import ezodf
 import numpy as np
+import logging
 
 from openglider.airfoil import BezierProfile2D, Profile2D
 from openglider.vector.spline import Bezier, SymmetricBezier, SymmetricBSpline
@@ -17,6 +18,8 @@ from openglider.glider.rib import MiniRib
 from openglider.glider.ballooning import BallooningBezier, BallooningBezierNeu
 from openglider.utils.table import Table
 
+
+logger = logging.getLogger(__file__)
 element_keywords = {
     "cuts": ["cells", "left", "right", "type"],
     "a": "",
@@ -24,6 +27,7 @@ element_keywords = {
 
 
 def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
+    logger.info(f"Import file: {filename}")
     ods = ezodf.opendoc(filename)
     sheets = ods.sheets
 

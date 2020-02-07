@@ -1,7 +1,7 @@
 import numpy
 
 from openglider.vector.polyline import PolyLine2D
-from openglider.vector.functions import cut, rotation_2d, vector_angle
+from openglider.vector.functions import cut, rotation_2d, vector_angle, norm
 
 
 class Polygon2D(PolyLine2D):
@@ -57,6 +57,17 @@ class Polygon2D(PolyLine2D):
 
 
 class CirclePart(object):
+    """
+    "A piece of the cake"
+    
+       /) <-- p1
+      /   )
+     /     )
+    |       ) <-- p2
+     \     )
+      \   )
+       \) <-- p3
+    """
     def __init__(self, p1, p2, p3):
         self.p1 = p1
         self.p2 = p2
@@ -100,3 +111,28 @@ class CirclePart(object):
 
         svg += "</svg>"
         return svg
+
+
+class Ellipse(object):
+    def __init__(self, center, radius, width, rotation=0):
+        self.center = center
+        self.radius = radius
+        self.width = width
+        self.rotation = rotation
+
+    def get_sequence(self, num=20):
+        phi = numpy.linspace(0, numpy.pi * 2, num + 1)
+        points = [self.center + numpy.array([numpy.cos(x), numpy.sin(x)]) * self.radius for x in phi]
+
+        return PolyLine2D(points)
+
+
+class Circle(Ellipse):
+    def __init__(self, center, radius):
+        super().__init__(center, radius, radius, 0)
+    
+    @classmethod
+    def from_p1_p2(cls, p1, p2):
+        center = (p1 + p2)/2
+        radius = norm(p2 - p1)/2
+        return cls(center, radius)

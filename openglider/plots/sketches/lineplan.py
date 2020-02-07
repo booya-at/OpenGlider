@@ -1,5 +1,5 @@
 from openglider.plots.sketches.shapeplot import ShapePlot
-from openglider.plots.drawing import PlotPart
+from openglider.vector.drawing import PlotPart
 from openglider.vector import PolyLine2D
 
 

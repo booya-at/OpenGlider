@@ -332,7 +332,6 @@ class Node(object):
         self.attachment_point = attachment_point
         self.name = name or "name_not_set"
 
-
     def calc_force_infl(self, vec):
         v = np.array(vec)
         force = proj_force(self.force, self.vec - v)

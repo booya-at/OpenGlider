@@ -6,7 +6,7 @@ import copy
 
 from openglider.glider.parametric.shape import ParametricShape
 from openglider.airfoil import Profile2D
-from openglider.glider import Glider
+from openglider.glider.glider import Glider
 from openglider.glider.cell import Panel, DiagonalRib, TensionLine, Cell
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.export_ods import export_ods_2d
@@ -212,40 +212,43 @@ class ParametricGlider(object):
 
         return cells
 
-    def apply_diagonals(self, glider):
-        for cell_no, cell in enumerate(glider.cells):
-            cell.diagonals = []
-            cell.straps = []
-            for diagonal in self.elements.get("diagonals", []):
-                if cell_no in diagonal["cells"]:
-                    dct = diagonal.copy()
-                    dct.pop("cells")
-                    cell.diagonals.append(DiagonalRib(**dct))
-
-            cell.diagonals.sort(key=lambda d: d.get_average_x())
-
-            for strap in self.elements.get("straps", []):
+    def _get_cell_straps(self, name, _cls):
+        elements = []
+        for cell_no in range(self.shape.half_cell_num):
+            cell_elements = []
+            for strap in self.elements.get(name, []):
                 if cell_no in strap["cells"]:
                     dct = strap.copy()
                     dct.pop("cells")
-                    dct["name"] = "c{}s".format(cell_no+1)
-                    cell.straps.append(DiagonalRib(**dct))
-            for tension_line in self.elements.get("tension_lines", []):
-                if cell_no in tension_line["cells"]:
-                    dct = tension_line.copy()
-                    dct.pop("cells")
-                    dct["name"] = "c{}s".format(cell_no+1)
-                    cell.straps.append(TensionLine(**dct))
+                    cell_elements.append(_cls(**dct))
 
-            cell.straps.sort(key=lambda s: (s.get_average_x()))
+            cell_elements.sort(key=lambda strap: strap.get_average_x())
 
-            # Name elements
+            for strap_no, strap in enumerate(cell_elements):
+                strap.name = "c{}{}{}".format(cell_no+1, name[0], strap_no)
+            
+            elements.append(cell_elements)
+        
+        return elements
 
-            for d_no, diagonal in enumerate(cell.diagonals):
-                diagonal.name = "c{}d{}".format(cell_no+1, d_no)
+    def get_cell_diagonals(self):
+        return self._get_cell_straps("diagonals", DiagonalRib)
+    
+    def get_cell_straps(self):
+        return self._get_cell_straps("straps", DiagonalRib)
+    
+    def get_cell_tension_lines(self):
+        return self._get_cell_straps("tension_lines", TensionLine)
 
-            for s_no, strap in enumerate(cell.straps):
-                strap.name = "c{}s{}".format(cell_no+1, s_no)
+    def apply_diagonals(self, glider):
+        cell_straps = self.get_cell_straps()
+        cell_diagonals = self.get_cell_diagonals()
+        cell_tensionlines = self.get_cell_tension_lines()
+
+        for cell_no, cell in enumerate(glider.cells):
+            cell.diagonals = cell_diagonals[cell_no]
+            cell.straps = cell_straps[cell_no]
+            cell.straps += cell_tensionlines[cell_no]
 
     @classmethod
     def fit_glider_3d(cls, glider, numpoints=3):

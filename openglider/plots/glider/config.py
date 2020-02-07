@@ -18,7 +18,7 @@ class PatternConfig(Config):
 
     midribs = 50
 
-    patterns_align_dist_y = 0.05
+    patterns_align_dist_y = 0.1
     patterns_align_dist_x = patterns_align_dist_y
     patterns_scale = 1000
 

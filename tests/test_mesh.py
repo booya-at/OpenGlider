@@ -25,7 +25,8 @@ class TestMesh(TestCase):
         m3 = m1 + m2
         m3.delete_duplicates()
         for vertex in a:
-            self.assertTrue(vertex in m3.vertices)
+            matches = [vertex.is_equal(p) for p in m3.vertices]
+            self.assertTrue(any(matches))
 
     def test_glider_mesh(self):
         dist = Distribution.from_nose_cos_distribution(30, 0.2)

@@ -1,4 +1,4 @@
-from openglider.plots.drawing import PlotPart, Layout
+from openglider.vector.drawing import PlotPart, Layout
 from openglider.vector import PolyLine2D, norm
 
 

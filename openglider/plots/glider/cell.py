@@ -2,12 +2,11 @@ import math
 import numpy as np
 
 from openglider.airfoil import get_x_value
-from openglider.plots import cuts, PlotPart
 from openglider.plots.glider.config import PatternConfig
 from openglider.vector import PolyLine2D, vector_angle
 from openglider.vector.text import Text
+from openglider.vector.drawing import PlotPart, Layout
 import openglider.vector.projection as projection
-from openglider.plots import Layout
 from openglider.vector import normalize, norm
 import openglider.utils
 
