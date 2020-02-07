@@ -308,7 +308,7 @@ class Mesh(object):
                 mesh_dxf = ms.add_mesh({"layer": name})
 
                 with mesh_dxf.edit_data() as mesh_data:
-                    num_posys = len(polys["123"])
+                    num_polys = len(polys["123"])
                     logger.info(f"Exporting {num_polys} faces")
                     mesh_data.vertices = [list(p) for p in vertices]
                     mesh_data.faces = polys["123"]
