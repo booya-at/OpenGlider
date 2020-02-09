@@ -56,10 +56,10 @@ class Reflection(Transformation):
         x, y, z = normalize(axis)
         mat = np.array(
             [
-                [1 - 2 * x ** 2, -2 * x * y, -2 * x * z, 0.],
-                [-2 * x * y, 1 - 2 * y ** 2, -2 * y * z, 0.],
-                [-2 * x * z, -2 * y * z, 1 - 2 * z ** 2, 0.],
-                [0., 0., 0., 1.]
+                [1 - 2 * x ** 2,    -2 * x * y,     -2 * x * z,     0.],
+                [-2 * x * y,        1 - 2 * y ** 2, -2 * y * z,     0.],
+                [-2 * x * z,        -2 * y * z,     1 - 2 * z ** 2, 0.],
+                [0.,                0.,             0.,             1.]
             ])
         super(Reflection, self).__init__(mat)
 

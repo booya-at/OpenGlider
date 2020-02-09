@@ -23,6 +23,7 @@ import json
 
 from openglider.utils.cache import recursive_getattr
 import openglider.jsonify
+from openglider.utils.table import Table
 
 
 def sign(val):

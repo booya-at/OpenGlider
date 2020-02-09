@@ -19,7 +19,7 @@ from openglider.glider.ballooning import BallooningBezier, BallooningBezierNeu
 from openglider.utils.table import Table
 
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 element_keywords = {
     "cuts": ["cells", "left", "right", "type"],
     "a": "",
@@ -35,10 +35,12 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     rib_sheet = sheets[2]
 
     # file-version
-    if cell_sheet[0, 0].value == "V2" or cell_sheet[0, 0].value == "V2":
-        file_version = 2
+    file_version_match = re.match(r"V([0-9]*)", str(cell_sheet[0, 0].value))
+    if file_version_match:
+        file_version = file_version_match.group(1)
     else:
         file_version = 1
+    logger.info(f"Loading file version {file_version}")
     # ------------
 
     # profiles = [BezierProfile2D(profile) for profile in transpose_columns(sheets[3])]
@@ -46,9 +48,9 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     for foil in profiles:
         foil.normalize()
 
-    try:
+    if file_version > 2:
         geometry = get_geometry_parametric(sheets[5])
-    except Exception:
+    else:
         geometry = get_geometry_explicit(sheets[0])
 
     balloonings = []
@@ -236,7 +238,7 @@ def get_geometry_explicit(sheet):
 
         span_last = span
 
-    def symmetric_fit(data, bspline=False):
+    def symmetric_fit(data, bspline=True):
         not_from_center = int(data[0][0] == 0)
         mirrored = [[-p[0], p[1]] for p in data[not_from_center:]][::-1] + data
         if bspline:
