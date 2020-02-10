@@ -406,8 +406,15 @@ class Glider(object):
 
     @property
     def projected_area(self):
-        complete = self.copy_complete()
-        return sum(cell.projected_area for cell in complete.cells)
+        projected_area = 0
+        for i, cell in enumerate(self.cells):
+            cell_area = cell.projected_area
+            if i == 0 and self.has_center_cell:
+                projected_area += cell_area
+            else:
+                projected_area = 2*cell_area
+            
+        return projected_area
 
     @property
     def aspect_ratio(self):

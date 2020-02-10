@@ -395,8 +395,8 @@ class LineSet(object):
 
         def insert_block(line, upper, row, column):
             length = round(line.get_stretched_length()*1000)
-            table.set(column, row, length)
-            table.set(column + floors + 3, row, line.type.name)
+            table.set_value(column, row, length)
+            table.set_value(column + floors + 3, row, line.type.name)
             if upper:
                 for line, line_upper in upper:
                     row = insert_block(line, line_upper, row, column-1)
@@ -404,8 +404,8 @@ class LineSet(object):
                 name = line.upper_node.name
                 if not name:
                     name = "XXX"
-                table.set(column-1, row, name)
-                table.set(column+2+floors, row, name)
+                table.set_value(column-1, row, name)
+                table.set_value(column+2+floors, row, name)
                 row += 1
             return row
 

@@ -254,9 +254,9 @@ class ParallelCut(DesignCut):
 
         curve = PolyLine2D([leftcut, leftcut+diff, rightcut+diff, rightcut])
 
-        iks = [x[1] for x in inner_lists]
+        #iks = [x[1] for x in inner_lists]
 
-        iks[0] = inner_lists[0][0].extend()
+        #iks[0] = inner_lists[0][0].extend()
 
         return CutResult(curve, leftcut_index[0], rightcut_index[0], indices)
 

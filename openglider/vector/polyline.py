@@ -54,7 +54,7 @@ class PolyLine(HashedList):
 
         for i, p in enumerate(self):
             for j, coord in enumerate(p):
-                table.set(j, i, coord)
+                table.set_value(j, i, coord)
 
         return table
 

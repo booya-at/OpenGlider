@@ -50,13 +50,13 @@ class GliderProject(object):
         table["A1"] = "Area"
         table["B1"] = f"{self.glider_3d.area:.02f} m²"
         table["A2"] = "Area projected"
-        #table["B2"] = f"{self.glider_3d.projected_area:.02f} m²"
+        table["B2"] = f"{self.glider_3d.projected_area:.02f} m²"
         table["A3"] = "Aspect Ratio"
         table["B3"] = f"{self.glider_3d.aspect_ratio:.02f}"
 
-        #flattening = 100 * (1 - self.glider_3d.projected_area / self.glider_3d.area)
+        flattening = 100 * (1 - self.glider_3d.projected_area / self.glider_3d.area)
         table["A4"] = "Flattening"
-        #table["B4"] = f"{flattening:.01f} %"
+        table["B4"] = f"{flattening:.01f} %"
         table["A5"] = "Cells"
         table["B5"] = str(self.glider.shape.cell_num)
         table["A6"] = "Attachment point z"

@@ -18,33 +18,47 @@ class Layout(object):
             "id": 'outer',
             "stroke-width": "0.1",
             "stroke": "red",
+            "stroke-color": "#FF0000",
             "fill": "none"},
         "marks": {
             "id": 'marks',
             "stroke-width": "0.1",
             "stroke": "green",
+            "stroke-color": "#00FF00",
             "fill": "none"},
         "debug": {
             "id": 'marks',
             "stroke-width": "0.1",
             "stroke": "grey",
+            "stroke-color": "#bbbbbb",
             "fill": "none"},
         "inner": {
             "id": "inner",
             "stroke-width": "0.1",
             "stroke": "green",
+            "stroke-color": "#00FF00",
             "fill": "none"
         },
         "text": {
             "id": 'text',
             "stroke-width": "0.1",
             "stroke": "green",
+            "stroke-color": "#00FF00",
             "fill": "none"},
         "stitches": {
             "id": "stitches",
             "stroke-width": "0.1",
             "stroke": "black",
-            "fill": "none"}
+            "stroke-color": "#aaaaaa",
+            "fill": "none"},
+        "envelope": {
+            "id": "envelope",
+            "stroke-width": "0.1",
+            "stroke": "black",
+            "stroke-color": "#aaaaaa",
+            "fill": "none",
+            "visible": False
+        }
     }
 
     def __init__(self, parts=None):
@@ -434,6 +448,9 @@ class Layout(object):
                 # todo: simplify
                 if layer_name in config:
                     layer_config = config[layer_name]
+                    for key in ("stroke-color", "visible"):
+                        if key in layer_config:
+                            layer_config.pop(key)
                 else:
                     layer_config = {"stroke": "black", "fill": "none", "stroke-width": "1"}
 
