@@ -1,6 +1,7 @@
 import json
 import re
 import time
+import datetime
 
 import openglider.jsonify.migration
 from openglider.utils import recursive_getattr
@@ -11,12 +12,15 @@ __ALL__ = ['dumps', 'dump', 'loads', 'load']
 # Maybe at some point it can become necessary to de-reference classes with _module also,
 # because of same-name-elements....
 # For the time given, we're alright
-
+datetime_format = "%d.%m.%Y %H:%M"
+datetime_format_regex = re.compile(r'^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}$')
 
 class Encoder(json.JSONEncoder):
     def default(self, obj):
         if obj.__class__.__module__ == 'numpy':
             return obj.tolist()
+        elif isinstance(obj, datetime.datetime):
+            return obj.strftime(datetime_format)
         elif hasattr(obj, "__json__"):
             type_str = str(obj.__class__)
             module = obj.__class__.__module__
@@ -49,6 +53,10 @@ def object_hook(dct):
     """
     Return the de-serialized object
     """
+    for key, value in dct.items():
+        if isinstance(value, str) and datetime_format_regex.match(value):
+            dct[key] = datetime.datetime.strptime(value, datetime_format)
+            
     if '_type' in dct and '_module' in dct:
         obj = get_element(dct["_module"], dct["_type"])
 

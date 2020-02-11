@@ -47,25 +47,31 @@ class GliderProject(object):
 
     def get_data_table(self):
         table = openglider.utils.table.Table()
-        table["A1"] = "Area"
-        table["B1"] = f"{self.glider_3d.area:.02f} m²"
-        table["A2"] = "Area projected"
-        table["B2"] = f"{self.glider_3d.projected_area:.02f} m²"
-        table["A3"] = "Aspect Ratio"
-        table["B3"] = f"{self.glider_3d.aspect_ratio:.02f}"
+        table["A1"] = "Name"
+        table["B1"] = f"{self.name}"
+        table["A2"] = "Date"
+        table["B2"] = self.modified.strftime("%d.%m.%Y")
+        table["A3"] = "Time"
+        table["B3"] = self.modified.strftime("%H:%M")
+        table["A4"] = "Area"
+        table["B4"] = f"{self.glider_3d.area:.02f} m²"
+        table["A5"] = "Area projected"
+        table["B5"] = f"{self.glider_3d.projected_area:.02f} m²"
+        table["A6"] = "Aspect Ratio"
+        table["B6"] = f"{self.glider_3d.aspect_ratio:.02f}"
 
         flattening = 100 * (1 - self.glider_3d.projected_area / self.glider_3d.area)
-        table["A4"] = "Flattening"
-        table["B4"] = f"{flattening:.01f} %"
-        table["A5"] = "Cells"
-        table["B5"] = str(self.glider.shape.cell_num)
-        table["A6"] = "Attachment point z"
+        table["A7"] = "Flattening"
+        table["B7"] = f"{flattening:.01f} %"
+        table["A8"] = "Cells"
+        table["B8"] = str(self.glider.shape.cell_num)
+        table["A9"] = "Attachment point z"
 
         z = self.glider_3d.lineset.get_main_attachment_point().vec[2]
-        table["B6"] = f"{z:.03f}"
-        table["A7"] = "Att. z (relative to span)"
+        table["B9"] = f"{z:.03f}"
+        table["A10"] = "Att. z (relative to span)"
         z_rel = z / self.glider.shape.span * 100
-        table["B7"] = f"{z_rel:.01f} %"
+        table["B10"] = f"{z_rel:.01f} %"
 
         return table
 
@@ -105,7 +111,7 @@ class GliderProject(object):
         return {"glider": self.glider,
                 "glider_3d": self.glider_3d,
                 "name": self.name,
-                #"modified": self.modified
+                "modified": self.modified
                 }
 
     def get_data(self):

@@ -1,6 +1,7 @@
 import datetime
 import os
 import subprocess
+import logging
 
 from openglider import jsonify
 
@@ -23,6 +24,7 @@ class PatternsNew(object):
         self.project = project
         self.glider_2d = project.glider
         self.config = self.DefaultConf(config)
+        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
 
     def __json__(self):
         return {
@@ -31,7 +33,6 @@ class PatternsNew(object):
         }
 
     def _get_sketches(self):
-        print("create sketches")
         import openglider.plots.sketches as sketch
         shapeplot = sketch.ShapePlot(self.project.glider, self.project.glider_3d)
         design_upper = shapeplot.copy().insert_design(lower=True)
@@ -57,7 +58,7 @@ class PatternsNew(object):
 
         return drawings
 
-    def unwrap(self, outdir, glider=None):
+    def unwrap(self, outdir):
         def fn(filename):
             return os.path.join(outdir, filename)
 
@@ -66,19 +67,23 @@ class PatternsNew(object):
         if self.config.profile_numpoints:
             self.glider_2d.num_profile = self.config.profile_numpoints
 
-        #glider = glider or self.glider_2d.get_glider_3d()
         glider = self.project.glider_3d
 
+        self.logger.info("create sketches")
         drawings = self._get_sketches()
         drawings_width = max([dwg.width for dwg in drawings])
+
+        # put name and date inside the patterns
         p1 = [0., 0.]
         p2 = [drawings_width, 0.]
         text_name = Text(self.project.name or "unnamed", p1, p2, valign=1)
         date_str = datetime.datetime.now().strftime("%d.%m.%Y")
         text_date = Text(date_str, p1, p2, valign=0)
         drawings += [text_date.get_plotpart(), text_name.get_plotpart()]
+
         designs = Layout.stack_column(drawings, self.config.patterns_align_dist_y)
 
+        self.logger.info("create plots")
         if self.config.complete_glider:
             glider_complete = glider.copy_complete()
             glider_complete.rename_parts()
@@ -95,7 +100,7 @@ class PatternsNew(object):
         #     jsonify.dump(plots, outfile)
         all_patterns.append_left(designs, distance=self.config.patterns_align_dist_x*2)
 
-        print("export patterns")
+        self.logger.info("export patterns")
 
         all_patterns.scale(1000)
         all_patterns.export_svg(fn("plots_all.svg"))
@@ -124,13 +129,18 @@ class PatternsNew(object):
         #     sketch.drawing.scale_a4()
         #     sketch.drawing.export_svg(fn(sketch_name+".svg"), add_styles=False)
 
-        print("output spreadsheets")
-        excel = openglider.plots.spreadsheets.get_glider_data(glider)
+        self.logger.info("create spreadsheets")
+        excel = openglider.plots.spreadsheets.get_glider_data(self.project)
         excel.saveas(os.path.join(outdir, "data.ods"))
+
+        openglider.save(self.project, os.path.join(outdir, "project.json"))
 
 
 class Patterns(PatternsNew):
     def __init__(self, glider2d, config=None):
-        glider_3d = glider2d.get_glider_3d()
-        project = openglider.glider.GliderProject(glider2d, glider_3d)
+        project = openglider.glider.GliderProject(glider2d, None)
         super().__init__(project, config)
+
+    def unwrap(self, outdir, glider_3d):
+        self.project.glider_3d = glider_3d
+        super().unwrap(outdir)

@@ -156,6 +156,16 @@ class Table:
 
         return table
 
+    @classmethod
+    def from_list(cls, lst):
+        table = cls()
+
+        for row_no, row in enumerate(lst):
+            for col_no, value in enumerate(row):
+                table[row_no, col_no] = value
+        
+        return table
+
     def get_markdown_table(self):
         table = self.copy()
         column_widths = []

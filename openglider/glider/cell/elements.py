@@ -56,7 +56,8 @@ class DiagonalRib(object):
                 'left_back': self.left_back,
                 'right_front': self.right_front,
                 'right_back': self.right_back,
-                "material_code": self.material_code
+                "material_code": self.material_code,
+                "name": self.name
         }
 
     @property
@@ -236,7 +237,9 @@ class TensionLine(TensionStrap):
     def __json__(self):
         return {"left": self.left,
                 "right": self.right,
-                "material_code": self.material_code}
+                "material_code": self.material_code,
+                "name": self.name
+            }
 
     def get_length(self, cell):
         rib1 = cell.rib1
@@ -314,7 +317,8 @@ class Panel(object):
     def __json__(self):
         return {'cut_front': self.cut_front,
                 'cut_back': self.cut_back,
-                "material_code": self.material_code
+                "material_code": self.material_code,
+                "name": self.name
                 }
 
     def mean_x(self):

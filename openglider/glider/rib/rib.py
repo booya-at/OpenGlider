@@ -58,7 +58,9 @@ class Rib(CachedObject):
                 "name": self.name,
                 "rigidfoils": self.rigidfoils,
                 "holes": self.holes,
-                "material_code": self.material_code}
+                "material_code": self.material_code,
+                "name": self.name
+                }
 
     def align_all(self, data):
         """align 2d coordinates to the 3d pos of the rib"""
@@ -74,6 +76,10 @@ class Rib(CachedObject):
                 return self.pos + self.rotation_matrix(point)
 
         raise ValueError("Can only Align one single 2D or 3D-Point")
+
+    def align_x(self, x_value):
+        ik = self.profile_2d(x_value)
+        return self.profile_3d[ik]
 
     def rename_parts(self):
         for hole_no, hole in enumerate(self.holes):

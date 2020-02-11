@@ -38,7 +38,9 @@ class Cell(CachedObject):
                 "miniribs": self.miniribs,
                 "diagonals": self.diagonals,
                 "panels": self.panels,
-                "straps": self.straps}
+                "straps": self.straps,
+                "name": self.name
+                }
 
     def rename_panels(self, seperate_upper_lower=False):
         if seperate_upper_lower:

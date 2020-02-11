@@ -86,6 +86,19 @@ class Layout(object):
     def clear(self):
         self.parts = []
 
+    def is_empty(self):
+        if len(self.parts) == 0:
+            return True
+        
+        for part in self.parts:
+            for layer in part.layers.values():
+                for line in layer:
+                    if len(line) > 0:
+                        return False
+        
+        return True
+
+
     @classmethod
     def stack_column(cls, parts, distance, center_x=True):
         column_dwg = cls()

@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import logging
 
 from openglider.airfoil import get_x_value
 from openglider.plots.glider.config import PatternConfig
@@ -27,6 +28,8 @@ class PanelPlot(object):
         self.outer_orig = flattended_cell["outer_orig"]
 
         self.x_values = self.cell.rib1.profile_2d.x_values
+
+        self.logger = logging.getLogger(r"{self.__class__.__module__}.{self.__class__.__name__}")
 
     def flatten(self, attachment_points):
         plotpart = PlotPart(material_code=self.panel.material_code, name=self.panel.name)
@@ -81,8 +84,9 @@ class PanelPlot(object):
             shape_3d_amount_front[j] = -diff/2
             shape_3d_amount_back[j] = diff/2
 
-            if diff > 0.003 or self.panel.name in ("c16p1", "c17p1"):
-                print(self.panel.name, j, diff, line_2d.get_length(), line_3d.get_length())
+            if diff > 0.003:
+                message = f"diff > 0.003: {self.panel.name}, {j}, {diff}, {line_2d.get_length()}, {line_3d.get_length()}"
+                self.logger.info(message)
 
         if self.panel.cut_front["type"] != "cut_3d":
             dist = np.linspace(shape_3d_amount_front[0], shape_3d_amount_front[-1], len(shape_3d_amount_front))
@@ -583,6 +587,7 @@ class StrapPlot(DribPlot):
 
 
 class CellPlotMaker:
+    run_check = True
     DefaultConf = PatternConfig
 
     def __init__(self, cell, attachment_points, config=None):
