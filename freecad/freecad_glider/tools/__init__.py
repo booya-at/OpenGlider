@@ -356,9 +356,11 @@ class RefreshCommand():
 
     def Activated(self):
         import sys
-        for name, mod in sys.modules.items():
+        mod_names = list(sys.modules.keys())
+        for name in mod_names:
             for rld in self.RELOAD:
                 if rld in name:
+                    mod = sys.modules[name]
                     if mod and name not in self.NOT_RELOAD:
                         print('reload {}'.format(name))
                         reload(mod)

@@ -125,7 +125,6 @@ class BallooningMultiplier(BaseFeature):
     
     def getGliderInstance(self):
         glider = copy.deepcopy(self.obj.parent.Proxy.getGliderInstance())
-        balloonings = self.obj.parent.Proxy.getParametricGlider().balloonings
         for i, cell in enumerate(glider.cells):
             cell.ballooning *= self.obj.mutiply_values[i]
         return glider
