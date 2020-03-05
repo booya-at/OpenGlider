@@ -246,7 +246,7 @@ class OGGlider(OGBaseObject):
     def onDocumentRestored(self, obj):
         if not hasattr(self, 'obj'):  # make sure this function is only run once
             self.obj = obj
-            from . import backward_comatipility as bc
+            from . import backward_compatibility as bc
 
             bc.version_update(obj)
 

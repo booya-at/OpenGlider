@@ -67,6 +67,10 @@ class TestGlider(GliderTestClass):
     def copy_complete(self):
         self.glider.copy_complete()
 
+    def test_mean_rib(self):
+        for cell in self.glider.cells:
+            cell.mean_rib(10)
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

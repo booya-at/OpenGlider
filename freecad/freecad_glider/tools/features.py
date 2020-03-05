@@ -63,7 +63,7 @@ class BaseFeature(OGBaseObject):
                 self.obj.parent.ViewObject.Visibility = False
             self.obj.parent.Proxy.onDocumentRestored(self.obj.parent)
 
-            from . import backward_comatipility as bc
+            from . import backward_compatibility as bc
             bc.version_update(obj)
 
             # if we have modified the glider without gui, the view-provider is empty and we
