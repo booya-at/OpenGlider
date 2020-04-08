@@ -3,26 +3,27 @@ from __future__ import division
 import sys
 import traceback
 
-import numpy as np
-
-import FreeCAD as App
-import FreeCADGui as Gui
-from openglider.glider.parametric.lines import (BatchNode2D, Line2D, LineSet2D,
-                                                LowerNode2D, UpperNode2D)
-from openglider.lines.line_types import LineType
-from PySide import QtCore, QtGui
-
-from .glider import draw_glider, draw_lines
-from .tools import BaseTool, input_field, text_field
-from .pivy_primitives import Arrow, InteractionSeparator
-from .pivy_primitives import Line as _Line
-from .pivy_primitives import Marker as _Marker
-from .pivy_primitives import Object3D, coin, vector3D
-
 if sys.version_info.major > 2:
     from importlib import reload
 
+import numpy as np
+from PySide import QtCore, QtGui
 
+from pivy import coin
+from pivy.graphics import Arrow, InteractionSeparator
+from pivy.graphics import Line as _Line
+from pivy.graphics import Marker as _Marker
+from pivy.graphics import Object3D
+
+import FreeCAD as App
+import FreeCADGui as Gui
+
+from openglider.glider.parametric.lines import (BatchNode2D, Line2D, LineSet2D,
+                                                LowerNode2D, UpperNode2D)
+from openglider.lines.line_types import LineType
+
+from .glider import draw_glider, draw_lines
+from .tools import BaseTool, input_field, text_field, vector3D
 
 
 
@@ -58,7 +59,7 @@ class Marker(_Marker):
 
 
 class LineContainer(InteractionSeparator):
-    def Select(self, obj, multi=False):
+    def select_object(self, obj, multi=False):
         if not multi:
             for o in self.selected_objects:
                 o.unselect()
@@ -68,10 +69,10 @@ class LineContainer(InteractionSeparator):
                 self.selected_objects.remove(obj)
             elif obj.enabled:
                 self.selected_objects.append(obj)
-        self.ColorSelected()
+        self.color_selected()
         self.selection_changed()
 
-    def select_all_cb(self, event_callback):
+    def select_all_cb(self, attr, event_callback):
         event = event_callback.getEvent()
         if (event.getKey() == ord('a')):
             if event.getState() == event.DOWN:
@@ -80,10 +81,10 @@ class LineContainer(InteractionSeparator):
                         o.unselect()
                     self.selected_objects = []
                 else:
-                    for obj in self.objects:
+                    for obj in self.dynamic_objects:
                         if obj.dynamic and obj.enabled:
                             self.selected_objects.append(obj)
-                self.ColorSelected()
+                self.color_selected()
                 self.selection_changed()
 
 # all line info goes into the tool.
@@ -118,11 +119,11 @@ class LineTool(BaseTool):
         self.temp_point = coin.SoSeparator()
 
         # pivy lines, points, shape
-        self.shape = LineContainer()
+        self.shape = LineContainer(self.rm)
         self.shape.selection_changed = self.selection_changed
 
         self.shape.setName('shape')
-        self.shape.register(self.view)
+        self.shape.register()
         self.task_separator += [self.shape, self.helper_line]
         self.task_separator += [self.temp_point]
         self.draw_shape()
@@ -395,7 +396,7 @@ class LineTool(BaseTool):
                     if marker2:
                         line = ConnectionLine(objs[0], marker2)
                         self.shape += [line]
-                        self.shape.Select(marker2)
+                        self.shape.select_object(marker2)
                         self.shape.selection_changed()
                         line.layer = self.layer_combobox.currentText()
 
@@ -409,7 +410,7 @@ class LineTool(BaseTool):
                 point = Lower_Att_Marker(node, self.parametric_glider)
                 point.layer = self.layer_combobox.currentText()
                 self.shape += [point]
-                self.shape.Select(point)
+                self.shape.select_object(point)
                 self.shape.grab_cb(event_callback, force=True)
             elif self.upper_preview_node:
                 self.add_attachment_point(self.upper_preview_node[0])
@@ -562,7 +563,7 @@ class LineTool(BaseTool):
             obj.rib_pos = self.up_att_pos.value()
 
     def draw_shape(self):
-        self.shape.removeAllChildren()
+        self.shape.objects.removeAllChildren()
         self.shape += [Line(vector3D(self.front)), Line(vector3D(self.back))]
         self.shape += list(map(Line, vector3D(self.ribs)))
         shape = self.parametric_glider.shape
@@ -747,8 +748,8 @@ class ConnectionLine(Line):
         super(ConnectionLine, self).__init__([marker1.pos, marker2.pos], dynamic=True)
         self.marker1 = marker1
         self.marker2 = marker2
-        self.marker1.on_drag.append(self.update_Line)
-        self.marker2.on_drag.append(self.update_Line)
+        self.marker1.on_drag.append(self.update_line)
+        self.marker2.on_drag.append(self.update_line)
         self.drawstyle.lineWidth = 1.
         self.target_length = 1.
         self.line_type = 'default'
@@ -759,7 +760,7 @@ class ConnectionLine(Line):
         return (isinstance(self.marker1, Upper_Att_Marker) or 
                 isinstance(self.marker2, Upper_Att_Marker))
 
-    def update_Line(self):
+    def update_line(self):
         self.points = [self.marker1.pos, self.marker2.pos]
 
     # def drag(self, mouse_coords, fact=1.):
@@ -824,22 +825,21 @@ class LayerComboBox(QtGui.QComboBox):
 
 
 class LineSelectionSeperator(InteractionSeparator):
-    def register(self, view, observer_tool):
-        self.view = view
+    def register(self, observer_tool):
         self.observer_tool = observer_tool
-        self.mouse_over = self.view.addEventCallbackPivy(
-            coin.SoLocation2Event.getClassTypeId(), self.mouse_over_cb)
-        self.select = self.view.addEventCallbackPivy(
+        self._highlight_cb = self.events.addEventCallback(
+            coin.SoLocation2Event.getClassTypeId(), self.highlight_cb)
+        self.select = self.events.addEventCallback(
             coin.SoMouseButtonEvent.getClassTypeId(), self.select_cb)
-        self.select_all = self.view.addEventCallbackPivy(
+        self.select_all = self.events.addEventCallback(
             coin.SoKeyboardEvent.getClassTypeId(), self.select_all_cb)
 
     def unregister(self):
-        self.view.removeEventCallbackPivy(
-            coin.SoLocation2Event.getClassTypeId(), self.mouse_over)
-        self.view.removeEventCallbackPivy(
+        self.events.removeEventCallback(
+            coin.SoLocation2Event.getClassTypeId(), self._highlight_cb)
+        self.events.removeEventCallback(
             coin.SoMouseButtonEvent.getClassTypeId(), self.select)
-        self.view.removeEventCallbackPivy(
+        self.events.removeEventCallback(
             coin.SoKeyboardEvent.getClassTypeId(), self.select_all)
 
     def selection_changed(self):
@@ -946,12 +946,12 @@ class LineObserveTool(BaseTool):
         draw_glider(self.g3d, self.task_separator, profile_num=50, hull=None, ribs=True, fill_ribs=False)
         # self.g3d.lineset.recalc(calculate_sag=True)
 
-        self.line_sep = LineSelectionSeperator()
+        self.line_sep = LineSelectionSeperator(self.rm)
         self.arrows = coin.SoSeparator()
         self.task_separator += self.line_sep, self.arrows
         for line in self.g3d.lineset.lines:
             self.line_sep += GliderLine(line)
-        self.line_sep.register(self.view, self)
+        self.line_sep.register(self)
         self.draw_residual_forces()
 
     def draw_residual_forces(self, factor=None):

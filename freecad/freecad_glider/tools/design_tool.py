@@ -6,8 +6,8 @@ import FreeCAD as App
 from openglider.glider.cell.elements import Panel
 from PySide import QtCore, QtGui
 
-from .tools import BaseTool, coin, input_field, text_field
-from .pivy_primitives import InteractionSeparator, Line, Marker, vector3D
+from .tools import BaseTool, coin, input_field, text_field, vector3D
+from pivy.graphics import InteractionSeparator, Line, Marker
 
 
 def refresh():
@@ -86,13 +86,13 @@ class DesignTool(BaseTool):
         '''set up the scene'''
         self.shape = coin.SoSeparator()
         self.task_separator += [self.shape]
-        self.add_separator = InteractionSeparator()
+        self.add_separator = InteractionSeparator(self.rm)
         self.shape += [self.add_separator]
         self.draw_shape()
         self.drag_separator = coin.SoSeparator()
-        self.event_separator = InteractionSeparator()
+        self.event_separator = InteractionSeparator(self.rm)
         self.event_separator.selection_changed = self.selection_changed
-        self.event_separator.register(self.view)
+        self.event_separator.register()
         self.toggle_side()
         self.add_cb = self.view.addEventCallbackPivy(
             coin.SoKeyboardEvent.getClassTypeId(), self.add_geo)
@@ -156,10 +156,10 @@ class DesignTool(BaseTool):
         self.shape += list(map(Line, self.ribs))
 
     def toggle_side(self):
-        self.event_separator.Select(None)
+        self.event_separator.select_object(None)
         self.event_separator.unregister()
         self.drag_separator.removeAllChildren()
-        self.event_separator = InteractionSeparator()
+        self.event_separator = InteractionSeparator(self.rm)
         self.event_separator.selection_changed = self.selection_changed
         if self.side == 'upper':
             self.side = 'lower'
@@ -173,7 +173,7 @@ class DesignTool(BaseTool):
             self.event_separator += CutLine.upper_line_list
         self.drag_separator += [self.event_separator]
         self.task_separator += [self.drag_separator]
-        self.event_separator.register(self.view)
+        self.event_separator.register()
 
     def add_geo(self, event_callback):
         '''this function provides some interaction functionality to create points and lines
@@ -241,7 +241,7 @@ class DesignTool(BaseTool):
                     cut_line.update_Line()
                     cut_line.setup_visuals()
                     self.event_separator += [cut_point_1, cut_line]
-                    self.event_separator.Select(cut_point_1)
+                    self.event_separator.select_object(cut_point_1)
 
                 elif action == self.add_point:
                     assert(len(self.add_separator.static_objects) == 1)
@@ -249,7 +249,7 @@ class DesignTool(BaseTool):
                     marker = self.add_separator.static_objects[0]
                     cut_point = CutPoint.from_position_and_rib(marker.rib_nr, marker.points[0][1], self.side == 'upper', self.parametric_glider)
                     self.event_separator += [cut_point]
-                    self.event_separator.Select(cut_point)
+                    self.event_separator.select_object(cut_point)
 
 
                 self._add_mode = False

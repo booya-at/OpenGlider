@@ -2,6 +2,7 @@ from __future__ import division
 
 from copy import deepcopy
 
+import numpy as np
 from pivy import coin
 
 import FreeCAD
@@ -12,6 +13,22 @@ from openglider.jsonify import dump, load
 from openglider.vector.spline import BernsteinBase, BSplineBase
 from PySide import QtGui
 
+
+def vector3D(vec):
+    if len(vec) == 0:
+        return(vec)
+    elif not isinstance(vec[0], (list, tuple, np.ndarray, FreeCAD.Vector)):
+        if len(vec) == 3:
+            return vec
+        elif len(vec) == 2:
+            return np.array(vec).tolist() + [0.]
+        else:
+            print('something wrong with this list: ', vec)
+    else:
+        return [vector3D(i) for i in vec]
+
+def vector2D(vec):
+    return vec[0:2]
 
 def hex_to_rgb(hex_string):
     try:
@@ -133,6 +150,7 @@ class BaseTool(object):
                 pass
         self.obj.ViewObject.Visibility = not self.hide
         self.view = FreeCADGui.ActiveDocument.ActiveView
+        self.rm = self.view.getViewer().getSoRenderManager()
         FreeCADGui.Selection.clearSelection()
         if self.turn:
             self.view.viewTop()

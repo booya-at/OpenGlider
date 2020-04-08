@@ -10,7 +10,7 @@ from openglider import jsonify, mesh
 from openglider.glider import ParametricGlider
 from openglider.glider.cell.elements import TensionLine
 
-from . import pivy_primitives as prim
+from pivy import graphics
 from .tools import coin, hex_to_rgb
 
 DEBUG=False
@@ -450,7 +450,7 @@ def draw_lines(glider, line_num=2, vis_lines=None):
 
     for line in glider.lineset.lines:
         points = line.get_line_points(numpoints=line_num)
-        vis_lines += [prim.Line(points, dynamic=False)]
+        vis_lines += [graphics.Line(points, dynamic=False)]
     return vis_lines
 
 
@@ -562,5 +562,5 @@ def draw_aoa(glider, sep=None):
     vec /= np.linalg.norm(vec)
     p1 = np.zeros(3)
     p0 = p1 - vec
-    sep += prim.Arrow([p0, p1])
+    sep += graphics.Arrow([p0, p1])
     return sep

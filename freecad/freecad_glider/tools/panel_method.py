@@ -11,7 +11,7 @@ from openglider.utils.distribution import Distribution
 from PySide import QtCore, QtGui
 
 from .tools import BaseTool, input_field, text_field
-from .pivy_primitives import (COLORS, InteractionSeparator, Line, Marker,
+from pivy.graphics import (COLORS, InteractionSeparator, Line, Marker,
                                   coin)
 
 
@@ -163,7 +163,7 @@ class PanelTool(BaseTool):
             self.Qstream_num = QtGui.QSpinBox()
             self.Qmax_val = QtGui.QDoubleSpinBox()
             self.Qmin_val = QtGui.QDoubleSpinBox()
-            self.cpc = InteractionSeparator()
+            self.cpc = InteractionSeparator(self.rm)
             self.stream = coin.SoSeparator()
             self.glider_result = coin.SoSeparator()
             self.marker = Marker([[0, 0, 0]], dynamic=True)
@@ -239,11 +239,11 @@ class PanelTool(BaseTool):
         self.Qrun.clicked.connect(self.run)
 
     def setup_pivy(self):
-        self.cpc.register(self.view)
+        self.cpc.register()
         self.task_separator.addChild(self.cpc)
         self.task_separator.addChild(self.stream)
         self.task_separator.addChild(self.glider_result)
-        self.cpc.addChild(self.marker)
+        self.cpc += [self.marker]
         self.marker.on_drag_release.append(self.update_stream)
         self.marker.on_drag.append(self.update_stream_fast)
 

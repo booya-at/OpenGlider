@@ -6,12 +6,34 @@ import FreeCAD as App
 from PySide import QtCore, QtGui
 
 from .tools import (BaseTool, coin, hex_to_rgb, input_field, rgb_to_hex,
-                     text_field)
-from .pivy_primitives import InteractionSeparator, Polygon, vector3D
+                     text_field, vector3D)
+from pivy.graphics import InteractionSeparator, Polygon, COLORS
+
+
+
+class ColorPolygon(Polygon):
+    std_col = [0.5, 0.5, 0.5]
+
+    def set_enabled(self):
+        self.color.diffuseColor = self.std_col
+        self.enabled = True
+
+    def set_color(self, col=None):
+        self.std_col = col or self.std_col
+        self.color.diffuseColor = self.std_col
+
+    def unset_mouse_over(self):
+        if self.enabled:
+            self.color.diffuseColor = self.std_col
+
+    def unselect(self):
+        if self.enabled:
+            self.color.diffuseColor = self.std_col
 
 
 def refresh():
     pass
+
 
 class ColorTool(BaseTool):
     widget_name = 'Color Tool'
@@ -46,7 +68,7 @@ class ColorTool(BaseTool):
     def setup_pivy(self):
         # get 2d shape properties
 
-        self.selector = InteractionSeparator()
+        self.selector = ColorContainer(self.rm)
         self.task_separator += [self.selector]
         x_values = self.parametric_glider.shape.rib_x_values
         if self.parametric_glider.shape.has_center_cell:
@@ -57,13 +79,13 @@ class ColorTool(BaseTool):
                 p2 = [x_values[i], panel.cut_back['left'], 0.]
                 p3 = [x_values[i + 1], panel.cut_back['right'], 0.]
                 p4 = [x_values[i + 1], panel.cut_front['right'], 0.]
-                vis_panel = Polygon([p1, p2, p3, p4][::-1], True)
+                vis_panel = ColorPolygon([p1, p2, p3, p4][::-1], True)
                 panel.vis_panel = vis_panel
                 if panel.material_code:
                     vis_panel.set_color(hex_to_rgb(panel.material_code))
                 self.selector += [vis_panel]
 
-        self.selector.register(self.view)
+        self.selector.register()
 
     def set_color(self):
         color = self.color_dialog.currentColor().getRgbF()[:-1]
@@ -85,7 +107,7 @@ class ColorTool(BaseTool):
             cell_colors = []
             for panel in cell:
                 # TODO: make this parametric
-                cell_colors.append(rgb_to_hex(panel.vis_panel._std_color, "skytex32_"))
+                cell_colors.append(rgb_to_hex(panel.vis_panel.std_col, "skytex32_"))
             colors.append(cell_colors)
 
         self.parametric_glider.elements['materials'] = colors
@@ -97,21 +119,3 @@ class ColorTool(BaseTool):
         self.selector.unregister()
         super(ColorTool, self).reject()
 
-
-class ColorContainer(InteractionSeparator):
-    def register(self, view):
-        self.view = view
-        self.mouse_over = self.view.addEventCallbackPivy(
-            coin.SoLocation2Event.getClassTypeId(), self.mouse_over_cb)
-        self.select = self.view.addEventCallbackPivy(
-            coin.SoMouseButtonEvent.getClassTypeId(), self.select_cb)
-        self.select_all = self.view.addEventCallbackPivy(
-            coin.SoKeyboardEvent.getClassTypeId(), self.select_all_cb)
-
-    def unregister(self):
-        self.view.removeEventCallbackPivy(
-            coin.SoLocation2Event.getClassTypeId(), self.mouse_over)
-        self.view.removeEventCallbackPivy(
-            coin.SoMouseButtonEvent.getClassTypeId(), self.select)
-        self.view.removeEventCallbackPivy(
-            coin.SoKeyboardEvent.getClassTypeId(), self.select_all)

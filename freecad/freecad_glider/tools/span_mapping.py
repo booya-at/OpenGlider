@@ -8,7 +8,7 @@ from openglider.glider.rib import Rib
 from PySide import QtGui
 
 from . import pivy_primitives_old as pp
-from . import pivy_primitives as ppn
+from pivy import graphics
 from .tools import BaseTool, input_field, spline_select, text_field
 
 
@@ -126,8 +126,8 @@ class SpanMappingTool(BaseTool):
         # create range
         min_y = (min_y // self._grid_y_diff) * self._grid_y_diff
         max_y = ((max_y // self._grid_y_diff) + 1.5) * self._grid_y_diff
-        self.coords += [ppn.Arrow([[0, 0, 0], [0., max_y * self.scale[1] + self._grid_y_diff, 0]])]
-        self.coords += [ppn.Arrow([[0, 0, 0], [max_x * 1.3, 0., 0]])]
+        self.coords += [graphics.Arrow([[0, 0, 0], [0., max_y * self.scale[1] + self._grid_y_diff, 0]])]
+        self.coords += [graphics.Arrow([[0, 0, 0], [max_x * 1.3, 0., 0]])]
 
         y_grid = np.arange(min_y * self.scale[1], max_y * self.scale[1], self._grid_y_diff * self.scale[1])
 
