@@ -55,7 +55,14 @@ class Profile3D(PolyLine):
             sign = 1 - 2 * (i > self.noseindex)
             yvect = yvect + sign * (diff[i] - xvect * xvect.dot(diff[i]))
 
-        yvect = normalize(yvect)
+        # prev
+        try:
+            yvect = normalize(yvect)
+        except ValueError as e:
+            # yvect  = [0,0,0] (stabi)
+            # TODO: handle somewhere else
+            pass
+
         return Plane(self.data[self.noseindex], xvect, yvect)
 
     def flatten(self):
