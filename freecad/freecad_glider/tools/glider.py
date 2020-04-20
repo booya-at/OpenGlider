@@ -9,6 +9,7 @@ import openglider
 from openglider import jsonify, mesh
 from openglider.glider import ParametricGlider
 from openglider.glider.cell.elements import TensionLine
+from openglider.airfoil.profile_2d import Profile2D
 
 from pivy import graphics
 from .tools import coin, hex_to_rgb
@@ -183,6 +184,9 @@ class OGGlider(OGBaseObject):
         obj.addProperty('App::PropertyPythonObject',
                         'ParametricGlider', 'object',
                         'ParametricGlider', 2)
+        obj.addProperty('App::PropertyLinkList',
+                        'airfoils', 'object', 
+                        'airfoils', 0)
         if parametric_glider:
             obj.ParametricGlider = parametric_glider
         else:
@@ -198,6 +202,7 @@ class OGGlider(OGBaseObject):
         else:
             self.obj.ViewObject.Proxy.recompute = False
             self.obj.ViewObject.Proxy.updateData()
+
 
     @classmethod
     def load(cls, path):
@@ -229,6 +234,14 @@ class OGGlider(OGBaseObject):
         '''return the root freecad obj'''
         return self.obj
 
+    def execute(self, obj):
+        if hasattr(obj, "airfoils") and len(obj.airfoils) > 0:
+            airfs = [Profile2D(i.Proxy.get_airfoil(i).coordinates) for i in obj.airfoils]
+            obj.ParametricGlider.profiles = airfs
+            obj.GliderInstance = obj.ParametricGlider.get_glider_3d()
+            self.obj.ViewObject.Proxy.updateData()
+
+
     def __getstate__(self):
         out = {
             'ParametricGlider': jsonify.dumps(self.obj.ParametricGlider),
@@ -256,8 +269,8 @@ class OGGlider(OGBaseObject):
                 self.restore_view_provider()
             self.obj.ViewObject.Proxy.recompute = True
             # we have blocked the automatic update mechanism. so now we have to call it manually
-            # if self.obj.ViewObject.Visibility:
-            #     self.obj.ViewObject.Proxy.updateData(prop='Visibility')
+            if self.obj.ViewObject.Visibility:
+                self.obj.ViewObject.Proxy.updateData(prop='Visibility')
 ##################################################################################
 
 # the update system on file-open of freecad is difficult.
@@ -324,6 +337,11 @@ class OGGliderVP(OGBaseVP):
         view_obj.z = 0.
 
         super(OGGliderVP, self).__init__(view_obj)
+
+    def claimChildren(self):
+        if hasattr(self.view_obj.Object, "airfoils"):
+            return [i for i in self.view_obj.Object.airfoils]
+        return []
 
 
     def getGliderInstance(self):
