@@ -68,7 +68,7 @@ class ColorTool(BaseTool):
     def setup_pivy(self):
         # get 2d shape properties
 
-        self.selector = ColorContainer(self.rm)
+        self.selector = InteractionSeparator(self.rm)
         self.task_separator += [self.selector]
         x_values = self.parametric_glider.shape.rib_x_values
         if self.parametric_glider.shape.has_center_cell:

@@ -270,7 +270,7 @@ class LineTool(BaseTool):
 
     def color_changed(self):
         color = self.layer_color_dialog.currentColor().getRgbF()[:-1]
-        for obj in self.shape.objects:
+        for obj in self.shape.dynamic_objects:
             obj.disabled_col = color
             if not obj.enabled:
                 obj.set_disabled()
@@ -292,7 +292,7 @@ class LineTool(BaseTool):
 
     def delete_layer(self):
         current_layer = self.layer_combobox.currentText()
-        self.set_layer(text='', objects=self.shape.objects,
+        self.set_layer(text='', objects=self.shape.dynamic_objects,
                        from_layer=current_layer)
         self.layer_combobox.removeItem(self.layer_combobox.currentIndex())
         self.update_layer_selection()
@@ -317,7 +317,7 @@ class LineTool(BaseTool):
 
     def show_layer(self):
         self.shape.deselect_all()
-        for obj in self.shape.objects:
+        for obj in self.shape.dynamic_objects:
             if hasattr(obj, 'layer'):
                 if self.layer_combobox.currentText() == '':
                     if not obj.enabled:
