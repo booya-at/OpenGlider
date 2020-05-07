@@ -137,7 +137,7 @@ class OGBaseObject(object):
                 'aspect_ratio', 'gliderdata',
                 'aspect ratio of glider', 1)
         obj.addProperty('App::PropertyInteger',
-                'cells', 'gliderdata',
+                'num_cells', 'gliderdata',
                 'number of cells', 1)
         obj.addProperty('App::PropertyFloat',
                 'span', 'gliderdata',
@@ -151,16 +151,17 @@ class OGBaseObject(object):
         pass
 
     def execute(self, obj):
+        glider_instance = obj.Proxy.getGliderInstance()  # caching
         if hasattr(obj, "area"):
-            obj.area = obj.Proxy.getGliderInstance().area
+            obj.area = glider_instance.area
         if hasattr(obj, "projected_area"):
-            obj.projected_area = obj.Proxy.getGliderInstance().projected_area
+            obj.projected_area = glider_instance.projected_area
         if hasattr(obj, "area"):
-            obj.aspect_ratio = obj.Proxy.getGliderInstance().aspect_ratio
+            obj.aspect_ratio = glider_instance.aspect_ratio
         if hasattr(obj, "span"):
-            obj.span = obj.Proxy.getGliderInstance().span
-        if hasattr(obj, "cells"):
-            obj.cells = len(obj.Proxy.getGliderInstance().cells)
+            obj.span = glider_instance.span
+        if hasattr(obj, "num_cells"):
+            obj.num_cells = len(glider_instance.cells)
 
     def addProperty(self, name, value, group, docs, p_type=None):
         addProperty(self.obj, name, value, group, docs, p_type)
