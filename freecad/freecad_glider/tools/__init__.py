@@ -461,7 +461,7 @@ class GliderScaleFeatureCommand(GliderFeatureCommand):
         self.glider_obj.ViewObject.Visibility = False
         features.ScaleFeature(feature, self.glider_obj)
         vp = glider.OGGliderVP(feature.ViewObject)
-        vp.updateData()
+        FreeCAD.ActiveDocument.recompute()
 
 class GliderBallooningMultiplierFeatureCommand(GliderFeatureCommand):
     def GetResources(self):

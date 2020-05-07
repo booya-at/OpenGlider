@@ -34,7 +34,7 @@ class DesignTool(BaseTool):
     widget_name = 'Design Tool'
     def __init__(self, obj):
         super(DesignTool, self).__init__(obj)
-        self.side = 'lower'
+        self.side = 'upper'
 
         # get 2d shape properties
         _shape = self.parametric_glider.shape.get_shape()
@@ -89,7 +89,6 @@ class DesignTool(BaseTool):
         self.add_separator = InteractionSeparator(self.rm)
         self.shape += [self.add_separator]
         self.draw_shape()
-        self.drag_separator = coin.SoSeparator()
         self.event_separator = InteractionSeparator(self.rm)
         self.event_separator.selection_changed = self.selection_changed
         self.event_separator.register()
@@ -158,7 +157,8 @@ class DesignTool(BaseTool):
     def toggle_side(self):
         self.event_separator.select_object(None)
         self.event_separator.unregister()
-        self.drag_separator.removeAllChildren()
+        self.task_separator.removeChild(self.event_separator)
+        del self.event_separator
         self.event_separator = InteractionSeparator(self.rm)
         self.event_separator.selection_changed = self.selection_changed
         if self.side == 'upper':
@@ -171,8 +171,7 @@ class DesignTool(BaseTool):
             self.Qtoggle_side.setText('show lower side')
             self.event_separator += list(CutLine.upper_point_set)
             self.event_separator += CutLine.upper_line_list
-        self.drag_separator += [self.event_separator]
-        self.task_separator += [self.drag_separator]
+        self.task_separator += [self.event_separator]
         self.event_separator.register()
 
     def add_geo(self, event_callback):

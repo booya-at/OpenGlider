@@ -124,10 +124,24 @@ class OGBaseObject(object):
         obj.addProperty('App::PropertyString',
                 'openglider_version', 'metadata',
                 'the version of openglider used to create this glider', 1)
-
         obj.addProperty('App::PropertyString',
                 'freecad_version', 'metadata',
                 'the version of openglider used to create this glider', 1)
+        obj.addProperty('App::PropertyFloat',
+                'area', 'gliderdata',
+                'flat area of glider', 1)
+        obj.addProperty('App::PropertyFloat',
+                'projected_area', 'gliderdata',
+                'projected area of glider', 1)
+        obj.addProperty('App::PropertyFloat',
+                'aspect_ratio', 'gliderdata',
+                'aspect ratio of glider', 1)
+        obj.addProperty('App::PropertyInteger',
+                'cells', 'gliderdata',
+                'number of cells', 1)
+        obj.addProperty('App::PropertyFloat',
+                'span', 'gliderdata',
+                'span in [m]', 1)
         obj.Proxy = self
         obj.openglider_version = openglider.__version__
         obj.freecad_version = "{}.{}".format(*App.Version())
@@ -136,8 +150,17 @@ class OGBaseObject(object):
     def addProperties(self):
         pass
 
-    def execute(self, fp):
-        pass
+    def execute(self, obj):
+        if hasattr(obj, "area"):
+            obj.area = obj.Proxy.getGliderInstance().area
+        if hasattr(obj, "projected_area"):
+            obj.projected_area = obj.Proxy.getGliderInstance().projected_area
+        if hasattr(obj, "area"):
+            obj.aspect_ratio = obj.Proxy.getGliderInstance().aspect_ratio
+        if hasattr(obj, "span"):
+            obj.span = obj.Proxy.getGliderInstance().span
+        if hasattr(obj, "cells"):
+            obj.cells = len(obj.Proxy.getGliderInstance().cells)
 
     def addProperty(self, name, value, group, docs, p_type=None):
         addProperty(self.obj, name, value, group, docs, p_type)
@@ -240,6 +263,7 @@ class OGGlider(OGBaseObject):
             obj.ParametricGlider.profiles = airfs
             obj.GliderInstance = obj.ParametricGlider.get_glider_3d()
             self.obj.ViewObject.Proxy.updateData()
+        super(OGGlider, self).execute(obj)
 
 
     def __getstate__(self):
@@ -348,7 +372,8 @@ class OGGliderVP(OGBaseVP):
         try:
             return self.obj.Proxy.getGliderInstance()
         except AttributeError as e:
-            print(e)
+            if DEBUG:
+                print(e)
             return None
 
     def attach(self, view_obj):

@@ -53,6 +53,7 @@ class BaseFeature(OGBaseObject):
 
     def execute(self, fp):
         self.drawGlider()
+        super(BaseFeature, self).execute(fp)
 
 ################# this function belongs to the gui and should be implemented in another way
     def onDocumentRestored(self, obj):
