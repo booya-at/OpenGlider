@@ -608,7 +608,7 @@ class LineTool(BaseTool):
         '''
         lines = []
 
-        for obj in self.shape.objects:
+        for obj in self.shape.dynamic_objects:
             if isinstance(obj, ConnectionLine):
                 l = Line2D(obj.marker1.node, obj.marker2.node)
                 if not obj.is_uppermost_line():
