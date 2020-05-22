@@ -194,7 +194,6 @@ class DesignTool(BaseTool):
             if num_of_obj == 0:
                 add_event = self.view.addEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.add_point)
                 action = self.add_point
-                print(2)
 
             # insert a line + point
             elif num_of_obj == 1 and isinstance(select_obj[0], CutPoint):
@@ -328,8 +327,7 @@ class DesignTool(BaseTool):
                 marker.rib_nr = new_rib_nr
                 line = Line([list(select_obj.points[0]), pos])
                 line.active_point = select_obj
-                self.add_separator += [marker]
-                self.add_separator += [line]
+                self.add_separator += [marker, line]
             else:
                 marker = self.add_separator.static_objects[0]
                 line = self.add_separator.static_objects[1]

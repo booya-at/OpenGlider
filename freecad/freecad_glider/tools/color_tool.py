@@ -96,7 +96,7 @@ class ColorTool(BaseTool):
         assert len(self.selector.selected_objects) == 1
         old_color = self.selector.selected_objects[0].std_col
         color = self.color_replace_dialog.currentColor().getRgbF()[:-1]
-        for panel in self.selector.objects:
+        for panel in self.selector.dynamic_objects:
             if panel.std_col == old_color:
                 panel.set_color(color)
 
