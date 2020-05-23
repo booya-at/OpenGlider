@@ -102,8 +102,8 @@ class CellCommand(BaseCommand):
 class Gl2dExport(BaseCommand):
     def GetResources(self):
         return {'Pixmap': 'gl2d_export.svg',
-                'MenuText': 'export 2D',
-                'ToolTip': 'export 2D'}
+                'MenuText': 'export glider',
+                'ToolTip': 'export glider (different formats)'}
 
     def Activated(self):
         proceed = False
@@ -199,7 +199,7 @@ class ImportGlider(BaseCommand):
     def GetResources(self):
         return {'Pixmap': 'import_glider.svg',
                 'MenuText': 'import glider',
-                'ToolTip': 'import glider'}
+                'ToolTip': 'import glider from different formats'}
 
     def IsActive(self):
         return (FreeCAD.ActiveDocument is not None)
@@ -212,7 +212,7 @@ class ShapeCommand(BaseCommand):
     def GetResources(self):
         return {'Pixmap': 'shape_command.svg',
                 'MenuText': 'shape',
-                'ToolTip': 'shape'}
+                'ToolTip': 'modify shape'}
 
     def tool(self, obj):
         return shape_tool.ShapeTool(obj)
@@ -222,7 +222,7 @@ class ArcCommand(BaseCommand):
     def GetResources(self):
         return {'Pixmap': 'arc_command.svg',
                 'MenuText': 'arc',
-                'ToolTip': 'arc'}
+                'ToolTip': 'modify arc'}
 
     def tool(self, obj):
         return arc_tool.ArcTool(obj)
@@ -231,8 +231,8 @@ class ArcCommand(BaseCommand):
 class AoaCommand(BaseCommand):
     def GetResources(self):
         return {'Pixmap': 'aoa_command.svg',
-                'MenuText': 'aoa',
-                'ToolTip': 'aoa'}
+                'MenuText': 'angle-of-attack',
+                'ToolTip': 'modify angle of attack'}
 
     def tool(self, obj):
         return span_mapping.AoaTool(obj)
@@ -241,8 +241,8 @@ class AoaCommand(BaseCommand):
 class ZrotCommand(BaseCommand):
     def GetResources(self):
         return {'Pixmap': 'z_rot_command.svg',
-                'MenuText': 'zrot',
-                'ToolTip': 'zrot'}
+                'MenuText': 'z-rotation',
+                'ToolTip': 'modify rib-z-rotation'}
 
     def tool(self, obj):
         return span_mapping.ZrotTool(obj)
@@ -251,8 +251,8 @@ class ZrotCommand(BaseCommand):
 class AirfoilCommand(BaseCommand):
     def GetResources(self):
         return {'Pixmap': 'airfoil_command.svg',
-                'MenuText': 'airfoil',
-                'ToolTip': 'airfoil'}
+                'MenuText': 'airfoils',
+                'ToolTip': 'create/modify airfoil (deprecated, use airfoil-workbench instead)'}
 
     def tool(self, obj):
         return airfoil_tool.AirfoilTool(obj)
@@ -261,8 +261,8 @@ class AirfoilCommand(BaseCommand):
 class AirfoilMergeCommand(BaseCommand):
     def GetResources(self):
         return {'Pixmap': 'airfoil_merge_command.svg',
-                'MenuText': 'airfoil merge',
-                'ToolTip': 'airfoil merge'}
+                'MenuText': 'airfoil-distribution',
+                'ToolTip': 'distribute airfoils in span direction'}
 
     def tool(self, obj):
         return span_mapping.AirfoilMergeTool(obj)
@@ -272,7 +272,7 @@ class BallooningCommand(BaseCommand):
     def GetResources(self):
         return {'Pixmap': 'ballooning_command.svg',
                 'MenuText': 'ballooning',
-                'ToolTip': 'ballooning'}
+                'ToolTip': 'create/modify ballooning distributions'}
 
     def tool(self, obj):
         return ballooning_tool.BallooningTool(obj)
@@ -281,8 +281,8 @@ class BallooningCommand(BaseCommand):
 class BallooningMergCommand(BaseCommand):
     def GetResources(self):
         return {'Pixmap': 'ballooning_merge_command.svg',
-                'MenuText': 'ballooning merge',
-                'ToolTip': 'ballooning merge'}
+                'MenuText': 'ballooning-distribution',
+                'ToolTip': 'distribute ballooning-distributions in span direction'}
 
     def tool(self, obj):
         return span_mapping.BallooningMergeTool(obj)
@@ -292,7 +292,7 @@ class LineCommand(BaseCommand):
     def GetResources(self):
         return {'Pixmap': 'line_command.svg',
                 'MenuText': 'lines',
-                'ToolTip': 'lines'}
+                'ToolTip': 'create/modify lines'}
 
     def tool(self, obj):
         return line_tool.LineTool(obj)
@@ -301,8 +301,8 @@ class LineCommand(BaseCommand):
 class LineObserveCommand(BaseCommand):
     def GetResources(self):
         return {'Pixmap': 'line_observe.svg',
-                'MenuText': 'line observe',
-                'ToolTip': 'line observe'}
+                'MenuText': 'line-observe',
+                'ToolTip': 'check/observe line-forces and lengths'}
 
     def tool(self, obj):
         return line_tool.LineObserveTool(obj)
@@ -316,15 +316,16 @@ def check_glider(obj):
 class PanelCommand(BaseCommand):
     def GetResources(self):
         return {'Pixmap': 'panel_method.svg',
-                'MenuText': 'panelmethode', 
-                'ToolTip': 'panelmethode'}
+                'MenuText': 'panel-method', 
+                'ToolTip': 'compute aerodynamic properties with potential-flow'}
 
     def tool(self, obj):
         return pm.PanelTool(obj)
 
 class PolarsCommand(BaseCommand):
     def GetResources(self):
-        return {'Pixmap': 'polar.svg', 'MenuText': 'polars', 'ToolTip': 'polars'}
+        return {'Pixmap': 'polar.svg', 
+        'MenuText': 'polars', 'ToolTip': 'polars'}
 
     def tool(self, obj):
         return pm.Polars(obj)
@@ -332,14 +333,18 @@ class PolarsCommand(BaseCommand):
 
 class CutCommand(BaseCommand):
     def GetResources(self):
-        return {'Pixmap': 'cut_command.svg', 'MenuText': 'Design', 'ToolTip': 'Design'}
+        return {'Pixmap': 'cut_command.svg', 
+                'MenuText': 'Design', 
+                'ToolTip': 'cut cells for coloring and openings'}
 
     def tool(self, obj):
         return design_tool.DesignTool(obj)
 
 class ColorCommand(BaseCommand):
     def GetResources(self):
-        return {'Pixmap': 'color_selector.svg', 'MenuText': 'Design', 'ToolTip': 'Colors'}
+        return {'Pixmap': 'color_selector.svg', 
+                'MenuText': 'Colors', 
+                'ToolTip': 'Modify color of Panels'}
 
     def tool(self, obj):
         return color_tool.ColorTool(obj)
@@ -349,7 +354,9 @@ class RefreshCommand():
     NOT_RELOAD = ["freecad.freecad_glider.init_gui"]
     RELOAD = ["pivy.coin", "freecad.freecad_glider"]
     def GetResources(self):
-        return {'Pixmap': 'refresh_command.svg', 'MenuText': 'Refresh', 'ToolTip': 'Refresh'}
+        return {'Pixmap': 'refresh_command.svg',
+                'MenuText': 'Refresh',
+                'ToolTip': 'Refresh openglider functionality (development)'}
 
     def IsActive(self):
         return True
@@ -386,7 +393,9 @@ class GliderFeatureCommand(BaseCommand):
 
 class GliderRibFeatureCommand(GliderFeatureCommand):
     def GetResources(self):
-        return {'Pixmap': 'rib_feature.svg' , 'MenuText': 'Features', 'ToolTip': 'set airfoil to ribs'}
+        return {'Pixmap': 'rib_feature.svg' ,
+                'MenuText': 'RibFeature',
+                'ToolTip': 'explicitly apply airfoils to ribs'}
 
     def Activated(self):
         feature = FreeCAD.ActiveDocument.addObject('App::FeaturePython', 'ribFeature')
@@ -398,7 +407,9 @@ class GliderRibFeatureCommand(GliderFeatureCommand):
 
 class GliderBallooningFeatureCommand(GliderFeatureCommand):
     def GetResources(self):
-        return {'Pixmap': 'ballooning_feature.svg' , 'MenuText': 'Features', 'ToolTip': 'set ballooning to ribs'}
+        return {'Pixmap': 'ballooning_feature.svg' , 
+                'MenuText': 'BallooningFeature',
+                'ToolTip': 'explicitly apply ballooning to ribs'}
 
     def Activated(self):
         feature = FreeCAD.ActiveDocument.addObject('App::FeaturePython', 'ballooningFeature')
@@ -410,7 +421,9 @@ class GliderBallooningFeatureCommand(GliderFeatureCommand):
 
 class GliderSharkFeatureCommand(GliderFeatureCommand):
     def GetResources(self):
-        return {'Pixmap': 'sharknose_feature.svg' , 'MenuText': 'Features', 'ToolTip': 'shark nose'}
+        return {'Pixmap': 'sharknose_feature.svg' ,
+                'MenuText': 'SharknoseFeature',
+                'ToolTip': 'create a shark nose'}
 
     def Activated(self):
         feature = FreeCAD.ActiveDocument.addObject('App::FeaturePython', 'sharkFeature')
@@ -421,7 +434,9 @@ class GliderSharkFeatureCommand(GliderFeatureCommand):
 
 class GliderSingleSkinRibFeatureCommand(GliderFeatureCommand):
     def GetResources(self):
-        return {'Pixmap': 'singleskin_feature.svg' , 'MenuText': 'Features', 'ToolTip': 'set single-skin feature'}
+        return {'Pixmap': 'singleskin_feature.svg' , 
+                'MenuText': 'SingleskinFeature', 
+                'ToolTip': 'create single-skin ribs (bows between attachment-points)'}
 
     def Activated(self):
         feature = FreeCAD.ActiveDocument.addObject('App::FeaturePython', 'singleSkinRib')
@@ -432,7 +447,9 @@ class GliderSingleSkinRibFeatureCommand(GliderFeatureCommand):
 
 class GliderFlapFeatureCommand(GliderFeatureCommand):
     def GetResources(self):
-        return {'Pixmap': 'flap_feature.svg' , 'MenuText': 'Features', 'ToolTip': 'flap feature'}
+        return {'Pixmap': 'flap_feature.svg' , 
+                'MenuText': 'FlapFeatures', 
+                'ToolTip': 'modify/shorten the trailing edge'}
 
     def Activated(self):
         feature = FreeCAD.ActiveDocument.addObject('App::FeaturePython', 'flapFeature')
@@ -443,7 +460,9 @@ class GliderFlapFeatureCommand(GliderFeatureCommand):
 
 class GliderHoleFeatureCommand(GliderFeatureCommand):
     def GetResources(self):
-        return {'Pixmap': 'hole_feature.svg' , 'MenuText': 'Features', 'ToolTip': 'hole feature'}
+        return {'Pixmap': 'hole_feature.svg' , 
+                'MenuText': 'create holes', 
+                'ToolTip': 'create holes (single-skin)'}
 
     def Activated(self):
         feature = FreeCAD.ActiveDocument.addObject('App::FeaturePython', 'holeFeature')
@@ -454,7 +473,9 @@ class GliderHoleFeatureCommand(GliderFeatureCommand):
 
 class GliderScaleFeatureCommand(GliderFeatureCommand):
     def GetResources(self):
-        return {'Pixmap': 'scale_feature.svg' , 'MenuText': 'Features', 'ToolTip': 'scale feature'}
+        return {'Pixmap': 'scale_feature.svg' , 
+                'MenuText': 'ScaleFeatures', 
+                'ToolTip': 'scale a glider by 1D-factor'}
 
     def Activated(self):
         feature = FreeCAD.ActiveDocument.addObject('App::FeaturePython', 'scaleFeature')
@@ -465,7 +486,9 @@ class GliderScaleFeatureCommand(GliderFeatureCommand):
 
 class GliderBallooningMultiplierFeatureCommand(GliderFeatureCommand):
     def GetResources(self):
-        return {'Pixmap': 'ballooning_feature.svg' , 'MenuText': 'Features', 'ToolTip': 'multiply balloonings'}
+        return {'Pixmap': 'ballooning_feature.svg' , 
+                'MenuText': 'BallooningMultiplyFeature', 
+                'ToolTip': 'multiply balloonings by a scaling factor'}
 
     def Activated(self):
         feature = FreeCAD.ActiveDocument.addObject('App::FeaturePython', 'ballooningFeature')
