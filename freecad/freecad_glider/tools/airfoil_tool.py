@@ -63,12 +63,12 @@ class AirfoilTool(BaseTool):
         self.Qairfoil_layout.addWidget(self.Qalpha)
 
 
-        self.Qnum_points_upper.setMaximum(10)
+        self.Qnum_points_upper.setMaximum(9)
         self.Qnum_points_upper.setMinimum(4)
         self.Qnum_points_upper.setDisabled(True)
         self.Qnum_points_upper.valueChanged.connect(self.fit_upper_spline)
 
-        self.Qnum_points_lower.setMaximum(10)
+        self.Qnum_points_lower.setMaximum(9)
         self.Qnum_points_lower.setMinimum(4)
         self.Qnum_points_lower.setDisabled(True)
         self.Qnum_points_lower.valueChanged.connect(self.fit_lower_spline)

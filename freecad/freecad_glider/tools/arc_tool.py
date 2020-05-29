@@ -1,3 +1,4 @@
+import FreeCADGui as Gui
 from pivy import coin
 
 from openglider.vector.polygon import CirclePart
@@ -37,7 +38,7 @@ class ArcTool(BaseTool):
 
     def setup_widget(self):
 
-        self.Qnum_arc.setMaximum(5)
+        self.Qnum_arc.setMaximum(9)
         self.Qnum_arc.setMinimum(2)
         self.Qnum_arc.setValue(len(self.parametric_glider.arc.curve.controlpoints))
         self.parametric_glider.arc.curve.numpoints = self.Qnum_arc.value()
@@ -97,8 +98,10 @@ class ArcTool(BaseTool):
         super(ArcTool, self).accept()
         self.obj.ViewObject.Proxy.rotate()
         self.update_view_glider()
+        Gui.activeDocument().activeView().viewFront()
 
     def reject(self):
         self.arc_cpc.remove_callbacks()
         self.obj.ViewObject.Proxy.rotate()
+        Gui.activeDocument().activeView().viewFront()
         super(ArcTool, self).reject()

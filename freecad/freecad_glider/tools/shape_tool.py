@@ -89,9 +89,9 @@ class ShapeTool(BaseTool):
         self.Qnum_front.valueChanged.connect(self.update_num_front)
 
         self.Qnum_cells.setMaximum(150)
-        self.Qnum_back.setMaximum(5)
-        self.Qnum_front.setMaximum(5)
-        self.Qnum_dist.setMaximum(8)
+        self.Qnum_back.setMaximum(9)
+        self.Qnum_front.setMaximum(9)
+        self.Qnum_dist.setMaximum(9)
 
         self.Qnum_cells.setMinimum(3)
         self.Qnum_back.setMinimum(2)

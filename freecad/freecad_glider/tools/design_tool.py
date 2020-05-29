@@ -181,7 +181,6 @@ class DesignTool(BaseTool):
         event = event_callback.getEvent()
         if (event.getKey() == ord('i') and event.getState() == 0):
             if self._add_mode: return
-            print(1)
             self._add_mode = True
             # first we check if nothing is selected:
             select_obj = self.event_separator.selected_objects
