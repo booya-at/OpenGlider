@@ -37,8 +37,10 @@ conda create -n openglider openglider freecad meshpy -c conda-forge -c openglide
 
 ## Documentation
 
-Every module inside openglider has a README where the functionality is documented.  
+Every module inside openglider *should* have a README where the functionality is documented.  
 Please have a look at the [base module](./openglider/README.md).
+
+Also have a look at the [gui-tutorial](https://booya-at.github.io/openglider-tutorial)
 
 ### Unittests and Visual Tests
 
