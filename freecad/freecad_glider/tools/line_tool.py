@@ -27,9 +27,6 @@ from .tools import BaseTool, input_field, text_field, vector3D
 
 
 
-def refresh():
-    pass
-
 class Line(_Line):
     def set_disabled(self):
         super(Line, self).set_disabled()
@@ -229,9 +226,6 @@ class LineTool(BaseTool):
         self.tool_widget.addWidget(self.up_att_wid)
         self.tool_widget.setCurrentWidget(self.none_widget)
 
-        button = QtGui.QPushButton('Help')
-        self.layout.setWidget(0, input_field, button)
-        button.clicked.connect(self.show_help)
 
         self.Qhl_pos.setValue(50)
         self.Qhl_pos.setRange(0, 100)
@@ -328,15 +322,6 @@ class LineTool(BaseTool):
                 else:
                     if not obj.enabled:
                         obj.set_enabled()
-
-    def show_help(self):
-        App.Console.PrintMessage('Use this commands to rule the lineinput\n')
-        App.Console.PrintMessage('g...grap element and move it\n')
-        App.Console.PrintMessage('l...create line from 2 points\n')
-        App.Console.PrintMessage('v...add a new point\n')
-        App.Console.PrintMessage('x...delete a point or a line\n')
-        App.Console.PrintMessage('cltr + p...attachment point\n')
-        App.Console.PrintMessage('cltr...multiselection\n')
 
     def setup_cb(self):
         self.point_preview_cb = self.view.addEventCallbackPivy(

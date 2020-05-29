@@ -382,6 +382,7 @@ class OGGliderVP(OGBaseVP):
         super(OGGliderVP, self).attach(view_obj)
         self.vis_glider = coin.SoSeparator()
         self.vis_lines = coin.SoSeparator()
+        self.vis_extra = coin.SoSeparator()
         self.material = coin.SoMaterial()
         self.seperator = coin.SoSeparator()
         self.vis_glider.setName('vis_glider')
@@ -393,7 +394,7 @@ class OGGliderVP(OGBaseVP):
         self.rotate()
         self.trans = coin.SoTranslation()
         # self.trans.translation = view_obj.x, view_obj.y, view_obj.z
-        self.seperator += [self.trans, self.rot, self.vis_glider, self.vis_lines]
+        self.seperator += [self.trans, self.rot, self.vis_glider, self.vis_lines, self.vis_extra]
         pick_style = coin.SoPickStyle()
         pick_style.style.setValue(coin.SoPickStyle.BOUNDING_BOX)
         self.vis_glider += [pick_style]
@@ -460,6 +461,9 @@ class OGGliderVP(OGBaseVP):
             if prop in ['line_num', 'half_glider', 'all']:
                 self.update_lines(fp.line_num)
 
+        self.vis_extra.removeAllChildren()
+        draw_aoa(self.glider, sep=self.vis_extra)
+
     def update_glider(self, midribs=0, profile_numpoints=20,
                       hull='panels', ribs=False, 
                       hole_num=10, glider_changed=True, fill_ribs=True):
@@ -513,8 +517,6 @@ def draw_glider(glider, vis_glider=None, midribs=0, hole_num=10, profile_num=20,
         hull_sep = coin_SoSwitch(vis_glider, 'hull')
     else:
         hull_sep = vis_glider.getByName('hull')
-
-    draw_aoa(glider, vis_glider)
 
     draw_ribs = not vis_glider.getByName('ribs')
     draw_panels = not hull_sep.getByName('panels')

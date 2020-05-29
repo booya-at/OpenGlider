@@ -116,9 +116,22 @@ class gliderWorkbench(Gui.Workbench):
         # Gui.addPreferencePage(Dir + '/ui/preferences.ui', 'glider')
 
     def Activated(self):
-        pass
+        if not hasattr(self, "first_startup"):
+            FreeCAD.Console.PrintMessage('This is the glider-workbench, a gui for openglider:\n')
+            FreeCAD.Console.PrintMessage('Dynamic graphical elements can be used with:\n')
+            FreeCAD.Console.PrintMessage('g...grap element and move it\n')
+            FreeCAD.Console.PrintMessage('g...ctrl: grap element and move it slowly\n')
+            FreeCAD.Console.PrintMessage('g...x: grap element and move it in x-direction\n')
+            FreeCAD.Console.PrintMessage('g...y: grap element and move it in y-direction\n')
+            FreeCAD.Console.PrintMessage('i...insert a new marker (point)\n')
+            FreeCAD.Console.PrintMessage('cltr + i...attachment point (line-tool)\n')
+            FreeCAD.Console.PrintMessage('del...delete a point or a line\n')
+            FreeCAD.Console.PrintMessage('l...create line from 2 points (line-tool)\n')
+            FreeCAD.Console.PrintMessage('cltr...multiselection\n')
+            self.first_startup = True
 
     def Deactivated(self):
         pass
 
 Gui.addWorkbench(gliderWorkbench())
+
