@@ -120,7 +120,7 @@ class gliderWorkbench(Gui.Workbench):
             FreeCAD.Console.PrintMessage('This is the glider-workbench, a gui for openglider:\n')
             FreeCAD.Console.PrintMessage('Dynamic graphical elements can be used with:\n')
             FreeCAD.Console.PrintMessage('g...grap element and move it\n')
-            FreeCAD.Console.PrintMessage('g...ctrl: grap element and move it slowly\n')
+            FreeCAD.Console.PrintMessage('g...shift: grap element and move it slowly\n')
             FreeCAD.Console.PrintMessage('g...x: grap element and move it in x-direction\n')
             FreeCAD.Console.PrintMessage('g...y: grap element and move it in y-direction\n')
             FreeCAD.Console.PrintMessage('i...insert a new marker (point)\n')
