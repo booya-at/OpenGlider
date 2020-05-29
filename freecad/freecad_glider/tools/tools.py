@@ -4,6 +4,7 @@ from copy import deepcopy
 
 import numpy as np
 from pivy import coin
+from pivy.graphics import InteractionSeparator, Marker, Line
 
 import FreeCAD
 import FreeCADGui
@@ -13,6 +14,64 @@ from openglider.jsonify import dump, load
 from openglider.vector.spline import BernsteinBase, BSplineBase
 from PySide import QtGui
 
+
+
+class ConstrainedMarker(Marker):
+    def __init__(self, points, dynamic=False):
+        super(ConstrainedMarker, self).__init__(points, dynamic)
+        self.constrained = [1., 1., 0.]
+
+    def drag(self, mouse_coords, fact=1.):
+        if self.enabled:
+            pts = self.points
+            for i, pt in enumerate(pts):
+                pt[0] = mouse_coords[0] * fact * self.constrained[0] + self._tmp_points[i][0]
+                pt[1] = mouse_coords[1] * fact * self.constrained[1] + self._tmp_points[i][1]
+                pt[2] = mouse_coords[2] * fact * self.constrained[2] + self._tmp_points[i][2]
+            self.points = pts
+            for foo in self.on_drag:
+                foo()
+
+
+class Line_old(object):
+    def __init__(self, points, color='black', width=1):
+        if len(points) == 0:
+            points = [[0., 0., 0.]]
+        self.object = Line(list(map(vector3D, points)))
+        self.object.drawstyle.lineWidth = width
+        self.object.set_color(color)
+
+    def update(self, points):
+        self.object.points = vector3D(points)
+
+class ControlPointContainer(coin.SoSeparator):
+    def __init__(self, rm, points=None):
+        super(ControlPointContainer, self).__init__()
+        self.interaction = InteractionSeparator(rm)
+        self.control_points = []
+        if points is not None:
+            self.control_pos = points
+        self += self.interaction
+        self.on_drag_release = self.interaction.on_drag_release
+        self.drag_release = self.on_drag_release
+        self.on_drag = self.interaction.on_drag
+        self.remove_callbacks = self.interaction.unregister
+        self.interaction.remove_selected = self.pseudo_foo
+        self.interaction.register()
+
+    def pseudo_foo(*args):
+        pass
+
+    @property
+    def control_pos(self):
+        return [list(i.points[0]) for i in self.control_points]
+
+    @control_pos.setter
+    def control_pos(self, points):
+        self.control_points = [ConstrainedMarker(vector3D([point]), dynamic=True) for point in points]
+        self.interaction.objects.removeAllChildren()
+        self.interaction.dynamic_objects = []
+        self.interaction += self.control_points
 
 def vector3D(vec):
     if len(vec) == 0:

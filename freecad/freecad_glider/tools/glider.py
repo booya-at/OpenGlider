@@ -389,18 +389,22 @@ class OGGliderVP(OGBaseVP):
         self.material.setName('material')
         self.seperator.setName('baseseperator')
         self.material.diffuseColor = (.7, .7, .7)
-        _rot = coin.SbRotation()
-        _rot.setValue(coin.SbVec3f(0, 1, 0), coin.SbVec3f(-1, 0, 0))
-        rot = coin.SoRotation()
-        rot.rotation.setValue(_rot)
+        self.rot = coin.SoRotation()
+        self.rotate()
         self.trans = coin.SoTranslation()
         # self.trans.translation = view_obj.x, view_obj.y, view_obj.z
-        self.seperator += [self.trans, rot, self.vis_glider, self.vis_lines]
+        self.seperator += [self.trans, self.rot, self.vis_glider, self.vis_lines]
         pick_style = coin.SoPickStyle()
         pick_style.style.setValue(coin.SoPickStyle.BOUNDING_BOX)
         self.vis_glider += [pick_style]
         self.vis_lines += [pick_style]
         view_obj.addDisplayMode(self.seperator, 'glider')
+
+    def rotate(self, sbrot=None):
+        if not sbrot:
+            sbrot = coin.SbRotation()
+            sbrot.setValue(coin.SbVec3f(0, 1, 0), coin.SbVec3f(-1, 0, 0))
+        self.rot.rotation.setValue(sbrot)
 
     def updateData(self, prop='all', *args):
         self._updateData(self.view_obj, prop)

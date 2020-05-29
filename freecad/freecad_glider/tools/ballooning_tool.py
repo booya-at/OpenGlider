@@ -1,17 +1,13 @@
 from __future__ import division
 
 import numpy
-
+from pivy import coin
 import FreeCADGui as Gui
 from openglider.glider.ballooning import BallooningBezier
 from PySide import QtCore, QtGui
 
-from .tools import BaseTool, QtGui, spline_select
-from .pivy_primitives_old import ControlPointContainer, Line, coin, vector3D
+from .tools import BaseTool, QtGui, spline_select, Line_old, vector3D, ControlPointContainer
 
-
-def refresh():
-    pass
 
 
 class BallooningTool(BaseTool):
@@ -36,8 +32,8 @@ class BallooningTool(BaseTool):
         self.lower_spline = coin.SoSeparator()
         self.ctrl_upper = None
         self.ctrl_lower = None
-        self.upper_cpc = ControlPointContainer([], self.view)
-        self.lower_cpc = ControlPointContainer([], self.view)
+        self.upper_cpc = ControlPointContainer(self.rm, [])
+        self.lower_cpc = ControlPointContainer(self.rm, [])
         self.previous_foil = None
         self.is_edit = False
 
@@ -89,11 +85,11 @@ class BallooningTool(BaseTool):
         y_points_lower = [[grid_x[0], y, -0.001] for y in grid_y if y != 0]
         y_points_upper = [[grid_x[-1], y, -0.001] for y in grid_y if y != 0]
         for l in zip(x_points_lower, x_points_upper):
-            self.grid += [Line(l, color='grey').object]
+            self.grid += [Line_old(l, color='grey').object]
         for l in zip(y_points_lower, y_points_upper):
-            self.grid += [Line(l, color='grey').object]
+            self.grid += [Line_old(l, color='grey').object]
 
-        self.grid += (Line([[0, 0, -0.001], [1,0,-0.001]], color="red").object, )
+        self.grid += (Line_old([[0, 0, -0.001], [1,0,-0.001]], color="red").object, )
         for l in y_points_upper + [[grid_x[-1], 0., 0.]]:
             textsep = coin.SoSeparator()
             text = coin.SoText2()
@@ -159,16 +155,14 @@ class BallooningTool(BaseTool):
             self.is_edit = True
             self.ballooning_sep.removeAllChildren()
             self.spline_sep.removeAllChildren()
-            self.upper_cpc = ControlPointContainer(view=self.view)
+            self.upper_cpc = ControlPointContainer(self.rm)
             self.upper_cpc.grid = [0.01, 0.01, 100]
-            self.lower_cpc = ControlPointContainer(view=self.view)
+            self.lower_cpc = ControlPointContainer(self.rm)
             self.lower_cpc.grid = [0.01, 0.01, 100]
             self.upper_cpc.control_pos = self.current_ballooning.upper_controlpoints
             self.lower_cpc.control_pos = self.current_ballooning.lower_controlpoints
-            # self.upper_cpc.control_points[-1].fix = True
-            self.lower_cpc.control_points[-1].fix = True
-            self.lower_cpc.control_points[0].fix = True
-            # self.upper_cpc.control_points[0].fix = True
+            self.lower_cpc.control_points[-1].enabled = False
+            self.lower_cpc.control_points[0].enabled = False
             self.spline_sep += [self.upper_cpc, self.lower_cpc]
             self.spline_sep += [self.lower_spline, self.upper_spline]
             self.upper_cpc.on_drag.append(self.upper_on_change)
@@ -197,11 +191,16 @@ class BallooningTool(BaseTool):
     def lower_drag_release(self):
         self._update_lower_spline(70)
 
+    def constrain(self, control_point, index, value):
+        p = control_point.points
+        p[0][index] = value
+        control_point.points = p
+
     def _update_upper_spline(self, num):
-        self.upper_cpc.control_points[-1].set_x(1.)
-        self.upper_cpc.control_points[0].set_x(0.)
-        self.lower_cpc.control_points[-1].set_y(-self.upper_cpc.control_points[-1].pos[1])
-        self.lower_cpc.control_points[0].set_y(-self.upper_cpc.control_points[0].pos[1])
+        self.constrain(self.upper_cpc.control_points[-1], 0,  1.)
+        self.constrain(self.upper_cpc.control_points[0], 0, 0.)
+        self.constrain(self.lower_cpc.control_points[-1], 1, -self.upper_cpc.control_points[-1].points[0][1])
+        self.constrain(self.lower_cpc.control_points[0], 1, -self.upper_cpc.control_points[0].points[0][1])
         self.current_ballooning.upper_controlpoints = [
             i[:-1] for i in self.upper_cpc.control_pos]
         self.draw_upper_spline(num)
@@ -209,7 +208,7 @@ class BallooningTool(BaseTool):
 
     def draw_upper_spline(self, num):
         self.upper_spline.removeAllChildren()
-        l = Line(vector3D(self.current_ballooning.get_expl_upper_spline(num)),
+        l = Line_old(vector3D(self.current_ballooning.get_expl_upper_spline(num)),
                  color='red', width=2)
         self.upper_spline += [l.object]
 
@@ -220,7 +219,7 @@ class BallooningTool(BaseTool):
 
     def draw_lower_spline(self, num):
         self.lower_spline.removeAllChildren()
-        l = Line(vector3D(self.current_ballooning.get_expl_lower_spline(num)),
+        l = Line_old(vector3D(self.current_ballooning.get_expl_lower_spline(num)),
                  color='red', width=2)
         self.lower_spline += [l.object]
 

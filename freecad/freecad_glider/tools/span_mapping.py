@@ -7,9 +7,9 @@ from pivy import coin
 from openglider.glider.rib import Rib
 from PySide import QtGui
 
-from . import pivy_primitives_old as pp
 from pivy import graphics
-from .tools import BaseTool, input_field, spline_select, text_field
+from .tools import (BaseTool, input_field, spline_select, text_field, 
+                    ControlPointContainer, Line_old, vector3D)
 
 
 class SpanMappingTool(BaseTool):
@@ -24,10 +24,10 @@ class SpanMappingTool(BaseTool):
         super(SpanMappingTool, self).__init__(obj)
         self._grid_y_diff = self.grid_y_diff / self.value_scale
         pts = np.array(self.spline.controlpoints) * self.scale
-        pts = list(map(pp.vector3D, pts))
+        pts = list(map(vector3D, pts))
 
-        self.spline_controlpoints = pp.ControlPointContainer(pts, self.view)
-        self.spline_curve = pp.Line([], color='red', width=2)
+        self.spline_controlpoints = ControlPointContainer(self.rm, pts)
+        self.spline_curve = Line_old([], color='red', width=2)
 
         self.shape = coin.SoSeparator()
         self.coords = coin.SoSeparator()
@@ -57,9 +57,8 @@ class SpanMappingTool(BaseTool):
 
     def setup_pivy(self):
         #fix last node (span)
-        self.spline_controlpoints.control_points[-1].constraint = lambda pos: [
+        self.spline_controlpoints.control_points[-1].constrained = [0., 1., 0.]
 
-            self.parametric_glider.shape.span, pos[1], pos[2]]
         childs = [self.spline_controlpoints, self.shape, self.spline_curve.object,
                   self.coords, self.grid]
         self.task_separator += childs
@@ -78,7 +77,7 @@ class SpanMappingTool(BaseTool):
         self.layout.setWidget(1, input_field, self.spline_select)
 
         self.Qnum_aoa.setValue(len(self.spline.controlpoints))
-        self.Qnum_aoa.setMaximum(5)
+        self.Qnum_aoa.setMaximum(9)
         self.Qnum_aoa.setMinimum(2)
         self.Qnum_aoa.valueChanged.connect(self.update_num)
 
@@ -94,10 +93,10 @@ class SpanMappingTool(BaseTool):
 
     def draw_shape(self):
         self.shape.removeAllChildren()
-        self.shape += [pp.Line(self.front, color='grey').object]
-        self.shape += [pp.Line(self.back, color='grey').object]
+        self.shape += [Line_old(self.front, color='grey').object]
+        self.shape += [Line_old(self.back, color='grey').object]
         for rib in self.ribs:
-            self.shape += [pp.Line(rib, color='grey').object]
+            self.shape += [Line_old(rib, color='grey').object]
 
     def update_aoa(self):
         self.spline.controlpoints = (
@@ -108,8 +107,7 @@ class SpanMappingTool(BaseTool):
 
     def update_spline_type(self):
         self.spline_controlpoints.control_pos = np.array(self.spline.controlpoints) * self.scale
-        self.spline_controlpoints.control_points[-1].constraint = lambda pos: [
-            self.parametric_glider.shape.span, pos[1], pos[2]]
+        self.spline_controlpoints.control_points[-1].constrained = [0., 1., 0.]
         self.update_aoa()
 
     def update_grid(self, drag_release=False):
@@ -152,9 +150,9 @@ class SpanMappingTool(BaseTool):
         y_points_lower = [[grid_x[0], y, -0.001] for y in grid_y]
         y_points_upper = [[grid_x[-1], y, -0.001] for y in grid_y]
         for l in zip(x_points_lower, x_points_upper):
-            self.grid += [pp.Line(l, color='grey').object]
+            self.grid += [Line_old(l, color='grey').object]
         for l in zip(y_points_lower, y_points_upper):
-            self.grid += [pp.Line(l, color='grey').object]
+            self.grid += [Line_old(l, color='grey').object]
         for l in y_points_upper:
             color = coin.SoMaterial()
             color.diffuseColor = [0, 0, 0]
@@ -189,8 +187,7 @@ class SpanMappingTool(BaseTool):
     def update_num(self):
         self.spline.numpoints = self.Qnum_aoa.value()
         self.spline_controlpoints.control_pos = np.array(self.spline.controlpoints) * self.scale
-        self.spline_controlpoints.control_points[-1].constraint = lambda pos: [
-            self.parametric_glider.shape.span, pos[1], pos[2]]
+        self.spline_controlpoints.control_points[-1].constrained = [0., 1., 0.]
         self.update_aoa()
 
 
@@ -220,7 +217,7 @@ class AoaTool(SpanMappingTool):
 
         arc_angles = self.parametric_glider.get_arc_angles()
         self.aoa_diff = [Rib._aoa_diff(arc_angle, self.parametric_glider.glide) for arc_angle in arc_angles]
-        self.aoa_absolute_curve = pp.Line([], color='blue', width=2)
+        self.aoa_absolute_curve = Line_old([], color='blue', width=2)
 
         self.task_separator.addChild(self.aoa_absolute_curve.object)
 

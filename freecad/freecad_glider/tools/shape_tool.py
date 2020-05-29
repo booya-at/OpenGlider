@@ -3,6 +3,7 @@ from __future__ import division
 import time
 
 from pivy import coin
+from pivy.graphics import Line as _Line
 
 import FreeCAD as App
 import FreeCADGui as Gui
@@ -11,12 +12,9 @@ from openglider.vector import PolyLine2D
 from openglider.vector.spline import Bezier
 from PySide import QtCore, QtGui
 
-from .tools import BaseTool, input_field, text_field
-from .pivy_primitives_old import ControlPointContainer, Line, vector2D, vector3D
+from .tools import (BaseTool, input_field, text_field, ControlPointContainer, 
+                    vector2D, vector3D, Line_old)
 
-
-def refresh():
-    pass
 
 
 class ShapeTool(BaseTool):
@@ -28,11 +26,11 @@ class ShapeTool(BaseTool):
         # scene components
         self.shape = coin.SoSeparator()
         points = list(map(vector3D, self.parametric_glider.shape.front_curve.controlpoints))
-        self.front_cpc = ControlPointContainer(points, self.view)
+        self.front_cpc = ControlPointContainer(self.rm, points)
         points = list(map(vector3D, self.parametric_glider.shape.back_curve.controlpoints))
-        self.back_cpc = ControlPointContainer(points, self.view)
+        self.back_cpc = ControlPointContainer(self.rm, points)
         points = list(map(vector3D, self.parametric_glider.shape.rib_dist_controlpoints))
-        self.cell_dist_cpc = ControlPointContainer(points, self.view)
+        self.cell_dist_cpc = ControlPointContainer(self.rm, points)
 
         # form components
         self.Qnum_front = QtGui.QSpinBox(self.base_widget)
@@ -253,19 +251,23 @@ class ShapeTool(BaseTool):
         self.update_shape()
 
     def update_data_back(self):
-        if self.front_cpc.current_point == self.front_cpc.control_points[-1]:
+        if self.front_cpc.control_points[-1] in self.front_cpc.interaction.drag_objects:
             old_value = self.parametric_glider.shape.back_curve.controlpoints[-1][0]
-            new_value = self.front_cpc.control_points[-1].pos[0]
-            self.back_cpc.control_points[-1].set_x(new_value)
+            new_value = self.front_cpc.control_points[-1].points[0][0]
+            p = self.back_cpc.control_points[-1].points
+            p[0][0] = new_value
+            self.back_cpc.control_points[-1].points = p
             self.parametric_glider.shape.rib_distribution._data[:, 0] *= (new_value / old_value)
             self.cell_dist_cpc.control_pos = self.parametric_glider.shape.rib_dist_controlpoints
         self.update_shape(preview=True)
 
     def update_data_front(self):
-        if self.back_cpc.current_point == self.back_cpc.control_points[-1]:
+        if self.back_cpc.control_points[-1] in self.back_cpc.interaction.drag_objects:
             old_value = self.parametric_glider.shape.front_curve.controlpoints[-1][0]
-            new_value = self.back_cpc.control_points[-1].pos[0]
-            self.front_cpc.control_points[-1].set_x(new_value)
+            new_value = self.back_cpc.control_points[-1].points[0][0]
+            p = self.front_cpc.control_points[-1].points
+            p[0][0] = new_value
+            self.front_cpc.control_points[-1].points = p
             self.parametric_glider.shape.rib_distribution._data[:, 0] *= (new_value / old_value)
             self.cell_dist_cpc.control_pos = self.parametric_glider.shape.rib_dist_controlpoints
         self.update_shape(preview=True)
@@ -304,35 +306,35 @@ class ShapeTool(BaseTool):
         front[0, 0] = 0
         back[0, 0] = 0
         dist_line = self.parametric_glider.shape.fast_interpolation
-        sep += (Line(front, width=2).object)
-        sep += (Line(back, width=2).object)
-        # sep += (Line([back.data[0], front.data[0]], width=2).object)
-        sep += (Line([back.data[-1], front.data[-1]], width=2).object)
+        sep += (Line_old(front, width=2).object)
+        sep += (Line_old(back, width=2).object)
+        # sep += (Line_old([back.data[0], front.data[0]], width=2).object)
+        sep += (Line_old([back.data[-1], front.data[-1]], width=2).object)
 
         points = list(map(vector3D, self.parametric_glider.shape.front_curve.data))
-        sep += (Line(points, color='grey').object)
+        sep += (Line_old(points, color='grey').object)
         points = list(map(vector3D, self.parametric_glider.shape.back_curve.data))
-        sep += (Line(points, color='grey').object)
-        self.shape += (Line(dist_line, color='red', width=2).object)
+        sep += (Line_old(points, color='grey').object)
+        self.shape += (Line_old(dist_line, color='red', width=2).object)
 
         # draw circles
         self.circle_front.removeAllChildren()
         self.circle_back.removeAllChildren()
         circle_front = CirclePart(*self.parametric_glider.shape.front_curve.get_sequence(3))
         circle_back = CirclePart(*self.parametric_glider.shape.back_curve.get_sequence(3))
-        self.circle_front.addChild(Line(circle_front.get_sequence(), color="red").object)
-        self.circle_back.addChild(Line(circle_back.get_sequence(), color="red").object)
+        self.circle_front.addChild(Line_old(circle_front.get_sequence(), color="red").object)
+        self.circle_back.addChild(Line_old(circle_back.get_sequence(), color="red").object)
 
         # draw center line
         self.center_line.removeAllChildren()
         center_line = []
         for rib_no in range(_shape.rib_no):
             center_line.append(_shape.get_point(rib_no, 0.5))
-        self.center_line.addChild(Line(center_line, color="red").object)
+        self.center_line.addChild(Line_old(center_line, color="red").object)
         y = _shape.get_point(0,0.5)[1]
         x = _shape.get_point(_shape.rib_no-1, 0)[0] * 1.2
         center_line2 = PolyLine2D([[-x, y], [x, y]])
-        self.center_line.addChild(Line(center_line2, color="red").object)
+        self.center_line.addChild(Line_old(center_line2, color="red").object)
 
 
         if not preview:
@@ -342,6 +344,6 @@ class ShapeTool(BaseTool):
                 if list(rib) in (ribs[0], ribs[-1]):
                     width = 2
                     col = 'black'
-                sep += Line(rib, color=col, width=width).object
+                sep += Line_old(rib, color=col, width=width).object
             for i in dist_line:
-                sep += Line([[0, i[1]], i, [i[0], 0]], color='grey').object
+                sep += Line_old([[0, i[1]], i, [i[0], 0]], color='grey').object

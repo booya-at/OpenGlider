@@ -3,34 +3,34 @@ from pivy import coin
 from openglider.vector.polygon import CirclePart
 from PySide import QtGui
 
-from .tools import BaseTool, input_field, spline_select, text_field
-from .pivy_primitives_old import (ControlPointContainer, Line, Point, vector2D,
-                              vector3D)
+from pivy.graphics import InteractionSeparator, Line, Point, Marker
 
+from .tools import (BaseTool, input_field, spline_select, text_field, 
+                    vector3D, vector2D, ControlPointContainer)
 
-def refresh():
-    pass
 
 
 class ArcTool(BaseTool):
-    hide = True
+    hide = False
     widget_name = 'ArcTool'
 
     def __init__(self, obj):
         '''adds a symmetric spline to the scene'''
         super(ArcTool, self).__init__(obj)
+        sbrot1 = coin.SbRotation()
+        sbrot1.setValue(coin.SbVec3f(1, 0, 0), coin.SbVec3f(0, 1, 0))
+        sbrot2 = coin.SbRotation()
+        sbrot2.setValue(coin.SbVec3f(0, 0, 1), coin.SbVec3f(0, 1, 0))
+        self.obj.ViewObject.Proxy.rotate(sbrot1 * sbrot2)
 
         controlpoints = list(map(vector3D, self.parametric_glider.arc.curve.controlpoints))
-        self.arc_cpc = ControlPointContainer(controlpoints, self.view)
+        self.arc_cpc = ControlPointContainer(self.rm, controlpoints)
         self.Qnum_arc = QtGui.QSpinBox(self.base_widget)
         self.spline_select = spline_select(
             [self.parametric_glider.arc.curve], self.update_spline_type, self.base_widget)
         self.shape = coin.SoSeparator()
         self.circle = coin.SoSeparator()
-        self.attachment_point = coin.SoSeparator()
-        self.task_separator.addChild(self.shape)
-        self.task_separator.addChild(self.circle)
-        self.task_separator.addChild(self.attachment_point)
+        self.task_separator +=  self.arc_cpc, self.shape, self.circle
 
         self.setup_widget()
         self.setup_pivy()
@@ -51,32 +51,27 @@ class ArcTool(BaseTool):
 
     def setup_pivy(self):
         self.arc_cpc.on_drag.append(self.update_spline)
-        self.arc_cpc.drag_release.append(self.update_real_arc)
-        self.task_separator.addChild(self.arc_cpc)
-
-        # for p in self.parametric_glider.lineset.get_lower_attachment_points():
-        #     self.attachment_point.addChild(Point(x=p.pos_3D[0], y=p.pos_3D[2], z=0, color="green"))
+        self.arc_cpc.on_drag_release.append(self.update_real_arc)
 
         self.update_spline()
         self.update_real_arc()
         self.update_num()
 
-    # def set_edit(self, *arg):
-    #     self.arc_cpc.set_edit_mode(self.view)
-
     def update_spline(self):
         self.shape.removeAllChildren()
         self.parametric_glider.arc.curve.controlpoints = [vector2D(i) for i in self.arc_cpc.control_pos]
-        self.shape.addChild(Line(self.parametric_glider.arc.curve.get_sequence(num=30), color='grey').object)
+        l = Line(vector3D(self.parametric_glider.arc.curve.get_sequence(num=30)))
+        l.drawstyle.lineWidth = 2
+        self.shape += l
         self.draw_circle()
 
     def draw_circle(self):
         self.circle.removeAllChildren()
         p1, p2, p3 = self.parametric_glider.arc.curve.get_sequence(num=3)
         circle = CirclePart(p1, p2, p3)
-        self.circle.addChild(Line(circle.get_sequence(), color="blue").object)
-        self.circle.addChild(Point(*circle.center))
-        self.circle.addChild(Line([p2, circle.center, p3]).object)
+        self.circle += Line(vector3D(circle.get_sequence()))
+        self.circle += Point(vector3D([circle.center]))
+        self.circle += Line(vector3D([p2, circle.center, p3]))
 
 
     def update_spline_type(self):
@@ -87,7 +82,10 @@ class ArcTool(BaseTool):
         return self.parametric_glider.arc.get_arc_positions(self.parametric_glider.shape.rib_x_values)
 
     def update_real_arc(self):
-        self.shape.addChild(Line(self.get_arc_positions(), color='red', width=2).object)
+        l = Line(vector3D(self.get_arc_positions()))
+        l.drawstyle.lineWidth = 2
+        l.set_color("red")
+        self.shape += l
 
     def update_num(self, *arg):
         self.parametric_glider.arc.curve.numpoints = self.Qnum_arc.value()
@@ -97,8 +95,10 @@ class ArcTool(BaseTool):
     def accept(self):
         self.arc_cpc.remove_callbacks()
         super(ArcTool, self).accept()
+        self.obj.ViewObject.Proxy.rotate()
         self.update_view_glider()
 
     def reject(self):
         self.arc_cpc.remove_callbacks()
+        self.obj.ViewObject.Proxy.rotate()
         super(ArcTool, self).reject()

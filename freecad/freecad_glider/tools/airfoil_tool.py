@@ -10,12 +10,8 @@ from openglider.airfoil import BezierProfile2D
 from openglider.vector import norm, normalize
 from PySide import QtCore, QtGui
 
-from . import pivy_primitives_old as pp
-from .tools import BaseTool
+from .tools import BaseTool, ControlPointContainer, Line_old, vector3D
 
-
-def refresh():
-    pass
 
 class AirfoilTool(BaseTool):
     widget_name = 'Selection'
@@ -200,7 +196,7 @@ class AirfoilTool(BaseTool):
                 width = 0.5
                 if index == self.QList_View.currentRow() and not thin:
                     width = 2
-                self.airfoil_sep += [pp.Line(pp.vector3D(airfoil), width=width).object]
+                self.airfoil_sep += [Line_old(vector3D(airfoil), width=width).object]
 
     def spline_edit(self):
         if self.is_edit:
@@ -232,17 +228,14 @@ class AirfoilTool(BaseTool):
                 self.Qshow_pressure_dist.setDisabled(False)
             self.update_airfoil(thin=True)
             self.spline_sep.removeAllChildren()
-            self.airfoil_sep += [pp.Line(self.current_airfoil.data).object]
-            self.upper_cpc = pp.ControlPointContainer(view=self.view)
-            self.lower_cpc = pp.ControlPointContainer(view=self.view)
+            self.airfoil_sep += [Line_old(self.current_airfoil.data).object]
+            self.upper_cpc = ControlPointContainer(self.rm)
+            self.lower_cpc = ControlPointContainer(self.rm)
             self.upper_cpc.control_pos = airfoil.upper_spline.controlpoints
             self.lower_cpc.control_pos = airfoil.lower_spline.controlpoints
-            self.upper_cpc.control_points[-1].fix = True
-            self.lower_cpc.control_points[-1].fix = True
-            self.lower_cpc.control_points[0].fix = True
-            self.upper_cpc.control_points[0].fix = True
-            self.lower_cpc.control_points[-1].pos = [1., 0., 0.]
-            self.upper_cpc.control_points[0].pos = [1., 0., 0.]
+            self.constrain_upper_points()
+            self.constrain_lower_points()
+
             self.spline_sep += [self.upper_cpc, self.lower_cpc]
             self.spline_sep += [self.lower_spline, self.upper_spline]
             self.upper_cpc.on_drag.append(self.upper_on_change)
@@ -280,30 +273,30 @@ class AirfoilTool(BaseTool):
 
     def draw_upper_spline(self, num):
         self.upper_spline += [
-            pp.Line(self.upper_control_line, color='grey').object]
+            Line_old(self.upper_control_line, color='grey').object]
         self.upper_spline += [
-            pp.Line(pp.vector3D(
+            Line_old(vector3D(
                 self.current_airfoil.upper_spline.get_sequence(num)),
                 width=2).object]
 
     def draw_lower_spline(self, num):
         self.lower_spline += [
-            pp.Line(self.lower_control_line, color='grey').object]
+            Line_old(self.lower_control_line, color='grey').object]
         self.lower_spline += [
-            pp.Line(pp.vector3D(
+            Line_old(vector3D(
                 self.current_airfoil.lower_spline.get_sequence(num)),
                 width=2).object]
 
     def _update_upper_spline(self, num=50):
         self.upper_spline.removeAllChildren()
-        self.upper_cpc.control_points[-2].set_x(0.)
+        # self.upper_cpc.control_points[-2].set_x(0.)
         self.current_airfoil.upper_spline.controlpoints = [
             i[:-1] for i in self.upper_cpc.control_pos]
         self.draw_upper_spline(num)
 
     def _update_lower_spline(self, num=50):
         self.lower_spline.removeAllChildren()
-        self.lower_cpc.control_points[1].set_x(0.)
+        # self.lower_cpc.control_points[1].set_x(0.)
         self.current_airfoil.lower_spline.controlpoints = [
             i[:-1] for i in self.lower_cpc.control_pos]
         self.draw_lower_spline(num)
@@ -324,22 +317,42 @@ class AirfoilTool(BaseTool):
             self.lower_cpc.remove_callbacks()
             self.is_edit = False
 
+    def constrain_upper_points(self):
+        self.upper_cpc.control_points[-1].pos = [0., 0., 0.]
+        self.upper_cpc.control_points[0].pos = [1., 0., 0.]
+        self.upper_cpc.control_points[-1].enabled = False
+        self.upper_cpc.control_points[0].enabled = False
+        t_marker = self.upper_cpc.control_points[-2]
+        p = t_marker.points
+        p[0][0] = 0.
+        t_marker.points = p
+        t_marker.constrained = [0., 1., 0.]
+
+    def constrain_lower_points(self):
+        self.lower_cpc.control_points[0].pos = [0., 0., 0.]
+        self.lower_cpc.control_points[-1].pos = [1., 0., 0.]
+        self.lower_cpc.control_points[-1].enabled = False
+        self.lower_cpc.control_points[0].enabled = False
+        t_marker = self.lower_cpc.control_points[1]
+        p = t_marker.points
+        p[0][0] = 0.
+        t_marker.points = p
+        t_marker.constrained = [0., 1., 0.]
+
     def fit_upper_spline(self, num):
         if self.is_edit:
             self.current_airfoil.apply_splines()
             self.current_airfoil.upper_spline = self.current_airfoil.fit_upper(control_num=num)
-            self.upper_cpc.control_pos = pp.vector3D(self.current_airfoil.upper_spline.controlpoints)
-            self.upper_cpc.control_points[-1].fix = True
-            self.upper_cpc.control_points[0].fix = True
+            self.upper_cpc.control_pos = vector3D(self.current_airfoil.upper_spline.controlpoints)
+            self.constrain_upper_points()
             self._update_upper_spline()
 
     def fit_lower_spline(self, num):
         if self.is_edit:
             self.current_airfoil.apply_splines()
             self.current_airfoil.lower_spline = self.current_airfoil.fit_lower(control_num=num)
-            self.lower_cpc.control_pos = pp.vector3D(self.current_airfoil.lower_spline.controlpoints)
-            self.lower_cpc.control_points[-1].fix = True
-            self.lower_cpc.control_points[0].fix = True
+            self.lower_cpc.control_pos = vector3D(self.current_airfoil.lower_spline.controlpoints)
+            self.constrain_lower_points()
             self._update_lower_spline()
 
     def accept(self):
@@ -391,7 +404,7 @@ class AirfoilTool(BaseTool):
             p0 = pan.center
             p1 = p0 + pan.n * pan.cp * 0.03
             l = [[*p0, 0.], [*p1, 0.]]  # adding z-value
-            self.pressure_sep += pp.Line(l).object
+            self.pressure_sep += Line_old(l).object
         return True
 
 
