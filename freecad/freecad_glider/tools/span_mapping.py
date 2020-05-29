@@ -211,15 +211,16 @@ class AoaTool(SpanMappingTool):
         self.layout.setWidget(3, text_field, QtGui.QLabel('glidenumber'))
         self.layout.setWidget(3, input_field, self.QGlide)
 
+        self.QGlide.valueChanged.connect(self.update_glide)
+
+
+
 
     def setup_pivy(self):
         super(AoaTool, self).setup_pivy()
-
-        arc_angles = self.parametric_glider.get_arc_angles()
-        self.aoa_diff = [Rib._aoa_diff(arc_angle, self.parametric_glider.glide) for arc_angle in arc_angles]
         self.aoa_absolute_curve = Line_old([], color='blue', width=2)
-
         self.task_separator.addChild(self.aoa_absolute_curve.object)
+        self.update_glide()
 
     def update_aoa(self):
         self.spline.controlpoints = (
@@ -233,12 +234,18 @@ class AoaTool(SpanMappingTool):
             self.aoa_absolute_curve.update([[x*self.scale[0], (aoa - aoa_diff) * self.scale[1]] for x, aoa, aoa_diff in zip(x_values, aoa_values, self.aoa_diff)])
 
 
+    def update_glide(self, *args):
+        arc_angles = self.parametric_glider.get_arc_angles()
+        self.parametric_glider.glide = self.QGlide.value()
+        self.aoa_diff = [Rib._aoa_diff(arc_angle, self.parametric_glider.glide) for arc_angle in arc_angles]
+        self.update_aoa()
+
+
     #def get_aoa_absolute(self):
     #    arcangles = self.parametric_glider.get_arc_angles()
     #    for arcangle, aoa in zip()
 
     def accept(self):
-        self.parametric_glider.glide = self.QGlide.value()
         super(AoaTool, self).accept()
 
     def text_repr(self, value):
