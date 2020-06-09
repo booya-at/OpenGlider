@@ -238,7 +238,12 @@ class Bezier(HashedList):
                     self._matrix[row, col] = foo(value)
             return self._matrix
 
-    def get_sequence(self, num=50):
+    def get_sequence(self, num=None):
+        if num is None:
+            if self._matrix is not None:
+                num = self._matrix.shape[0]
+            else:
+                num = 50  # default
         return np.dot(self.get_matrix(num), self._data)
 
     def get_length(self, num):

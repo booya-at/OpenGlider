@@ -163,7 +163,7 @@ class SpanMappingTool(BaseTool):
             text.string = self.text_repr(l[1] * self.value_scale)
             textsep += [color, trans, text]
             self.grid += [textsep]
-        interpolation = self.spline.interpolation(50)
+        interpolation = self.spline.interpolation(SpanMappingTool.num_on_drag)
         if drag_release:
             for i in self.back:
                 color = coin.SoMaterial()
@@ -228,7 +228,7 @@ class AoaTool(SpanMappingTool):
             self.scale).tolist()
 
         x_values = self.parametric_glider.shape.rib_x_values
-        aoa_values = self.parametric_glider.get_aoa()
+        aoa_values = self.parametric_glider.get_aoa(interpolation_num=self.num_on_drag)
         self.spline_curve.update([[x * self.scale[0], aoa * self.scale[1]] for x, aoa in zip(x_values, aoa_values)])
         if hasattr(self, "aoa_absolute_curve"):
             self.aoa_absolute_curve.update([[x*self.scale[0], (aoa - aoa_diff) * self.scale[1]] for x, aoa, aoa_diff in zip(x_values, aoa_values, self.aoa_diff)])

@@ -15,24 +15,9 @@ from pivy.graphics import (COLORS, InteractionSeparator, Line, Marker,
                                   coin)
 
 
-def refresh():
-    pass
-
-# class MplCanvas(FigureCanvas):
-#     '''Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.).'''
-
-#     def __init__(self, parent=None, width=5, height=4, dpi=100):
-#         self.fig = plt.figure(figsize=(width, height), dpi=dpi)
-#         super(MplCanvas, self).__init__(self.fig)
-#         self.axes = self.fig.add_subplot(111)
-#         self.setParent(parent)
-#         self.updateGeometry()
-
-#     def plot(self, *args, **kwargs):
-#         self.axes.plot(*args, **kwargs)
-
-
-class Polars():
+class Polars(BaseTool):
+    widget_name = 'Aerdynamic computations'
+    hide = False
     try:
         paraBEM = __import__('paraBEM')
         pan3d = __import__('paraBEM.pan3d', globals(), locals(), ['abc'])
@@ -41,11 +26,41 @@ class Polars():
         paraBEM = None
 
     def __init__(self, obj):
-        self.obj = obj
-        self.parametric_glider = deepcopy(self.obj.Proxy.getParametricGlider())
-        self.create_potential_table()
-        self.solve_const_vert_Force()
+        super(Polars, self).__init__(obj)
+        self.setup_widget()
 
+    def setup_widget(self):
+        self.Qweight = QtGui.QDoubleSpinBox()
+        self.Qpilot_drag = QtGui.QDoubleSpinBox()
+        self.Qparasit_wing_drag_c0 = QtGui.QDoubleSpinBox()
+        self.Qparasit_wing_drag_c1 = QtGui.QDoubleSpinBox()
+        self.Qmom_z_ref_point = QtGui.QDoubleSpinBox()
+        self.Qcompute = QtGui.QPushButton("create plots")
+
+        self.layout.setWidget(0, text_field, QtGui.QLabel('total weight [kg]'))
+        self.layout.setWidget(0, input_field, self.Qweight)
+        self.layout.setWidget(1, text_field, QtGui.QLabel('pilot drag (cw_p * A_p) normalized'))
+        self.layout.setWidget(1, input_field, self.Qpilot_drag)
+        self.layout.setWidget(2, text_field, QtGui.QLabel('z position of moment_ref_point'))
+        self.layout.setWidget(2, input_field, self.Qmom_z_ref_point)
+        self.layout.setWidget(3, text_field, self.Qcompute)
+
+        self.Qweight.setMinimum(10)
+        self.Qweight.setMaximum(300)
+        self.Qweight.setValue(90)
+
+        self.Qpilot_drag.setMinimum(0)
+        self.Qpilot_drag.setMaximum(0.1)
+        self.Qpilot_drag.setValue(0.01)
+
+        self.Qmom_z_ref_point.setMinimum(-100)
+        self.Qmom_z_ref_point.setMaximum(100)
+        self.Qmom_z_ref_point.setValue(-7)
+        self.Qcompute.clicked.connect(self.compute)
+        self.create_potential_table()
+
+    def compute(self):
+        self.solve_const_vert_Force()
     
     def create_potential_table(self):
         if not self.paraBEM:
@@ -56,18 +71,19 @@ class Polars():
                 self.parametric_glider.get_glider_3d(),
                 midribs=0,
                 profile_numpoints=50,
-                num_average=4,
+                num_average=7,
                 distribution=Distribution.from_nose_cos_distribution(0.2),
                 symmetric=True
                 )
             case = self.pan3d.DirichletDoublet0Source0Case3(self._panels, self._trailing_edges)
             case.A_ref = self.parametric_glider.shape.area
-            case.mom_ref_point = self.paraBEM.Vector3(1.25, 0, -6)
+            # att point
+            case.mom_ref_point = self.paraBEM.Vector3(1.25, 0, self.Qmom_z_ref_point.value())
             case.v_inf = self.paraBEM.Vector(self.parametric_glider.v_inf)
             case.drag_calc = 'trefftz'
             case.farfield = 5
             case.create_wake(10000000, 20)
-            pols = case.polars(self.paraBEM_utils.v_inf_deg_range3(case.v_inf, 2, 15, 20))
+            pols = case.polars(self.paraBEM_utils.v_inf_deg_range3(case.v_inf, 2, 30, 30))
             self.cL = []
             self.cDi = []
             self.cPi = []
@@ -85,20 +101,19 @@ class Polars():
     def solve_const_vert_Force(self):
         from scipy.optimize import newton_krylov
         # constants:
-        c0 = 0.010       # const profile drag
-        c2 = 0.01        # c2 * alpha**2 + c0 = cDpr
-        cDpi = 0.01      # drag cooefficient of pilot
+        c0 = 0.01      # const profile drag
+        c2 = 0.03      # c2 * cl**2 + c0 = cDpr
+        cDpi = self.Qpilot_drag.value()      # drag cooefficient of pilot
         rho = 1.2
-        mass = 90
+        mass = self.Qweight.value()
         g = 9.81
         area = self.parametric_glider.shape.area
         cDl = self.obj.Proxy.getGliderInstance().lineset.get_normalized_drag() / area * 2
-        print(cDl)
         alpha = self.alpha
         cL = self.cL
         cDi = self.cDi
 
-        cD_ges = (cDi + np.ones_like(alpha) * (cDpi + cDl + c0) + c2 * cL**2)
+        cD_ges = (cDi + np.ones_like(cDi) * (cDpi + cDl + c0) + c2 * cL**2)
 
         def minimize(phi):
             return np.arctan(cD_ges / cL) - self.alpha + phi
@@ -123,10 +138,10 @@ class Polars():
         phi = newton_krylov(minimize, np.ones_like(self.alpha)) 
         a_p = [find_zeros(vel(phi), phi), find_zeros(gz(), phi)]
         plt.plot(vel(phi), gz())
+        plt.plot(vel(phi), phi)
         plt.plot(a_p[0], a_p[1], marker='o')
         plt.plot()
         plt.grid()
-        plt.draw()
         plt.show()
 
     def accept(self):
@@ -134,6 +149,8 @@ class Polars():
 
     def reject(self):
         Gui.Control.closeDialog()
+
+
 
 
 class PanelTool(BaseTool):
@@ -293,7 +310,7 @@ class PanelTool(BaseTool):
         self.case.farfield = 5
         self.case.create_wake(9999, 10)
         self.case.run()
-        self.show_glider()
+        # self.show_glider()
 
     def show_glider(self):
         self.glider_result.removeAllChildren()

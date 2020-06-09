@@ -260,8 +260,8 @@ class ParametricGlider(object):
         :return:
         """
 
-    def get_aoa(self):
-        aoa_interpolation = self.aoa.interpolation(num=self.num_interpolate)
+    def get_aoa(self, interpolation_num=None):
+        aoa_interpolation = self.aoa.interpolation(num=interpolation_num or self.num_interpolate)
 
         return [aoa_interpolation(x) for x in self.shape.rib_x_values]
 

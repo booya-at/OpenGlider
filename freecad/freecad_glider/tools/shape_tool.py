@@ -320,8 +320,8 @@ class ShapeTool(BaseTool):
         # draw circles
         self.circle_front.removeAllChildren()
         self.circle_back.removeAllChildren()
-        circle_front = CirclePart(*self.parametric_glider.shape.front_curve.get_sequence(3))
-        circle_back = CirclePart(*self.parametric_glider.shape.back_curve.get_sequence(3))
+        circle_front = CirclePart(*self.parametric_glider.shape.front_curve.get_sequence()[[0, 10, -1]])
+        circle_back = CirclePart(*self.parametric_glider.shape.back_curve.get_sequence()[[0, 10, -1]])
         self.circle_front.addChild(Line_old(circle_front.get_sequence(), color="red").object)
         self.circle_back.addChild(Line_old(circle_back.get_sequence(), color="red").object)
 
