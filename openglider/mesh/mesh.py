@@ -12,14 +12,21 @@ logger = logging.getLogger(__name__)
 class Vertex(object):
     dmin = 10**-10
 
-    def __init__(self, x, y, z):
+    def __init__(self, x, y, z, attributes=None):
         self.set_values(x, y, z)
-        self.attributes = {}
+        self.attributes = attributes or {}
 
     def __iter__(self):
         yield self.x
         yield self.y
         yield self.z
+
+    def __json__(self):
+        data = list(self)
+        if self.attributes:
+            data.append(self.attributes)
+
+        return data
 
     def set_values(self, x, y, z):
         self.x = x
@@ -235,7 +242,7 @@ class Mesh(object):
 
     def __json__(self):
         vertices, polygons, boundaries = self.get_indexed()
-        vertices_new = [list(v) for v in vertices]
+        vertices_new = [v.__json__() for v in vertices]
 
         return {
             "vertices": vertices_new,
