@@ -66,7 +66,7 @@ for directory in og_dirs:
 print(package_data, packages)
 setup(
     name='OpenGlider',
-    version="0.04",  #openglider.__version__,
+    version="0.05",  #openglider.__version__,
     description="tool for glider design",
     packages=packages,
     package_data=package_data,
