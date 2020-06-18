@@ -222,8 +222,8 @@ def export_apame(glider, path="", midribs=0, numpoints=None, *other):
     return outfile.close()
 
 
-def paraBEM_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, symmetric=False, distribution=None):
-    """return the vertices, panels and the trailing edge of a glider, as paraBEM objects.
+def parabem_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, symmetric=False, distribution=None):
+    """return the vertices, panels and the trailing edge of a glider, as parabem objects.
 
     midribs:           midribs of a cell spanwise. if num_average is greater then
                        0 ballooning will be disables
@@ -232,8 +232,8 @@ def paraBEM_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, sym
     symmetric:         set to True if a symmetric result is expected (this will
                        reduce evaluation time)
     """
-    # paraBEM is not a dependency of openglider so if problems occur here, get the module.
-    import paraBEM
+    # parabem is not a dependency of openglider so if problems occur here, get the module.
+    import parabem
 
     if symmetric:
         glider = glider.copy()
@@ -300,8 +300,8 @@ def paraBEM_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, sym
             else:
                 panels.append(panel)
 
-    vertices = [paraBEM.PanelVector3(*point) for point in vertices]
-    panels = [paraBEM.Panel3([vertices[nr] for nr in panel]) for panel in panels]
+    vertices = [parabem.PanelVector3(*point) for point in vertices]
+    panels = [parabem.Panel3([vertices[nr] for nr in panel]) for panel in panels]
     trailing_edge = [vertices[nr] for nr in trailing_edge]
     for nr in sym_panels:
         panels[nr].set_symmetric()

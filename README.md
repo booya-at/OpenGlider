@@ -78,7 +78,7 @@ The plan is to build on the following technologies:
 
 * **Python** ([link](http://docs.python.org/2/tutorial/))
 
-* self-coded **panelmethod** (VSAERO) and/or apame implementation ([link](http://www.3dpanelmethod.com/)) for quick 3D-calculation (see [paraBEM](https://github.com/booya-at/paraBEM))
+* self-coded **panelmethod** (VSAERO) and/or apame implementation ([link](http://www.3dpanelmethod.com/)) for quick 3D-calculation (see [parabem](https://github.com/booya-at/parabem))
 
 * **[OpenFoam](http://www.openfoam.com/)** obj-file CFD export
 

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import FreeCADGui as Gui
-from openglider.glider.in_out.export_3d import paraBEM_Panels
+from openglider.glider.in_out.export_3d import parabem_Panels
 from openglider.utils.distribution import Distribution
 from PySide import QtCore, QtGui
 
@@ -19,11 +19,11 @@ class Polars(BaseTool):
     widget_name = 'Aerdynamic computations'
     hide = False
     try:
-        paraBEM = __import__('paraBEM')
-        pan3d = __import__('paraBEM.pan3d', globals(), locals(), ['abc'])
-        paraBEM_utils = __import__('paraBEM.utils', globals(), locals(), ['abc'])
+        parabem = __import__('parabem')
+        pan3d = __import__('parabem.pan3d', globals(), locals(), ['abc'])
+        parabem_utils = __import__('parabem.utils', globals(), locals(), ['abc'])
     except ImportError:
-        paraBEM = None
+        parabem = None
 
     def __init__(self, obj):
         super(Polars, self).__init__(obj)
@@ -63,11 +63,11 @@ class Polars(BaseTool):
         self.solve_const_vert_Force()
     
     def create_potential_table(self):
-        if not self.paraBEM:
+        if not self.parabem:
             self.QWarning = QtGui.QLabel('no panel_method installed')
             self.layout.addWidget(self.QWarning)
         else:
-            self._vertices, self._panels, self._trailing_edges = paraBEM_Panels(
+            self._vertices, self._panels, self._trailing_edges = parabem_Panels(
                 self.parametric_glider.get_glider_3d(),
                 midribs=0,
                 profile_numpoints=50,
@@ -78,12 +78,12 @@ class Polars(BaseTool):
             case = self.pan3d.DirichletDoublet0Source0Case3(self._panels, self._trailing_edges)
             case.A_ref = self.parametric_glider.shape.area
             # att point
-            case.mom_ref_point = self.paraBEM.Vector3(1.25, 0, self.Qmom_z_ref_point.value())
-            case.v_inf = self.paraBEM.Vector(self.parametric_glider.v_inf)
+            case.mom_ref_point = self.parabem.Vector3(1.25, 0, self.Qmom_z_ref_point.value())
+            case.v_inf = self.parabem.Vector(self.parametric_glider.v_inf)
             case.drag_calc = 'trefftz'
             case.farfield = 5
             case.create_wake(10000000, 20)
-            pols = case.polars(self.paraBEM_utils.v_inf_deg_range3(case.v_inf, 2, 30, 30))
+            pols = case.polars(self.parabem_utils.v_inf_deg_range3(case.v_inf, 2, 30, 30))
             self.cL = []
             self.cDi = []
             self.cPi = []
@@ -157,14 +157,14 @@ class PanelTool(BaseTool):
     widget_name = 'Properties'
     hide = True
     try:
-        paraBEM = __import__('paraBEM')
-        pan3d = __import__('paraBEM.pan3d', globals(), locals(), ['abc'])
+        parabem = __import__('parabem')
+        pan3d = __import__('parabem.pan3d', globals(), locals(), ['abc'])
     except ImportError:
-        paraBEM = None
+        parabem = None
 
     def __init__(self, obj):
         super(PanelTool, self).__init__(obj)
-        if not self.paraBEM:
+        if not self.parabem:
             self.QWarning = QtGui.QLabel('no panel_method installed')
             self.layout.addWidget(self.QWarning)
         else:
@@ -288,11 +288,11 @@ class PanelTool(BaseTool):
         self.obj.ViewObject.profile_num = self.Qprofile_points.value()
 
     def stream_line(self, point, interval, numpoints):
-        flow_path = self.case.flow_path(self.paraBEM.Vector3(*point), interval, numpoints)
+        flow_path = self.case.flow_path(self.parabem.Vector3(*point), interval, numpoints)
         return [[p.x, p.y, p.z] for p in flow_path]
 
     def create_panels(self, midribs=0, profile_numpoints=10, mean=False, symmetric=True):
-        self._vertices, self._panels, self._trailing_edges = paraBEM_Panels(
+        self._vertices, self._panels, self._trailing_edges = parabem_Panels(
             self.parametric_glider.get_glider_3d(),
             midribs=midribs,
             profile_numpoints=profile_numpoints,
@@ -306,11 +306,11 @@ class PanelTool(BaseTool):
                            self.Qmean_profile.isChecked(), self.Qsymmetric.isChecked())
         del self.case
         self.case = self.pan3d.DirichletDoublet0Source0Case3(self._panels, self._trailing_edges)
-        self.case.v_inf = self.paraBEM.Vector(self.parametric_glider.v_inf)
+        self.case.v_inf = self.parabem.Vector(self.parametric_glider.v_inf)
         self.case.farfield = 5
         self.case.create_wake(9999, 10)
         self.case.run()
-        # self.show_glider()
+        self.show_glider()
 
     def show_glider(self):
         self.glider_result.removeAllChildren()
@@ -378,11 +378,11 @@ class PanelTool(BaseTool):
 def create_fem_dict(par_glider):
     # not yet working
     
-    # create a paraBEM object and compute the pressure
+    # create a parabem object and compute the pressure
 
     # create a dict with:
     #   nodes, elements, forces, bc, joints
-    vertices, panels, trailing_edges = paraBEM_Panels(
+    vertices, panels, trailing_edges = parabem_Panels(
         par_glider.get_glider_3d(),
         midribs=0,
         profile_numpoints=50,
@@ -392,7 +392,7 @@ def create_fem_dict(par_glider):
         )
 
     # case.A_ref = par_glider.flat_area
-    # case.v_inf = paraBEM.Vector(glider.v_inf)
+    # case.v_inf = parabem.Vector(glider.v_inf)
     # self.case.farfield = 5
     # self.case.create_wake(9999, 10)
     # self.case.run()

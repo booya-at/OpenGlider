@@ -219,10 +219,10 @@ class AirfoilTool(BaseTool):
             self.Qnum_points_upper.setDisabled(False)
             self.Qnum_points_lower.setDisabled(False)
             try:
-                import paraBEM
-                from paraBEM.pan2d import DirichletDoublet0Source0Case2
+                import parabem
+                from parabem.pan2d import DirichletDoublet0Source0Case2
             except ImportError:
-                print("pressure visualization needs paraBEM")
+                print("pressure visualization needs parabem")
             else:
                 self.Qshow_pressure_dist.setDisabled(False)
                 self.Qshow_pressure_dist.setDisabled(False)
@@ -381,24 +381,24 @@ class AirfoilTool(BaseTool):
             self.Qalpha.setEnabled(False)
         
     def show_pressure(self):
-        import paraBEM
-        from paraBEM.pan2d import DirichletDoublet0Source0Case2
+        import parabem
+        from parabem.pan2d import DirichletDoublet0Source0Case2
 
         # 1. get the panels from the airfoil
         self.current_airfoil.apply_splines()
         coords = self.current_airfoil.data[:-1]
         pans = []
         vertices = []
-        vertices = [paraBEM.PanelVector2(*i) for i in coords]
+        vertices = [parabem.PanelVector2(*i) for i in coords]
         vertices[0].wake_vertex = True
         for i, coord in enumerate(coords):
             j = (i+1 if (i + 1) < len(coords) else 0)
-            pan = paraBEM.Panel2([vertices[i], vertices[j]])
+            pan = parabem.Panel2([vertices[i], vertices[j]])
             pans.append(pan)
         # 2. compute pressure
         case = DirichletDoublet0Source0Case2(pans)
         alpha = np.deg2rad(self.Qalpha.value())
-        case.v_inf = paraBEM.Vector2(np.cos(alpha), np.sin(alpha))
+        case.v_inf = parabem.Vector2(np.cos(alpha), np.sin(alpha))
         case.run()
         for pan in pans:
             p0 = pan.center
