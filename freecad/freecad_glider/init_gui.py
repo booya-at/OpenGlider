@@ -15,9 +15,9 @@ Dir = os.path.abspath(os.path.dirname(__file__))
 Gui.addIconPath(os.path.join(Dir, 'icons'))
 
 
-class gliderWorkbench(Gui.Workbench):
-    MenuText = 'glider'
-    ToolTip = 'glider workbench'
+class GliderWorkbench(Gui.Workbench):
+    MenuText = 'Glider'
+    ToolTip = 'Glider Workbench'
     Icon = os.path.join(Dir, 'icons', 'glider_workbench.svg')
     toolBox = [
         'CreateGlider',
@@ -133,5 +133,5 @@ class gliderWorkbench(Gui.Workbench):
     def Deactivated(self):
         pass
 
-Gui.addWorkbench(gliderWorkbench())
+Gui.addWorkbench(GliderWorkbench())
 
