@@ -257,6 +257,13 @@ class AirfoilCommand(BaseCommand):
     def tool(self, obj):
         return airfoil_tool.AirfoilTool(obj)
 
+    def IsActive(self):
+        if (FreeCAD.ActiveDocument is not None and self.glider_obj):
+            if len(self.glider_obj.airfoils) != 0:
+                return False
+            return True
+
+
 
 class AirfoilMergeCommand(BaseCommand):
     def GetResources(self):
