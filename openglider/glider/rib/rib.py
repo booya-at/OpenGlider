@@ -195,7 +195,7 @@ class Rib(CachedObject):
         else:
             tri = triangulate.Triangulation(vertices, boundary, hole_centers)
             if max_area is not None:
-                tri.meshpy_restrict_area = max_area
+                tri.meshpy_max_area = max_area
             mesh = tri.triangulate()
 
             triangles = list(mesh.elements)
