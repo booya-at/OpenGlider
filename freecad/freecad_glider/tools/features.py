@@ -37,6 +37,9 @@ class BaseFeature(OGBaseObject):
         '''returns top level parametric glider'''
         return self.obj.parent.Proxy.getParametricGlider()
 
+    def getParent(self):
+        return self.obj.parent.Proxy.getParent()
+
     def setParametricGlider(self, obj):
         '''sets the top-level glider2d and recomputes the glider3d'''
         self.obj.parent.Proxy.setParametricGlider(obj)
@@ -143,11 +146,11 @@ class SharkFeature(BaseFeature):
 
     def addProperties(self):
         self.addProperty('ribs', [], 'not_yet', 'docs', int)
-        self.addProperty('x1', 0.1, 'not_yet', 'distance')
-        self.addProperty('x2', 0.11, 'not_yet', 'distance')
-        self.addProperty('x3', 0.5, 'not_yet', 'distance')
-        self.addProperty('y_add', 0.1, 'not_yet', 'amount')
-        self.addProperty('type', False, 'not_yet', '0-> linear, 1->quadratic')
+        self.addProperty('x1', 0.06, 'shark-nose', 'start x-position of airfoil where shark-nose feature is applied')
+        self.addProperty('x2', 0.09, 'shark-nose', 'position of max shift')
+        self.addProperty('x3', 0.9, 'shark-nose', 'last position where shark-nose-feature impacts the airfoil')
+        self.addProperty('y_add', 0.03, 'shark-nose', 'max amount of shift')
+        self.addProperty('type', False, 'shark-nose', '0-> linear, 1->quadratic')
 
     def apply(self, airfoil_data, x1, x2, x3, y_add):
         data = []
@@ -164,7 +167,7 @@ class SharkFeature(BaseFeature):
         x1, x2, x3, y_add =  self.obj.x1, self.obj.x2, self.obj.x3, self.obj.y_add
         from openglider.airfoil.profile_2d import Profile2D
         glider = copy.deepcopy(self.obj.parent.Proxy.getGliderInstance())
-        for rib in enumerate(glider.ribs):
+        for i, rib in enumerate(glider.ribs):
             rib.profile_2d = Profile2D(self.apply(rib.profile_2d._data, x1, x2, x3, y_add))
         return glider
 

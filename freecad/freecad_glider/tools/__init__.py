@@ -259,8 +259,11 @@ class AirfoilCommand(BaseCommand):
 
     def IsActive(self):
         if (FreeCAD.ActiveDocument is not None and self.glider_obj):
-            if len(self.glider_obj.airfoils) != 0:
-                return False
+            parent_obj = self.glider_obj.Proxy.getParent()
+            print(parent_obj)
+            if hasattr(parent_obj, "airfoils"):
+                    if len(parent_obj.airfoils) != 0:
+                        return False
             return True
 
 

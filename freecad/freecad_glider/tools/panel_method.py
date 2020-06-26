@@ -33,7 +33,7 @@ class Polars(BaseTool):
         self.Qweight = QtGui.QDoubleSpinBox()
         self.Qpilot_drag = QtGui.QDoubleSpinBox()
         self.Qparasit_wing_drag_c0 = QtGui.QDoubleSpinBox()
-        self.Qparasit_wing_drag_c1 = QtGui.QDoubleSpinBox()
+        self.Qparasit_wing_drag_c2 = QtGui.QDoubleSpinBox()
         self.Qmom_z_ref_point = QtGui.QDoubleSpinBox()
         self.Qcompute = QtGui.QPushButton("create plots")
 
@@ -41,9 +41,13 @@ class Polars(BaseTool):
         self.layout.setWidget(0, input_field, self.Qweight)
         self.layout.setWidget(1, text_field, QtGui.QLabel('pilot drag (cw_p * A_p) normalized'))
         self.layout.setWidget(1, input_field, self.Qpilot_drag)
-        self.layout.setWidget(2, text_field, QtGui.QLabel('z position of moment_ref_point'))
-        self.layout.setWidget(2, input_field, self.Qmom_z_ref_point)
-        self.layout.setWidget(3, text_field, self.Qcompute)
+        self.layout.setWidget(2, text_field, QtGui.QLabel('wing drag c0'))
+        self.layout.setWidget(2, input_field, self.Qparasit_wing_drag_c0)
+        self.layout.setWidget(3, text_field, QtGui.QLabel('wing drag c2'))
+        self.layout.setWidget(3, input_field, self.Qparasit_wing_drag_c2)
+        self.layout.setWidget(4, text_field, QtGui.QLabel('z position of moment_ref_point'))
+        self.layout.setWidget(4, input_field, self.Qmom_z_ref_point)
+        self.layout.setWidget(5, text_field, self.Qcompute)
 
         self.Qweight.setMinimum(10)
         self.Qweight.setMaximum(300)
@@ -53,9 +57,18 @@ class Polars(BaseTool):
         self.Qpilot_drag.setMaximum(0.1)
         self.Qpilot_drag.setValue(0.01)
 
+        self.Qparasit_wing_drag_c0.setMinimum(0)
+        self.Qparasit_wing_drag_c0.setMaximum(0.1)
+        self.Qparasit_wing_drag_c0.setValue(0.01)
+
+        self.Qparasit_wing_drag_c2.setMinimum(0)
+        self.Qparasit_wing_drag_c2.setMaximum(0.1)
+        self.Qparasit_wing_drag_c2.setValue(0.03)
+
         self.Qmom_z_ref_point.setMinimum(-100)
         self.Qmom_z_ref_point.setMaximum(100)
         self.Qmom_z_ref_point.setValue(-7)
+
         self.Qcompute.clicked.connect(self.compute)
         self.create_potential_table()
 
@@ -101,12 +114,14 @@ class Polars(BaseTool):
     def solve_const_vert_Force(self):
         from scipy.optimize import newton_krylov
         # constants:
-        c0 = 0.01      # const profile drag
-        c2 = 0.03      # c2 * cl**2 + c0 = cDpr
-        cDpi = self.Qpilot_drag.value()      # drag cooefficient of pilot
-        rho = 1.2
+        c0 = self.Qparasit_wing_drag_c0.value()      # const profile drag
+        c2 = self.Qparasit_wing_drag_c2.value()      # c2 * cl**2 + c0 = cDpr
+        cDpi = self.Qpilot_drag.value()              # drag cooefficient of pilot
         mass = self.Qweight.value()
+
+        rho = 1.2
         g = 9.81
+    
         area = self.parametric_glider.shape.area
         cDl = self.obj.Proxy.getGliderInstance().lineset.get_normalized_drag() / area * 2
         alpha = self.alpha

@@ -248,6 +248,9 @@ class OGGlider(OGBaseObject):
         '''returns top level parametric glider'''
         return self.obj.ParametricGlider
 
+    def getParent(self):
+        return self.obj
+
     def setParametricGlider(self, parametric_glider):
         '''sets the top-level glider2d and recomputes the glider3d'''
         self.obj.ParametricGlider = parametric_glider
