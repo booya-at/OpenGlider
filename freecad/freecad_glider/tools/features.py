@@ -175,7 +175,7 @@ class SharkFeature(BaseFeature):
 class VSharkFeature(OGGliderVP):
     def getIcon(self):
         _dir = os.path.dirname(os.path.realpath(__file__))
-        return(_dir + "/../icons/shark_feature.svg")
+        return(_dir + "/../icons/sharknose_feature.svg")
 
 
 class SingleSkinRibFeature(BaseFeature):
