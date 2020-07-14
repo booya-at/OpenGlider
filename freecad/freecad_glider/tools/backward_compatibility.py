@@ -12,6 +12,7 @@ def version_update(obj):
     from_0_01_to_0_02(obj)
     from_0_02_to_0_03(obj)
     from_0_03_to_0_04(obj)
+    from_0_04_to_0_05(obj)
 
 def from_0_01_to_0_02(obj):
     # no version was specified so we have to update to 0.2
@@ -56,3 +57,13 @@ def from_0_03_to_0_04(obj):
                 'span in [m]', 1)
         obj.openglider_version = "0.04"
         app.Console.PrintWarning("updating {} from openglider 0.03 to openglider 0.04\n".format(obj.Label))
+
+def from_0_04_to_0_05(obj):
+    if obj.openglider_version == "0.04":
+        if hasattr(obj, "parent"):
+            parent = obj.parent
+            obj.removeProperty("parent")
+            obj.addProperty('App::PropertyLink', 'parent', 'link', 'the parent of the feature')
+            obj.parent = parent
+        obj.openglider_version = "0.05"
+        app.Console.PrintWarning("updating {} from openglider 0.04 to openglider 0.05\n".format(obj.Label))

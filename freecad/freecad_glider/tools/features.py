@@ -13,7 +13,7 @@ from .glider import OGBaseObject, OGGliderVP
 class BaseFeature(OGBaseObject):
     def __init__(self, obj, parent):
         self.obj = obj
-        obj.addProperty('App::PropertyLink', 'parent', 'not yet', 'docs')
+        obj.addProperty('App::PropertyLink', 'parent', 'link', 'the parent of the feature')
         obj.parent = parent
         super(BaseFeature, self).__init__(obj)
         self.addProperties()
@@ -38,7 +38,7 @@ class BaseFeature(OGBaseObject):
         return self.obj.parent.Proxy.getParametricGlider()
 
     def getParent(self):
-        return self.obj.parent.Proxy.getParent()
+        return self.obj.parent
 
     def setParametricGlider(self, obj):
         '''sets the top-level glider2d and recomputes the glider3d'''
