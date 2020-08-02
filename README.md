@@ -31,7 +31,7 @@ Or manually install all dependencies (using distro-repos, easy_install or pip)
 
 We are providing packages of OpenGlider and dependencies via `conda`. To install `conda` download [miniconda](https://docs.conda.io/en/latest/miniconda.html) and follow the install instructions. Once you have a working base-environment you can create a new environment for openglider:  
 ```bash
-conda create -n openglider openglider freecad meshpy -c conda-forge -c openglider
+conda create -n openglider openglider freecad meshpy -c conda-forge
 ```
 
 
