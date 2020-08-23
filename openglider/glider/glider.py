@@ -31,13 +31,13 @@ from openglider.utils import consistent_value
 from openglider.utils.distribution import Distribution
 from openglider.vector.functions import norm, rotation_2d
 from openglider.vector.projection import flatten_list
-
+from openglider.lines.lineset import LineSet
 
 class Glider(object):
     cell_naming_scheme = "c{cell_no}"
     rib_naming_scheme = "r{rib_no}"
 
-    def __init__(self, cells=None, lineset=None):
+    def __init__(self, cells=None, lineset: LineSet=None):
         self.cells = cells or []
         self.lineset = lineset
 
