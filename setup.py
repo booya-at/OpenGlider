@@ -72,11 +72,13 @@ setup(
     package_data=package_data,
     license='GPL-v3',
     # long_description=open('README.md').read(),
-    install_requires=["pyexcel-ezodf",
-                      "svgwrite",
-                      "numpy",
-                      "ezdxf"
-                      ],
+    install_requires=["svgwrite",
+                    "numpy",
+                    "scipy",
+                    "ezdxf",
+                    "ezodf",
+                    "meshpy"
+                    ],
     author='Booya',
     url='www.openglider.org',
     download_url="https://github.com/hiaselhans/OpenGlider/tarball/0.01dev0",

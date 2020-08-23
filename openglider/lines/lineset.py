@@ -387,54 +387,61 @@ class LineSet(object):
 
         return [(line, self.create_tree(line.upper_node)) for line in lines]
 
-    def get_table(self, start_node=None):
+    def _get_lines_table(self, callback, start_node=None):
         line_tree = self.create_tree(start_node=start_node)
         table = Table()
 
         floors = max(self.floors)
+        columns_per_line = len(callback(line_tree[0][0]))
 
         def insert_block(line, upper, row, column):
-            length = round(line.get_stretched_length()*1000)
-            table.set_value(column, row, length)
-            table.set_value(column + floors + 3, row, line.type.name)
+            values = callback(line)
+            column_0 = column-columns_per_line
+
+            for index, value in enumerate(values):
+                table[row, column_0+index] = value
+
             if upper:
                 for line, line_upper in upper:
-                    row = insert_block(line, line_upper, row, column-1)
+                    row = insert_block(line, line_upper, row, column-columns_per_line)
             else:  # Insert a top node
                 name = line.upper_node.name
                 if not name:
                     name = "XXX"
-                table.set_value(column-1, row, name)
-                table.set_value(column+2+floors, row, name)
+                table.set_value(column_0-1, row, name)
+                #table.set_value(column+2+floors, row, name)
                 row += 1
             return row
 
         row = 1
         for line, upper in line_tree:
-            row = insert_block(line, upper, row, floors)
+            row = insert_block(line, upper, row, (floors-1)*(columns_per_line)+2)
 
         return table
+
+
+    def get_table(self, start_node=None):
+        length_table = self._get_lines_table(lambda line: [round(line.get_stretched_length()*1000)])
+        names_table = self._get_lines_table(lambda line: [line.type.name])
+
+        length_table.append_right(names_table)
+
+        return length_table
+
+    def get_force_table(self):
+        def get_line_force(line):
+            percentage = ""
+
+            if line.type.min_break_load:
+                percentage = "{}%".format(round(100*line.force/line.type.min_break_load,1))
+
+            return [line.type.name, line.force, percentage]
+
+        return self._get_lines_table(get_line_force)
+
 
     def get_table_2(self):
-        line_tree = self.create_tree()
-        table = Table()
-
-        def insert_block(line, upper, row, column):
-            length = round(line.get_stretched_length()*1000)
-            table[row, column] = line.name
-            table[row, column + 1] = line.type.name
-            table[row, column + 2] = length
-            if upper:
-                for line, line_upper in upper:
-                    row = insert_block(line, line_upper, row, column + 4)
-            else:  # Insert a top node
-                row += 1
-            return row
-
-        row = 1
-        for line, upper in sorted(line_tree, key=(lambda x: x[0].name)):
-            row = insert_block(line, upper, row, 0)
-        return table
+        return self._get_line_table(lambda line: [line.name, line.type.name, round(line.get_stretched_length()*1000)])
 
     def get_upper_connected_force(self, node):
         '''
