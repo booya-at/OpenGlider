@@ -47,7 +47,7 @@ def get_parameter(name):
         return glider_defaults.GetInt(name, preference_table[name][1])
 
 
-def mesh_sep(mesh, color, draw_lines=False):
+def mesh_sep(mesh, color, draw_lines=False, soft_edges=True):
     vertices, polygons_grouped, _ = mesh.get_indexed()
     polygons = sum(polygons_grouped.values(), [])
     _vertices = [list(v) for v in vertices]
@@ -66,7 +66,8 @@ def mesh_sep(mesh, color, draw_lines=False):
     face_set = coin.SoIndexedFaceSet()
     shape_hint = coin.SoShapeHints()
     shape_hint.vertexOrdering = coin.SoShapeHints.COUNTERCLOCKWISE
-    shape_hint.creaseAngle = np.pi / 3
+    if soft_edges:
+        shape_hint.creaseAngle = np.pi / 3
     face_mat = coin.SoMaterial()
     face_mat.diffuseColor = color
     vertex_property.vertex.setValues(0, len(_vertices), _vertices)

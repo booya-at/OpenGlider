@@ -47,6 +47,10 @@ class Vertex(object):
                 return False
         return True
 
+    def is_in_range(minimum, maximum):
+        return (self.x >= minimum[0] and self.y >= minimum[1] and self.z >= minimum[2] and
+                self.x <= maximum[0] and self.y <= maximum[1] and self.z <= maximum[2])
+
     def round(self, places):
         self.x = round(self.x, places)
         self.y = round(self.y, places)
@@ -102,6 +106,20 @@ class Polygon(object):
             center += np.array(list(vert))
         return center / len(self.nodes)
 
+    @property
+    def normal(self):
+        points = np.array([list(v) for v in self.nodes])
+        if len(self) == 2:
+            n = points[1] - points[0]
+        elif len(self) == 3:
+            n = np.cross(points[1] -points[0],
+                         points[0] -points[2])
+        elif len(self) == 4:
+            n = np.cross(points[2] -points[0],
+                         points[3] -points[1])
+        return n / np.linalg.norm(n)
+
+
     def get_node_average(self, attribute):
         attribute_list = [n.attributes[attribute] for n in self.nodes]
         return sum(attribute_list)/len(attribute_list)
@@ -144,6 +162,28 @@ class Mesh(object):
                 vertices.add(node)
 
         return vertices
+
+    @property
+    def bounding_box(self):
+        vertices = np.array(self.vertices)
+        upper = np.max(vertices, 0)
+        lower = np.min(vertices, 0)
+        return lower, upper
+
+    def create_subspaces(self, num_subspaces=None):
+        dmin = 10**-10
+        lower, upper = self.bounding_box
+        num_subspaces = num_subspaces or 5
+        space = np.linspcae(lower, upper, num_subspaces)
+        x0, y0, z0 = space[0]
+        subspaces = []
+        for i, x1 in enumerate(space.T[0,1:]):
+            for j, y1 in enumerate(space.T[1,1:]):
+                for k, z1 in enumerate(space.T[2,1:]):
+                    s = [[x0 - dmin, y0 - dmin, z0 - dmin],
+                         [x1 + dmin, y0 + dmin, z0 + dmin]]
+                    subspaces.append(s)
+        return subspaces
 
     @property
     def all_polygons(self):
