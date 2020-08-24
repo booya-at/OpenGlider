@@ -394,3 +394,13 @@ class Profile2D(Polygon2D):
             return None
         from openglider.airfoil.XFoilCalc import calc_drag
         return calc_drag(self, re, cl)
+
+    def curvature_radius(self):
+        data = self.data
+        a = np.linalg.norm(data[:-2], axis=0)
+        b = np.linalg.norm(data[1:-1], axis=0)
+        c = np.linalg.norm(data[2:], axis=0)
+        s = (a + b + c) / 2
+        r = (a * b * c)  / np.sqrt(s * (s - a) * (s - b) * (s - c))
+        return r
+
