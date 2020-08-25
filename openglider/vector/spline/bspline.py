@@ -14,6 +14,14 @@ class BSplineBase():
 
         return self.bases[numpoints]
 
+    def __json__(self):
+        return {"degree": self.degree}
+
+    @classmethod
+    def __from_json__(cls, degree=None):
+        degree = degree or 3
+        return cls(degree)
+
     def get_basis(self, degree, i, knots):
         """ Returns a basis_function for the given degree """
         if degree == 0:
@@ -68,52 +76,28 @@ class BSplineBase():
 class BSpline(Bezier):
     basefactory = BSplineBase(2)
 
-    def __json__(self):
-        out = super(BSpline, self).__json__()
-        out["degree"] = self.basefactory.degree
-        return out
-
+    #### remove: obsolete for new gliders
     @classmethod
-    def __from_json__(cls, controlpoints, degree):
-        obj = super(BSpline, cls).__from_json__(controlpoints)
-        obj.basefactory = BSplineBase(degree)
-        return obj
+    def __from_json__(cls, controlpoints, basefactory=None, degree=None):
+        basefactory = basefactory or BSplineBase(degree)
+        return super(BSpline, cls).__from_json__(controlpoints, basefactory)
+    #### remove end
 
-class BSpline3(BSpline):
-    basefactory = BSplineBase(3)
 
 
 class SymmetricBSpline(SymmetricBezier):
     basefactory = BSplineBase(2)
 
-    def __json__(self):
-        out = super(SymmetricBSpline, self).__json__()
-        out["degree"] = self.basefactory.degree
-        return out
-
+    #### remove: obsolete for new gliders
     @classmethod
-    def __from_json__(cls, controlpoints, degree):
-        obj = super(SymmetricBSpline, cls).__from_json__(controlpoints)
-        obj.basefactory = BSplineBase(degree)
-        return obj
+    def __from_json__(cls, controlpoints, basefactory=None, degree=None):
+        basefactory = basefactory or BSplineBase(degree)
+        return super(BSpline, cls).__from_json__(controlpoints, basefactory)
+    #### remove end
+
+
+class BSpline3(BSpline):
+    basefactory = BSplineBase(3)
 
 class SymmetricBSpline3(SymmetricBSpline):
     basefactory = BSplineBase(3)
-
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-    import numpy as np
-
-    data = [[-0.2, 0.], [-0.5, 0.5], [-1., 0.], [-2, 3]]
-    curve = SymmetricBSpline(data)
-    values = curve.get_sequence(20)
-    cp = curve.controlpoints
-    curve_pts = [curve(i) for i in np.linspace(0.,  1, 100)]
-    # for i in curve.basefactory(5):
-    #     plt.plot(*zip(*[[x, i(x)] for x in np.linspace(0., 1, 100)]))
-    plt.show()
-    plt.plot(*zip(*values))
-    # plt.plot(*zip(*curve_pts))
-    plt.plot(*zip(*curve.data))
-    plt.plot(*zip(*data))
-    plt.show()

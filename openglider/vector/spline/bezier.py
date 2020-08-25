@@ -41,6 +41,13 @@ class _BernsteinFactory():
 
         return self.bases[degree]
 
+    def __json__(self):
+        return {}
+
+    @classmethod
+    def __from_json__(cls):
+        return cls()
+
 BernsteinBase = _BernsteinFactory()
 
 
@@ -59,11 +66,29 @@ class Bezier(HashedList):
         return (self.__class__.__name__ + ":\n" + str(self.controlpoints))
 
     def __json__(self):
-        return {'controlpoints': [p.tolist() for p in self.controlpoints]}
+        spline_dict = {
+                           'controlpoints': [p.tolist() for p in self.controlpoints],
+                           'basefactory': self.basefactory
+                      }
+        return spline_dict
 
     @classmethod
-    def __from_json__(cls, controlpoints):
-        return cls(controlpoints)
+    def __from_json__(cls, controlpoints, basefactory=None, degree=None):
+        # for old interface we stored degree in the spline
+        # in the new interface degree is stored in the basefactory
+        # therefor there is no difference between a bezier with
+        # a bspline factory or a bspline with the same basefactory
+
+        ### remove: obsolete for new gliders
+        if degree:
+            from openglider.vector import BsplineBase
+            basefactory = BsplineBase(degree)
+        basefactory = basefactory or cls.basefactory
+        ### remove end
+
+        spline = cls(controlpoints)
+        spline.basefactory = basefactory
+        return spline
 
     def __call__(self, value):
         dim = len(self.data[0])
@@ -261,11 +286,12 @@ class SymmetricBezier(Bezier):
         if controlpoints:
             self.controlpoints = controlpoints
 
-    @classmethod
-    def __from_json__(cls, controlpoints):
-        sm = cls()
-        sm.controlpoints = controlpoints
-        return sm
+    # @classmethod
+    # def __from_json__(cls, controlpoints, basefactory=None):
+    #     sm = cls()
+    #     sm.controlpoints = controlpoints
+    #     sm.basefactory = basefactory or cls.basefactory
+    #     return sm
 
     @property
     def controlpoints(self):
