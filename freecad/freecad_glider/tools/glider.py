@@ -215,7 +215,7 @@ class OGGlider(OGBaseObject):
         if parametric_glider:
             obj.ParametricGlider = parametric_glider
         else:
-            import_path = import_path or os.path.dirname(__file__) + '/../glider2d.json'
+            import_path = import_path or os.path.dirname(__file__) + '/../default_glider2d.json'
             with open(import_path, 'r') as importfile:
                 obj.ParametricGlider = jsonify.load(importfile)['data']
         obj.GliderInstance = obj.ParametricGlider.get_glider_3d()
