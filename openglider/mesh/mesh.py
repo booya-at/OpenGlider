@@ -47,7 +47,7 @@ class Vertex(object):
                 return False
         return True
 
-    def is_in_range(minimum, maximum):
+    def is_in_range(self, minimum, maximum):
         return (self.x >= minimum[0] and self.y >= minimum[1] and self.z >= minimum[2] and
                 self.x <= maximum[0] and self.y <= maximum[1] and self.z <= maximum[2])
 
