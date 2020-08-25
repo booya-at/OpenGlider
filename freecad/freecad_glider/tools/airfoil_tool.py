@@ -32,6 +32,8 @@ class AirfoilTool(BaseTool):
         self.Qnum_points_upper = QtGui.QSpinBox(self.base_widget)
         self.Qnum_points_lower = QtGui.QSpinBox(self.base_widget)
         self.Qshow_pressure_dist = QtGui.QCheckBox("show pressure", parent=self.base_widget)
+        self.Qshow_curvature_dist = QtGui.QCheckBox("show curvature", parent=self.base_widget)
+        self.Qshow_theoretic_stress_dist = QtGui.QCheckBox("theoretic_stress", parent=self.base_widget)
         self.Qalpha = QtGui.QDoubleSpinBox(parent=self.base_widget)
 
         self.airfoil_sep = coin.SoSeparator()
@@ -39,6 +41,8 @@ class AirfoilTool(BaseTool):
         self.upper_spline = coin.SoSeparator()
         self.lower_spline = coin.SoSeparator()
         self.pressure_sep = coin.SoSeparator()
+        self.curvature_sep = coin.SoSeparator()
+        self.theoretic_stress_sep = coin.SoSeparator()
         self.ctrl_upper = None
         self.ctrl_lower = None
         self.upper_cpc = None
@@ -60,6 +64,8 @@ class AirfoilTool(BaseTool):
         self.Qairfoil_layout.addWidget(self.Qnum_points_upper)
         self.Qairfoil_layout.addWidget(self.Qnum_points_lower)
         self.Qairfoil_layout.addWidget(self.Qshow_pressure_dist)
+        self.Qairfoil_layout.addWidget(self.Qshow_curvature_dist)
+        self.Qairfoil_layout.addWidget(self.Qshow_theoretic_stress_dist)
         self.Qairfoil_layout.addWidget(self.Qalpha)
 
 
@@ -74,6 +80,8 @@ class AirfoilTool(BaseTool):
         self.Qnum_points_lower.valueChanged.connect(self.fit_lower_spline)
 
         self.Qshow_pressure_dist.setDisabled(True)
+        self.Qshow_curvature_dist.setDisabled(True)
+        self.Qshow_theoretic_stress_dist.setDisabled(True)
         self.Qalpha.setDisabled(True)
         self.Qalpha.setValue(9.0)
 
@@ -98,10 +106,15 @@ class AirfoilTool(BaseTool):
         self.Qfit_button.clicked.connect(self.spline_edit)
         self.Qcopy_button.clicked.connect(self.copy_airfoil)
         self.Qshow_pressure_dist.stateChanged.connect(self.pressure_vis)
+        self.Qshow_curvature_dist.stateChanged.connect(self.curvature_vis)
+        self.Qshow_theoretic_stress_dist.stateChanged.connect(self.theoretic_stress_vis)
         self.Qalpha.valueChanged.connect(self.pressure_vis)
+        self.Qalpha.valueChanged.connect(self.theoretic_stress_vis)
 
     def setup_pivy(self):
-        self.task_separator += [self.airfoil_sep, self.spline_sep, self.pressure_sep]
+        self.task_separator += [self.airfoil_sep, self.spline_sep, 
+                                self.pressure_sep, self.curvature_sep,
+                                self.theoretic_stress_sep]
         self.update_selection()
         Gui.SendMsgToActiveView('ViewFit')
 
@@ -225,7 +238,8 @@ class AirfoilTool(BaseTool):
                 print("pressure visualization needs parabem")
             else:
                 self.Qshow_pressure_dist.setDisabled(False)
-                self.Qshow_pressure_dist.setDisabled(False)
+                self.Qshow_curvature_dist.setDisabled(False)
+                self.Qshow_theoretic_stress_dist.setDisabled(False)
             self.update_airfoil(thin=True)
             self.spline_sep.removeAllChildren()
             self.airfoil_sep += [Line_old(self.current_airfoil.data).object]
@@ -249,11 +263,19 @@ class AirfoilTool(BaseTool):
         self._update_upper_spline(100)
         if self.Qshow_pressure_dist.isChecked():
             self.pressure_vis()
+        if self.Qshow_curvature_dist.isChecked():
+            self.curvature_vis()
+        if self.Qshow_theoretic_stress_dist.isChecked():
+            self.theoretic_stress_vis()
 
     def lower_on_change(self):
         self._update_lower_spline(100)
         if self.Qshow_pressure_dist.isChecked():
             self.pressure_vis()
+        if self.Qshow_curvature_dist.isChecked():
+            self.curvature_vis()
+        if self.Qshow_theoretic_stress_dist.isChecked():
+            self.theoretic_stress_vis()
 
     def upper_drag_release(self):
         self._update_upper_spline(200)
@@ -379,6 +401,16 @@ class AirfoilTool(BaseTool):
         else:
             print("is unchecked")
             self.Qalpha.setEnabled(False)
+
+    def curvature_vis(self):
+        self.curvature_sep.removeAllChildren()
+        if self.Qshow_curvature_dist.isChecked():
+            self.show_curvature()
+
+    def theoretic_stress_vis(self):
+        self.theoretic_stress_sep.removeAllChildren()
+        if self.Qshow_theoretic_stress_dist.isChecked():
+            self.show_theoretic_stress()
         
     def show_pressure(self):
         import parabem
@@ -406,6 +438,47 @@ class AirfoilTool(BaseTool):
             l = [[*p0, 0.], [*p1, 0.]]  # adding z-value
             self.pressure_sep += Line_old(l).object
         return True
+
+    def show_curvature(self):
+        self.current_airfoil.apply_splines()
+        data = self.current_airfoil.data[1:-1]
+        radius = self.current_airfoil.curvature_radius
+        normals = np.array(self.current_airfoil.normvectors)[1:-1]
+        for r, p, n in zip(radius, data, normals):
+            p1 = p + n * 1. / r * 0.1
+            l = [[*p, 0.], [*p1, 0.]]
+            self.curvature_sep += Line_old(l).object
+
+    def show_theoretic_stress(self):
+        import parabem
+        from parabem.pan2d import DirichletDoublet0Source0Case2
+
+        # 1. get the panels from the airfoil
+        self.current_airfoil.apply_splines()
+        coords = self.current_airfoil.data[:-1]
+        pans = []
+        vertices = []
+        vertices = [parabem.PanelVector2(*i) for i in coords]
+        vertices[0].wake_vertex = True
+        for i, coord in enumerate(coords):
+            j = (i+1 if (i + 1) < len(coords) else 0)
+            pan = parabem.Panel2([vertices[i], vertices[j]])
+            pans.append(pan)
+        # 2. compute pressure
+        case = DirichletDoublet0Source0Case2(pans)
+        alpha = np.deg2rad(self.Qalpha.value())
+        case.v_inf = parabem.Vector2(np.cos(alpha), np.sin(alpha))
+        case.run()
+        radius = self.current_airfoil.curvature_radius
+        data = self.current_airfoil.data[1:-1]
+        radius = self.current_airfoil.curvature_radius
+        normals = np.array(self.current_airfoil.normvectors)[1:-1]
+        cp = np.array([pan.cp for pan in pans])
+        cp = (cp[:-1] + cp[1:]) / 2
+        for r, p, n, c in zip(radius, data, normals, cp):
+            p1 = p - n * (c - 1) * r * 0.02
+            l = [[*p, 0.], [*p1, 0.]]
+            self.theoretic_stress_sep += Line_old(l).object
 
 
 
