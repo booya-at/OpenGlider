@@ -482,6 +482,17 @@ class Mesh(object):
 
     # def __iadd__(self, other):
     #     self = self + other
+    @staticmethod
+    def _find_duplicates(nodes):
+        print("jojo1")
+        duplicates = {}
+        for i, node1 in enumerate(nodes[:-1]):
+            if node1 not in duplicates:
+                for j, node2 in enumerate(nodes[i:]):
+                    if node1 is not node2 and node1.is_equal(node2):
+                        duplicates[node2] = node1
+        
+        return duplicates
 
     def delete_duplicates(self, boundaries=None):
         """
@@ -493,12 +504,10 @@ class Mesh(object):
         replace_dict = {}
         all_boundary_nodes = sum([self.boundary_nodes[name] for name in boundaries], [])
 
-        for i, node1 in enumerate(all_boundary_nodes[:-1]):
-            if node1 not in replace_dict:
-                for j, node2 in enumerate(all_boundary_nodes[i:]):
-                    if node1 is not node2 and node1.is_equal(node2):
-                        replace_dict[node2] = node1
-                        node1.attributes.update(node2.attributes)
+        replace_dict = self._find_duplicates(all_boundary_nodes)
+
+        for node, replacement in replace_dict.items():
+            replacement.attributes.update(node.attributes)
 
         for boundary_name, boundary_nodes in self.boundary_nodes.items():
             to_remove = []
