@@ -94,7 +94,7 @@ class PlotMaker(object):
             if isinstance(rib, SingleSkinRib):
                 rib_plot = SingleSkinRibPlot(rib)
             else:
-                rib_plot = RibPlot(rib, self.config)
+                rib_plot = self.RibPlot(rib, self.config)
 
             rib_plot.flatten(self.glider_3d)
             if rotate:

@@ -13,6 +13,7 @@ from openglider.vector.text import Text
 
 
 class Layout(object):
+    point_width = None
     layer_config = {
         "cuts": {
             "id": 'outer',
@@ -579,7 +580,11 @@ class Layout(object):
                     for elem in layer:
                         dxfattribs = {"layer": layer_name}
                         if len(elem) == 1:
-                            dxf_obj = ms.add_point(elem[0], dxfattribs=dxfattribs)
+                            if self.point_width is None:
+                                dxf_obj = ms.add_point(elem[0], dxfattribs=dxfattribs)
+                            else:
+                                x, y = elem[0]
+                                dxf_obj = ms.add_lwpolyline([[x-self.point_width/2, y], [x+self.point_width/2, y]])
                         else:
                             dxf_obj = ms.add_lwpolyline(elem, dxfattribs=dxfattribs)
                             if len(elem) > 2 and all(elem[-1] == elem[0]):

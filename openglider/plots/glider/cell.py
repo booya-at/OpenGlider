@@ -424,7 +424,7 @@ class DribPlot(object):
             self._right = right
         return self._left, self._right
 
-    def _get_outer(self):
+    def _get_outer(self) -> (PolyLine2D, PolyLine2D):
         if self._left_out is None:
             left, right = self._get_inner()
             left_out = left.copy()
@@ -589,6 +589,8 @@ class StrapPlot(DribPlot):
 class CellPlotMaker:
     run_check = True
     DefaultConf = PatternConfig
+    DribPlot = DribPlot
+    StrapPlot = StrapPlot
 
     def __init__(self, cell, attachment_points, config=None):
         self.cell = cell
@@ -680,7 +682,7 @@ class CellPlotMaker:
     def get_dribs(self):
         dribs = []
         for drib in self.cell.diagonals:
-            drib_plot = DribPlot(drib, self.cell, self.config)
+            drib_plot = self.DribPlot(drib, self.cell, self.config)
             dribs.append(drib_plot.flatten(self.attachment_points))
 
         return Layout.stack_column(dribs, self.config.patterns_align_dist_y)
@@ -688,7 +690,7 @@ class CellPlotMaker:
     def get_straps(self):
         straps = []
         for strap in self.cell.straps:
-            plot = StrapPlot(strap, self.cell, self.config)
+            plot = self.StrapPlot(strap, self.cell, self.config)
             straps.append(plot.flatten(self.attachment_points))
 
         return Layout.stack_column(straps, self.config.patterns_align_dist_y)

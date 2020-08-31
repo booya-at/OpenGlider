@@ -54,6 +54,7 @@ text_vectors = {
 
 
 class Text(object):
+    letters = text_vectors
     def __init__(self, text, p1, p2, size=None, align="left", height=0.8, space=0.2, valign=0.5):
         """
         Vector Text
@@ -86,6 +87,17 @@ class Text(object):
             "align": self.align
         }
 
+    def get_letter(self, letter, replace_unknown=True):
+        letter = letter.upper()
+        if letter not in self.letters:
+                if replace_unknown:
+                    letter = "_"
+                else:
+                    raise KeyError("Letter {} from word '{}' not available".format(letter, self.text.upper()))
+        
+        data = self.letters[letter]
+        return [text_vectors[letter]]
+
     def get_vectors(self, replace_unknown=True):
         # todo: add valign (space)
         vectors = []
@@ -108,18 +120,14 @@ class Text(object):
 
         p1 += np.array([-r_y, r_x]) * (self.valign - 0.5)
 
-        for letter in self.text.upper():
-            if letter not in text_vectors:
-                if replace_unknown:
-                    letter = "_"
-                else:
-                    raise KeyError("Letter {} from word '{}' not available".format(letter, self.text.upper()))
-
-            if text_vectors[letter]:
-                vectors.append(PolyLine2D(
-                    [p1 + rot.dot(p) for p in text_vectors[letter]],
-                    name="text"
-                ))
+        for letter in self.text:
+            points = self.get_letter(letter, replace_unknown=replace_unknown)
+            for lst in points:
+                if lst:
+                    vectors.append(PolyLine2D(
+                        [p1 + rot.dot(p) for p in lst],
+                        name="text"
+                    ))
             p1 += diff
         return vectors
 

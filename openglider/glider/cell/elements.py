@@ -114,7 +114,6 @@ class DiagonalRib(object):
                 back = rib.profile_2d(cut_back[0] * side)
                 return rib.profile_3d[front:back]
             else:
-
                 return PolyLine([rib.align(rib.profile_2d.align(p) + [0]) for p in (cut_front, cut_back)])
 
         left = get_list(cell.rib1, self.left_front, self.left_back)
