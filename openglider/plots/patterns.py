@@ -6,6 +6,7 @@ import logging
 from openglider import jsonify
 
 import openglider.plots.spreadsheets
+from openglider.plots.spreadsheets import get_glider_data
 import openglider.plots.cuts
 import openglider.plots.marks
 
@@ -17,6 +18,8 @@ from openglider.glider.project import GliderProject
 
 
 class PatternsNew(object):
+    spreadsheet = get_glider_data
+
     class DefaultConf(PlotMaker.DefaultConfig):
         pass
 
@@ -56,21 +59,6 @@ class PatternsNew(object):
 
         drawings = [design_upper.drawing, design_lower.drawing, lineplan.drawing, diagonals.drawing, straps.drawing]
 
-        return drawings
-
-    def unwrap(self, outdir):
-        def fn(filename):
-            return os.path.join(outdir, filename)
-
-        subprocess.call("mkdir -p {}".format(outdir), shell=True)
-
-        if self.config.profile_numpoints:
-            self.glider_2d.num_profile = self.config.profile_numpoints
-
-        glider = self.project.glider_3d
-
-        self.logger.info("create sketches")
-        drawings = self._get_sketches()
         drawings_width = max([dwg.width for dwg in drawings])
 
         # put name and date inside the patterns
@@ -81,28 +69,52 @@ class PatternsNew(object):
         text_date = Text(date_str, p1, p2, valign=0)
         drawings += [text_date.get_plotpart(), text_name.get_plotpart()]
 
-        designs = Layout.stack_column(drawings, self.config.patterns_align_dist_y)
+        return drawings
+    
+    def _get_plotfile(self):
+        glider = self.project.glider_3d
 
-        self.logger.info("create plots")
         if self.config.complete_glider:
-            glider_complete = glider.copy_complete()
-            glider_complete.rename_parts()
-            plots = PlotMaker(glider_complete, config=self.config)
-            glider_complete.lineset.iterate_target_length()
+            glider = self.project.glider_3d.copy_complete()
+            glider.rename_parts()
         else:
-            plots = PlotMaker(glider, config=self.config)
-            glider.lineset.iterate_target_length()
+            glider = self.project.glider_3d
+        
+
+        plots = PlotMaker(glider, config=self.config)
+        glider.lineset.iterate_target_length()
             
         plots.unwrap()
         all_patterns = plots.get_all_grouped()
 
+        return all_patterns
+
         # with open(fn("patterns.json"), "w") as outfile:
         #     jsonify.dump(plots, outfile)
-        all_patterns.append_left(designs, distance=self.config.patterns_align_dist_x*2)
 
         self.logger.info("export patterns")
 
         all_patterns.scale(1000)
+
+    def unwrap(self, outdir):
+        def fn(filename):
+            return os.path.join(outdir, filename)
+
+        subprocess.call("mkdir -p {}".format(outdir), shell=True)
+
+        if self.config.profile_numpoints:
+            self.glider_2d.num_profile = self.config.profile_numpoints
+
+        self.logger.info("create sketches")
+        drawings = self._get_sketches()
+        designs = Layout.stack_column(drawings, self.config.patterns_align_dist_y)
+
+        self.logger.info("create plots")
+        all_patterns = self._get_plotfile()
+        all_patterns.append_left(designs, distance=self.config.patterns_align_dist_x*2)
+
+        all_patterns.scale(1000)
+
         all_patterns.export_svg(fn("plots_all.svg"))
         all_patterns.export_dxf(fn("plots_all_dxf2000.dxf"))
         all_patterns.export_dxf(fn("plots_all_dxf2007.dxf"), "AC1021")
@@ -130,7 +142,7 @@ class PatternsNew(object):
         #     sketch.drawing.export_svg(fn(sketch_name+".svg"), add_styles=False)
 
         self.logger.info("create spreadsheets")
-        excel = openglider.plots.spreadsheets.get_glider_data(self.project)
+        excel = self.spreadsheet(self.project)
         excel.saveas(os.path.join(outdir, "data.ods"))
 
         openglider.save(self.project, os.path.join(outdir, "project.json"))

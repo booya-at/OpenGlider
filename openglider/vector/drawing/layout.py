@@ -101,7 +101,7 @@ class Layout(object):
 
 
     @classmethod
-    def stack_column(cls, parts, distance, center_x=True):
+    def stack_column(cls, parts: [PlotPart], distance: float, center_x: bool=True):
         column_dwg = cls()
         y = 0
         widths = [part.width for part in parts]
@@ -123,7 +123,7 @@ class Layout(object):
         return column_dwg
 
     @classmethod
-    def stack_row(cls, parts, distance, center_y=True, draw_grid=False):
+    def stack_row(cls, parts: [PlotPart], distance:float, center_y: bool=True):
         row_dwg = cls()
         x = 0
         heights = [part.height for part in parts]
@@ -146,7 +146,7 @@ class Layout(object):
         return row_dwg
 
     @classmethod
-    def stack_grid(cls, parts, distance_x, distance_y, draw_grid=True):
+    def stack_grid(cls, parts: [PlotPart], distance_x: float, distance_y: float, draw_grid=True):
         all_parts = cls()
         rows = len(parts)
         columns = len(parts[0])

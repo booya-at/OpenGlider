@@ -591,6 +591,7 @@ class CellPlotMaker:
     DefaultConf = PatternConfig
     DribPlot = DribPlot
     StrapPlot = StrapPlot
+    PanelPlot = PanelPlot
 
     def __init__(self, cell, attachment_points, config=None):
         self.cell = cell
@@ -663,34 +664,32 @@ class CellPlotMaker:
             panels = self.cell.panels
 
         for part_no, panel in enumerate(panels):
-            plot = PanelPlot(panel, self.cell, flattened_cell, self.config)
+            plot = self.PanelPlot(panel, self.cell, flattened_cell, self.config)
             dwg = plot.flatten(self.attachment_points)
             cell_panels.append(dwg)
-
-        return Layout.stack_column(cell_panels, self.config.patterns_align_dist_y)
+        
+        return cell_panels
 
     def get_panels_lower(self):
         panels = [p for p in self.cell.panels if p.is_lower()]
-        layout = self.get_panels(panels)
-        return layout
+        return self.get_panels(panels)
 
     def get_panels_upper(self):
         panels = [p for p in self.cell.panels if not p.is_lower()]
-        layout = self.get_panels(panels)
-        return layout
+        return self.get_panels(panels)
 
     def get_dribs(self):
         dribs = []
         for drib in self.cell.diagonals:
             drib_plot = self.DribPlot(drib, self.cell, self.config)
             dribs.append(drib_plot.flatten(self.attachment_points))
-
-        return Layout.stack_column(dribs, self.config.patterns_align_dist_y)
+        
+        return dribs
 
     def get_straps(self):
         straps = []
         for strap in self.cell.straps:
             plot = self.StrapPlot(strap, self.cell, self.config)
             straps.append(plot.flatten(self.attachment_points))
-
-        return Layout.stack_column(straps, self.config.patterns_align_dist_y)
+        
+        return straps

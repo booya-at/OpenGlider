@@ -6,6 +6,7 @@ from openglider.plots import marks, cuts
 
 
 class PatternConfig(Config):
+    patterns_scale = 1000
     complete_glider = True
     debug = False
     profile_numpoints = 250

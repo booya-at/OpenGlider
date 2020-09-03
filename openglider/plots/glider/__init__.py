@@ -51,39 +51,23 @@ class PlotMaker(object):
         self.panels.clear()
         panels_upper = []
         panels_lower = []
-        panels = []
 
         for cell in self.glider_3d.cells:
             pm = self._get_cellplotmaker(cell)
             lower = pm.get_panels_lower()
             upper = pm.get_panels_upper()
-            panels_lower.append(lower)
-            panels_upper.append(upper)
-            panels.append([])
+            panels_lower.append(Layout.stack_column(lower, self.config.patterns_align_dist_y))
+            panels_upper.append(Layout.stack_column(upper, self.config.patterns_align_dist_y))
 
         if self.config.layout_seperate_panels:
             layout_lower = Layout.stack_row(panels_lower, self.config.patterns_align_dist_x)
             layout_lower.rotate(180, radians=False)
             layout_upper = Layout.stack_row(panels_upper, self.config.patterns_align_dist_x)
 
-            self.panels = Layout.stack_row([layout_lower, layout_upper], 2*self.config.patterns_align_dist_x, draw_grid=True)
+            self.panels = Layout.stack_row([layout_lower, layout_upper], 2*self.config.patterns_align_dist_x)
 
         else:
-            height = 0
-
-            for cell in self.glider_3d.cells:
-                lower = self._get_cellplotmaker(cell).get_panels_lower()
-                #lower.rotate(180, radians=False)
-                upper = self._get_cellplotmaker(cell).get_panels_upper()
-                height = max(height, lower.height)
-                panels_lower.append(lower)
-                panels_upper.append(upper)
-                print("jodolo")
-
-            height += self.config.patterns_align_dist_y
-
             self.panels = Layout.stack_grid([panels_upper, panels_lower], self.config.patterns_align_dist_x, self.config.patterns_align_dist_y)
-
 
         return self.panels
 
@@ -119,7 +103,7 @@ class PlotMaker(object):
 
         return self.straps
 
-    def get_all_grouped(self):
+    def get_all_grouped(self) -> Layout:
         # create x-raster
         for rib in self.ribs:
             rib.rotate(90, radians=False)
