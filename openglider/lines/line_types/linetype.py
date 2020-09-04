@@ -26,7 +26,7 @@ from openglider.vector import Interpolation
 class LineType():
     types = {}
 
-    def __init__(self, name, thickness, stretch_curve, min_break_load=None, weight=None, cw=1.1):
+    def __init__(self, name, thickness, stretch_curve, min_break_load=None, weight=None, seam_correction=0, colors=None, cw=1.1):
         """
         Line Type
         Attributes:
@@ -46,6 +46,8 @@ class LineType():
         self.stretch_curve = stretch_curve
         self.stretch_interpolation = Interpolation(stretch_curve, extrapolate=True)
         self.weight = weight
+        self.seam_correction = seam_correction / 1000
+        self.colors = colors or []
 
         self.min_break_load = min_break_load
 
@@ -62,7 +64,39 @@ class LineType():
             return cls.types[name]
         except KeyError:
             raise KeyError("Line-type {} not found".format(name))
+    
+    @classmethod
+    def _repr_html_(self):
+        html = """
+            <table>
+                <thead>
+                    <tr>
+                        <td>name</td>
+                        <td>thickness</td>
+                        <td>stretch_curve</td>
+                        <td>resistance</td>
+                        <td>weight</td>
+                        <td>seam correction</td>
+                        <td>Colors</td>
+                    </tr>
+                </thead>
+                """
+        
+        for line_type in self.types.values():
+            html += f"""
+                <tr>
+                    <td>{line_type.name}</td>
+                    <td>{line_type.thickness:.02f}</td>
+                    <td>{line_type.stretch_curve}</td>
+                    <td>{line_type.min_break_load:.02f}</td>
+                    <td>{line_type.weight:.02f}</td>
+                    <td>{line_type.seam_correction:.04f}</td>
+                    <td>{line_type.colors}</td>
+                </tr>
 
+                """
+        
+        return html
 
 
 # SI UNITS -> thickness [mm], stretch [N, %]

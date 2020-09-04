@@ -89,13 +89,6 @@ class PatternsNew(object):
 
         return all_patterns
 
-        # with open(fn("patterns.json"), "w") as outfile:
-        #     jsonify.dump(plots, outfile)
-
-        self.logger.info("export patterns")
-
-        all_patterns.scale(1000)
-
     def unwrap(self, outdir):
         def fn(filename):
             return os.path.join(outdir, filename)

@@ -101,12 +101,15 @@ class Line(CachedObject):
 
 
     def __init__(self, lower_node, upper_node, v_inf,
-                 line_type=line_types.LineType.get('default'), target_length=None, number=None, name=None):
+                 line_type=line_types.LineType.get('default'), target_length=None, number=None, name=None, color=""):
         """
         Line Class
         """
         self.number = number
         self.type = line_type  # type of line
+        
+        self._color = None
+        self.color = color
 
         self.lower_node = lower_node
         self.upper_node = upper_node
@@ -122,6 +125,15 @@ class Line(CachedObject):
         self.name = name or "line_name_not_set"
 
         self.lineset = None      # the parent have to be set after initialization
+
+    @property
+    def color(self):
+        return self._color or "default"
+
+    @color.setter
+    def color(self, color):
+        if color in self.type.colors:
+            self._color = color
 
     @property
     def has_geo(self):

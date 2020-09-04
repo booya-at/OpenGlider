@@ -101,8 +101,9 @@ class Layout(object):
 
 
     @classmethod
-    def stack_column(cls, parts: [PlotPart], distance: float, center_x: bool=True):
+    def stack_column(cls, parts: [PlotPart], distance: float, center_x: bool=True) -> "Layout":
         column_dwg = cls()
+        direction = (distance >= 0) - (distance < 0)
         y = 0
         widths = [part.width for part in parts]
         max_width = max(widths + [0])
@@ -115,7 +116,7 @@ class Layout(object):
             x = (max_width - width)/2
             drawing.move_to([x,y])
 
-            y += drawing.height
+            y += direction * drawing.height
             y += distance
 
             column_dwg.join(drawing)
@@ -123,8 +124,9 @@ class Layout(object):
         return column_dwg
 
     @classmethod
-    def stack_row(cls, parts: [PlotPart], distance:float, center_y: bool=True):
+    def stack_row(cls, parts: [PlotPart], distance:float, center_y: bool=True) -> "Layout":
         row_dwg = cls()
+        direction = (distance >= 0) - (distance < 0)
         x = 0
         heights = [part.height for part in parts]
         max_height = max(heights + [0])
@@ -138,7 +140,7 @@ class Layout(object):
                 y = (max_height - height)/2
                 drawing.move_to([x,y])
 
-                x += drawing.width
+                x += direction * drawing.width
                 x += distance
 
                 row_dwg.join(drawing)
@@ -146,7 +148,7 @@ class Layout(object):
         return row_dwg
 
     @classmethod
-    def stack_grid(cls, parts: [PlotPart], distance_x: float, distance_y: float, draw_grid=True):
+    def stack_grid(cls, parts: [PlotPart], distance_x: float, distance_y: float, draw_grid=True) -> "Layout":
         all_parts = cls()
         rows = len(parts)
         columns = len(parts[0])
@@ -198,49 +200,14 @@ class Layout(object):
                 all_parts.parts.append(grid)
 
         return all_parts
+    
+    def delete_duplicate_points(self):
+        all_nodes = []
+        for part in self.parts:
+            for layer in part.layers:
+                pass
 
-    @classmethod
-    def stack_horizontal(cls, parts, distance_x=0, distance_y=0):
-        """
-
-        :param parts:
-        :param distance_x:
-        :param distance_y:
-        :return: Layout
-        """
-        rows = len(parts)
-        if not rows:
-            return cls([])
-        columns = max(len(row) for row in parts)
-        parts_copy = [[p.copy() for p in row] for row in parts]
-        all_parts = []
-
-        heights = [0 for _ in range(rows)]
-        widths = [0 for _ in range(columns)]
-
-        for row_no, row in enumerate(parts_copy):
-            # vertical
-
-            for column_no, part in enumerate(row):
-                # horizontal
-                #part.minimize_area()
-                #part.move([-part.min_x, -part.min_y])
-
-                widths[column_no] = max(widths[column_no], part.width)
-                heights[row_no] = max(heights[row_no], part.height)
-
-        y = 0
-        for row_no, row in enumerate(parts_copy):
-            x = 0
-            for column_no, part in enumerate(row):
-                part.move_to([x, y])
-
-                x += widths[column_no] + distance_x
-
-            y += heights[row_no] + distance_y
-            all_parts += row
-
-        return cls(all_parts)
+            
 
     def add_text(self, text):
         """
@@ -370,9 +337,7 @@ class Layout(object):
         diff = np.array(self.bbox[0])-vector
         self.move(-diff)
 
-    def append_top(self, other, distance):
-        assert isinstance(other, Layout)
-
+    def append_top(self, other: "Layout", distance):
         if self.parts:
             y0 = self.max_y + distance
         else:
@@ -381,9 +346,7 @@ class Layout(object):
         other.move_to([0, y0])
         self.parts += other.parts
 
-    def append_left(self, other, distance=0):
-        assert isinstance(other, Layout)
-
+    def append_left(self, other: "Layout", distance=0):
         if other.parts:
             x0 = other.width + distance
             other.move_to([-x0, 0])

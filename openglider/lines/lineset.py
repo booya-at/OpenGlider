@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+import logging
 from openglider.lines import SagMatrix
 
 from openglider.lines.functions import proj_force
@@ -7,12 +8,17 @@ from openglider.mesh import Mesh
 from openglider.vector.functions import norm, normalize
 from openglider.utils.table import Table
 
+logging.getLogger(__file__)
 
 class LineSet(object):
     """
     Set of different lines
     """
     calculate_sag = True
+    knots_table = [
+        # lower_line_type, upper_line_type, upper_line_count, first_line_correction, last_line_correction
+        ["liros.ltc65", "liros.ltc65", 2, 2.0, 2.0]
+    ]
 
     def __init__(self, lines, v_inf=None):
         if v_inf is not None:
@@ -334,28 +340,35 @@ class LineSet(object):
         for i, line in enumerate(self.lines):
             line.number = i
 
-    def sort_lines(self, lines=None):
-        new_lines_list = []
-        if lines is None:
-            lines = self.lines
-            
-        for line in lines:
-            attachment_points = self.get_upper_influence_nodes(line)
-            x = sum(p.rib_pos for p in attachment_points) / len(attachment_points)
-            new_lines_list.append((x, line))
-
-        new_lines_list.sort(key=lambda x: x[0])
-
-        return [line for x, line in new_lines_list]
-
-
-
     @property
     def total_length(self):
         length = 0
         for line in self.lines:
             length += line.get_stretched_length()
         return length
+    
+    def sort_lines(self, lines=None):
+        if lines is None:
+            lines = self.lines
+        lines_new = lines[:]
+
+        def sort_key(line):
+            nodes = self.get_upper_influence_nodes(line)
+            val_x = 0
+            val_rib_pos = 0
+            for node in nodes:
+                if hasattr(node, "rib_pos"):
+                    val_rib_pos += node.rib_pos
+                else:
+                    val_rib_pos += 1000*node.vec[0]
+                val_x += node.vec[1]
+
+            return (10*val_rib_pos + val_x) / len(nodes)
+        
+        lines_new.sort(key=sort_key)
+
+        return lines_new
+
 
     def create_tree(self, start_node=None):
         """
@@ -370,22 +383,7 @@ class LineSet(object):
         else:
             lines = self.get_upper_connected_lines(start_node)
 
-        def sort_key(line):
-            nodes = self.get_upper_influence_nodes(line)
-            val_x = 0
-            val_rib_pos = 0
-            for node in nodes:
-                if hasattr(node, "rib_pos"):
-                    val_rib_pos += node.rib_pos
-                else:
-                    val_rib_pos += 1000*node.vec[0]
-                val_x += node.vec[1]
-
-            return (10*val_rib_pos + val_x) / len(nodes)
-
-        lines.sort(key=sort_key)
-
-        return [(line, self.create_tree(line.upper_node)) for line in lines]
+        return [(line, self.create_tree(line.upper_node)) for line in self.sort_lines(lines)]
 
     def _get_lines_table(self, callback, start_node=None):
         line_tree = self.create_tree(start_node=start_node)
@@ -418,12 +416,75 @@ class LineSet(object):
             row = insert_block(line, upper, row, (floors-1)*(columns_per_line)+2)
 
         return table
+    
+    def rename_lines(self):
+        def rename_line(line):
+            upper = self.get_upper_connected_lines
+        pass  # TODO
+    
+    def get_line_length(self, line):
+        length = line.get_stretched_length()
+        # seam correction
+        length += line.type.seam_correction
+        # loop correction
+        lower_lines = self.get_lower_connected_lines(line.lower_node)
+        if len(lower_lines) == 0:
+            return length
+        
+        lower_line = lower_lines[0] # Todo: Reinforce
+        upper_lines = self.sort_lines(self.get_upper_connected_lines(line.lower_node))
+
+        index = upper_lines.index(line)
+        total_lines = len(upper_lines)
+
+        for data in self.knots_table:
+            name1 = data[0]
+            name2 = data[1]
+            count = data[2]
+            min_value = data[3]
+            max_value = data[4]
+
+            if name1 == lower_line.type.name and name2 == line.type.name and count == total_lines:
+                shortening = min_value + index * (max_value-min_value) / (total_lines-1)
+                length -= (data[3] + (data[4] - d))
+                
+                return length
+
+        logging.warning(f"no shortening values for: {lower_line.type.name} / {line.type.name} ({total_lines})")
 
 
-    def get_table(self, start_node=None):
-        length_table = self._get_lines_table(lambda line: [round(line.get_stretched_length()*1000)])
-        names_table = self._get_lines_table(lambda line: [line.type.name])
 
+        return length
+
+
+    def get_table(self):
+        length_table = self._get_lines_table(lambda line: [round(self.get_line_length(line)*1000)])
+        names_table = self._get_lines_table(lambda line: [line.type.name, line.color])
+
+        def get_checklength(line, upper_lines):
+            line_length = line.get_stretched_length()
+            if not len(upper_lines):
+                return [
+                    line_length
+                ]
+            else:
+                lengths = []
+                for upper in upper_lines:
+                    lengths += get_checklength(*upper)
+                
+                return [
+                    length + line_length for length in lengths
+                ]
+        
+        checklength_values = []
+        for line, upper_line in self.create_tree():
+            checklength_values += get_checklength(line, upper_line)
+        checklength_table = Table()
+        
+        for index, length in enumerate(checklength_values):
+            checklength_table[index+1, 0] = round(1000*length)
+
+        length_table.append_right(checklength_table)
         length_table.append_right(names_table)
 
         return length_table
