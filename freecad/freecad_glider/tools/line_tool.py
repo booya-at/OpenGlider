@@ -341,7 +341,8 @@ class LineTool(BaseTool):
 
     def update_helper_line(self, pos=50):
         self.helper_line.removeAllChildren()
-        l = Line(vector3D(self.help_line(pos / 100)), dynamic=False)
+        points = vector3D(self.help_line(pos / 100))
+        l = Line(points, dynamic=False)
         l.set_color('red')
         self.helper_line += [l]
 
@@ -549,8 +550,14 @@ class LineTool(BaseTool):
 
     def draw_shape(self):
         self.shape.objects.removeAllChildren()
-        self.shape += [Line(vector3D(self.front)), Line(vector3D(self.back))]
-        self.shape += list(map(Line, vector3D(self.ribs)))
+        l1 = Line(vector3D(self.front, z=-0.01))
+        l2 = Line(vector3D(self.back, z=-0.01))
+        lines = [l1, l2]
+        lines += list(map(Line, vector3D(self.ribs, z=-0.01)))
+        for l in lines:
+            l.color.diffuseColor = (0.2, 0.2, 0.2)
+        self.shape += [lines]
+
         shape = self.parametric_glider.shape
         # make own separator for shape
         nodes = {}
@@ -735,7 +742,7 @@ class ConnectionLine(Line):
         self.marker2 = marker2
         self.marker1.on_drag.append(self.update_line)
         self.marker2.on_drag.append(self.update_line)
-        self.drawstyle.lineWidth = 1.
+        self.drawstyle.lineWidth = 1.5
         self.target_length = 1.
         self.line_type = 'default'
         self.layer = ''
@@ -853,6 +860,7 @@ class GliderLine(Line):
         points = line.get_line_points(2)
         super(Line, self).__init__(points, dynamic=True)
         self.line = line
+        self.drawstyle.lineWidth = 1.5
 
 
 

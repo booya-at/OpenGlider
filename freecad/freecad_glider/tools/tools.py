@@ -73,18 +73,19 @@ class ControlPointContainer(coin.SoSeparator):
         self.interaction.dynamic_objects = []
         self.interaction += self.control_points
 
-def vector3D(vec):
+def vector3D(vec, z=None):
     if len(vec) == 0:
         return(vec)
     elif not isinstance(vec[0], (list, tuple, np.ndarray, FreeCAD.Vector)):
         if len(vec) == 3:
             return vec
         elif len(vec) == 2:
-            return np.array(vec).tolist() + [0.]
+            z = z or 0.
+            return np.array(vec).tolist() + [z]
         else:
             print('something wrong with this list: ', vec)
     else:
-        return [vector3D(i) for i in vec]
+        return [vector3D(i, z) for i in vec]
 
 def vector2D(vec):
     return vec[0:2]

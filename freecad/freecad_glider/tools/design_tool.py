@@ -38,8 +38,8 @@ class DesignTool(BaseTool):
 
         # get 2d shape properties
         _shape = self.parametric_glider.shape.get_shape()
-        self.front = list(map(vector3D, _shape.front))
-        self.back = list(map(vector3D, _shape.back))
+        self.front = vector3D(_shape.front, z=-0.01)
+        self.back = vector3D(_shape.back, z=-0.01)
         self.ribs = zip(self.front, self.back)
         self.x_values = self.parametric_glider.shape.rib_x_values
         CutLine.cuts_to_lines(self.parametric_glider)
@@ -148,11 +148,15 @@ class DesignTool(BaseTool):
 
     def draw_shape(self):
         ''' draws the shape of the glider'''
-        self.shape += [Line(self.front)]
-        self.shape += [Line(self.back)]
-        self.shape += [Line([self.back[0], self.front[0]])]
-        self.shape += [Line([self.back[-1], self.front[-1]])]
-        self.shape += list(map(Line, self.ribs))
+        l1 = Line(self.front)
+        l2 = Line(self.back)
+        l3 = Line([self.back[0], self.front[0]])
+        l4 = Line([self.back[-1], self.front[-1]])
+        l_ribs = map(Line, self.ribs)
+        lines = [l1, l2, l3, l4] + list(l_ribs)
+        for l in lines:
+            l.color.diffuseColor = (.2, .2, .2)
+        self.shape += lines
 
     def toggle_side(self):
         self.event_separator.select_object(None)
@@ -442,6 +446,7 @@ class CutLine(Line):
     lower_line_list = []
     def __init__(self, point1, point2, cut_type):
         super(CutLine, self).__init__([point1.get_2D(), point2.get_2D()], dynamic=True)
+        self.drawstyle.lineWidth = 1.5
         self.point1 = point1
         self.point2 = point2
         self.parametric_glider = self.point1.parametric_glider
