@@ -19,6 +19,7 @@ from openglider.glider.project import GliderProject
 
 class PatternsNew(object):
     spreadsheet = get_glider_data
+    plotmaker = PlotMaker
 
     class DefaultConf(PlotMaker.DefaultConfig):
         pass
@@ -81,7 +82,7 @@ class PatternsNew(object):
             glider = self.project.glider_3d
         
 
-        plots = PlotMaker(glider, config=self.config)
+        plots = self.plotmaker(glider, config=self.config)
         glider.lineset.iterate_target_length()
             
         plots.unwrap()
