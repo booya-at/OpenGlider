@@ -18,6 +18,7 @@ from openglider.glider.project import GliderProject
 
 
 class PatternsNew(object):
+    plotmaker = PlotMaker
     spreadsheet = get_glider_data
     plotmaker = PlotMaker
 

@@ -19,41 +19,48 @@ def colorwheel(num):
 
     return colors
 
+class HeatMap():
+    _interpolation_red = Interpolation([
+        [0, 0],
+        [0.35, 0],
+        [0.66, 1],
+        [1, 1]
+    ])
 
-_interpolation_red = Interpolation([
-    [0, 0],
-    [0.35, 0],
-    [0.66, 1],
-    [0.98, 1],
-    [1, 0.5]
-])
+    _interpolation_blue = Interpolation([
+        [0, 1],
+        [0.34, 1],
+        [0.65, 0],
+        [1, 0]
+    ])
 
-_interpolation_blue = Interpolation([
-    [0, 0.5],
-    [0.11, 1],
-    [0.34, 1],
-    [0.65, 0],
-    [1, 0]
-])
+    _interpolation_green = Interpolation([
+        [0, 0],
+        [0.125, 0],
+        [0.375, 1],
+        [0.64, 1],
+        [0.91, 0],
+        [1, 0]
+    ])
 
-_interpolation_green = Interpolation([
-    [0, 0],
-    [0.125, 0],
-    [0.375, 1],
-    [0.64, 1],
-    [0.91, 0],
-    [1, 0]
-])
+    def __init__(self, min_value=0, max_value=100):
+        self.min_value = min_value
+        self.max_value = max_value
 
+    @classmethod
+    def from_data(cls, data):
+        min_value = min(data)
+        max_value = max(data)
+        return cls(min_value, max_value)
+    
+    def __call__(self, value):
+        pct_raw = (value - self.min_value) / (self.max_value - self.min_value)
+        pct = min(1., max(0, pct_raw))
 
-def heatmap(x):
-    """
-    x -> [0,1]
-    return (r,g,b) [0,255]
-    """
-    red = _interpolation_red(x)
-    blue = _interpolation_blue(x)
-    green = _interpolation_green(x)
+        red = self._interpolation_red(pct)
+        blue = self._interpolation_blue(pct)
+        green = self._interpolation_green(pct)
 
-    rgb = [int(255*x) for x in (red, green, blue)]
-    return rgb
+        rgb = [int(255*x) for x in (red, green, blue)]
+
+        return rgb
