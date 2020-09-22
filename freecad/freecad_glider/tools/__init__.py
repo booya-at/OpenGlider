@@ -520,6 +520,7 @@ class ImportDXFCommand(object):
         from . import dxf_import as dxf
         import Part
         import FreeCAD as App
+
         file_name = QtGui.QFileDialog.getOpenFileName(
             parent=None,
             caption='import glider',

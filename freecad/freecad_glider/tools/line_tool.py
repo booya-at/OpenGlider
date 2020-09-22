@@ -854,7 +854,7 @@ class LineSelectionSeperator(InteractionSeparator):
                 except ValueError:
                     pass
                 line_weight += obj.line.get_weight()
-                if hasattr(obj.line.type, "min_break_load"):
+                if hasattr(obj.line.type, "min_break_load") and obj.line.type.min_break_load is not None:
                     line_max_gforce += obj.line.type.min_break_load / obj.line.force
                     num_lines += 1
                 if num_lines > 0:
