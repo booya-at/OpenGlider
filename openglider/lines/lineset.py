@@ -446,7 +446,7 @@ class LineSet(object):
 
             if name1 == lower_line.type.name and name2 == line.type.name and count == total_lines:
                 shortening = min_value + index * (max_value-min_value) / (total_lines-1)
-                length -= (data[3] + (data[4] - d))
+                length -= (data[3] + (data[4] - shortening))
                 
                 return length
 
