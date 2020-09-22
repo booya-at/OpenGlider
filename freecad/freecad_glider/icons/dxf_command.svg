@@ -13,29 +13,9 @@
    id="svg3799"
    version="1.1"
    inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
-   sodipodi:docname="arc_command.svg">
+   sodipodi:docname="dxf_command.svg">
   <defs
      id="defs3801">
-    <inkscape:path-effect
-       effect="spiro"
-       id="path-effect9409"
-       is_visible="true" />
-    <inkscape:path-effect
-       effect="spiro"
-       id="path-effect9405"
-       is_visible="true" />
-    <inkscape:path-effect
-       effect="spiro"
-       id="path-effect9398"
-       is_visible="true" />
-    <inkscape:path-effect
-       effect="spiro"
-       id="path-effect9390"
-       is_visible="true" />
-    <inkscape:path-effect
-       effect="spiro"
-       id="path-effect9384"
-       is_visible="true" />
     <linearGradient
        inkscape:collect="always"
        id="linearGradient9347">
@@ -272,9 +252,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="7.7781746"
-     inkscape:cx="21.208167"
-     inkscape:cy="24.60024"
+     inkscape:zoom="5.6568543"
+     inkscape:cx="59.030911"
+     inkscape:cy="35.627093"
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:document-units="px"
@@ -288,6 +268,7 @@
      inkscape:window-y="34"
      inkscape:window-maximized="1"
      inkscape:snap-nodes="false"
+     inkscape:object-nodes="true"
      inkscape:document-rotation="0">
     <sodipodi:guide
        orientation="1,0"
@@ -322,7 +303,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -331,47 +312,21 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer">
     <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 2.9090909,12.727273 9.0909091,61.272727 60.181818,46.545455"
-       id="path3048"
-       inkscape:connector-curvature="0" />
-    <path
-       sodipodi:type="arc"
-       style="fill:none;stroke:#0079ff;stroke-width:6;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
-       id="path3046"
-       sodipodi:cx="53.636364"
-       sodipodi:cy="38.909092"
-       sodipodi:rx="44.909092"
-       sodipodi:ry="25.09091"
-       d="M 8.7468045,39.64903 A 44.909092,25.09091 0 0 1 98.309928,36.342743"
-       transform="matrix(0.61689561,0.40757558,-0.40757558,0.61689561,13.998763,-16.081009)"
-       sodipodi:start="3.1120981"
-       sodipodi:end="6.1807241"
-       sodipodi:open="true" />
-    <path
-       sodipodi:type="arc"
-       style="fill:none;stroke:#000000;stroke-width:0.313683;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       id="path3050"
-       sodipodi:cx="23.924677"
-       sodipodi:cy="52.439648"
-       sodipodi:rx="10.454546"
-       sodipodi:ry="10.454546"
-       d="m 22.590044,42.070642 a 10.454546,10.454546 0 0 1 11.408104,7.572095 l -10.073471,2.796911 z"
-       sodipodi:start="4.5843791"
-       sodipodi:end="6.012356"
-       transform="matrix(3.1879275,0,0,3.1879275,-67.025087,-106.35052)"
-       sodipodi:arc-type="slice" />
+       style="fill:#ffbf00;stroke:#000000;stroke-width:2.68774890999999982px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 60.832215,40.307586 -40.804913,0 0,8.551928 L 3.1677851,32 20.027302,15.140486 l 0,8.551928 40.804913,0 z"
+       id="path3158"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccccc" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.33333px;line-height:0%;font-family:serif;-inkscape-font-specification:Serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
-       x="33.915951"
-       y="34.828918"
-       id="text3052"
-       transform="rotate(31.227808)"><tspan
+       style="font-style:normal;font-weight:normal;font-size:19.1723px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.479306"
+       x="19.060257"
+       y="38.988342"
+       id="text9278"><tspan
          sodipodi:role="line"
-         id="tspan3054"
-         x="33.915951"
-         y="34.828918"
-         style="font-size:26.6667px;line-height:1.25;font-family:serif">β</tspan></text>
+         id="tspan9276"
+         x="19.060257"
+         y="38.988342"
+         style="stroke-width:0.479306">DXF</tspan></text>
   </g>
 </svg>

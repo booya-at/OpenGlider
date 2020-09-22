@@ -502,7 +502,7 @@ class LineSet(object):
 
 
     def get_table_2(self):
-        return self._get_line_table(lambda line: [line.name, line.type.name, round(line.get_stretched_length()*1000)])
+        return self._get_lines_table(lambda line: [line.name, line.type.name, round(line.get_stretched_length()*1000)])
 
     def get_upper_connected_force(self, node):
         '''

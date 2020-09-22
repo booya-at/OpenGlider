@@ -50,7 +50,8 @@ class GliderWorkbench(Gui.Workbench):
     productionBox = [
         'PatternCommand',
         'PanelCommand',
-        'PolarsCommand']
+        'PolarsCommand',
+        'ImportDXFCommand']
 
     viewBox = [
         'ViewCommand']
@@ -96,6 +97,7 @@ class GliderWorkbench(Gui.Workbench):
         Gui.addCommand('GliderFlapFeatureCommand', tools.GliderFlapFeatureCommand())
         Gui.addCommand('GliderScaleFeatureCommand', tools.GliderScaleFeatureCommand())
         Gui.addCommand('GliderBallooningMultiplierFeatureCommand', tools.GliderBallooningMultiplierFeatureCommand())
+        Gui.addCommand('ImportDXFCommand', tools.ImportDXFCommand())
 
         Gui.addCommand('ViewCommand', tools.ViewCommand())
 

@@ -115,7 +115,7 @@ class Config(object):
 
     def __iter__(self):
         for key, value in self.__dict__.items():
-            if key is not "get":
+            if key != "get":
                 yield key, value
         #return self.__dict__.__iter__()
 

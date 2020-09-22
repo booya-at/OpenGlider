@@ -137,7 +137,7 @@ class PatternsNew(object):
         #     sketch.drawing.export_svg(fn(sketch_name+".svg"), add_styles=False)
 
         self.logger.info("create spreadsheets")
-        excel = self.spreadsheet(self.project)
+        excel = PatternsNew.spreadsheet(self.project)
         excel.saveas(os.path.join(outdir, "data.ods"))
 
         openglider.save(self.project, os.path.join(outdir, "project.json"))

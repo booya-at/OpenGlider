@@ -506,3 +506,52 @@ class GliderBallooningMultiplierFeatureCommand(GliderFeatureCommand):
         features.BallooningMultiplier(feature, self.glider_obj)
         vp = features.VBallooningFeature(feature.ViewObject)
         vp.updateData()
+
+class ImportDXFCommand(object):
+    def __init__(self):
+        pass
+
+    def GetResources(self):
+        return {'Pixmap': 'dxf_command.svg', 'MenuText': 'fast dxf import', 'ToolTip': 'fast dxf import'}
+
+    def Activated(self):
+
+        import numpy as np
+        from . import dxf_import as dxf
+        import Part
+        import FreeCAD as App
+        file_name = QtGui.QFileDialog.getOpenFileName(
+            parent=None,
+            caption='import glider',
+            directory='~')
+        if file_name[0].endswith('.dxf'):
+            entries, results = dxf.prase(file_name[0])
+            geometries = []
+            for ln in results:
+                if hasattr(ln, 'is_line'):
+                    geometries.append(ln.toEdge())
+
+            comp = Part.Compound(geometries)
+            Part.show(comp)
+
+    
+    @property
+    def glider_obj(self):
+        obj = FreeCADGui.Selection.getSelection()
+        if len(obj) > 0:
+            obj = obj[0]
+            if check_glider(obj):
+                return obj
+        return None
+
+    @property
+    def feature(self):
+        obj = FreeCADGui.Selection.getSelection()
+        if len(obj) > 0:
+            obj = obj[0]
+            if check_glider(obj):
+                return obj
+        return None
+
+    def tool(self, obj):
+        return tools.BaseTool(obj)

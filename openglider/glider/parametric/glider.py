@@ -7,7 +7,7 @@ import copy
 from openglider.glider.parametric.shape import ParametricShape
 from openglider.airfoil import Profile2D
 from openglider.glider.glider import Glider
-from openglider.glider.cell import Panel, DiagonalRib, TensionLine, Cell
+from openglider.glider.cell import Panel, DiagonalRib, TensionStrap, TensionLine, Cell
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.export_ods import export_ods_2d
 from openglider.glider.parametric.import_ods import import_ods_2d
@@ -235,7 +235,7 @@ class ParametricGlider(object):
         return self._get_cell_straps("diagonals", DiagonalRib)
     
     def get_cell_straps(self):
-        return self._get_cell_straps("straps", DiagonalRib)
+        return self._get_cell_straps("straps", TensionStrap)
     
     def get_cell_tension_lines(self):
         return self._get_cell_straps("tension_lines", TensionLine)
