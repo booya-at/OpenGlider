@@ -98,7 +98,7 @@ class LineSet(object):
         """
         def recursive_count_floors(node):
             if node.type == 2:
-                return 1
+                return 0
 
             lines = self.get_upper_connected_lines(node)
             nodes = [line.upper_node for line in lines]
@@ -107,20 +107,26 @@ class LineSet(object):
 
         return {n: recursive_count_floors(n) for n in self.lower_attachment_points}
 
-    def get_lines_by_floor(self, target_floor: int=0, node: Node=None):
-        line_list = []
+    def get_lines_by_floor(self, target_floor: int=0, node: Node=None, en_style=True):
+        """
+        starting from node: walk up "target_floor" floors and return all the lines.
+
+        when en_style is True the uppermost lines are added in case there is no such floor
+        (see EN 926.1 for details)
+        """
         node =  node or self.get_main_attachment_point()
         def recursive_level(node: Node, current_level: int):
-            current_level += 1
             lines = self.get_upper_connected_lines(node)
             nodes = [line.upper_node for line in lines]
-            if not lines:
+            if not lines and en_style:
                 return self.get_lower_connected_lines(node)
             elif current_level == target_floor:
                 return lines
             else:
+                line_list = []
                 for line in lines:
-                    line_list += recursive_level(line.upper_node, current_level) 
+                    line_list += recursive_level(line.upper_node, current_level+1)
+                return line_list
                     
         return recursive_level(node, 0)
 
@@ -128,8 +134,16 @@ class LineSet(object):
         strength_list = []
         node =  node or self.get_main_attachment_point()
         for i in range(self.floors[node]):
-            strengths = [line.type.min_break_load for line in self.get_lines_by_floor(node)]
-            strength_list.append(sum(strengths))
+            lines = self.get_lines_by_floor(i, node, en_style=True)
+            strength = 0
+            for line in lines:
+                if line.type.min_break_load is None:
+                    logging.warning(f"no min_break_load set for {line.type.name}")
+                else:
+                    strength += line.type.min_break_load
+
+
+            strength_list.append(strength)
         return strength_list
 
     def get_mesh(self, numpoints=10):
@@ -442,7 +456,7 @@ class LineSet(object):
 
         row = 1
         for line, upper in line_tree:
-            row = insert_block(line, upper, row, (floors-1)*(columns_per_line)+2)
+            row = insert_block(line, upper, row, floors*(columns_per_line)+2)
 
         return table
     
