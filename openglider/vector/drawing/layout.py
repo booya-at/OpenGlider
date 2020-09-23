@@ -124,20 +124,15 @@ class Layout(object):
         return column_dwg
 
     @classmethod
-    def stack_row(cls, parts: [PlotPart], distance:float, center_y: bool=True) -> "Layout":
+    def stack_row(cls, parts: [PlotPart], distance: float, center_y: bool=True) -> "Layout":
         row_dwg = cls()
         direction = (distance >= 0) - (distance < 0)
         x = 0
 
         # workaround: need proper fix
-        heights = []
-        parts_new = []
-        for part in parts:
-            if hasattr(part, "height"):
-                heights.append(part.height)
-                parts_new.append(part)
-        parts = parts_new
+        heights = [part.height for part in parts]
         max_height = max(heights + [0])
+
         for height, part in zip(heights, parts):
             if isinstance(part, Layout):
                 drawing = part
