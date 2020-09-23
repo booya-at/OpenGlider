@@ -88,8 +88,8 @@ class LineType():
                     <td>{line_type.name}</td>
                     <td>{line_type.thickness:.02f}</td>
                     <td>{line_type.stretch_curve}</td>
-                    <td>{line_type.min_break_load:.02f}</td>
-                    <td>{line_type.weight:.02f}</td>
+                    <td>{line_type.min_break_load or 0:.02f}</td>
+                    <td>{line_type.weight or 0:.02f}</td>
                     <td>{line_type.seam_correction:.04f}</td>
                     <td>{line_type.colors}</td>
                 </tr>

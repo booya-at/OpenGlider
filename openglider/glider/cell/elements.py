@@ -218,7 +218,14 @@ class TensionStrap(DiagonalRib):
                                            (right + width / 2, height),
                                            material_code,
                                            name)
-
+    
+    def __json__(self):
+        return {
+            "left": self.center_left,
+            "right": self.center_right,
+            "width": (self.width_left + self.width_right)/2,
+            "height": self.left_front[1]
+        }
 
 class TensionLine(TensionStrap):
     def __init__(self, left, right, material_code="", name=""):
