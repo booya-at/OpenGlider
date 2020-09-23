@@ -92,6 +92,9 @@ class LineSet(object):
 
     @property
     def floors(self):
+        """
+        floors: number of line-levels
+        """
         def recursive_count_floors(node):
             if node.type == 2:
                 return 1
@@ -102,6 +105,24 @@ class LineSet(object):
             return max(depths) + 1
 
         return [recursive_count_floors(n) for n in self.lower_attachment_points]
+
+    def get_lines_by_floor(self, node: Node, target_level: int):
+        def recursive_level(node: Node, current_level: int):
+            current_level += 1
+            lines = self.get_upper_connected_lines(node)
+            nodes = [line.upper_node for line in lines]
+            if not lines:
+                return self.get_lower_connected_lines(node)
+            elif current_level == target_level:
+                return lines
+            else:
+                for line in lines:
+                    return [recursive_level(node, current_level) for upper_node in line.upper_node]
+        return recursive_level()
+
+    def get_level_force(base_node: Node, level: int,):
+        brake_loads = [line.type.min_break_load for line in self.get_lines_by_floor(base_node, level)]
+        return sum(brake_loads)
 
     def get_mesh(self, numpoints=10):
         return sum([line.get_mesh(numpoints) for line in self.lines], Mesh())
