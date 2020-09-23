@@ -202,7 +202,7 @@ class DoubleDiagonalRib(object):
 
 
 class TensionStrap(DiagonalRib):
-    def __init__(self, left, right, width, material_code=None, name=""):
+    def __init__(self, left, right, width, height=-1, material_code=None, name=""):
         """
         Similar to a Diagonalrib but always connected to the bottom-sail.
         :param left: left center of TensionStrap as x-value
@@ -212,10 +212,10 @@ class TensionStrap(DiagonalRib):
         :param name: name of TensionStrap (optional)
         """
         width /= 2
-        super(TensionStrap, self).__init__((left - width / 2, -1),
-                                           (left + width / 2, -1),
-                                           (right - width / 2, -1),
-                                           (right + width / 2, -1),
+        super(TensionStrap, self).__init__((left - width / 2, height),
+                                           (left + width / 2, height),
+                                           (right - width / 2, height),
+                                           (right + width / 2, height),
                                            material_code,
                                            name)
 

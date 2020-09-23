@@ -110,8 +110,16 @@ class PlotMaker(object):
 
         panels = self.panels
         ribs = Layout.stack_row(self.ribs, self.config.patterns_align_dist_x)
-        dribs = Layout.stack_row(self.dribs.values(), self.config.patterns_align_dist_x)
-        straps = Layout.stack_row(self.straps.values(), self.config.patterns_align_dist_x)
+
+        def stack_grid(dct):
+            layout_lst = [
+                Layout.stack_column(p, self.config.patterns_align_dist_y) 
+                for p in dct.values()
+                ]
+            return Layout.stack_row(layout_lst, self.config.patterns_align_dist_x)
+
+        dribs = stack_grid(self.dribs)
+        straps = stack_grid(self.straps)
 
         panels_grouped = panels.copy().group_materials()
         ribs_grouped = ribs.group_materials()

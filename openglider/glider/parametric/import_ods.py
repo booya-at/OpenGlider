@@ -146,21 +146,20 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     straps_keywords = ["cells", "left", "right"]
     for res in read_elements(cell_sheet, "VEKTLAENGE", len_data=2):
         straps.append({
-            "left_front": (res[1] - 0.02, -1),
-            "left_back": (res[1] + 0.02, -1),
-            "right_front": (res[1] - 0.02, -1),
-            "right_back": (res[1] - 0.02, -1),
+            "left": res[1],
+            "right": res[2],
+            "width": 0.02,
             "cells": res[0]
         })
 
     for res in read_elements(cell_sheet, "STRAP", len_data=3):
         # [cell_no, x_left, x_right, width]
-        straps.append({"left_front": (res[1] - res[3] / 2, -1),
-                       "left_back": (res[1] + res[3] / 2, -1),
-                       "right_front": (res[2] - res[3] / 2, -1),
-                       "right_back": (res[2] + res[3] / 2, -1),
-                       "cells": res[0]
-                       })
+        straps.append({
+            "left": res[1],
+            "right": res[2],
+            "width": res[3],
+            "cells": res[0]
+            })
     straps = group(straps, "cells")
 
     materials = get_material_codes(cell_sheet)
