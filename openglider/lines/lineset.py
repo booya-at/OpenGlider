@@ -4,6 +4,7 @@ import logging
 from openglider.lines import SagMatrix
 
 from openglider.lines.functions import proj_force
+from openglider.lines.elements import Node
 from openglider.mesh import Mesh
 from openglider.vector.functions import norm, normalize
 from openglider.utils.table import Table
@@ -104,25 +105,32 @@ class LineSet(object):
             depths = [recursive_count_floors(node) for node in nodes]
             return max(depths) + 1
 
-        return [recursive_count_floors(n) for n in self.lower_attachment_points]
+        return {n: recursive_count_floors(n) for n in self.lower_attachment_points}
 
-    def get_lines_by_floor(self, node: Node, target_level: int):
+    def get_lines_by_floor(self, target_floor: int=0, node: Node=None):
+        line_list = []
+        node =  node or self.get_main_attachment_point()
         def recursive_level(node: Node, current_level: int):
             current_level += 1
             lines = self.get_upper_connected_lines(node)
             nodes = [line.upper_node for line in lines]
             if not lines:
                 return self.get_lower_connected_lines(node)
-            elif current_level == target_level:
+            elif current_level == target_floor:
                 return lines
             else:
                 for line in lines:
-                    return [recursive_level(node, current_level) for upper_node in line.upper_node]
-        return recursive_level()
+                    line_list += recursive_level(line.upper_node, current_level) 
+                    
+        return recursive_level(node, 0)
 
-    def get_level_force(base_node: Node, level: int,):
-        brake_loads = [line.type.min_break_load for line in self.get_lines_by_floor(base_node, level)]
-        return sum(brake_loads)
+    def get_floor_strength(self, node: Node=None):
+        strength_list = []
+        node =  node or self.get_main_attachment_point()
+        for i in range(self.floors[node]):
+            strengths = [line.type.min_break_load for line in self.get_lines_by_floor(node)]
+            strength_list.append(sum(strengths))
+        return strength_list
 
     def get_mesh(self, numpoints=10):
         return sum([line.get_mesh(numpoints) for line in self.lines], Mesh())
@@ -410,7 +418,7 @@ class LineSet(object):
         line_tree = self.create_tree(start_node=start_node)
         table = Table()
 
-        floors = max(self.floors)
+        floors = max(self.floors.values())
         columns_per_line = len(callback(line_tree[0][0]))
 
         def insert_block(line, upper, row, column):
