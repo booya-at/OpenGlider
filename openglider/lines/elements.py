@@ -17,10 +17,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-
-from __future__ import division
-
 import numpy as np
+import logging
 
 from openglider.lines import line_types
 from openglider.lines.functions import proj_force, proj_to_surface
@@ -29,6 +27,7 @@ from openglider.vector import PolyLine
 from openglider.vector.functions import norm, normalize
 from openglider.mesh import Mesh, Vertex, Polygon
 
+logging.getLogger(__file__)
 
 class SagMatrix():
     def __init__(self, number_of_lines):
@@ -269,7 +268,12 @@ class Line(CachedObject):
             boundary["lines"].append(line_points[-1])
         
         if numpoints == 2:
-            line_poly = {"lines": [Polygon(line_points, attributes={"l_12": self.get_stretched_length(pre_load=0, sag=False)})]}
+            attributes = {
+                # todo: use spring constant
+                "l_12": self.length_no_sag * 1 / self.type.get_stretch_factor(self.force),
+                "e_module": self.type.get_spring_constant()
+            }
+            line_poly = {"lines": [Polygon(line_points, attributes=attributes)]}
         else:
             line_poly = {"lines": [Polygon(line_points[i:i + 2]) for i in range(len(line_points) - 1)]}
 
