@@ -185,13 +185,17 @@ class Line(CachedObject):
 
         return PolyLine(self.get_line_points(numpoints=100)).get_length()
 
-    def get_stretched_length(self, pre_load=50):
+    def get_stretched_length(self, pre_load=50, sag=True):
         """
         Get the total line-length for production using a given stretch
         length = len_0 * (1 + stretch*force)
         """
+        if sag:
+            l_0 = self.length_with_sag
+        else:
+            l_0 = self.length_no_sag
         factor = self.type.get_stretch_factor(pre_load) / self.type.get_stretch_factor(self.force)
-        return self.length_with_sag * factor
+        return l_0 * factor
 
     #@cached_property('v_inf', 'type.cw', 'type.thickness')
     @property
@@ -263,7 +267,12 @@ class Line(CachedObject):
             boundary["attachment_points"] = [line_points[-1]]
         else:
             boundary["lines"].append(line_points[-1])
-        line_poly = {"lines": [Polygon(line_points[i:i + 2]) for i in range(len(line_points) - 1)]}
+        
+        if numpoints == 2:
+            line_poly = {"lines": [Polygon(line_points, attributes={"l_12": self.get_stretched_length(pre_load=0, sag=False)})]}
+        else:
+            line_poly = {"lines": [Polygon(line_points[i:i + 2]) for i in range(len(line_points) - 1)]}
+
         return Mesh(line_poly, boundary)
 
     @property
