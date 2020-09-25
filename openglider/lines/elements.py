@@ -268,9 +268,10 @@ class Line(CachedObject):
             boundary["lines"].append(line_points[-1])
         
         if numpoints == 2:
+            stretch_factor = 1 + self.force / self.type.get_spring_constant()
             attributes = {
                 # todo: use spring constant
-                "l_12": self.length_no_sag * 1 / self.type.get_stretch_factor(self.force),
+                "l_12": self.length_no_sag / stretch_factor,
                 "e_module": self.type.get_spring_constant()
             }
             line_poly = {"lines": [Polygon(line_points, attributes=attributes)]}
