@@ -20,6 +20,7 @@
 
 from __future__ import division
 
+import logging
 import numpy as np
 
 from openglider.lines import line_types
@@ -29,6 +30,7 @@ from openglider.vector import PolyLine
 from openglider.vector.functions import norm, normalize
 from openglider.mesh import Mesh, Vertex, Polygon
 
+logging.getLogger(__file__)
 
 class SagMatrix():
     def __init__(self, number_of_lines):
@@ -343,7 +345,7 @@ class Line(CachedObject):
 
 class Node(object):
     def __init__(self, node_type, position_vector=None, attachment_point=None, name=None):
-        self.type = node_type  # lower, top, middle (0, 2, 1)
+        self.type = node_type  # lower, middle, top (0, 1, 2)
         if position_vector is not None:
             position_vector = np.array(position_vector)
         self.vec = position_vector
@@ -355,12 +357,16 @@ class Node(object):
 
     def calc_force_infl(self, vec):
         v = np.array(vec)
-        force = proj_force(self.force, self.vec - v)
+        direction = self.vec - v
+        if self.type == 2:
+            force = proj_force(self.force, direction)
+        else:
+            force = self.force @ direction / np.linalg.norm(direction)
         if force is None:
-            print(self.name)
-            print(self.vec-v, self.force)
+            logging.warn("projected force for line {} is None, direction: {}, force: {}".format(
+                self.name, direction, self.force))
             force = 0.00001
-        return normalize(self.vec - v) * force 
+        return normalize(direction) * force
 
     def get_position(self):
         pass
