@@ -19,9 +19,11 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/
 from __future__ import division
 import sys
+import logging
 
 from openglider.vector import Interpolation
 
+logging.getLogger(__name__)
 
 class LineType():
     types = {}
@@ -50,6 +52,16 @@ class LineType():
         self.colors = colors or []
 
         self.min_break_load = min_break_load
+    
+    def get_spring_constant(self):
+        force, k = self.stretch_interpolation.data[-1]
+        result = force / (k / 100)
+
+        if result == float("inf"):
+            logging.warn(f"invalid stretch for line type: {self.name}")
+            return 50000
+        else:
+            return result
 
     def get_stretch_factor(self, force):
         return 1 + self.stretch_interpolation(force) / 100
@@ -74,6 +86,7 @@ class LineType():
                         <td>name</td>
                         <td>thickness</td>
                         <td>stretch_curve</td>
+                        <td>spring</td>
                         <td>resistance</td>
                         <td>weight</td>
                         <td>seam correction</td>
@@ -88,6 +101,7 @@ class LineType():
                     <td>{line_type.name}</td>
                     <td>{line_type.thickness:.02f}</td>
                     <td>{line_type.stretch_curve}</td>
+                    <td>{line_type.get_spring_constant() or 0:.0f}</td>
                     <td>{line_type.min_break_load or 0:.02f}</td>
                     <td>{line_type.weight or 0:.02f}</td>
                     <td>{line_type.seam_correction:.04f}</td>

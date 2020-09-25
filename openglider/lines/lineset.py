@@ -551,7 +551,7 @@ class LineSet(object):
         '''
         get the sum of the forces of all upper-connected lines
         '''
-        force = np.array([0, 0, 0])
+        force = np.array([0., 0., 0.])
         for line in self.get_upper_connected_lines(node):
             force += line.force * line.diff_vector
         return force
