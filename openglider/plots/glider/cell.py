@@ -71,8 +71,8 @@ class PanelPlot(object):
         inner_front = [(line, ik[0]) for line, ik in zip(self.inner, ik_values)]
         inner_back = [(line, ik[1]) for line, ik in zip(self.inner, ik_values)]
 
-        shape_3d_amount_front = [-x for x in self.panel.cut_front["amount_3d"]]
-        shape_3d_amount_back = self.panel.cut_back["amount_3d"]
+        shape_3d_amount_front = self.panel.cut_front["amount_3d"]
+        shape_3d_amount_back = [-x for x in self.panel.cut_back["amount_3d"]]
 
         # calculate difference rib->panel
         for j in (0, -1):  # left, right
@@ -81,8 +81,8 @@ class PanelPlot(object):
             line_3d = profile[ik_values[j][0]:ik_values[j][-1]]
             diff = line_3d.get_length() - line_2d.get_length()
 
-            shape_3d_amount_front[j] = -diff/2
-            shape_3d_amount_back[j] = diff/2
+            shape_3d_amount_front[j] = +diff/2
+            shape_3d_amount_back[j] = -diff/2
 
             if diff > 0.003:
                 message = f"diff > 0.003: {self.panel.name}, {j}, {diff}, {line_2d.get_length()}, {line_3d.get_length()}"
