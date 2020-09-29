@@ -51,6 +51,8 @@ class HeatMap():
     def from_data(cls, data):
         min_value = min(data)
         max_value = max(data)
+        if abs(max_value - min_value) < 1e-5:
+            max_value += 0.1
         return cls(min_value, max_value)
     
     def __call__(self, value):
