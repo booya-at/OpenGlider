@@ -1,4 +1,6 @@
 from __future__ import division
+
+import logging
 import copy
 import numpy as np
 
@@ -11,6 +13,7 @@ from openglider.vector import norm, normalize, PolyLine2D
 from openglider.mesh import Mesh, Vertex, Polygon
 import openglider.vector.projection
 
+logging.getLogger(__file__)
 
 class Cell(CachedObject):
     diagonal_naming_scheme = "{cell.name}d{diagonal_no}"
@@ -194,6 +197,42 @@ class Cell(CachedObject):
         y_values = linspace(0, 1, numribs)
         return [self.midrib(y) for y in y_values]
 
+    def get_spline(self, numribs, u_poles=20, v_poles=4, u_degree=3, v_degree=3):
+        try:
+            import nurbs
+        except ImportError:
+            logging.error("noorbs library not available")
+            return None
+
+
+        r1 = self.rib1
+        assert v_poles < numribs
+        assert u_poles < len(r1.profile_2d)
+
+        u_space = r1.profile_2d.get_length_parameter(scale=0)
+        v_space = np.linspace(0, 1, numribs)
+        grid = self.get_midribs(numribs)
+        uv_list = []
+        x_list = []
+        for ui, u in enumerate(u_space):
+            for vi, v in enumerate(v_space):
+                uv_list.append([u, v])
+                x_list.append(grid[vi][ui])
+        uv = np.array(uv_list)
+        x = np.array(x_list)
+
+        # create base with nurbs
+        u_knots = nurbs.create_knots_vector(u_min=0, u_max=1, degree=u_degree, num_poles=u_poles)
+        v_knots = nurbs.create_knots_vector(u_min=0, u_max=1, degree=v_degree, num_poles=v_poles)
+        weights = np.ones((u_poles * v_poles))
+        base = nurbs.NurbsBase2D(u_knots, v_knots, weights, u_degree, v_degree)
+        mat = base.getInfluenceMatrix(uv).toarray()
+        # min (mat @ poles - x) ** 2
+        assert v_poles < numribs
+        poles = np.linalg.lstsq(mat, x)[0]
+        return u_poles, v_poles, u_knots, v_knots, u_degree, v_degree, poles, weights
+
+
     @cached_property('ballooning', 'rib1.profile_2d.numpoints', 'rib2.profile_2d.numpoints')
     def ballooning_phi(self):
         x_values = self.rib1.profile_2d.x_values
@@ -265,7 +304,7 @@ class Cell(CachedObject):
             mean_rib += self.midrib(y).flatten().normalize()
         return mean_rib * (1. / num_midribs)
 
-    def get_mesh(self,  numribs=0, with_numpy=False, half_cell=False):
+    def get_mesh(self, numribs=0, with_numpy=False, half_cell=False):
         """
         Get Cell-mesh
         :param numribs: number of miniribs to calculate

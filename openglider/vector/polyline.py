@@ -153,19 +153,25 @@ class PolyLine(HashedList):
         return length + norm(self[second] - self[first])
 
     def get_segment_lengthes(self):
-        lengths = []
-        segments = self.get_segments()
-        for s in segments:
-            lengths.append(norm(s))
-
-        return lengths
+        return np.linalg.norm(self.get_segments(), axis=1)
 
     def get_segments(self):
-        segments = []
-        for p1, p2 in zip(self.data[:-1], self.data[1:]):
-            segments.append(p2 - p1)
+        return self.data[1:] - self.data[:-1]
 
-        return segments
+    def get_length_parameter(self, scale=0):
+        """
+        returns length porpotional parameter value
+        scale ==  1: [0 , l]
+        scale ==  0: [0 , 1]
+        scale == -1: [-1, 1]
+        """
+        diff = self.get_segment_lengthes()
+        length = np.array([0] + np.cumsum(diff).tolist())
+        if scale in [0, -1]:
+            length /= max(length)
+            if scale == -1:
+                length = length * (-2) + 1
+        return length
 
     def scale(self, x, y=None):
         if y is None:
@@ -187,6 +193,7 @@ class PolyLine(HashedList):
             if (_lamda >= 0 and _lamda < 1):
                 cut_list.append(line[0] + _lamda * direction)
         return cut_list
+
 
 
 class PolyLine2D(PolyLine):

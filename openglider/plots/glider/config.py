@@ -73,5 +73,5 @@ class OtherPatternConfig(PatternConfig):
 
     allowance_design = 0.01
     drib_allowance_folds = 0.01
-    strap_num_folds = 1
+    strap_num_folds = 0
     allowance_entry_open = 0.021

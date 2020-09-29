@@ -407,4 +407,3 @@ class Profile2D(Polygon2D):
         s = (a + b + c) / 2
         r = (a * b * c)  / np.sqrt(s * (s - a) * (s - b) * (s - c))
         return r
-
