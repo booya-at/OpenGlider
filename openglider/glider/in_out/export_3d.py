@@ -339,11 +339,11 @@ def export_leparagliding(glider, path):
     data_frame = pd.DataFrame(data)
     if glider.has_center_cell:
         data_frame = data_frame[1:]
-    data =  data_frame.to_string(index=None, float_format=lambda x: "{:.3f}".format(x))
+    rib_geo =  data_frame.to_string(index=None, float_format=lambda x: "{:.3f}".format(x))
 
     ############# exporting the glider
 
-    env = jinja2.Environment( loader = FileSystemLoader(".") )
+    env = jinja2.Environment(loader = jinja2.FileSystemLoader("."))
     template = env.get_template('leparagliding.txt.template')
 
     with open(path, 'w') as fn:
