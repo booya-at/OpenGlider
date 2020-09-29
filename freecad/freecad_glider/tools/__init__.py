@@ -534,25 +534,3 @@ class ImportDXFCommand(object):
 
             comp = Part.Compound(geometries)
             Part.show(comp)
-
-    
-    @property
-    def glider_obj(self):
-        obj = FreeCADGui.Selection.getSelection()
-        if len(obj) > 0:
-            obj = obj[0]
-            if check_glider(obj):
-                return obj
-        return None
-
-    @property
-    def feature(self):
-        obj = FreeCADGui.Selection.getSelection()
-        if len(obj) > 0:
-            obj = obj[0]
-            if check_glider(obj):
-                return obj
-        return None
-
-    def tool(self, obj):
-        return tools.BaseTool(obj)

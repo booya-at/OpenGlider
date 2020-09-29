@@ -307,3 +307,50 @@ def parabem_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, sym
         panels[nr].set_symmetric()
 
     return vertices, panels, trailing_edge
+
+
+def export_leparagliding(glider, path):
+    import pandas as pd
+    import jinja2
+
+    ####### computing the basic geometry
+    glider = glider.copy_complete()
+    aoa_abs = np.array([r.aoa_absolute for r in glider.ribs])
+    aoa_rel = np.array([r.aoa_relative for r in glider.ribs])
+    gamma = np.arctan(1 / glider.glide)
+    alpha_max = np.rad2deg(aoa_abs[0] + gamma)
+    washin = np.rad2deg(aoa_abs)
+    y_le, xp, z = np.array([r.pos for r in glider.ribs]).T * 1.0e2
+    chord = np.array([r.chord for r in glider.ribs]) * 1.0e2
+    y_te = y_le + chord
+    x_rib = glider.shape_simple.front.data.T[0] * 1.0e2
+    beta = np.rad2deg(np.array([r.arcang for r in glider.ribs]))
+    rp = np.array([0.] * len(beta))
+    ribs_number = np.array(list(range(len(rp))), dtype=int)
+    data = { "Rib": ribs_number,
+             "x_rib": x_rib,
+             "y_LE": y_le,
+             "y_TE": y_te,
+             "xp": xp,
+             "z": -z,
+             "beta": beta,
+             "RP": rp,
+             "Washin": washin}
+    data_frame = pd.DataFrame(data)
+    if glider.has_center_cell:
+        data_frame = data_frame[1:]
+    data =  data_frame.to_string(index=None, float_format=lambda x: "{:.3f}".format(x))
+
+    ############# exporting the glider
+
+    env = jinja2.Environment( loader = FileSystemLoader(".") )
+    template = env.get_template('leparagliding.txt.template')
+
+    with open(path, 'w') as fn:
+        fn.write(template.render(
+            GR=glider.glide,
+            alpha_max="{:.2f}".format(alpha_max),
+            rib_geo=rib_geo,
+            num_cells=len(glider.copy_complete().cells),
+            num_ribs=len(glider.copy_complete().ribs)
+        ))
