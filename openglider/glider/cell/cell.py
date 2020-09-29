@@ -2,6 +2,7 @@ from __future__ import division
 
 import logging
 import copy
+import math
 import numpy as np
 
 from openglider.airfoil import Profile3D
@@ -373,67 +374,80 @@ class Cell(CachedObject):
                     {self.rib1.name: ribs[0], self.rib2.name: ribs[-1]})
         return mesh
 
-    def get_flattened_cell(self, midribs=10):
-        left, right = openglider.vector.projection.flatten_list(self.prof1, self.prof2)
-        left_bal = left.copy()
-        right_bal = right.copy()
-        ballooning = [self.ballooning[x] for x in self.rib1.profile_2d.x_values]
-        for i in range(len(left)):
-            diff = (right[i] - left[i]) * ballooning[i] / 2
-            left_bal.data[i] -= diff
-            right_bal.data[i] += diff
+    def get_flattened_cell(self, numribs=50):
+        midribs = self.get_midribs(numribs)
+        numpoints = len(midribs[0])
+
+        len_dct = {}
+        def get_length(ik1, ik2):
+            index_str = f"{ik1}:{ik2}"
+            if index_str not in len_dct:
+                points = []
+                for i, rib in enumerate(midribs):
+                    x = ik1 + i/(numribs-1) * (ik2-ik1)
+                    points.append(rib[x])
+                
+                line = openglider.vector.PolyLine(points)
+
+                len_dct[index_str] = line.get_length()
+
+            return len_dct[index_str]
+
+        l_0 = get_length(0, 0)
+
+        left_bal = [np.array([0, 0])]
+        right_bal = [np.array([l_0, 0])]
+
+        def get_point(p1, p2, l_0, l_l, l_r, left=True):
+            lx = (l_0**2 + l_l**2 - l_r**2) / (2*l_0)
+            ly = math.sqrt(l_l**2 - lx**2)
+            diff = openglider.vector.normalize(p2 - p1)
+            if left:
+                diff_y = diff.dot([[0, 1], [-1, 0]])
+            else:
+                diff_y = diff.dot([[0, -1], [1, 0]])
+
+            return p1 + lx * diff + ly * diff_y
 
 
+        for i in range(numpoints-1):
+            p1 = left_bal[-1]
+            p2 = right_bal[-1]
 
-        def _normalize(line, target_lengths):
-            new_line = [line[0]]
-            last_node = line[0]
-            segments = line.get_segments()
-            for segment, target_length in zip(segments, target_lengths):
-                scale = target_length / norm(segment)
-                last_node = last_node + scale * segment
-                new_line.append(last_node)
 
-            return PolyLine2D(new_line)
-        #
-        left_bal_2 = _normalize(left_bal, left.get_segment_lengthes())
-        right_bal_2 = _normalize(right_bal, right.get_segment_lengthes())
-        right_bal_3 = right_bal_2.copy()
-        left_bal_3 = left_bal_2.copy()
+            d_l = openglider.vector.norm(midribs[0][i] - midribs[0][i+1])
+            d_r = openglider.vector.norm(midribs[-1][i] - midribs[-1][i+1])
+            l_0 = get_length(i, i)
 
-        debug_lines = []
-        debug_lines2 = []
+            print(openglider.vector.norm(p1-p2)-l_0)
 
-        for i in range(len(left_bal)):
-            diff = left_bal_2[i] - right_bal_2[i]
+            if False:
+                pl_2 = get_point(p1, p2, l_0, d_l, get_length(i+1, i))
+                pr_2 = get_point(p2, pl_2, get_length(i+1, i), d_r, get_length(i+1, i+1), left=False)
+            else:
+                pr_2 = get_point(p2, p1, l_0, d_r, get_length(i, i+1), left=False)
+                pl_2 = get_point(p1, pr_2, get_length(i, i+1), d_l, get_length(i+1, i+1))
 
-            dist_new = norm(diff)
-            dist_orig = norm(left_bal[i] - right_bal[i])
 
-            diff_per_side = normalize(diff) * ((dist_new - dist_orig) / 2)
+            left_bal.append(pl_2)
+            right_bal.append(pr_2)
+            #right_bal.append(get_point(p2, p1, l_0, d_r, get_length(i, i+1), left=False))
 
-            right_bal_2[i] += diff_per_side
-            left_bal_2[i] -= diff_per_side
-
-            debug_lines.append(PolyLine2D([left_bal_2[i], right_bal_2[i]]))
-            debug_lines2.append(PolyLine2D([left_bal[i], right_bal[i]]))
-
+        ballooned = [
+            PolyLine2D(left_bal),
+            PolyLine2D(right_bal)
+        ]
 
         inner = []
-        for x in openglider.utils.linspace(0, 1, 2 + midribs):
-            l1 = left_bal * (1-x)
-            l2 = right_bal * x
+        for x in openglider.utils.linspace(0, 1, numribs):
+            l1 = ballooned[0] * (1-x)
+            l2 = ballooned[1] * x
             inner.append(l1.add(l2))
 
         #ballooned = [left_bal, right_bal]
 
         return {
             "inner": inner,
-            "ballooned": [left_bal, right_bal],
-            "ballooned_new": [left_bal_2, right_bal_2],
-            "ballooned_new_copy": [left_bal_3, right_bal_3],
-            "debug": [left, right],
-            "debug_1": debug_lines,
-            "debug_2": debug_lines2
+            "ballooned": ballooned
             }
 
