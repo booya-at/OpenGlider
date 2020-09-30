@@ -1,3 +1,4 @@
+import re
 import numpy as np
 import copy
 import logging
@@ -460,10 +461,50 @@ class LineSet(object):
 
         return table
     
+    node_group_rex = re.compile(r"[^A-Za-z]*([A-Za-z]*)[^A-Za-z]*")
     def rename_lines(self):
-        def rename_line(line):
-            upper = self.get_upper_connected_lines
-        pass  # TODO
+        floors = max(self.floors.values())
+        upper_nodes = []
+        for node in self.attachment_points:
+            upper_nodes += self.get_upper_influence_nodes(node=node)
+        lines = []
+        for node in upper_nodes:
+            lines += self.get_lower_connected_lines(node)
+
+        for floor in range(floors):
+            print("jo", floor, len(lines))
+            lines_grouped = {}
+            for line in lines:
+                line_groups = set()
+                for node in self.get_upper_influence_nodes(line):
+                    node_group = self.node_group_rex.match(node.name)
+                    if node_group:
+                        line_groups.add(node_group.group(1))
+                
+                line_groups_list = list(line_groups)
+                line_groups_list.sort()
+                line_group_name = "".join(line_groups_list)
+
+                lines_grouped.setdefault(line_group_name, [])
+                lines_grouped[line_group_name].append(line)
+            
+            for name, group in lines_grouped.items():
+                group_sorted = self.sort_lines(group)
+
+                for i, line in enumerate(group_sorted):
+                    if floor > 0:
+                        line.name = f"{floor}_{name}{i+1}"
+                    else:
+                        line.name = f"{name}{i+1}"
+            
+            lines_new = set()
+            for line in lines:
+                for lower_line in self.get_lower_connected_lines(line.lower_node):
+                    lines_new.add(lower_line)
+            
+            lines = list(lines_new)
+        
+        return self
     
     def get_line_length(self, line):
         length = line.get_stretched_length()
@@ -502,7 +543,7 @@ class LineSet(object):
 
     def get_table(self):
         length_table = self._get_lines_table(lambda line: [round(self.get_line_length(line)*1000)])
-        names_table = self._get_lines_table(lambda line: [line.type.name, line.color])
+        names_table = self._get_lines_table(lambda line: [line.name, line.type.name, line.color])
 
         def get_checklength(line, upper_lines):
             line_length = line.get_stretched_length()

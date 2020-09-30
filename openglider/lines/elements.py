@@ -271,7 +271,7 @@ class Line(CachedObject):
         if numpoints == 2:
             stretch_factor = 1 + self.force / self.type.get_spring_constant()
             attributes = {
-                # todo: use spring constant
+                "name": self.name,
                 "l_12": self.length_no_sag / stretch_factor,
                 "e_module": self.type.get_spring_constant()
             }
