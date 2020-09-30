@@ -1,6 +1,6 @@
 import copy
 import re
-
+import ast
 import numpy as np
 
 from openglider.glider.rib.elements import AttachmentPoint, CellAttachmentPoint
@@ -407,6 +407,34 @@ class LineSet2D(object):
         for table in tables:
             total_table.append_right(table)
         return total_table
+    
+    @staticmethod
+    def read_attachment_point_table(table: Table):
+        attachment_points = []
+        values = ("name", "cell_pos", "rib_pos", "force")
+        num_columns = int(table.num_columns / 4)
+        num_rows = table.num_rows - 1
+        for column in range(num_columns):
+            column_0 = column*4
+            assert table[0, column_0] in ("ATP", "AHP")
+
+            for row in range(1, num_rows):
+                name = table[row, column_0]
+                if name:
+                    force = table[row, column_0+3]
+                    if isinstance(force, str):
+                        print(force)
+                        force = ast.literal_eval(force)
+
+                    attachment_points.append(UpperNode2D(
+                        cell_no = row-1,
+                        name=name,
+                        cell_pos = table[row, column_0+1],
+                        rib_pos = table[row, column_0+2],
+                        force=force # parse list/tuple
+                        ))
+        
+        return attachment_points
 
     def delete_not_connected(self, glider):
         temp = []
