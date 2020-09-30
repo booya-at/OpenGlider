@@ -87,7 +87,7 @@ class LineSet(object):
                 main_attachment_point = ap
 
         if main_attachment_point is None:
-            raise Exception("No 'main' attachment point")
+            raise RuntimeError("No 'main' attachment point")
 
         return main_attachment_point
 

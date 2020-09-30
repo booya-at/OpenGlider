@@ -1,5 +1,6 @@
 from __future__ import division
 
+import logging
 from copy import deepcopy
 
 import matplotlib.pyplot as plt
@@ -35,6 +36,7 @@ class Polars(BaseTool):
         self.Qparasit_wing_drag_c0 = QtGui.QDoubleSpinBox()
         self.Qparasit_wing_drag_c2 = QtGui.QDoubleSpinBox()
         self.Qmom_z_ref_point = QtGui.QDoubleSpinBox()
+        self.Qmom_x_ref_point = QtGui.QDoubleSpinBox()
         self.Qcompute = QtGui.QPushButton("create plots")
 
         self.layout.setWidget(0, text_field, QtGui.QLabel('total weight [kg]'))
@@ -47,7 +49,9 @@ class Polars(BaseTool):
         self.layout.setWidget(3, input_field, self.Qparasit_wing_drag_c2)
         self.layout.setWidget(4, text_field, QtGui.QLabel('z position of moment_ref_point'))
         self.layout.setWidget(4, input_field, self.Qmom_z_ref_point)
-        self.layout.setWidget(5, text_field, self.Qcompute)
+        self.layout.setWidget(5, text_field, QtGui.QLabel('x position of moment_ref_point'))
+        self.layout.setWidget(5, input_field, self.Qmom_x_ref_point)
+        self.layout.setWidget(6, text_field, self.Qcompute)
 
         self.Qweight.setMinimum(10)
         self.Qweight.setMaximum(300)
@@ -67,7 +71,16 @@ class Polars(BaseTool):
 
         self.Qmom_z_ref_point.setMinimum(-100)
         self.Qmom_z_ref_point.setMaximum(100)
-        self.Qmom_z_ref_point.setValue(-7)
+        self.Qmom_x_ref_point.setMinimum(-100)
+        self.Qmom_x_ref_point.setMaximum(100)
+        try:
+            att = self.obj.Proxy.getGliderInstance().lineset.get_main_attachment_point()
+            self.Qmom_z_ref_point.setValue(att.vec[2])
+            self.Qmom_x_ref_point.setValue(att.vec[0])
+        except RuntimeError as e:
+            logging.warn("no main attachment point found!")
+            self.Qmom_z_ref_point.setValue(-7)
+            self.Qmom_x_ref_point.setValue(1.1)
 
         self.Qcompute.clicked.connect(self.compute)
         self.create_potential_table()
@@ -91,7 +104,9 @@ class Polars(BaseTool):
             case = self.pan3d.DirichletDoublet0Source0Case3(self._panels, self._trailing_edges)
             case.A_ref = self.parametric_glider.shape.area
             # att point
-            case.mom_ref_point = self.parabem.Vector3(1.25, 0, self.Qmom_z_ref_point.value())
+            case.mom_ref_point = self.parabem.Vector3(self.Qmom_x_ref_point.value(),
+                                                      0, 
+                                                      self.Qmom_z_ref_point.value())
             case.v_inf = self.parabem.Vector(self.parametric_glider.v_inf)
             case.drag_calc = 'trefftz'
             case.farfield = 5
@@ -152,12 +167,19 @@ class Polars(BaseTool):
 
         phi = newton_krylov(minimize, np.ones_like(self.alpha)) 
         a_p = [find_zeros(vel(phi), phi), find_zeros(gz(), phi)]
+        plt.figure()
+        ax1 = plt.subplot(211)
+        plt.title("Polars", size=20)
         plt.plot(vel(phi), gz())
-        plt.plot(vel(phi), phi)
         plt.plot(a_p[0], a_p[1], marker='o')
-        plt.plot()
+        plt.ylabel("glide ratio")
         plt.grid()
-        plt.show()
+        plt.subplot(212, sharex=ax1)
+        plt.plot(vel(phi), np.rad2deg(phi))
+        plt.plot(a_p[0], 0., marker='o')
+        plt.xlabel("velocity [m / 2]")
+        plt.ylabel("rotation phi  [°]")
+        plt.grid()
 
     def accept(self):
         Gui.Control.closeDialog()
