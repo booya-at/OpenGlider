@@ -180,9 +180,10 @@ def get_cell_sheet(glider):
         strap_table = Table()
         strap_table[0, 0] = "STRAP"
         for cell_no in strap["cells"]:
-            strap_table[cell_no+1, 0] = (strap["left_front"][0]+strap["left_back"][0])/2
-            strap_table[cell_no+1, 1] = (strap["right_front"][0]+strap["right_back"][0])/2
-            strap_table[cell_no+1, 2] = 0.04
+            # 
+            strap_table[cell_no+1, 0] = strap["left"]
+            strap_table[cell_no+1, 1] = strap["right"]
+            strap_table[cell_no+1, 2] = strap["width"]
 
         table.append_right(strap_table)
 
