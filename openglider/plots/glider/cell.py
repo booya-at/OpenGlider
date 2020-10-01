@@ -75,18 +75,18 @@ class PanelPlot(object):
         shape_3d_amount_back = [-x for x in self.panel.cut_back["amount_3d"]]
 
         # calculate difference rib->panel
-        for j in (0, -1):  # left, right
-            profile = [self.cell.prof1, self.cell.prof2][j]
-            line_2d = self.inner[j][ik_values[j][0]:ik_values[j][-1]]
-            line_3d = profile[ik_values[j][0]:ik_values[j][-1]]
-            diff = line_3d.get_length() - line_2d.get_length()
+        # for j in (0, -1):  # left, right
+        #     profile = [self.cell.prof1, self.cell.prof2][j]
+        #     line_2d = self.inner[j][ik_values[j][0]:ik_values[j][-1]]
+        #     line_3d = profile[ik_values[j][0]:ik_values[j][-1]]
+        #     diff = line_3d.get_length() - line_2d.get_length()
 
-            shape_3d_amount_front[j] = +diff/2
-            shape_3d_amount_back[j] = -diff/2
+        #     shape_3d_amount_front[j] = +diff/2
+        #     shape_3d_amount_back[j] = -diff/2
 
-            if diff > 0.003:
-                message = f"diff > 0.003: {self.panel.name}, {j}, {diff}, {line_2d.get_length()}, {line_3d.get_length()}"
-                self.logger.info(message)
+        #     if diff > 0.0003:
+        #         message = f"diff > 0.003: {self.panel.name}, {j}, {diff}, {line_2d.get_length()}, {line_3d.get_length()}"
+        #         self.logger.info(message)
 
         if self.panel.cut_front["type"] != "cut_3d":
             dist = np.linspace(shape_3d_amount_front[0], shape_3d_amount_front[-1], len(shape_3d_amount_front))
@@ -304,10 +304,18 @@ class PanelPlot(object):
                     p2 = p1 + d
                 else:
                     p2 = p1 - d
-                #p1, p2 = self.get_p1_p2(attachment_point.rib_pos, which)
-                plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
-                plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
+                    
+                if cell_pos in (1, 0):
+                    which = ["left", "right"][cell_pos]
+                    x1, x2 = self.get_p1_p2(rib_pos, which)
+                    plotpart.layers["marks"] += self.config.marks_attachment_point(x1, x2)
+                    plotpart.layers["L0"] += self.config.marks_laser_attachment_point(x1, x2)
+                else:
+                    plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
+                    plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
 
+                #p1, p2 = self.get_p1_p2(attachment_point.rib_pos, which)
+                
                 if self.config.insert_attachment_point_text:
                     text_align = "left" if cell_pos > 0.7 else "right"
 
@@ -643,7 +651,8 @@ class CellPlotMaker:
         def get_amount(cut):
             cut_key = cut_hash(cut)
             data = cuts_3d[cut_key]
-            return data
+            # TODO: Investigate
+            return [max(0, x) for x in data]
 
         for panel in self.cell.panels:
             amount_front, amount_back = panel.integrate_3d_shaping(self.cell, self.config.sigma_3d_cut, inner)

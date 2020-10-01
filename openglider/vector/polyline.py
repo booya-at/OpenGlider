@@ -220,6 +220,8 @@ class PolyLine2D(PolyLine):
         """
         Iterate over all cuts with the line p1p2
         if extrapolate is true, cuts will be exceeding the lists length
+
+        yield ik (line), ik (p1->p2)
         """
         startpoint = int(startpoint)
         for i in rangefrom(len(self)-1, startpoint):
