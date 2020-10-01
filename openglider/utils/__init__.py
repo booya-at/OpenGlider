@@ -20,6 +20,7 @@
 
 import inspect
 import json
+import html
 
 from openglider.utils.cache import recursive_getattr
 import openglider.jsonify
@@ -112,6 +113,20 @@ class Config(object):
             repr_str += "    -{0: <{width}} -> {value}\n".format(key, value=value, width=width)
 
         return repr_str
+
+    def _repr_html_(self):
+        html_str = """<table>\n"""
+        for key, value in self.__dict__.items():
+            html_str += f"""    <tr>
+                <td>{key}</td>
+                <td>{html.escape(repr(value))}</td>
+                </tr>
+            """
+        
+        html_str += "</table>"
+
+        return html_str
+
 
     def __iter__(self):
         for key, value in self.__dict__.items():

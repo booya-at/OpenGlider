@@ -7,8 +7,11 @@ from openglider.vector.transformation import Translation, Scale, Rotation
 
 default_scale = 0.8
 
+class Mark(object):
+    def __repr__(self):
+        return self.__class__.__name__
 
-class Polygon(object):
+class Polygon(Mark):
     def __init__(self, edges=3, scale=default_scale, name=None):
         self.scale = scale
         self.num_edges = edges
@@ -33,7 +36,7 @@ class Triangle(Polygon):
         return {"scale": self.scale}
 
 
-class Arrow(object):
+class Arrow(Mark):
     def __init__(self, left=True, scale=default_scale, name=None):
         self.left = left
         self.scale = scale
@@ -54,7 +57,7 @@ class Arrow(object):
         return [PolyLine2D([p1, p1+d, p1+d/2+dr, p1], name=self.name)]
 
 
-class Line(object):
+class Line(Mark):
     def __init__(self, rotation=0., offset=0., name=None):
         self.rotation = rotation
         self.offset = offset
@@ -83,7 +86,7 @@ class Cross(Line):
         return l1(p1, p2) + l2(p1, p2)
 
 
-class Dot(object):
+class Dot(Mark):
     def __init__(self, *positions):
         self.positions = positions
 
@@ -98,7 +101,7 @@ class Dot(object):
         return [PolyLine2D([p]) for p in dots]
 
 
-class _Modify(object):
+class _Modify(Mark):
     def __init__(self, func):
         self.func = func
 

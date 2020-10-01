@@ -2,6 +2,7 @@ import math
 import numpy as np
 import logging
 
+from openglider.glider.cell import Panel
 from openglider.airfoil import get_x_value
 from openglider.plots.glider.config import PatternConfig
 from openglider.vector import PolyLine2D, vector_angle
@@ -15,7 +16,7 @@ import openglider.utils
 class PanelPlot(object):
     DefaultConf = PatternConfig
 
-    def __init__(self, panel, cell, flattended_cell, config=None):
+    def __init__(self, panel: Panel, cell, flattended_cell, config=None):
         self.panel = panel
         self.cell = cell
         self.config = self.DefaultConf(config)
@@ -145,6 +146,10 @@ class PanelPlot(object):
 
         if self.config.debug:
             line1, line2 = self._flattened_cell["debug"]
+            plotpart.layers["debug"].append(PolyLine2D([line[ik] for line, ik in inner_front]))
+            plotpart.layers["debug"].append(PolyLine2D([line[ik] for line, ik in inner_back]))
+            for front, back in zip(inner_front, inner_back):
+                plotpart.layers["debug"].append(front[0][front[1]:back[1]])
             plotpart.layers["debug"].append(line1[ik_values[0][0]:ik_values[0][1]])
             plotpart.layers["debug"].append(line2[ik_values[-1][0]:ik_values[-1][1]])
 
