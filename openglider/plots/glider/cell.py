@@ -200,7 +200,15 @@ class PanelPlot(object):
         side = {"left": 0, "right": 1}[which]
         ik = get_x_value(self.x_values, x)
 
-        return self.ballooned[side][ik], self.outer_orig[side][ik]
+        inner = self.ballooned[side][ik]
+        normal = self.ballooned[side].normvectors[ik]
+
+        if which == "left":
+            outer = inner + normal * self.config.allowance_general
+        else:
+            outer = inner - normal * self.config.allowance_general
+
+        return inner, outer
 
     def _align_upright(self, plotpart):
         def get_p1_p2(side):

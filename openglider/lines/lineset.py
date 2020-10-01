@@ -176,10 +176,11 @@ class LineSet(object):
             for line in self.lines:
                 line.force = None
 
+        for point in self.attachment_points:
+            point.get_position()
+        self.calculate_sag = calculate_sag
+        
         for i in range(iterations):
-            self.calculate_sag = calculate_sag
-            for point in self.attachment_points:
-                point.get_position()
             self._calc_geo()
             if self.calculate_sag:
                 self._calc_sag()
