@@ -478,26 +478,24 @@ class Panel(object):
         :return: [[front_ik_0, back_ik_0], ...[front_ik_n, back_ik_n]] with n is numribs + 1
         """
         x_values = cell.rib1.profile_2d.x_values
-        ik_values = [
-            [get_x_value(x_values, self.cut_front["left"]), get_x_value(x_values, self.cut_back["left"])]
-        ]
+
+        ik_left_front = get_x_value(x_values, self.cut_front["left"])
+        ik_left_back = get_x_value(x_values, self.cut_back["left"])
+        
+        ik_right_front = get_x_value(x_values, self.cut_front["right"])
+        ik_right_back = get_x_value(x_values, self.cut_back["right"])
+
+        ik_values = [[ik_left_front, ik_left_back]]
 
         for i in range(numribs):
             y = float(i+1)/(numribs+1)
-            x_front = self.cut_front["left"] + y * (self.cut_front["right"] -
-                                                    self.cut_front["left"])
 
-            x_back = self.cut_back["left"] + y * (self.cut_back["right"] -
-                                                  self.cut_back["left"])
-
-            front = get_x_value(x_values, x_front)
-            back = get_x_value(x_values, x_back)
+            front = ik_left_front + y * (ik_right_front - ik_left_front)
+            back = ik_left_back + y * (ik_right_back - ik_left_back)
 
             ik_values.append([front, back])
-
-        ik_values.append(
-            [get_x_value(x_values, self.cut_front["right"]), get_x_value(x_values, self.cut_back["right"])]
-        )
+        
+        ik_values.append([ik_right_front, ik_right_back])
 
         return ik_values
 
