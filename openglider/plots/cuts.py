@@ -131,6 +131,45 @@ class SimpleCut(DesignCut):
 
 
 class Cut3D(DesignCut):
+    def apply(self, inner_lists, outer_left: PolyLine2D, outer_right: PolyLine2D, amount_3d=None):
+        """
+
+        :param inner_lists:
+        :param outer_left:
+        :param outer_right:
+        :param amount_3d: list of 3d-shaping amounts
+        :return:
+        """
+        p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
+        normvector = normalize(rotation_2d(math.pi/2).dot(p1-p2))
+
+        inner_ik = []
+        point_list = []
+
+        for offset, lst in zip(amount_3d, inner_lists):
+            curve, ik = lst
+            ik_new = curve.extend(ik, offset)
+            inner_ik.append(ik_new)
+
+            sewing_mark_point = curve[ik_new]
+            point_list.append(sewing_mark_point + normvector*self.amount)
+
+        left_1 = point_list[0]
+        left_2 = point_list[1]
+        left_ik = inner_ik[0]
+
+        right_1 = point_list[-2]
+        right_2 = point_list[-1]
+        right_ik = inner_ik[-1]
+
+        leftcut_index, _ = next(outer_left.cut(left_1, left_2, left_ik, extrapolate=True))
+        rightcut_index, _ = next(outer_right.cut(right_1, right_2, right_ik, extrapolate=True))
+
+        curve = PolyLine2D(point_list)
+
+        return CutResult(curve, leftcut_index, rightcut_index, inner_ik)
+
+class Cut3D_2(DesignCut):
     def apply(self, inner_lists, outer_left, outer_right, amount_3d=None):
         """
 
