@@ -23,7 +23,7 @@ def normalize(vector):
     leng = norm_squared(vector)
     if leng > 0:
         return vector / norm(vector)
-    raise ValueError("Cannot normalize a vector of length Zero")
+    raise ValueError(f"Cannot normalize a vector of length {leng}")
 
 
 def vector_angle(v1, v2):

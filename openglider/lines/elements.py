@@ -395,3 +395,6 @@ class Node(object):
     def copy(self):
         return self.__class__(self.type, self.vec, self.attachment_point, self.name)
 
+    def __repr__(self):
+        return super().__repr__() + f" of type: {self.type}"
+

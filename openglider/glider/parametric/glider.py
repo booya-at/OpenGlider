@@ -339,6 +339,11 @@ class ParametricGlider(object):
 
         cell_centers = [(p1+p2)/2 for p1, p2 in zip(x_values[:-1], x_values[1:])]
         offset_x = shape_ribs[0][0][1]
+
+        rib_material = None
+        if "rib_material" in self.elements:
+            rib_material = self.elements["rib_material"]
+
         for rib_no, pos in enumerate(x_values):
             front, back = shape_ribs[rib_no]
             arc = arc_pos[rib_no]
@@ -363,7 +368,8 @@ class ParametricGlider(object):
                 zrot=zrot_int(pos),
                 holes=this_rib_holes,
                 rigidfoils=this_rigid_foils,
-                name="rib{}".format(rib_no)
+                name="rib{}".format(rib_no),
+                material_code=rib_material
             ))
             ribs[-1].aoa_relative = aoa_int(pos)
 
