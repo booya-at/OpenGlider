@@ -72,8 +72,8 @@ class PanelPlot(object):
         inner_front = [(line, ik[0]) for line, ik in zip(self.inner, ik_values)]
         inner_back = [(line, ik[1]) for line, ik in zip(self.inner, ik_values)]
 
-        shape_3d_amount_front = self.panel.cut_front["amount_3d"]
-        shape_3d_amount_back = [-x for x in self.panel.cut_back["amount_3d"]]
+        shape_3d_amount_front = [-x for x in self.panel.cut_front["amount_3d"]]
+        shape_3d_amount_back = self.panel.cut_back["amount_3d"]
 
         # calculate difference rib->panel
         # for j in (0, -1):  # left, right
