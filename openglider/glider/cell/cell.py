@@ -419,8 +419,6 @@ class Cell(CachedObject):
             d_r = openglider.vector.norm(midribs[-1][i] - midribs[-1][i+1])
             l_0 = get_length(i, i)
 
-            print(openglider.vector.norm(p1-p2)-l_0)
-
             if False:
                 pl_2 = get_point(p1, p2, l_0, d_l, get_length(i+1, i))
                 pr_2 = get_point(p2, pl_2, get_length(i+1, i), d_r, get_length(i+1, i+1), left=False)
