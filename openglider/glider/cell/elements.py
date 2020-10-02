@@ -471,7 +471,7 @@ class Panel(object):
             "left": back["right"]
         }
 
-    def _get_ik_values(self, cell, numribs=0):
+    def _get_ik_values(self, cell: "openglider.glider.cell.Cell", numribs=0, exact=True):
         """
         :param cell: the parent cell of the panel
         :param numribs: number of interpolation steps between ribs
@@ -485,6 +485,8 @@ class Panel(object):
         ik_right_front = get_x_value(x_values, self.cut_front["right"])
         ik_right_back = get_x_value(x_values, self.cut_back["right"])
 
+
+
         ik_values = [[ik_left_front, ik_left_back]]
 
         for i in range(numribs):
@@ -497,7 +499,27 @@ class Panel(object):
         
         ik_values.append([ik_right_front, ik_right_back])
 
-        return ik_values
+        if exact:
+            ik_values_new = []
+            inner = cell.get_flattened_cell(numribs)["inner"]
+            p_front_left = inner[0][ik_left_front]
+            p_front_right = inner[-1][ik_right_front]
+            p_back_left = inner[0][ik_left_back]
+            p_back_right = inner[-1][ik_right_back]
+
+            for i, ik in enumerate(ik_values):
+                ik_front, ik_back = ik
+                line: PolyLine2D = inner[i]
+
+                _cut_front = line.cut(p_front_left, p_front_right, ik_front, True)
+                _cut_back = line.cut(p_back_left, p_back_right, ik_back, True)
+
+                ik_values_new.append((next(_cut_front)[0], next(_cut_back)[0]))
+            
+            return ik_values_new
+        
+        else:
+            return ik_values
 
     def integrate_3d_shaping(self, cell, sigma, inner_2d, midribs=None):
         """
@@ -515,7 +537,7 @@ class Panel(object):
 
         # ! vorn + hinten < gesamt !
 
-        positions = self._get_ik_values(cell, numribs)
+        positions = self._get_ik_values(cell, numribs, exact=True)
 
         front = []
         back = []

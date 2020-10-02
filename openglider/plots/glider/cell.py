@@ -51,7 +51,7 @@ class PanelPlot(object):
             "cut_3d": self.config.cut_3d
         }
 
-        ik_values = self.panel._get_ik_values(self.cell, self.config.midribs)
+        ik_values = self.panel._get_ik_values(self.cell, self.config.midribs, exact=True)
         front_left = ik_values[0][0]
         front_right = ik_values[-1][0]
         back_left = ik_values[0][1]
