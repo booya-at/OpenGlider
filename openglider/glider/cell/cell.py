@@ -400,7 +400,11 @@ class Cell(CachedObject):
 
         def get_point(p1, p2, l_0, l_l, l_r, left=True):
             lx = (l_0**2 + l_l**2 - l_r**2) / (2*l_0)
-            ly = math.sqrt(l_l**2 - lx**2)
+            ly_sq = l_l**2 - lx**2
+            if ly_sq > 0:
+                ly = math.sqrt(ly_sq)
+            else:
+                ly = 0
             diff = openglider.vector.normalize(p2 - p1)
             if left:
                 diff_y = diff.dot([[0, 1], [-1, 0]])
@@ -425,7 +429,6 @@ class Cell(CachedObject):
             else:
                 pr_2 = get_point(p2, p1, l_0, d_r, get_length(i, i+1), left=False)
                 pl_2 = get_point(p1, pr_2, get_length(i, i+1), d_l, get_length(i+1, i+1))
-
 
             left_bal.append(pl_2)
             right_bal.append(pr_2)
