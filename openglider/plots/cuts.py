@@ -150,7 +150,6 @@ class Cut3D(DesignCut):
             curve, ik = lst
             ik_new = curve.extend(ik, offset)
             inner_ik.append(ik_new)
-            print(offset, ik, ik_new)
 
             sewing_mark_point = curve[ik_new]
             point_list.append(sewing_mark_point + normvector*self.amount)
