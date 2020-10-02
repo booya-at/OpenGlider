@@ -568,20 +568,39 @@ class Panel(object):
             # -> sigma = einflussfaktor [m]
             # integral = sqrt(pi/2)*sigma * [ erf(x / (sqrt(2)*sigma) ) ]
 
-            for l2d, l3d in zip(lengthes_2d, lengthes_3d):
-                factor = (l3d - l2d) / l3d
-                x = math.erf( (distance + l3d) / (sigma*math.sqrt(2))) - math.erf(distance / (sigma*math.sqrt(2)))
+            def integrate(lengths_2d, lengths_3d):
+                amount = 0
+                distance = 0
 
-                amount_front += factor * x
+                for l2d, l3d in zip(lengths_2d, lengths_3d):
+                    if l3d > 0:
+                        factor = (l3d - l2d) / l3d
+                        x = math.erf( (distance + l3d) / (sigma*math.sqrt(2))) - math.erf(distance / (sigma*math.sqrt(2)))
+
+                        amount += factor * x
+                    distance += l3d
+            
+                return amount
+
+            amount_back = integrate(lengthes_2d, lengthes_3d)
+            amount_front = integrate(lengthes_2d[::-1], lengthes_3d[::-1])
+
+            for l2d, l3d in zip(lengthes_2d, lengthes_3d):
+                if l3d > 0:
+                    factor = (l3d - l2d) / l3d
+                    x = math.erf( (distance + l3d) / (sigma*math.sqrt(2))) - math.erf(distance / (sigma*math.sqrt(2)))
+
+                    amount_front += factor * x
                 distance += l3d
 
             distance = 0
             amount_back = 0
 
             for l2d, l3d in zip(lengthes_2d[::-1], lengthes_3d[::-1]):
-                factor = (l3d - l2d) / l3d
-                x = math.erf( (distance + l3d) / (sigma*math.sqrt(2))) - math.erf(distance / (sigma*math.sqrt(2)))
-                amount_back += factor * x
+                if l3d > 0:
+                    factor = (l3d - l2d) / l3d
+                    x = math.erf( (distance + l3d) / (sigma*math.sqrt(2))) - math.erf(distance / (sigma*math.sqrt(2)))
+                    amount_back += factor * x
                 distance += l3d
 
             total = 0
