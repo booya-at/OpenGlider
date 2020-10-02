@@ -514,7 +514,17 @@ class Panel(object):
                 _cut_front = line.cut(p_front_left, p_front_right, ik_front, True)
                 _cut_back = line.cut(p_back_left, p_back_right, ik_back, True)
 
-                ik_values_new.append((next(_cut_front)[0], next(_cut_back)[0]))
+                try:
+                    _ik_front = next(_cut_front)[0]
+                except StopIteration:
+                    _ik_front = ik_front
+                    print(f"front: {i} {ik_front}")
+                try:
+                    _ik_back = next(_cut_back)[0]
+                except StopIteration:
+                    print(f"back: {i} {ik_back}")
+                    _ik_back = ik_back
+                ik_values_new.append((_ik_front, _ik_back))
             
             return ik_values_new
         

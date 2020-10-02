@@ -223,12 +223,14 @@ class PolyLine2D(PolyLine):
 
         yield ik (line), ik (p1->p2)
         """
+        # TODO: we have some float issues, check if we were slightly above 1 before and are slightly
+        # below 0 now -> on the point
         startpoint = int(startpoint)
         for i in rangefrom(len(self)-1, startpoint):
             try:
                 # (x,y), i, k
                 pos, ik1, ik2 = cut(self[i], self[i+1], p1, p2)
-                good_cut = 0 < ik1 <= 1 or ik1 == i == 0
+                good_cut = 0 <= ik1 < 1 or (ik1 == 1 and i == len(self)-1)
                 extrapolated_front = i == 0 and ik1 <= 0
                 extrapolated_back = i == len(self)-2 and ik1 > 0
                 extrapolated_cut = extrapolated_front or extrapolated_back

@@ -660,7 +660,11 @@ class CellPlotMaker:
             return [max(0, x) for x in data]
 
         for panel in self.cell.panels:
-            amount_front, amount_back = panel.integrate_3d_shaping(self.cell, self.config.sigma_3d_cut, inner)
+            try:
+                amount_front, amount_back = panel.integrate_3d_shaping(self.cell, self.config.sigma_3d_cut, inner)
+            except:
+                print(f"error: {self.cell.name}")
+                amount_front, amount_back = [[0 for _ in range(inner)]] * 2
 
             add_amount(panel.cut_front, amount_front)
             add_amount(panel.cut_back, amount_back)
