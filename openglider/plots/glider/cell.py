@@ -666,7 +666,7 @@ class CellPlotMaker:
             add_amount(panel.cut_back, amount_back)
 
         for panel in self.cell.panels:
-            panel.cut_front["amount_3d"] = [-x for x in get_amount(panel.cut_front)]
+            panel.cut_front["amount_3d"] = get_amount(panel.cut_front)
             panel.cut_back["amount_3d"] = get_amount(panel.cut_back)
 
     def get_panels(self, panels=None):
