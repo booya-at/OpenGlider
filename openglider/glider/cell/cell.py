@@ -439,7 +439,7 @@ class Cell(CachedObject):
         ]
 
         inner = []
-        for x in openglider.utils.linspace(0, 1, numribs):
+        for x in openglider.utils.linspace(0, 1, numribs + 2):
             l1 = ballooned[0] * (1-x)
             l2 = ballooned[1] * x
             inner.append(l1.add(l2))
