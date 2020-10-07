@@ -305,26 +305,39 @@ class Cell(CachedObject):
             mean_rib += self.midrib(y).flatten().normalize()
         return mean_rib * (1. / num_midribs)
 
-    def get_mesh(self, numribs=0, with_numpy=False, half_cell=False):
+    def get_mesh_grid(self, numribs=0, with_numpy=False, half_cell=False):
         """
-        Get Cell-mesh
+        Get Cell-grid
         :param numribs: number of miniribs to calculate
-        :return: mesh
+        :return: grid
         """
         numribs += 1
 
-        ribs = []
-        trailing_edge = []
+        grid = []
         rib_indices = range(numribs + 1)
         if half_cell:
             rib_indices = rib_indices[(numribs) // 2:]
         for rib_no in rib_indices:
             y = rib_no / max(numribs, 1)
             rib = self.midrib(y, with_numpy=with_numpy).data
-            ribs.append(Vertex.from_vertices_list(rib[:-1]))
+            grid.append(Vertex.from_vertices_list(rib[:-1]))
+        return grid
+
+    def get_mesh(self, numribs=0, with_numpy=False, half_cell=False):
+        """
+        Get Cell-mesh
+        :param numribs: number of miniribs to calculate
+        :return: mesh
+        """
+
+        grid = self.get_mesh_grid(numribs=numribs,
+                                  with_numpy=with_numpy,
+                                  half_cell=half_cell)
+
+        trailing_edge = []
 
         quads = []
-        for rib_left, rib_right in zip(ribs[:-1], ribs[1:]):
+        for rib_left, rib_right in zip(grid[:-1], grid[1:]):
             numpoints = len(rib_left)
             for i in range(numpoints):
                 i_next = (i+1)%numpoints
@@ -336,22 +349,22 @@ class Cell(CachedObject):
                 pol.influenceFlow = True
 
                 quads.append(pol)
-        for rib in ribs:
+        for rib in grid:
             trailing_edge.append(rib[0])
         mesh = Mesh({"hull": quads}, 
-                    {self.rib1.name: ribs[0], self.rib2.name: ribs[-1], "trailing_edge": trailing_edge})
+                    {self.rib1.name: grid[0], self.rib2.name: grid[-1], "trailing_edge": trailing_edge})
         return mesh
 
-    def get_mesh_mapping(self, cell_number=0, numribs=0, with_numpy=False, half_cell=False):
+    def get_mesh_mapping_grid(self, cell_number=0, numribs=0, with_numpy=False, half_cell=False):
         """
-        Get Cell-mesh
+        Get Cell-grid
         :cell_number: number of cell
         :param numribs: number of miniribs to calculate
         :return: mesh
         """
         numribs += 1
 
-        ribs = []
+        grid = []
         rib_indices = range(numribs + 1)
         if half_cell:
             rib_indices = rib_indices[(numribs) // 2:]
@@ -361,17 +374,31 @@ class Cell(CachedObject):
                    self.rib2.profile_2d.get_data(negative_x=True) * y)
             y += cell_number
             rib = np.array([rib.T[0], np.array([y]*len(rib)), rib.T[1]]).T  # insert y-value
-            ribs.append(Vertex.from_vertices_list(rib))
+            grid.append(Vertex.from_vertices_list(rib))
+        return grid
+
+    def get_mesh_mapping(self, cell_number=0, numribs=0, with_numpy=False, half_cell=False):
+        """
+        Get Cell-mesh
+        :cell_number: number of cell
+        :param numribs: number of miniribs to calculate
+        :return: mesh
+        """
+
+        grid = self.get_mesh_mapping_grid(cell_number=cell_number, 
+                                          numribs=numribs,
+                                          with_numpy=with_numpy,
+                                          half_cell=half_cell)     
 
         quads = []
-        for rib_left, rib_right in zip(ribs[:-1], ribs[1:]):
+        for rib_left, rib_right in zip(grid[:-1], grid[1:]):
             numpoints = len(rib_left)
             for i in range(numpoints - 1):
                 i_next = i+1
                 pol = Polygon([rib_left[i], rib_right[i], rib_right[i_next], rib_left[i_next]])
                 quads.append(pol)
         mesh = Mesh({"hull": quads}, 
-                    {self.rib1.name: ribs[0], self.rib2.name: ribs[-1]})
+                    {self.rib1.name: grid[0], self.rib2.name: grid[-1]})
         return mesh
 
     def get_flattened_cell(self, numribs=50):

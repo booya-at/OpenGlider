@@ -2,7 +2,9 @@ import numpy as np
 
 from openglider.utils import sign
 from openglider.utils.cache import cached_property, HashedList
-from openglider.vector.functions import norm, normalize, rangefrom, rotation_2d, cut
+from openglider.vector.functions import norm, normalize, rangefrom, \
+                                        rotation_2d, cut, radius_from_3points, \
+                                        curvature_from_3points
 from openglider.utils.table import Table
 
 
@@ -193,6 +195,23 @@ class PolyLine(HashedList):
             if (_lamda >= 0 and _lamda < 1):
                 cut_list.append(line[0] + _lamda * direction)
         return cut_list
+
+    @property
+    def curvature_radius(self):
+        data = self.data
+        p1 = data[:-2]
+        p2 = data[1:-1]
+        p3 = data[2:]
+        return radius_from_3points(p1, p2, p3)
+
+    @property
+    def curvature(self):
+        data = self.data
+        p1 = data[:-2]
+        p2 = data[1:-1]
+        p3 = data[2:]
+        return curvature_from_3points(p1, p2, p3)
+
 
 
 

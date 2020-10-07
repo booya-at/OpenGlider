@@ -90,3 +90,20 @@ def set_dimension(array, dim=3):
     for i, col in enumerate(array.T):
         ext_array.T[i] = col
     return ext_array
+
+
+def radius_from_3points(p1, p2, p3):
+    a = np.linalg.norm(p2 - p1, axis=1)
+    b = np.linalg.norm(p3 - p2, axis=1)
+    c = np.linalg.norm(p1 - p3, axis=1)
+    s = (a + b + c) / 2
+    r = (a * b * c)  / np.sqrt(s * (s - a) * (s - b) * (s - c))
+    return r
+
+def curvature_from_3points(p1, p2, p3):
+    a = np.linalg.norm(p2 - p1, axis=1)
+    b = np.linalg.norm(p3 - p2, axis=1)
+    c = np.linalg.norm(p1 - p3, axis=1)
+    s = (a + b + c) / 2
+    c = np.sqrt(s * (s - a) * (s - b) * (s - c)) / (a * b * c)
+    return c
