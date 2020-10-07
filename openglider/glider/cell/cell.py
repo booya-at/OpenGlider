@@ -181,16 +181,22 @@ class Cell(CachedObject):
     def point(self, y=0, i=0, k=0):
         return self.midrib(y).point(i, k)
 
-    def midrib(self, y, ballooning=True, arc_argument=True, with_numpy=False):
+    def midrib(self, y, ballooning=True, arc_argument=True, with_numpy=False, close_trailing_edge=False):
+        kwargs = {
+            "ballooning": ballooning,
+            "arc_argument": arc_argument,
+            "with_numpy": with_numpy,
+            "close_trailing_edge": close_trailing_edge
+        }
         if len(self._child_cells) == 1:
-            return self.basic_cell.midrib(y, ballooning=ballooning, with_numpy=with_numpy)
+            return self.basic_cell.midrib(y, **kwargs)
         if ballooning:
             i = 0
             while self._yvalues[i + 1] < y:
                 i += 1
             cell = self._child_cells[i]
             y_new = (y - self._yvalues[i]) / (self._yvalues[i + 1] - self._yvalues[i])
-            return cell.midrib(y_new, arc_argument=arc_argument, with_numpy=with_numpy)
+            return cell.midrib(y_new, **kwargs)
         else:
             return self.basic_cell.midrib(y, ballooning=False)
 

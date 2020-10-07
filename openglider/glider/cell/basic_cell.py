@@ -23,7 +23,7 @@ class BasicCell(CachedObject):
         ##round ballooning
         return self.midrib(y).point(ik)
 
-    def midrib(self, y_value, ballooning=True, arc_argument=True, with_numpy=True):
+    def midrib(self, y_value, ballooning=True, arc_argument=True, with_numpy=True, close_trailing_edge=False):
         if y_value == 0:              # left side
             return self.prof1
         elif y_value == 1:            # right side
@@ -52,7 +52,10 @@ class BasicCell(CachedObject):
 
             for i, _ in enumerate(self.prof1.data):  # Arc -> phi(bal) -> r  # oder so...
                 diff = self.prof1[i] - self.prof2[i]
-                if ballooning and self.ballooning_radius[i] > 0.:
+                if close_trailing_edge and i in (0, len(self.prof1.data)-1):
+                    d = y_value
+                    h = 0.
+                elif ballooning and self.ballooning_radius[i] > 0.:
                     phi = self.ballooning_phi[i]    # phi is half only the half
                     if arc_argument:
                         psi = phi * 2 * y_value         # psi [-phi:phi]

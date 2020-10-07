@@ -60,7 +60,7 @@ class Triangulation(object):
         if self.meshpy_restrict_area:
             opts += "a"
             if self.meshpy_max_area is not None:
-                opts += str(self.meshpy_max_area)
+                opts += "{:f}".format(self.meshpy_max_area)
 
         return opts
 
