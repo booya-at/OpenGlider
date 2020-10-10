@@ -343,7 +343,9 @@ class Line(CachedObject):
         diff = self.diff_vector
         l = np.linalg.norm(diff)
         r = np.linalg.norm(residual_force)
-        f = 1. - (residual_force / r) @ (diff / l)
+        normed_residual_force = residual_force / r
+        normed_diff_vector = diff / l
+        f = 1. - normed_residual_force @ normed_diff_vector   # 1 if normal, 0 if parallel
         return f * self.force / l
 
 

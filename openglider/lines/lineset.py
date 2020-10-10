@@ -320,7 +320,7 @@ class LineSet(object):
         # we have to make sure to not overcompensate the residual force
         if line.has_geo and line.force is not None:
             r = self.get_residual_force(line.upper_node)
-            s = 0
+            s = line.get_correction_influence(r)
 
             for con_line in self.get_connected_lines(line.upper_node):
                 s += con_line.get_correction_influence(r)
@@ -328,7 +328,7 @@ class LineSet(object):
             # compute the compensation factor s with a system of linear equation. The movement
             # of the upper node has impact on the compensation of residual force
             # of the lower node (and the other way).
-            return normalize(line.diff_vector + r / s * 0.3)
+            return normalize(line.diff_vector + r / s * 0.5)
 
             # if norm(r) == 0:
             #     return line.diff_vector
