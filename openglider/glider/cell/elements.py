@@ -509,7 +509,7 @@ class Panel(object):
 
             for i, ik in enumerate(ik_values):
                 ik_front, ik_back = ik
-                line: PolyLine2D = inner[i]
+                line: "openglider.vector.polyline.PolyLine2D" = inner[i]
 
                 _cut_front = line.cut(p_front_left, p_front_right, ik_front, True)
                 _cut_back = line.cut(p_back_left, p_back_right, ik_back, True)
