@@ -84,7 +84,7 @@ class LineSet(object):
     def get_main_attachment_point(self):
         main_attachment_point = None
         for ap in self.lower_attachment_points:
-            if ap.name == "main":
+            if ap.name.upper() == "MAIN":
                 main_attachment_point = ap
 
         if main_attachment_point is None:
@@ -147,8 +147,12 @@ class LineSet(object):
             strength_list.append(strength)
         return strength_list
 
-    def get_mesh(self, numpoints=10):
-        return sum([line.get_mesh(numpoints) for line in self.lines], Mesh())
+    def get_mesh(self, numpoints=10, main_lines_only=False):
+        if main_lines_only:
+            lines = self.get_upper_lines(self.get_main_attachment_point())
+        else:
+            lines = self.lines
+        return sum([line.get_mesh(numpoints) for line in lines], Mesh())
 
     def get_upper_line_mesh(self, numpoints=1, breaks=False):
         mesh = Mesh()
