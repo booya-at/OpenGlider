@@ -143,6 +143,38 @@ class Distribution(HashedList):
         return cls([xtemp(i/numpoints) for i in range(numpoints+1)])
 
     @classmethod
+    def create_cos_distribution(cls, factor: float):
+        def new_distribution(parent, numpoints, *arg, **kwarg):
+            numpoints -= numpoints % 2
+            
+            xtemp = lambda x: ((x<=0)-(x>0))*(factor*np.cos(x*0.5*np.pi)+(1-factor)*(1-abs(x))-1)
+            data = [xtemp(2*i/numpoints-1) for i in range(numpoints+1)]
+            data[0] = -1
+            data[-1] = 1
+            return cls(data)
+        
+        return new_distribution
+
+    @classmethod
+    def create_cos_distribution_2(cls, factor_front: float, factor_back):
+        def new_distribution(parent, numpoints, *arg, **kwarg):
+            numpoints -= numpoints % 2
+            
+            factor_linear = 1-factor_back-factor_front
+
+            x = lambda i: 2*i/numpoints - 1
+            cos_front_def = lambda x:((x<=0)-(x>0)) * (np.cos(0.5 * np.pi * x)-1)
+
+            #((x > 0.5) - (x < 0.5)) * (1 + np.cos(2 * np.pi * x)) / 2
+            cos_back_def = lambda x: ((x>=0)-(x<0))*0.5*(np.cos(np.pi * (x+1))+1)
+            
+            data = [factor_front*cos_front_def(x(i)) + factor_back*cos_back_def(x(i)) + factor_linear*x(i) for i in range(numpoints+1)]
+
+            return cls(data)
+        
+        return new_distribution
+
+    @classmethod
     def from_nose_cos_distribution(cls, numpoints, border=0.5):
         """
         from cos distribution at leading edge, to a const distribution at +- 1
