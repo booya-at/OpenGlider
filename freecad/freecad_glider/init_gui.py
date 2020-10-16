@@ -115,7 +115,7 @@ class GliderWorkbench(Gui.Workbench):
         self.appendToolbar('GliderView', self.viewBox)
         self.appendToolbar('Develop', self.devBox)
 
-        # Gui.addPreferencePage(Dir + '/ui/preferences.ui', 'glider')
+        Gui.addPreferencePage(Dir + '/ui/preferences.ui', 'glider')
 
     def Activated(self):
         if not hasattr(self, "first_startup"):
