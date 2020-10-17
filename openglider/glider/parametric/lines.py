@@ -60,8 +60,8 @@ class UpperNode2D(object):
         return parametric_shape[self.cell_no, self.rib_pos]
 
     def get_node(self, glider):
-        if self.cell_pos > 0: # attachment point between two ribs
-            cell = glider.cells[self.cell_no + glider.has_center_cell]
+        if 1 > self.cell_pos > 0: # attachment point between two ribs
+            cell = glider.cells[self.cell_no]
             if isinstance(self.force, (list, tuple, np.ndarray)):
                 force = list(self.force)
             else:
@@ -72,13 +72,13 @@ class UpperNode2D(object):
 
             node = CellAttachmentPoint(cell, self.name, self.cell_pos, self.rib_pos, force)
         else: # attachment point on the rib
-            rib = glider.ribs[self.cell_no + glider.has_center_cell]
+            rib = glider.ribs[self.cell_no + self.cell_pos]
             if isinstance(self.force, (list, tuple, np.ndarray)):
                 force = list(self.force)
             else:
                 force = rib.rotation_matrix(np.array([0, self.force, 0]))
-            node = AttachmentPoint(glider.ribs[self.cell_no + glider.has_center_cell],
-                                   self.name, self.rib_pos, force)
+
+            node = AttachmentPoint(rib, self.name, self.rib_pos, force)
 
         node.get_position()
         return node
@@ -315,11 +315,12 @@ class LineSet2D(object):
         while row < num_rows:
             value = sheet[row, column]  # length or node_no
 
-            if value is not None:
+            if value:
                 if column == 0:  # first (line-)floor
                     lower_node_name = sheet[row, 0]
                     if not type(lower_node_name) == str:
                         lower_node_name = str(int(lower_node_name))
+                    
                     current_nodes = [attachment_points_lower[lower_node_name]] + \
                                     [None for __ in range(num_cols)]
                     column += 1
@@ -375,7 +376,7 @@ class LineSet2D(object):
 
             node_groups.setdefault(layer_name, [])
             node_groups[layer_name].append(node)
-            num_cells = max(num_cells, node.cell_no)
+            num_cells = max(num_cells, node.cell_no)+1
 
         groups = list(node_groups.keys())
 
@@ -413,17 +414,16 @@ class LineSet2D(object):
         attachment_points = []
         values = ("name", "cell_pos", "rib_pos", "force")
         num_columns = int(table.num_columns / 4)
-        num_rows = table.num_rows - 1
+        
         for column in range(num_columns):
             column_0 = column*4
             assert table[0, column_0] in ("ATP", "AHP")
 
-            for row in range(1, num_rows):
+            for row in range(1, table.num_rows):
                 name = table[row, column_0]
                 if name:
                     force = table[row, column_0+3]
                     if isinstance(force, str):
-                        print(force)
                         force = ast.literal_eval(force)
 
                     attachment_points.append(UpperNode2D(

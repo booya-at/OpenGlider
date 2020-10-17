@@ -1,6 +1,7 @@
 import copy
 import re
 
+import pyexcel_ods
 import ezodf
 
 
@@ -55,6 +56,16 @@ class Table:
             row_no, column_no = item
             item = self.str_encrypt(column_no, row_no)
         return self.dct.get(item, None)
+
+    def get_columns(self, from_i, to_j):
+        new_table = self.__class__(self.num_rows, to_j-from_i)
+        for i in range(from_i, to_j+1):
+            for j in range(self.num_rows):
+                item = self.str_encrypt(i, j)
+                if item in self.dct:
+                    new_table.set_value(i-from_i, j, self.dct[item])
+        
+        return new_table
 
     def __isub__(self, other):
         import numbers
@@ -136,10 +147,11 @@ class Table:
 
     @classmethod
     def load(cls, path):
-        doc = ezodf.opendoc(path)
-        sheets = [cls.from_ods_sheet(sheet) for sheet in doc.sheets]
-        if len(sheets) == 1:
-            return sheets[0]
+        from pyexcel_ods import get_data
+        data = pyexcel_ods.get_data(path)
+
+        sheets = [cls.from_list(sheet) for sheet in data.values()]
+        
         return sheets
 
     @classmethod
@@ -162,7 +174,8 @@ class Table:
 
         for row_no, row in enumerate(lst):
             for col_no, value in enumerate(row):
-                table[row_no, col_no] = value
+                if value not in ("", None):
+                    table[row_no, col_no] = value
         
         return table
 
