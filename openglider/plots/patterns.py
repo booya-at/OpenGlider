@@ -2,9 +2,9 @@ import datetime
 import os
 import subprocess
 import logging
+from typing import List
 
-from openglider import jsonify
-
+import openglider.glider
 import openglider.plots.spreadsheets
 from openglider.plots.spreadsheets import get_glider_data
 import openglider.plots.cuts
@@ -37,7 +37,7 @@ class PatternsNew(object):
             "config": self.config
         }
 
-    def _get_sketches(self):
+    def _get_sketches(self) -> List[Layout]:
         import openglider.plots.sketches as sketch
         shapeplot = sketch.ShapePlot(self.project.glider, self.project.glider_3d)
         design_upper = shapeplot.copy().insert_design(lower=True)
@@ -59,7 +59,7 @@ class PatternsNew(object):
         straps.insert_attachment_points(add_text=False)
         straps.insert_straps()
 
-        drawings = [design_upper.drawing, design_lower.drawing, lineplan.drawing, diagonals.drawing, straps.drawing]
+        drawings: List[Layout] = [design_upper.drawing, design_lower.drawing, lineplan.drawing, diagonals.drawing, straps.drawing]
 
         drawings_width = max([dwg.width for dwg in drawings])
 
@@ -69,7 +69,7 @@ class PatternsNew(object):
         text_name = Text(self.project.name or "unnamed", p1, p2, valign=1)
         date_str = datetime.datetime.now().strftime("%d.%m.%Y")
         text_date = Text(date_str, p1, p2, valign=0)
-        drawings += [text_date.get_plotpart(), text_name.get_plotpart()]
+        drawings += [Layout([x]) for x in [text_date.get_plotpart(), text_name.get_plotpart()]]
 
         return drawings
     

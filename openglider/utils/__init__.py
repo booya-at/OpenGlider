@@ -32,10 +32,12 @@ def sign(val):
     return (val > 0) - (val < 0)
 
 
-def consistent_value(elements, attribute):
+def consistent_value(elements, attribute) -> list:
     vals = [recursive_getattr(element, attribute) for element in elements]
     if vals[1:] == vals[:-1]:
         return vals[0]
+    
+    raise Exception("values not consistent: {attribute}, {elements}")
 
 
 def linspace(start, stop, count):

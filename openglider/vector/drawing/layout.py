@@ -1,5 +1,6 @@
 import os
 import math
+from typing import List, Union
 
 import numpy as np
 import svgwrite
@@ -101,7 +102,7 @@ class Layout(object):
 
 
     @classmethod
-    def stack_column(cls, parts: [PlotPart], distance: float, center_x: bool=True) -> "Layout":
+    def stack_column(cls, parts: List[Union[PlotPart,"Layout"]], distance: float, center_x: bool=True) -> "Layout":
         column_dwg = cls()
         direction = (distance >= 0) - (distance < 0)
         y = 0
@@ -124,7 +125,7 @@ class Layout(object):
         return column_dwg
 
     @classmethod
-    def stack_row(cls, parts: [PlotPart], distance: float, center_y: bool=True) -> "Layout":
+    def stack_row(cls, parts: List[Union[PlotPart,"Layout"]], distance: float, center_y: bool=True) -> "Layout":
         row_dwg = cls()
         direction = (distance >= 0) - (distance < 0)
         x = 0
@@ -151,13 +152,13 @@ class Layout(object):
         return row_dwg
 
     @classmethod
-    def stack_grid(cls, parts: [PlotPart], distance_x: float, distance_y: float, draw_grid=True) -> "Layout":
+    def stack_grid(cls, parts: List[List[PlotPart]], distance_x: float, distance_y: float, draw_grid=True) -> "Layout":
         all_parts = cls()
         rows = len(parts)
         columns = len(parts[0])
 
-        heights = [0 for _ in range(rows)]
-        widths = [0 for _ in range(columns)]
+        heights = [0. for _ in range(rows)]
+        widths = [0. for _ in range(columns)]
 
         for row_no, row in enumerate(parts):
             for column_no, part in enumerate(row):
