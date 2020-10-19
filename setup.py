@@ -77,6 +77,7 @@ setup(
                     "scipy",
                     "ezdxf",
                     "ezodf",
+                    "pyexcel-ods",
                     "meshpy"
                     ],
     author='Booya',
