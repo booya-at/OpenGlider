@@ -1,7 +1,10 @@
 import copy
 import re
 
-import pyexcel_ods
+try:
+    import pyexcel_ods
+except ImportError:
+    import pyexcel_ods3 as pyexcel_ods
 import ezodf
 
 
@@ -147,7 +150,6 @@ class Table:
 
     @classmethod
     def load(cls, path):
-        from pyexcel_ods import get_data
         data = pyexcel_ods.get_data(path)
 
         sheets = [cls.from_list(sheet) for sheet in data.values()]
