@@ -72,7 +72,7 @@ class UpperNode2D(object):
 
             node = CellAttachmentPoint(cell, self.name, self.cell_pos, self.rib_pos, force)
         else: # attachment point on the rib
-            rib = glider.ribs[self.cell_no + self.cell_pos]
+            rib = glider.ribs[self.cell_no + self.cell_pos + glider.has_center_cell]
             if isinstance(self.force, (list, tuple, np.ndarray)):
                 force = list(self.force)
             else:
