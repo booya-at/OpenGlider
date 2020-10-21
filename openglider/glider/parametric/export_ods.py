@@ -10,6 +10,7 @@ from openglider.glider.cell import DiagonalRib
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.utils.table import Table
 
+file_version = "V3"
 
 def export_ods_2d(glider, filename):
     doc = ezodf.newdoc(doctype="ods", filename=filename)
@@ -100,6 +101,7 @@ def get_cell_sheet(glider):
     cell_num = glider.shape.half_cell_num
     row_num = glider.shape.half_cell_num
     table = Table()
+    table["A1"] = file_version
 
     for i in range(1, row_num+1):
         table[i, 0] = str(i)
@@ -142,7 +144,7 @@ def get_cell_sheet(glider):
             cut_next = find_next(cut, cell_no_temp)
             if not cut_next:
                 break
-            column.insert_row(cut_next[:2], cell_no_temp)
+            column.insert_row(cut_next[:2], cell_no_temp+1)
             cut = cut_next
 
         cuts_table.append_right(column)
@@ -205,6 +207,7 @@ def get_rib_sheet(glider_2d):
     row_num = glider_2d.shape.half_cell_num + 1
     sheet_name = "Rib Elements"
     sheet = ezodf.Sheet(name=sheet_name, size=(row_num+1, 1))
+    sheet[0,0].set_value(file_version)
     elems = glider_2d.elements
 
     for i in range(1, row_num+1):
@@ -280,14 +283,18 @@ def get_ballooning_sheet(glider_2d):
     return ods_sheet
 
 
-def get_parametric_sheet(glider):
+def get_parametric_sheet(glider : "openglider.glider.parametric.glider.ParametricGlider"):
     line_no = 1 + max([
         glider.shape.front_curve.numpoints,
         glider.shape.back_curve.numpoints,
         glider.shape.rib_distribution.numpoints,
-        glider.arc.curve.numpoints
+        glider.arc.curve.numpoints,
+        glider.zrot.numpoints,
+        glider.aoa.numpoints,
+        glider.ballooning_merge_curve.numpoints,
+        glider.profile_merge_curve.numpoints
         ])
-    sheet = ezodf.Sheet(name="Parametric", size=(line_no, 8))
+    sheet = ezodf.Sheet(name="Parametric", size=(line_no, 16))
 
     def add_curve(name, curve, column_no):
         #sheet.append_columns(2)
@@ -300,6 +307,10 @@ def get_parametric_sheet(glider):
     add_curve("back", glider.shape.back_curve.controlpoints, 2)
     add_curve("rib_distribution", glider.shape.rib_distribution.controlpoints, 4)
     add_curve("arc", glider.arc.curve.controlpoints, 6)
+    add_curve("aoa", glider.aoa.controlpoints, 8)
+    add_curve("zrot", glider.zrot.controlpoints, 10)
+    add_curve("ballooning_merge_curve", glider.ballooning_merge_curve.controlpoints, 12)
+    add_curve("profile_merge_curve", glider.profile_merge_curve.controlpoints, 14)
 
     return sheet
 
@@ -307,34 +318,6 @@ def get_parametric_sheet(glider):
 def get_lines_sheet(glider, places=3):
     table = glider.lineset.get_input_table()
     ods_sheet = table.get_ods_sheet("Lines")
-    return ods_sheet
-
-    lower_nodes = glider.lineset.get_lower_attachment_points()
-
-    line_trees = [glider.lineset.create_tree(node) for node in lower_nodes]
-    ods_sheet = ezodf.Table(name="Lines", size=(500, 500))
-
-    def insert_block(line, upper, row, column):
-        ods_sheet[row, column+1].set_value(line.line_type.name)
-        if upper:
-            ods_sheet[row, column].set_value(line.target_length)
-            for line, line_upper in upper:
-                row = insert_block(line, line_upper, row, column+2)
-        else:  # Insert a top node
-            name = line.upper_node.name
-            if not name:
-                name = "Rib_{}/{}".format(line.upper_node.rib_no,
-                                          line.upper_node.rib_pos)
-            ods_sheet[row, column].set_value(name)
-            row += 1
-        return row
-
-    row = 0
-    for node_no, tree in enumerate(line_trees):
-        ods_sheet[row, 0].set_value(node_no)
-        for line, upper in tree:
-            row = insert_block(line, upper, row, 1)
-
     return ods_sheet
 
 def get_data_sheet(glider):

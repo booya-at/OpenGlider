@@ -1,18 +1,25 @@
 from __future__ import division
-
-import logging
 import copy
+import logging
 import math
-import numpy as np
+from typing import Callable, List
 
+import numpy as np
+import openglider.vector
+import openglider.utils
 from openglider.airfoil import Profile3D
 from openglider.glider.ballooning import Ballooning
 from openglider.glider.cell import BasicCell
+from openglider.glider.cell.elements import Panel
+from openglider.mesh import Mesh, Polygon, Vertex
 from openglider.utils import consistent_value, linspace
-from openglider.utils.cache import CachedObject, cached_property, HashedList
-from openglider.vector import norm, normalize, PolyLine2D
-from openglider.mesh import Mesh, Vertex, Polygon
-import openglider.vector.projection
+from openglider.utils.cache import (
+    CachedObject,
+    HashedList,
+    cached_function,
+    cached_property,
+)
+from openglider.vector import PolyLine2D, norm, normalize
 
 logging.getLogger(__file__)
 
@@ -24,8 +31,8 @@ class Cell(CachedObject):
     panel_naming_scheme_lower = "{cell.name}pl{panel_no}"
     minirib_naming_scheme = "{cell.name}mr{minirib_no}"
 
-    def __init__(self, rib1, rib2, ballooning, miniribs=None, panels=None,
-                 diagonals=None, straps=None, name="unnamed"):
+    def __init__(self, rib1, rib2, ballooning, miniribs=None, panels: List["Panel"]=None,
+                 diagonals: list=None, straps: list=None, name="unnamed"):
         self.rib1 = rib1
         self.rib2 = rib2
         self.miniribs = miniribs or []
@@ -50,9 +57,9 @@ class Cell(CachedObject):
         if seperate_upper_lower:
             upper = [panel for panel in self.panels if panel.mean_x < 0]
             lower = [panel for panel in self.panels if panel.mean_x >= 0]
-            sort_func = lambda panel: abs(panel.mean_x)
-            upper.sort(sort_func)
-            lower.sort(sort_func)
+            sort_func = lambda panel: abs(panel.mean_x())
+            upper.sort(key=sort_func)
+            lower.sort(key=sort_func)
 
             for panel_no, panel in enumerate(upper):
                 panel.name = self.panel_naming_scheme_upper.format(cell=self, panel_no=panel_no+1)
@@ -77,7 +84,7 @@ class Cell(CachedObject):
         self.rename_panels(seperate_upper_lower=seperate_upper_lower)
 
     @cached_property('rib1.profile_3d', 'rib2.profile_3d', 'ballooning_phi')
-    def basic_cell(self):
+    def basic_cell(self) -> BasicCell:
         return BasicCell(self.rib1.profile_3d, self.rib2.profile_3d, self.ballooning_phi)
 
     def get_normvector(self):
@@ -90,7 +97,7 @@ class Cell(CachedObject):
         return normalize(np.cross(p1-p2, p3-p4))
 
     @cached_property('miniribs', 'rib1', 'rib2')
-    def rib_profiles_3d(self):
+    def rib_profiles_3d(self) -> list:
         """
         Get all the ribs 3d-profiles, including miniribs
         """
@@ -167,7 +174,7 @@ class Cell(CachedObject):
         return [0] + [mrib.y_value for mrib in self.miniribs] + [1]
 
     @property
-    def x_values(self):
+    def x_values(self) -> list:
         return consistent_value(self.ribs, 'profile_2d.x_values')
 
     @property
@@ -245,10 +252,6 @@ class Cell(CachedObject):
         x_values = self.rib1.profile_2d.x_values
         balloon = [self.ballooning[i] for i in x_values]
         return HashedList([Ballooning.arcsinc(1. / (1+bal)) if bal > 0 else 0 for bal in balloon])
-
-    @property
-    def ribs(self):
-        return [self.rib1, self.rib2]
 
     @property
     def span(self):
@@ -352,7 +355,6 @@ class Cell(CachedObject):
                     rib_right[i],
                     rib_right[i_next],
                     rib_left[i_next]])
-                pol.influenceFlow = True
 
                 quads.append(pol)
         for rib in grid:
@@ -407,6 +409,7 @@ class Cell(CachedObject):
                     {self.rib1.name: grid[0], self.rib2.name: grid[-1]})
         return mesh
 
+    @cached_function("self")
     def get_flattened_cell(self, numribs=50):
         midribs = self.get_midribs(numribs)
         numpoints = len(midribs[0])

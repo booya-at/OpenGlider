@@ -6,6 +6,7 @@ import re
 import ezodf
 import numpy as np
 import logging
+import typing
 
 from openglider.airfoil import BezierProfile2D, Profile2D
 from openglider.vector.spline import Bezier, SymmetricBezier, SymmetricBSpline
@@ -25,19 +26,27 @@ element_keywords = {
     "a": "",
 }
 
+def filter_elements_from_table(table: Table, key: str, length: int):
+    new_table = Table()
+    for column in range(table.num_columns):
+        if table[0, column] == key:
+            new_table.append_right(table.get_columns(column, column+length-1))
+    
+    return new_table
 
 def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     logger.info(f"Import file: {filename}")
     ods = ezodf.opendoc(filename)
     sheets = ods.sheets
+    tables = Table.load(filename)
 
-    cell_sheet = sheets[1]
-    rib_sheet = sheets[2]
+    cell_sheet = tables[1]
+    rib_sheet = tables[2]
 
     # file-version
-    file_version_match = re.match(r"V([0-9]*)", str(cell_sheet[0, 0].value))
+    file_version_match = re.match(r"V([0-9]*)", str(cell_sheet["A1"]))
     if file_version_match:
-        file_version = file_version_match.group(1)
+        file_version = int(file_version_match.group(1))
     else:
         file_version = 1
     logger.info(f"Loading file version {file_version}")
@@ -49,7 +58,9 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
         foil.normalize()
 
     if file_version > 2:
-        geometry = get_geometry_parametric(sheets[5])
+        has_center_cell = not tables[0][0, 0] == 0
+        cell_no = (tables[0].num_rows - 2) * 2 + has_center_cell
+        geometry = get_geometry_parametric(tables[5], cell_no)
     else:
         geometry = get_geometry_explicit(sheets[0])
 
@@ -91,8 +102,23 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
         if len(row) > 1:
             data[row[0].value] = row[1].value
 
-    # Attachment points: rib_no, id, pos, force
-    attachment_points = get_attachment_points(rib_sheet, cell_sheet)
+    # Attachment points: rib_no, id, pos, forc
+    # old format -> replace
+    attachment_points = [UpperNode2D(args[0], args[2], force=args[3], name=args[1])
+                         for args in read_elements(rib_sheet, "AHP", len_data=3)]
+    if geometry["shape"].has_center_cell:
+        for p in attachment_points:
+            p.cell_no += 1
+            
+    attachment_points += LineSet2D.read_attachment_point_table(filter_elements_from_table(cell_sheet, "ATP", 4))
+    attachment_points += LineSet2D.read_attachment_point_table(filter_elements_from_table(cell_sheet, "AHP", 4))
+    
+    for attachment_point in attachment_points:
+        if attachment_point.cell_no >= geometry["shape"].cell_num/2:
+            attachment_point.cell_no -= 1
+            attachment_point.cell_pos = 1
+
+    attachment_points = {n.name: n for n in attachment_points}
     attachment_points_lower = get_lower_aufhaengepunkte(data)
 
     # RIB HOLES
@@ -119,7 +145,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
 
     cuts = get_cuts(["EKV", "EKH", "folded"], "folded")
     cuts += get_cuts(["DESIGNM", "DESIGNO", "orthogonal"], "orthogonal")
-    cuts += get_cuts(["CUT3D"], "cut_3d")
+    cuts += get_cuts(["CUT3D", "cut_3d"], "cut_3d")
     cuts += get_cuts(["singleskin"], "singleskin")
 
     # Diagonals: center_left, center_right, width_l, width_r, height_l, height_r
@@ -127,7 +153,6 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     for res in read_elements(cell_sheet, "QR", len_data=6):
         height1 = res[5]
         height2 = res[6]
-
         # migration
         if file_version == 1:
             # height (0,1) -> (-1,1)
@@ -175,7 +200,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
         })
     miniribs = group(miniribs, "cells")
 
-    lineset_table = Table.from_ods_sheet(sheets[6])
+    lineset_table = tables[6]
     lineset = LineSet2D.read_input_table(lineset_table, attachment_points_lower, attachment_points)
 
     glider_2d = Glider2D(elements={"cuts": cuts,
@@ -272,24 +297,39 @@ def get_geometry_explicit(sheet):
     }
 
 
-def get_geometry_parametric(sheet):
+def get_geometry_parametric(table: Table, cell_num):
     data = {}
-    column = 0
-    while sheet[0, column].value:
-        rows = []
-        row = 1
-        while sheet[row, column].value:
-            rows.append([sheet[row, column].value, sheet[row, column+1].value])
-            row += 1
+    
+    for key in ("front", "back", "rib_distribution", "arc", "zrot", "aoa", "profile_merge_curve", "ballooning_merge_curve"):
+        column = None
+        for col in range(table.num_columns):
+            if table[0, col] == key:
+                column = col
+        if column is not None:
+            points = []
+            for row in range(1, table.num_rows):
+                if table[row, column] is not None:
+                    points.append([table[row, column], table[row, column+1]])
+            data[key] = points
 
-        data[sheet[0, column].value] = rows
-        column += 2
+    parametric_shape = ParametricShape(
+        SymmetricBSpline(data["front"]),
+        SymmetricBSpline(data["back"]),
+        Bezier(data["rib_distribution"]),
+        cell_num
+    )
 
-    #print(data)
-    raise Exception
+    arc_curve = ArcCurve(SymmetricBSpline(data["arc"]))
 
-    return data
-
+    return {
+        "shape": parametric_shape,
+        "arc": arc_curve,
+        "aoa": SymmetricBSpline(data["aoa"]),
+        "zrot": SymmetricBSpline(data["zrot"]),
+        "profile_merge_curve": SymmetricBSpline(data["profile_merge_curve"]),
+        "ballooning_merge_curve": SymmetricBSpline(data["ballooning_merge_curve"])
+    }
+    
 
 def get_material_codes(sheet):
     materials = read_elements(sheet, "MATERIAL", len_data=1)
@@ -304,14 +344,14 @@ def get_material_codes(sheet):
     return ret
 
 
-def get_attachment_points(rib_sheet, cell_sheet, midrib=False):
+def get_attachment_points(rib_sheet, cell_sheet, cell_table) -> typing.Dict[str, UpperNode2D]:
     # coming: (num, name, (cell_pos,) rib_pos, force
     # UpperNode2D(rib_no, rib_pos, cell_pos, force, name, layer)
-    attachment_points = [UpperNode2D(args[0], args[2], force=args[3], name=args[1])
-                         for args in read_elements(rib_sheet, "AHP", len_data=3)]
 
     cell_attachment_points = [UpperNode2D(args[0], args[3], args[2],args[4], args[1])
                               for args in read_elements(cell_sheet, "AHP", len_data=4)]
+
+    cell_attachment_points += LineSet2D.read_attachment_point_table(filter_elements_from_table(cell_table, "ATP", 4))
     # attachment_points.sort(key=lambda element: element.nr)
 
     dct = {node.name: node for node in (attachment_points + cell_attachment_points)}
@@ -366,7 +406,7 @@ def transpose_columns(sheet, columnswidth=2):
     return result
 
 
-def read_elements(sheet, keyword, len_data=2):
+def read_elements(sheet: Table, keyword, len_data=2):
     """
     Return rib/cell_no for the element + data
 
@@ -375,15 +415,16 @@ def read_elements(sheet, keyword, len_data=2):
 
     elements = []
     column = 0
-    while column < sheet.ncols():
-        if sheet.get_cell([0, column]).value == keyword:
+    while column < sheet.num_columns:
+        if sheet[0, column] == keyword:
             # print("found, ", j, sheet[0, j].value, sheet.ncols(), sheet[1, j].value)
-            for row in range(1, sheet.nrows()):
+            for row in range(1, sheet.num_rows):
                 #print(row)
-                line = [sheet.get_cell([row, column + k]).value for k in range(len_data)]
+                line = [sheet[row, column + k] for k in range(len_data)]
                 # print(line)
-                if line[0] is not None:
-                    elements.append([row - 1] + line)
+                if line[0]:
+                    line.insert(0, row-1)
+                    elements.append(line)
             column += len_data
         else:
             column += 1

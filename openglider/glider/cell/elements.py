@@ -17,19 +17,23 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import division
-
 import copy
 
 import numpy as np
 import math
 
+import openglider.vector
 from openglider.airfoil import get_x_value
 from openglider.mesh import Mesh, triangulate
+from openglider.utils.cache import cached_function
 from openglider.vector import norm, PolyLine
 from openglider.vector.projection import flatten_list
 from openglider.utils import Config
 
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from openglider.glider.cell import Cell
 
 class DiagonalRib(object):
     def __init__(self, left_front, left_back, right_front, right_back, material_code="", name="unnamed"):
@@ -327,9 +331,8 @@ class Panel(object):
                 "name": self.name
                 }
 
-    def mean_x(self):
+    def mean_x(self) -> float:
         """
-
         :return: center point of the panel as x-values
         """
         total = self.cut_front["left"]
@@ -471,7 +474,8 @@ class Panel(object):
             "left": back["right"]
         }
 
-    def _get_ik_values(self, cell: "openglider.glider.cell.Cell", numribs=0, exact=True):
+    @cached_function("self")
+    def _get_ik_values(self, cell: "Cell", numribs=0, exact=True):
         """
         :param cell: the parent cell of the panel
         :param numribs: number of interpolation steps between ribs
@@ -509,7 +513,7 @@ class Panel(object):
 
             for i, ik in enumerate(ik_values):
                 ik_front, ik_back = ik
-                line: "openglider.vector.polyline.PolyLine2D" = inner[i]
+                line: openglider.vector.PolyLine2D = inner[i]
 
                 _cut_front = line.cut(p_front_left, p_front_right, ik_front, True)
                 _cut_back = line.cut(p_back_left, p_back_right, ik_back, True)
