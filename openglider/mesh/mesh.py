@@ -15,6 +15,7 @@ class Vertex(object):
     def __init__(self, x, y, z, attributes=None):
         self.set_values(x, y, z)
         self.attributes = attributes or {}
+        self.index = -1
 
     def __iter__(self):
         yield self.x
@@ -208,12 +209,14 @@ class Mesh(object):
         Get [vertices, polygons, boundaries] with references by index
         """
         vertices = list(self.vertices)
-        indices = {node: i for i, node in enumerate(vertices)}
+        for i, v in enumerate(vertices):
+            v.index = i
+            
         polys = {}
         for poly_name, polygons in self.polygons.items():
             poly_group = []
             for poly in polygons:
-                poly_indices = [indices[node] for node in poly]
+                poly_indices = [node.index for node in poly]
                 new_poly = Polygon(poly_indices, attributes=poly.attributes)
                 poly_group.append(new_poly)
 
@@ -221,7 +224,7 @@ class Mesh(object):
 
         boundaries = {}
         for boundary_name, boundary_nodes in self.boundary_nodes.items():
-            boundaries[boundary_name] = [indices[node] for node in boundary_nodes if node in vertices]
+            boundaries[boundary_name] = [node.index for node in boundary_nodes if node in vertices]
 
         return vertices, polys, boundaries
 
