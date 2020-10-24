@@ -17,7 +17,7 @@ from openglider.utils.cache import (
     CachedObject,
     HashedList,
     cached_function,
-    cached_property,
+    cached_property, hash_list,
 )
 from openglider.vector import PolyLine2D, norm, normalize
 
@@ -31,8 +31,10 @@ class Cell(CachedObject):
     panel_naming_scheme_lower = "{cell.name}pl{panel_no}"
     minirib_naming_scheme = "{cell.name}mr{minirib_no}"
 
+    sigma_3d_cut = 0.04
+
     def __init__(self, rib1, rib2, ballooning, miniribs=None, panels: List["Panel"]=None,
-                 diagonals: list=None, straps: list=None, name="unnamed"):
+                 diagonals: list=None, straps: list=None, name="unnamed", **kwargs):
         self.rib1 = rib1
         self.rib2 = rib2
         self.miniribs = miniribs or []
@@ -42,6 +44,9 @@ class Cell(CachedObject):
         self.panels = panels or []
         self.name = name
 
+        for kwarg, value in kwargs.items():
+            setattr(self, kwarg, value)
+
     def __json__(self):
         return {"rib1": self.rib1,
                 "rib2": self.rib2,
@@ -50,8 +55,12 @@ class Cell(CachedObject):
                 "diagonals": self.diagonals,
                 "panels": self.panels,
                 "straps": self.straps,
-                "name": self.name
+                "name": self.name,
+                "sigma_3d_cut": self.sigma_3d_cut
                 }
+    
+    def __hash__(self) -> int:
+        return hash_list(self.rib1, self.rib2, *self.miniribs, *self.diagonals)
 
     def rename_panels(self, seperate_upper_lower=False):
         if seperate_upper_lower:
@@ -107,16 +116,18 @@ class Cell(CachedObject):
 
         return profiles
 
-    def get_connected_panels(self):
+    def get_connected_panels(self, skip=None):
         panels = []
+        self.panels.sort(key=lambda panel: panel.mean_x())
+
         p0 = self.panels[0]
         for p in self.panels[1:]:
-            joined_panel = p0 + p
-            if not joined_panel:
+            if p.cut_front["type"] != skip and  p.cut_front == p0.cut_back:
+                p0 = Panel(p0.cut_front, p.cut_back, material_code=p0.material_code)
+            else:
                 panels.append(p0)
                 p0 = p
-            else:
-                p0 = joined_panel
+
         panels.append(p0)
         return panels
 
@@ -487,4 +498,47 @@ class Cell(CachedObject):
             "inner": inner,
             "ballooned": ballooned
             }
+    
+    def calculate_3d_shaping(self, panels=None, numribs=10):
+        if panels is None:
+            panels = self.panels
+
+        flat = self.get_flattened_cell(numribs)
+        inner = flat["inner"]
+
+        cuts_3d = {}
+
+        def cut_hash(cut):
+            return "{}-{}-{}".format(cut["left"], cut["right"], cut["type"])
+
+        def add_amount(cut, amount):
+            cut_key = cut_hash(cut)
+
+            for key in cuts_3d:
+                if key == cut_key:
+                    old = cuts_3d[key]
+
+                    cuts_3d[key] = [(x1+x2)/2 for x1, x2 in zip(old, amount)]
+                    return
+
+            cuts_3d[cut_key] = amount
+
+        def get_amount(cut):
+            cut_key = cut_hash(cut)
+            data = cuts_3d[cut_key]
+            # TODO: Investigate
+            return [max(0, x) for x in data]
+
+        for panel in panels:
+            amount_front, amount_back = panel.integrate_3d_shaping(self, self.sigma_3d_cut, inner)
+
+            add_amount(panel.cut_front, amount_front)
+            add_amount(panel.cut_back, amount_back)
+
+        cut_3d_types = ["cut_3d"]
+        for panel in panels:
+            if panel.cut_front["type"] in cut_3d_types:
+                panel.cut_front["amount_3d"] = get_amount(panel.cut_front)
+            if panel.cut_back["type"] in cut_3d_types:
+                panel.cut_back["amount_3d"] = get_amount(panel.cut_back)
 

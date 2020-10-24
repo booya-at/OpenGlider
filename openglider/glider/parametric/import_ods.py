@@ -63,6 +63,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
         geometry = get_geometry_parametric(tables[5], cell_no)
     else:
         geometry = get_geometry_explicit(sheets[0])
+        has_center_cell = geometry["shape"].has_center_cell
 
     balloonings = []
     for i, (name, baloon) in enumerate(transpose_columns(sheets[4])):
@@ -104,15 +105,16 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
 
     # Attachment points: rib_no, id, pos, forc
     # old format -> replace
-    attachment_points = [UpperNode2D(args[0], args[2], force=args[3], name=args[1])
+    attachment_points = [UpperNode2D(args[0]-has_center_cell, args[2], force=args[3], name=args[1])
                          for args in read_elements(rib_sheet, "AHP", len_data=3)]
     if geometry["shape"].has_center_cell:
         for p in attachment_points:
             p.cell_no += 1
             
-    attachment_points += LineSet2D.read_attachment_point_table(filter_elements_from_table(cell_sheet, "ATP", 4))
-    attachment_points += LineSet2D.read_attachment_point_table(filter_elements_from_table(cell_sheet, "AHP", 4))
+    attachment_points += LineSet2D.read_attachment_point_table(filter_elements_from_table(cell_sheet, "ATP", 4), has_center_cell)
+    attachment_points += LineSet2D.read_attachment_point_table(filter_elements_from_table(cell_sheet, "AHP", 4), has_center_cell)
     
+    # fix stabi attachment point
     for attachment_point in attachment_points:
         if attachment_point.cell_no >= geometry["shape"].cell_num/2:
             attachment_point.cell_no -= 1

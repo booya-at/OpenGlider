@@ -94,6 +94,7 @@ def cached_function(*hashlist):
                     
                     def __call__(self, *args, **kwargs):
                         the_hash = hash_attributes(self.parent, self.hashlist)
+                        logging.info(f"{self.parent} {the_hash} {self.hash} {args} {kwargs}")
 
                         if the_hash != self.hash:
                             self.cache.clear()
@@ -177,7 +178,6 @@ def hash_list(*lst):
     for el in lst:
 
         hash_func = getattr(el, "__hash__", None)
-        hash_func = None
         if hash_func is not None:
             thahash = el.__hash__()
         else:

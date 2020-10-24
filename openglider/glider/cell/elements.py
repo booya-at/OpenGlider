@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import copy
+import logging
 
 import numpy as np
 import math
@@ -25,7 +26,7 @@ import math
 import openglider.vector
 from openglider.airfoil import get_x_value
 from openglider.mesh import Mesh, triangulate
-from openglider.utils.cache import cached_function
+from openglider.utils.cache import cached_function, hash_list
 from openglider.vector import norm, PolyLine
 from openglider.vector.projection import flatten_list
 from openglider.utils import Config
@@ -330,6 +331,9 @@ class Panel(object):
                 "material_code": self.material_code,
                 "name": self.name
                 }
+    
+    def __hash__(self) -> int:
+        return hash_list(*self.cut_front.values(), *self.cut_back.values())
 
     def mean_x(self) -> float:
         """
@@ -473,6 +477,17 @@ class Panel(object):
             "right": back["left"],
             "left": back["right"]
         }
+    
+    def snap(self, cell):
+        """
+        replaces panel x_valus with x_values stored in profile-2d-x-values
+        """
+        p_l = cell.rib1.profile_2d
+        p_r = cell.rib2.profile_2d
+        self.cut_back["left"] = p_l.nearest_x_value(self.cut_back["left"])
+        self.cut_back["right"] = p_r.nearest_x_value(self.cut_back["right"])
+        self.cut_front["left"] = p_l.nearest_x_value(self.cut_front["left"])
+        self.cut_front["right"] = p_r.nearest_x_value(self.cut_front["right"])
 
     @cached_function("self")
     def _get_ik_values(self, cell: "Cell", numribs=0, exact=True):
@@ -481,13 +496,15 @@ class Panel(object):
         :param numribs: number of interpolation steps between ribs
         :return: [[front_ik_0, back_ik_0], ...[front_ik_n, back_ik_n]] with n is numribs + 1
         """
-        x_values = cell.rib1.profile_2d.x_values
+        x_values_left = cell.rib1.profile_2d.x_values
 
-        ik_left_front = get_x_value(x_values, self.cut_front["left"])
-        ik_left_back = get_x_value(x_values, self.cut_back["left"])
+        ik_left_front = get_x_value(x_values_left, self.cut_front["left"])
+        ik_left_back = get_x_value(x_values_left, self.cut_back["left"])
         
-        ik_right_front = get_x_value(x_values, self.cut_front["right"])
-        ik_right_back = get_x_value(x_values, self.cut_back["right"])
+
+        x_values_right = cell.rib2.profile_2d.x_values
+        ik_right_front = get_x_value(x_values_right, self.cut_front["right"])
+        ik_right_back = get_x_value(x_values_right, self.cut_back["right"])
 
 
 
@@ -522,12 +539,13 @@ class Panel(object):
                     _ik_front = next(_cut_front)[0]
                 except StopIteration:
                     _ik_front = ik_front
-                    print(f"front: {i} {ik_front}")
+                    logging.warning(f"panel_ik_failure: {ik_front} {cell}/{self}/back")
                 try:
                     _ik_back = next(_cut_back)[0]
                 except StopIteration:
-                    print(f"back: {i} {ik_back}")
                     _ik_back = ik_back
+                    logging.warning(f"panel_ik_failure: {ik_front} {cell}/{self}/back")
+
                 ik_values_new.append((_ik_front, _ik_back))
             
             return ik_values_new

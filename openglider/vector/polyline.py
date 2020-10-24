@@ -111,6 +111,7 @@ class PolyLine(HashedList):
     def extend(self, start, length):
         """
         Move from a starting point for a given length in direction of the line
+        TODO: rename -> walk(start, distance)
         """
         if length == 0:
             return start

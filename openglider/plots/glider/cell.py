@@ -52,10 +52,6 @@ class PanelPlot(object):
         }
 
         ik_values = self.panel._get_ik_values(self.cell, self.config.midribs, exact=True)
-        front_left = ik_values[0][0]
-        front_right = ik_values[-1][0]
-        back_left = ik_values[0][1]
-        back_right = ik_values[-1][1]
 
         # allowance fallbacks
         allowance_front = cut_allowances[self.panel.cut_front["type"]]
@@ -74,20 +70,6 @@ class PanelPlot(object):
 
         shape_3d_amount_front = [-x for x in self.panel.cut_front["amount_3d"]]
         shape_3d_amount_back = self.panel.cut_back["amount_3d"]
-
-        # calculate difference rib->panel
-        # for j in (0, -1):  # left, right
-        #     profile = [self.cell.prof1, self.cell.prof2][j]
-        #     line_2d = self.inner[j][ik_values[j][0]:ik_values[j][-1]]
-        #     line_3d = profile[ik_values[j][0]:ik_values[j][-1]]
-        #     diff = line_3d.get_length() - line_2d.get_length()
-
-        #     shape_3d_amount_front[j] = +diff/2
-        #     shape_3d_amount_back[j] = -diff/2
-
-        #     if diff > 0.0003:
-        #         message = f"diff > 0.003: {self.panel.name}, {j}, {diff}, {line_2d.get_length()}, {line_3d.get_length()}"
-        #         self.logger.info(message)
 
         if self.panel.cut_front["type"] != "cut_3d":
             dist = np.linspace(shape_3d_amount_front[0], shape_3d_amount_front[-1], len(shape_3d_amount_front))
@@ -629,52 +611,15 @@ class CellPlotMaker:
 
         return self._flattened_cell
 
-    def _get_3d_shaping(self):
-        flat = self._get_flatten_cell()
-        inner = flat["inner"]
-
-        cuts_3d = {}
-
-        def cut_hash(cut):
-            return "{}-{}-{}".format(cut["left"], cut["right"], cut["type"])
-
-        def add_amount(cut, amount):
-            cut_key = cut_hash(cut)
-
-            for key in cuts_3d:
-                if key == cut_key:
-                    old = cuts_3d[key]
-
-                    cuts_3d[key] = [(x1+x2)/2 for x1, x2 in zip(old, amount)]
-                    return
-
-            cuts_3d[cut_key] = amount
-
-        def get_amount(cut):
-            cut_key = cut_hash(cut)
-            data = cuts_3d[cut_key]
-            # TODO: Investigate
-            return [max(0, x) for x in data]
-
-        for panel in self.cell.panels:
-            amount_front, amount_back = panel.integrate_3d_shaping(self.cell, self.config.sigma_3d_cut, inner)
-
-            add_amount(panel.cut_front, amount_front)
-            add_amount(panel.cut_back, amount_back)
-
-        for panel in self.cell.panels:
-            panel.cut_front["amount_3d"] = get_amount(panel.cut_front)
-            panel.cut_back["amount_3d"] = get_amount(panel.cut_back)
-
     def get_panels(self, panels=None):
         cell_panels = []
         flattened_cell = self._get_flatten_cell()
-        self._get_3d_shaping()
+        self.cell.calculate_3d_shaping(numribs=self.config.midribs)
 
         if panels is None:
             panels = self.cell.panels
 
-        for part_no, panel in enumerate(panels):
+        for panel in panels:
             plot = self.PanelPlot(panel, self.cell, flattened_cell, self.config)
             dwg = plot.flatten(self.attachment_points)
             cell_panels.append(dwg)

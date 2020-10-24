@@ -55,8 +55,6 @@ class PatternConfig(Config):
 
     strap_num_folds = 0
 
-    sigma_3d_cut = 0.04
-
     insert_attachment_point_text = True
 
     layout_seperate_panels = True

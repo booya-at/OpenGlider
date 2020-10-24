@@ -61,7 +61,7 @@ class UpperNode2D(object):
 
     def get_node(self, glider):
         if 1 > self.cell_pos > 0: # attachment point between two ribs
-            cell = glider.cells[self.cell_no]
+            cell = glider.cells[self.cell_no + glider.has_center_cell]
             if isinstance(self.force, (list, tuple, np.ndarray)):
                 force = list(self.force)
             else:
@@ -410,7 +410,7 @@ class LineSet2D(object):
         return total_table
     
     @staticmethod
-    def read_attachment_point_table(table: Table):
+    def read_attachment_point_table(table: Table, has_center_cell=False):
         attachment_points = []
         values = ("name", "cell_pos", "rib_pos", "force")
         num_columns = int(table.num_columns / 4)
@@ -425,9 +425,13 @@ class LineSet2D(object):
                     force = table[row, column_0+3]
                     if isinstance(force, str):
                         force = ast.literal_eval(force)
+                    
+                    cell_no = row - 1
+                    if has_center_cell:
+                        cell_no -= 1
 
                     attachment_points.append(UpperNode2D(
-                        cell_no = row-1,
+                        cell_no=cell_no,
                         name=name,
                         cell_pos = table[row, column_0+1],
                         rib_pos = table[row, column_0+2],
