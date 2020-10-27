@@ -496,6 +496,7 @@ class Panel(object):
         :param numribs: number of interpolation steps between ribs
         :return: [[front_ik_0, back_ik_0], ...[front_ik_n, back_ik_n]] with n is numribs + 1
         """
+        # TODO: move to cut!!
         x_values_left = cell.rib1.profile_2d.x_values
 
         ik_left_front = get_x_value(x_values_left, self.cut_front["left"])

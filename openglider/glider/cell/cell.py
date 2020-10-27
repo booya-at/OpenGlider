@@ -199,6 +199,7 @@ class Cell(CachedObject):
     def point(self, y=0, i=0, k=0):
         return self.midrib(y).point(i, k)
 
+    @cached_function("self")
     def midrib(self, y, ballooning=True, arc_argument=True, with_numpy=False, close_trailing_edge=False):
         kwargs = {
             "ballooning": ballooning,

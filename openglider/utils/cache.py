@@ -94,13 +94,14 @@ def cached_function(*hashlist):
                     
                     def __call__(self, *args, **kwargs):
                         the_hash = hash_attributes(self.parent, self.hashlist)
-                        logging.info(f"{self.parent} {the_hash} {self.hash} {args} {kwargs}")
+                        #logging.info(f"{self.parent} {the_hash} {self.hash} {args} {kwargs}")
 
                         if the_hash != self.hash:
                             self.cache.clear()
                             self.hash = the_hash
                         
                         argument_hash = hash_list(*args, *kwargs.values())
+                        logging.debug(f"{argument_hash}, {str(args)}, {str(kwargs)}")
 
                         if argument_hash not in self.cache:
                             logging.debug(f"recalc, {self.function} {self.parent}")
@@ -147,7 +148,7 @@ def hash_attributes(class_instance, hashlist):
     """
     http://effbot.org/zone/python-hash.htm
     """
-    value = 0x345678
+    value_lst = ()
 
     for attribute in hashlist:
         el = recursive_getattr(class_instance, attribute)
@@ -165,16 +166,14 @@ def hash_attributes(class_instance, hashlist):
                     thahash = hash(frozenset(el))
                 except TypeError:
                     thahash = hash(str(el))
+        
+        value_lst += (thahash,)
 
-        value = c_mul(1000003, value) ^ thahash
-    value = value ^ len(hashlist)
-    if value == -1:
-        value = -2
-    return value
+    return hash(value_lst)
+
 
 def hash_list(*lst):
-    value = 0x345678
-
+    value_lst = ()
     for el in lst:
 
         hash_func = getattr(el, "__hash__", None)
@@ -184,17 +183,15 @@ def hash_list(*lst):
             try:
                 thahash = hash(el)
             except TypeError:  # Lists p.e.
-                logging.warning(f"bad cache: {el}")
+                #logging.warning(f"bad cache: {el}")
                 try:
                     thahash = hash(frozenset(el))
                 except TypeError:
                     thahash = hash(str(el))
+        
+        value_lst += (thahash, )
 
-        value = c_mul(1000003, value) ^ thahash
-    value = value ^ len(lst)
-    if value == -1:
-        value = -2
-    return value
+    return hash(value_lst)
 
 
 class HashedList(CachedObject):
