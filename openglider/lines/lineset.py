@@ -593,6 +593,19 @@ class LineSet(object):
     def get_table_2(self):
         return self._get_lines_table(lambda line: [line.name, line.type.name, round(line.get_stretched_length()*1000)])
 
+    def get_table_sorted_lengths(self):
+        table = Table()
+        table[0,0] = "Name"
+        table[0,0] = "Length [mm]"
+        lines = list(self.lines)
+        lines.sort(key=lambda line: line.name)
+        for i, line in enumerate(lines):
+            table[i+1, 0] = line.name
+            table[i+1, 1] = line.type.name
+            table[i+1, 2] = round(line.get_stretched_length()*1000)
+        
+        return table
+
     def get_upper_connected_force(self, node):
         '''
         get the sum of the forces of all upper-connected lines

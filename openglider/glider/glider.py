@@ -98,6 +98,9 @@ class Glider(object):
             cell.rib2 = replace_dict[cell.rib2]
         for att in self.attachment_points:
             att.rib = replace_dict[att.rib]
+            att.get_position()
+        
+        self.lineset.recalc()
 
 
     @classmethod
