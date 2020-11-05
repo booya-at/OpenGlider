@@ -33,7 +33,7 @@ from openglider.mesh import Mesh
 class TestRib(unittest.TestCase):
 
     def setUp(self):
-        naca = random.randint(1, 9999)
+        naca = random.randint(1, 99) * 100 + random.randint(1, 99) # camber / thickness (thickness > 0)
         numpoints = random.randint(10,11)
         self.prof = openglider.airfoil.Profile2D.compute_naca(naca, numpoints)
         self.rib = Rib(self.prof,
