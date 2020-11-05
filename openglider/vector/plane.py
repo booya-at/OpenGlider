@@ -21,7 +21,7 @@ class Plane(object):
         lhs = np.matrix([p1-p2, self.v1, self.v2]).transpose()
         rhs = p1 - self.p0
         res = np.linalg.solve(lhs, rhs)
-        print("res: ", res, lhs, rhs)
+        
         return res[0], res[1:], self.point(res[1], res[2])
 
     def projection(self, point):

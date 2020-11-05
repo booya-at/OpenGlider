@@ -487,7 +487,6 @@ class Mesh(object):
     #     self = self + other
     @staticmethod
     def _find_duplicates(nodes):
-        print("jojo1")
         duplicates = {}
         for i, node1 in enumerate(nodes[:-1]):
             if node1 not in duplicates:

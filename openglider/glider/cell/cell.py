@@ -540,6 +540,10 @@ class Cell(CachedObject):
         for panel in panels:
             if panel.cut_front["type"] in cut_3d_types:
                 panel.cut_front["amount_3d"] = get_amount(panel.cut_front)
+            else:
+                panel.cut_front["amount_3d"] = [0] * (numribs+2)
             if panel.cut_back["type"] in cut_3d_types:
                 panel.cut_back["amount_3d"] = get_amount(panel.cut_back)
+            else:
+                panel.cut_back["amount_3d"] = [0] * (numribs+2)
 
