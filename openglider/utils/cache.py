@@ -70,7 +70,6 @@ def cached_property(*hashlist):
 def cached_function(*hashlist):
     class CachedFunction():
         def __init__(self, f_get, doc=None):
-            print(self, f_get)
             self.function = f_get
             self.__doc__ = doc or f_get.__doc__
             self.__name__ = f_get.__name__

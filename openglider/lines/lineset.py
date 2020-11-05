@@ -477,7 +477,7 @@ class LineSet(object):
             lines += self.get_lower_connected_lines(node)
 
         for floor in range(floors):
-            print("jo", floor, len(lines))
+            
             lines_grouped = {}
             for line in lines:
                 line_groups = set()
