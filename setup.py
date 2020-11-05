@@ -77,6 +77,7 @@ setup(
                     "scipy",
                     "ezdxf",
                     "ezodf",
+                    "lxml", # missing in ezodf:q;
                     "pyexcel-ods",
                     "meshpy"
                     ],
