@@ -46,6 +46,7 @@ class Table:
         self.dct = {}
         self.num_rows = rows
         self.num_columns = columns
+        self.name=None
 
     def __setitem__(self, key, value):
         if isinstance(key, tuple):
@@ -139,6 +140,10 @@ class Table:
 
         if name:
             ods_sheet.name = name
+        elif self.name is not None:
+            ods_sheet.name = self.name
+        else:
+            ods_sheet.name = "table"
 
         return ods_sheet
 

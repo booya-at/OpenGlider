@@ -106,6 +106,7 @@ class GliderProject(object):
 
     def update_all(self):
         self.glider.get_glider_3d(self.glider_3d)
+        self.glider_3d.lineset.recalc()
 
     def __json__(self):
         return {"glider": self.glider,

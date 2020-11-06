@@ -34,6 +34,14 @@ class ParametricShape(object):
             self.area,
             self.aspect_ratio
         )
+    
+    def copy(self):
+        return self.__class__(
+            self.front_curve.copy(),
+            self.back_curve.copy(),
+            self.rib_distribution.copy(),
+            self.cell_num
+        )
 
     @property
     def baseline(self):

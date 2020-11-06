@@ -2,6 +2,7 @@ import copy
 import re
 import ast
 import numpy as np
+import logging
 
 from openglider.glider.rib.elements import AttachmentPoint, CellAttachmentPoint
 from openglider.lines import Node, Line, LineSet
@@ -9,6 +10,7 @@ from openglider.utils import recursive_getattr
 from openglider.lines import line_types
 from openglider.utils.table import Table
 
+logging.getLogger(__name__)
 
 class LowerNode2D(object):
     """lower attachment point"""
@@ -194,12 +196,14 @@ class LineSet2D(object):
         pass
 
 
-    def scale(self, factor):
+    def scale(self, factor, scale_lower_floor=True):
+        lower_nodes = self.get_lower_attachment_points()
         for line in self.lines:
             target_length = getattr(line, "target_length", None)
             if target_length is not None:
-                line.target_length *= factor
-        for node in self.get_lower_attachment_points():
+                if scale_lower_floor or line.lower_node not in lower_nodes:
+                    line.target_length *= factor
+        for node in lower_nodes:
             node.pos_3D = np.array(node.pos_3D) * factor
             node.pos_2D = np.array(node.pos_2D) * factor
 
@@ -262,7 +266,7 @@ class LineSet2D(object):
         def sort_key(line):
             nodes = get_influence_nodes(line)
             if not nodes:
-                print("line", line)
+                pass
                 #return -1
             val = sum([100*(node.cell_no+node.cell_pos)+100*node.rib_pos for node in nodes])/len(nodes)
             #print(line.name, val)
@@ -364,6 +368,8 @@ class LineSet2D(object):
         nodes = self.get_upper_nodes()
         node_groups = {}
         num_cells = 0
+        tables_cell = []
+        tables_rib = []
         tables = []
 
         # sort by layer
@@ -376,7 +382,7 @@ class LineSet2D(object):
 
             node_groups.setdefault(layer_name, [])
             node_groups[layer_name].append(node)
-            num_cells = max(num_cells, node.cell_no)+1
+            num_cells = max(num_cells, node.cell_no)+1  # WHAT?
 
         groups = list(node_groups.keys())
 
@@ -392,39 +398,66 @@ class LineSet2D(object):
         for key in groups:
             table = Table()
             group_nodes = node_groups[key]
-            for cell_no in range(num_cells):
-                cell_nodes = filter(lambda n: n.cell_no == cell_no, group_nodes)
-                for i, node in enumerate(cell_nodes):
-                    # name, cell_pos, rib_pos, force
-                    table[0, 4*i] = "ATP"
-                    table[cell_no+1, 4*i] = node.name
-                    table[cell_no+1, 4*i+1] = node.cell_pos
-                    table[cell_no+1, 4*i+2] = node.rib_pos
-                    table[cell_no+1, 4*i+3] = node.force
+            is_rib_attachment_point = all(n.cell_pos in (0, 1) for n in group_nodes)
 
-            tables.append(table)
+            if is_rib_attachment_point:
+                for rib_no in range(num_cells+1):
+                    rib_nodes = filter(lambda n: n.cell_no+n.cell_pos == rib_no, group_nodes)
+
+                    for i, node in enumerate(rib_nodes):
+                        # name, rib_pos, force
+                        table[0, 3*i] = "ATP"
+                        table[rib_no+1, 3*i] = node.name
+                        table[rib_no+1, 3*i+1] = node.rib_pos
+                        table[rib_no+1, 3*i+2] = node.force
+                
+                tables_rib.append(table)
+
+            else:
+                for cell_no in range(num_cells):
+                    cell_nodes = filter(lambda n: n.cell_no == cell_no, group_nodes)
+                    for i, node in enumerate(cell_nodes):
+                        # name, cell_pos, rib_pos, force
+                        table[0, 4*i] = "ATP"
+                        table[cell_no+1, 4*i] = node.name
+                        table[cell_no+1, 4*i+1] = node.cell_pos
+                        table[cell_no+1, 4*i+2] = node.rib_pos
+                        table[cell_no+1, 4*i+3] = node.force
+
+                tables_cell.append(table)
 
         total_table = Table()
-        for table in tables:
+        for table in tables_cell:
             total_table.append_right(table)
-        return total_table
+
+        total_table_ribs = Table()
+        for table in tables_rib:
+            total_table_ribs.append_right(table)
+        return total_table_ribs, total_table
     
     @staticmethod
-    def read_attachment_point_table(table: Table, has_center_cell=False):
+    def read_attachment_point_table(cell_table: Table=None, rib_table:Table=None, half_cell_no=None):
+        has_center_cell=False
+        if half_cell_no is not None:
+            has_center_cell = half_cell_no % 2
+
         attachment_points = []
         values = ("name", "cell_pos", "rib_pos", "force")
-        num_columns = int(table.num_columns / 4)
+        num_columns = int(cell_table.num_columns / 4)
+
+        def get_force(force):
+            if isinstance(force, str):
+                return ast.literal_eval(force)
+            return force
         
         for column in range(num_columns):
             column_0 = column*4
-            assert table[0, column_0] in ("ATP", "AHP")
+            assert cell_table[0, column_0] in ("ATP", "AHP")
 
-            for row in range(1, table.num_rows):
-                name = table[row, column_0]
+            for row in range(1, cell_table.num_rows):
+                name = cell_table[row, column_0]
                 if name:
-                    force = table[row, column_0+3]
-                    if isinstance(force, str):
-                        force = ast.literal_eval(force)
+                    force = get_force(cell_table[row, column_0+3])
                     
                     cell_no = row - 1
                     if has_center_cell:
@@ -433,10 +466,33 @@ class LineSet2D(object):
                     attachment_points.append(UpperNode2D(
                         cell_no=cell_no,
                         name=name,
-                        cell_pos = table[row, column_0+1],
-                        rib_pos = table[row, column_0+2],
+                        cell_pos = cell_table[row, column_0+1],
+                        rib_pos = cell_table[row, column_0+2],
                         force=force # parse list/tuple
                         ))
+        
+        for column in range(int(rib_table.num_columns / 3)):
+            for row in range(1, rib_table.num_rows):
+                name = rib_table[row, column*3]
+                if name:
+                    rib_no = row-1
+                    #print(f"jo: {rib_table[row, column*3]} {rib_table[row, column*3+1]} {rib_table[row, column*3+2]} ")
+                    rib_pos = rib_table[row, column*3+1]
+                    force = get_force(rib_table[row, column*3+2])
+
+                    attachment_points.append(UpperNode2D(
+                        name=name,
+                        cell_no=rib_no,
+                        rib_pos=rib_pos,
+                        force=force
+                    ))
+        
+
+        for attachment_point in attachment_points:
+            if attachment_point.cell_no >= half_cell_no:
+                attachment_point.cell_no -= 1
+                attachment_point.cell_pos = 1
+
         
         return attachment_points
 

@@ -288,37 +288,6 @@ class PlotPart(object):
         return container
 
     def _repr_svg_(self):
-        import svgwrite
-        import svgwrite.container
-        import svgwrite.shapes
-        width = 600
-        height = int(width * self.height/self.width)+1
-        drawing = svgwrite.Drawing(size=["{}px".format(n) for n in (width, height)])
-        drawing.viewbox(self.min_x, -self.max_y, self.width, self.height)
-        group = svgwrite.container.Group()
-        group.scale(1, -1)  # svg coordinate system is x->right y->down
-        drawing.add(group)
+        from openglider.vector.drawing import Layout
 
-        group_self = self.get_svg_group()
-        group.add(group_self)
-
-        return drawing.tostring()
-
-        # FLATTENING
-        # Dict for layers
-        # Flatten all cell-parts
-        #   * attachment points
-        #   * miniribs
-        #   * sewing marks
-        # FLATTEN RIBS
-        #   * airfoil
-        #   * attachment points
-        #   * gibus arcs
-        #   * holes
-        #   * rigidfoils
-        #   * sewing marks
-        #   ---> SCALE
-        # FLATTEN DIAGONALS
-        #     * Flatten + add stuff
-        #     * Draw marks on ribs
-
+        return Layout([self])._repr_svg_()

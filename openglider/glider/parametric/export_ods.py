@@ -17,10 +17,18 @@ def export_ods_2d(glider, filename):
     assert isinstance(glider, openglider.glider.parametric.glider.ParametricGlider)
 
     doc.sheets.append(get_geom_sheet(glider))
-    cell_sheet = get_cell_sheet(glider).get_ods_sheet()
+    
+    cell_sheet = get_cell_sheet(glider)
     cell_sheet.name = "Cell Elements"
-    doc.sheets.append(cell_sheet)
-    doc.sheets.append(get_rib_sheet(glider))
+    rib_sheet = get_rib_sheet(glider)
+    rib_sheet.name = "Rib Elements"
+    
+    attachment_points = glider.lineset.get_attachment_point_table()
+    rib_sheet.append_right(attachment_points[0])
+    cell_sheet.append_right(attachment_points[1])
+
+    doc.sheets.append(cell_sheet.get_ods_sheet())
+    doc.sheets.append(rib_sheet.get_ods_sheet())
     doc.sheets.append(get_airfoil_sheet(glider))
     doc.sheets.append(get_ballooning_sheet(glider))
     doc.sheets.append(get_parametric_sheet(glider))
@@ -108,7 +116,6 @@ def get_cell_sheet(glider):
 
     elems = glider.elements
 
-    table.append_right(glider.lineset.get_attachment_point_table())
     # cuts
     cuts_table = Table()
     cuts_per_cell = []
@@ -204,58 +211,39 @@ def get_cell_sheet(glider):
 
 
 def get_rib_sheet(glider_2d):
-    row_num = glider_2d.shape.half_cell_num + 1
-    sheet_name = "Rib Elements"
-    sheet = ezodf.Sheet(name=sheet_name, size=(row_num+1, 1))
-    sheet[0,0].set_value(file_version)
-    elems = glider_2d.elements
+    table = Table()
+    table[0, 0] = file_version
 
-    for i in range(1, row_num+1):
-        sheet[i, 0].set_value(str(i))
-
-    column = 1
+    for i in range(1, glider_2d.shape.half_cell_num+1):
+        table[i, 0] = f"rib{i}"
 
     # holes
-    for hole in elems["holes"]:
-        sheet.append_columns(2)
+    for hole in glider_2d.elements["holes"]:
+        hole_table = Table()
 
-        sheet[0, column].set_value("QUERLOCH")
+        hole_table[0, 0] = "HOLE"
 
         for rib_no in hole["ribs"]:
-            sheet[rib_no+1, column].set_value(hole["pos"])
-            sheet[rib_no+1, column+1].set_value(hole["size"])
-
-        column += 2
-
-    # attachment points
-    per_rib = [glider_2d.lineset.get_upper_nodes(rib_no) for rib_no in range(glider_2d.shape.half_rib_num)]
-    max_points = max([len(p) for p in per_rib])
-    sheet.append_columns(3*max_points)
-
-    for node_no in range(max_points):
-        sheet[0, column+3*node_no].set_value("AHP")
-
-    for rib_no, nodes in enumerate(per_rib):
-        nodes.sort(key=lambda node: node.rib_pos)
-        for node_no, node in enumerate(nodes):
-            sheet[rib_no+1, column+3*node_no].set_value(node.name)
-            sheet[rib_no+1, column+3*node_no+1].set_value(node.rib_pos)
-            sheet[rib_no+1, column+3*node_no+2].set_value(node.force)
-    column += 3*max_points
+            table[rib_no+1, 0] = hole["pos"]
+            table[rib_no+1, 1] = hole["size"]
+        
+        table.append_right(hole_table)
 
     # rigidfoils
     rigidfoils = glider_2d.elements.get("rigidfoils", [])
     rigidfoils.sort(key=lambda r: r["start"])
     for rigidfoil in rigidfoils:
-        sheet.append_columns(3)
-        sheet[0, column].set_value("RIGIDFOIL")
-        for rib_no in rigidfoil["ribs"]:
-            sheet[rib_no+1, column].set_value(rigidfoil["start"])
-            sheet[rib_no+1, column+1].set_value(rigidfoil["end"])
-            sheet[rib_no+1, column+2].set_value(rigidfoil["distance"])
-        column += 3
+        rigidfoil_table = Table()
+        rigidfoil_table[0, 0] = "RIGIDFOIL"
 
-    return sheet
+        for rib_no in rigidfoil["ribs"]:
+            rigidfoil_table[rib_no+1, 0] = rigidfoil["start"]
+            rigidfoil_table[rib_no+1, 1] = rigidfoil["end"]
+            rigidfoil_table[rib_no+1, 2] = rigidfoil["distance"]
+        
+        table.append_right(rigidfoil_table)
+
+    return table
 
 
 def get_ballooning_sheet(glider_2d):
