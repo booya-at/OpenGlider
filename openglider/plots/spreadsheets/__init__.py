@@ -13,6 +13,7 @@ def get_glider_data(project: GliderProject):
     glider.lineset.recalc(iterations=30)
     linesheet = glider.lineset.get_table()
     linesheet2 = glider.lineset.get_table_2()
+
     # linesheet = glider.lineset.get_table_2()
     rigidfoils = get_rigidfoils(glider)
     straps = get_straps(glider)
