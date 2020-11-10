@@ -553,6 +553,20 @@ class Panel(object):
         
         else:
             return ik_values
+        
+    @cached_function("self")
+    def _get_ik_interpolation(self, cell: "Cell", numribs=0, exact=True):
+        ik_values = self._get_ik_values(cell, numribs=5, exact=exact)
+        numpoints = len(ik_values)-1
+        ik_interpolation_front = openglider.vector.Interpolation(
+            [[i/numpoints, x[0]] for i, x in enumerate(ik_values)]
+            )
+        
+        ik_interpolation_back = openglider.vector.Interpolation(
+            [[i/numpoints, x[1]] for i, x in enumerate(ik_values)]
+        )
+
+        return ik_interpolation_front, ik_interpolation_back
 
     def integrate_3d_shaping(self, cell, sigma, inner_2d, midribs=None):
         """
@@ -656,3 +670,71 @@ class Panel(object):
             back.append(amount_back)
 
         return front, back
+
+
+class PanelRigidFoil():
+    channel_width = 0.01
+    def __init__(self, x_start: float, x_end: float, y: float=0.5):
+        self.x_start = x_start
+        self.x_end = x_end
+        self.y = y
+    
+    def _get_flattened_line(self, cell):
+        flattened_cell = cell.get_flattened_cell()
+        left, right = flattened_cell["ballooned"]
+        line = (left * (1-self.y)).add(right * self.y)
+
+        ik_front = (cell.rib1.profile_2d(self.x_start) + cell.rib2.profile_2d(self.x_start))/2
+        ik_back = (cell.rib1.profile_2d(self.x_end) + cell.rib2.profile_2d(self.x_end))/2
+
+        return line, ik_front, ik_back
+
+    def draw_panel_marks(self, cell, panel):
+        line, ik_front, ik_back = self._get_flattened_line(cell)
+
+        ik_values = panel._get_ik_values(cell, numribs=5)
+        numpoints = len(ik_values)-1
+        ik_interpolation_front, ik_interpolation_back = panel._get_ik_interpolation(cell, numribs=5)
+
+        start = max(ik_front, ik_interpolation_front(self.y))
+        stop = min(ik_back, ik_interpolation_back(self.y))
+
+        if start < stop:
+            return line[start:stop]
+        
+        return None
+
+    def get_flattened(self, cell):
+        line, ik_front, ik_back = self._get_flattened_line(cell)
+
+        left = line.copy().add_stuff(-self.channel_width/2)
+        right = line.copy().add_stuff(self.channel_width/2)
+
+        contour = left[ik_front:ik_back] + right[ik_back:ik_front]
+        contour.close()
+
+        marks = []
+
+        panel_iks = []
+        for panel in cell.panels:
+            interpolations = panel._get_ik_interpolation(cell, numribs=5)
+
+            panel_iks.append(interpolations[0](self.y))
+            panel_iks.append(interpolations[1](self.y))
+        
+        for ik in panel_iks:
+            if ik_front < ik < ik_back:
+                marks.append(openglider.vector.PolyLine2D([
+                    left[ik],
+                    right[ik]
+                ]))
+
+        return openglider.vector.drawing.PlotPart(
+            cuts=[contour],
+            marks=marks
+        )
+
+
+
+
+    

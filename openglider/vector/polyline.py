@@ -212,6 +212,23 @@ class PolyLine(HashedList):
         p2 = data[1:-1]
         p3 = data[2:]
         return curvature_from_3points(p1, p2, p3)
+    
+    @property
+    def is_closed(self):
+        for x1, x2 in zip(self.data[0], self.data[-1]):
+            if x1 != x2:
+                return False
+        
+        return True
+    
+    def close(self):
+        """
+        Close the ends of the polyline
+        """
+        if not self.is_closed:
+            self.data = np.append(self.data, [self.data[0]], 0)
+        
+        return self
 
 
 

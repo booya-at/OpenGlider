@@ -169,6 +169,7 @@ class PanelPlot(object):
         self._insert_controlpoints(plotpart)
         self._insert_attachment_points(plotpart, attachment_points=attachment_points)
         self._insert_diagonals(plotpart)
+        self._insert_rigidfoils(plotpart)
         # self._insert_center_rods(plotpart)
         # TODO: add in parametric way
 
@@ -339,63 +340,16 @@ class PanelPlot(object):
                     plotpart.layers["text"] += Text(" {} ".format(attachment_point.name), p1, p2,
                                                     size=0.01,  # 1cm
                                                     align=text_align, valign=0, height=0.8).get_vectors()
+    
+    def _insert_rigidfoils(self, plotpart):
+        for rigidfoil in self.cell.rigidfoils:
+            line = rigidfoil.draw_panel_marks(self.cell, self.panel)
+            if line is not None:
+                plotpart.layers["marks"].append(line)
 
-    def _get_middle_line(self, x=0.5):
-        line = []
-
-        for left, right in zip(*self.ballooned):
-            line.append(left + x * (right-left))
-
-        return PolyLine2D(line)
-
-    def _insert_center_rods(self, plotpart):
-        start = -0.15
-        end = 0.15
-
-        front = (self.panel.cut_front["left"] + self.panel.cut_front["right"]) / 2
-        back = (self.panel.cut_back["left"] + self.panel.cut_back["right"]) / 2
-
-        if end < min(self.panel.cut_front["left"], self.panel.cut_front["right"]):
-            return
-        elif start > max(self.panel.cut_back["left"], self.panel.cut_back["right"]):
-            return
-
-        k_start = get_x_value(self.x_values, start)
-        k_end = get_x_value(self.x_values, end)
-
-        middle_line = self._get_middle_line(0.5)
-
-        curve_left = self.ballooned[0]
-        curve_right = self.ballooned[1]
-
-        # cut with front and back
-        front_left = curve_left[get_x_value(self.x_values, self.panel.cut_front["left"])]
-        front_right = curve_right[get_x_value(self.x_values, self.panel.cut_front["right"])]
-        back_left = curve_left[get_x_value(self.x_values, self.panel.cut_back["left"])]
-        back_right = curve_right[get_x_value(self.x_values, self.panel.cut_back["right"])]
-
-        cut_fronts = middle_line.cut(front_left, front_right, startpoint=k_start, extrapolate=True)
-        cut_backs = middle_line.cut(back_left, back_right, startpoint=k_end, extrapolate=True)
-
-        cut_front = next(cut_fronts)[0]
-        cut_back = next(cut_backs)[0]
-
-        k_front = max(k_start, cut_front)
-        k_back = min(k_end, cut_back)
-
-        #print(cut_front, k_front, cut_back, k_back, self.panel.cut_front, self.panel.cut_back)
-
-        if k_back > k_front:
-
-            plotpart.layers["marks"] += [middle_line[k_front:k_back]]
-
-            if front < start < back:
-                k_start = get_x_value(self.x_values, start)
-                plotpart.layers["L0"].append(PolyLine2D([middle_line[k_start]]))
-
-            if front < end < back:
-                k_end = get_x_value(self.x_values, end)
-                plotpart.layers["L0"].append(PolyLine2D([middle_line[k_end]]))
+                # laser dots
+                plotpart.layers["L0"].append(openglider.vector.PolyLine2D([line.data[0]]))
+                plotpart.layers["L0"].append(openglider.vector.PolyLine2D([line.data[-1]]))
 
 
 class DribPlot(object):
@@ -649,3 +603,10 @@ class CellPlotMaker:
             straps.append(plot.flatten(self.attachment_points))
         
         return straps
+    
+    def get_rigidfoils(self):
+        rigidfoils = []
+        for rigidfoil in self.cell.rigidfoils:
+            rigidfoils.append(rigidfoil.get_flattened(self.cell))
+        
+        return rigidfoils

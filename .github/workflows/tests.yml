@@ -21,6 +21,7 @@ jobs:
       - name: install requirements
         run: |
           pip install .
+          pip install meshpy
       - name: test
         run: |
           python testall.py

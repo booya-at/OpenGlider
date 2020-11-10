@@ -8,6 +8,7 @@ from openglider.glider.parametric.shape import ParametricShape
 from openglider.airfoil import Profile2D
 from openglider.glider.glider import Glider
 from openglider.glider.cell import Panel, DiagonalRib, TensionStrap, TensionLine, Cell
+from openglider.glider.cell.elements import PanelRigidFoil
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.export_ods import export_ods_2d
 from openglider.glider.parametric.import_ods import import_ods_2d
@@ -401,6 +402,10 @@ class ParametricGlider(object):
             for cell_no in cells:
                 glider.cells[cell_no].miniribs.append(MiniRib(**data))
 
+        for rigidfoil in self.elements.get("cell_rigidfoils", []):
+            for cell_no in rigidfoil.pop("cells"):
+                glider.cells[cell_no].rigidfoils.append(PanelRigidFoil(**rigidfoil))
+
         # RIB-ELEMENTS
         #self.apply_holes(glider)
 
@@ -434,9 +439,9 @@ class ParametricGlider(object):
         return np.array([np.cos(angle), 0, np.sin(angle)]) * self.speed
 
     def set_area(self, area):
-        factor = math.sqrt(area/self.shape.area)    # TODO: passt des schon no mit line-skalierung?
+        factor = math.sqrt(area/self.shape.area)
         self.shape.scale(factor)
-        self.lineset.scale(factor)
+        self.lineset.scale(factor, scale_lower_floor=False)
         self.rescale_curves()
 
     def set_aspect_ratio(self, aspect_ratio, remain_area=True):

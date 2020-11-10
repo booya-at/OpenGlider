@@ -97,35 +97,44 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
 
 
     data = {}
-    datasheet = sheets[-1]
-    assert isinstance(datasheet, ezodf.Sheet)
-    for row in datasheet.rows():
-        if len(row) > 1:
-            data[row[0].value] = row[1].value
+    datasheet = tables[-1]
+    for row in range(datasheet.num_rows):
+        name = datasheet[row, 0]
+        if name:
+            data[name] = datasheet[row, 1]
 
-    # Attachment points: rib_no, id, pos, forc
-    # old format -> replace
-    attachment_points = [UpperNode2D(args[0]-has_center_cell, args[2], force=args[3], name=args[1])
-                         for args in read_elements(rib_sheet, "AHP", len_data=3)]
-    if geometry["shape"].has_center_cell:
-        for p in attachment_points:
-            p.cell_no += 1
-            
-    attachment_points += LineSet2D.read_attachment_point_table(filter_elements_from_table(cell_sheet, "ATP", 4), has_center_cell)
-    attachment_points += LineSet2D.read_attachment_point_table(filter_elements_from_table(cell_sheet, "AHP", 4), has_center_cell)
     
-    # fix stabi attachment point
-    for attachment_point in attachment_points:
-        if attachment_point.cell_no >= geometry["shape"].cell_num/2:
-            attachment_point.cell_no -= 1
-            attachment_point.cell_pos = 1
+    attachment_points_cell_table = filter_elements_from_table(cell_sheet, "ATP", 4)
+    attachment_points_cell_table.append_right(filter_elements_from_table(cell_sheet, "AHP", 4))
+
+    attachment_points_rib_table = filter_elements_from_table(rib_sheet, "AHP", 3)
+    attachment_points_rib_table.append_right(filter_elements_from_table(rib_sheet, "ATP", 3))
+
+    attachment_points = LineSet2D.read_attachment_point_table(
+        cell_table=attachment_points_cell_table,
+        rib_table=attachment_points_rib_table,
+        half_cell_no=geometry["shape"].half_cell_num
+    )
 
     attachment_points = {n.name: n for n in attachment_points}
+
     attachment_points_lower = get_lower_aufhaengepunkte(data)
+
+    def get_grouped_elements(sheet, names, keywords):
+        group_kw = keywords[0]
+        elements = []
+        for name in names:
+            elements += read_elements(sheet, name, len_data=len(keywords)-1)
+        
+        element_dct = to_dct(elements, keywords)
+
+        return group(element_dct, group_kw)
+
 
     # RIB HOLES
     rib_hole_keywords = ["ribs", "pos", "size"]
     rib_holes = read_elements(rib_sheet, "QUERLOCH", len_data=2)
+    rib_holes += read_elements(rib_sheet, "HOLE", len_data=2)
     rib_holes = to_dct(rib_holes, rib_hole_keywords)
     rib_holes = group(rib_holes, "ribs")
 
@@ -133,6 +142,13 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     rigidfoils = read_elements(rib_sheet, "RIGIDFOIL", len_data=3)
     rigidfoils = to_dct(rigidfoils, rigidfoil_keywords)
     rigidfoils = group(rigidfoils, "ribs")
+
+    cell_rigidfoils = get_grouped_elements(
+        cell_sheet, 
+        ["RIGIDFOIL"], 
+        ["cells", "x_start", "x_end", "y"]
+        )
+
 
     # CUTS
     def get_cuts(names, target_name):
@@ -209,6 +225,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
                                    "holes": rib_holes,
                                    "diagonals": diagonals,
                                    "rigidfoils": rigidfoils,
+                                   "cell_rigidfoils": cell_rigidfoils,
                                    "straps": straps,
                                    "materials": materials,
                                    "miniribs": miniribs},
@@ -295,7 +312,6 @@ def get_geometry_explicit(sheet):
         "zrot": symmetric_fit(zrot),
         "profile_merge_curve": symmetric_fit(profile_merge, bspline=True),
         "ballooning_merge_curve": symmetric_fit(ballooning_merge, bspline=True)
-
     }
 
 
@@ -346,34 +362,18 @@ def get_material_codes(sheet):
     return ret
 
 
-def get_attachment_points(rib_sheet, cell_sheet, cell_table) -> typing.Dict[str, UpperNode2D]:
-    # coming: (num, name, (cell_pos,) rib_pos, force
-    # UpperNode2D(rib_no, rib_pos, cell_pos, force, name, layer)
-
-    cell_attachment_points = [UpperNode2D(args[0], args[3], args[2],args[4], args[1])
-                              for args in read_elements(cell_sheet, "AHP", len_data=4)]
-
-    cell_attachment_points += LineSet2D.read_attachment_point_table(filter_elements_from_table(cell_table, "ATP", 4))
-    # attachment_points.sort(key=lambda element: element.nr)
-
-    dct = {node.name: node for node in (attachment_points + cell_attachment_points)}
-
-    return dct
-    # return attachment_points
-
-
 def get_lower_aufhaengepunkte(data):
     aufhaengepunkte = {}
-    xyz = {"X": 0, "Y": 1, "Z": 2}
+    axis_to_index = {"X": 0, "Y": 1, "Z": 2}
     regex = re.compile("AHP([XYZ])(.*)")
     for key in data:
         if key is not None:
             res = regex.match(key)
             if res:
-                coord, pos = res.groups()
+                axis, pos = res.groups()
 
                 aufhaengepunkte.setdefault(pos, [0, 0, 0])
-                aufhaengepunkte[pos][xyz[coord]] = data[key]
+                aufhaengepunkte[pos][axis_to_index[axis]] = data[key]
     return {name: LowerNode2D([0, 0], pos, name)
             for name, pos in aufhaengepunkte.items()}
 

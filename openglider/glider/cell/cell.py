@@ -34,7 +34,7 @@ class Cell(CachedObject):
     sigma_3d_cut = 0.04
 
     def __init__(self, rib1, rib2, ballooning, miniribs=None, panels: List["Panel"]=None,
-                 diagonals: list=None, straps: list=None, name="unnamed", **kwargs):
+                 diagonals: list=None, straps: list=None, rigidfoils: list=None, name="unnamed", **kwargs):
         self.rib1 = rib1
         self.rib2 = rib2
         self.miniribs = miniribs or []
@@ -42,6 +42,7 @@ class Cell(CachedObject):
         self.straps = straps or []
         self.ballooning = ballooning
         self.panels = panels or []
+        self.rigidfoils = rigidfoils or []
         self.name = name
 
         for kwarg, value in kwargs.items():
@@ -55,6 +56,7 @@ class Cell(CachedObject):
                 "diagonals": self.diagonals,
                 "panels": self.panels,
                 "straps": self.straps,
+                "rigidfoils": self.rigidfoils,
                 "name": self.name,
                 "sigma_3d_cut": self.sigma_3d_cut
                 }
