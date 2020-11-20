@@ -121,7 +121,6 @@ class PolyTri(object):
             ips[1], ips[2] = ip2, ip1
 
     def constraint_edge(self, cb):
-        print("hellooo")
         # start with first point in edge:
         if cb in self.edge2tris.keys():
             return
@@ -157,7 +156,6 @@ class PolyTri(object):
                 if cb in self.edge2tris.keys():
                     break
                 else:
-                    print("constraining")
                     self.constraint_edge(make_key(edge[0], pt0))
                     self.constraint_edge(make_key(pt0, pt1))
 

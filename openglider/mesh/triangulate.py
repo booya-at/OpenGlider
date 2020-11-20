@@ -10,16 +10,6 @@ except ImportError:
     import meshpy._internals as internals
     # new API (pybind11)
 
-# try:
-#     import meshpy.triangle as mptriangle
-#     from openglider.mesh.meshpy_triangle import custom_triangulation
-#     USE_POLY_TRI = False
-# except ImportError as e:
-#     print("!!!!NOT ABLE TO IMPORT MESHPY, MESH-CREATION WILL BE SLOW")
-#     print(e)
-#     from .poly_tri import PolyTri
-#     USE_POLY_TRI = True
-
 
 class Triangulation(object):
     meshpy_keep_boundary = True

@@ -31,7 +31,6 @@ class LSCM(object):
         l = norm(self.vertices[1] -self.vertices[0])
         U_known = np.array([0, 1, 0, 0], float)
         rhs = -np.array(M_rhs.dot(U_known))[0]
-        print(M_rhs.dot(U_known))
         sol = np.linalg.lstsq(M, rhs)[0]
         length_k = len(U_known) / 2.
         length_u = len(sol) / 2.
@@ -83,7 +82,6 @@ class LSCM(object):
         M_r = M[:,pin]
         M = np.delete(M, pin, (1))
         rhs = np.array([M_r.dot(known)])[0]
-        print(rhs)
         sol = np.linalg.lstsq(M, -rhs)[0]
         for i, pos in enumerate(pin):
             sol = np.insert(sol, pos, known[i])
@@ -177,7 +175,6 @@ if __name__ == "__main__":
     # lscm  =LSCM.from_obj("/home/lo/tmp/blender/uv_cylinder.obj")
     lscm  =LSCM.from_obj("/home/lo/tmp/blender/uv_half_torus.obj")
     v = lscm.run_2()
-    print(v)
     import matplotlib.pyplot as plt
     tri = lscm.triangles.T
     tri = np.array([tri[0], tri[1], tri[2], tri[0]]).T

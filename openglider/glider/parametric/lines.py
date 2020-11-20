@@ -269,7 +269,7 @@ class LineSet2D(object):
                 pass
                 #return -1
             val = sum([100*(node.cell_no+node.cell_pos)+100*node.rib_pos for node in nodes])/len(nodes)
-            #print(line.name, val)
+            
             return val
 
         lines.sort(key=sort_key)
@@ -476,7 +476,7 @@ class LineSet2D(object):
                 name = rib_table[row, column*3]
                 if name:
                     rib_no = row-1
-                    #print(f"jo: {rib_table[row, column*3]} {rib_table[row, column*3+1]} {rib_table[row, column*3+2]} ")
+                    
                     rib_pos = rib_table[row, column*3+1]
                     force = get_force(rib_table[row, column*3+2])
 

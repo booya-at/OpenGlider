@@ -17,16 +17,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-
+import logging
 
 from openglider.lines.functions import *
 from openglider.lines.elements import Line, Node
 from openglider.lines import LineSet
 from openglider.lines.line_types import LineType
-
-
-# IMPORT TEXT FILE#################
 from openglider.vector.functions import normalize
+
+
+logger = logging.getLogger(__name__)
 
 
 def import_lines(path):
@@ -80,7 +80,7 @@ def import_file(path, key_dict):
                     if key_dict[current_key][0] == len(line):
                         key_dict[current_key][1](line, key_dict[current_key][2], key_dict)  # function from key-dict
                     elif line[0] != "#":
-                        print("error in inputfile, line " + str(line_nr))
+                        logger.error(f"error in inputfile, line {line_nr}")
             else:
                 current_key = None
             line_nr += 1

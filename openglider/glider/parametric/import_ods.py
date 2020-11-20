@@ -419,11 +419,9 @@ def read_elements(sheet: Table, keyword, len_data=2):
     column = 0
     while column < sheet.num_columns:
         if sheet[0, column] == keyword:
-            # print("found, ", j, sheet[0, j].value, sheet.ncols(), sheet[1, j].value)
             for row in range(1, sheet.num_rows):
-                #print(row)
                 line = [sheet[row, column + k] for k in range(len_data)]
-                # print(line)
+                
                 if line[0]:
                     line.insert(0, row-1)
                     elements.append(line)

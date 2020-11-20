@@ -10,7 +10,7 @@ from openglider.mesh import Mesh
 from openglider.vector.functions import norm, normalize
 from openglider.utils.table import Table
 
-logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 class LineSet(object):
     """
@@ -139,7 +139,7 @@ class LineSet(object):
             strength = 0
             for line in lines:
                 if line.type.min_break_load is None:
-                    logging.warning(f"no min_break_load set for {line.type.name}")
+                    logger.warning(f"no min_break_load set for {line.type.name}")
                 else:
                     strength += line.type.min_break_load
 
@@ -198,7 +198,7 @@ class LineSet(object):
         if start is None:
             start = self.lowest_lines
         for line in start:
-            # print(line.number)
+            logger.debug(f"upper line: {line.number}")
             if line.upper_node.type == 1:  # no gallery line
                 lower_point = line.lower_node.vec
                 tangential = self.get_tangential_comp(line, lower_point)
@@ -219,7 +219,6 @@ class LineSet(object):
         self.calc_forces(start)
         for line in start:
             self._calc_matrix_entries(line)
-        # print(self.mat)
         self.mat.solve_system()
         for l in self.lines:
             l.sag_par_1, l.sag_par_2 = self.mat.get_sag_parameters(l.number)
@@ -253,7 +252,7 @@ class LineSet(object):
                 force = np.zeros(3)
                 for line in lines_upper:
                     if line.force is None:
-                        print("error line force not set: {}".format(line))
+                        logger.warning(f"error line force not set: {line}")
                     else:
                         force += line.force * line.diff_vector
                 # vec = line_lower.upper_node.vec - line_lower.lower_node.vec
@@ -382,7 +381,6 @@ class LineSet(object):
                     diff = l.get_stretched_length(pre_load) - l.target_length
                     l.init_length -= diff
                     #l.init_length = l.target_length * l.init_length / l.get_stretched_length(pre_load)
-            #print("------")
             self.recalc()
 
     def _set_line_indices(self):
@@ -539,7 +537,7 @@ class LineSet(object):
                 
                 return length
 
-        logging.warning(f"no shortening values for: {lower_line.type.name} / {line.type.name} ({total_lines})")
+        logger.warning(f"no shortening values for: {lower_line.type.name} / {line.type.name} ({total_lines})")
 
 
 

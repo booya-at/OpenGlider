@@ -387,11 +387,3 @@ def rib_transformation(aoa, arc, zrot, xrot, scale, pos):
     move = Translation(pos)
     rot = rib_rotation(aoa, arc, zrot, xrot)
     return scale * rot * move
-
-
-
-
-if __name__ == "__main__":
-    a, b, c = np.array([0,0]), np.array([1,1]), np.array([0.5, 0.3])
-    ls = np.array([np.linspace(a[0], b[0], 50), np.linspace(a[1], b[1], 50)]).T
-    print(np.array([parabola(i, a, b, c) for i in ls]))

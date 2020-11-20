@@ -28,7 +28,7 @@ from openglider.vector import PolyLine
 from openglider.vector.functions import norm, normalize
 from openglider.mesh import Mesh, Vertex, Polygon
 
-logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 class SagMatrix():
     def __init__(self, number_of_lines):
@@ -216,9 +216,8 @@ class Line(CachedObject):
 
     def get_weight(self):
         if self.type.weight is None:
-            text = ("predicting weight of linetype {} by line-thickness. " +
-                    "Please enter line_weight in openglider/lines/line_types").format(self.type.name)
-            print(text)
+            logger.warning("predicting weight of linetype {self.type.name} by line-thickness.")
+            logger.warning("Please enter line_weight in openglider/lines/line_types")
             weight = self.type.predict_weight()
         else:
             weight = self.type.weight

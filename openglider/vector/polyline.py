@@ -17,7 +17,6 @@ class PolyLine(HashedList):
             return self.data[ik]
         elif isinstance(ik, slice):  # example: list[1.2:5.5:1]
             values = self.get_positions(ik.start, ik.stop, ik.step)
-            #print(values, ik.start, ik.stop, ik.step, step, start_round, stop_round)
             return PolyLine([self[i] for i in values])
         else:
             if ik < 0:
@@ -368,7 +367,7 @@ class PolyLine2D(PolyLine):
         Move the whole line
         """
         assert len(vector) == 2
-        #print(vector)
+
         self.data += vector[:]
 
         return self

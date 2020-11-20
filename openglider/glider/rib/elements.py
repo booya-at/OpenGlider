@@ -152,9 +152,8 @@ class GibusArcs(object):
         circle = Circle(point_1, point_2).get_sequence()[1:]
         #circle = Polygon(edges=num_points)(point_1, point_2)[0][1:] # todo: is_center -> true
         is_second_run = False
-        #print(circle)
+        
         for i in range(len(circle)):
-            #print(airfoil.contains_point(circle[i]))
             if profile.contains_point(circle[i]) or \
                     (i < len(circle) - 1 and profile.contains_point(circle[i + 1])) or \
                     (i > 1 and profile.contains_point(circle[i - 1])):
@@ -165,7 +164,6 @@ class GibusArcs(object):
         # Cut first and last
         gib_arc = gib_arc[1] + gib_arc[0]  # [secondlist] + [firstlist]
         start2 = profile.cut(gib_arc[0], gib_arc[1], start)
-        #print(gib_arc)
         stop = profile.cut(gib_arc[-2], gib_arc[-1], start)
         # Append Profile_List
         gib_arc += profile.get(start2.next()[0], stop.next()[0]).tolist()

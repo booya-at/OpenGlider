@@ -214,8 +214,3 @@ class Distribution(HashedList):
         upper = -lower
         new_dist = sorted(set(upper.tolist() + lower.tolist() + [0]))
         self.data = new_dist
-
-
-if __name__ == "__main__":
-    a = Distribution.new(30, "cos", fixed_nodes=[-0.99, -0.98, -0.97, -0.9, -0.1, 0.333, 0.9, 0.95, 0.96, 0.97])
-    print(a.data)
