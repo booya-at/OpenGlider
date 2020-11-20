@@ -161,11 +161,3 @@ class Config(object):
             data = json.load(jsonfile)
 
         return cls(data["data"]["data"]["dct"])
-
-
-if __name__ == "__main__":
-    a = Config({"a": 1, "b":Config({"c":2})})
-    print(a.a)
-    print(dir(a))
-    for key, value in a:
-        print(key, value)

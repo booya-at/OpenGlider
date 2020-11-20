@@ -657,15 +657,7 @@ class Panel(object):
             if rib_no == 0 or rib_no == numribs+1:
                 amount_front = 0
                 amount_back = 0
-            #
-            # # compare profile with rib
-            # if rib_no == 0 or rib_no == numribs+1:
-            #     diff = rib_3d.get_length() - rib_2d.get_length()
-            #     amount_front = diff / 2
-            #     amount_back = diff / 2
-            #     if abs(diff > 0.001):
-            #         print(self.name, rib_no, diff, rib_3d.get_length(), rib_2d.get_length())
-
+                
             front.append(amount_front)
             back.append(amount_back)
 

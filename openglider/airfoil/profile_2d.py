@@ -17,19 +17,20 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-
-from __future__ import division
 import os
 import math
 import numpy as np
 import tempfile
 import shutil
+import logging
 
 from openglider.utils.cache import HashedList
 from openglider.utils.distribution import Distribution
 from openglider.vector.functions import norm_squared
 from openglider.vector.polygon import Polygon2D
 
+
+logger = logging.getLogger(__name__)
 
 class Profile2D(Polygon2D):
     """
@@ -358,11 +359,7 @@ class Profile2D(Polygon2D):
 
     @classmethod
     def from_url(cls, name='atr72sm', url='http://m-selig.ae.illinois.edu/ads/coord/'):
-        try:
-            import urllib.request
-        except ImportError:
-            print('urllib not installed')
-            return None
+        import urllib.request
         airfoil_name = name + '.dat'
         temp_name = os.path.join(tempfile.gettempdir(), airfoil_name)
         with urllib.request.urlopen(url + airfoil_name) as data_file, open(temp_name, 'w') as dat_file:
@@ -390,7 +387,7 @@ class Profile2D(Polygon2D):
 
     def calc_drag(self, re=2e6, cl=0.7):
         if not shutil.which('xfoil'):
-            print('command xfoil is not available')
+            logger.error("xfoil is not available")
             return None
         from openglider.airfoil.XFoilCalc import calc_drag
         return calc_drag(self, re, cl)

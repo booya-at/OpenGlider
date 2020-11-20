@@ -50,7 +50,7 @@ def import_ods(filename, glider):
     assert isinstance(datasheet, ezodf.Sheet)
     for i in range(datasheet.nrows()):
         data[datasheet.get_cell([i, 0]).value] = datasheet.get_cell([i, 1]).value
-        #print(data["GLEITZAHL"])
+
     glider.data = data
 
     cells = []
@@ -82,7 +82,7 @@ def import_ods(filename, glider):
         thisrib = Rib(profile, np.array([x, y, z]), chord, alpha, aoa, zrot, data["GLIDE"],
                       name="Rib ({})".format(i))
         if i == 1 and y != 0:  # Middle-cell
-            #print("midrib!", y)
+            
             lastrib = thisrib.copy()
             lastrib.mirror()
         if lastrib:
@@ -177,7 +177,7 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
                 j += 2
             else:
                 lower = current_nodes[j//2]
-                #print(lower)
+
                 if j + 4 >= num_cols or sheet.get_cell([i, j+2]).value is None:  # gallery
 
                     upper = attachment_points_upper[int(val-1)]
@@ -192,13 +192,11 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
                 linelist.append(
                     Line(number=count, lower_node=lower, upper_node=upper, v_inf=np.array([10,0,0]), target_length=line_length))  #line_type=sheet.get_cell
                 count += 1
-                #print("made line", linelist[-1].init_length)
-                #print(upper, lower)
+                
         elif j+2 >= num_cols:
             j = 0
             i += 1
 
-    #print(len(linelist))
     return LineSet(linelist, v_inf=np.array([10,0,0]))
 
 
@@ -206,7 +204,7 @@ def read_elements(sheet, keyword, len_data=2):
     """
     Return rib/cell_no for the element + data
     """
-    #print("jo")
+    
     elements = []
     j = 0
     while j < sheet.ncols():

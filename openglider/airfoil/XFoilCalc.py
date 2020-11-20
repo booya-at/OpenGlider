@@ -34,7 +34,6 @@ def XValues(list1, list2):
     temp2 = temp[:]
     ###check if list2 is not empty and remove all values already calculated from temp2
     if len(list2) > 0:
-        print(temp)
         for i in temp:
             if i in list2[:][0]:
                 temp2.remove(i)
@@ -44,7 +43,7 @@ def XValues(list1, list2):
 def Calcfile(aoalist, xfoutput=tempfile.gettempprefix() + '/xfoutput.dat', renum=200000):
     """Export Calculation command file"""
     temporarydict = tempfile.gettempprefix()
-    print(temporarydict)
+    
     cfile = '/' + temporarydict + '/xfoilcommand.dat'
 
     alphas = ["ALFA\n{}".format(alpha) for alpha in aoalist]
@@ -135,15 +134,15 @@ def Impresults(resfile):
             ##remove leading zero-elements
             while "" in line:
                 line.remove("")
-            print(line)
+                
             if init == 1:
                 erg[float(line[0])] = {index[i]: float(line[i]) for i in range(1, len(line))}
             if line[0][0] == "-":
-                print("ok")
+                
                 init = 1
                 index = temp
             temp = line
-    print(index)
+            
     return erg
 
 

@@ -116,7 +116,6 @@ class PanelPlot(object):
         if panel_right:
             panel_right = panel_right[::-1]
 
-        #print(panel_left)
 
         envelope = panel_right + panel_back
         if len(panel_left) > 0:
@@ -512,12 +511,8 @@ class DribPlot(object):
             outer += PolyLine2D([left_out[p1]])
             plotpart.layers["cuts"].append(outer)
 
-        # print("left", left_out[cut_front[1]:cut_back[1]].get_length())
-
         plotpart.layers["marks"].append(PolyLine2D([left[0], right[0]]))
         plotpart.layers["marks"].append(PolyLine2D([left[len(left) - 1], right[len(right) - 1]]))
-
-        # print(left, right)
 
         plotpart.layers["stitches"] += [left, right]
 

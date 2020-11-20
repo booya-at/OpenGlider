@@ -174,7 +174,7 @@ class ParametricGlider(object):
 
             # add trailing edge (2x)
             all_values = [c["left"] for c in cuts] + [c["right"] for c in cuts]
-            #print(all_values, 1 in all_values)
+
             if -1 not in all_values:
                 cuts.append({"type": "parallel",
                              "left": -1, "right": -1})
@@ -186,7 +186,7 @@ class ParametricGlider(object):
 
             for cut1, cut2 in ZipCmp(cuts):
                 part_no = len(panel_lst)
-                #print(cut1["left"], cut2["left"], cut2["right"], i, len(cuts))
+                
                 if cut1["right"] > cut2["right"]:
                     error_str = "Invalid cut: C{} {:.02f}/{:.02f}/{} + {:.02f}/{:.02f}/{}".format(
                         cell_no+1,

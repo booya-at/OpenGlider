@@ -427,7 +427,6 @@ class Mesh(object):
                 outfile.write(material_line + "\n")
 
             for panel_line in panels_lines:
-                #print(panel_line)
                 outfile.write(panel_line + "\n")
 
     def export_collada(self):
@@ -602,7 +601,6 @@ if __name__ == "__main__":
     p3 = Vertex(*[0, 1, 0])
     p4 = Vertex(*[1, 1, 0])
     p5 = Vertex(*[0, 0, 0])
-    print(p1)
 
     a = Polygon([p1,p2,p3,p4])
     b = Polygon([p1,p2,p4,p5])
@@ -612,5 +610,3 @@ if __name__ == "__main__":
 
     m1 += m2
     m1.delete_duplicates()
-    print(m1.polygons)
-
