@@ -403,8 +403,9 @@ class ParametricGlider(object):
                 glider.cells[cell_no].miniribs.append(MiniRib(**data))
 
         for rigidfoil in self.elements.get("cell_rigidfoils", []):
-            for cell_no in rigidfoil.pop("cells"):
-                glider.cells[cell_no].rigidfoils.append(PanelRigidFoil(**rigidfoil))
+            data = rigidfoil.copy()
+            for cell_no in data.pop("cells"):
+                glider.cells[cell_no].rigidfoils.append(PanelRigidFoil(**data))
 
         # RIB-ELEMENTS
         #self.apply_holes(glider)

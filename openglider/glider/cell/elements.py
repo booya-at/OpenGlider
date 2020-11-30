@@ -671,6 +671,13 @@ class PanelRigidFoil():
         self.x_end = x_end
         self.y = y
     
+    def __json__(self):
+        return {
+            "x_start": self.x_start,
+            "x_end": self.x_end,
+            "y": self.y
+        }
+    
     def _get_flattened_line(self, cell):
         flattened_cell = cell.get_flattened_cell()
         left, right = flattened_cell["ballooned"]
