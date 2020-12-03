@@ -288,8 +288,12 @@ class LineSet2D(object):
             else:  # Insert a top node
                 name = line.upper_node.name
                 if not name:
-                    name = "Rib_{}/{}".format(line.upper_node.rib_no,
-                                              line.upper_node.rib_pos)
+                    _node = line.upper_node
+                    if hasattr(line.upper_node, "cell_no"):
+                        name = f"Cell_{_node.cell_no}/{_node.cell_pos}/{_node.rib_pos}"
+                    else:
+                        name = f"Rib_{_node.rib_no}/{_node.rib_pos}"
+                    line.upper_node.name = name
                 table[row, column] = name
                 row += 1
             return row
@@ -374,7 +378,7 @@ class LineSet2D(object):
 
         # sort by layer
         for node in nodes:
-            match = self.regex_node.match(node.name)
+            match = self.regex_node.match(str(node.name))
             if match:
                 layer_name = match.group(1)
             else:

@@ -17,6 +17,9 @@ def export_ods_2d(glider, filename):
     assert isinstance(glider, openglider.glider.parametric.glider.ParametricGlider)
 
     doc.sheets.append(get_geom_sheet(glider))
+
+    # rename attachment points in case!
+    lines_sheet = get_lines_sheet(glider)
     
     cell_sheet = get_cell_sheet(glider)
     cell_sheet.name = "Cell Elements"
@@ -32,7 +35,7 @@ def export_ods_2d(glider, filename):
     doc.sheets.append(get_airfoil_sheet(glider))
     doc.sheets.append(get_ballooning_sheet(glider))
     doc.sheets.append(get_parametric_sheet(glider))
-    doc.sheets.append(get_lines_sheet(glider))
+    doc.sheets.append(lines_sheet)
     doc.sheets.append(get_data_sheet(glider))
 
     # airfoil sheet
@@ -224,8 +227,8 @@ def get_rib_sheet(glider_2d):
         hole_table[0, 0] = "HOLE"
 
         for rib_no in hole["ribs"]:
-            table[rib_no+1, 0] = hole["pos"]
-            table[rib_no+1, 1] = hole["size"]
+            hole_table[rib_no+1, 0] = hole["pos"]
+            hole_table[rib_no+1, 1] = hole["size"]
         
         table.append_right(hole_table)
 

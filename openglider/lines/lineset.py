@@ -175,7 +175,6 @@ class LineSet(object):
         #         for node in self.get_upper_influence_nodes(line):
         #             node.get_position()
         # TODO: recalc always for reproducibility
-
         if iterations > 1:
             for line in self.lines:
                 line.force = None
@@ -480,7 +479,7 @@ class LineSet(object):
             for line in lines:
                 line_groups = set()
                 for node in self.get_upper_influence_nodes(line):
-                    node_group = self.node_group_rex.match(node.name)
+                    node_group = self.node_group_rex.match(str(node.name))
                     if node_group:
                         line_groups.add(node_group.group(1))
                 
@@ -542,7 +541,6 @@ class LineSet(object):
 
 
         return length
-
 
     def get_table(self):
         length_table = self._get_lines_table(lambda line: [round(self.get_line_length(line)*1000)])

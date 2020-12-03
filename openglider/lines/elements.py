@@ -378,7 +378,7 @@ class Node(object):
 
     def calc_proj_vec(self, v_inf):
         self.vec_proj = proj_to_surface(self.vec, v_inf)
-        return proj_to_surface(self.vec, v_inf)
+        return self.vec_proj
 
     def get_diff(self):
         return self.vec - self.vec_proj
