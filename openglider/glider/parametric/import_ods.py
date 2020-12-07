@@ -77,7 +77,8 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
                 upper = baloon[:i + 1]
                 lower = [(x, -y) for x, y in baloon[i + 1:]]
 
-                balloonings.append(BallooningBezier(upper, lower, name=name))
+                ballooning = BallooningBezier(upper, lower, name=name)
+                balloonings.append(BallooningBezierNeu.from_classic(ballooning))
 
             elif ballooning_type == "V2":
                 i = 0
@@ -87,7 +88,8 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
                 upper = baloon[:i + 1]
                 lower = baloon[i + 1:]
 
-                balloonings.append(BallooningBezier(upper, lower, name=name))
+                ballooning = BallooningBezier(upper, lower, name=name)
+                balloonings.append(BallooningBezierNeu.from_classic(ballooning))
 
             elif ballooning_type == "V3":
                 balloonings.append(BallooningBezierNeu(baloon))

@@ -386,6 +386,7 @@ class ParametricGlider(object):
         for cell_no, (rib1, rib2) in enumerate(zip(ribs[:-1], ribs[1:])):
             ballooning_factor = ballooning_merge_curve(cell_centers[cell_no])
             ballooning = self.merge_ballooning(ballooning_factor)
+            
             cell = Cell(rib1, rib2, ballooning, name="c{}".format(cell_no+1))
 
             glider.cells.append(cell)

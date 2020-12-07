@@ -20,6 +20,7 @@
 import copy
 
 import numpy as np
+from numpy.lib.function_base import interp
 
 import openglider
 from openglider.vector.spline import BSpline
@@ -257,7 +258,7 @@ class BallooningBezierNeu(Ballooning):
     def __getitem__(self, xval):
         """Get Ballooning Value (%) for a certain XValue"""
         if -1 <= xval <= 1:
-            return self.upper(xval)
+            return self.interpolation(xval)
         else:
             raise ValueError("Value {} not between -1 and 1".format(xval))
 
@@ -295,9 +296,21 @@ class BallooningBezierNeu(Ballooning):
         return Interpolation(self.points)
 
     def apply_splines(self):
-        points = self.points
-        interpolation = Interpolation(points)
-        self.upper = interpolation
+        interpolation = self.interpolation
+        p0 = [0, interpolation(0)]
+        upper = []
+        lower = [p0]
+        for point in list(interpolation):
+            x, y = point
+            if point[0] <= 0:
+                upper.append([-x,y])
+            else:
+                lower.append([x,y])
+        
+        upper.append(p0)
+
+        self.upper = Interpolation(upper[::-1])
+        self.lower = Interpolation(lower)
 
     def __imul__(self, factor):  # TODO: Check consistency
         """Multiplication of BezierBallooning"""
@@ -308,7 +321,7 @@ class BallooningBezierNeu(Ballooning):
     def __add__(self, other):
         upper = []
         lower = []
-        for point in self.upper.data:
+        for point in self.interpolation.data:
             x, y = point
             if x <= 0:
                 upper.append([-x, y+other[x]])
