@@ -181,7 +181,7 @@ class Line(CachedObject):
     @cached_property('lower_node.vec', 'upper_node.vec', 'v_inf', 'sag_par_1', 'sag_par_2')
     def length_with_sag(self):
         if self.sag_par_1 is None or self.sag_par_2 is None:
-            raise ValueError('Sag not yet calculated!')
+            logger.error("Sag not yet calculated")
 
         return PolyLine(self.get_line_points(numpoints=100)).get_length()
 

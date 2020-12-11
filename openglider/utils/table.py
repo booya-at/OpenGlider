@@ -133,7 +133,9 @@ class Table:
                     self.set_value(column_no+1, total_rows+row_no+1, value)
 
     def get_ods_sheet(self, name=None):
-        ods_sheet = ezodf.Table(size=(self.num_rows, self.num_columns))
+        rows = max(1, self.num_rows)
+        columns = max(1, self.num_columns)
+        ods_sheet = ezodf.Table(size=(rows, columns))
         for key in self.dct:
             column, row = self.str_decrypt(key)
             ods_sheet[row, column].set_value(self.dct[key])

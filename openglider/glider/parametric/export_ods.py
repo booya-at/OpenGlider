@@ -124,7 +124,7 @@ def get_cell_sheet(glider):
     cuts_per_cell = []
     for cell_no in range(cell_num):
         cuts_this = []
-        for cut in elems["cuts"]:
+        for cut in elems.get("cuts", []):
             if cell_no in cut["cells"]:
                 cuts_this.append((cut["left"], cut["right"], cut["type"]))
 
@@ -168,7 +168,7 @@ def get_cell_sheet(glider):
     table.append_right(cuts_table)
 
     # Diagonals
-    for diagonal in elems["diagonals"]:
+    for diagonal in elems.get("diagonals", []):
         diagonal_table = Table()
         diagonal = copy.copy(diagonal)
         diagonal_table[0, 0] = "QR"
@@ -188,7 +188,7 @@ def get_cell_sheet(glider):
         table.append_right(diagonal_table)
 
     # Straps
-    for strap in elems["straps"]:
+    for strap in elems.get("straps", []):
         strap_table = Table()
         strap_table[0, 0] = "STRAP"
         for cell_no in strap["cells"]:
@@ -201,7 +201,7 @@ def get_cell_sheet(glider):
 
     # Material
     material_table = Table()
-    for cell_no, cell in enumerate(elems["materials"]):
+    for cell_no, cell in enumerate(elems.get("materials", [])):
         for part_no, part in enumerate(cell):
             material_table[cell_no+1, part_no] = part
 
@@ -221,7 +221,7 @@ def get_rib_sheet(glider_2d):
         table[i, 0] = f"rib{i}"
 
     # holes
-    for hole in glider_2d.elements["holes"]:
+    for hole in glider_2d.elements.get("holes", []):
         hole_table = Table()
 
         hole_table[0, 0] = "HOLE"

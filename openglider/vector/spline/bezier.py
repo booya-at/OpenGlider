@@ -269,6 +269,10 @@ class Bezier(HashedList):
                 num = self._matrix.shape[0]
             else:
                 num = 50  # default
+
+        if len(self.controlpoints) == 2:
+            return self.controlpoints
+            
         return np.dot(self.get_matrix(num), self._data)
 
     def get_length(self, num):
