@@ -380,7 +380,7 @@ class LineSet(object):
                     diff = l.get_stretched_length(pre_load) - l.target_length
                     l.init_length -= diff
                     #l.init_length = l.target_length * l.init_length / l.get_stretched_length(pre_load)
-            self.recalc()
+            self.recalc(10)
 
     def _set_line_indices(self):
         for i, line in enumerate(self.lines):
