@@ -277,6 +277,32 @@ class RibHole(object):
             "rotation": self.rotation}
 
 
+class RibSquareHole:
+    def __init__(self, start, stop, height):
+        pass
+
+    def get_3d(self, rib, num=20):
+        hole = self.get_points(rib, num=num)
+        return rib.align_all(set_dimension(hole, 3))
+
+    def get_flattened(self, rib, num=80, scale=True):
+        points = self.get_points(rib, num).data
+        if scale:
+            points *= rib.chord
+        return PolyLine2D(points)
+        #return Polygon(p1, p2, num=num, scale=self.size, is_center=False)[0]
+
+    def get_points(self, rib, num=80):
+        points = []
+
+        return PolyLine2D(points, name=f"{rib.name}-hole")
+
+    def __json__(self):
+        return {
+            }
+
+
+
 class Mylar(object):
     pass
 

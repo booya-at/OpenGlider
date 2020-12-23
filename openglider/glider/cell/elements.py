@@ -19,7 +19,7 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import copy
 import logging
-
+from typing import Tuple
 import numpy as np
 import math
 
@@ -28,6 +28,7 @@ from openglider.airfoil import get_x_value
 from openglider.mesh import Mesh, triangulate
 from openglider.utils.cache import cached_function, hash_list
 from openglider.vector import norm, PolyLine
+from openglider.vector.polyline import PolyLine2D
 from openglider.vector.projection import flatten_list
 from openglider.utils import Config
 
@@ -189,7 +190,7 @@ class DiagonalRib(object):
             polygon = [range(len(vertices))]
             return Mesh.from_indexed(vertices, {"diagonals": polygon})
 
-    def get_flattened(self, cell, ribs_flattened=None):
+    def get_flattened(self, cell, ribs_flattened=None) -> Tuple[PolyLine2D, PolyLine2D]:
         first, second = self.get_3d(cell)
         left, right = flatten_list(first, second)
         return left, right
@@ -490,7 +491,7 @@ class Panel(object):
         self.cut_front["right"] = p_r.nearest_x_value(self.cut_front["right"])
 
     @cached_function("self")
-    def _get_ik_values(self, cell: "Cell", numribs=0, exact=True):
+    def _get_ik_values(self, cell: "openglider.glider.cell.Cell", numribs=0, exact=True):
         """
         :param cell: the parent cell of the panel
         :param numribs: number of interpolation steps between ribs
@@ -568,7 +569,7 @@ class Panel(object):
 
         return ik_interpolation_front, ik_interpolation_back
 
-    def integrate_3d_shaping(self, cell, sigma, inner_2d, midribs=None):
+    def integrate_3d_shaping(self, cell: "Cell", sigma, inner_2d, midribs=None):
         """
         :param cell: the parent cell of the panel
         :param sigma: std-deviation parameter of gaussian distribution used to weight the length differences.

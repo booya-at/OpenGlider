@@ -1,5 +1,7 @@
+from __future__ import annotations
 import copy
 import logging
+from typing import TypeVar
 
 import numpy as np
 
@@ -193,13 +195,16 @@ def hash_list(*lst):
     return hash(value_lst)
 
 
+
+T = TypeVar('T', bound="HashedList")
+
 class HashedList(CachedObject):
     """
     Hashed List to use cached properties
     """
     name = "unnamed"
     def __init__(self, data, name=None):
-        self._data = []
+        self._data = np.array([])
         self._hash = None
         self.data = data
         self.name = name or getattr(self, 'name', None)
@@ -250,5 +255,5 @@ class HashedList(CachedObject):
         else:
             self._data = []
 
-    def copy(self):
+    def copy(self: T) -> T:
         return copy.deepcopy(self)

@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import logging
+from typing import Tuple
 
 from openglider.glider.cell import Panel
 from openglider.airfoil import get_x_value
@@ -267,9 +268,12 @@ class PanelPlot(object):
 
                 if attachment_point.rib == self.cell.rib1:
                     cell_pos = 0
-                    align = ("left", "right")
                 elif attachment_point.rib == self.cell.rib2:
                     cell_pos = 1
+                else:
+                    raise AttributeError
+            else:
+                raise AttributeError
 
             cut_f_l = self.panel.cut_front["left"]
             cut_f_r = self.panel.cut_front["right"]
@@ -347,8 +351,8 @@ class PanelPlot(object):
                 plotpart.layers["marks"].append(line)
 
                 # laser dots
-                plotpart.layers["L0"].append(openglider.vector.PolyLine2D([line.data[0]]))
-                plotpart.layers["L0"].append(openglider.vector.PolyLine2D([line.data[-1]]))
+                plotpart.layers["L0"].append(PolyLine2D([line.data[0]]))
+                plotpart.layers["L0"].append(PolyLine2D([line.data[-1]]))
 
 
 class DribPlot(object):
@@ -359,28 +363,13 @@ class DribPlot(object):
         self.cell = cell
         self.config = self.DefaultConf(config)
 
-        self._left, self._right = None, None
-        self._left_out = self._right_out = None
+        self.left, self.right = self.drib.get_flattened(self.cell)
 
-    def _get_inner(self):
-        if self._left is None:
-            left, right = self.drib.get_flattened(self.cell)
-            self._left = left
-            self._right = right
-        return self._left, self._right
+        self.left_out = self.left.copy()
+        self.right_out = self.right.copy()
 
-    def _get_outer(self) -> (PolyLine2D, PolyLine2D):
-        if self._left_out is None:
-            left, right = self._get_inner()
-            left_out = left.copy()
-            right_out = right.copy()
-
-            left_out.add_stuff(-self.config.allowance_general)
-            right_out.add_stuff(self.config.allowance_general)
-            self._left_out = left_out
-            self._right_out = right_out
-
-        return self._left_out, self._right_out
+        self.left_out.add_stuff(-self.config.allowance_general)
+        self.right_out.add_stuff(self.config.allowance_general)
 
     def get_left(self, x):
         return self.get_p1_p2(x, side=0)
@@ -414,21 +403,18 @@ class DribPlot(object):
     def get_p1_p2(self, x, side=0):
         assert self._is_valid(x, side=side)
 
-        left, right = self._get_inner()
-        left_out, right_out = self._get_outer()
-
         if side == 0:
             front = self.drib.left_front
             back = self.drib.left_back
             rib = self.cell.rib1
-            inner = left
-            outer = left_out
+            inner = self.left
+            outer = self.left_out
         else:
             front = self.drib.right_front
             back = self.drib.right_back
             rib = self.cell.rib2
-            inner = right
-            outer = right_out
+            inner = self.right
+            outer = self.right_out
 
         assert front[0] <= x <= back[0]
 
@@ -469,13 +455,11 @@ class DribPlot(object):
             plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
 
     def _insert_text(self, plotpart):
-        left, right = self._get_inner()
-
         # text_p1 = left_out[0] + self.config.drib_text_position * (right_out[0] - left_out[0])
-        text_p1 = left[0]
+        text_p1 = self.left[0]
         plotpart.layers["text"] += Text(" {} ".format(self.drib.name),
                                         text_p1,
-                                        right[0],
+                                        self.right[0],
                                         size=self.config.drib_allowance_folds * 0.8,
                                         height=0.8,
                                         valign=0.6).get_vectors()
@@ -485,36 +469,34 @@ class DribPlot(object):
 
     def _flatten(self, attachment_points, num_folds):
         plotpart = PlotPart(material_code=self.drib.material_code, name=self.drib.name)
-        left, right = self._get_inner()
-        left_out, right_out = self._get_outer()
 
         if num_folds > 0:
             alw2 = self.config.drib_allowance_folds
             cut_front = self.config.cut_diagonal_fold(-alw2, num_folds=num_folds)
             cut_back = self.config.cut_diagonal_fold(alw2, num_folds=num_folds)
-            cut_front_result = cut_front.apply([[left, 0], [right, 0]], left_out, right_out)
-            cut_back_result = cut_back.apply([[left, len(left) - 1], [right, len(right) - 1]], left_out, right_out)
+            cut_front_result = cut_front.apply([[self.left, 0], [self.right, 0]], self.left_out, self.right_out)
+            cut_back_result = cut_back.apply([[self.left, len(self.left) - 1], [self.right, len(self.right) - 1]], self.left_out, self.right_out)
 
-            plotpart.layers["cuts"] += [left_out[cut_front_result.index_left:cut_back_result.index_left] +
+            plotpart.layers["cuts"] += [self.left_out[cut_front_result.index_left:cut_back_result.index_left] +
                                         cut_back_result.curve +
-                                        right_out[cut_front_result.index_right:cut_back_result.index_right:-1] +
+                                        self.right_out[cut_front_result.index_right:cut_back_result.index_right:-1] +
                                         cut_front_result.curve[::-1]]
 
         else:
-            p1 = next(left_out.cut(left[0], right[0], startpoint=0, extrapolate=True))[0]
-            p2 = next(left_out.cut(left[len(left)-1], right[len(right)-1], startpoint=len(left_out), extrapolate=True))[0]
-            p3 = next(right_out.cut(left[0], right[0], startpoint=0, extrapolate=True))[0]
-            p4 = next(right_out.cut(left[len(left)-1], right[len(right)-1], startpoint=len(right_out), extrapolate=True))[0]
+            p1 = next(self.left_out.cut(self.left[0], self.right[0], startpoint=0, extrapolate=True))[0]
+            p2 = next(self.left_out.cut(self.left[len(self.left)-1], self.right[len(self.right)-1], startpoint=len(self.left_out), extrapolate=True))[0]
+            p3 = next(self.right_out.cut(self.left[0], self.right[0], startpoint=0, extrapolate=True))[0]
+            p4 = next(self.right_out.cut(self.left[len(self.left)-1], self.right[len(self.right)-1], startpoint=len(self.right_out), extrapolate=True))[0]
 
-            outer = left_out[p1:p2]
-            outer += right_out[p3:p4][::-1]
-            outer += PolyLine2D([left_out[p1]])
+            outer = self.left_out[p1:p2]
+            outer += self.right_out[p3:p4][::-1]
+            outer += PolyLine2D([self.left_out[p1]])
             plotpart.layers["cuts"].append(outer)
 
-        plotpart.layers["marks"].append(PolyLine2D([left[0], right[0]]))
-        plotpart.layers["marks"].append(PolyLine2D([left[len(left) - 1], right[len(right) - 1]]))
+        plotpart.layers["marks"].append(PolyLine2D([self.left[0], self.right[0]]))
+        plotpart.layers["marks"].append(PolyLine2D([self.left[len(self.left) - 1], self.right[len(self.right) - 1]]))
 
-        plotpart.layers["stitches"] += [left, right]
+        plotpart.layers["stitches"] += [self.left, self.right]
 
         self._insert_attachment_points(plotpart, attachment_points)
         self._insert_text(plotpart)
