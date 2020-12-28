@@ -21,9 +21,13 @@ from __future__ import division
 
 import copy
 import math
+from typing import List
 
 import numpy as np
 
+import openglider
+
+from openglider.glider.cell.cell import Cell
 from openglider.glider.in_out import IMPORT_GEOMETRY, EXPORT_3D
 from openglider.glider.shape import Shape
 from openglider.mesh import Mesh
@@ -38,7 +42,7 @@ class Glider(object):
     rib_naming_scheme = "r{rib_no}"
 
     def __init__(self, cells=None, lineset: LineSet=None):
-        self.cells = cells or []
+        self.cells: List[Cell] = cells or []
         self.lineset = lineset
 
     def __json__(self):

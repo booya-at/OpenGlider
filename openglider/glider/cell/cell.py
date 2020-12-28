@@ -5,6 +5,7 @@ import math
 from typing import Callable, List
 
 import numpy as np
+from openglider.airfoil.profile_2d import Profile2D
 import openglider.vector
 import openglider.utils
 from openglider.airfoil import Profile3D
@@ -322,7 +323,7 @@ class Cell(CachedObject):
         for panel in self.panels:
             panel.mirror()
 
-    def mean_rib(self, num_midribs=8):
+    def mean_rib(self, num_midribs=8) -> Profile2D:
         mean_rib = self.midrib(0).flatten().normalize()
         for y in np.linspace(0, 1, num_midribs)[1:]:
             mean_rib += self.midrib(y).flatten().normalize()
