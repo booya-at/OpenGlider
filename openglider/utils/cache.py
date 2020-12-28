@@ -241,7 +241,7 @@ class HashedList(CachedObject):
         return "<class '{}' name: {}".format(self.__class__, self.name)
 
     @property
-    def data(self) -> np.array:
+    def data(self) -> np.ndarray:
         return self._data
 
     @data.setter
@@ -253,7 +253,7 @@ class HashedList(CachedObject):
             #self._data = [np.array(vector) for vector in data]  # 1,5*execution time
             self._hash = None
         else:
-            self._data = []
+            self._data = np.array([])
 
     def copy(self: T) -> T:
         return copy.deepcopy(self)
