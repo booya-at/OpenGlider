@@ -292,13 +292,13 @@ class LineSet(object):
         Get Total drag of the lineset
         :return: Center of Pressure, Drag (1/2*cw*A*v^2)
         """
-        centers = [line.get_line_point(0.5) for line in self.lines]
-        drag = [line.drag_total for line in self.lines]
+        drag_total = 0
+        center = np.array([0,0,0])
 
-        center = np.array([0, 0, 0])
-        drag_total = sum(drag)
-        for p, drag in zip(centers, drag):
-            center = center + p*drag
+        for line in self.lines:
+            drag_total += line.drag_total
+            center += line.get_line_point(0.5) * line.drag_total
+        
         center /= drag_total
 
         return center, drag_total
