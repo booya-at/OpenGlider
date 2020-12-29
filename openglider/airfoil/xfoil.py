@@ -34,6 +34,9 @@ class XFoilCalc:
     result = None
 
     file_result = "results.dat"
+    ncrit = 8
+    xtr_top = 0.5
+    xtr_bottom = 0.5
 
     def __init__(self, airfoil: openglider.airfoil.Profile2D) -> None:
         super().__init__()
@@ -55,6 +58,13 @@ class XFoilCalc:
 
             OPER
             VISC {self.re_number}
+            VPAR
+            n
+            {self.ncrit}
+            xtr
+            {self.xtr_top}
+            {self.xtr_bottom}
+
             PACC
             {self.file_result}
             dump.dat
