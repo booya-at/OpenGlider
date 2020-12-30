@@ -323,13 +323,13 @@ class PanelPlot(object):
                     if d1 < dmin and d2 + d1 > 2*dmin:
                         offset = dmin - d1
                         ik = get_x_value(self.x_values, rib_pos)
-                        left = bl[bl.extend(ik, offset)]
-                        right = br[br.extend(ik, offset)]
+                        left = bl[bl.walk(ik, offset)]
+                        right = br[br.walk(ik, offset)]
                     elif d2 < dmin and d1 + d2 > 2*dmin:
                         offset = dmin - d2
                         ik = get_x_value(self.x_values, rib_pos)
-                        left = bl[bl.extend(ik, -offset)]
-                        right = br[br.extend(ik, -offset)]
+                        left = bl[bl.walk(ik, -offset)]
+                        right = br[br.walk(ik, -offset)]
 
                     if self.config.layout_seperate_panels and self.panel.is_lower:
                         # rotated later
@@ -429,7 +429,7 @@ class DribPlot(object):
         ik_2 = foil(x2)
         length = foil[ik_1:ik_2].get_length() * rib.chord
 
-        ik_new = inner.extend(0, length)
+        ik_new = inner.walk(0, length)
         return inner[ik_new], outer[ik_new]
 
     def _insert_attachment_points(self, plotpart, attachment_points=None):

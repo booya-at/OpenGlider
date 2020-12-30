@@ -107,7 +107,7 @@ class PolyLine(HashedList):
 
         return self
 
-    def extend(self, start, length):
+    def walk(self, start, length):
         """
         Move from a starting point for a given length in direction of the line
         TODO: rename -> walk(start, distance)
@@ -130,6 +130,21 @@ class PolyLine(HashedList):
             # Length is smaller than zero
         length = length
         return next_value + direction * length * abs(next_value - start) / difference
+
+    def resample(self, num_points):
+        """
+        redistribute line segments to be of "same" length.
+        That means to start from 0 and then move length/(num_points-1)
+        """
+        length = self.get_length()
+        ik = 0
+        distance = length/(num_points-1)
+        data = [self[0]]
+        for i in range(1, num_points):
+            ik = self.walk(ik, distance)
+            data.append(self[ik])
+
+        return self.__class__(data)
 
     def get_length(self, first=0, second=None):
         """

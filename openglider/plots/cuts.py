@@ -51,8 +51,8 @@ class DesignCut(object):
         l2, ik2 = inner_lists[-1]
 
         if amount_3d is not None:
-            ik1_new = l1.extend(ik1, amount_3d[0])
-            ik2_new = l2.extend(ik2, amount_3d[-1])
+            ik1_new = l1.walk(ik1, amount_3d[0])
+            ik2_new = l2.walk(ik2, amount_3d[-1])
 
             return l1[ik1_new], l2[ik2_new]
 
@@ -63,7 +63,7 @@ class DesignCut(object):
         for i, lst in enumerate(inner_lists):
             line, ik = lst
             if amount_3d is not None:
-                ik = line.extend(ik, amount_3d[i])
+                ik = line.walk(ik, amount_3d[i])
 
             indices.append(ik)
 
@@ -148,7 +148,7 @@ class Cut3D(DesignCut):
 
         for offset, lst in zip(amount_3d, inner_lists):
             curve, ik = lst
-            ik_new = curve.extend(ik, offset)
+            ik_new = curve.walk(ik, offset)
             inner_ik.append(ik_new)
 
             sewing_mark_point = curve[ik_new]
@@ -185,7 +185,7 @@ class Cut3D_2(DesignCut):
 
         for offset, lst in zip(amount_3d, inner_lists):
             curve, ik = lst
-            ik_new = curve.extend(ik, offset)
+            ik_new = curve.walk(ik, offset)
             inner_new.append([curve, ik_new])
 
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
@@ -295,7 +295,7 @@ class ParallelCut(DesignCut):
 
         #iks = [x[1] for x in inner_lists]
 
-        #iks[0] = inner_lists[0][0].extend()
+        #iks[0] = inner_lists[0][0].walk()
 
         return CutResult(curve, leftcut_index[0], rightcut_index[0], indices)
 
