@@ -35,7 +35,7 @@ class ArcCurve(object):
         arc_curve = PolyLine2D([self.curve(i) for i in np.linspace(0.5, 1, self.num_interpolation_points)])
         arc_curve_length = arc_curve.get_length()
         scale_factor = arc_curve_length / x_values[-1]
-        _positions = [arc_curve.extend(0, x * scale_factor) for x in x_values]
+        _positions = [arc_curve.walk(0, x * scale_factor) for x in x_values]
         positions = PolyLine2D([arc_curve[p] for p in _positions])
         if not self.has_center_cell(x_values):
             positions[0][0] = 0
