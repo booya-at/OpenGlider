@@ -98,7 +98,9 @@ class Profile2D(Polygon2D):
         sin_sq = diff.dot([0, -1]) / norm_squared(diff)  # Angle: a.b=|a|*|b|*sin(alpha)
         cos_sq = diff.dot([1, 0]) / norm_squared(diff)
         matrix = np.array([[cos_sq, -sin_sq], [sin_sq, cos_sq]])  # de-rotate and scale
-        self.data = np.array([matrix.dot(i - nose) for i in self.data])
+        data = np.array([matrix.dot(i - nose) for i in self.data])
+        data[-1] = data[0]
+        self.data = data
         return self
 
     @HashedList.data.setter

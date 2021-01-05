@@ -140,9 +140,11 @@ class PolyLine(HashedList):
         ik = 0
         distance = length/(num_points-1)
         data = [self[0]]
-        for i in range(1, num_points):
+        for i in range(1, num_points-1):
             ik = self.walk(ik, distance)
             data.append(self[ik])
+
+        data.append(self[len(self)-1])
 
         return self.__class__(data)
 
@@ -169,7 +171,7 @@ class PolyLine(HashedList):
                 break
         return length + norm(self[second] - self[first])
 
-    def get_segment_lengthes(self):
+    def get_segment_lengthes(self) -> np.ndarray:
         return np.linalg.norm(self.get_segments(), axis=1)
 
     def get_segments(self):
