@@ -160,7 +160,7 @@ class Profile2D(Polygon2D):
         """
         with open(pfad, "w") as out:
             if self.name:
-                out.write(str(self.name))
+                out.write(str(self.name).strip())
             for p in self.data:
                 out.write("\n{:.12f}\t{:.12}".format(*p))
         return pfad
