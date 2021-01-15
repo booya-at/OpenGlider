@@ -56,6 +56,7 @@ int PolyLine<T>::__len__() {
 }
 
 template class PolyLine<Vector3D>;
+template class PolyLine<Vector2D>;
 
 bool PolyLine2D::validate() {
     std::cout << "jooo" << std::endl;

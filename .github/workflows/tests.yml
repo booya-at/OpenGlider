@@ -14,6 +14,9 @@ jobs:
     name: run tests
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/checkout@master
+        with:
+          name: pybind/pybind11
       - name: Set up Python
         uses: actions/setup-python@v1
         with:

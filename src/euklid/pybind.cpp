@@ -89,6 +89,42 @@ namespace openglider::euklid {
         py::implicitly_convertible<py::tuple, Vector3D>();
         py::implicitly_convertible<py::list,  Vector3D>();
 
+        py::class_<Vector2D, std::shared_ptr<Vector2D>>(m, "Vector2D")
+            .def(py::init([](py::tuple t)
+            {
+                if (py::len(t) != 2)
+                    throw std::runtime_error("Should have length 2.");
+                return Vector2D{t[0].cast<double>(), t[1].cast<double>()};
+            }))
+            .def(py::init([](py::list t)
+            {
+                if (py::len(t) != 2)
+                    throw std::runtime_error("Should have length 2.");
+                return Vector2D{t[0].cast<double>(), t[1].cast<double>()};
+            }))        
+            .def_readwrite("x", &Vector2D::x)
+            .def_readwrite("y", &Vector2D::y)
+            .def("__getitem__", &Vector2D::get_item)
+            .def("__str__", [](const Vector2D &v) {
+                return "({:.4}, {:.4})"_s.format(v.x, v.y);
+            })
+            .def("__repr__", [](const Vector2D &v) {
+                return "Vector2D({:.4}, {:.4})"_s.format(v.x, v.y);
+            })
+            .def("__sub__", [](Vector2D &v1, Vector2D &v2){
+                return v1 - v2;
+            })
+            .def("__add__", [](Vector2D &v1, Vector2D &v2){
+                return v1 + v2;
+            })
+            .def("__mul__", [](Vector2D &v, double value){
+                return v * value;
+            })
+            .def("length", &Vector2D::length);
+
+        py::implicitly_convertible<py::tuple, Vector2D>();
+        py::implicitly_convertible<py::list,  Vector2D>();
+
         py::class_<PolyLine<Vector3D>>(m, "PolyLine3D")
             .def(py::init([](py::list t)
             {
