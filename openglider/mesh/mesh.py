@@ -5,6 +5,8 @@ import logging
 
 import numpy as np
 import openglider.vector as vector
+import openglider_cpp
+
 USE_POLY_TRI = False
 logger = logging.getLogger(__name__)
 
@@ -486,14 +488,18 @@ class Mesh(object):
     #     self = self + other
     @staticmethod
     def _find_duplicates(nodes):
-        duplicates = {}
-        for i, node1 in enumerate(nodes[:-1]):
-            if node1 not in duplicates:
-                for j, node2 in enumerate(nodes[i:]):
-                    if node1 is not node2 and node1.is_equal(node2):
-                        duplicates[node2] = node1
-        
-        return duplicates
+        node_lst = [list(p) for p in nodes]
+        duplicates = openglider_cpp.mesh.find_duplicates(node_lst, Vertex.dmin)
+        duplicates_dct = {}
+
+        for node1_id, node2_id in duplicates:
+            node1 = nodes[node1_id]
+            node2 = nodes[node2_id]
+
+            if node1 not in duplicates_dct and node1 is not node2:
+                duplicates_dct[node2] = node1
+                
+        return duplicates_dct
 
     def delete_duplicates(self, boundaries=None):
         """
