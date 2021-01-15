@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "vector_3d.hpp"
+#include "vector_2d.hpp"
 #include "polyline.hpp"
 
 namespace py = pybind11;
@@ -140,7 +141,8 @@ namespace openglider::euklid {
             .def(py::init([](py::list t)
             {
                 auto lst = get_vector_2_list(t);
-                return PolyLine2D(lst);
+                //return PolyLine2D(lst);
+                return PolyLine2D();
             }))
             .def("__len__", &PolyLine2D::__len__)
             .def("get_segments", &PolyLine2D::get_segments)

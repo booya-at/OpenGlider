@@ -61,4 +61,4 @@ template class PolyLine<Vector2D>;
 bool PolyLine2D::validate() {
     std::cout << "jooo" << std::endl;
     return true;
-}
+};
