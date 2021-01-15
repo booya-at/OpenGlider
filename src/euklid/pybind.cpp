@@ -68,7 +68,7 @@ namespace openglider::euklid {
                 if (i == 1) return v.y;
                 if (i == 2) return v.z;
                 throw py::index_error();
-                return 0.d;
+                return 0.;
             })
             .def("__str__", [](const Vector3D &v) {
                 return "({:.4}, {:.4}, {:.4})"_s.format(v.x, v.y, v.z);
