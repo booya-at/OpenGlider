@@ -14,7 +14,12 @@ OPTION(BUILD_PYTHON_BINDINGS "create python bindings" ON)
 
 # DEPENDENCIES
 
-find_package(pybind11 REQUIRED)
+
+if(EXISTS pybind11)
+    add_subdirectory(pybind11)
+else()
+    find_package(pybind11 REQUIRED)
+endif()
 set(PYBIND11_CPP_STANDARD -std=c++14)
 
 find_package(OpenMP)
