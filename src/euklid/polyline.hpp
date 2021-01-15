@@ -33,5 +33,6 @@ template<typename T>
 
 class PolyLine2D : public PolyLine<Vector2D> {
     public:
+        using PolyLine<Vector2D>::PolyLine;
         bool validate();
 };
