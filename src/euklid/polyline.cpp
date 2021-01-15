@@ -12,20 +12,19 @@ PolyLine<T>::PolyLine(std::vector<std::shared_ptr<T>>& nodes)
 template<typename T>
 std::shared_ptr<T> PolyLine<T>::get(double ik) {
     int i = std::max(int(ik), 0);
+    T diff;
 
-    std::shared_ptr<T> diff;
-
-    if (i > this->nodes.size()-1) {
+    if (i >= this->nodes.size()-1) {
         i = this->nodes.size()-1;
-        auto diff = *this->nodes[i] - *this->nodes[i-1];
+        diff = *this->nodes[i] - *this->nodes[i-1];
     } else {
-        auto diff = *this->nodes[i+1] - *this->nodes[i];
+        diff = *this->nodes[i+1] - *this->nodes[i];
     }
 
     double k = ik - i;
     auto p1 = this->nodes[i];
 
-    return p1;
+    return std::make_shared<T>(*p1 + diff*k);
 }
 
 template<typename T>

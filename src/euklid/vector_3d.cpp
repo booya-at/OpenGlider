@@ -1,5 +1,8 @@
 #include "vector_3d.hpp"
 
+Vector3D::Vector3D(const Vector3D& in): 
+    x(in.x), y(in.y), z(in.z) {}
+
 
 Vector3D::Vector3D(double x, double y, double z) {
     this->x = x;
@@ -70,17 +73,10 @@ double Vector3D::operator[](int n) const {
 
 Vector3D Vector3D::operator+(const Vector3D& v2) {
     Vector3D result;
-    float res2=0;
-
-    std::cout << "substracting" << std::endl;
-
+    
     for (int i=0; i<3; i++){
-        //result[i] = (*this)[i] + v2[i];
         result.set_item(i, this->get_item(i) + v2.get_item(i));
-        //result.set_item(i, i);
-    }
-
-    std::cout << "substracting2" << std::endl;
+     }
 
     return result;
 }

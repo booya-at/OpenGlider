@@ -1,5 +1,6 @@
 #include "vector_2d.hpp"
 
+Vector2D::Vector2D(const Vector2D& in): x(in.x), y(in.y) {}
 
 Vector2D::Vector2D(double x, double y) : x(x), y(y) {}
 
@@ -58,17 +59,10 @@ double Vector2D::operator[](int n) const {
 
 Vector2D Vector2D::operator+(const Vector2D& v2) {
     Vector2D result;
-    float res2=0;
-
-    std::cout << "substracting" << std::endl;
 
     for (int i=0; i<2; i++){
-        //result[i] = (*this)[i] + v2[i];
         result.set_item(i, this->get_item(i) + v2.get_item(i));
-        //result.set_item(i, i);
     }
-
-    std::cout << "substracting2" << std::endl;
 
     return result;
 }

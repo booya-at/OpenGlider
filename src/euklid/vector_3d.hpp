@@ -6,6 +6,7 @@
 
 class Vector3D {
     public:
+        Vector3D(const Vector3D&);
         Vector3D(double, double, double);
         Vector3D();
 

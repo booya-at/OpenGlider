@@ -6,6 +6,7 @@
 
 class Vector2D {
     public:
+        Vector2D(const Vector2D&);
         Vector2D(double, double);
         Vector2D();
 

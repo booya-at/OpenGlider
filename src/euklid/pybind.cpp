@@ -133,6 +133,7 @@ namespace openglider::euklid {
                 return PolyLine<Vector3D>(lst);
             }))
             .def("__len__", &PolyLine<Vector3D>::__len__)
+            .def("get", &PolyLine<Vector3D>::get)
             .def("get_segments", &PolyLine<Vector3D>::get_segments)
             .def("get_length", &PolyLine<Vector3D>::get_length)
             .def_readonly("nodes", &PolyLine<Vector3D>::nodes);
@@ -145,6 +146,7 @@ namespace openglider::euklid {
                 //return PolyLine2D();
             }))
             .def("__len__", &PolyLine2D::__len__)
+            .def("get", &PolyLine2D::get)
             .def("get_segments", &PolyLine2D::get_segments)
             .def("get_length", &PolyLine2D::get_length)
             .def_readonly("nodes", &PolyLine2D::nodes);
