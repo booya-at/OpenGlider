@@ -14,11 +14,12 @@ OPTION(BUILD_PYTHON_BINDINGS "create python bindings" ON)
 
 # DEPENDENCIES
 
-
-if(EXISTS pybind11)
-    add_subdirectory(pybind11)
+if(EXISTS ${PROJECT_SOURCE_DIR}/pybind11)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/pybind11)
+    message("internal")
 else()
     find_package(pybind11 REQUIRED)
+    message("external")
 endif()
 set(PYBIND11_CPP_STANDARD -std=c++14)
 
