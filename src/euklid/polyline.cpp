@@ -1,5 +1,7 @@
 #include "euklid/polyline.hpp"
 
+template<typename T>
+PolyLine<T>::PolyLine() : nodes() {}
 
 template<typename T>
 PolyLine<T>::PolyLine(std::vector<std::shared_ptr<T>>& nodes)
@@ -29,11 +31,14 @@ std::shared_ptr<T> PolyLine<T>::get(double ik) {
 template<typename T>
 std::vector<std::shared_ptr<T>> PolyLine<T>::get_segments() {
     std::vector<std::shared_ptr<T>> result;
-    int i = 0;
-    //for (int i=0; i<this->nodes.size()-1; i++) {
+    
+    if (this->nodes.size() < 2) {
+        return result;
+    }
+    for (int i=0; i<this->nodes.size()-1; i++) {
         result.push_back(
             std::make_shared<T>(*this->nodes[i+1] - *this->nodes[i]));
-    //}
+    }
     
     
     return result;

@@ -140,9 +140,9 @@ namespace openglider::euklid {
         py::class_<PolyLine2D>(m, "PolyLine2D")
             .def(py::init([](py::list t)
             {
-                auto lst = get_vector_2_list(t);
-                //return PolyLine2D(lst);
-                return PolyLine2D();
+                std::vector<std::shared_ptr<Vector2D>> lst = get_vector_2_list(t);
+                return PolyLine2D(lst);
+                //return PolyLine2D();
             }))
             .def("__len__", &PolyLine2D::__len__)
             .def("get_segments", &PolyLine2D::get_segments)
