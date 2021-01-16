@@ -35,5 +35,6 @@ template<typename VectorType>
 
 class PolyLine3D : public PolyLine<Vector3D> {
     public:
+        using PolyLine<Vector3D>::PolyLine;
         PolyLine3D resample(int num_points);
 };
