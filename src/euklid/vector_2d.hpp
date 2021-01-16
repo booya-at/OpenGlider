@@ -10,6 +10,8 @@ class Vector2D {
         Vector2D(double, double);
         Vector2D();
 
+        static const int axes = 2;
+
         double x;
         double y;
 
@@ -18,10 +20,10 @@ class Vector2D {
 
         double& operator[] (int n);
         double operator[] (int n) const;
-        Vector2D operator -(const Vector2D& v2);
-        Vector2D operator +(const Vector2D& v2);
+        Vector2D operator -(const Vector2D& v2) const;
+        Vector2D operator +(const Vector2D& v2) const;
         //Vector2D operator *(const Vector2D& v2);
-        Vector2D operator *(const double&);
+        Vector2D operator *(const double&) const;
 
         double dot(Vector2D& v2);
         double distance(Vector2D& v2);

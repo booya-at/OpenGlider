@@ -10,6 +10,8 @@ class Vector3D {
         Vector3D(double, double, double);
         Vector3D();
 
+        static const int axes = 3;
+
         double x;
         double y;
         double z;
@@ -19,10 +21,10 @@ class Vector3D {
 
         double& operator[] (int n);
         double operator[] (int n) const;
-        Vector3D operator -(const Vector3D& v2);
-        Vector3D operator +(const Vector3D& v2);
+        Vector3D operator -(const Vector3D& v2) const;
+        Vector3D operator +(const Vector3D& v2) const;
         //Vector3D operator *(const Vector3D& v2);
-        Vector3D operator *(const double&);
+        Vector3D operator *(const double&) const;
 
         double dot(Vector3D& v2);
         double distance(Vector3D& v2);

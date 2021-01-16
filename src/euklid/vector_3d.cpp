@@ -71,7 +71,7 @@ double Vector3D::operator[](int n) const {
     return (*this)[n];
 }
 
-Vector3D Vector3D::operator+(const Vector3D& v2) {
+Vector3D Vector3D::operator+(const Vector3D& v2) const {
     Vector3D result;
     
     for (int i=0; i<3; i++){
@@ -81,7 +81,7 @@ Vector3D Vector3D::operator+(const Vector3D& v2) {
     return result;
 }
 
-Vector3D Vector3D::operator-(const Vector3D& v2) {
+Vector3D Vector3D::operator-(const Vector3D& v2) const {
     Vector3D result;
 
     for(int i=0; i<3; i++) {
@@ -98,7 +98,7 @@ Vector3D Vector3D::operator-(const Vector3D& v2) {
     return result;
 }*/
 
-Vector3D Vector3D::operator*(const double& factor) {
+Vector3D Vector3D::operator*(const double& factor) const {
     Vector3D result;
 
     result.x = this->x * factor;

@@ -57,7 +57,7 @@ double Vector2D::operator[](int n) const {
     return (*this)[n];
 }
 
-Vector2D Vector2D::operator+(const Vector2D& v2) {
+Vector2D Vector2D::operator+(const Vector2D& v2) const {
     Vector2D result;
 
     for (int i=0; i<2; i++){
@@ -67,7 +67,7 @@ Vector2D Vector2D::operator+(const Vector2D& v2) {
     return result;
 }
 
-Vector2D Vector2D::operator-(const Vector2D& v2) {
+Vector2D Vector2D::operator-(const Vector2D& v2) const {
     Vector2D result;
 
     for(int i=0; i<2; i++) {
@@ -84,7 +84,7 @@ Vector2D Vector2D::operator-(const Vector2D& v2) {
     return result;
 }*/
 
-Vector2D Vector2D::operator*(const double& factor) {
+Vector2D Vector2D::operator* (const double& factor) const {
     Vector2D result;
 
     result.x = this->x * factor;

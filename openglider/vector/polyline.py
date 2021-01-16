@@ -117,6 +117,8 @@ class PolyLine(HashedList):
         direction = sign(length)
         length = abs(length)
         next_value = start - start % 1 + (direction > 0)
+        if abs(start-next_value) < 1e-5:
+            next_value += direction
         difference = norm(self[start] - self[next_value])
         length -= difference
         #
@@ -128,7 +130,7 @@ class PolyLine(HashedList):
             difference = norm(self[next_value] - self[start])
             length -= difference
             # Length is smaller than zero
-        length = length
+            
         return next_value + direction * length * abs(next_value - start) / difference
 
     def resample(self, num_points):
