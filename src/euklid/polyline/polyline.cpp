@@ -1,4 +1,5 @@
-#include "euklid/polyline.hpp"
+#include "euklid/polyline/polyline.hpp"
+#include "common.cpp"
 
 template<typename T>
 PolyLine<T>::PolyLine() : nodes() {}
@@ -77,7 +78,8 @@ double PolyLine<T>::walk(double start, double amount) {
     if (amount > 0) {
         next_value += 1;
     }
-    if ((start - next_value) < 1e-5){
+    
+    if (std::abs(start - next_value) < 1e-5){
         next_value += direction;
     }
 
@@ -104,41 +106,17 @@ double PolyLine<T>::walk(double start, double amount) {
     return next_value + direction * amount * std::abs(next_value - start) / current_segment_length;
 }
 
-template<typename PolyLineClass, typename VectorClass>
-PolyLineClass resample_template(PolyLineClass *self, int num_points) {
-    float distance = self->get_length() / (num_points-1);
-    float ik = 0;
-    std::vector<std::shared_ptr<VectorClass>> nodes_new;
 
-    nodes_new.push_back(self->get(0.));
-    
-    for (int i=0; i<num_points-2; i++) {
-        ik = self->walk(ik, distance);
-        nodes_new.push_back(self->get(ik));
-    }
-
-    nodes_new.push_back(std::make_shared<VectorClass>(*self->nodes.back()));
-
-    return PolyLineClass(nodes_new);
-}
-
-PolyLine2D PolyLine2D::resample(int num_points) {
-    return resample_template<PolyLine2D, Vector2D>(this, num_points);
-}
-
-PolyLine3D PolyLine3D::resample(int num_points) {
-    return resample_template<PolyLine3D, Vector3D>(this, num_points);
-}
 
 template<typename T>
 int PolyLine<T>::__len__() {
     return this->nodes.size();
 }
 
+PolyLine3D PolyLine3D::resample(int num_points) {
+    return resample_template<PolyLine3D, Vector3D>(this, num_points);
+}
+
+
 template class PolyLine<Vector3D>;
 template class PolyLine<Vector2D>;
-
-bool PolyLine2D::validate() {
-    std::cout << "jooo" << std::endl;
-    return true;
-};

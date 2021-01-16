@@ -3,9 +3,10 @@
 #include <pybind11/operators.h>
 
 #include <vector>
-#include "vector_3d.hpp"
-#include "vector_2d.hpp"
-#include "polyline.hpp"
+#include "euklid/vector/vector_3d.hpp"
+#include "euklid/vector/vector_2d.hpp"
+#include "euklid/polyline/polyline.hpp"
+#include "euklid/polyline/polyline_2d.hpp"
 
 namespace py = pybind11;
 using namespace py::literals;

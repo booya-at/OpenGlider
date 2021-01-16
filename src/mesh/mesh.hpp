@@ -4,7 +4,7 @@
 #include <set>
 #include <vector>
 #include <memory>
-#include "euklid/vector_3d.hpp"
+#include "euklid/vector/vector_3d.hpp"
 
 namespace openglider::mesh {
 

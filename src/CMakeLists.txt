@@ -1,22 +1,19 @@
 set(CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 
-
-#file(COPY ${CMAKE_SOURCE_DIR}/__init__.py
-#     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
-#     )
-
 set(CPP_FILES
-        euklid/vector_3d.cpp
-        euklid/vector_2d.cpp
-        euklid/polyline.cpp
+        euklid/vector/vector_3d.cpp
+        euklid/vector/vector_2d.cpp
+        euklid/polyline/polyline.cpp
+        euklid/polyline/polyline_2d.cpp
         mesh/mesh.cpp
         )
 
 set(HEADER_FILES
-        euklid/vector_3d.hpp
-        euklid/vector_2d.hpp
-        euklid/polyline.hpp
+        euklid/vector/vector_3d.hpp
+        euklid/vector/vector_2d.hpp
+        euklid/polyline/polyline.hpp
+        euklid/polyline/polyline_2d.hpp
         mesh/mesh.hpp
         )
 

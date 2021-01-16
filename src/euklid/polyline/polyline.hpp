@@ -4,8 +4,8 @@
 #include <algorithm>    // std::max
 #include <memory>
 
-#include "euklid/vector_3d.hpp"
-#include "euklid/vector_2d.hpp"
+#include "euklid/vector/vector_3d.hpp"
+#include "euklid/vector/vector_2d.hpp"
 
 
 template<typename VectorType>
@@ -36,12 +36,4 @@ template<typename VectorType>
 class PolyLine3D : public PolyLine<Vector3D> {
     public:
         PolyLine3D resample(int num_points);
-};
-
-class PolyLine2D : public PolyLine<Vector2D> {
-    public:
-        using PolyLine<Vector2D>::PolyLine;
-        bool validate();
-        
-        PolyLine2D resample(int num_points);
 };
