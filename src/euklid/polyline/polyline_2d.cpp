@@ -59,7 +59,7 @@ std::vector<std::pair<double, double>> PolyLine2D::cut(Vector2D& p1, Vector2D& p
 
     
     if (result.success && result.ik_1 <= 0) {
-        results.push_back(std::make_pair<double, double>(result.ik_1, result.ik_2));
+        results.push_back(std::pair<double, double>(result.ik_1, result.ik_2));
     }
 
     // try all segments
@@ -67,13 +67,13 @@ std::vector<std::pair<double, double>> PolyLine2D::cut(Vector2D& p1, Vector2D& p
         result = cut_2d(*this->nodes[i], *this->nodes[i+1], p1, p2);
 
         if (result.success && 0. < result.ik_1 && result.ik_1 <= 1.) {
-            results.push_back(std::make_pair<double, double>(result.ik_1+i, result.ik_2));
+            results.push_back(std::pair<double, double>(result.ik_1+i, result.ik_2));
         }
     }
 
     // add value if for the last cut ik_1 is greater than 1 (extrapolate end)
     if (result.success && result.ik_1 > 1) {
-            results.push_back(std::make_pair<double, double>(result.ik_1+this->nodes.size()-1, result.ik_2));
+            results.push_back(std::pair<double, double>(result.ik_1+this->nodes.size()-1, result.ik_2));
     }
 
     return results;
