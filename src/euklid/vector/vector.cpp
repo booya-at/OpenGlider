@@ -23,6 +23,13 @@ Vector<dimensions, T>::Vector() {
     }
 }
 
+template<unsigned int dimensions, typename T>
+Vector<dimensions, T>::Vector(double value) {
+    for(int i=0; i<dimensions; i++){
+        this->set_item(i, value);
+    }
+}
+
 /*
 template<unsigned int dimensions, typename T>
 double Vector<dimensions, T>::dot(const Vector<dimensions, T>& v2) {
@@ -108,12 +115,17 @@ T Vector<dimensions, T>::operator-(const T& v2) const {
     return result;
 }
 
-/*Vector2D Vector2D::operator*(const Vector2D& v2) {
-    Vector2D result;
-    // TODO: cross product
+template<unsigned int dimensions, typename T>
+T Vector<dimensions, T>::operator*(const T& v2) const {
+    T result;
+
+    for (int i=0; i<dimensions; i++){
+        result.set_item(i, this->get_item(i) * v2.get_item(i));
+    }
 
     return result;
-}*/
+}
+
 
 template<unsigned int dimensions, typename T>
 T Vector<dimensions, T>::operator* (const double& factor) const {

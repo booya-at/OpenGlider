@@ -7,7 +7,7 @@
 #include "euklid/vector/vector.hpp"
 
 
-template<typename VectorType>
+template<typename VectorType, typename T>
     class PolyLine {
         public:
             PolyLine();
@@ -26,14 +26,17 @@ template<typename VectorType>
             double walk(double start, double amount);
 
             std::vector<std::shared_ptr<VectorType>> nodes;
+            T resample(int num_points);
+            T copy();
+            T scale(const VectorType&);
+            T scale(const double);
         
         private:
             std::string hash;
             
     };
 
-class PolyLine3D : public PolyLine<Vector3D> {
+class PolyLine3D : public PolyLine<Vector3D, PolyLine3D> {
     public:
-        using PolyLine<Vector3D>::PolyLine;
-        PolyLine3D resample(int num_points);
+        using PolyLine<Vector3D, PolyLine3D>::PolyLine;
 };

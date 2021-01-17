@@ -12,6 +12,7 @@ class Vector {
         Vector(const T&);
         Vector(const Vector<dimensions, T>&);
         Vector();
+        Vector(double);
         
         static const int dimension = dimensions;
 
@@ -22,7 +23,7 @@ class Vector {
         double operator[] (int n) const;
         T operator -(const T& v2) const;
         T operator +(const T& v2) const;
-        //Vector3D operator *(const Vector3D& v2);
+        T operator *(const T& v2) const;
         T operator *(const double&) const;
 
         double dot(const T& v2);

@@ -1,19 +1,18 @@
 #include "euklid/polyline/polyline.hpp"
-#include "common.cpp"
 
-template<typename T>
-PolyLine<T>::PolyLine() : nodes() {}
+template<typename VectorClass, typename T>
+PolyLine<VectorClass, T>::PolyLine() : nodes() {}
 
-template<typename T>
-PolyLine<T>::PolyLine(std::vector<std::shared_ptr<T>>& nodes)
+template<typename VectorClass, typename T>
+PolyLine<VectorClass, T>::PolyLine(std::vector<std::shared_ptr<VectorClass>>& nodes)
  : nodes(nodes) 
  {}
 
 
-template<typename T>
-std::shared_ptr<T> PolyLine<T>::get(double ik) {
+template<typename VectorClass, typename T>
+std::shared_ptr<VectorClass> PolyLine<VectorClass, T>::get(double ik) {
     int i = std::max(int(ik), 0);
-    T diff;
+    VectorClass diff;
 
     if (i >= this->nodes.size()-1) {
         i = this->nodes.size()-1;
@@ -25,27 +24,27 @@ std::shared_ptr<T> PolyLine<T>::get(double ik) {
     double k = ik - i;
     auto p1 = this->nodes[i];
 
-    return std::make_shared<T>(*p1 + diff*k);
+    return std::make_shared<VectorClass>(*p1 + diff*k);
 }
 
-template<typename T>
-std::vector<std::shared_ptr<T>> PolyLine<T>::get_segments() {
-    std::vector<std::shared_ptr<T>> result;
+template<typename VectorClass, typename T>
+std::vector<std::shared_ptr<VectorClass>> PolyLine<VectorClass, T>::get_segments() {
+    std::vector<std::shared_ptr<VectorClass>> result;
     
     if (this->nodes.size() < 2) {
         return result;
     }
     for (int i=0; i<this->nodes.size()-1; i++) {
         result.push_back(
-            std::make_shared<T>(*this->nodes[i+1] - *this->nodes[i]));
+            std::make_shared<VectorClass>(*this->nodes[i+1] - *this->nodes[i]));
     }
     
     
     return result;
 }
 
-template<typename T>
-std::vector<double> PolyLine<T>::get_segment_lengthes() {
+template<typename VectorClass, typename T>
+std::vector<double> PolyLine<VectorClass, T>::get_segment_lengthes() {
     std::vector<double> result;
 
     for (auto segment: this->get_segments()) {
@@ -55,8 +54,8 @@ std::vector<double> PolyLine<T>::get_segment_lengthes() {
     return result;
 }
 
-template<typename T>
-double PolyLine<T>::get_length() {
+template<typename VectorClass, typename T>
+double PolyLine<VectorClass, T>::get_length() {
     auto segments = this->get_segments();
     double length = 0;
     for (auto segment: segments) {
@@ -66,8 +65,8 @@ double PolyLine<T>::get_length() {
     return length;
 }
 
-template<typename T>
-double PolyLine<T>::walk(double start, double amount) {
+template<typename VectorClass, typename T>
+double PolyLine<VectorClass, T>::walk(double start, double amount) {
 
     int direction = 1;
     if (amount < 0) {
@@ -107,16 +106,63 @@ double PolyLine<T>::walk(double start, double amount) {
 }
 
 
+template<typename VectorClass, typename T>
+T PolyLine<VectorClass, T>::resample(int num_points) {
+    float distance = this->get_length() / (num_points-1);
+    float ik = 0;
+    std::vector<std::shared_ptr<VectorClass>> nodes_new;
 
-template<typename T>
-int PolyLine<T>::__len__() {
+    nodes_new.push_back(this->get(0.));
+    
+    for (int i=0; i<num_points-2; i++) {
+        ik = this->walk(ik, distance);
+        nodes_new.push_back(this->get(ik));
+    }
+
+    nodes_new.push_back(std::make_shared<VectorClass>(*this->nodes.back()));
+
+    return T(nodes_new);
+}
+
+template<typename VectorClass, typename T>
+T PolyLine<VectorClass, T>::copy() {
+    std::vector<std::shared_ptr<VectorClass>> nodes_new;
+
+    for (auto node: this->nodes) {
+        nodes_new.push_back(std::make_shared<VectorClass>(*node));
+    }
+
+    return T(nodes_new);
+}
+
+
+template<typename VectorClass, typename T>
+T PolyLine<VectorClass, T>::scale(const VectorClass& scale) {
+    std::vector<std::shared_ptr<VectorClass>> nodes_new;
+
+    for (auto node: this->nodes) {
+        nodes_new.push_back(std::make_shared<VectorClass>(*node * scale));
+    }
+
+    return T(nodes_new);
+}
+
+
+template<typename VectorClass, typename T>
+T PolyLine<VectorClass, T>::scale(const double scale) {
+    auto scale_vector = VectorClass();
+    for (int i=0; i<VectorClass::dimension; i++) {
+        scale_vector.set_item(i, scale);
+    }
+
+    return this->scale(scale_vector);
+}
+
+
+template<typename VectorClass, typename T>
+int PolyLine<VectorClass, T>::__len__() {
     return this->nodes.size();
 }
 
-PolyLine3D PolyLine3D::resample(int num_points) {
-    return resample_template<PolyLine3D, Vector3D>(this, num_points);
-}
 
-
-template class PolyLine<Vector3D>;
-template class PolyLine<Vector2D>;
+template class PolyLine<Vector3D, PolyLine3D>;

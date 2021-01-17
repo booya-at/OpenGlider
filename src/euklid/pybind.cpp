@@ -130,13 +130,15 @@ namespace openglider::euklid {
                 auto lst = get_vector_list<py::list, Vector3D>(t);
                 return PolyLine3D(lst);
             }))
-            .def("__len__", &PolyLine3D::__len__)
+            //.def("__len__", &PolyLine3D::__len__)
             .def("get", &PolyLine3D::get)
             .def("get_segments", &PolyLine3D::get_segments)
             .def("get_segment_lengthes", &PolyLine3D::get_segment_lengthes)
             .def("get_length", &PolyLine3D::get_length)
             .def("walk", &PolyLine3D::walk)
             .def("resample", &PolyLine3D::resample)
+            .def("scale", py::overload_cast<const double>(&PolyLine3D::scale))
+            .def("scale", py::overload_cast<const Vector3D&>(&PolyLine3D::scale))
             .def_readonly("nodes", &PolyLine3D::nodes);
         
         py::class_<PolyLine2D>(m, "PolyLine2D")
@@ -146,7 +148,7 @@ namespace openglider::euklid {
                 return PolyLine2D(lst);
                 //return PolyLine2D();
             }))
-            .def("__len__", &PolyLine2D::__len__)
+            //.def("__len__", &PolyLine2D::__len__)
             .def("get", &PolyLine2D::get)
             .def("get_segments", &PolyLine2D::get_segments)
             .def("get_segment_lengthes", &PolyLine2D::get_segment_lengthes)
@@ -155,6 +157,8 @@ namespace openglider::euklid {
             .def("resample", &PolyLine2D::resample)
             .def("normvectors", &PolyLine2D::normvectors)
             .def("offset", &PolyLine2D::offset)
+            .def("scale", py::overload_cast<const double>(&PolyLine2D::scale))
+            .def("scale", py::overload_cast<const Vector2D&>(&PolyLine2D::scale))
             .def("cut", &PolyLine2D::cut)
             .def("fix_errors", &PolyLine2D::fix_errors)
             .def_readonly("nodes", &PolyLine2D::nodes);

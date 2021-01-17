@@ -1,10 +1,7 @@
 #include "polyline_2d.hpp"
-#include "common.cpp"
+#include "polyline.cpp"
+//#include "common.cpp"
 
-
-PolyLine2D PolyLine2D::resample(int num_points) {
-    return resample_template<PolyLine2D, Vector2D>(this, num_points);
-}
 
 PolyLine2D PolyLine2D::normvectors() {
     auto segments = this->get_segments();
@@ -123,3 +120,22 @@ PolyLine2D PolyLine2D::fix_errors() {
 
     return PolyLine2D(this->nodes);
 };
+
+
+PolyLine2D PolyLine2D::mirror(Vector2D& p1, Vector2D& p2) {
+    auto diff = p1 - p2;
+    auto normvector = Vector2D(-diff[1], diff[0]);
+    std::vector<std::shared_ptr<Vector2D>> result;
+
+    for (auto node: this->nodes) {
+        result.push_back(std::make_shared<Vector2D>(
+            *node - normvector * (2 * normvector.dot(*node-p1))
+        ));
+    }
+
+    return PolyLine2D(result);
+}
+
+
+template class PolyLine<Vector2D, PolyLine2D>;
+//std::pair<std::shared_ptr<Vector2D>>
