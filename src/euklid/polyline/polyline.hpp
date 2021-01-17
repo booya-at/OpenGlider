@@ -4,8 +4,7 @@
 #include <algorithm>    // std::max
 #include <memory>
 
-#include "euklid/vector/vector_3d.hpp"
-#include "euklid/vector/vector_2d.hpp"
+#include "euklid/vector/vector.hpp"
 
 
 template<typename VectorType>
