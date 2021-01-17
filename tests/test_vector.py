@@ -64,7 +64,7 @@ class TestVector3D(unittest.TestCase):
             leng = random.random() * 100 - 50
             new = thalist.walk(start, leng)
             leng2 = thalist.get_length(start, new)
-            self.assertAlmostEqual(abs(leng), leng2, 7,
+            self.assertAlmostEqual(abs(leng), leng2, 3,
                                    "Failed for start=" + str(start) + " and leng=" + str(leng) +
                                    "\nresult: i2=" + str(new) + " leng2=" + str(leng2) +
                                    " dist=" + str(norm(thalist[start] - thalist[new])))
