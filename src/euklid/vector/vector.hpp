@@ -44,7 +44,7 @@ class Vector2D: public Vector<2, Vector2D> {
         using Vector<2, Vector2D>::Vector;
         Vector2D();
         Vector2D(const Vector<2, Vector2D>&);
-        Vector2D(float x, float y);
+        Vector2D(double x, double y);
 };
 
 class Vector3D : public Vector<3, Vector3D> {
@@ -52,5 +52,5 @@ class Vector3D : public Vector<3, Vector3D> {
         using Vector<3, Vector3D>::Vector;
         Vector3D();
         Vector3D(const Vector<3, Vector3D>&);
-        Vector3D(float x, float y, float z);
+        Vector3D(double x, double y, double z);
 };

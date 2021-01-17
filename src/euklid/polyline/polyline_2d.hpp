@@ -10,7 +10,7 @@ class PolyLine2D : public PolyLine<Vector2D> {
         
         PolyLine2D resample(int num_points);
         PolyLine2D normvectors();
-        PolyLine2D offset(float amount);
+        PolyLine2D offset(double amount);
 
         std::vector<std::pair<double, double>> cut(Vector2D& p1, Vector2D& p2);
         PolyLine2D fix_errors();

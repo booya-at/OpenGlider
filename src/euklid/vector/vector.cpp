@@ -138,19 +138,19 @@ T Vector<dimensions, T>::copy() {
 
 template<unsigned int dimensions, typename T>
 void Vector<dimensions, T>::normalize() {
-    float len = this->length();
+    double len = this->length();
 
     for (int i=0; i<dimensions; i++) {
         this->set_item(i, this->get_item(i)/len);
     }
 }
 
-Vector2D::Vector2D(float x, float y) {
+Vector2D::Vector2D(double x, double y) {
     this->set_item(0, x);
     this->set_item(1, y);
 }
 
-Vector3D::Vector3D(float x, float y, float z) {
+Vector3D::Vector3D(double x, double y, double z) {
     this->set_item(0, x);
     this->set_item(1, y);
     this->set_item(2, z);

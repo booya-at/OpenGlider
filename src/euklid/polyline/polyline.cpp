@@ -56,7 +56,7 @@ std::vector<double> PolyLine<T>::get_segment_lengthes() {
 }
 
 template<typename T>
-float PolyLine<T>::get_length() {
+double PolyLine<T>::get_length() {
     auto segments = this->get_segments();
     double length = 0;
     for (auto segment: segments) {
@@ -85,7 +85,7 @@ double PolyLine<T>::walk(double start, double amount) {
 
     amount = std::abs(amount);
 
-    float current_segment_length = (*this->get(next_value) - *this->get(start)).length();
+    double current_segment_length = (*this->get(next_value) - *this->get(start)).length();
     amount -= current_segment_length;
     
     while (amount > 0) {

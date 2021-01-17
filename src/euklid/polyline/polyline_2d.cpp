@@ -37,7 +37,7 @@ PolyLine2D PolyLine2D::normvectors() {
     return PolyLine2D(normvectors);
 }
 
-PolyLine2D PolyLine2D::offset(float amount) {
+PolyLine2D PolyLine2D::offset(double amount) {
     auto normvectors = this->normvectors().nodes;
     std::vector<std::shared_ptr<Vector2D>> nodes;
 

@@ -4,8 +4,8 @@
 
 struct CutResult {
     bool success;
-    float ik_1;
-    float ik_2;
+    double ik_1;
+    double ik_2;
     Vector2D point;
 };
 

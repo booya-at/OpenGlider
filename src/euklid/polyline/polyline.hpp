@@ -19,7 +19,7 @@ template<typename VectorType>
             void __setitem__(std::shared_ptr<VectorType> item);
 
             int __len__();
-            float get_length();
+            double get_length();
             std::vector<std::shared_ptr<VectorType>> get_segments();
             std::vector<double> get_segment_lengthes();
             
