@@ -24,9 +24,9 @@ import logging
 from openglider.lines import line_types
 from openglider.lines.functions import proj_force, proj_to_surface
 from openglider.utils.cache import cached_property, CachedObject
-from openglider.vector import PolyLine
 from openglider.vector.functions import norm, normalize
 from openglider.mesh import Mesh, Vertex, Polygon
+from openglider_cpp import euklid
 
 logger = logging.getLogger(__name__)
 
@@ -183,7 +183,7 @@ class Line(CachedObject):
         if self.sag_par_1 is None or self.sag_par_2 is None:
             raise ValueError('Sag not yet calculated!')
 
-        return PolyLine(self.get_line_points(numpoints=100)).get_length()
+        return euklid.PolyLine(self.get_line_points(numpoints=100)).get_length()
 
     def get_stretched_length(self, pre_load=50, sag=True):
         """
@@ -237,7 +237,7 @@ class Line(CachedObject):
         """
         if self.sag_par_1 is None or self.sag_par_2 is None:
             sag=False
-        return np.array([self.get_line_point(i / (numpoints - 1), sag=sag) for i in range(numpoints)])
+        return [self.get_line_point(i / (numpoints - 1), sag=sag) for i in range(numpoints)]
 
     def get_line_point(self, x, sag=True):
         """pos(x) [x,y,z], x: [0,1]"""

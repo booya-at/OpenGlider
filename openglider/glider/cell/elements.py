@@ -693,7 +693,6 @@ class PanelRigidFoil():
         line, ik_front, ik_back = self._get_flattened_line(cell)
 
         ik_values = panel._get_ik_values(cell, numribs=5)
-        numpoints = len(ik_values)-1
         ik_interpolation_front, ik_interpolation_back = panel._get_ik_interpolation(cell, numribs=5)
 
         start = max(ik_front, ik_interpolation_front(self.y))

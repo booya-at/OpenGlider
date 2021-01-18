@@ -21,6 +21,7 @@ from openglider.utils.cache import (
     cached_property, hash_list,
 )
 from openglider.vector import PolyLine2D, norm, normalize
+from openglider_cpp import euklid
 
 logging.getLogger(__file__)
 
@@ -438,7 +439,7 @@ class Cell(CachedObject):
                     x = ik1 + i/(numribs-1) * (ik2-ik1)
                     points.append(rib[x])
                 
-                line = openglider.vector.PolyLine(points)
+                line = euklid.PolyLine3D(points)
 
                 len_dct[index_str] = line.get_length()
 
@@ -486,6 +487,7 @@ class Cell(CachedObject):
             #right_bal.append(get_point(p2, p1, l_0, d_r, get_length(i, i+1), left=False))
 
         ballooned = [
+            # TODO: C++
             PolyLine2D(left_bal),
             PolyLine2D(right_bal)
         ]
