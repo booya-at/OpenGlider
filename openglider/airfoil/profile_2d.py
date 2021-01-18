@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import os
+import re
 import math
 import numpy as np
 import tempfile
@@ -138,6 +139,9 @@ class Profile2D(Polygon2D):
             point[1] += other[other(x)][1]
         return self
 
+    _re_number = r"([-+]?\d*\.\d*(?:[eE][+-]?\d+)?|\d+)"
+    _re_coord_line = re.compile(rf"\s*{_re_number}\s+{_re_number}\s*")
+
     @classmethod
     def import_from_dat(cls, path):
         """
@@ -146,12 +150,18 @@ class Profile2D(Polygon2D):
         profile = []
         name = 'imported from {}'.format(path)
         with open(path, "r") as p_file:
-            for line in p_file:
-                split_line = line.split()
-                if len(split_line) == 2:
-                    profile.append([float(i) for i in split_line])
-                else:
+            for i, line in enumerate(p_file):
+                if line.endswith(","):
+                    line = line[:-1]
+
+                match = cls._re_coord_line.match(line)
+
+                if match:
+                    profile.append([float(i) for i in match.groups()])
+                elif i == 0:
                     name = line
+                else:
+                    logger.error(f"error in dat airfoil: {path} {i}:({line.strip()})")
         return cls(profile, name)
 
     def export_dat(self, pfad):
