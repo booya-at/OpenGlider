@@ -28,6 +28,41 @@ std::shared_ptr<VectorClass> PolyLine<VectorClass, T>::get(double ik) {
 }
 
 template<typename VectorClass, typename T>
+T PolyLine<VectorClass, T>::get(double ik_start, double ik_end) {
+    std::vector<std::shared_ptr<VectorClass>> nodes_new;
+    int direction = 1;
+    bool forward = true;
+
+    if (ik_end < ik_start) {
+        direction = -1;
+        forward = false;
+    }
+
+    // add first point
+    nodes_new.push_back(this->get(ik_start));
+
+    int ik = int(ik_start);
+
+    if (forward) {
+        ik += 1;
+    }
+
+    // todo: maybe check the length diff?
+    if (std::abs(ik_start-ik) < 1e-8) {
+        ik += direction;
+    }
+
+    while (direction * (ik_end - ik) > 1e-8 && 0 < ik && ik < this->nodes.size()-1) {
+        nodes_new.push_back(std::make_shared<VectorClass>(*this->nodes[ik]));
+        ik += direction;
+    }
+
+    nodes_new.push_back(this->get(ik_end));
+
+    return T(nodes_new);
+}
+
+template<typename VectorClass, typename T>
 std::vector<std::shared_ptr<VectorClass>> PolyLine<VectorClass, T>::get_segments() {
     std::vector<std::shared_ptr<VectorClass>> result;
     
@@ -107,7 +142,7 @@ double PolyLine<VectorClass, T>::walk(double start, double amount) {
 
 
 template<typename VectorClass, typename T>
-T PolyLine<VectorClass, T>::resample(int num_points) {
+T PolyLine<VectorClass, T>::resample(const int num_points) {
     float distance = this->get_length() / (num_points-1);
     float ik = 0;
     std::vector<std::shared_ptr<VectorClass>> nodes_new;

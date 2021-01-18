@@ -33,7 +33,7 @@ std::vector<std::shared_ptr<VectorT>> get_vector_list(list_type lst) {
 }
 
 template<typename VectorType>
-py::class_<VectorType, std::shared_ptr<VectorType>> vectorClass(py::module_ m, const char *name) {
+py::class_<VectorType, std::shared_ptr<VectorType>> PyVector(py::module_ m, const char *name) {
     return py::class_<VectorType, std::shared_ptr<VectorType>>(m, name)
             .def(py::init([](py::tuple t)
                 {
@@ -100,6 +100,27 @@ py::class_<VectorType, std::shared_ptr<VectorType>> vectorClass(py::module_ m, c
             .def("normalize", &VectorType::normalize);
 }
 
+template<typename PolyLineType, typename VectorClass>
+py::class_<PolyLineType> PyPolyLine(py::module_ m, const char *name) {
+    return py::class_<PolyLineType>(m, name)
+        .def(py::init([](py::list t)
+        {
+            auto lst = get_vector_list<py::list, VectorClass>(t);
+            return PolyLineType(lst);
+        }))
+        //.def("__len__", &PolyLine3D::__len__)
+        .def("get", py::overload_cast<const double>(&PolyLineType::get))
+        .def("get", py::overload_cast<const double, const double>(&PolyLineType::get))
+        .def("get_segments", &PolyLineType::get_segments)
+        .def("get_segment_lengthes", &PolyLineType::get_segment_lengthes)
+        .def("get_length", &PolyLineType::get_length)
+        .def("walk", &PolyLineType::walk)
+        .def("resample", &PolyLineType::resample)
+        .def("scale", py::overload_cast<const double>(&PolyLineType::scale))
+        .def("scale", py::overload_cast<const VectorClass&>(&PolyLineType::scale))
+        .def_readonly("nodes", &PolyLineType::nodes);
+};
+
 namespace openglider::euklid {
 
     void REGISTER(pybind11::module module) {
@@ -113,54 +134,23 @@ namespace openglider::euklid {
             .def_readonly("ik_2", &CutResult::ik_2)
             .def_readonly("point", &CutResult::point);
 
-        vectorClass<Vector3D>(m, "Vector3D");
+        PyVector<Vector3D>(m, "Vector3D");
             //.def_readwrite("z", &Vector3D::z);
 
         py::implicitly_convertible<py::tuple, Vector3D>();
         py::implicitly_convertible<py::list,  Vector3D>();
 
-        vectorClass<Vector2D>(m, "Vector2D");
+        PyVector<Vector2D>(m, "Vector2D");
 
         py::implicitly_convertible<py::tuple, Vector2D>();
         py::implicitly_convertible<py::list,  Vector2D>();
 
-        py::class_<PolyLine3D>(m, "PolyLine3D")
-            .def(py::init([](py::list t)
-            {
-                auto lst = get_vector_list<py::list, Vector3D>(t);
-                return PolyLine3D(lst);
-            }))
-            //.def("__len__", &PolyLine3D::__len__)
-            .def("get", &PolyLine3D::get)
-            .def("get_segments", &PolyLine3D::get_segments)
-            .def("get_segment_lengthes", &PolyLine3D::get_segment_lengthes)
-            .def("get_length", &PolyLine3D::get_length)
-            .def("walk", &PolyLine3D::walk)
-            .def("resample", &PolyLine3D::resample)
-            .def("scale", py::overload_cast<const double>(&PolyLine3D::scale))
-            .def("scale", py::overload_cast<const Vector3D&>(&PolyLine3D::scale))
-            .def_readonly("nodes", &PolyLine3D::nodes);
+        PyPolyLine<PolyLine3D, Vector3D>(m, "PolyLine3D");
         
-        py::class_<PolyLine2D>(m, "PolyLine2D")
-            .def(py::init([](py::list t)
-            {
-                auto lst = get_vector_list<py::list, Vector2D>(t);
-                return PolyLine2D(lst);
-                //return PolyLine2D();
-            }))
-            //.def("__len__", &PolyLine2D::__len__)
-            .def("get", &PolyLine2D::get)
-            .def("get_segments", &PolyLine2D::get_segments)
-            .def("get_segment_lengthes", &PolyLine2D::get_segment_lengthes)
-            .def("get_length", &PolyLine2D::get_length)
-            .def("walk", &PolyLine2D::walk)
-            .def("resample", &PolyLine2D::resample)
+        PyPolyLine<PolyLine2D, Vector2D>(m, "PolyLine2D")
             .def("normvectors", &PolyLine2D::normvectors)
             .def("offset", &PolyLine2D::offset)
-            .def("scale", py::overload_cast<const double>(&PolyLine2D::scale))
-            .def("scale", py::overload_cast<const Vector2D&>(&PolyLine2D::scale))
             .def("cut", &PolyLine2D::cut)
-            .def("fix_errors", &PolyLine2D::fix_errors)
-            .def_readonly("nodes", &PolyLine2D::nodes);
+            .def("fix_errors", &PolyLine2D::fix_errors);
     };
 }
