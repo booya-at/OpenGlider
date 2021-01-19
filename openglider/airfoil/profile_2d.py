@@ -147,22 +147,28 @@ class Profile2D(Polygon2D):
         """
         Import an airfoil from a '.dat' file
         """
-        profile = []
         name = 'imported from {}'.format(path)
         with open(path, "r") as p_file:
-            for i, line in enumerate(p_file):
-                if line.endswith(","):
-                    line = line[:-1]
+            return cls._import_dat(p_file)
+    
+    @classmethod
+    def _import_dat(cls, p_file, name="unnamed"):
+        profile = []
+        for i, line in enumerate(p_file):
+            if line.endswith(","):
+                line = line[:-1]
 
-                match = cls._re_coord_line.match(line)
+            match = cls._re_coord_line.match(line)
 
-                if match:
-                    profile.append([float(i) for i in match.groups()])
-                elif i == 0:
-                    name = line
-                else:
-                    logger.error(f"error in dat airfoil: {path} {i}:({line.strip()})")
+            if match:
+                profile.append([float(i) for i in match.groups()])
+            elif i == 0:
+                name = line.strip()
+            else:
+                logger.error(f"error in dat airfoil: {name} {i}:({line.strip()})")
+
         return cls(profile, name)
+
 
     def export_dat(self, pfad):
         """
@@ -172,7 +178,7 @@ class Profile2D(Polygon2D):
             if self.name:
                 out.write(str(self.name).strip())
             for p in self.data:
-                out.write("\n{:.12f}\t{:.12}".format(*p))
+                out.write("\n{: 10.8f}\t{: 10.8f}".format(*p))
         return pfad
 
     @classmethod
