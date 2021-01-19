@@ -88,8 +88,7 @@ PolyLine2D PolyLine2D::fix_errors() {
         std::reverse(cuts.begin(), cuts.end());
 
         for (auto result: cuts) {
-            if (0 <= result.first && result.first < line2.nodes.size()-1 && 0 <= result.second && result.second < 1) {
-
+            if (0 <= result.first && result.first < line2.nodes.size()-1-1e-10 && 0 <= result.second && result.second < 1) {
                 
                 std::vector<std::shared_ptr<Vector2D>> new_nodes;
                 // new line: 0 to i and result to end
