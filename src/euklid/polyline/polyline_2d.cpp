@@ -78,8 +78,6 @@ std::vector<std::pair<double, double>> PolyLine2D::cut(Vector2D& p1, Vector2D& p
 }
 
 PolyLine2D PolyLine2D::fix_errors() {
-
-    
     for (int i=0; i<this->nodes.size()-3; i++) {
         int new_list_start = i+2;
         auto nodes2 = std::vector<std::shared_ptr<Vector2D>>(this->nodes.begin() + new_list_start, this->nodes.end());
@@ -118,7 +116,20 @@ PolyLine2D PolyLine2D::fix_errors() {
         
     }
 
-    return PolyLine2D(this->nodes);
+    // no cuts found -> remove zero-length segments
+
+    std::vector<std::shared_ptr<Vector2D>> nodes_new;
+    // Remove len-0 segment points
+    auto segment_lengthes = this->get_segment_lengthes();
+    nodes_new.push_back(std::make_shared<Vector2D>(*this->nodes[0]));
+
+    for (int i=0; i<segment_lengthes.size(); i++){
+        if (segment_lengthes[i] > 1e-5) {
+            nodes_new.push_back(std::make_shared<Vector2D>(*this->nodes[i+1]));
+        }
+    }
+
+    return PolyLine2D(nodes_new);
 };
 
 
