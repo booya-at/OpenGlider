@@ -157,7 +157,17 @@ class PlotPart(object):
 
     @property
     def max_x(self):
-        return max(self.max_function(0, l) for l in self.layers.values())
+        value = float("-Inf")
+
+        for layer_name, layer in self.layers.items():
+            try:
+                value = max(self.max_function(0, layer), value)
+            except Exception as e:
+                #print("error", layer_name)
+                raise Exception(f"error {layer_name}, {len(layer)}, {list(layer)}")
+        
+        return value
+
 
     @property
     def max_y(self):
@@ -185,14 +195,19 @@ class PlotPart(object):
                 [self.max_x, self.max_y], [self.min_x, self.max_y]]
 
     def rotate(self, angle, radians=True):
+        if not radians:
+            angle = angle * np.pi / 180
         for layer in self.layers.values():
-            for polyline in layer:
-                polyline.rotate(angle, radians=radians)
+            layer.polylines = [
+                polyline.rotate(angle, [0, 0]) for polyline in layer
+            ]
 
     def move(self, vector):
+        diff = list(vector)
         for layer_name, layer in self.layers.items():
-            for vectorlist in layer:
-                vectorlist.move(vector)
+            layer.polylines = [
+                line.move(diff) for line in layer.polylines
+            ]
 
     def move_to(self, vector):
         minx = self.min_x

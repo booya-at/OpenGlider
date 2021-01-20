@@ -13,6 +13,8 @@ import openglider.vector.projection as projection
 from openglider.vector import normalize, norm
 import openglider.utils
 
+from openglider_cpp import euklid
+
 
 class PanelPlot(object):
     DefaultConf = PatternConfig
@@ -83,69 +85,69 @@ class PanelPlot(object):
         cut_front_result = cut_front.apply(inner_front, self.outer[0], self.outer[1], shape_3d_amount_front)
         cut_back_result = cut_back.apply(inner_back, self.outer[0], self.outer[1], shape_3d_amount_back)
 
-        panel_left = self.outer[0][cut_front_result.index_left:cut_back_result.index_left]
+        panel_left = self.outer[0].get(cut_front_result.index_left, cut_back_result.index_left)
         panel_back = cut_back_result.curve.copy()
-        panel_right = self.outer[1][cut_front_result.index_right:cut_back_result.index_right:-1]
+        panel_right = self.outer[1].get(cut_back_result.index_right, cut_front_result.index_right)
         panel_front = cut_front_result.curve.copy()
 
         # spitzer schnitt
         # rechts
         if cut_front_result.index_right >= cut_back_result.index_right:
-            panel_right = PolyLine2D([])
+            panel_right = euklid.PolyLine2D([])
 
             _cuts = panel_front.cut_with_polyline(panel_back, startpoint=len(panel_front) - 1)
             try:
                 ik_front, ik_back = next(_cuts)
-                panel_back = panel_back[:ik_back]
-                panel_front = panel_front[:ik_front]
+                panel_back = panel_back.get(0, ik_back)
+                panel_front = panel_front.get(0, ik_front)
             except StopIteration:
                 pass  # todo: fix!!
 
         # lechts
         if cut_front_result.index_left >= cut_back_result.index_left:
-            panel_left = PolyLine2D([])
+            panel_left = euklid.PolyLine2D([])
 
             _cuts = panel_front.cut_with_polyline(panel_back, startpoint=0)
             try:
                 ik_front, ik_back = next(_cuts)
-                panel_back = panel_back[ik_back:]
-                panel_front = panel_front[ik_front:]
+                panel_back = panel_back.get(ik_back, len(panel_back)-1)
+                panel_front = panel_front[ik_front, len(panel_back)-1]
             except StopIteration:
                 pass  # todo: fix as well!
 
-        panel_back = panel_back[::-1]
+        panel_back = panel_back.get(len(panel_back)-1, 0)
         if panel_right:
-            panel_right = panel_right[::-1]
+            panel_right = panel_right.reverse()
 
 
         envelope = panel_right + panel_back
         if len(panel_left) > 0:
-            envelope += panel_left[::-1]
+            envelope += panel_left.reverse()
         envelope += panel_front
-        envelope += PolyLine2D([envelope[0]])
+        envelope += euklid.PolyLine2D([envelope.nodes[0]])
 
         plotpart.layers["envelope"].append(envelope)
 
         if self.config.debug:
-            plotpart.layers["debug"].append(PolyLine2D([line[ik] for line, ik in inner_front]))
-            plotpart.layers["debug"].append(PolyLine2D([line[ik] for line, ik in inner_back]))
+            plotpart.layers["debug"].append(PolyLine2D([line.get(ik) for line, ik in inner_front]))
+            plotpart.layers["debug"].append(PolyLine2D([line.get(ik) for line, ik in inner_back]))
             for front, back in zip(inner_front, inner_back):
-                plotpart.layers["debug"].append(front[0][front[1]:back[1]])
+                plotpart.layers["debug"].append(front[0].get(front[1], back[1]))
 
         # sewings
         plotpart.layers["stitches"] += [
-            self.inner[0][cut_front_result.inner_indices[0]:cut_back_result.inner_indices[0]],
-            self.inner[-1][cut_front_result.inner_indices[-1]:cut_back_result.inner_indices[-1]]
+            self.inner[0].get(cut_front_result.inner_indices[0], cut_back_result.inner_indices[0]),
+            self.inner[-1].get(cut_front_result.inner_indices[-1], cut_back_result.inner_indices[-1])
             ]
 
         # folding line
         plotpart.layers["marks"] += [
-            PolyLine2D([
-                line[x] for line, x in zip(self.inner, cut_front_result.inner_indices)
+            euklid.PolyLine2D([
+                line.get(x) for line, x in zip(self.inner, cut_front_result.inner_indices)
             ]),
 
-            PolyLine2D([
-                line[x] for line, x in zip(self.inner, cut_back_result.inner_indices)
+            euklid.PolyLine2D([
+                line.get(x) for line, x in zip(self.inner, cut_back_result.inner_indices)
             ])
         ]
 
@@ -170,7 +172,7 @@ class PanelPlot(object):
         self._insert_attachment_points(plotpart, attachment_points=attachment_points)
         self._insert_diagonals(plotpart)
         self._insert_rigidfoils(plotpart)
-        # self._insert_center_rods(plotpart)
+        #self._insert_center_rods(plotpart)
         # TODO: add in parametric way
 
         self._align_upright(plotpart)
@@ -179,13 +181,13 @@ class PanelPlot(object):
 
     def get_point(self, x):
         ik = get_x_value(self.x_values, x)
-        return [lst[ik] for lst in self.ballooned]
+        return [lst.get(ik) for lst in self.ballooned]
 
     def get_p1_p2(self, x, which):
         side = {"left": 0, "right": 1}[which]
         ik = get_x_value(self.x_values, x)
 
-        return self.ballooned[side][ik], self.outer_orig[side][ik]
+        return self.ballooned[side].get(ik), self.outer_orig[side].get(ik)
 
     def _align_upright(self, plotpart):
         def get_p1_p2(side):
@@ -205,22 +207,22 @@ class PanelPlot(object):
         if self.config.layout_seperate_panels and not self.panel.is_lower():
             left = get_x_value(self.x_values, self.panel.cut_back["left"])
             right = get_x_value(self.x_values, self.panel.cut_back["right"])
-            p2 = self.ballooned[1][right]
-            p1 = self.ballooned[0][left]
+            p2 = self.ballooned[1].get(right)
+            p1 = self.ballooned[0].get(left)
             align = "left"
         else:
             left = get_x_value(self.x_values, self.panel.cut_front["left"])
             right = get_x_value(self.x_values, self.panel.cut_front["right"])
-            p1 = self.ballooned[1][right]
-            p2 = self.ballooned[0][left]
+            p1 = self.ballooned[1].get(right)
+            p2 = self.ballooned[0].get(left)
             align = "right"
         text = self.panel.name
         part_text = Text(text, p1, p2,
                          size=self.config.allowance_design * 0.8,
                          align=align,
                          valign=0.6,
-                         height=0.8).get_vectors()
-        plotpart.layers["text"] += part_text
+                         height=0.8)
+        plotpart.layers["text"] += part_text.get_vectors()
 
     def _insert_controlpoints(self, plotpart):
         for x in self.config.distribution_controlpoints:
@@ -286,7 +288,7 @@ class PanelPlot(object):
                 rib_pos = attachment_point.rib_pos
                 left, right = self.get_point(rib_pos)
 
-                p1 = left + cell_pos * (right - left)
+                p1 = left + (right - left) * cell_pos
                 d = normalize(right - left) * 0.008  # 8mm
                 if cell_pos == 1:
                     p2 = p1 + d
@@ -328,8 +330,8 @@ class PanelPlot(object):
                     elif d2 < dmin and d1 + d2 > 2*dmin:
                         offset = dmin - d2
                         ik = get_x_value(self.x_values, rib_pos)
-                        left = bl[bl.walk(ik, -offset)]
-                        right = br[br.walk(ik, -offset)]
+                        left = bl.get(bl.walk(ik, -offset))
+                        right = br.get(br.walk(ik, -offset))
 
                     if self.config.layout_seperate_panels and self.panel.is_lower:
                         # rotated later
@@ -351,8 +353,8 @@ class PanelPlot(object):
                 plotpart.layers["marks"].append(line)
 
                 # laser dots
-                plotpart.layers["L0"].append(PolyLine2D([line.data[0]]))
-                plotpart.layers["L0"].append(PolyLine2D([line.data[-1]]))
+                plotpart.layers["L0"].append(PolyLine2D([line.get(0)]))
+                plotpart.layers["L0"].append(PolyLine2D([line.get(len(line)-1)]))
 
 
 class DribPlot(object):
@@ -365,11 +367,11 @@ class DribPlot(object):
 
         self.left, self.right = self.drib.get_flattened(self.cell)
 
-        self.left_out = self.left.copy()
-        self.right_out = self.right.copy()
+        self.left_out = self.left.offset(self.config.allowance_general)
+        self.right_out = self.right.offset(-self.config.allowance_general)
 
-        self.left_out.add_stuff(-self.config.allowance_general)
-        self.right_out.add_stuff(self.config.allowance_general)
+        print("l", len(self.left), len(self.left_out))
+        print("r", len(self.right), len(self.right_out))
 
     def get_left(self, x):
         return self.get_p1_p2(x, side=0)
@@ -430,7 +432,7 @@ class DribPlot(object):
         length = foil[ik_1:ik_2].get_length() * rib.chord
 
         ik_new = inner.walk(0, length)
-        return inner[ik_new], outer[ik_new]
+        return inner.get(ik_new), outer.get(ik_new)
 
     def _insert_attachment_points(self, plotpart, attachment_points=None):
         attachment_points = attachment_points or []
@@ -456,12 +458,11 @@ class DribPlot(object):
 
     def _insert_text(self, plotpart):
         # text_p1 = left_out[0] + self.config.drib_text_position * (right_out[0] - left_out[0])
-        text_p1 = self.left[0]
         plotpart.layers["text"] += Text(" {} ".format(self.drib.name),
-                                        text_p1,
-                                        self.right[0],
-                                        size=self.config.drib_allowance_folds * 0.8,
-                                        height=0.8,
+                                        self.left.get(0),
+                                        self.right.get(0),
+                                        size=self.config.drib_allowance_folds * 0.6,
+                                        height=0.6,
                                         valign=0.6).get_vectors()
 
     def flatten(self, attachment_points=None):
@@ -472,29 +473,30 @@ class DribPlot(object):
 
         if num_folds > 0:
             alw2 = self.config.drib_allowance_folds
-            cut_front = self.config.cut_diagonal_fold(-alw2, num_folds=num_folds)
-            cut_back = self.config.cut_diagonal_fold(alw2, num_folds=num_folds)
+            cut_front = self.config.cut_diagonal_fold(alw2, num_folds=num_folds)
+            cut_back = self.config.cut_diagonal_fold(-alw2, num_folds=num_folds)
             cut_front_result = cut_front.apply([[self.left, 0], [self.right, 0]], self.left_out, self.right_out)
             cut_back_result = cut_back.apply([[self.left, len(self.left) - 1], [self.right, len(self.right) - 1]], self.left_out, self.right_out)
-
-            plotpart.layers["cuts"] += [self.left_out[cut_front_result.index_left:cut_back_result.index_left] +
+            
+            plotpart.layers["cuts"] += [self.left_out.get(cut_front_result.index_left, cut_back_result.index_left) +
                                         cut_back_result.curve +
-                                        self.right_out[cut_front_result.index_right:cut_back_result.index_right:-1] +
-                                        cut_front_result.curve[::-1]]
+                                        self.right_out.get(cut_back_result.index_right, cut_front_result.index_right) +
+                                        cut_front_result.curve.reverse()
+            ]
 
         else:
-            p1 = next(self.left_out.cut(self.left[0], self.right[0], startpoint=0, extrapolate=True))[0]
-            p2 = next(self.left_out.cut(self.left[len(self.left)-1], self.right[len(self.right)-1], startpoint=len(self.left_out), extrapolate=True))[0]
-            p3 = next(self.right_out.cut(self.left[0], self.right[0], startpoint=0, extrapolate=True))[0]
-            p4 = next(self.right_out.cut(self.left[len(self.left)-1], self.right[len(self.right)-1], startpoint=len(self.right_out), extrapolate=True))[0]
+            p1 = self.left_out.cut(self.left[0], self.right[0], startpoint=0, extrapolate=True)[0]
+            p2 = self.left_out.cut(self.left[len(self.left)-1], self.right[len(self.right)-1], startpoint=len(self.left_out))[0]
+            p3 = self.right_out.cut(self.left[0], self.right[0], startpoint=0)[0]
+            p4 = self.right_out.cut(self.left[len(self.left)-1], self.right[len(self.right)-1], startpoint=len(self.right_out))[0]
 
-            outer = self.left_out[p1:p2]
-            outer += self.right_out[p3:p4][::-1]
-            outer += PolyLine2D([self.left_out[p1]])
+            outer = self.left_out.get(p1, p2)
+            outer += self.right_out.get(p3,p4).reverse()
+            outer += PolyLine2D([self.left_out.get(p1)])
             plotpart.layers["cuts"].append(outer)
 
-        plotpart.layers["marks"].append(PolyLine2D([self.left[0], self.right[0]]))
-        plotpart.layers["marks"].append(PolyLine2D([self.left[len(self.left) - 1], self.right[len(self.right) - 1]]))
+        plotpart.layers["marks"].append(euklid.PolyLine2D([self.left.get(0), self.right.get(0)]))
+        plotpart.layers["marks"].append(euklid.PolyLine2D([self.left.get(len(self.left) - 1), self.right.get(len(self.right) - 1)]))
 
         plotpart.layers["stitches"] += [self.left, self.right]
 
@@ -529,11 +531,11 @@ class CellPlotMaker:
 
             left_bal, right_bal = flattened_cell["ballooned"]
 
-            outer_left = left_bal.copy().add_stuff(-self.config.allowance_general)
-            outer_right = right_bal.copy().add_stuff(self.config.allowance_general)
+            outer_left = left_bal.offset(-self.config.allowance_general)
+            outer_right = right_bal.offset(self.config.allowance_general)
 
             outer_orig = [outer_left, outer_right]
-            outer = [l.copy().check() for l in outer_orig]
+            outer = [l.fix_errors() for l in outer_orig]
 
             flattened_cell["outer"] = outer
             flattened_cell["outer_orig"] = outer_orig

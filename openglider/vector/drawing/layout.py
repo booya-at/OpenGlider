@@ -554,7 +554,7 @@ class Layout(object):
                                 dxf_obj = ms.add_lwpolyline([[x-self.point_width/2, y], [x+self.point_width/2, y]])
                         else:
                             dxf_obj = ms.add_lwpolyline(elem, dxfattribs=dxfattribs)
-                            if len(elem) > 2 and all(elem[-1] == elem[0]):
+                            if len(elem) > 2 and all([elem.get(len(elem)-1)[i] == elem.get(0)[i] for i in range(2)]):
                                 dxf_obj.closed = True
                         part_group.append(dxf_obj)
 

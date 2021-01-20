@@ -21,26 +21,37 @@ import numpy as np
 
 from openglider.vector.functions import norm, normalize
 from openglider.vector.polyline import PolyLine2D
-
+from openglider_cpp import euklid
 
 def point2d(p1_3d, p1_2d, p2_3d, p2_2d, point_3d):
     """Returns a third points position relative to two known points (3D+2D)"""
     # diffwise
-    diff_3d = normalize(p2_3d - p1_3d)
-    diff_2d = normalize(p2_2d - p1_2d)
+    diff_3d = (p2_3d - p1_3d)
+    diff_2d = (p2_2d - p1_2d)
+
+    diff_3d.normalize()
+    diff_2d.normalize()
     diff_point = point_3d-p1_3d
     point_2d = p1_2d + diff_2d * diff_3d.dot(diff_point)
     # length-wise
-    diff_3d = normalize(diff_point - diff_3d * diff_3d.dot(diff_point))
-    diff_2d = diff_2d.dot([[0, 1], [-1, 0]])  # Rotate 90deg
-
-    return np.array(point_2d + diff_2d * diff_3d.dot(diff_point))
+    diff_3d = (diff_point - diff_3d * diff_3d.dot(diff_point))
+    diff_3d.normalize()
+    #diff_2d = diff_2d.dot([[0, 1], [-1, 0]])  # Rotate 90deg
+    diff_2d = euklid.Vector2D([diff_2d[1], -diff_2d[0]])
+    return point_2d + diff_2d * diff_3d.dot(diff_point)
 
 
 def flatten_list(list1, list2):
+    if not isinstance(list1, euklid.PolyLine3D):
+        list1 = euklid.PolyLine2D(list1.data.tolist())
+    if not isinstance(list2, euklid.PolyLine3D):
+        list2 = euklid.PolyLine2D(list2.data.tolist())
+
+    list1 = list1.nodes
+    list2 = list2.nodes
     index_left = index_right = 0
-    flat_left = [np.array([0, 0])]
-    flat_right = [np.array([norm(list1[0]-list2[0]), 0])]
+    flat_left = [euklid.Vector2D([0, 0])]
+    flat_right = [euklid.Vector2D([(list1[0]-list2[0]).length(), 0])]
 
     # def which(i, j):
     #     diff = list1[i] - list2[j]
@@ -75,4 +86,4 @@ def flatten_list(list1, list2):
     #                               list2[index_right + 1]))
     #     index_right += 1
 
-    return PolyLine2D(flat_left), PolyLine2D(flat_right)
+    return euklid.PolyLine2D(flat_left), euklid.PolyLine2D(flat_right)

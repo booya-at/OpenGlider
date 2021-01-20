@@ -54,7 +54,7 @@ class Arrow(Mark):
         if not self.left:
             dr = -dr
 
-        return [PolyLine2D([p1, p1+d, p1+d/2+dr, p1], name=self.name)]
+        return [PolyLine2D([p1, p1+d, p1+d*0.5+dr, p1], name=self.name)]
 
 
 class Line(Mark):
@@ -96,7 +96,7 @@ class Dot(Mark):
     def __call__(self, p1, p2):
         dots = []
         for x in self.positions:
-            p = p1 + x * (p2 - p1)
+            p = p1 + (p2 - p1) * x
             dots.append(p)
         return [PolyLine2D([p]) for p in dots]
 
@@ -129,8 +129,8 @@ class Rotate(_Modify):
         return "Rotate({})->{}".format(self.angle, self.func)
 
     def __call__(self, p1, p2):
-        diff = (p2 - p1)/2
-        center = (p1 + p2)/2
+        diff = (p2 - p1) * 0.5
+        center = (p1 + p2) * 0.5
         diff_new = self.rotation.dot(diff)
 
         p1_new, p2_new = center + diff_new, center - diff_new
@@ -146,8 +146,8 @@ class OnLine(_Modify):
     | |
     """
     def __call__(self, p1, p2, *args, **kwargs):
-        p1_2 = 0.5 * (p1+p2)
-        p2_2 = 1.5 * p1 - 0.5 * p2
+        p1_2 = (p1+p2) * 0.5
+        p2_2 = p1 * 1.5 - p2 * 0.5
         return super(OnLine, self).__call__(p1_2, p2_2, *args, **kwargs)
 
 
@@ -161,6 +161,6 @@ class Inside(_Modify):
       | l2
     """
     def __call__(self, p1, p2, *args, **kwargs):
-        p1_2 = 2*p1-p2
+        p1_2 = p1*2-p2
         p2_2 = p1
         return super(Inside, self).__call__(p1_2, p2_2, *args, **kwargs)

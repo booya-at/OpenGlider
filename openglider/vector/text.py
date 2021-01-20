@@ -68,8 +68,8 @@ class Text(object):
         :param valign: vertical align ( -0.5: bottom, 0: centered, 0.5: top)
         """
         self.text = text
-        self.p1 = np.array(p1[:])
-        self.p2 = np.array(p2[:])
+        self.p1 = np.array(list(p1)[:])
+        self.p2 = np.array(list(p2)[:])
         self.size = size
         self.height = height
         self.space = space

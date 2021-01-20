@@ -32,6 +32,7 @@ from openglider.vector.polyline import PolyLine2D
 from openglider.vector.projection import flatten_list
 from openglider.utils import Config
 
+from openglider_cpp import euklid
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -118,9 +119,9 @@ class DiagonalRib(object):
                 side = -cut_front[1]  # -1 -> lower, 1->upper
                 front = rib.profile_2d(cut_front[0] * side)
                 back = rib.profile_2d(cut_back[0] * side)
-                return rib.profile_3d[front:back]
+                return euklid.PolyLine3D(rib.profile_3d[front:back].data.tolist())
             else:
-                return PolyLine([rib.align(rib.profile_2d.align(p) + [0]) for p in (cut_front, cut_back)])
+                return euklid.PolyLine3D([rib.align(rib.profile_2d.align(p) + [0]) for p in (cut_front, cut_back)])
 
         left = get_list(cell.rib1, self.left_front, self.left_back)
         right = get_list(cell.rib2, self.right_front, self.right_back)
@@ -190,7 +191,7 @@ class DiagonalRib(object):
             polygon = [range(len(vertices))]
             return Mesh.from_indexed(vertices, {"diagonals": polygon})
 
-    def get_flattened(self, cell, ribs_flattened=None) -> Tuple[PolyLine2D, PolyLine2D]:
+    def get_flattened(self, cell, ribs_flattened=None):
         first, second = self.get_3d(cell)
         left, right = flatten_list(first, second)
         return left, right
@@ -525,28 +526,17 @@ class Panel(object):
         if exact:
             ik_values_new = []
             inner = cell.get_flattened_cell(numribs)["inner"]
-            p_front_left = inner[0][ik_left_front]
-            p_front_right = inner[-1][ik_right_front]
-            p_back_left = inner[0][ik_left_back]
-            p_back_right = inner[-1][ik_right_back]
+            p_front_left = inner[0].get(ik_left_front)
+            p_front_right = inner[-1].get(ik_right_front)
+            p_back_left = inner[0].get(ik_left_back)
+            p_back_right = inner[-1].get(ik_right_back)
 
             for i, ik in enumerate(ik_values):
                 ik_front, ik_back = ik
-                line: openglider.vector.PolyLine2D = inner[i]
+                line: euklid.PolyLine2D = inner[i]
 
-                _cut_front = line.cut(p_front_left, p_front_right, ik_front, True)
-                _cut_back = line.cut(p_back_left, p_back_right, ik_back, True)
-
-                try:
-                    _ik_front = next(_cut_front)[0]
-                except StopIteration:
-                    _ik_front = ik_front
-                    logging.warning(f"panel_ik_failure: {ik_front} {cell}/{self}/back")
-                try:
-                    _ik_back = next(_cut_back)[0]
-                except StopIteration:
-                    _ik_back = ik_back
-                    logging.warning(f"panel_ik_failure: {ik_front} {cell}/{self}/back")
+                _ik_front, _ = line.cut(p_front_left, p_front_right, ik_front)
+                _ik_back, _ = line.cut(p_back_left, p_back_right, ik_back)
 
                 ik_values_new.append((_ik_front, _ik_back))
             
@@ -594,7 +584,7 @@ class Panel(object):
 
         for rib_no in range(numribs + 2):
             x1, x2 = positions[rib_no]
-            rib_2d = inner_2d[rib_no][x1:x2]
+            rib_2d = inner_2d[rib_no].get(x1,x2)
             rib_3d = ribs[rib_no][x1:x2]
 
             lengthes_2d = rib_2d.get_segment_lengthes()
@@ -682,7 +672,7 @@ class PanelRigidFoil():
     def _get_flattened_line(self, cell):
         flattened_cell = cell.get_flattened_cell()
         left, right = flattened_cell["ballooned"]
-        line = (left * (1-self.y)).add(right * self.y)
+        line = left.mix(right, self.y)
 
         ik_front = (cell.rib1.profile_2d(self.x_start) + cell.rib2.profile_2d(self.x_start))/2
         ik_back = (cell.rib1.profile_2d(self.x_end) + cell.rib2.profile_2d(self.x_end))/2
@@ -699,18 +689,20 @@ class PanelRigidFoil():
         stop = min(ik_back, ik_interpolation_back(self.y))
 
         if start < stop:
-            return line[start:stop]
+            return line.get(start, stop)
         
         return None
 
     def get_flattened(self, cell):
         line, ik_front, ik_back = self._get_flattened_line(cell)
 
-        left = line.copy().add_stuff(-self.channel_width/2)
-        right = line.copy().add_stuff(self.channel_width/2)
+        left = line.offset(-self.channel_width/2)
+        right = line.offset(self.channel_width/2)
 
-        contour = left[ik_front:ik_back] + right[ik_back:ik_front]
-        contour.close()
+        contour = left.get(ik_front, ik_back) + right.get(ik_back, ik_front)
+
+        # todo!
+        #contour.close()
 
         marks = []
 
@@ -723,7 +715,7 @@ class PanelRigidFoil():
         
         for ik in panel_iks:
             if ik_front < ik < ik_back:
-                marks.append(openglider.vector.PolyLine2D([
+                marks.append(openglider_cpp.euklid.PolyLine2D([
                     left[ik],
                     right[ik]
                 ]))

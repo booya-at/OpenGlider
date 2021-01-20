@@ -70,12 +70,24 @@ std::vector<std::pair<double, double>> PolyLine2D::cut(Vector2D& p1, Vector2D& p
 
     // add value if for the last cut ik_1 is greater than 1 (extrapolate end)
     if (result.success && result.ik_1 > 1) {
-            results.push_back(std::pair<double, double>(result.ik_1+this->nodes.size()-1, result.ik_2));
+            results.push_back(std::pair<double, double>(result.ik_1+this->nodes.size()-2, result.ik_2));
     }
 
     return results;
 
 }
+
+std::pair<double, double> PolyLine2D::cut(Vector2D& v1, Vector2D& v2, const double nearest_ik) {
+    using cut = std::pair<double, double>;
+    auto cuts = this->cut(v1, v2);
+    
+    std::sort(cuts.begin(), cuts.end(), [nearest_ik](cut& a, cut& b) {
+        return std::abs(a.first-nearest_ik) < std::abs(b.first-nearest_ik);
+    });
+
+    return cuts[0];
+}
+
 
 PolyLine2D PolyLine2D::fix_errors() {
     for (int i=0; i<this->nodes.size()-3; i++) {
@@ -144,6 +156,18 @@ PolyLine2D PolyLine2D::mirror(Vector2D& p1, Vector2D& p2) {
     }
 
     return PolyLine2D(result);
+}
+
+
+PolyLine2D PolyLine2D::rotate(double radians, Vector2D& origin) {
+    std::vector<std::shared_ptr<Vector2D>> new_nodes;
+    auto rotation = Rotation2D(radians);
+
+    for (auto node: this->nodes) {
+        new_nodes.push_back(std::make_shared<Vector2D>(origin + rotation.apply(*node - origin)));
+    }
+
+    return PolyLine2D(new_nodes);
 }
 
 

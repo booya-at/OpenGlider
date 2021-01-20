@@ -70,7 +70,9 @@ class PolyLine(HashedList):
     def last(self):
         return self[len(self) - 1]
 
-    def get(self, start, stop):
+    def get(self, start, stop=None):
+        if stop is None:
+            return self[start]
         start2 = int(start - start % 1 + 1)
         stop2 = int(stop - stop % 1)
         data = self.data[start2:stop2]

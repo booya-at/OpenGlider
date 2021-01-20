@@ -183,7 +183,7 @@ class Line(CachedObject):
         if self.sag_par_1 is None or self.sag_par_2 is None:
             raise ValueError('Sag not yet calculated!')
 
-        return euklid.PolyLine(self.get_line_points(numpoints=100)).get_length()
+        return euklid.PolyLine3D(self.get_line_points(numpoints=100)).get_length()
 
     def get_stretched_length(self, pre_load=50, sag=True):
         """

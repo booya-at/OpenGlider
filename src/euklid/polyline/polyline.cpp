@@ -43,6 +43,8 @@ T PolyLine<VectorClass, T>::get(double ik_start, double ik_end) {
 
     int ik = int(ik_start);
 
+    ik = std::min(std::max((int)0, ik), (int)this->nodes.size()-2);
+
     if (forward) {
         ik += 1;
     }
@@ -102,6 +104,9 @@ double PolyLine<VectorClass, T>::get_length() {
 
 template<typename VectorClass, typename T>
 double PolyLine<VectorClass, T>::walk(double start, double amount) {
+    if (amount < 1e-5) {
+        return start;
+    }
 
     int direction = 1;
     if (amount < 0) {
@@ -191,6 +196,59 @@ T PolyLine<VectorClass, T>::scale(const double scale) {
     }
 
     return this->scale(scale_vector);
+}
+
+
+template<typename VectorClass, typename T>
+T PolyLine<VectorClass, T>::mix(T& other, const double amount) {
+    if (other.nodes.size() != this->nodes.size()){
+        throw "PolyLine sizes don't match!";
+    }
+
+    T line_1 = this->scale(1-amount);
+    T line_2 = other.scale(amount);
+
+    std::vector<std::shared_ptr<VectorClass>> nodes_new;
+
+    for (int i=0; i<this->nodes.size(); i++) {
+        auto node = *line_1.nodes[i] + *line_2.nodes[i];
+        nodes_new.push_back(std::make_shared<VectorClass>(node));
+    }
+
+    return T(nodes_new);
+}
+
+
+template<typename VectorClass, typename T>
+T PolyLine<VectorClass, T>::operator+ (const T& line2) const {
+    std::vector<std::shared_ptr<VectorClass>> new_nodes;
+
+    for (auto node: this->nodes) {
+        new_nodes.push_back(std::make_shared<VectorClass>(*node));
+    }
+
+    for (auto node: line2.nodes) {
+        new_nodes.push_back(std::make_shared<VectorClass>(*node));
+    }
+
+    return T(new_nodes);
+}
+
+template<typename VectorClass, typename T>
+T PolyLine<VectorClass, T>::move (const VectorClass& offset) const {
+    std::vector<std::shared_ptr<VectorClass>> new_nodes;
+
+    for (auto node: this->nodes) {
+        new_nodes.push_back(std::make_shared<VectorClass>(*node + offset));
+    }
+
+    return T(new_nodes);
+}
+
+
+template<typename VectorClass, typename T>
+T PolyLine<VectorClass, T>::reverse() {
+    return this->get(this->nodes.size()-1, 0);
 }
 
 

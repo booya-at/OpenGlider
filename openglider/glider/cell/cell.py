@@ -487,16 +487,13 @@ class Cell(CachedObject):
             #right_bal.append(get_point(p2, p1, l_0, d_r, get_length(i, i+1), left=False))
 
         ballooned = [
-            # TODO: C++
-            PolyLine2D(left_bal),
-            PolyLine2D(right_bal)
+            euklid.PolyLine2D(left_bal),
+            euklid.PolyLine2D(right_bal)
         ]
 
         inner = []
         for x in openglider.utils.linspace(0, 1, numribs + 2):
-            l1 = ballooned[0] * (1-x)
-            l2 = ballooned[1] * x
-            inner.append(l1.add(l2))
+            inner.append(ballooned[0].mix(ballooned[1], x))
 
         #ballooned = [left_bal, right_bal]
 
