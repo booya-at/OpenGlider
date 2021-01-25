@@ -173,6 +173,13 @@ Vector3D::Vector3D() {
     this->set_item(1,0);
     this->set_item(2,0);
 }
+
+
+double Vector2D::cross(const Vector2D& v2) const {
+    return (*this)[0] * v2[1] - v2[0] * (*this)[1];
+}
+
+
 Vector2D::Vector2D() {
     this->set_item(0,0);
     this->set_item(1,0);

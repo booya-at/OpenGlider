@@ -160,7 +160,8 @@ namespace openglider::euklid {
         py::implicitly_convertible<py::tuple, Vector3D>();
         py::implicitly_convertible<py::list,  Vector3D>();
 
-        PyVector<Vector2D>(m, "Vector2D");
+        PyVector<Vector2D>(m, "Vector2D")
+            .def("cross", &Vector2D::cross);
 
         py::implicitly_convertible<py::tuple, Vector2D>();
         py::implicitly_convertible<py::list,  Vector2D>();

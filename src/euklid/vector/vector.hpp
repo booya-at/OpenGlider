@@ -26,6 +26,7 @@ class Vector {
         T operator *(const T& v2) const;
         T operator *(const double&) const;
 
+
         double dot(const T& v2);
         //double dot(const T& v2);
         double distance(const T& v2);
@@ -46,6 +47,8 @@ class Vector2D: public Vector<2, Vector2D> {
         Vector2D();
         Vector2D(const Vector<2, Vector2D>&);
         Vector2D(double x, double y);
+
+        double cross(const Vector2D&) const;
 };
 
 class Vector3D : public Vector<3, Vector3D> {
