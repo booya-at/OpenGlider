@@ -33,6 +33,11 @@ jobs:
     steps:
       - uses: actions/checkout@v1
 
+      - uses: actions/checkout@master
+        name: checkout pybind
+        with:
+          repository: pybind/pybind11
+          path: pybind11
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v1
         with:
