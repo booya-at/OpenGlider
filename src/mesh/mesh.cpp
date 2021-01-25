@@ -68,10 +68,10 @@ namespace openglider::mesh
             match_vector local_matches;
 
             #pragma omp for nowait
-            for (unsigned int i = 0; i < points.size(); i++) {
+            for (int i = 0; i < (int)points.size(); i++) {
                 auto v1 = points[i];
 
-                for (unsigned int j=i+1; j<points.size(); j++) {
+                for (int j=i+1; j<(int)points.size(); j++) {
                     if (v1->distance(*points[j]) < max_distance){
                         local_matches.push_back({i, j});
                     }
