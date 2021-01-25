@@ -1,5 +1,4 @@
-from __future__ import annotations
-import copy
+mport copy
 import logging
 from typing import TypeVar
 
@@ -255,5 +254,5 @@ class HashedList(CachedObject):
         else:
             self._data = np.array([])
 
-    def copy(self: T) -> T:
+    def copy(self):
         return copy.deepcopy(self)
