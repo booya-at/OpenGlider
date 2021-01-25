@@ -13,7 +13,7 @@ namespace openglider::mesh
         }
         // not found
         this->values.push_back({key, value});
-    };
+    }
 
     template<typename proptype>
     proptype PropertyList<proptype>::get_value(std::string key){
@@ -24,20 +24,20 @@ namespace openglider::mesh
         }
 
         throw "Not found";
-    };
+    }
 
     template<typename proptype>
     void PropertyList<proptype>::merge(PropertyList<proptype>& other) {
         for (auto item: other.values) {
             this->set_value(item.first, item.second);
         }
-    };
+    }
 
     void MeshVector::merge_props(MeshVector& v2) {
         this->properties_bool.merge(v2.properties_bool);
         this->properties_float.merge(v2.properties_float);
         this->properties_int.merge(v2.properties_int);
-    };
+    }
 
     Mesh::Mesh(std::vector<std::shared_ptr<MeshLayer>> layers) {
         this->layers = layers;
@@ -68,10 +68,10 @@ namespace openglider::mesh
             match_vector local_matches;
 
             #pragma omp for nowait
-            for (int i = 0; i < points.size(); i++) {
+            for (unsigned int i = 0; i < points.size(); i++) {
                 auto v1 = points[i];
 
-                for (int j=i+1; j<points.size(); j++) {
+                for (unsigned int j=i+1; j<points.size(); j++) {
                     if (v1->distance(*points[j]) < max_distance){
                         local_matches.push_back({i, j});
                     }

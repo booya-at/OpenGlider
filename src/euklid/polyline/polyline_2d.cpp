@@ -20,7 +20,7 @@ PolyLine2D PolyLine2D::normvectors() {
     normvectors.push_back(segment_normals[0]);
 
     
-    for (int i=0; i<segment_normals.size()-1; i++) {
+    for (unsigned int i=0; i<segment_normals.size()-1; i++) {
         Vector2D normal = (*segment_normals[i] + *segment_normals[i+1]);
         normal.normalize();
         //auto normal = segment_normals[i]->copy();
@@ -38,7 +38,7 @@ PolyLine2D PolyLine2D::offset(double amount) {
     auto normvectors = this->normvectors().nodes;
     std::vector<std::shared_ptr<Vector2D>> nodes;
 
-    for (int i=0; i<this->nodes.size(); i++) {
+    for (unsigned int i=0; i<this->nodes.size(); i++) {
         nodes.push_back(std::make_shared<Vector2D>(*this->nodes[i] + (*normvectors[i])*amount));
     }
 
@@ -60,7 +60,7 @@ std::vector<std::pair<double, double>> PolyLine2D::cut(Vector2D& p1, Vector2D& p
     }
 
     // try all segments
-    for (int i=0; i<this->nodes.size()-1; i++) {
+    for (unsigned int i=0; i<this->nodes.size()-1; i++) {
         result = cut_2d(*this->nodes[i], *this->nodes[i+1], p1, p2);
 
         if (result.success && 0. < result.ik_1 && result.ik_1 <= 1.) {
@@ -90,7 +90,7 @@ std::pair<double, double> PolyLine2D::cut(Vector2D& v1, Vector2D& v2, const doub
 
 
 PolyLine2D PolyLine2D::fix_errors() {
-    for (int i=0; i<this->nodes.size()-3; i++) {
+    for (unsigned int i=0; i<this->nodes.size()-3; i++) {
         int new_list_start = i+2;
         auto nodes2 = std::vector<std::shared_ptr<Vector2D>>(this->nodes.begin() + new_list_start, this->nodes.end());
         PolyLine2D line2 = PolyLine2D(nodes2);
@@ -104,7 +104,7 @@ PolyLine2D PolyLine2D::fix_errors() {
                 
                 std::vector<std::shared_ptr<Vector2D>> new_nodes;
                 // new line: 0 to i and result to end
-                for (int j=0; j<=i; j++) {
+                for (unsigned int j=0; j<=i; j++) {
                     new_nodes.push_back(std::make_shared<Vector2D>(*this->nodes[j]));
                 }
                 
@@ -117,7 +117,7 @@ PolyLine2D PolyLine2D::fix_errors() {
                 }
 
                 
-                for (int j=start_2; j<line2.nodes.size(); j++) {
+                for (unsigned int j=start_2; j<line2.nodes.size(); j++) {
                     new_nodes.push_back(std::make_shared<Vector2D>(*line2.nodes[j]));
                 }
 
@@ -134,14 +134,14 @@ PolyLine2D PolyLine2D::fix_errors() {
     auto segment_lengthes = this->get_segment_lengthes();
     nodes_new.push_back(std::make_shared<Vector2D>(*this->nodes[0]));
 
-    for (int i=0; i<segment_lengthes.size(); i++){
+    for (unsigned int i=0; i<segment_lengthes.size(); i++){
         if (segment_lengthes[i] > 1e-5) {
             nodes_new.push_back(std::make_shared<Vector2D>(*this->nodes[i+1]));
         }
     }
 
     return PolyLine2D(nodes_new);
-};
+}
 
 
 PolyLine2D PolyLine2D::mirror(Vector2D& p1, Vector2D& p2) {

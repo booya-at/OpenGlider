@@ -11,7 +11,7 @@ namespace openglider::mesh {
         
 
         m_sub.def("find_duplicates", &mesh::find_duplicates);
-    };
+    }
 
 
 }

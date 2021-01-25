@@ -15,7 +15,7 @@ template<typename list_type, typename VectorT>
 std::vector<std::shared_ptr<VectorT>> get_vector_list(list_type lst) {
     std::vector<std::shared_ptr<VectorT>> result;
 
-    for (int i=0; i<py::len(lst); i++) {
+    for (long unsigned int i=0; i<py::len(lst); i++) {
         list_type lst_i = lst[i];
         if (py::len(lst_i) != VectorT::dimension)
             throw std::runtime_error("Should have length 3.");
@@ -135,7 +135,7 @@ py::class_<PolyLineType> PyPolyLine(py::module_ m, const char *name) {
         .def("reverse", &PolyLineType::reverse)
         .def("mix", &PolyLineType::mix)
         .def_readonly("nodes", &PolyLineType::nodes);
-};
+}
 
 namespace openglider::euklid {
 
@@ -176,5 +176,5 @@ namespace openglider::euklid {
             .def("cut", py::overload_cast<Vector2D&, Vector2D&>(&PolyLine2D::cut))
             .def("cut", py::overload_cast<Vector2D&, Vector2D&, const double>(&PolyLine2D::cut))
             .def("fix_errors", &PolyLine2D::fix_errors);
-    };
+    }
 }

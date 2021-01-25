@@ -11,7 +11,7 @@ PolyLine<VectorClass, T>::PolyLine(std::vector<std::shared_ptr<VectorClass>>& no
 
 template<typename VectorClass, typename T>
 std::shared_ptr<VectorClass> PolyLine<VectorClass, T>::get(double ik) {
-    int i = std::max(int(ik), 0);
+    unsigned int i = std::max(int(ik), 0);
     VectorClass diff;
 
     if (i >= this->nodes.size()-1) {
@@ -54,7 +54,7 @@ T PolyLine<VectorClass, T>::get(double ik_start, double ik_end) {
         ik += direction;
     }
 
-    while (direction * (ik_end - ik) > 1e-8 && 0 < ik && ik < this->nodes.size()-1) {
+    while (direction * (ik_end - ik) > 1e-8 && 0 < ik && ik < (int)this->nodes.size()-1) {
         nodes_new.push_back(std::make_shared<VectorClass>(*this->nodes[ik]));
         ik += direction;
     }
@@ -71,7 +71,7 @@ std::vector<std::shared_ptr<VectorClass>> PolyLine<VectorClass, T>::get_segments
     if (this->nodes.size() < 2) {
         return result;
     }
-    for (int i=0; i<this->nodes.size()-1; i++) {
+    for (unsigned int i=0; i<this->nodes.size()-1; i++) {
         result.push_back(
             std::make_shared<VectorClass>(*this->nodes[i+1] - *this->nodes[i]));
     }
@@ -128,10 +128,10 @@ double PolyLine<VectorClass, T>::walk(double start, double amount) {
     amount -= current_segment_length;
     
     while (amount > 0) {
-        if (next_value > this->nodes.size() && direction > 0) {
+        if (next_value > (int)this->nodes.size() && direction > 0) {
             break;
         }
-        if (next_value < 0 and direction < 0) {
+        if (next_value < 0 && direction < 0) {
             break;
         }
 
@@ -210,7 +210,7 @@ T PolyLine<VectorClass, T>::mix(T& other, const double amount) {
 
     std::vector<std::shared_ptr<VectorClass>> nodes_new;
 
-    for (int i=0; i<this->nodes.size(); i++) {
+    for (unsigned int i=0; i<this->nodes.size(); i++) {
         auto node = *line_1.nodes[i] + *line_2.nodes[i];
         nodes_new.push_back(std::make_shared<VectorClass>(node));
     }
