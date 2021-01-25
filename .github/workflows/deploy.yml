@@ -14,7 +14,8 @@ jobs:
         with:
           python-versions: 'cp37-cp37m cp38-cp38 cp39-cp39'
           #build-requirements: 'cython numpy'
-          system-packages: 'pybind11'
+          system-packages: 'epel-release'
+          pre-build-command: 'yum -y install python3-pybind11'
       - name: Upload wheel
         uses: actions/upload-artifact@v1
         with:
