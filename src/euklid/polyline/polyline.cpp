@@ -118,11 +118,11 @@ double PolyLine<VectorClass, T>::walk(double start, double amount) {
         next_value += 1;
     }
     
-    if (std::abs(start - next_value) < 1e-5){
+    if ((double)std::abs(start - next_value) < 1e-5){
         next_value += direction;
     }
 
-    amount = std::abs(amount);
+    amount = (double)std::abs(amount);
 
     double current_segment_length = (*this->get(next_value) - *this->get(start)).length();
     amount -= current_segment_length;
@@ -142,7 +142,7 @@ double PolyLine<VectorClass, T>::walk(double start, double amount) {
         amount -= current_segment_length;
     }
 
-    return next_value + direction * amount * std::abs(next_value - start) / current_segment_length;
+    return next_value + direction * amount * (double)std::abs(next_value - start) / current_segment_length;
 }
 
 
