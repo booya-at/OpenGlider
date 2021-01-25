@@ -148,8 +148,8 @@ double PolyLine<VectorClass, T>::walk(double start, double amount) {
 
 template<typename VectorClass, typename T>
 T PolyLine<VectorClass, T>::resample(const int num_points) {
-    float distance = this->get_length() / (num_points-1);
-    float ik = 0;
+    double distance = this->get_length() / (num_points-1);
+    double ik = 0;
     std::vector<std::shared_ptr<VectorClass>> nodes_new;
 
     nodes_new.push_back(this->get(0.));
