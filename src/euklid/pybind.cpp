@@ -71,7 +71,7 @@ py::class_<VectorType, std::shared_ptr<VectorType>> PyVector(py::module_ m, cons
             .def("__iter__", [](const VectorType& v){
                 return py::make_iterator(v.coordinates, v.coordinates+v.dimension);
             })
-            .def("__str__", [name](const VectorType &v) {
+            .def("__str__", [](const VectorType &v) {
                 std::string out;
                 out += "(";
                 for (int i=0; i<VectorType::dimension; i++) {
