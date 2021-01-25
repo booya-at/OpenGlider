@@ -10,7 +10,6 @@ class Vector {
         /*
         */
         Vector(const T&);
-        Vector(const Vector<dimensions, T>&);
         Vector();
         Vector(double);
         

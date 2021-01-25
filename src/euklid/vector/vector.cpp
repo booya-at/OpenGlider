@@ -9,14 +9,6 @@ Vector<dimensions, T>::Vector(const T& in) {
 
 
 template<unsigned int dimensions, typename T>
-Vector<dimensions, T>::Vector(const Vector<dimensions, T>& in) {
-    for(unsigned int i=0; i<dimensions; i++){
-        this->set_item(i, in.get_item(i));
-    }
-}
-
-
-template<unsigned int dimensions, typename T>
 Vector<dimensions, T>::Vector() {
     for(unsigned int i=0; i<dimensions; i++){
         this->set_item(i, 0);
