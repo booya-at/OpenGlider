@@ -50,7 +50,7 @@ T PolyLine<VectorClass, T>::get(double ik_start, double ik_end) {
     }
 
     // todo: maybe check the length diff?
-    if ((unsigned double)std::abs(ik_start-ik) < 1e-8) {
+    if ((double)std::abs(ik_start-ik) < 1e-8) {
         ik += direction;
     }
 
