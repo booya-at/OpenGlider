@@ -145,7 +145,7 @@ setup(
                     "meshpy"
                     ],
     author='Booya',
-    url='www.openglider.org',
+    url='http://openglider.org',
     download_url="https://github.com/hiaselhans/OpenGlider/tarball/0.01dev0",
     include_package_data=True
 )
