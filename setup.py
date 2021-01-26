@@ -30,7 +30,6 @@ from distutils.core import setup
 import setuptools
 from setuptools.command.build_ext import build_ext
 
-
 packages, package_data = [], {}
 # This is all copied 1:1 from django-project as i dont know any better way to do this
 def fullsplit(splitpath, result=None):
@@ -124,17 +123,23 @@ class CMakeBuild(build_ext):
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
 
+with open("openglider/version.py") as version_file:
+    #print(version_file.read())
+    version = re.match(r"__version__\s=\s['\"]([0-9\._]+)['\"]", version_file.read()).group(1)
+
+with open("README.md") as readme_file:
+    long_description = readme_file.read()
 
 setup(
     name='OpenGlider',
-    version="0.05",  #openglider.__version__,
+    version=version,
     description="tool for glider design",
     packages=packages,
     package_data=package_data,
     ext_modules=[CMakeExtension('.')],
     cmdclass={"build_ext": CMakeBuild},
     license='GPL-v3',
-    # long_description=open('README.md').read(),
+    long_description=long_description,
     install_requires=["svgwrite",
                     "numpy",
                     "scipy",

@@ -17,7 +17,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-__version__ = '0.06'
 __author__ = 'Booya'
 __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
@@ -26,6 +25,7 @@ import numpy as np
 from openglider.config import config
 import openglider.jsonify
 import openglider.glider
+from openglider.version import __version__
 
 def load(filename):
     """
