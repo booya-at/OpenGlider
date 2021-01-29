@@ -5,6 +5,7 @@
 #include <vector>
 #include "euklid/vector/vector.hpp"
 #include "euklid/vector/cut_2d.hpp"
+#include "euklid/vector/translation.hpp"
 #include "euklid/polyline/polyline.hpp"
 #include "euklid/polyline/polyline_2d.hpp"
 
@@ -147,6 +148,17 @@ namespace openglider::euklid {
         py::class_<Rotation2D>(m, "Rotation2D")
             .def(py::init<double>())
             .def("apply", &Rotation2D::apply);
+
+        py::class_<Translation>(m, "Translation")
+            .def(py::init<>())
+            .def_readonly("matrix", &Translation::matrix)
+            .def_static("rotation", &Translation::rotation)
+            .def_static("translation", py::overload_cast<const Vector3D&>(&Translation::translation))
+            .def_static("translation", py::overload_cast<const Vector2D&>(&Translation::translation))
+            .def_static("scale", &Translation::scale)
+            .def("apply", py::overload_cast<const Vector3D&>(&Translation::apply, py::const_))
+            .def("apply", py::overload_cast<const Vector2D&>(&Translation::apply, py::const_))
+            .def("chain", &Translation::chain);
 
         py::class_<CutResult>(m, "CutResult")
             .def_readonly("success", &CutResult::success)

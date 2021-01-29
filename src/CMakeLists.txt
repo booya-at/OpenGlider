@@ -3,6 +3,7 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 
 set(CPP_FILES
         euklid/vector/vector.cpp
+        euklid/vector/translation.cpp
         euklid/polyline/polyline.cpp
         euklid/polyline/polyline_2d.cpp
         mesh/mesh.cpp
@@ -10,6 +11,7 @@ set(CPP_FILES
 
 set(HEADER_FILES
         euklid/vector/vector.hpp
+        euklid/vector/translation.hpp
         euklid/polyline/polyline.hpp
         euklid/polyline/polyline_2d.hpp
         mesh/mesh.hpp

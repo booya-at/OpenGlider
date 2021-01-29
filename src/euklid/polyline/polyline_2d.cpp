@@ -90,6 +90,9 @@ std::pair<double, double> PolyLine2D::cut(Vector2D& v1, Vector2D& v2, const doub
 
 
 PolyLine2D PolyLine2D::fix_errors() {
+    if (this->nodes.size() <= 4) {
+        return this->copy();
+    }
     for (unsigned int i=0; i<this->nodes.size()-3; i++) {
         int new_list_start = i+2;
         auto nodes2 = std::vector<std::shared_ptr<Vector2D>>(this->nodes.begin() + new_list_start, this->nodes.end());
