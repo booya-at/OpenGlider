@@ -1,7 +1,7 @@
-#include "euklid/vector/translation.hpp"
+#include "euklid/vector/transform.hpp"
 
 
-Translation::Translation() {
+Transformation::Transformation() {
     for (int i=0; i<4; i++) {
         for (int j=0; j<4; j++) {
             this->matrix[i][j] = 0;
@@ -10,11 +10,11 @@ Translation::Translation() {
     this->matrix[3][3] = 1;
 }
 
-Translation::Translation(Translation::matrix_type matrix) : matrix(matrix) {}
+Transformation::Transformation(Transformation::matrix_type matrix) : matrix(matrix) {}
 
-Translation Translation::rotation(double angle, Vector3D axis) {
+Transformation Transformation::rotation(double angle, Vector3D axis) {
     // see http://en.wikipedia.org/wiki/SO%284%29#The_Euler.E2.80.93Rodrigues_formula_for_3D_rotations"""
-    auto result = Translation();
+    auto result = Transformation();
     double a = cos(angle / 2);
 
     axis.normalize();
@@ -40,8 +40,8 @@ Translation Translation::rotation(double angle, Vector3D axis) {
     return result;
 }
 
-Translation Translation::translation(const Vector3D& translation) {
-    auto result = Translation();
+Transformation Transformation::translation(const Vector3D& translation) {
+    auto result = Transformation();
 
     for (int i=0; i<3; i++) {
         result.matrix[i][i] = 1;
@@ -50,8 +50,8 @@ Translation Translation::translation(const Vector3D& translation) {
     return result;
 }
 
-Translation Translation::translation(const Vector2D& translation) {
-    auto result = Translation();
+Transformation Transformation::translation(const Vector2D& translation) {
+    auto result = Transformation();
 
     for (int i=0; i<2; i++) {
         result.matrix[i][i] = 1;
@@ -61,8 +61,8 @@ Translation Translation::translation(const Vector2D& translation) {
 
 }
 
-Translation Translation::scale(double amount) {
-    auto result = Translation();
+Transformation Transformation::scale(double amount) {
+    auto result = Transformation();
 
     for (int i=0; i<3; i++) {
         result.matrix[i][i] = amount;
@@ -70,8 +70,8 @@ Translation Translation::scale(double amount) {
     return result;
 }
 
-Translation Translation::chain(const Translation& t2) const {
-    auto result = Translation();
+Transformation Transformation::chain(const Transformation& t2) const {
+    auto result = Transformation();
 
     for (int row=0; row<4; row++) {
         for (int column=0; column<4; column++){
@@ -89,7 +89,7 @@ Translation Translation::chain(const Translation& t2) const {
 }
 
 
-Vector3D Translation::apply(const Vector3D& vector) const {
+Vector3D Transformation::apply(const Vector3D& vector) const {
     Vector3D result;
 
     for (int i=0; i<3; i++) {
@@ -104,7 +104,7 @@ Vector3D Translation::apply(const Vector3D& vector) const {
 }
 
 
-Vector2D Translation::apply(const Vector2D& vector) const {
+Vector2D Transformation::apply(const Vector2D& vector) const {
     Vector2D result;
 
     for (int i=0; i<2; i++) {

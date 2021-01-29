@@ -19,4 +19,6 @@ class PolyLine2D : public PolyLine<Vector2D, PolyLine2D> {
 
         PolyLine2D mirror(Vector2D& p1, Vector2D& p2);
         PolyLine2D rotate(double, Vector2D&);
+
+        PolyLine3D to_3d() const;
 };
