@@ -27,8 +27,7 @@ import openglider.vector
 from openglider.airfoil import get_x_value
 from openglider.mesh import Mesh, triangulate
 from openglider.utils.cache import cached_function, hash_list
-from openglider.vector import norm, PolyLine
-from openglider.vector.polyline import PolyLine2D
+from openglider.vector import norm
 from openglider.vector.projection import flatten_list
 from openglider.utils import Config
 
@@ -715,7 +714,7 @@ class PanelRigidFoil():
         
         for ik in panel_iks:
             if ik_front < ik < ik_back:
-                marks.append(openglider_cpp.euklid.PolyLine2D([
+                marks.append(euklid.PolyLine2D([
                     left[ik],
                     right[ik]
                 ]))

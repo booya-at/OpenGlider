@@ -20,7 +20,7 @@ from openglider.utils.cache import (
     cached_function,
     cached_property, hash_list,
 )
-from openglider.vector import PolyLine2D, norm, normalize
+from openglider.vector import norm, normalize
 from openglider_cpp import euklid
 
 logging.getLogger(__file__)

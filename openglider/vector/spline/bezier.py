@@ -155,14 +155,12 @@ class Bezier(HashedList):
                 A2.append(A1[:, 0])
                 A1 = A1[:, 1:]
                 points2.append(points[0])
-                points1 = points1[1:]
 
             if end:
                 # add last column to A2 and remove last column of A1
                 A2.append(A1[:, -1])
                 A1 = A1[:, :-1]
                 points2.append(points[-1])
-                points1 = points[:-1]
             A1_inv = np.linalg.inv(np.dot(A1.T, A1))
             A2 = np.array(A2).T
             points1 = np.array(points).T

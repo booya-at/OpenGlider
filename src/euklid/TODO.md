@@ -1,4 +1,4 @@
+# TODO
 
-
-* Transformations
-* Bezier / BSpline
+* namespaces
+* symmetric splines

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <algorithm>
+#include "euklid/vector/vector.hpp"
 #include "euklid/polyline/polyline.hpp"
-#include "euklid/vector/cut_2d.hpp"
 #include "euklid/vector/rotation_2d.hpp"
 
 class PolyLine2D : public PolyLine<Vector2D, PolyLine2D> {

@@ -175,7 +175,9 @@ PolyLine2D PolyLine2D::rotate(double radians, Vector2D& origin) {
 
 
 PolyLine3D PolyLine2D::to_3d() const {
-    auto nodes = std::vector<std::shared_ptr<Vector3D>> new_nodes;
+    std::vector<std::shared_ptr<Vector3D>> new_nodes;
+
+    return PolyLine3D();
 
     
 }

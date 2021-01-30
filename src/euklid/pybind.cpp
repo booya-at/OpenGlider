@@ -4,10 +4,10 @@
 
 #include <vector>
 #include "euklid/vector/vector.hpp"
-#include "euklid/vector/cut_2d.hpp"
 #include "euklid/vector/transform.hpp"
 #include "euklid/polyline/polyline.hpp"
 #include "euklid/polyline/polyline_2d.hpp"
+#include "euklid/spline/spline.hpp"
 
 namespace py = pybind11;
 using namespace py::literals;
@@ -138,6 +138,21 @@ py::class_<PolyLineType> PyPolyLine(py::module_ m, const char *name) {
         .def_readonly("nodes", &PolyLineType::nodes);
 }
 
+template<typename SplineClass>
+py::class_<SplineClass> PySpline(py::module m, const char *name) {
+    return py::class_<SplineClass>(m, name)
+            .def(py::init([](py::list t)
+                {
+                    auto lst = get_vector_list<py::list, Vector2D>(t);
+                    return SplineClass(PolyLine2D(lst));
+                }))
+            .def(py::init<PolyLine2D>())
+            .def_static("fit", &SplineClass::fit)
+            .def_readwrite("controlpoints", &SplineClass::controlpoints)
+            .def("get", &SplineClass::get)
+            .def("get_sequence", &SplineClass::get_sequence);
+}
+
 namespace openglider::euklid {
 
     void REGISTER(pybind11::module module) {
@@ -188,5 +203,9 @@ namespace openglider::euklid {
             .def("cut", py::overload_cast<Vector2D&, Vector2D&>(&PolyLine2D::cut))
             .def("cut", py::overload_cast<Vector2D&, Vector2D&, const double>(&PolyLine2D::cut))
             .def("fix_errors", &PolyLine2D::fix_errors);
+
+        PySpline<BezierCurve>(m, "BezierCurve");
+        PySpline<BSplineCurve>(m, "BSplineCurve");
+            
     }
 }
