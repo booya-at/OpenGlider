@@ -14,10 +14,10 @@ template<typename VectorType, typename T>
             PolyLine();
             PolyLine(std::vector<std::shared_ptr<VectorType>>&);
 
-            std::shared_ptr<VectorType> get(double ik);
-            T get(double ik_start, double ik_end);
+            std::shared_ptr<VectorType> get(double ik) const;
+            T get(double ik_start, double ik_end) const;
 
-            int __len__();
+            int numpoints();
             double get_length();
             std::vector<std::shared_ptr<VectorType>> get_segments();
             std::vector<double> get_segment_lengthes();
@@ -28,7 +28,7 @@ template<typename VectorType, typename T>
 
             T resample(const int num_points);
             T reverse();
-            T copy();
+            T copy() const;
             T scale(const VectorType&);
             T scale(const double);
             T mix(T&, const double);

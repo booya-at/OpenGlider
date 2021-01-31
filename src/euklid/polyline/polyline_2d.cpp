@@ -45,7 +45,7 @@ PolyLine2D PolyLine2D::offset(double amount) {
     return PolyLine2D(nodes);
 }
 
-std::vector<std::pair<double, double>> PolyLine2D::cut(Vector2D& p1, Vector2D& p2) {
+std::vector<std::pair<double, double>> PolyLine2D::cut(Vector2D& p1, Vector2D& p2) const {
     std::vector<std::pair<double, double>> results;
     if (this->nodes.size() < 2) {
         return results;
@@ -77,7 +77,7 @@ std::vector<std::pair<double, double>> PolyLine2D::cut(Vector2D& p1, Vector2D& p
 
 }
 
-std::pair<double, double> PolyLine2D::cut(Vector2D& v1, Vector2D& v2, const double nearest_ik) {
+std::pair<double, double> PolyLine2D::cut(Vector2D& v1, Vector2D& v2, double nearest_ik) const {
     using cut = std::pair<double, double>;
     auto cuts = this->cut(v1, v2);
     
@@ -147,7 +147,7 @@ PolyLine2D PolyLine2D::fix_errors() {
 }
 
 
-PolyLine2D PolyLine2D::mirror(Vector2D& p1, Vector2D& p2) {
+PolyLine2D PolyLine2D::mirror(Vector2D& p1, Vector2D& p2) const {
     auto diff = p1 - p2;
     auto normvector = Vector2D(-diff[1], diff[0]);
     std::vector<std::shared_ptr<Vector2D>> result;

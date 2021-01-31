@@ -253,6 +253,7 @@ def get_ballooning_sheet(glider_2d):
     #sheet = ezodf.Sheet(name="Balloonings", size=(row_num, 2*len(balloonings)))
 
     for ballooning_no, ballooning in enumerate(balloonings):
+        print("jjoooo", type(ballooning))
         #sheet.append_columns(2)
         table[0, 2*ballooning_no] = "ballooning_{}".format(ballooning_no)
         if type(ballooning) is BallooningBezierNeu:

@@ -1,11 +1,13 @@
 import os
 import re
 import datetime
+import logging
 
 from openglider.glider.glider import Glider
 from openglider.glider.parametric import ParametricGlider
 import openglider.utils.table
 
+logger = logging.getLogger(__name__)
 
 class GliderProject(object):
     _regex_revision_no = re.compile(r"(.*)_rev([0-9]*)$")
@@ -19,6 +21,7 @@ class GliderProject(object):
                  ):
         self.glider = glider
         if glider_3d is None:
+            logger.info(f"get glider 3d:  {name}")
             glider_3d = glider.get_glider_3d()
 
         self.glider_3d = glider_3d

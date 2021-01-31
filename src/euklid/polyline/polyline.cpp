@@ -10,7 +10,7 @@ PolyLine<VectorClass, T>::PolyLine(std::vector<std::shared_ptr<VectorClass>>& no
 
 
 template<typename VectorClass, typename T>
-std::shared_ptr<VectorClass> PolyLine<VectorClass, T>::get(double ik) {
+std::shared_ptr<VectorClass> PolyLine<VectorClass, T>::get(double ik) const {
     size_t i = std::max(int(ik), 0);
     VectorClass diff;
 
@@ -28,7 +28,7 @@ std::shared_ptr<VectorClass> PolyLine<VectorClass, T>::get(double ik) {
 }
 
 template<typename VectorClass, typename T>
-T PolyLine<VectorClass, T>::get(double ik_start, double ik_end) {
+T PolyLine<VectorClass, T>::get(double ik_start, double ik_end) const {
     std::vector<std::shared_ptr<VectorClass>> nodes_new;
     int direction = 1;
     bool forward = true;
@@ -165,7 +165,7 @@ T PolyLine<VectorClass, T>::resample(const int num_points) {
 }
 
 template<typename VectorClass, typename T>
-T PolyLine<VectorClass, T>::copy() {
+T PolyLine<VectorClass, T>::copy() const {
     std::vector<std::shared_ptr<VectorClass>> nodes_new;
 
     for (auto node: this->nodes) {
@@ -253,7 +253,7 @@ T PolyLine<VectorClass, T>::reverse() {
 
 
 template<typename VectorClass, typename T>
-int PolyLine<VectorClass, T>::__len__() {
+int PolyLine<VectorClass, T>::numpoints() {
     return this->nodes.size();
 }
 

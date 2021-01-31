@@ -147,7 +147,6 @@ class Bezier(HashedList):
             A1 = np.array(matrix)
             A2 = []
             points2 = []
-            points1 = np.array(points)
             solution = []
 
             if start:

@@ -8,7 +8,6 @@ class BSplineBase():
 
     def __call__(self, numpoints):      # number of controlpoints
         if numpoints not in self.bases and True:
-            print("jou", numpoints)
             knots = self.make_knot_vector(self.degree, numpoints)
             basis = [self.get_basis(self.degree, i, knots) for i in range(numpoints)]
             self.bases[numpoints] = basis

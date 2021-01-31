@@ -151,8 +151,9 @@ class DiagonalRib(object):
                 num_points = int(num_left * (1. - y_pos) + num_right * y_pos)
 
                 for x_pos in np.linspace(0., 1., num_points):
-                    line_points.append(left[x_pos * (num_left - 1)] * (1. - y_pos) +
-                                       right[x_pos * (num_right - 1)] * y_pos)
+                    line_points.append(
+                        left.get(x_pos * (num_left - 1)) * (1. - y_pos) +
+                        right.get(x_pos * (num_right - 1)) * y_pos)
                     line_points_2d.append([x_pos, y_pos])
                     line_indices.append(count)
                     count += 1

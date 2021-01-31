@@ -3,6 +3,7 @@ from __future__ import division
 import math
 import numpy as np
 import copy
+import logging
 
 from openglider.glider.parametric.shape import ParametricShape
 from openglider.airfoil import Profile2D
@@ -19,6 +20,7 @@ from openglider.utils.distribution import Distribution
 from openglider.utils.table import Table
 from openglider.utils import ZipCmp
 
+logger = logging.getLogger(__name__)
 
 class ParametricGlider(object):
     """
@@ -314,6 +316,7 @@ class ParametricGlider(object):
         glider = glider or Glider()
         ribs = []
 
+        logger.info("apply curves")
         self.rescale_curves()
 
         x_values = self.shape.rib_x_values
@@ -335,6 +338,9 @@ class ParametricGlider(object):
         else:
             profile_x_values = self.profiles[0].x_values
 
+
+        logger.info("apply elements")
+
         rib_holes = self.elements.get("holes", [])
         rigids = self.elements.get("rigidfoils", [])
 
@@ -345,6 +351,7 @@ class ParametricGlider(object):
         if "rib_material" in self.elements:
             rib_material = self.elements["rib_material"]
 
+        logger.info("create ribs")
         for rib_no, pos in enumerate(x_values):
             front, back = shape_ribs[rib_no]
             arc = arc_pos[rib_no]
@@ -382,6 +389,7 @@ class ParametricGlider(object):
             ribs.insert(0, new_rib)
             cell_centers.insert(0, 0.)
 
+        logger.info("create cells")
         glider.cells = []
         for cell_no, (rib1, rib2) in enumerate(zip(ribs[:-1], ribs[1:])):
             ballooning_factor = ballooning_merge_curve(cell_centers[cell_no])
@@ -393,6 +401,7 @@ class ParametricGlider(object):
 
         glider.close_rib()
 
+        logger.info("create cell elements")
         # CELL-ELEMENTS
         self.get_panels(glider)
         self.apply_diagonals(glider)
@@ -412,6 +421,9 @@ class ParametricGlider(object):
         #self.apply_holes(glider)
 
         glider.rename_parts()
+
+
+        logger.info("create lineset")
 
         glider.lineset = self.lineset.return_lineset(glider, self.v_inf)
         glider.lineset.glider = glider

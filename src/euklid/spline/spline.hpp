@@ -17,8 +17,9 @@ class SplineCurve {
         PolyLine2D get_sequence(size_t);
 
         PolyLine2D controlpoints;
+        T copy() const;
 
-        static T fit(const PolyLine2D&, int);
+        static T fit(const PolyLine2D&, size_t);
     
     private:
         Base& get_base();
@@ -30,4 +31,26 @@ class BezierCurve : public SplineCurve<BezierBase, BezierCurve> {
 };
 class BSplineCurve : public SplineCurve<BSplineBase<2>, BSplineCurve> {
         using SplineCurve<BSplineBase<2>, BSplineCurve>::SplineCurve;
+};
+
+template<typename SplineClass, typename T>
+class SymmetricSpline {
+    public:
+        SymmetricSpline(PolyLine2D);
+
+        Vector2D get(double);
+        PolyLine2D get_sequence(size_t);
+
+        PolyLine2D controlpoints;
+        T copy() const;
+
+        static T fit(const PolyLine2D&, size_t);
+    
+    private:
+        void apply();
+        SplineClass spline_curve;
+};
+
+class SymmetricBSplineCurve : public SymmetricSpline<BSplineCurve, SymmetricBSplineCurve> {
+        using SymmetricSpline<BSplineCurve, SymmetricBSplineCurve>::SymmetricSpline;
 };

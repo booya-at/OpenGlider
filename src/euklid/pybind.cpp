@@ -7,6 +7,7 @@
 #include "euklid/vector/transform.hpp"
 #include "euklid/polyline/polyline.hpp"
 #include "euklid/polyline/polyline_2d.hpp"
+#include "euklid/polyline/interpolation.hpp"
 #include "euklid/spline/spline.hpp"
 
 namespace py = pybind11;
@@ -109,10 +110,10 @@ py::class_<PolyLineType> PyPolyLine(py::module_ m, const char *name) {
             auto lst = get_vector_list<py::list, VectorClass>(t);
             return PolyLineType(lst);
         }))
-        .def("__len__", &PolyLineType::__len__)
-            .def("__iter__", [](const PolyLineType& v){
-                return py::make_iterator(v.nodes.begin(), v.nodes.end());
-            })
+        .def("__len__", &PolyLineType::numpoints)
+        .def("__iter__", [](const PolyLineType& v){
+            return py::make_iterator(v.nodes.begin(), v.nodes.end());
+        }, py::keep_alive<0, 1>())
         .def("copy", &PolyLineType::copy)
         .def("__copy__",  [](PolyLineType& self) {
             return self.copy();
@@ -120,8 +121,8 @@ py::class_<PolyLineType> PyPolyLine(py::module_ m, const char *name) {
         .def("__deepcopy__", [](PolyLineType& self, py::dict) {
             return self.copy();
         }, "memo"_a)
-        .def("get", py::overload_cast<const double>(&PolyLineType::get))
-        .def("get", py::overload_cast<const double, const double>(&PolyLineType::get))
+        .def("get", py::overload_cast<const double>(&PolyLineType::get, py::const_))
+        .def("get", py::overload_cast<const double, const double>(&PolyLineType::get, py::const_))
         .def("get_segments", &PolyLineType::get_segments)
         .def("get_segment_lengthes", &PolyLineType::get_segment_lengthes)
         .def("get_length", &PolyLineType::get_length)
@@ -147,8 +148,15 @@ py::class_<SplineClass> PySpline(py::module m, const char *name) {
                     return SplineClass(PolyLine2D(lst));
                 }))
             .def(py::init<PolyLine2D>())
+            .def("__copy__",  [](SplineClass& self) {
+                return self.copy();
+            })
+            .def("__deepcopy__", [](SplineClass& self, py::dict) {
+                return self.copy();
+            }, "memo"_a)
             .def_static("fit", &SplineClass::fit)
             .def_readwrite("controlpoints", &SplineClass::controlpoints)
+            .def("copy", &SplineClass::copy)
             .def("get", &SplineClass::get)
             .def("get_sequence", &SplineClass::get_sequence);
 }
@@ -194,18 +202,34 @@ namespace openglider::euklid {
         py::implicitly_convertible<py::list,  Vector2D>();
 
         PyPolyLine<PolyLine3D, Vector3D>(m, "PolyLine3D");
+        py::implicitly_convertible<py::tuple, PolyLine3D>();
+        py::implicitly_convertible<py::list,  PolyLine3D>();
         
         PyPolyLine<PolyLine2D, Vector2D>(m, "PolyLine2D")
             .def("rotate", &PolyLine2D::rotate)
             .def("normvectors", &PolyLine2D::normvectors)
             .def("offset", &PolyLine2D::offset)
             .def("mirror", &PolyLine2D::mirror)
-            .def("cut", py::overload_cast<Vector2D&, Vector2D&>(&PolyLine2D::cut))
-            .def("cut", py::overload_cast<Vector2D&, Vector2D&, const double>(&PolyLine2D::cut))
+            .def("cut", py::overload_cast<Vector2D&, Vector2D&>(&PolyLine2D::cut, py::const_))
+            .def("cut", py::overload_cast<Vector2D&, Vector2D&, const double>(&PolyLine2D::cut, py::const_))
             .def("fix_errors", &PolyLine2D::fix_errors);
+
+        py::implicitly_convertible<py::tuple, PolyLine2D>();
+        py::implicitly_convertible<py::list,  PolyLine2D>();
+
+        PyPolyLine<Interpolation, Vector2D>(m, "Interpolation")
+            .def("get_value", &Interpolation::get_value)
+            .def("__mul__", [](const Interpolation& in, double factor) {
+                return in * factor;
+            });
+
+
+        py::implicitly_convertible<py::tuple, Interpolation>();
+        py::implicitly_convertible<py::list,  Interpolation>();
 
         PySpline<BezierCurve>(m, "BezierCurve");
         PySpline<BSplineCurve>(m, "BSplineCurve");
+        PySpline<SymmetricBSplineCurve>(m, "SymmetricBSplineCurve");
             
     }
 }
