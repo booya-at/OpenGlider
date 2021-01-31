@@ -17,7 +17,7 @@ jobs:
         if: startsWith(matrix.os, 'macos')
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '10'
+          xcode-version: '11'
       - uses: actions/checkout@v2
         with:
           submodules: 'true'
@@ -28,7 +28,6 @@ jobs:
       - name: install requirements
         run: |
           pip install .
-          pip install pybind11
           pip install meshpy
       - name: test
         run: |
