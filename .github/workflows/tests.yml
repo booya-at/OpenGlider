@@ -14,13 +14,8 @@ jobs:
     name: run tests
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/checkout@master
-        name: checkout pybind
         with:
-          repository: pybind/pybind11
-          path: lib/pybind11
-      - name: eigen
-        run: cd lib && git clone https://gitlab.com/libeigen/eigen.git --depth=1
+          submodules: 'true'
       - name: python
         uses: actions/setup-python@v1
         with:

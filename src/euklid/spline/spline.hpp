@@ -25,5 +25,9 @@ class SplineCurve {
         Base base;
 };
 
-class BezierCurve : public SplineCurve<BezierBase, BezierCurve> {};
-class BSplineCurve : public SplineCurve<BSplineBase<2>, BSplineCurve> {};
+class BezierCurve : public SplineCurve<BezierBase, BezierCurve> {
+        using SplineCurve<BezierBase, BezierCurve>::SplineCurve;
+};
+class BSplineCurve : public SplineCurve<BSplineBase<2>, BSplineCurve> {
+        using SplineCurve<BSplineBase<2>, BSplineCurve>::SplineCurve;
+};
