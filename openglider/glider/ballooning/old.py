@@ -1,3 +1,5 @@
+import copy
+
 from openglider.glider.ballooning.base import BallooningBase
 from openglider.vector.spline import BSpline
 from openglider.vector.interpolate import Interpolation
