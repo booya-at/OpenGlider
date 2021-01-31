@@ -4,7 +4,7 @@
 #include <math.h>
 #include <iostream>
 
-template<unsigned int dimensions, typename T>
+template<size_t dimensions, typename T>
 class Vector {
     public:
         /*

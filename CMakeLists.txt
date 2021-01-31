@@ -9,17 +9,6 @@ set (CMAKE_CXX_STANDARD 20)
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 #SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-# OPTIONS
-OPTION(BUILD_PYTHON_BINDINGS "create python bindings" ON)
-
-if (MSVC)
-    # warning level 4 and all warnings as errors
-    # add_compile_options(/W4 /WX)
-else()
-    # lots of warnings and all warnings as errors
-    add_compile_options(-Wall -Wextra -pedantic -Werror)
-endif()
-
 # DEPENDENCIES
 
 if(EXISTS ${PROJECT_SOURCE_DIR}/lib/pybind11)
@@ -38,6 +27,18 @@ else()
 endif()
 
 find_package(OpenMP)
+
+
+# OPTIONS
+OPTION(BUILD_PYTHON_BINDINGS "create python bindings" ON)
+
+if (MSVC)
+    # warning level 4 and all warnings as errors
+    # add_compile_options(/W4 /WX)
+else()
+    # lots of warnings and all warnings as errors
+    add_compile_options(-Wall -Wextra -pedantic -Werror)
+endif()
 
 ADD_SUBDIRECTORY("src" "openglider_cpp")
 

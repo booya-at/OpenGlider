@@ -20,7 +20,7 @@ Vector2D SplineCurve<Base, T>::get(double ik) {
     auto base = this->get_base();
     Vector2D result;
     
-    for (unsigned int i=0; i<this->controlpoints.nodes.size(); i++) {
+    for (size_t i=0; i<this->controlpoints.nodes.size(); i++) {
         result = result + *this->controlpoints.nodes[i] * base.get(i, ik);
     }
 
@@ -28,10 +28,10 @@ Vector2D SplineCurve<Base, T>::get(double ik) {
 }
 
 template<typename Base, typename T>
-PolyLine2D SplineCurve<Base, T>::get_sequence(unsigned int segments) {
+PolyLine2D SplineCurve<Base, T>::get_sequence(size_t segments) {
     std::vector<std::shared_ptr<Vector2D>> nodes_new;
 
-    for (unsigned int i=0; i<=segments; i++) {
+    for (size_t i=0; i<=segments; i++) {
         nodes_new.push_back(std::make_shared<Vector2D>(this->get(static_cast<double>(i)/segments)));
     }
 
@@ -43,8 +43,8 @@ template<typename Base, typename T>
 T SplineCurve<Base, T>::fit(const PolyLine2D& line, int numpoints) {
     using NodeList = std::vector<std::shared_ptr<Vector2D>>;
     auto base = Base(numpoints);
-    unsigned int rows = line.nodes.size();
-    unsigned int columns = base.dimension();
+    size_t rows = line.nodes.size();
+    size_t columns = base.dimension();
     NodeList nodes_new;
 
     nodes_new.push_back(std::make_shared<Vector2D>(*line.nodes[0]));
@@ -53,9 +53,9 @@ T SplineCurve<Base, T>::fit(const PolyLine2D& line, int numpoints) {
     Eigen::MatrixXd A1(rows, columns-2); // nodes influence vector
     Eigen::MatrixXd A2(rows, 2);  // start/end point
 
-    for (uint row=0; row<line.nodes.size(); row++) {
+    for (size_t row=0; row<line.nodes.size(); row++) {
         // p_0 [A1...] p_columns
-        for (uint column=1; column<columns-1; column++) {
+        for (size_t column=1; column<columns-1; column++) {
             auto coeff = base.get(column, (double)row/(line.nodes.size()-1));
             A1(row, column-1) = coeff;
         }
@@ -68,8 +68,8 @@ T SplineCurve<Base, T>::fit(const PolyLine2D& line, int numpoints) {
     Eigen::MatrixXd p1(2, columns);
     Eigen::MatrixXd p2(2, 2);
 
-    for (uint dim=0; dim<2; dim++) {
-        for (uint column=0; column<columns; column++){
+    for (size_t dim=0; dim<2; dim++) {
+        for (size_t column=0; column<columns; column++){
             p1(dim, column) = line.nodes[column]->get_item(dim);
         }
 
@@ -91,9 +91,9 @@ T SplineCurve<Base, T>::fit(const PolyLine2D& line, int numpoints) {
         solution.row(dim) = A1_inverse * (rhs_1-rhs_2);
     }
 
-    for (uint i=0; i<columns-2; i++) {
+    for (size_t i=0; i<columns-2; i++) {
         auto vector = std::make_shared<Vector2D>();
-        for (uint dim=0; dim<2; dim++) {
+        for (size_t dim=0; dim<2; dim++) {
             vector->set_item(dim, solution(dim, i));
         }
         nodes_new.push_back(vector);

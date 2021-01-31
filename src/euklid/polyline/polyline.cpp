@@ -11,7 +11,7 @@ PolyLine<VectorClass, T>::PolyLine(std::vector<std::shared_ptr<VectorClass>>& no
 
 template<typename VectorClass, typename T>
 std::shared_ptr<VectorClass> PolyLine<VectorClass, T>::get(double ik) {
-    unsigned int i = std::max(int(ik), 0);
+    size_t i = std::max(int(ik), 0);
     VectorClass diff;
 
     if (i >= this->nodes.size()-1) {
@@ -71,7 +71,7 @@ std::vector<std::shared_ptr<VectorClass>> PolyLine<VectorClass, T>::get_segments
     if (this->nodes.size() < 2) {
         return result;
     }
-    for (unsigned int i=0; i<this->nodes.size()-1; i++) {
+    for (size_t i=0; i<this->nodes.size()-1; i++) {
         result.push_back(
             std::make_shared<VectorClass>(*this->nodes[i+1] - *this->nodes[i]));
     }
@@ -210,7 +210,7 @@ T PolyLine<VectorClass, T>::mix(T& other, const double amount) {
 
     std::vector<std::shared_ptr<VectorClass>> nodes_new;
 
-    for (unsigned int i=0; i<this->nodes.size(); i++) {
+    for (size_t i=0; i<this->nodes.size(); i++) {
         auto node = *line_1.nodes[i] + *line_2.nodes[i];
         nodes_new.push_back(std::make_shared<VectorClass>(node));
     }

@@ -14,7 +14,7 @@ class SplineCurve {
         SplineCurve(PolyLine2D);
 
         Vector2D get(double);
-        PolyLine2D get_sequence(unsigned int);
+        PolyLine2D get_sequence(size_t);
 
         PolyLine2D controlpoints;
 

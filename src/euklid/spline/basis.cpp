@@ -1,13 +1,13 @@
 #include "euklid/spline/basis.hpp"
 
 
-unsigned int choose(unsigned int n, unsigned int k) {
+size_t choose(size_t n, size_t k) {
     if (k <= n) {
-        unsigned int ntok = 1;
-        unsigned int ktok = 1;
-        unsigned int range = std::min(k, n-k) + 1;
+        size_t ntok = 1;
+        size_t ktok = 1;
+        size_t range = std::min(k, n-k) + 1;
 
-        for (unsigned int t=1; t < range; t++) {
+        for (size_t t=1; t < range; t++) {
             ntok *= n;
             ktok *= t;
             n -= 1;
@@ -19,53 +19,53 @@ unsigned int choose(unsigned int n, unsigned int k) {
 }
 
 
-BezierBase::BezierBase(unsigned int size) {
-    for (unsigned int i=0; i<size; i++) {
-        unsigned int k = choose(size-1, i);
+BezierBase::BezierBase(size_t size) {
+    for (size_t i=0; i<size; i++) {
+        size_t k = choose(size-1, i);
         this->bases.push_back([size, i, k](double x) {
             return k * pow(x, (double)i) * pow(1.-x, (double)(size - 1 - i));
         });
     }
 }
 
-unsigned int BezierBase::dimension() const {
+size_t BezierBase::dimension() const {
     return this->bases.size();
 }
 
-double BezierBase::get(unsigned int index, double value) const {
+double BezierBase::get(size_t index, double value) const {
     if (index >= this->bases.size()) {
         throw std::exception();
     }
     return this->bases[index](value);
 }
 
-template<unsigned int degree>
-BSplineBase<degree>::BSplineBase(unsigned int size) {
+template<size_t degree>
+BSplineBase<degree>::BSplineBase(size_t size) {
 
     // create knots
-    uint total_knots = size + degree + 1;
-    uint inner_knots = total_knots - 2*degree;
+    size_t total_knots = size + degree + 1;
+    size_t inner_knots = total_knots - 2*degree;
 
-    for (uint i=0; i<degree; i++) {
+    for (size_t i=0; i<degree; i++) {
         this->knots.push_back(0.);
     }
-    for (uint i=0; i<inner_knots; i++) {
+    for (size_t i=0; i<inner_knots; i++) {
         this->knots.push_back((double)i/(inner_knots-1));
     }
-    for (uint i=0; i<degree; i++) {
+    for (size_t i=0; i<degree; i++) {
         this->knots.push_back(1.);
     }
 
 
-    for (unsigned int i=0; i<size; i++) {
+    for (size_t i=0; i<size; i++) {
         this->bases.push_back(this->get_basis(degree, i));
     }
 
 }
 
 
-template<unsigned int degree>
-std::function<double(double)> BSplineBase<degree>::get_basis(unsigned int basis_degree, unsigned int index) {
+template<size_t degree>
+std::function<double(double)> BSplineBase<degree>::get_basis(size_t basis_degree, size_t index) {
     if (basis_degree <= 0) {
         return [knots = this->knots, index](double x){
             if (knots[index] < x && x <= knots[index+1]) {
@@ -109,8 +109,8 @@ std::function<double(double)> BSplineBase<degree>::get_basis(unsigned int basis_
     }
 }
 
-template<unsigned int degree>
-double BSplineBase<degree>::get(unsigned int index, double value) const { 
+template<size_t degree>
+double BSplineBase<degree>::get(size_t index, double value) const { 
     if (index >= this->bases.size()) {
         throw std::exception();
     }
@@ -118,8 +118,8 @@ double BSplineBase<degree>::get(unsigned int index, double value) const {
  }
 
 
-template<unsigned int degree>
-unsigned int BSplineBase<degree>::dimension() const {
+template<size_t degree>
+size_t BSplineBase<degree>::dimension() const {
     return this->bases.size();
 }
 

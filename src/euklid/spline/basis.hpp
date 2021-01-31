@@ -8,26 +8,26 @@
 
 class BezierBase {
     public:
-        BezierBase(unsigned int size);
+        BezierBase(size_t size);
 
-        unsigned int dimension() const;
-        double get(unsigned int index, double value) const;
+        size_t dimension() const;
+        double get(size_t index, double value) const;
 
     private:
         std::vector<std::function<double(double)>> bases;
 };
 
 
-template<unsigned int degree>
+template<size_t degree>
 class BSplineBase {
     public:
-        BSplineBase(unsigned int size);
+        BSplineBase(size_t size);
 
-        unsigned int dimension() const;
-        double get(unsigned int index, double value) const;
+        size_t dimension() const;
+        double get(size_t index, double value) const;
     
     private:
-        std::function<double(double)> get_basis(uint, uint);
+        std::function<double(double)> get_basis(size_t, size_t);
 
         std::vector<double> knots;
         std::vector<std::function<double(double)>> bases;
