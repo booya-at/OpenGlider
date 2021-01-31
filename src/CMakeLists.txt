@@ -29,7 +29,6 @@ if(OpenMP_CXX_FOUND)
     target_link_libraries(openglider_cpp PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 target_link_libraries(openglider_cpp PUBLIC Eigen3::Eigen)
 #if(OpenMP_CXX_FOUND)
 #    target_link_libraries(gpufem_cpp PUBLIC OpenMP::OpenMP_CXX)

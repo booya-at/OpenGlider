@@ -9,12 +9,14 @@ jobs:
   build-wheel-linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/checkout@master
         name: checkout pybind
         with:
           repository: pybind/pybind11
-          path: pybind11
+          path: lib/pybind11
+      - name: eigen
+        run: cd lib && git clone https://gitlab.com/libeigen/eigen.git --depth=1
       - uses: RalfG/python-wheels-manylinux-build@v0.3.1-manylinux2014_x86_64
         with:
           python-versions: 'cp37-cp37m cp38-cp38 cp39-cp39'
@@ -34,17 +36,18 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v1
-
+      - uses: actions/checkout@v2
       - uses: actions/checkout@master
         name: checkout pybind
         with:
           repository: pybind/pybind11
-          path: pybind11
-      - name: Set up Python ${{ matrix.python-version }}
+          path: lib/pybind11
+      - name: eigen
+        run: cd lib && git clone https://gitlab.com/libeigen/eigen.git --depth=1
+      - name: python
         uses: actions/setup-python@v1
         with:
-          python-version: ${{ matrix.python-version }}
+            python-version: ${{ matrix.python-version }}
       - name: Build
         run: |
           pip install wheel

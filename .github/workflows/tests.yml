@@ -18,16 +18,15 @@ jobs:
         name: checkout pybind
         with:
           repository: pybind/pybind11
-          path: pybind11
-      - name: ls
-        run: ls
-      - name: Set up Python
+          path: lib/pybind11
+      - name: eigen
+        run: cd lib && git clone https://gitlab.com/libeigen/eigen.git --depth=1
+      - name: python
         uses: actions/setup-python@v1
         with:
             python-version: ${{ matrix.python-version }}
       - name: install requirements
         run: |
-          pip install pybind11
           pip install .
           pip install meshpy
       - name: test

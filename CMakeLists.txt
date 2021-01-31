@@ -22,14 +22,20 @@ endif()
 
 # DEPENDENCIES
 
-if(EXISTS ${PROJECT_SOURCE_DIR}/pybind11)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/pybind11)
-    message("internal")
+if(EXISTS ${PROJECT_SOURCE_DIR}/lib/pybind11)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/lib/pybind11)
 else()
     find_package(pybind11 REQUIRED)
-    message("external")
 endif()
 set(PYBIND11_CPP_STANDARD -std=c++14)
+
+
+message(${PROJECT_SOURCE_DIR})
+if(EXISTS ${PROJECT_SOURCE_DIR}/lib/eigen)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/lib/eigen)
+else()
+    find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+endif()
 
 find_package(OpenMP)
 
