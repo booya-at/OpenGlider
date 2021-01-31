@@ -28,6 +28,7 @@ jobs:
       - name: install requirements
         run: |
           pip install .
+          pip install pybind11
           pip install meshpy
       - name: test
         run: |
