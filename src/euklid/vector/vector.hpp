@@ -1,8 +1,8 @@
 #pragma once
 
 #include<vector>
-#include <math.h>
 #include <iostream>
+#include "util/math.hpp"
 
 template<size_t dimensions, typename T>
 class Vector {

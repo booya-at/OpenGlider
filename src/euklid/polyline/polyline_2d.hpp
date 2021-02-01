@@ -1,6 +1,6 @@
 #pragma once
 
-#include <algorithm>
+#include "util/math.hpp"
 #include "euklid/vector/vector.hpp"
 #include "euklid/polyline/polyline.hpp"
 #include "euklid/vector/rotation_2d.hpp"
