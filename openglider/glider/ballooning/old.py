@@ -83,6 +83,24 @@ class Ballooning(BallooningBase):
         self.upper.scale(1, factor)
         self.lower.scale(1, factor)
 
+    def close_trailing_edge(self, start_x):
+        # ballooning -> 0 on trailing edge
+        for curve in (self.upper, self.lower):
+            data = []
+            for x, y in curve.data:
+                if x > self.config.trailing_edge_closing:
+                    # t_e_c -> 1
+                    # 1 -> 0
+                    # steigung = 1/(1-t_e_c)
+                    # d = 1
+                    t_e_c = start_x
+                    y = y * (1 - (x-t_e_c)/(1-t_e_c))
+                    #y = (1-x) * y
+
+                data.append((x, y))
+
+            curve.data = data
+
     def _repr_svg_(self):
         import svgwrite
         import svgwrite.container

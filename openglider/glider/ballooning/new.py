@@ -21,6 +21,17 @@ class BallooningNew(BallooningBase):
     def __mul__(self, factor):
         return BallooningNew(self.interpolation * factor)
 
+    def close_trailing_edge(self, start_x):
+        nodes = []
+        for n in self.interpolation.nodes:
+            x = n[0]
+            if x > start_x:
+                y = n[1]
+                t_e_c = start_x
+                y = y * (1 - (x-t_e_c)/(1-t_e_c))
+                n[1] = y
+                    #y = (1-x) * y
+
     def copy(self):
         return BallooningNew(self.interpolation.copy(), name=self.name)
 
