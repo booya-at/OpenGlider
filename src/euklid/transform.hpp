@@ -4,7 +4,8 @@
 #include<cmath>
 
 #include "euklid/vector/vector.hpp"
-
+#include "euklid/polyline/polyline.hpp"
+#include "euklid/polyline/polyline_2d.hpp"
 
 
 
@@ -22,9 +23,14 @@ class Transformation {
         Transformation static scale(double);
         
         Transformation chain(const Transformation&) const;
-
+        Transformation operator*(const Transformation&) const;
+        Transformation copy() const;
+        
         Vector3D apply(const Vector3D&) const;
-        Vector2D apply(const Vector2D&) const;
+        Vector3D apply(const Vector2D&) const;
+
+        PolyLine3D apply(const PolyLine2D&) const;
+        PolyLine3D apply(const PolyLine3D&) const;
 
         matrix_type matrix;
 

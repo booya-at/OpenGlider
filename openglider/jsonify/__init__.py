@@ -22,14 +22,19 @@ class Encoder(json.JSONEncoder):
         elif isinstance(obj, datetime.datetime):
             return obj.strftime(datetime_format)
         elif hasattr(obj, "__json__"):
-            type_str = str(obj.__class__)
-            module = obj.__class__.__module__
-            type_regex = "<class '{}\.(.*)'>".format(module.replace(".", "\."))
-            class_name = re.match(type_regex, type_str).group(1)
+            result = obj.__json__()
 
-            return {"_type": class_name,
-                    "_module": module,
-                    "data": obj.__json__()}
+            if type(result) == dict:
+                type_str = str(obj.__class__)
+                module = obj.__class__.__module__
+                type_regex = "<class '{}\.(.*)'>".format(module.replace(".", "\."))
+                class_name = re.match(type_regex, type_str).group(1)
+
+                return {"_type": class_name,
+                        "_module": module,
+                        "data": obj.__json__()}
+            else:
+                return result
         else:
             return super(Encoder, self).default(obj)
 

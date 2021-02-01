@@ -194,7 +194,12 @@ class CellAttachmentPoint(Node):
 
     def get_position(self):
         ik = self.cell.rib1.profile_2d(self.rib_pos)
-        self.vec = self.cell.midrib(self.cell_pos)[ik]
+
+        if self.rib_pos in (-1, 1):
+            self.vec = (self.cell.rib1.profile_3d.get(ik) + self.cell.rib2.profile_3d.get(ik))/2
+        else:
+            self.vec = self.cell.midrib(self.cell_pos)[ik]
+            
         return self.vec
 
 # Node from lines

@@ -78,7 +78,7 @@ class UpperNode2D(object):
             if isinstance(self.force, (list, tuple, np.ndarray)):
                 force = list(self.force)
             else:
-                force = rib.rotation_matrix(np.array([0, self.force, 0]))
+                force = rib.rotation_matrix.apply([0, self.force, 0])
 
             node = AttachmentPoint(rib, self.name, self.rib_pos, force)
 

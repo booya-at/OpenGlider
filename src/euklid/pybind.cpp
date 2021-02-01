@@ -3,8 +3,8 @@
 #include <pybind11/operators.h>
 
 #include <vector>
+#include "euklid/transform.hpp"
 #include "euklid/vector/vector.hpp"
-#include "euklid/vector/transform.hpp"
 #include "euklid/polyline/polyline.hpp"
 #include "euklid/polyline/polyline_2d.hpp"
 #include "euklid/polyline/interpolation.hpp"
@@ -72,6 +72,19 @@ py::class_<VectorType, std::shared_ptr<VectorType>> PyVector(py::module_ m, cons
             .def("__len__", [](const VectorType& v) {return v.dimension;})
             .def("__iter__", [](const VectorType& v){
                 return py::make_iterator(v.coordinates, v.coordinates+v.dimension);
+            })
+            .def("__copy__",  [](VectorType& self) {
+                return self.copy();
+            })
+            .def("__deepcopy__", [](VectorType& self, py::dict) {
+                return self.copy();
+            }, "memo"_a)
+            .def("__json__", [](const VectorType& self){
+                py::list result;
+                for (size_t i=0; i<VectorType::dimension; i++) {
+                    result.append(self.get_item(i));
+                }
+                return result;
             })
             .def("__str__", [](const VectorType &v) {
                 std::string out;
@@ -181,7 +194,16 @@ namespace openglider::euklid {
             .def_static("scale", &Transformation::scale)
             .def("apply", py::overload_cast<const Vector3D&>(&Transformation::apply, py::const_))
             .def("apply", py::overload_cast<const Vector2D&>(&Transformation::apply, py::const_))
-            .def("chain", &Transformation::chain);
+            .def("apply", py::overload_cast<const PolyLine2D&>(&Transformation::apply, py::const_))
+            .def("apply", py::overload_cast<const PolyLine3D&>(&Transformation::apply, py::const_))
+            .def("chain", &Transformation::chain)
+            .def(py::self * py::self)
+            .def("__copy__",  [](Transformation& self) {
+                return self.copy();
+            })
+            .def("__deepcopy__", [](Transformation& self, py::dict) {
+                return self.copy();
+            }, "memo"_a);
 
         py::class_<CutResult>(m, "CutResult")
             .def_readonly("success", &CutResult::success)

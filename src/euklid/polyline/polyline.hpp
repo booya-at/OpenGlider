@@ -5,7 +5,6 @@
 #include <memory>
 
 #include "euklid/vector/vector.hpp"
-#include "euklid/vector/transform.hpp"
 
 
 template<typename VectorType, typename T>
@@ -33,8 +32,6 @@ template<typename VectorType, typename T>
             T scale(const double);
             T mix(T&, const double);
             T move(const VectorType&) const;
-
-            T transform(const Transformation&) const;
 
             T operator+ (const T&) const;
         

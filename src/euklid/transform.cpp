@@ -1,4 +1,4 @@
-#include "euklid/vector/transform.hpp"
+#include "euklid/transform.hpp"
 
 
 Transformation::Transformation() {
@@ -19,9 +19,9 @@ Transformation Transformation::rotation(double angle, Vector3D axis) {
 
     axis.normalize();
 
-    double b = -axis.get_item(0) * sin(angle/2);
-    double c = -axis.get_item(1) * sin(angle/2);
-    double d = -axis.get_item(2) * sin(angle/2);
+    double b = axis.get_item(0) * sin(angle/2);
+    double c = axis.get_item(1) * sin(angle/2);
+    double d = axis.get_item(2) * sin(angle/2);
 
     result.matrix[0][0] = a*a + b*b - c*c - d*d;
     result.matrix[0][1] = 2* (b*c - a*d);
@@ -88,6 +88,9 @@ Transformation Transformation::chain(const Transformation& t2) const {
     return result;
 }
 
+Transformation Transformation::operator*(const Transformation& t2) const {
+    return this->chain(t2);
+}
 
 Vector3D Transformation::apply(const Vector3D& vector) const {
     Vector3D result;
@@ -103,11 +106,10 @@ Vector3D Transformation::apply(const Vector3D& vector) const {
     return result;
 }
 
+Vector3D Transformation::apply(const Vector2D& vector) const {
+    Vector3D result;
 
-Vector2D Transformation::apply(const Vector2D& vector) const {
-    Vector2D result;
-
-    for (int i=0; i<2; i++) {
+    for (int i=0; i<3; i++) {
         double value = this->matrix[3][i];
         for (int j=0; j<2; j++) {
             value += this->matrix[i][j] * vector.get_item(j);
@@ -116,4 +118,28 @@ Vector2D Transformation::apply(const Vector2D& vector) const {
     }
 
     return result;
+}
+
+PolyLine3D Transformation::apply(const PolyLine3D& line) const {
+    std::vector<std::shared_ptr<Vector3D>> nodes_new;
+
+    for (auto node: line.nodes) {
+        nodes_new.push_back(std::make_shared<Vector3D>(this->apply(*node)));
+    }
+
+    return PolyLine3D(nodes_new);
+}
+
+PolyLine3D Transformation::apply(const PolyLine2D& line) const {
+    std::vector<std::shared_ptr<Vector3D>> nodes_new;
+
+    for (auto node: line.nodes) {
+        nodes_new.push_back(std::make_shared<Vector3D>(this->apply(*node)));
+    }
+
+    return PolyLine3D(nodes_new);
+}
+
+Transformation Transformation::copy() const {
+    return Transformation(this->matrix);
 }

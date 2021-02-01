@@ -8,6 +8,7 @@ from openglider.vector.functions import rotation_3d, set_dimension
 from openglider.vector.transformation import Rotation, Scale, Translation
 from openglider.mesh import Mesh, triangulate
 from openglider.glider.rib.elements import FoilCurve
+from openglider_cpp import euklid
 from numpy.linalg import norm
 
 
@@ -64,18 +65,17 @@ class Rib(CachedObject):
 
     def align_all(self, data):
         """align 2d coordinates to the 3d pos of the rib"""
-        return self.transformation.apply(set_dimension(data, 3))
+        try:
+            return self.transformation.apply(data)
+        except:
+            print("eeeee", data)
+            return self.transformation.apply(list(data))
 
     def align(self, point, scale=True):
-        if len(point) == 2:
-            return self.align([point[0], point[1], 0.], scale=scale)
-        elif len(point) == 3:
-            if scale:
-                return self.transformation(point)
-            else:
-                return self.pos + self.rotation_matrix(point)
-
-        raise ValueError("Can only Align one single 2D or 3D-Point")
+        if scale:
+            return self.transformation.apply(point)
+        else:
+            return self.rotation_matrix.apply(point) + self.pos
 
     def align_x(self, x_value):
         ik = self.profile_2d(x_value)
@@ -98,7 +98,7 @@ class Rib(CachedObject):
 
     @cached_property('profile_3d')
     def normvectors(self):
-        return map(lambda x: self.rotation_matrix([x[0], x[1], 0]), self.profile_2d.normvectors)
+        return map(lambda x: self.rotation_matrix.apply([x[0], x[1], 0]), self.profile_2d.normvectors)
 
     @cached_property('arcang', 'glide', 'zrot', 'xrot', 'aoa_absolute')
     def rotation_matrix(self):
@@ -108,12 +108,12 @@ class Rib(CachedObject):
     @cached_property('arcang', 'glide', 'zrot', 'xrot', 'aoa_absolute', 'chord', 'pos')
     def transformation(self):
         zrot = np.arctan(self.arcang) / self.glide * self.zrot
-        return rib_transformation(self.aoa_absolute, self.arcang, zrot, self.xrot, self.chord, self.pos)
+        return rib_transformation(self.aoa_absolute, self.arcang, zrot, self.xrot, self.chord, self.pos.tolist())
 
     @cached_property('self')
     def profile_3d(self):
         if self.profile_2d.data is not None:
-            return Profile3D(self.align_all(self.profile_2d.data))
+            return Profile3D(self.align_all(self.profile_2d.data.tolist()))
         else:
             raise ValueError("no 2d-profile present for the rib at rib {}".format(
                 self.name))
@@ -151,11 +151,11 @@ class Rib(CachedObject):
 
     @property
     def normalized_normale(self):
-        return self.rotation_matrix(np.array([0., 0., 1.]))
+        return self.rotation_matrix.apply([0., 0., 1.])
 
     @property
     def in_plane_normale(self):
-        return self.rotation_matrix(np.array([0., 1., 0.]))
+        return self.rotation_matrix.apply([0., 1., 0.])
 
     def get_attachment_points(self, glider, brake=True):
         return glider.get_rib_attachment_points(self, brake=brake)
@@ -199,7 +199,7 @@ class Rib(CachedObject):
             mesh = tri.triangulate()
 
             triangles = list(mesh.elements)
-            vertices = self.align_all(mesh.points)
+            vertices = self.align_all(list(mesh.points))
 
             return Mesh.from_indexed(vertices, polygons={"ribs": triangles} , boundaries={self.name: list(range(len(vertices)))})
 
@@ -374,16 +374,25 @@ def parabola(x, x0, x1, x_max):
 #     return rot
 
 def rib_rotation(aoa, arc, zrot, xrot=0):
-    rot0 = Rotation(np.pi / 2 - xrot, [1, 0, 0])
-    rot1 = Rotation(aoa, [0, 1, 0])
-    rot2 = Rotation(-arc, [1, 0, 0])
-    axis = (rot1 * rot2)([0, 0, 1])
-    rot3 = Rotation(-zrot, axis)
-    return rot0 * rot1 * rot2 * rot3
+    #rot0 = Rotation(np.pi / 2 - xrot, [1, 0, 0])
+    #rot1 = Rotation(aoa, [0, 1, 0])
+    #rot2 = Rotation(-arc, [1, 0, 0])
+    #axis = (rot1 * rot2)([0, 0, 1])
+    #rot3 = Rotation(-zrot, axis)
+
+    rot0 = euklid.Transformation.rotation(np.pi / 2 - xrot - arc, [1, 0, 0])
+    rot1 = euklid.Transformation.rotation(aoa, rot0.apply([0, 0, -1]))
+    #rot1 = euklid.Transformation.rotation(aoa, [0,0,-1])
+    #rot2 = euklid.Transformation.rotation(-arc, [1,0,0])
+    axis = (rot0 * rot1).apply([0,0,1])
+    rot3 = euklid.Transformation.rotation(-zrot, axis)
+    return rot3 * rot1 * rot0
 
 
 def rib_transformation(aoa, arc, zrot, xrot, scale, pos):
-    scale = Scale(scale)
-    move = Translation(pos)
+    scale = euklid.Transformation.scale(scale)
+    #scale = Scale(scale)
+    move = euklid.Transformation.translation(pos)
+    #move = Translation(pos)
     rot = rib_rotation(aoa, arc, zrot, xrot)
     return scale * rot * move
