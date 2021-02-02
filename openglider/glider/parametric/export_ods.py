@@ -10,6 +10,8 @@ from openglider.glider.cell import DiagonalRib
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.utils.table import Table
 
+from openglider_cpp import euklid
+
 file_version = "V3"
 
 def export_ods_2d(glider, filename):
@@ -91,16 +93,21 @@ def get_geom_sheet(glider_2d):
     geom_page[0, 7].set_value("Y-rotation")
     geom_page[0, 8].set_value("profile-merge")
     geom_page[0, 9].set_value("ballooning-merge")
-    aoa_int = glider_2d.aoa.interpolation(num=100)
-    profile_int = glider_2d.profile_merge_curve.interpolation(num=100)
-    ballooning_int = glider_2d.ballooning_merge_curve.interpolation(num=100)
+
+    def interpolation(curve):
+        return euklid.Interpolation(curve.get_sequence(100).nodes)
+
+    aoa_int = interpolation(glider_2d.aoa)
+    profile_int = interpolation(glider_2d.profile_merge_curve)
+    ballooning_int = interpolation(glider_2d.ballooning_merge_curve)
+
     for rib_no, x in enumerate(glider_2d.shape.rib_x_values):
         geom_page[rib_no+1, 0].set_value(rib_no+1)
-        geom_page[rib_no+1, 5].set_value(aoa_int(x)*180/math.pi)
+        geom_page[rib_no+1, 5].set_value(aoa_int.get_value(x)*180/math.pi)
         geom_page[rib_no+1, 6].set_value(0)
         geom_page[rib_no+1, 7].set_value(0)
-        geom_page[rib_no+1, 8].set_value(profile_int(x))
-        geom_page[rib_no+1, 9].set_value(ballooning_int(x))
+        geom_page[rib_no+1, 8].set_value(profile_int.get_value(x))
+        geom_page[rib_no+1, 9].set_value(ballooning_int.get_value(x))
 
     return geom_page
 
@@ -273,16 +280,16 @@ def get_ballooning_sheet(glider_2d):
 
 
 def get_parametric_sheet(glider : "openglider.glider.parametric.glider.ParametricGlider"):
-    line_no = 1 + max([
-        glider.shape.front_curve.numpoints,
-        glider.shape.back_curve.numpoints,
-        glider.shape.rib_distribution.numpoints,
-        glider.arc.curve.numpoints,
-        glider.zrot.numpoints,
-        glider.aoa.numpoints,
-        glider.ballooning_merge_curve.numpoints,
-        glider.profile_merge_curve.numpoints
-        ])
+    line_no = 1 + max([len(curve.controlpoints) for curve in [
+        glider.shape.front_curve,
+        glider.shape.back_curve,
+        glider.shape.rib_distribution,
+        glider.arc.curve,
+        glider.zrot,
+        glider.aoa,
+        glider.ballooning_merge_curve,
+        glider.profile_merge_curve
+        ]])
     sheet = ezodf.Sheet(name="Parametric", size=(line_no, 16))
 
     def add_curve(name, curve, column_no):

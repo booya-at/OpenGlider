@@ -1,13 +1,16 @@
 import re
 import json
 import io
+import logging
 
+logger = logging.getLogger(__name__)
 
-def migrate(jsondata):
-    jsondata_new = migrate_00(jsondata)
-    with io.StringIO() as stream:
-        json.dump(jsondata_new, stream)
-        return stream
+def migrate(jsondata, version):
+    for migration in migrations:
+        if version < migration:
+            jsondata = migrations[migration](jsondata)
+    
+    return jsondata
 
 
 def migrate_00(jsondata):
@@ -19,8 +22,20 @@ def migrate_00(jsondata):
     for node in find_nodes(jsondata, name=r"DrawingArea"):
         node["__class__"] = "Layout"
 
+    return jsondata
 
-def find_nodes(jsondata, name="*", module=r"*"):
+def migrate_07(jsondata):
+    logger.info("migrating to 0.0.7")
+    for curvetype in ("Bezier", "SymmetricBezier", "BSpline", "SymmetricBSpline"):
+        for node in find_nodes(jsondata, name="^"+curvetype+"$"):
+            node["data"].pop("basefactory")
+            node["_type"] = f"{curvetype}Curve"
+            node["_module"] = "openglider_cpp.euklid"
+    
+    return jsondata
+
+
+def find_nodes(jsondata, name=r".*", module=r".*"):
     """
     Find nodes recursive
     :param name: *to find any
@@ -32,12 +47,15 @@ def find_nodes(jsondata, name="*", module=r"*"):
     rex_module = re.compile(module)
     nodes = []
     if isinstance(jsondata, dict):
-        if "__class__" in jsondata:
+        if "_type" in jsondata:
             # node
-            if rex_name.match(jsondata["__class__"]) and rex_module.match(jsondata["__module__"]):
+            if rex_name.match(jsondata["_type"]) and rex_module.match(jsondata["_module"]):
                 nodes.append(jsondata)
+            else:
+                for key, value in jsondata["data"].items():
+                    nodes += find_nodes(value, name, module)
 
-        if isinstance(jsondata, dict):
+        elif isinstance(jsondata, dict):
             for el in jsondata.values():
                 nodes += find_nodes(el, name, module)
         elif isinstance(jsondata, str):
@@ -54,5 +72,6 @@ def find_nodes(jsondata, name="*", module=r"*"):
 
 
 migrations = {
-    "0.00": migrate_00
+    "0.0.3": migrate_00,
+    "0.0.7": migrate_07
 }

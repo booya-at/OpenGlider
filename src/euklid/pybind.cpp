@@ -159,7 +159,7 @@ py::class_<SplineClass> PySpline(py::module m, const char *name) {
                 {
                     auto lst = get_vector_list<py::list, Vector2D>(t);
                     return SplineClass(PolyLine2D(lst));
-                }))
+                }), py::arg("controlpoints"))
             .def(py::init<PolyLine2D>())
             .def("__copy__",  [](SplineClass& self) {
                 return self.copy();
@@ -167,6 +167,19 @@ py::class_<SplineClass> PySpline(py::module m, const char *name) {
             .def("__deepcopy__", [](SplineClass& self, py::dict) {
                 return self.copy();
             }, "memo"_a)
+            .def("__json__", [](SplineClass& self) {
+                py::dict result;
+                py::list nodes;
+
+                for (auto node: self.controlpoints.nodes){
+                    py::list node_list;
+                    node_list.append(node->get_item(0));
+                    node_list.append(node->get_item(1));
+                    nodes.append(node_list);
+                }
+                result["controlpoints"] = nodes;
+                return result;
+            })
             .def_static("fit", &SplineClass::fit)
             .def_readwrite("controlpoints", &SplineClass::controlpoints)
             .def("copy", &SplineClass::copy)

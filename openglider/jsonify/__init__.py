@@ -67,10 +67,12 @@ def object_hook(dct):
 
         try:
             # use the __from_json__ function if present. __init__ otherwise
-            deserializer = getattr(obj, '__from_json__', obj)
+            deserializer = getattr(obj, '__from_json__', None)
+            if deserializer is None:
+                deserializer = obj
             return deserializer(**dct['data'])
         except TypeError as e:
-            raise TypeError("{} in element: {} ({})".format(e, dct["_type"], dct["_module"]))
+            raise TypeError("{} in element: {} ({})".format(e, obj, dct["_module"]))
 
     else:
         return dct
@@ -102,11 +104,7 @@ def dump(obj, fp, add_meta=True):
 
 
 def loads(obj):
-    try:
-        return json.loads(obj, object_hook=object_hook)
-    except:
-        data = openglider.jsonify.migration.migrate(obj)
-        return loads(data)
+    return json.loads(obj, object_hook=object_hook)
 
 
 def load(fp):
