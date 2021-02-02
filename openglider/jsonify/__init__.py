@@ -3,7 +3,8 @@ import re
 import time
 import datetime
 
-import openglider.jsonify.migration
+import openglider.config
+from openglider.jsonify.migration import Migration
 from openglider.utils import recursive_getattr
 
 __ALL__ = ['dumps', 'dump', 'loads', 'load']
@@ -104,8 +105,18 @@ def dump(obj, fp, add_meta=True):
 
 
 def loads(obj):
+    raw_data = json.loads(obj)
+    miigration = Migration(raw_data)
+    if miigration.required:
+        return json.loads(miigration.migrate(), object_hook=object_hook)
+
     return json.loads(obj, object_hook=object_hook)
 
 
 def load(fp):
+    raw_data = json.load(fp)
+    miigration = Migration(raw_data)
+    if miigration.required:
+        return json.loads(miigration.migrate(), object_hook=object_hook)
+
     return json.load(fp, object_hook=object_hook)

@@ -36,19 +36,6 @@ def load(filename):
         res = openglider.glider.ParametricGlider.import_ods(filename)
     else:
         with open(filename) as infile:
-            raw_data = json.load(infile)
-
-            metadata = raw_data.get("MetaData", {})
-            version = metadata.get("version", __version__)
-
-            old_version_match = re.match(r"([0-9])\.([0-9])([0-9]+)", version)
-            if old_version_match:
-                version = ".".join(old_version_match.groups())
-
-            if version < __version__:
-                new_data = openglider.jsonify.migration.migrate(raw_data, version)
-                return openglider.jsonify.loads(json.dumps(new_data))["data"]
-        with open(filename) as infile:
             res = openglider.jsonify.load(infile)
         if isinstance(res, dict) and "data" in res:
             print(res["MetaData"])  # HakunaMaData

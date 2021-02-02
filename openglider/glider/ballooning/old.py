@@ -88,7 +88,7 @@ class Ballooning(BallooningBase):
         for curve in (self.upper, self.lower):
             data = []
             for x, y in curve.data:
-                if x > self.config.trailing_edge_closing:
+                if x > start_x:
                     # t_e_c -> 1
                     # 1 -> 0
                     # steigung = 1/(1-t_e_c)
