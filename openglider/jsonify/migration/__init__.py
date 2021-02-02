@@ -28,6 +28,7 @@ class Migration:
         jsondata = self.json_data
         for migration_version, migration in self.get_migrations():
             if self.from_version < migration_version:
+                logger.debug(f"running migration: {migration.__doc__}")
                 jsondata = migration(jsondata)
         
         return json.dumps(jsondata)
@@ -39,6 +40,7 @@ class Migration:
                 logger.info(f"migrating to {version}")
                 return function(cls, jsondata)
 
+            function_wrapper.__doc__ = function.__doc__
             cls.migrations.append([version, function_wrapper])
         
         return decorate
@@ -107,6 +109,7 @@ def migrate_00(cls, jsondata):
 
 @Migration.add("0.0.7")
 def migrate_07(cls, jsondata):
+    "Migrate spline curves"
     logger.info("migrating to 0.0.7")
     for curvetype in ("Bezier", "SymmetricBezier", "BSpline", "SymmetricBSpline"):
         for node in cls.find_nodes(jsondata, name="^"+curvetype+"$"):

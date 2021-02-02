@@ -20,14 +20,18 @@
 __author__ = 'Booya'
 __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
-import numpy as np
-
 import re
 import json
+import logging
+
+import numpy as np
+
 from openglider.config import config
 import openglider.jsonify
 import openglider.glider
 from openglider.version import __version__
+
+logger = logging.getLogger(__name__)
 
 def load(filename):
     """
@@ -38,7 +42,9 @@ def load(filename):
         with open(filename) as infile:
             res = openglider.jsonify.load(infile)
         if isinstance(res, dict) and "data" in res:
-            print(res["MetaData"])  # HakunaMaData
+            logger.info(f"loading file: {filename}")
+            logger.info(res["MetaData"])
+            
             return res["data"]
 
     return res

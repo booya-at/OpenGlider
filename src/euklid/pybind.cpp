@@ -35,6 +35,22 @@ std::vector<std::shared_ptr<VectorT>> get_vector_list(list_type lst) {
 }
 
 template<typename VectorType>
+py::list to_list(std::vector<std::shared_ptr<VectorType>> data) {
+    py::list nodes;
+
+    for (auto node: data) {
+        py::list node_list;
+        for (size_t j=0; j<VectorType::dimension; j++) {
+            node_list.append(node->get_item(j));
+        }
+        nodes.append(node_list);
+
+    }
+
+    return nodes;
+}
+
+template<typename VectorType>
 py::class_<VectorType, std::shared_ptr<VectorType>> PyVector(py::module_ m, const char *name) {
     return py::class_<VectorType, std::shared_ptr<VectorType>>(m, name)
             .def(py::init([](py::tuple t)
@@ -118,11 +134,10 @@ py::class_<VectorType, std::shared_ptr<VectorType>> PyVector(py::module_ m, cons
 template<typename PolyLineType, typename VectorClass>
 py::class_<PolyLineType> PyPolyLine(py::module_ m, const char *name) {
     return py::class_<PolyLineType>(m, name)
-        .def(py::init([](py::list t)
-        {
+        .def(py::init([](py::list t) {
             auto lst = get_vector_list<py::list, VectorClass>(t);
             return PolyLineType(lst);
-        }))
+        }), py::arg("nodes"))
         .def("__len__", &PolyLineType::numpoints)
         .def("__iter__", [](const PolyLineType& v){
             return py::make_iterator(v.nodes.begin(), v.nodes.end());
@@ -134,6 +149,11 @@ py::class_<PolyLineType> PyPolyLine(py::module_ m, const char *name) {
         .def("__deepcopy__", [](PolyLineType& self, py::dict) {
             return self.copy();
         }, "memo"_a)
+        .def("__json__", [](PolyLineType& self) {
+            py::dict result;
+            result["nodes"] = to_list<VectorClass>(self.nodes);
+            return result;
+        })
         .def("get", py::overload_cast<const double>(&PolyLineType::get, py::const_))
         .def("get", py::overload_cast<const double, const double>(&PolyLineType::get, py::const_))
         .def("get_segments", &PolyLineType::get_segments)
@@ -169,15 +189,7 @@ py::class_<SplineClass> PySpline(py::module m, const char *name) {
             }, "memo"_a)
             .def("__json__", [](SplineClass& self) {
                 py::dict result;
-                py::list nodes;
-
-                for (auto node: self.controlpoints.nodes){
-                    py::list node_list;
-                    node_list.append(node->get_item(0));
-                    node_list.append(node->get_item(1));
-                    nodes.append(node_list);
-                }
-                result["controlpoints"] = nodes;
+                result["controlpoints"] = to_list<Vector2D>(self.controlpoints.nodes);
                 return result;
             })
             .def_static("fit", &SplineClass::fit)

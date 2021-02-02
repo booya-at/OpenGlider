@@ -118,5 +118,7 @@ def load(fp):
     miigration = Migration(raw_data)
     if miigration.required:
         return json.loads(miigration.migrate(), object_hook=object_hook)
+    
+    fp.seek(0)
 
     return json.load(fp, object_hook=object_hook)
