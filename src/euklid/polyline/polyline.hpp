@@ -1,7 +1,7 @@
 #pragma once
 
+#include "util/math.hpp"
 #include<vector>
-#include <algorithm>    // std::max
 #include <memory>
 
 #include "euklid/vector/vector.hpp"

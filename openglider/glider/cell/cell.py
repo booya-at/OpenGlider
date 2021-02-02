@@ -33,7 +33,7 @@ class Cell(CachedObject):
     panel_naming_scheme_lower = "{cell.name}pl{panel_no}"
     minirib_naming_scheme = "{cell.name}mr{minirib_no}"
 
-    sigma_3d_cut = 0.04
+    sigma_3d_cut = 0.1
 
     def __init__(self, rib1, rib2, ballooning, miniribs=None, panels: List["Panel"]=None,
                  diagonals: list=None, straps: list=None, rigidfoils: list=None, name="unnamed", **kwargs):

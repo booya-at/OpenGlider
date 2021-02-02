@@ -104,7 +104,7 @@ double PolyLine<VectorClass, T>::get_length() {
 
 template<typename VectorClass, typename T>
 double PolyLine<VectorClass, T>::walk(double start, double amount) {
-    if (amount < 1e-5) {
+    if (std::abs(amount) < 1e-5) {
         return start;
     }
 
