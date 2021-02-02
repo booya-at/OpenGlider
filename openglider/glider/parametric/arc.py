@@ -4,6 +4,8 @@ import numpy as np
 from openglider.vector import PolyLine2D
 from openglider.vector.spline import SymmetricBezier, SymmetricBSpline
 
+from openglider_cpp import euklid
+
 
 class ArcCurve(object):
     """
@@ -11,7 +13,7 @@ class ArcCurve(object):
     """
     num_interpolation_points = 100
 
-    def __init__(self, curve):
+    def __init__(self, curve: euklid.SymmetricBSplineCurve):
         self.curve = curve
 
     def __json__(self):
@@ -32,11 +34,11 @@ class ArcCurve(object):
         :return: [p0, p1,...]
         """
         # Symmetric-Bezier-> start from 0.5
-        arc_curve = PolyLine2D([self.curve(i) for i in np.linspace(0.5, 1, self.num_interpolation_points)])
+        arc_curve = self.curve.get_sequence(self.num_interpolation_points)
         arc_curve_length = arc_curve.get_length()
         scale_factor = arc_curve_length / x_values[-1]
         _positions = [arc_curve.walk(0, x * scale_factor) for x in x_values]
-        positions = PolyLine2D([arc_curve[p] for p in _positions])
+        positions = PolyLine2D([arc_curve.get(p) for p in _positions])
         if not self.has_center_cell(x_values):
             positions[0][0] = 0
         # rescale
@@ -117,10 +119,10 @@ class ArcCurve(object):
     def rescale(self, x_values):
         positions = self.get_arc_positions(x_values)
         diff = [0, -positions[0][1]]
-        self.curve.controlpoints = [p + diff for p in self.curve.controlpoints]
+        self.curve.controlpoints = euklid.PolyLine2D([p + diff for p in self.curve.controlpoints.nodes])
 
-        arc_curve = PolyLine2D([self.curve(i) for i in np.linspace(0.5, 1, self.num_interpolation_points)])
+        arc_curve: euklid.PolyLine2D = self.curve.get_sequence(self.num_interpolation_points)
         arc_curve_length = arc_curve.get_length()
         scale_factor = x_values[-1] / arc_curve_length
 
-        self.curve.controlpoints = [p * scale_factor for p in self.curve.controlpoints]
+        self.curve.controlpoints = euklid.PolyLine2D([p * scale_factor for p in self.curve.controlpoints.nodes])

@@ -37,18 +37,17 @@ class BasicCell(CachedObject):
             # 2: x2 = R*normvekt*(cos(phi2)-cos(phi)
             # 3: norm(d)/r*(1-x) = 2*sin(phi(2))
             if with_numpy:
-                l_phi = np.array(self.ballooning_phi)
-                l_n = np.array(self.normvectors)
-                l_r = np.array(self.ballooning_radius)
-                l_diff = self.prof1.data - self.prof2.data
+                phi = np.array(self.ballooning_phi)
+                normals = np.array(self.normvectors)
+                radius = np.array(self.ballooning_radius)
 
-                l_phi = l_phi  + (1e-10 - l_phi) * (l_phi <= 0.)
-                l_psi = l_phi * 2 * y_value
-                l_h = np.cos(l_phi - l_psi) - np.cos(l_phi)
-                l_d = 0.5 * (1 - np.sin(l_phi - l_psi) / np.sin(l_phi))
-                l_r = l_r * (l_r > 0.)
-                l_midrib = self.prof1.data.T - l_d * l_diff.T + (l_h * l_r) * l_n.T
-                return Profile3D(l_midrib.T)
+                phi = phi  + (1e-10 - phi) * (phi <= 0.)  # => phi = min(phi, 1e-10)
+                psi = phi * 2 * y_value
+                l_h = np.cos(phi - psi) - np.cos(phi)
+                l_d = 0.5 * (1 - np.sin(phi - psi) / np.sin(phi))
+                radius = radius * (radius > 0.)  # => radius = min(radius, 0)
+                midrib = self.prof1.data.T - l_d * (self.prof1.data - self.prof2.data).T + (l_h * radius) * normals.T
+                return Profile3D(midrib.T)
 
             for i, _ in enumerate(self.prof1.data):  # Arc -> phi(bal) -> r  # oder so...
                 diff = self.prof1[i] - self.prof2[i]

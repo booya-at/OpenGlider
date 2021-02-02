@@ -20,6 +20,8 @@ from openglider.utils.distribution import Distribution
 from openglider.utils.table import Table
 from openglider.utils import ZipCmp
 
+from openglider_cpp import euklid
+
 logger = logging.getLogger(__name__)
 
 class ParametricGlider(object):
@@ -264,13 +266,12 @@ class ParametricGlider(object):
         """
 
     def get_aoa(self, interpolation_num=None):
-        aoa_interpolation = self.aoa.interpolation(num=interpolation_num or self.num_interpolate)
+        aoa_interpolation = euklid.Interpolation(self.aoa.get_sequence(interpolation_num or self.num_interpolate).nodes)
 
-        return [aoa_interpolation(x) for x in self.shape.rib_x_values]
+        return [aoa_interpolation.get_value(x) for x in self.shape.rib_x_values]
 
-    def apply_aoa(self, glider, interpolation_num=50):
-        aoa_interpolation = self.aoa.interpolation(num=interpolation_num)
-        aoa_values = [aoa_interpolation(x) for x in self.shape.rib_x_values]
+    def apply_aoa(self, glider):
+        aoa_values = self.get_aoa()
 
         if self.shape.has_center_cell:
             aoa_values.insert(0, aoa_values[0])
@@ -279,12 +280,12 @@ class ParametricGlider(object):
             rib.aoa_relative = aoa
 
     def get_profile_merge(self):
-        profile_merge_curve = self.profile_merge_curve.interpolation(num=self.num_interpolate)
-        return [profile_merge_curve(abs(x)) for x in self.shape.rib_x_values]
+        profile_merge_curve = euklid.Interpolation(self.profile_merge_curve.get_sequence(self.num_interpolate).nodes)
+        return [profile_merge_curve.get_value(abs(x)) for x in self.shape.rib_x_values]
 
     def get_ballooning_merge(self):
-        ballooning_merge_curve = self.ballooning_merge_curve.interpolation(num=self.num_interpolate)
-        return [ballooning_merge_curve(abs(x) for x in self.shape.cell_x_values)]
+        ballooning_merge_curve = euklid.Interpolation(self.ballooning_merge_curve.get_sequence(self.num_interpolate).nodes)
+        return [ballooning_merge_curve.get_value(abs(x)) for x in self.shape.cell_x_values]
 
     def apply_shape_and_arc(self, glider):
         x_values = self.shape.rib_x_values
@@ -322,10 +323,8 @@ class ParametricGlider(object):
         x_values = self.shape.rib_x_values
         shape_ribs = self.shape.ribs
 
-        profile_merge_curve = self.profile_merge_curve.interpolation(num=num)
-        ballooning_merge_curve = self.ballooning_merge_curve.interpolation(num=num)
-        aoa_int = self.aoa.interpolation(num=num)
-        zrot_int = self.zrot.interpolation(num=num)
+        aoa_int = euklid.Interpolation(self.aoa.get_sequence(num).nodes)
+        zrot_int = euklid.Interpolation(self.zrot.get_sequence(num).nodes)
 
         arc_pos = list(self.arc.get_arc_positions(x_values))
         rib_angles = self.arc.get_rib_angles(x_values)
@@ -352,13 +351,14 @@ class ParametricGlider(object):
             rib_material = self.elements["rib_material"]
 
         logger.info("create ribs")
+        profile_merge_values = self.get_profile_merge()
         for rib_no, pos in enumerate(x_values):
             front, back = shape_ribs[rib_no]
             arc = arc_pos[rib_no]
             startpoint = np.array([-front[1] + offset_x, arc[0], arc[1]])
 
             chord = abs(front[1]-back[1])
-            factor = profile_merge_curve(abs(pos))
+            factor = profile_merge_values[rib_no]
             profile = self.get_merge_profile(factor)
             profile.name = "Profile{}".format(rib_no)
             profile.x_values = profile_x_values
@@ -372,14 +372,14 @@ class ParametricGlider(object):
                 chord=chord,
                 arcang=rib_angles[rib_no],
                 glide=self.glide,
-                aoa_absolute=aoa_int(pos),
-                zrot=zrot_int(pos),
+                aoa_absolute=aoa_int.get_value(pos),
+                zrot=zrot_int.get_value(pos),
                 holes=this_rib_holes,
                 rigidfoils=this_rigid_foils,
                 name="rib{}".format(rib_no),
                 material_code=rib_material
             ))
-            ribs[-1].aoa_relative = aoa_int(pos)
+            ribs[-1].aoa_relative = aoa_int.get_value(pos)
 
         if self.shape.has_center_cell:
             new_rib = ribs[0].copy()
@@ -390,9 +390,10 @@ class ParametricGlider(object):
             cell_centers.insert(0, 0.)
 
         logger.info("create cells")
+        ballooning_factors = self.get_ballooning_merge()
         glider.cells = []
         for cell_no, (rib1, rib2) in enumerate(zip(ribs[:-1], ribs[1:])):
-            ballooning_factor = ballooning_merge_curve(cell_centers[cell_no])
+            ballooning_factor = ballooning_factors[cell_no]
             ballooning = self.merge_ballooning(ballooning_factor)
             
             cell = Cell(rib1, rib2, ballooning, name="c{}".format(cell_no+1))
@@ -487,9 +488,9 @@ class ParametricGlider(object):
         span = self.shape.span
 
         def rescale(curve):
-            span_orig = curve.controlpoints[-1][0]
+            span_orig = curve.controlpoints.nodes[-1][0]
             factor = span/span_orig
-            curve._data[:, 0] *= factor
+            curve.controlpoints = curve.controlpoints.scale([1, factor])
 
         rescale(self.ballooning_merge_curve)
         rescale(self.profile_merge_curve)

@@ -6,6 +6,8 @@ from openglider.glider.shape import Shape
 from openglider.vector import Interpolation, PolyLine2D
 from openglider.utils.table import Table
 
+from openglider_cpp import euklid
+
 
 class ParametricShape(object):
     num_shape_interpolation = 50
@@ -70,11 +72,11 @@ class ParametricShape(object):
     def rescale_curves(self):
         span = self.span
 
-        dist_scale = span / self.rib_distribution.controlpoints[-1][0]
-        self.rib_distribution.scale(dist_scale, 1)
+        dist_scale = span / self.rib_distribution.controlpoints.nodes[-1][0]
+        self.rib_distribution.controlpoints = self.rib_distribution.controlpoints.scale([dist_scale, 1])
 
-        back_scale = span / self.back_curve.controlpoints[-1][0]
-        self.back_curve.scale(back_scale, 1)
+        back_scale = span / self.back_curve.controlpoints.nodes[-1][0]
+        self.back_curve.controlpoints = self.back_curve.controlpoints.scale([back_scale, 1])
 
     @property
     def rib_dist_interpolation(self):
@@ -98,12 +100,12 @@ class ParametricShape(object):
     # besser mit spezieller bezier?
     @property
     def rib_dist_controlpoints(self):
-        return self.rib_distribution.controlpoints[1:-1]
+        return self.rib_distribution.controlpoints.nodes[1:-1]
 
     @rib_dist_controlpoints.setter
     def rib_dist_controlpoints(self, arr):
-        x0 = self.front_curve.controlpoints[-1][0]
-        self.rib_distribution.controlpoints = [[0, 0]] + arr + [[x0, 1]]
+        x0 = self.front_curve.controlpoints.nodes[-1][0]
+        self.rib_distribution.controlpoints.nodes = [[0, 0]] + arr + [[x0, 1]]
 
     @property
     def rib_x_values(self):
@@ -127,11 +129,11 @@ class ParametricShape(object):
         [ribs, front, back]
         """
         num = self.num_shape_interpolation
-        front_int = self.front_curve.interpolation(num=num)
-        back_int = self.back_curve.interpolation(num=num)
+        front_int = euklid.Interpolation(self.front_curve.get_sequence(num).nodes)
+        back_int = euklid.Interpolation(self.back_curve.get_sequence(num).nodes)
         dist = self.rib_x_values
-        front = [[x, front_int(x)] for x in dist]
-        back = [[x, back_int(x)] for x in dist]
+        front = [[x, front_int.get_value(x)] for x in dist]
+        back = [[x, back_int.get_value(x)] for x in dist]
 
         return Shape(PolyLine2D(front), PolyLine2D(back))
 
@@ -203,15 +205,15 @@ class ParametricShape(object):
     def scale(self, x=1., y=None):
         if y is None:
             y = x
-        self.front_curve.scale(x, y)
+        self.front_curve.controlpoints = self.front_curve.controlpoints.scale([x, y])
 
         # scale back to fit with front
-        factor = self.front_curve[-1][0] / self.back_curve[-1][0]
-        self.back_curve.scale(factor, y)
+        factor = self.front_curve.controlpoints.nodes[-1][0] / self.back_curve.controlpoints.nodes[-1][0]
+        self.back_curve.controlpoints = self.back_curve.controlpoints.scale([factor, y])
 
         # scale rib_dist
-        factor = self.front_curve.controlpoints[-1][0] / self.rib_distribution.controlpoints[-1][0]
-        self.rib_distribution.scale(factor, 1)
+        factor = self.front_curve.controlpoints.nodes[-1][0] / self.rib_distribution.controlpoints.nodes[-1][0]
+        self.rib_distribution.controlpoints = self.rib_distribution.controlpoints.scale([factor, 1])
 
     @property
     def area(self):
@@ -249,7 +251,7 @@ class ParametricShape(object):
 
     @property
     def span(self):
-        span = self.front_curve.controlpoints[-1][0]
+        span = self.front_curve.controlpoints.nodes[-1][0]
         return span
 
     @span.setter

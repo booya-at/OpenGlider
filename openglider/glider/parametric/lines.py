@@ -10,7 +10,7 @@ from openglider.utils import recursive_getattr
 from openglider.lines import line_types
 from openglider.utils.table import Table
 
-logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 class LowerNode2D(object):
     """lower attachment point"""
@@ -67,10 +67,7 @@ class UpperNode2D(object):
             if isinstance(self.force, (list, tuple, np.ndarray)):
                 force = list(self.force)
             else:
-                midrib = cell.midrib(self.cell_pos)
-                force1 = np.array([0, self.force, 0])
-                plane = midrib.projection_layer
-                force = np.array(plane.translation_matrix.dot(force1))[0]
+                force = cell.get_normvector() * self.force
 
             node = CellAttachmentPoint(cell, self.name, self.cell_pos, self.rib_pos, force)
         else: # attachment point on the rib
@@ -172,8 +169,11 @@ class LineSet2D(object):
             self.sort_lines(node)
         self.delete_not_connected(glider)
 
+        logger.info("get nodes")
+
         nodes_3d = {node: node.get_node(glider) for node in self.nodes}
         # set up the lines!
+        logger.info("get lines")
         for line_no, line in enumerate(self.lines):
             lower = nodes_3d[line.lower_node]
             upper = nodes_3d[line.upper_node]

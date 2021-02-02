@@ -54,7 +54,7 @@ class BallooningBezierNeu(BallooningNew):
             raise ValueError("Value {} not between -1 and 1".format(xval))
 
     def copy(self):
-        return BallooningBezierNeu(self.spline_curve.copy(), name=self.name)
+        return BallooningBezierNeu(self.spline_curve.copy().controlpoints, name=self.name)
 
     @classmethod
     def from_classic(cls, ballooning, numpoints=14):
@@ -111,7 +111,7 @@ class BallooningBezierNeu(BallooningNew):
 
         g = svgwrite.container.Group()
         g.scale(1, -1)
-        upper = drawing.polyline(self.upper.data, style="stroke:black; vector-effect: non-scaling-stroke; fill: none;")
+        upper = drawing.polyline(self.spline_curve.get_sequence(100).nodes, style="stroke:black; vector-effect: non-scaling-stroke; fill: none;")
         g.add(upper)
         drawing.add(g)
 

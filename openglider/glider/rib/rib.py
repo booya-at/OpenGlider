@@ -119,7 +119,7 @@ class Rib(CachedObject):
                 self.name))
 
     def point(self, x_value):
-        return self.align(self.profile_2d.profilepoint(x_value))
+        return self.align(self.profile_2d.profilepoint(x_value).tolist())
 
     @staticmethod
     def _aoa_diff(arc_angle, glide):
