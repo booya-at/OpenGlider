@@ -49,7 +49,7 @@ class BallooningBezierNeu(BallooningNew):
     def __getitem__(self, xval):
         """Get Ballooning Value (%) for a certain XValue"""
         if -1 <= xval <= 1:
-            return self.interpolation(xval)
+            return self.interpolation.get_value(xval)
         else:
             raise ValueError("Value {} not between -1 and 1".format(xval))
 
