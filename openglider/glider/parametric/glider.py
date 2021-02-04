@@ -440,9 +440,11 @@ class ParametricGlider(object):
         for ballooning in self.balloonings:
             ballooning.apply_splines()
         cell_centers = self.shape.cell_x_values
-        ballooning_merge_curve = self.ballooning_merge_curve.interpolation(num=self.num_interpolate)
+
+
+        ballooning_merge_curve = euklid.Interpolation(self.ballooning_merge_curve.get_sequence(self.num_interpolate).nodes)
         for cell_no, cell in enumerate(glider3d.cells):
-            ballooning_factor = ballooning_merge_curve(cell_centers[cell_no])
+            ballooning_factor = ballooning_merge_curve.get_value(cell_centers[cell_no])
             ballooning = self.merge_ballooning(ballooning_factor)
             cell.ballooning = ballooning
 

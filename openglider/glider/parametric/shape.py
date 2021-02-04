@@ -186,11 +186,11 @@ class ParametricShape(object):
         """
         num = self.num_depth_integral
         x_values = np.linspace(0, self.span, num)
-        front_int = self.front_curve.interpolation(num=num)
-        back_int = self.back_curve.interpolation(num=num)
+        front_int = euklid.Interpolation(self.front_curve.get_sequence(num).nodes)
+        back_int = euklid.Interpolation(self.back_curve.get_sequence(num).nodes)
         integrated_depth = [0.]
         for x in x_values[1:]:
-            depth = front_int(x) - back_int(x)
+            depth = front_int.get_value(x) - back_int.get_value(x)
             integrated_depth.append(integrated_depth[-1] + 1. / depth)
         y_values = [i / integrated_depth[-1] for i in integrated_depth]
         return zip(x_values, y_values)
