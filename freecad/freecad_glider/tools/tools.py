@@ -13,6 +13,7 @@ from openglider.glider import ParametricGlider
 from openglider.jsonify import dump, load
 from openglider.vector.spline import BernsteinBase, BSplineBase
 from PySide import QtGui
+import openglider_cpp
 
 
 
@@ -76,6 +77,10 @@ class ControlPointContainer(coin.SoSeparator):
 def vector3D(vec, z=None):
     if len(vec) == 0:
         return(vec)
+    elif isinstance(vec, openglider_cpp.euklid.PolyLine3D):
+        return [list(i) for i in vec]
+    elif isinstance(vec, openglider_cpp.euklid.PolyLine2D):
+        return [list(i) + [0] for i in vec]
     elif not isinstance(vec[0], (list, tuple, np.ndarray, FreeCAD.Vector)):
         if len(vec) == 3:
             return vec
@@ -177,14 +182,13 @@ class spline_select(QtGui.QComboBox):
 
     @property
     def current_spline_type(self):
+        import openglider_cpp
         if self.spline_objects:
-            base = self.spline_objects[0].basefactory
-            if base.__class__ == BernsteinBase.__class__:
-                return 'Bezier'
+            spline_obj = self.spline_objects[0]
+            if spline_obj.__class__ in (openglider_cpp.euklid.SymmetricBezierCurve, openglider_cpp.euklid.BezierCurve):
+                return "Bezier"
             else:
-                return 'BSpline_' + str(base.degree)
-        else:
-            return 'Bezier'
+                return "BSpline"
 
     def set_spline_type(self, *args):
         for spline in self.spline_objects:

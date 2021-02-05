@@ -210,5 +210,30 @@ T SymmetricSpline<SplineClass, T>::fit(const PolyLine2D& nodes, size_t node_num)
     return T(controlpoints_new);
 }
 
+template<typename SplineClass, typename T>
+int SplineCurve<SplineClass, T>::get_numpoints() {
+    return this->controlpoints.nodes.size();
+}
+
+template<typename SplineClass, typename T>
+void SplineCurve<SplineClass, T>::set_numpoints(size_t numpoints) {
+    auto nodes = this->get_sequence(100).nodes;
+    auto new_spline = T::fit(nodes, numpoints);
+    this->controlpoints = new_spline.controlpoints;
+}
+
+template<typename SplineClass, typename T>
+int SymmetricSpline<SplineClass, T>::get_numpoints() {
+    return this->controlpoints.nodes.size();
+}
+
+template<typename SplineClass, typename T>
+void SymmetricSpline<SplineClass, T>::set_numpoints(size_t numpoints) {
+    auto nodes = this->get_sequence(100).nodes;
+    auto new_spline = T::fit(nodes, numpoints);
+    this->controlpoints = new_spline.controlpoints;
+}
+
 
 template class SymmetricSpline<BSplineCurve, SymmetricBSplineCurve>;
+template class SymmetricSpline<BezierCurve, SymmetricBezierCurve>;

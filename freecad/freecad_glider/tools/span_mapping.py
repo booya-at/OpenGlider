@@ -5,6 +5,7 @@ import numpy as np
 from pivy import coin
 
 from openglider.glider.rib import Rib
+import openglider_cpp
 from PySide import QtGui
 
 from pivy import graphics
@@ -23,7 +24,7 @@ class SpanMappingTool(BaseTool):
     def __init__(self, obj):
         super(SpanMappingTool, self).__init__(obj)
         self._grid_y_diff = self.grid_y_diff / self.value_scale
-        pts = np.array(self.spline.controlpoints) * self.scale
+        pts = np.array(self.spline.controlpoints.nodes) * self.scale
         pts = list(map(vector3D, pts))
 
         self.spline_controlpoints = ControlPointContainer(self.rm, pts)
@@ -103,7 +104,7 @@ class SpanMappingTool(BaseTool):
             np.array([i[:-1] for i in self.spline_controlpoints.control_pos]) /
             self.scale).tolist()
         self.spline_curve.update(
-            self.spline.get_sequence(num=self.num_on_drag) * self.scale)
+            self.spline.get_sequence(num=self.num_on_drag) * list(self.scale))
 
     def update_spline_type(self):
         self.spline_controlpoints.control_pos = np.array(self.spline.controlpoints) * self.scale
@@ -113,7 +114,7 @@ class SpanMappingTool(BaseTool):
     def update_grid(self, drag_release=False):
         self.coords.removeAllChildren()
         pts = self.spline.get_sequence(num=self.num_on_drag)
-        self.spline_curve.update(pts * self.scale)
+        self.spline_curve.update(pts * list(self.scale))
         max_x = max([i[0] for i in pts])
         max_y = max([i[1] for i in pts])
         min_y = min([i[1] for i in pts])
@@ -163,7 +164,9 @@ class SpanMappingTool(BaseTool):
             text.string = self.text_repr(l[1] * self.value_scale)
             textsep += [color, trans, text]
             self.grid += [textsep]
-        interpolation = self.spline.interpolation(SpanMappingTool.num_on_drag)
+        sequence = self.spline.get_sequence(SpanMappingTool.num_on_drag)
+        interpolation = openglider_cpp.euklid.Interpolation(sequence.nodes)
+
         if drag_release:
             for i in self.back:
                 color = coin.SoMaterial()
@@ -177,7 +180,7 @@ class SpanMappingTool(BaseTool):
                 rot.angle.setValue(np.pi / 2)
                 scale.scaleFactor = (self.text_scale, self.text_scale, self.text_scale)
                 trans.translation = (i[0], i[1], 0.001)
-                text.string = self.text_repr(interpolation(i[0]) * self.value_scale * self.scale[1])
+                text.string = self.text_repr(interpolation.get_value(i[0]) * self.value_scale * self.scale[1])
                 textsep += [color, trans, scale, rot, text]
                 self.grid += [textsep]
 
@@ -186,7 +189,7 @@ class SpanMappingTool(BaseTool):
 
     def update_num(self):
         self.spline.numpoints = self.Qnum_aoa.value()
-        self.spline_controlpoints.control_pos = np.array(self.spline.controlpoints) * self.scale
+        self.spline_controlpoints.control_pos = np.array(self.spline.controlpoints.nodes) * self.scale
         self.spline_controlpoints.control_points[-1].constrained = [0., 1., 0.]
         self.update_aoa()
 

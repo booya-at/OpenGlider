@@ -83,7 +83,7 @@ class ArcCurve(object):
             curve.append(last_pos)
 
         curve = [p * [-1, 1] for p in curve[::-1]] + curve
-        spline = SymmetricBSpline.fit(curve, numpoints=8)
+        spline = euklid.SymmetricBSpline.fit(curve, 8)
         return cls(spline)
 
     def get_rib_angles(self, x_values):
@@ -114,7 +114,8 @@ class ArcCurve(object):
         return span_projected / arc_curve.get_length()
 
     def get_circle(self):
-        p1, p2 = self.curve.get_sequence(2)
+        p1, p2 = self.curve.get_sequence(1)
+
 
     def rescale(self, x_values):
         positions = self.get_arc_positions(x_values)

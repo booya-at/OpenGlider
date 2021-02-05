@@ -1,5 +1,6 @@
 import FreeCADGui as Gui
 from pivy import coin
+import numpy
 
 from openglider.vector.polygon import CirclePart
 from PySide import QtGui
@@ -68,7 +69,8 @@ class ArcTool(BaseTool):
 
     def draw_circle(self):
         self.circle.removeAllChildren()
-        p1, p2, p3 = self.parametric_glider.arc.curve.get_sequence(num=30)[[0, 15, -1]]
+        sequence = numpy.array(self.parametric_glider.arc.curve.get_sequence(num=30).nodes)
+        p1, p2, p3 = sequence[[0, 15, -1]]
         circle = CirclePart(p1, p2, p3)
         self.circle += Line(vector3D(circle.get_sequence()))
         self.circle += Point(vector3D([circle.center]))

@@ -194,9 +194,10 @@ py::class_<SplineClass> PySpline(py::module m, const char *name) {
             })
             .def_static("fit", &SplineClass::fit)
             .def_readwrite("controlpoints", &SplineClass::controlpoints)
+            .def_property("numpoints", &SplineClass::get_numpoints, &SplineClass::set_numpoints)
             .def("copy", &SplineClass::copy)
             .def("get", &SplineClass::get)
-            .def("get_sequence", &SplineClass::get_sequence);
+            .def("get_sequence", &SplineClass::get_sequence, py::arg("num"));
 }
 
 namespace openglider::euklid {
@@ -277,6 +278,7 @@ namespace openglider::euklid {
         PySpline<BezierCurve>(m, "BezierCurve");
         PySpline<BSplineCurve>(m, "BSplineCurve");
         PySpline<SymmetricBSplineCurve>(m, "SymmetricBSplineCurve");
+        PySpline<SymmetricBezierCurve>(m, "SymmetricBezierCurve");
             
     }
 }
