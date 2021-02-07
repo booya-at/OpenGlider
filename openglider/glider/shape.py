@@ -1,21 +1,22 @@
 from openglider.vector.drawing import PlotPart, Layout
 from openglider.vector import PolyLine2D, norm
 
+from openglider_cpp import euklid
 
 class Shape(object):
     def __init__(self, front, back):
-        if not isinstance(front, PolyLine2D):
-            front = PolyLine2D(front)
-        if not isinstance(back, PolyLine2D):
-            back = PolyLine2D(back)
+        if not isinstance(front, euklid.PolyLine2D):
+            front = euklid.PolyLine2D(list(front))
+        if not isinstance(back, euklid.PolyLine2D):
+            back = euklid.PolyLine2D(list(back))
         self.front = front
         self.back = back
 
     def get_point(self, x, y):
-        front = self.front[x]
-        back = self.back[x]
+        front = self.front.get(x)
+        back = self.back(x)
 
-        return front + y * (back-front)
+        return front + (back-front) *  y
 
     def get_panel(self, cell_no, panel):
         p1 = self.get_point(cell_no, panel.cut_front["left"])
@@ -35,7 +36,7 @@ class Shape(object):
 
     @property
     def ribs(self):
-        return list(zip(self.front.data.tolist(), self.back.data.tolist()))
+        return [[self.front.get(x), self.back.get(x)] for x in range(len(self.front))]
 
     @property
     def ribs_front_back(self):
@@ -51,32 +52,32 @@ class Shape(object):
 
     @property
     def cell_widths(self):
-        return [p2[0]-p1[0] for p1, p2 in zip(self.front[:-1], self.front[1:])]
+        return [p2[0]-p1[0] for p1, p2 in zip(self.front.nodes[:-1], self.front.nodes[1:])]
 
     @property
     def area(self):
         front, back = self.front, self.back
         area = 0
         for i in range(len(self.front) - 1):
-            l = (front[i][1] - back[i][1]) + (front[i+1][1] - back[i+1][1])
-            area += l * (front[i+1][0] - front[i][0]) / 2
+            l = (front.get(i)[1] - back.get(i)[1]) + (front.get(i+1)[1] - back.get(i+1)[1])
+            area += l * (front.get(i+1)[0] - front.get(i)[0]) / 2
         return area
 
     def scale(self, x=1, y=1):
-        self.front.scale(x, y)
-        self.back.scale(x, y)
+        self.front = self.front.scale(x, y)
+        self.bak = self.back.scale(x, y)
 
         return self
 
     def copy_complete(self):
-        front = self.front.copy().mirror([0, 0], [0, 1])[::-1]
-        back = self.back.copy().mirror([0, 0], [0, 1])[::-1]
+        front = self.front.mirror([0, 0], [0, 1]).reverse()
+        back = self.back.mirror([0, 0], [0, 1]).reverse()
 
-        if front[-1][0] == 0:
-            front = front[:-1]
-            back = back[:-1]
+        if front.nodes[-1][0] == 0:
+            front.nodes += self.front.copy().nodes[1:]
+            back.nodes += self.back.copy().nodes[1:]
 
-        return Shape(front + self.front, back + self.back)
+        return Shape(front, back)
 
     def _repr_svg_(self):
         da = Layout()

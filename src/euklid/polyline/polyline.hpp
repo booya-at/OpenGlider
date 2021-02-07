@@ -15,6 +15,7 @@ template<typename VectorType, typename T>
 
             std::shared_ptr<VectorType> get(double ik) const;
             T get(double ik_start, double ik_end) const;
+            std::vector<double> get_positions(double ik_start, double ik_end) const;
 
             int numpoints();
             double get_length();

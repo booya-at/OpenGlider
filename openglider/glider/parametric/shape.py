@@ -21,6 +21,8 @@ class ParametricShape(object):
         self.rib_distribution = rib_distribution
         self.cell_num = cell_num
 
+        self.rescale_curves()
+
     def __json__(self):
         return {
             "front_curve": self.front_curve,
@@ -72,7 +74,7 @@ class ParametricShape(object):
     def rescale_curves(self):
         span = self.span
 
-        dist_scale = span / self.rib_distribution.controlpoints.nodes[-1][0]
+        dist_scale = 1 / self.rib_distribution.controlpoints.nodes[-1][0]
         self.rib_distribution.controlpoints = self.rib_distribution.controlpoints.scale([dist_scale, 1])
 
         back_scale = span / self.back_curve.controlpoints.nodes[-1][0]
@@ -109,7 +111,7 @@ class ParametricShape(object):
 
     @property
     def rib_x_values(self):
-        return [p[0] for p in self.rib_dist_interpolation]
+        return [p[0]*self.span for p in self.rib_dist_interpolation]
 
     @property
     def cell_x_values(self):
@@ -128,6 +130,7 @@ class ParametricShape(object):
         Return shape of the glider:
         [ribs, front, back]
         """
+        self.rescale_curves()
         num = self.num_shape_interpolation
         front_int = euklid.Interpolation(self.front_curve.get_sequence(num).nodes)
         back_int = euklid.Interpolation(self.back_curve.get_sequence(num).nodes)
@@ -193,6 +196,8 @@ class ParametricShape(object):
             depth = front_int.get_value(x) - back_int.get_value(x)
             integrated_depth.append(integrated_depth[-1] + 1. / depth)
         y_values = [i / integrated_depth[-1] for i in integrated_depth]
+
+        x_values = [x/self.span for x in x_values]
         return zip(x_values, y_values)
 
     def set_const_cell_dist(self):
@@ -205,6 +210,8 @@ class ParametricShape(object):
     def scale(self, x=1., y=None):
         if y is None:
             y = x
+
+        print("scale factor: ", x, y)
         self.front_curve.controlpoints = self.front_curve.controlpoints.scale([x, y])
 
         # scale back to fit with front
@@ -212,8 +219,8 @@ class ParametricShape(object):
         self.back_curve.controlpoints = self.back_curve.controlpoints.scale([factor, y])
 
         # scale rib_dist
-        factor = self.front_curve.controlpoints.nodes[-1][0] / self.rib_distribution.controlpoints.nodes[-1][0]
-        self.rib_distribution.controlpoints = self.rib_distribution.controlpoints.scale([factor, 1])
+        #factor = 1 / self.rib_distribution.controlpoints.nodes[-1][0]
+        #self.rib_distribution.controlpoints = self.rib_distribution.controlpoints.scale([factor, 1])
 
     @property
     def area(self):

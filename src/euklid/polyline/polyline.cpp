@@ -14,6 +14,11 @@ std::shared_ptr<VectorClass> PolyLine<VectorClass, T>::get(double ik) const {
     size_t i = std::max(int(ik), 0);
     VectorClass diff;
 
+    // catch direct (int) values
+    if (std::abs(ik-i) < 1e-10 && 0 <= ik && ik < this->nodes.size()) {
+        return std::make_shared<VectorClass>(*this->nodes[i]);
+    }
+
     if (i >= this->nodes.size()-1) {
         i = this->nodes.size()-1;
         diff = *this->nodes[i] - *this->nodes[i-1];
@@ -28,8 +33,9 @@ std::shared_ptr<VectorClass> PolyLine<VectorClass, T>::get(double ik) const {
 }
 
 template<typename VectorClass, typename T>
-T PolyLine<VectorClass, T>::get(double ik_start, double ik_end) const {
-    std::vector<std::shared_ptr<VectorClass>> nodes_new;
+std::vector<double> PolyLine<VectorClass, T>::get_positions(double ik_start, double ik_end) const {
+    std::vector<double> result;
+
     int direction = 1;
     bool forward = true;
 
@@ -39,7 +45,7 @@ T PolyLine<VectorClass, T>::get(double ik_start, double ik_end) const {
     }
 
     // add first point
-    nodes_new.push_back(this->get(ik_start));
+    result.push_back(ik_start);
 
     int ik = int(ik_start);
 
@@ -55,11 +61,23 @@ T PolyLine<VectorClass, T>::get(double ik_start, double ik_end) const {
     }
 
     while (direction * (ik_end - ik) > 1e-8 && 0 < ik && ik < (int)this->nodes.size()-1) {
-        nodes_new.push_back(std::make_shared<VectorClass>(*this->nodes[ik]));
+        result.push_back(ik);
         ik += direction;
     }
 
-    nodes_new.push_back(this->get(ik_end));
+    result.push_back(ik_end);
+
+    return result;
+}
+
+template<typename VectorClass, typename T>
+T PolyLine<VectorClass, T>::get(double ik_start, double ik_end) const {
+    auto iks = this->get_positions(ik_start, ik_end);
+    std::vector<std::shared_ptr<VectorClass>> nodes_new;
+    
+    for (double ik: iks) {
+        nodes_new.push_back(this->get(ik));
+    }
 
     return T(nodes_new);
 }
