@@ -14,7 +14,7 @@ class Shape(object):
 
     def get_point(self, x, y):
         front = self.front.get(x)
-        back = self.back(x)
+        back = self.back.get(x)
 
         return front + (back-front) *  y
 
@@ -74,10 +74,13 @@ class Shape(object):
         back = self.back.mirror([0, 0], [0, 1]).reverse()
 
         if front.nodes[-1][0] == 0:
-            front.nodes += self.front.copy().nodes[1:]
-            back.nodes += self.back.copy().nodes[1:]
+            front_nodes = front.nodes + self.front.copy().nodes[1:]
+            back_nodes = back.nodes + self.back.copy().nodes[1:]
+        else:
+            front_nodes = front.nodes + self.front.copy().nodes
+            back_nodes = back.nodes + self.back.copy().nodes
 
-        return Shape(front, back)
+        return Shape(euklid.PolyLine2D(front_nodes), euklid.PolyLine2D(back_nodes))
 
     def _repr_svg_(self):
         da = Layout()
