@@ -244,6 +244,37 @@ class ParametricShape(object):
 
         return self.area
 
+    def get_sweep(self):
+        ribs = self.ribs
+
+        center_f = ribs[0][0]
+        center_b = ribs[0][1]
+
+        tip_f = ribs[-1][0]
+        tip_b = ribs[-1][1]
+
+        dy = ((tip_f + tip_b) * 0.5)[1] - center_f[1]
+
+        return dy / (center_f + center_b)[1]
+    
+    def set_sweep(self, sweep):
+        current_sweep = self.get_sweep()
+        ribs = self.ribs
+        center_chord = (ribs[0][0] - ribs[0][1]).length()
+        diff = (current_sweep - sweep) * center_chord
+        self.rescale_curves()
+
+        x0 = ribs[0][0][0]
+        span = ribs[-1][0][0] - x0
+
+        front = [p + [0, (p[0]-x0)*diff/span] for p, _ in ribs]
+        back = [p + [0, (p[0]-x0)*diff/span] for _, p in ribs]
+
+        self.front_curve = euklid.SymmetricBSplineCurve.fit(front, self.front_curve.numpoints)
+        self.back_curve = euklid.SymmetricBSplineCurve.fit(back, self.back_curve.numpoints)
+        
+        return self
+
     @property
     def aspect_ratio(self):
         # todo: span -> half span, area -> full area???
