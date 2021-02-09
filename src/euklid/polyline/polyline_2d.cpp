@@ -91,6 +91,10 @@ std::pair<double, double> PolyLine2D::cut(Vector2D& v1, Vector2D& v2, double nea
         return std::abs(a.first-nearest_ik) < std::abs(b.first-nearest_ik);
     });
 
+    if (cuts.size() == 0) {
+        throw std::runtime_error("No cut found!");
+    }
+
     return cuts[0];
 }
 
