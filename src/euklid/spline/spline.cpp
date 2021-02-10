@@ -190,12 +190,6 @@ T SymmetricSpline<SplineClass, T>::fit(const PolyLine2D& nodes, size_t node_num)
     }
 
     auto polyline_new = PolyLine2D(nodes_new);
-
-    for (auto node: nodes_new) {
-        std::cout << "node" << node->get_item(0) << "/" << node->get_item(1) << std::endl;
-    }
-
-    //std::cout << polyline_new << std::endl;
     
     auto spline_curve = SplineClass::fit(polyline_new, 2*node_num);
 
