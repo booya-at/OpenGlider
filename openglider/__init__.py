@@ -30,7 +30,6 @@ from openglider.config import config
 import openglider.jsonify
 import openglider.glider
 from openglider.version import __version__
-import openglider_cpp as cpp
 
 logger = logging.getLogger(__name__)
 

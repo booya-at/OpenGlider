@@ -1,12 +1,12 @@
 from __future__ import division
 import math
+
 import numpy as np
+import euklid
 
 from openglider.glider.shape import Shape
 from openglider.vector import Interpolation, PolyLine2D
 from openglider.utils.table import Table
-
-from openglider_cpp import euklid
 
 
 class ParametricShape(object):
@@ -132,8 +132,8 @@ class ParametricShape(object):
         """
         self.rescale_curves()
         num = self.num_shape_interpolation
-        front_int = euklid.Interpolation(self.front_curve.get_sequence(num).nodes)
-        back_int = euklid.Interpolation(self.back_curve.get_sequence(num).nodes)
+        front_int = euklid.vector.Interpolation(self.front_curve.get_sequence(num).nodes)
+        back_int = euklid.vector.Interpolation(self.back_curve.get_sequence(num).nodes)
         dist = self.rib_x_values
         front = [[x, front_int.get_value(x)] for x in dist]
         back = [[x, back_int.get_value(x)] for x in dist]
@@ -189,8 +189,8 @@ class ParametricShape(object):
         """
         num = self.num_depth_integral
         x_values = np.linspace(0, self.span, num)
-        front_int = euklid.Interpolation(self.front_curve.get_sequence(num).nodes)
-        back_int = euklid.Interpolation(self.back_curve.get_sequence(num).nodes)
+        front_int = euklid.vector.Interpolation(self.front_curve.get_sequence(num).nodes)
+        back_int = euklid.vector.Interpolation(self.back_curve.get_sequence(num).nodes)
         integrated_depth = [0.]
         for x in x_values[1:]:
             depth = front_int.get_value(x) - back_int.get_value(x)
@@ -270,8 +270,8 @@ class ParametricShape(object):
         front = [p + [0, (p[0]-x0)*diff/span] for p, _ in ribs]
         back = [p + [0, (p[0]-x0)*diff/span] for _, p in ribs]
 
-        self.front_curve = euklid.SymmetricBSplineCurve.fit(front, self.front_curve.numpoints)
-        self.back_curve = euklid.SymmetricBSplineCurve.fit(back, self.back_curve.numpoints)
+        self.front_curve = euklid.vector.SymmetricBSplineCurve.fit(front, self.front_curve.numpoints)
+        self.back_curve = euklid.vector.SymmetricBSplineCurve.fit(back, self.back_curve.numpoints)
         
         return self
 

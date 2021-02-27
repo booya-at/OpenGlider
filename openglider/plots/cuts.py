@@ -1,28 +1,9 @@
-#! /usr/bin/python2
-# -*- coding: utf-8; -*-
-#
-# (c) 2013 booya (http://booya.at)
-#
-# This file is part of the OpenGlider project.
-#
-# OpenGlider is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# OpenGlider is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import math
+
+import euklid
 
 from openglider.vector.functions import normalize, rotation_2d
 from openglider.vector.polyline import PolyLine2D
-
-from openglider_cpp import euklid
 
 
 class CutResult():
@@ -78,7 +59,7 @@ class DesignCut(object):
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
         indices = self._get_indices(inner_lists, amount_3d)
         
-        normvector = euklid.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2)))
+        normvector = euklid.vector.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2)))
         normvector.normalize()
 
         newlist = []
@@ -102,7 +83,7 @@ class DesignCut(object):
         newlist.append(rightcut+normvector*self.amount)
         newlist.append(rightcut)
 
-        curve = euklid.PolyLine2D(newlist)
+        curve = euklid.vector.PolyLine2D(newlist)
 
         return CutResult(curve, leftcut_index, rightcut_index, indices)
 
@@ -112,7 +93,7 @@ class SimpleCut(DesignCut):
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
         indices = self._get_indices(inner_lists, amount_3d)
 
-        normvector = euklid.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2)))
+        normvector = euklid.vector.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2)))
         normvector.normalize()
 
         leftcut_index = outer_left.cut(p1, p2, inner_lists[0][1])
@@ -131,7 +112,7 @@ class SimpleCut(DesignCut):
         rightcut_2 = outer_right.get(rightcut_index_2[0])
         diff_l, diff_r = leftcut-leftcut_2, rightcut - rightcut_2
 
-        curve = euklid.PolyLine2D([leftcut, leftcut+diff_l, rightcut+diff_r, rightcut])
+        curve = euklid.vector.PolyLine2D([leftcut, leftcut+diff_l, rightcut+diff_r, rightcut])
 
         return CutResult(curve, leftcut_index[0], rightcut_index[0], indices)
 
@@ -147,7 +128,7 @@ class Cut3D(DesignCut):
         :return:
         """
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
-        normvector = euklid.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2)))
+        normvector = euklid.vector.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2)))
         normvector.normalize()
 
         inner_ik = []
@@ -172,7 +153,7 @@ class Cut3D(DesignCut):
         leftcut_index, _ = outer_left.cut(left_1, left_2, left_ik)
         rightcut_index, _ = outer_right.cut(right_1, right_2, right_ik)
 
-        curve = euklid.PolyLine2D(point_list)
+        curve = euklid.vector.PolyLine2D(point_list)
 
         return CutResult(curve, leftcut_index, rightcut_index, inner_ik)
 
@@ -196,7 +177,7 @@ class Cut3D_2(DesignCut):
             inner_new.append([curve, ik_new])
 
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
-        normvector = euklid.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2)))
+        normvector = euklid.vector.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2)))
         normvector.normalize()
 
         leftcut_index = outer_left.cut(p1, p2, inner_lists[0][1])
@@ -217,7 +198,7 @@ class Cut3D_2(DesignCut):
         point_list.append(rightcut+normvector*self.amount)
         point_list.append(rightcut)
 
-        curve = euklid.PolyLine2D(point_list)
+        curve = euklid.vector.PolyLine2D(point_list)
 
         return CutResult(curve, index_left, index_right, [x[1] for x in inner_new])
 
@@ -232,7 +213,7 @@ class FoldedCut(DesignCut):
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
         indices = self._get_indices(inner_lists, amount_3d)
 
-        normvector = euklid.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2)))
+        normvector = euklid.vector.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2)))
         normvector.normalize()
 
         left_start_index = outer_left.cut(p1, p2, inner_lists[0][1])[0]
@@ -255,7 +236,7 @@ class FoldedCut(DesignCut):
 
         # mirror to (p1-p2) -> p'=p-2*(p.normvector)
         last_left, last_right = left_start, right_start
-        new_left, new_right = euklid.PolyLine2D([]), euklid.PolyLine2D([])
+        new_left, new_right = euklid.vector.PolyLine2D([]), euklid.vector.PolyLine2D([])
 
         for i in range(self.num_folds):
             left_this = left_piece if i % 2 else left_piece_mirrored
@@ -279,7 +260,7 @@ class ParallelCut(DesignCut):
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
         indices = self._get_indices(inner_lists, amount_3d)
 
-        normvector = euklid.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2)))
+        normvector = euklid.vector.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2)))
         normvector.normalize()
 
         leftcut_index = outer_left.cut(p1, p2, inner_lists[0][1])
@@ -298,7 +279,7 @@ class ParallelCut(DesignCut):
         rightcut_2 = outer_right.get(rightcut_index_2[0])
         diff = (leftcut-leftcut_2 + rightcut - rightcut_2) * 0.5
 
-        curve = euklid.PolyLine2D([leftcut, leftcut+diff, rightcut+diff, rightcut])
+        curve = euklid.vector.PolyLine2D([leftcut, leftcut+diff, rightcut+diff, rightcut])
 
         #iks = [x[1] for x in inner_lists]
 

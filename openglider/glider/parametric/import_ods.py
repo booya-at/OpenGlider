@@ -7,6 +7,7 @@ import ezodf
 import numpy as np
 import logging
 import typing
+import euklid
 
 from openglider.airfoil import BezierProfile2D, Profile2D
 from openglider.vector.spline import Bezier
@@ -18,8 +19,6 @@ from openglider.glider.parametric.lines import UpperNode2D, LowerNode2D, BatchNo
 from openglider.glider.rib import MiniRib
 from openglider.glider.ballooning import BallooningBezier, BallooningBezierNeu
 from openglider.utils.table import Table
-
-from openglider_cpp import euklid
 
 
 logger = logging.getLogger(__name__)
@@ -290,9 +289,9 @@ def get_geometry_explicit(sheet):
         #not_from_center = int(data[0][0] == 0)
         #mirrored = [[-p[0], p[1]] for p in data[not_from_center:]][::-1] + data
         if bspline:
-            return euklid.SymmetricBSplineCurve.fit(data, 3)
+            return euklid.vector.SymmetricBSplineCurve.fit(data, 3)
         else:
-            return euklid.SymmetricBezierCurve.fit(data, 3)
+            return euklid.vector.SymmetricBezierCurve.fit(data, 3)
 
     has_center_cell = not front[0][0] == 0
     cell_no = (len(front) - 1) * 2 + has_center_cell
@@ -304,7 +303,7 @@ def get_geometry_explicit(sheet):
     rib_pos_int = Interpolation(zip(rib_pos, const_arr))
     rib_distribution = [[i, rib_pos_int(i)] for i in np.linspace(0, rib_pos[-1], 30)]
 
-    rib_distribution = euklid.BezierCurve.fit(rib_distribution, 3)
+    rib_distribution = euklid.vector.BezierCurve.fit(rib_distribution, 3)
 
     parametric_shape = ParametricShape(symmetric_fit(front), symmetric_fit(back), rib_distribution, cell_no)
     arc_curve = ArcCurve(symmetric_fit(arc))
@@ -335,21 +334,21 @@ def get_geometry_parametric(table: Table, cell_num):
             data[key] = points
 
     parametric_shape = ParametricShape(
-        euklid.SymmetricBSplineCurve(data["front"]),
-        euklid.SymmetricBSplineCurve(data["back"]),
-        euklid.BezierCurve(data["rib_distribution"]),
+        euklid.vector.SymmetricBSplineCurve(data["front"]),
+        euklid.vector.SymmetricBSplineCurve(data["back"]),
+        euklid.vector.BezierCurve(data["rib_distribution"]),
         cell_num
     )
 
-    arc_curve = ArcCurve(euklid.SymmetricBSplineCurve(data["arc"]))
+    arc_curve = ArcCurve(euklid.vector.SymmetricBSplineCurve(data["arc"]))
 
     return {
         "shape": parametric_shape,
         "arc": arc_curve,
-        "aoa": euklid.SymmetricBSplineCurve(data["aoa"]),
-        "zrot": euklid.SymmetricBSplineCurve(data["zrot"]),
-        "profile_merge_curve": euklid.SymmetricBSplineCurve(data["profile_merge_curve"]),
-        "ballooning_merge_curve": euklid.SymmetricBSplineCurve(data["ballooning_merge_curve"])
+        "aoa": euklid.vector.SymmetricBSplineCurve(data["aoa"]),
+        "zrot": euklid.vector.SymmetricBSplineCurve(data["zrot"]),
+        "profile_merge_curve": euklid.vector.SymmetricBSplineCurve(data["profile_merge_curve"]),
+        "ballooning_merge_curve": euklid.vector.SymmetricBSplineCurve(data["ballooning_merge_curve"])
     }
     
 

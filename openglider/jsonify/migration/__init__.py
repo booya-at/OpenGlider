@@ -118,3 +118,19 @@ def migrate_07(cls, jsondata):
             node["_module"] = "openglider_cpp.euklid"
     
     return jsondata
+
+@Migration.add("0.0.8")
+def migrate_08(cls, jsondata):
+    logger.info("migrating to 0.0.8")
+    for node in cls.find_nodes(jsondata, module=r"openglider_cpp.*"):
+        path_orig = re.match(r"openglider_cpp\.(.*)", node["_module"]).group(1)
+
+        if path_orig == "euklid":
+            path = "vector"
+        else:
+            path = path_orig
+            
+        node["_module"] = f"euklid.{path}"
+
+    return jsondata
+

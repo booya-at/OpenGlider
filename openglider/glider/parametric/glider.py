@@ -5,6 +5,8 @@ import numpy as np
 import copy
 import logging
 
+import euklid
+
 from openglider.glider.parametric.shape import ParametricShape
 from openglider.airfoil import Profile2D
 from openglider.glider.glider import Glider
@@ -20,7 +22,6 @@ from openglider.utils.distribution import Distribution
 from openglider.utils.table import Table
 from openglider.utils import ZipCmp
 
-from openglider_cpp import euklid
 
 logger = logging.getLogger(__name__)
 
@@ -266,7 +267,7 @@ class ParametricGlider(object):
         """
 
     def get_aoa(self, interpolation_num=None):
-        aoa_interpolation = euklid.Interpolation(self.aoa.get_sequence(interpolation_num or self.num_interpolate).nodes)
+        aoa_interpolation = euklid.vector.Interpolation(self.aoa.get_sequence(interpolation_num or self.num_interpolate).nodes)
 
         return [aoa_interpolation.get_value(x) for x in self.shape.rib_x_values]
 
@@ -280,11 +281,11 @@ class ParametricGlider(object):
             rib.aoa_relative = aoa
 
     def get_profile_merge(self):
-        profile_merge_curve = euklid.Interpolation(self.profile_merge_curve.get_sequence(self.num_interpolate).nodes)
+        profile_merge_curve = euklid.vector.Interpolation(self.profile_merge_curve.get_sequence(self.num_interpolate).nodes)
         return [profile_merge_curve.get_value(abs(x)) for x in self.shape.rib_x_values]
 
     def get_ballooning_merge(self):
-        ballooning_merge_curve = euklid.Interpolation(self.ballooning_merge_curve.get_sequence(self.num_interpolate).nodes)
+        ballooning_merge_curve = euklid.vector.Interpolation(self.ballooning_merge_curve.get_sequence(self.num_interpolate).nodes)
         return [ballooning_merge_curve.get_value(abs(x)) for x in self.shape.cell_x_values]
 
     def apply_shape_and_arc(self, glider):
@@ -323,8 +324,8 @@ class ParametricGlider(object):
         x_values = self.shape.rib_x_values
         shape_ribs = self.shape.ribs
 
-        aoa_int = euklid.Interpolation(self.aoa.get_sequence(num).nodes)
-        zrot_int = euklid.Interpolation(self.zrot.get_sequence(num).nodes)
+        aoa_int = euklid.vector.Interpolation(self.aoa.get_sequence(num).nodes)
+        zrot_int = euklid.vector.Interpolation(self.zrot.get_sequence(num).nodes)
 
         arc_pos = list(self.arc.get_arc_positions(x_values))
         rib_angles = self.arc.get_rib_angles(x_values)
@@ -442,7 +443,7 @@ class ParametricGlider(object):
         cell_centers = self.shape.cell_x_values
 
 
-        ballooning_merge_curve = euklid.Interpolation(self.ballooning_merge_curve.get_sequence(self.num_interpolate).nodes)
+        ballooning_merge_curve = euklid.vector.Interpolation(self.ballooning_merge_curve.get_sequence(self.num_interpolate).nodes)
         for cell_no, cell in enumerate(glider3d.cells):
             ballooning_factor = ballooning_merge_curve.get_value(cell_centers[cell_no])
             ballooning = self.merge_ballooning(ballooning_factor)

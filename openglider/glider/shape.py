@@ -1,14 +1,14 @@
+import euklid
+
 from openglider.vector.drawing import PlotPart, Layout
 from openglider.vector import PolyLine2D, norm
 
-from openglider_cpp import euklid
-
 class Shape(object):
     def __init__(self, front, back):
-        if not isinstance(front, euklid.PolyLine2D):
-            front = euklid.PolyLine2D(list(front))
-        if not isinstance(back, euklid.PolyLine2D):
-            back = euklid.PolyLine2D(list(back))
+        if not isinstance(front, euklid.vector.PolyLine2D):
+            front = euklid.vector.PolyLine2D(list(front))
+        if not isinstance(back, euklid.vector.PolyLine2D):
+            back = euklid.vector.PolyLine2D(list(back))
         self.front = front
         self.back = back
 
@@ -80,7 +80,7 @@ class Shape(object):
             front_nodes = front.nodes + self.front.copy().nodes
             back_nodes = back.nodes + self.back.copy().nodes
 
-        return Shape(euklid.PolyLine2D(front_nodes), euklid.PolyLine2D(back_nodes))
+        return Shape(euklid.vector.PolyLine2D(front_nodes), euklid.vector.PolyLine2D(back_nodes))
 
     def _repr_svg_(self):
         da = Layout()

@@ -1,10 +1,11 @@
 import copy
+
 import numpy as np
+import euklid
 
 from openglider.vector import PolyLine2D
 from openglider.vector.spline import SymmetricBezier, SymmetricBSpline
 
-from openglider_cpp import euklid
 
 
 class ArcCurve(object):
@@ -13,7 +14,7 @@ class ArcCurve(object):
     """
     num_interpolation_points = 100
 
-    def __init__(self, curve: euklid.SymmetricBSplineCurve):
+    def __init__(self, curve: euklid.vector.SymmetricBSplineCurve):
         self.curve = curve
 
     def __json__(self):
@@ -83,7 +84,7 @@ class ArcCurve(object):
             curve.append(last_pos)
 
         curve = [p * [-1, 1] for p in curve[::-1]] + curve
-        spline = euklid.SymmetricBSpline.fit(curve, 8)
+        spline = euklid.vector.SymmetricBSpline.fit(curve, 8)
         return cls(spline)
 
     def get_rib_angles(self, x_values):
@@ -120,10 +121,10 @@ class ArcCurve(object):
     def rescale(self, x_values):
         positions = self.get_arc_positions(x_values)
         diff = [0, -positions[0][1]]
-        self.curve.controlpoints = euklid.PolyLine2D([p + diff for p in self.curve.controlpoints.nodes])
+        self.curve.controlpoints = euklid.vector.PolyLine2D([p + diff for p in self.curve.controlpoints.nodes])
 
-        arc_curve: euklid.PolyLine2D = self.curve.get_sequence(self.num_interpolation_points)
+        arc_curve: euklid.vector.PolyLine2D = self.curve.get_sequence(self.num_interpolation_points)
         arc_curve_length = arc_curve.get_length()
         scale_factor = x_values[-1] / arc_curve_length
 
-        self.curve.controlpoints = euklid.PolyLine2D([p * scale_factor for p in self.curve.controlpoints.nodes])
+        self.curve.controlpoints = euklid.vector.PolyLine2D([p * scale_factor for p in self.curve.controlpoints.nodes])

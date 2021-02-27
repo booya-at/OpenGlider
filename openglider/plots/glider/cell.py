@@ -1,7 +1,9 @@
 import math
-import numpy as np
 import logging
 from typing import Tuple
+
+import numpy as np
+import euklid
 
 from openglider.glider.cell import Panel
 from openglider.airfoil import get_x_value
@@ -12,8 +14,6 @@ from openglider.vector.drawing import PlotPart, Layout
 import openglider.vector.projection as projection
 from openglider.vector import normalize, norm
 import openglider.utils
-
-from openglider_cpp import euklid
 
 
 class PanelPlot(object):
@@ -93,7 +93,7 @@ class PanelPlot(object):
         # spitzer schnitt
         # rechts
         if cut_front_result.index_right >= cut_back_result.index_right:
-            panel_right = euklid.PolyLine2D([])
+            panel_right = euklid.vector.PolyLine2D([])
 
             _cuts = panel_front.cut_with_polyline(panel_back, startpoint=len(panel_front) - 1)
             try:
@@ -105,7 +105,7 @@ class PanelPlot(object):
 
         # lechts
         if cut_front_result.index_left >= cut_back_result.index_left:
-            panel_left = euklid.PolyLine2D([])
+            panel_left = euklid.vector.PolyLine2D([])
 
             _cuts = panel_front.cut_with_polyline(panel_back, startpoint=0)
             try:
@@ -124,7 +124,7 @@ class PanelPlot(object):
         if len(panel_left) > 0:
             envelope += panel_left.reverse()
         envelope += panel_front
-        envelope += euklid.PolyLine2D([envelope.nodes[0]])
+        envelope += euklid.vector.PolyLine2D([envelope.nodes[0]])
 
         plotpart.layers["envelope"].append(envelope)
 
@@ -142,11 +142,11 @@ class PanelPlot(object):
 
         # folding line
         plotpart.layers["marks"] += [
-            euklid.PolyLine2D([
+            euklid.vector.PolyLine2D([
                 line.get(x) for line, x in zip(self.inner, cut_front_result.inner_indices)
             ]),
 
-            euklid.PolyLine2D([
+            euklid.vector.PolyLine2D([
                 line.get(x) for line, x in zip(self.inner, cut_back_result.inner_indices)
             ])
         ]
@@ -495,8 +495,8 @@ class DribPlot(object):
             outer += PolyLine2D([self.left_out.get(p1)])
             plotpart.layers["cuts"].append(outer)
 
-        plotpart.layers["marks"].append(euklid.PolyLine2D([self.left.get(0), self.right.get(0)]))
-        plotpart.layers["marks"].append(euklid.PolyLine2D([self.left.get(len(self.left) - 1), self.right.get(len(self.right) - 1)]))
+        plotpart.layers["marks"].append(euklid.vector.PolyLine2D([self.left.get(0), self.right.get(0)]))
+        plotpart.layers["marks"].append(euklid.vector.PolyLine2D([self.left.get(len(self.left) - 1), self.right.get(len(self.right) - 1)]))
 
         plotpart.layers["stitches"] += [self.left, self.right]
 

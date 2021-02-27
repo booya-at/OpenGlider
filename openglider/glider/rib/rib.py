@@ -2,13 +2,14 @@ from __future__ import division
 import copy
 import math
 import numpy as np
+import euklid
+
 from openglider.airfoil import Profile3D
 from openglider.utils.cache import CachedObject, cached_property
 from openglider.vector.functions import rotation_3d, set_dimension
 from openglider.vector.transformation import Rotation, Scale, Translation
 from openglider.mesh import Mesh, triangulate
 from openglider.glider.rib.elements import FoilCurve
-from openglider_cpp import euklid
 from numpy.linalg import norm
 
 
@@ -380,19 +381,19 @@ def rib_rotation(aoa, arc, zrot, xrot=0):
     #axis = (rot1 * rot2)([0, 0, 1])
     #rot3 = Rotation(-zrot, axis)
 
-    rot0 = euklid.Transformation.rotation(np.pi / 2 - xrot - arc, [1, 0, 0])
-    rot1 = euklid.Transformation.rotation(aoa, rot0.apply([0, 0, -1]))
-    #rot1 = euklid.Transformation.rotation(aoa, [0,0,-1])
-    #rot2 = euklid.Transformation.rotation(-arc, [1,0,0])
+    rot0 = euklid.vector.Transformation.rotation(np.pi / 2 - xrot - arc, [1, 0, 0])
+    rot1 = euklid.vector.Transformation.rotation(aoa, rot0.apply([0, 0, -1]))
+    #rot1 = euklid.vector.Transformation.rotation(aoa, [0,0,-1])
+    #rot2 = euklid.vector.Transformation.rotation(-arc, [1,0,0])
     axis = (rot0 * rot1).apply([0,0,1])
-    rot3 = euklid.Transformation.rotation(-zrot, axis)
+    rot3 = euklid.vector.Transformation.rotation(-zrot, axis)
     return rot3 * rot1 * rot0
 
 
 def rib_transformation(aoa, arc, zrot, xrot, scale, pos):
-    scale = euklid.Transformation.scale(scale)
+    scale = euklid.vector.Transformation.scale(scale)
     #scale = Scale(scale)
-    move = euklid.Transformation.translation(pos)
+    move = euklid.vector.Transformation.translation(pos)
     #move = Translation(pos)
     rot = rib_rotation(aoa, arc, zrot, xrot)
     return scale * rot * move

@@ -2,6 +2,7 @@ import copy
 import math
 
 import ezodf
+import euklid
 
 import openglider.glider
 import openglider.glider.parametric.glider
@@ -9,8 +10,6 @@ from openglider.glider.ballooning import BallooningBezierNeu
 from openglider.glider.cell import DiagonalRib
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.utils.table import Table
-
-from openglider_cpp import euklid
 
 file_version = "V3"
 
@@ -95,7 +94,7 @@ def get_geom_sheet(glider_2d):
     geom_page[0, 9].set_value("ballooning-merge")
 
     def interpolation(curve):
-        return euklid.Interpolation(curve.get_sequence(100).nodes)
+        return euklid.vector.Interpolation(curve.get_sequence(100).nodes)
 
     aoa_int = interpolation(glider_2d.aoa)
     profile_int = interpolation(glider_2d.profile_merge_curve)

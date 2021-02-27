@@ -1,8 +1,9 @@
+import euklid
+
 from openglider.glider.ballooning.base import BallooningBase
-from openglider_cpp import euklid
 
 class BallooningNew(BallooningBase):
-    def __init__(self, interpolation: euklid.Interpolation, name: str="ballooning_new"):
+    def __init__(self, interpolation: euklid.vector.Interpolation, name: str="ballooning_new"):
         self.interpolation = interpolation
         self.name = name
 
@@ -38,7 +39,7 @@ class BallooningNew(BallooningBase):
 
 class BallooningBezierNeu(BallooningNew):
     def __init__(self, spline, name="ballooning_new"):
-        self.spline_curve = euklid.BSplineCurve(spline)
+        self.spline_curve = euklid.vector.BSplineCurve(spline)
         self.name = name
         super(BallooningBezierNeu, self).__init__(None, None)
         self.apply_splines()
@@ -63,7 +64,7 @@ class BallooningBezierNeu(BallooningNew):
 
         data = [(-p[0], p[1]) for p in upper[::-1]] + list(lower)
 
-        spline = euklid.BSplineCurve.fit(data, numpoints)
+        spline = euklid.vector.BSplineCurve.fit(data, numpoints)
         #return data
         return cls(spline.controlpoints)
 
@@ -71,7 +72,7 @@ class BallooningBezierNeu(BallooningNew):
         return self.spline_curve.get_sequence(n).nodes
 
     def apply_splines(self):
-        self.interpolation = euklid.Interpolation(self.get_points())
+        self.interpolation = euklid.vector.Interpolation(self.get_points())
 
     def __mul__(self, factor):
         return BallooningBezierNeu(self.controlpoints.scale([1, factor]))
@@ -83,11 +84,11 @@ class BallooningBezierNeu(BallooningNew):
         return self
 
     @property
-    def controlpoints(self) -> euklid.PolyLine2D:
+    def controlpoints(self) -> euklid.vector.PolyLine2D:
         return self.spline_curve.controlpoints
 
     @controlpoints.setter
-    def controlpoints(self, controlpoints: euklid.PolyLine2D):
+    def controlpoints(self, controlpoints: euklid.vector.PolyLine2D):
         self.spline_curve.controlpoints = controlpoints
         self.apply_splines()
 

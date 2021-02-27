@@ -23,6 +23,8 @@ from typing import Tuple
 import numpy as np
 import math
 
+import euklid
+
 import openglider.vector
 from openglider.airfoil import get_x_value
 from openglider.mesh import Mesh, triangulate
@@ -31,7 +33,6 @@ from openglider.vector import norm
 from openglider.vector.projection import flatten_list
 from openglider.utils import Config
 
-from openglider_cpp import euklid
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -118,9 +119,9 @@ class DiagonalRib(object):
                 side = -cut_front[1]  # -1 -> lower, 1->upper
                 front = rib.profile_2d(cut_front[0] * side)
                 back = rib.profile_2d(cut_back[0] * side)
-                return euklid.PolyLine3D(rib.profile_3d[front:back].data.tolist())
+                return euklid.vector.PolyLine3D(rib.profile_3d[front:back].data.tolist())
             else:
-                return euklid.PolyLine3D([rib.align(rib.profile_2d.align(p) + [0]) for p in (cut_front, cut_back)])
+                return euklid.vector.PolyLine3D([rib.align(rib.profile_2d.align(p) + [0]) for p in (cut_front, cut_back)])
 
         left = get_list(cell.rib1, self.left_front, self.left_back)
         right = get_list(cell.rib2, self.right_front, self.right_back)
@@ -496,7 +497,7 @@ class Panel(object):
         """
         :param cell: the parent cell of the panel
         :param numribs: number of interpolation steps between ribs
-        :return: [[front_ik_0, back_ik_0], ...[front_ik_n, back_ik_n]] with n is numribs + 1
+        :return: [[front_ik_0, back_ik_0], ..[front_ik_n, back_ik_n]] with n is numribs + 1
         """
         # TODO: move to cut!!
         x_values_left = cell.rib1.profile_2d.x_values
@@ -533,7 +534,7 @@ class Panel(object):
 
             for i, ik in enumerate(ik_values):
                 ik_front, ik_back = ik
-                line: euklid.PolyLine2D = inner[i]
+                line: euklid.vector.PolyLine2D = inner[i]
 
                 _ik_front, _ = line.cut(p_front_left, p_front_right, ik_front)
                 _ik_back, _ = line.cut(p_back_left, p_back_right, ik_back)
@@ -715,7 +716,7 @@ class PanelRigidFoil():
         
         for ik in panel_iks:
             if ik_front < ik < ik_back:
-                marks.append(euklid.PolyLine2D([
+                marks.append(euklid.vector.PolyLine2D([
                     left[ik],
                     right[ik]
                 ]))

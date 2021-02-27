@@ -1,32 +1,13 @@
-#! /usr/bin/python2
-# -*- coding: utf-8; -*-
-#
-# (c) 2013 booya (http://booya.at)
-#
-# This file is part of the OpenGlider project.
-#
-# OpenGlider is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# OpenGlider is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import logging
+
 import numpy as np
-import logging
+import euklid
 
 from openglider.lines import line_types
 from openglider.lines.functions import proj_force, proj_to_surface
 from openglider.utils.cache import cached_property, CachedObject
 from openglider.vector.functions import norm, normalize
 from openglider.mesh import Mesh, Vertex, Polygon
-from openglider_cpp import euklid
 
 logger = logging.getLogger(__name__)
 
@@ -183,7 +164,7 @@ class Line(CachedObject):
         if self.sag_par_1 is None or self.sag_par_2 is None:
             raise ValueError('Sag not yet calculated!')
 
-        return euklid.PolyLine3D(self.get_line_points(numpoints=100)).get_length()
+        return euklid.vector.PolyLine3D(self.get_line_points(numpoints=100)).get_length()
 
     def get_stretched_length(self, pre_load=50, sag=True):
         """

@@ -5,6 +5,8 @@ import math
 from typing import Callable, List
 
 import numpy as np
+import euklid
+
 from openglider.airfoil.profile_2d import Profile2D
 import openglider.vector
 import openglider.utils
@@ -21,7 +23,7 @@ from openglider.utils.cache import (
     cached_property, hash_list,
 )
 from openglider.vector import norm, normalize
-from openglider_cpp import euklid
+
 
 logging.getLogger(__file__)
 
@@ -439,7 +441,7 @@ class Cell(CachedObject):
                     x = ik1 + i/(numribs-1) * (ik2-ik1)
                     points.append(rib[x])
                 
-                line = euklid.PolyLine3D(points)
+                line = euklid.vector.PolyLine3D(points)
 
                 len_dct[index_str] = line.get_length()
 
@@ -487,8 +489,8 @@ class Cell(CachedObject):
             #right_bal.append(get_point(p2, p1, l_0, d_r, get_length(i, i+1), left=False))
 
         ballooned = [
-            euklid.PolyLine2D(left_bal),
-            euklid.PolyLine2D(right_bal)
+            euklid.vector.PolyLine2D(left_bal),
+            euklid.vector.PolyLine2D(right_bal)
         ]
 
         inner = []

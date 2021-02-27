@@ -1,11 +1,10 @@
-from __future__ import division
-
 import copy
 import logging
 
 import numpy as np
+import euklid
+
 import openglider.vector as vector
-import openglider_cpp
 
 USE_POLY_TRI = False
 logger = logging.getLogger(__name__)
@@ -489,7 +488,7 @@ class Mesh(object):
     @staticmethod
     def _find_duplicates(nodes):
         node_lst = [list(p) for p in nodes]
-        duplicates = openglider_cpp.mesh.find_duplicates(node_lst, Vertex.dmin)
+        duplicates = euklid.mesh.find_duplicates(node_lst, Vertex.dmin)
         duplicates_dct = {}
 
         for node1_id, node2_id in duplicates:

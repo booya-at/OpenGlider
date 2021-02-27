@@ -1,6 +1,7 @@
 from __future__ import division
 
 import numpy as np
+import euklid
 
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.lines import LineSet2D
@@ -8,7 +9,6 @@ from openglider.glider.parametric.shape import ParametricShape
 from openglider.vector import PolyLine2D, Interpolation
 from openglider.vector.spline import SymmetricBezier, Bezier
 
-from openglider_cpp import euklid
 
 def fit_glider_3d(cls, glider, numpoints=3):
     """
@@ -21,7 +21,7 @@ def fit_glider_3d(cls, glider, numpoints=3):
     zrot = [[front.get(i)[0], rib.zrot] for i, rib in enumerate(glider.ribs)]
 
     def symmetric_fit(polyline, numpoints=numpoints):
-        return euklid.SymmetricBSplineCurve.fit(polyline, numpoints)
+        return euklid.vector.SymmetricBSplineCurve.fit(polyline, numpoints)
 
     front_bezier = symmetric_fit(front)
     back_bezier = symmetric_fit(back)
@@ -39,14 +39,14 @@ def fit_glider_3d(cls, glider, numpoints=3):
 
     rib_pos_int = Interpolation(zip([0] + rib_pos[1:], const_arr))
     rib_distribution = [[i, rib_pos_int(i)] for i in np.linspace(0, rib_pos[-1], 30)]
-    rib_distribution = euklid.BSplineCurve.fit(rib_distribution, numpoints+3)
+    rib_distribution = euklid.vector.BSplineCurve.fit(rib_distribution, numpoints+3)
 
     profiles = [rib.profile_2d for rib in glider.ribs]
-    profile_dist = euklid.BSplineCurve.fit([[i, i] for i, rib in enumerate(front)],
+    profile_dist = euklid.vector.BSplineCurve.fit([[i, i] for i, rib in enumerate(front)],
                                    numpoints)
 
     balloonings = [cell.ballooning for cell in glider.cells]
-    ballooning_dist = euklid.BSplineCurve.fit([[i, i] for i, rib in enumerate(front.nodes[1:])],
+    ballooning_dist = euklid.vector.BSplineCurve.fit([[i, i] for i, rib in enumerate(front.nodes[1:])],
                                    numpoints)
 
     zrot = Bezier([[0, 0], [front.nodes[-1][0], 0]])

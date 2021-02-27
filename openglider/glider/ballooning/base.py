@@ -21,11 +21,11 @@ import copy
 
 import numpy as np
 from numpy.lib.function_base import interp
+import euklid
 
 import openglider
 from openglider.vector.spline import BSpline
 from openglider.vector.interpolate import Interpolation
-from openglider_cpp import euklid
 
 
 class ArcSinc:
