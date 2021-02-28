@@ -59,8 +59,7 @@ class DesignCut(object):
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
         indices = self._get_indices(inner_lists, amount_3d)
         
-        normvector = euklid.vector.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2)))
-        normvector.normalize()
+        normvector = euklid.vector.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2))).normalized()
 
         newlist = []
         # todo: sort by distance
@@ -93,8 +92,7 @@ class SimpleCut(DesignCut):
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
         indices = self._get_indices(inner_lists, amount_3d)
 
-        normvector = euklid.vector.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2)))
-        normvector.normalize()
+        normvector = euklid.vector.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2))).normalized()
 
         leftcut_index = outer_left.cut(p1, p2, inner_lists[0][1])
         rightcut_index = outer_right.cut(p1, p2, inner_lists[-1][1])
@@ -128,8 +126,7 @@ class Cut3D(DesignCut):
         :return:
         """
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
-        normvector = euklid.vector.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2)))
-        normvector.normalize()
+        normvector = euklid.vector.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2))).normalized()
 
         inner_ik = []
         point_list = []
@@ -177,8 +174,7 @@ class Cut3D_2(DesignCut):
             inner_new.append([curve, ik_new])
 
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
-        normvector = euklid.vector.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2)))
-        normvector.normalize()
+        normvector = euklid.vector.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2))).normalized()
 
         leftcut_index = outer_left.cut(p1, p2, inner_lists[0][1])
         rightcut_index = outer_right.cut(p1, p2, inner_lists[-1][1])
@@ -213,8 +209,7 @@ class FoldedCut(DesignCut):
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
         indices = self._get_indices(inner_lists, amount_3d)
 
-        normvector = euklid.vector.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2)))
-        normvector.normalize()
+        normvector = euklid.vector.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2))).normalized()
 
         left_start_index = outer_left.cut(p1, p2, inner_lists[0][1])[0]
         right_start_index = outer_right.cut(p1, p2, inner_lists[-1][1])[0]
@@ -260,8 +255,7 @@ class ParallelCut(DesignCut):
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
         indices = self._get_indices(inner_lists, amount_3d)
 
-        normvector = euklid.vector.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2)))
-        normvector.normalize()
+        normvector = euklid.vector.Vector2D(list(rotation_2d(math.pi/2).dot(p1-p2))).normalized()
 
         leftcut_index = outer_left.cut(p1, p2, inner_lists[0][1])
         rightcut_index = outer_right.cut(p1, p2, inner_lists[-1][1])

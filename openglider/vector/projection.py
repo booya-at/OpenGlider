@@ -8,16 +8,13 @@ from openglider.vector.polyline import PolyLine2D
 def point2d(p1_3d, p1_2d, p2_3d, p2_2d, point_3d):
     """Returns a third points position relative to two known points (3D+2D)"""
     # diffwise
-    diff_3d = (p2_3d - p1_3d)
-    diff_2d = (p2_2d - p1_2d)
+    diff_3d = (p2_3d - p1_3d).normalized()
+    diff_2d = (p2_2d - p1_2d).normalized()
 
-    diff_3d.normalize()
-    diff_2d.normalize()
     diff_point = point_3d-p1_3d
     point_2d = p1_2d + diff_2d * diff_3d.dot(diff_point)
     # length-wise
-    diff_3d = (diff_point - diff_3d * diff_3d.dot(diff_point))
-    diff_3d.normalize()
+    diff_3d = (diff_point - diff_3d * diff_3d.dot(diff_point)).normalized()
     #diff_2d = diff_2d.dot([[0, 1], [-1, 0]])  # Rotate 90deg
     diff_2d = euklid.vector.Vector2D([diff_2d[1], -diff_2d[0]])
     return point_2d + diff_2d * diff_3d.dot(diff_point)
