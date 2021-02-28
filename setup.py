@@ -88,15 +88,17 @@ setup(
     package_data=package_data,
     license='GPL-v3',
     long_description=long_description,
-    install_requires=["svgwrite",
-                    "numpy",
-                    "scipy",
-                    "ezdxf",
-                    "ezodf",
-                    "lxml", # missing in ezodf:q;
-                    "pyexcel-ods",
-                    "meshpy"
-                    ],
+    install_requires=[
+        "euklid"
+        "svgwrite",
+        "numpy",
+        "scipy",
+        "ezdxf",
+        "ezodf",
+        "lxml", # missing in ezodf:q;
+        "pyexcel-ods",
+        "meshpy"
+    ],
     author='Booya',
     url='http://openglider.org',
     download_url="https://github.com/hiaselhans/OpenGlider/tarball/0.01dev0",
