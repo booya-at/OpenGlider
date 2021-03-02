@@ -59,10 +59,12 @@ class BallooningBezierNeu(BallooningNew):
 
     @classmethod
     def from_classic(cls, ballooning, numpoints=14):
-        upper = ballooning.upper.data
-        lower = ballooning.lower.data
+        upper = ballooning.upper * [-1, 1]
+        lower = ballooning.lower
 
-        data = [(-p[0], p[1]) for p in upper[::-1]] + list(lower)
+        data = upper.reverse().nodes + lower.nodes
+
+        #data = [(-p[0], p[1]) for p in upper[::-1]] + list(lower)
 
         spline = euklid.vector.BSplineCurve.fit(data, numpoints)
         #return data

@@ -8,8 +8,6 @@ from pivy.graphics import Line as _Line
 import FreeCAD as App
 import FreeCADGui as Gui
 from openglider.vector.polygon import CirclePart
-from openglider.vector import PolyLine2D
-from openglider.vector.spline import Bezier
 from PySide import QtCore, QtGui
 
 from .tools import (BaseTool, input_field, text_field, ControlPointContainer, 
@@ -333,7 +331,7 @@ class ShapeTool(BaseTool):
         self.center_line.addChild(Line_old(center_line, color="red").object)
         y = _shape.get_point(0,0.5)[1]
         x = _shape.get_point(_shape.rib_no-1, 0)[0] * 1.2
-        center_line2 = PolyLine2D([[-x, y], [x, y]])
+        center_line2 = [[-x, y], [x, y]]
         self.center_line.addChild(Line_old(center_line2, color="red").object)
 
 

@@ -1,5 +1,6 @@
+import euklid
+
 from openglider.airfoil import Profile3D
-from openglider.vector.spline import Bezier
 
 
 class MiniRib():
@@ -16,8 +17,9 @@ class MiniRib():
                 points = points + [[front_cut * 1. / 3 + back_cut * 2. / 3, 0], [back_cut, 1]]
             else:
                 points = points + [[back_cut, 0]]
-
-            func = Bezier(points).interpolation()
+            
+            curve = euklid.vector.BezierCurve(points).get_sequence(100)
+            func = euklid.vector.Interpolation(curve.nodes)
 
         self.__function__ = func
 

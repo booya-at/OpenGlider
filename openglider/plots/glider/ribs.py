@@ -1,6 +1,5 @@
-# coding=utf-8
-
 import numpy as np
+import euklid
 
 import openglider.glider
 from openglider.airfoil import get_x_value
@@ -13,10 +12,12 @@ from openglider.vector.text import Text
 
 
 class RibPlot(object):
-    class DefaultConfig(PatternConfig):
-        #allowance_general = 0.01
-        #allowance_trailing_edge = 0.02
+    plotpart: PlotPart
+    x_values: list[float]
+    inner: PolyLine2D
+    outer: PolyLine2D
 
+    class DefaultConfig(PatternConfig):
         marks_diagonal_front = marks.Inside(marks.Arrow(left=True, name="diagonal_front"))
         marks_diagonal_back = marks.Inside(marks.Arrow(left=False, name="diagonal_back"))
         marks_laser_diagonal = marks.Dot(0.8)
@@ -138,7 +139,7 @@ class RibPlot(object):
         else:
             p1 = self.get_point(*p1)
             p2 = self.get_point(*p2)
-            self.plotpart.layers["marks"].append(PolyLine2D([p1, p2], name=drib.name))
+            self.plotpart.layers["marks"].append(euklid.vector.PolyLine2D([p1, p2], name=drib.name))
 
     def insert_holes(self):
         for hole in self.rib.holes:
@@ -158,15 +159,16 @@ class RibPlot(object):
         start = next(cuts)[0]
         stop = next(cuts)[0]
 
-        contour = PolyLine2D([])
+        buerzl = np.array([
+            outer_rib[stop],
+            outer_rib[stop] + [t_e_allowance, 0],
+            outer_rib[start] + [t_e_allowance, 0],
+            outer_rib[start]
+            ]).tolist()
 
-        buerzl = PolyLine2D([outer_rib[stop],
-                            outer_rib[stop] + [t_e_allowance, 0],
-                            outer_rib[start] + [t_e_allowance, 0],
-                            outer_rib[start]])
-
-        contour += PolyLine2D(outer_rib[start:stop])
-        contour += buerzl
+        contour = euklid.vector.PolyLine2D(
+            outer_rib[start:stop].data.tolist() + buerzl
+        )
 
         self.plotpart.layers["cuts"] += [contour]
 

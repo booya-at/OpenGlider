@@ -1,10 +1,11 @@
 import euklid
 
 from openglider.vector.drawing import PlotPart, Layout
-from openglider.vector import PolyLine2D, norm
+from openglider.vector import norm
 
 class Shape(object):
-    def __init__(self, front, back):
+    def __init__(self, front: euklid.vector.PolyLine2D, back: euklid.vector.PolyLine2D):
+        # TODO: REMOVE
         if not isinstance(front, euklid.vector.PolyLine2D):
             front = euklid.vector.PolyLine2D(list(front))
         if not isinstance(back, euklid.vector.PolyLine2D):
@@ -48,7 +49,7 @@ class Shape(object):
 
     @property
     def chords(self):
-        return [norm(p1-p2) for p1, p2 in zip(self.front, self.back)]
+        return [(p1-p2).length() for p1, p2 in zip(self.front, self.back)]
 
     @property
     def cell_widths(self):

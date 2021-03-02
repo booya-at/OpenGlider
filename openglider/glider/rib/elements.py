@@ -1,30 +1,11 @@
-#! /usr/bin/python2
-# -*- coding: utf-8; -*-
-#
-# (c) 2013 booya (http://booya.at)
-#
-# This file is part of the OpenGlider project.
-#
-# OpenGlider is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# OpenGlider is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
 import math
+import euklid
 
 from openglider.lines import Node
 from openglider.vector.polygon import Circle
 from openglider.vector.polyline import PolyLine2D
 from openglider.vector.functions import set_dimension
-from openglider.vector.spline import Bezier
 from openglider.vector import norm
 from openglider.vector.transformation import Rotation, Translation, Scale
 
@@ -61,14 +42,12 @@ class RigidFoil(object):
         return self.get_flattened(rib).get_length()
 
     def get_flattened(self, rib):
-        flat = PolyLine2D(self._get_flattened(rib))
-        flat.check()
-        return flat
+        return euklid.vector.PolyLine2D(self._get_flattened(rib)).fix_errors()
 
     def _get_flattened(self, rib):
         max_segment = 0.005  # 5mm
         profile = rib.profile_2d
-        profile_normvectors = PolyLine2D(profile.normvectors)
+        profile_normvectors = euklid.vector.PolyLine2D(profile.normvectors)
 
         start = profile(self.start)
         end = profile(self.end)
@@ -92,7 +71,7 @@ class RigidFoil(object):
 
         indices = [profile(x) for x in point_range]
 
-        return [(profile[index] - profile_normvectors[index]*self.func(x))*rib.chord for index, x in zip(indices, point_range)]
+        return [(profile[ik] - profile_normvectors.get(ik) * self.func(x)) * rib.chord for ik, x in zip(indices, point_range)]
 
 
 class FoilCurve(object):
@@ -110,10 +89,9 @@ class FoilCurve(object):
         ]
         profile = rib.profile_2d
 
-        cp = [profile.align(point)*rib.chord for point in curve]
+        controlpoints = [profile.align(point)*rib.chord for point in curve]
 
-
-        return Bezier(cp).interpolation(numpoints)
+        return euklid.vector.BezierCurve(cp).get_sequence(numpoints)
 
 
 class GibusArcs(object):
@@ -240,11 +218,11 @@ class RibHole(object):
         return rib.align_all(set_dimension(hole, 3))
 
     def get_flattened(self, rib, num=80, scale=True):
-        points = self.get_points(rib, num).data
+        points = self.get_points(rib, num)
         if scale:
-            points *= rib.chord
-        return PolyLine2D(points)
-        #return Polygon(p1, p2, num=num, scale=self.size, is_center=False)[0]
+            points = points * [rib.chord, rib.chord]
+
+        return points
 
     def get_points(self, rib, num=80):
         prof = rib.profile_2d
@@ -260,7 +238,7 @@ class RibHole(object):
         scale = Scale(np.linalg.norm(p2 - p1) / 2 * self.size)
         points = (scale * move_2 * rot * move_1).apply(points)
 
-        return PolyLine2D(points, name=f"{rib.name}-hole")
+        return euklid.vector.PolyLine2D(points.tolist())
 
     def get_center(self, rib, scale=True):
         prof = rib.profile_2d
@@ -294,13 +272,13 @@ class RibSquareHole:
         points = self.get_points(rib, num).data
         if scale:
             points *= rib.chord
-        return PolyLine2D(points)
+        return euklid.vector.PolyLine2D(points)
         #return Polygon(p1, p2, num=num, scale=self.size, is_center=False)[0]
 
     def get_points(self, rib, num=80):
         points = []
 
-        return PolyLine2D(points, name=f"{rib.name}-hole")
+        return euklid.vector.PolyLine2D(points, name=f"{rib.name}-hole")
 
     def __json__(self):
         return {

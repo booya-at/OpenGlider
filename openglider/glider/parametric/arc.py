@@ -3,10 +3,6 @@ import copy
 import numpy as np
 import euklid
 
-from openglider.vector import PolyLine2D
-from openglider.vector.spline import SymmetricBezier, SymmetricBSpline
-
-
 
 class ArcCurve(object):
     """
@@ -39,7 +35,7 @@ class ArcCurve(object):
         arc_curve_length = arc_curve.get_length()
         scale_factor = arc_curve_length / x_values[-1]
         _positions = [arc_curve.walk(0, x * scale_factor) for x in x_values]
-        positions = PolyLine2D([arc_curve.get(p) for p in _positions])
+        positions = euklid.vector.PolyLine2D([arc_curve.get(p) for p in _positions])
         if not self.has_center_cell(x_values):
             positions[0][0] = 0
         # rescale
@@ -111,7 +107,7 @@ class ArcCurve(object):
 
     def get_flattening(self, x_values):
         arc_curve = self.get_arc_positions(x_values)
-        span_projected = arc_curve.last()[0]
+        span_projected = arc_curve.nodes[-1][0]
         return span_projected / arc_curve.get_length()
 
     def get_circle(self):
@@ -120,7 +116,7 @@ class ArcCurve(object):
 
     def rescale(self, x_values):
         positions = self.get_arc_positions(x_values)
-        diff = [0, -positions[0][1]]
+        diff = [0, -positions.nodes[0][1]]
         self.curve.controlpoints = euklid.vector.PolyLine2D([p + diff for p in self.curve.controlpoints.nodes])
 
         arc_curve: euklid.vector.PolyLine2D = self.curve.get_sequence(self.num_interpolation_points)

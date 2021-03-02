@@ -1,10 +1,11 @@
 import numpy as np
 
-from openglider.airfoil import Profile2D
-from openglider.vector.spline import Bezier
-from openglider.vector.spline.bspline import BSpline, BSpline3
-from openglider.vector import norm, Interpolation
+import euklid
 
+from openglider.airfoil import Profile2D
+from openglider.vector import norm
+
+# TODO: FIX!
 
 class BezierProfile2D(Profile2D):
     # TODO make new fit bezier method to set the second x value of the
@@ -59,7 +60,7 @@ class BezierProfile2D(Profile2D):
 
     def fit_region(self, start, stop, num_points, control_points):
         smoothened = [self[self(x)] for x in np.linspace(start, stop, num=num_points)]
-        return Bezier.fit(smoothened, numpoints=num_points)
+        return euklid.vector.Bezier.fit(smoothened, numpoints=num_points)
 
     def fit_profile(self, num_points, control_points):
         # todo: classmethod
@@ -78,12 +79,12 @@ class BezierProfile2D(Profile2D):
         length = [0]
         for i, point in enumerate(points[1:]):
             length.append(length[-1] + norm(point - points[i]))
-        interpolation_x = Interpolation(zip(length, [p[0] for p in points]))
-        interpolation_y = Interpolation(points)
+        interpolation_x = euklid.vector.Interpolation(list(zip(length, [p[0] for p in points])))
+        interpolation_y = euklid.vector.Interpolation(points)
 
         def get_point(dist):
-            x = interpolation_x(dist)
-            return [x, interpolation_y(x)]
+            x = interpolation_x.get_value(dist)
+            return [x, interpolation_y.get_value(x)]
 
         if dist == "const":
             dist = np.linspace(0, length[-1], num)

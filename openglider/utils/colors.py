@@ -1,4 +1,4 @@
-from openglider.vector import Interpolation
+import euklid
 
 
 def colorwheel(num):
@@ -20,21 +20,21 @@ def colorwheel(num):
     return colors
 
 class HeatMap():
-    _interpolation_red = Interpolation([
+    _interpolation_red = euklid.vector.Interpolation([
         [0, 0],
         [0.35, 0],
         [0.66, 1],
         [1, 1]
     ])
 
-    _interpolation_blue = Interpolation([
+    _interpolation_blue = euklid.vector.Interpolation([
         [0, 1],
         [0.34, 1],
         [0.65, 0],
         [1, 0]
     ])
 
-    _interpolation_green = Interpolation([
+    _interpolation_green = euklid.vector.Interpolation([
         [0, 0],
         [0.125, 0],
         [0.375, 1],
@@ -59,9 +59,9 @@ class HeatMap():
         pct_raw = (value - self.min_value) / (self.max_value - self.min_value)
         pct = min(1., max(0, pct_raw))
 
-        red = self._interpolation_red(pct)
-        blue = self._interpolation_blue(pct)
-        green = self._interpolation_green(pct)
+        red = self._interpolation_red.get_value(pct)
+        blue = self._interpolation_blue.get_value(pct)
+        green = self._interpolation_green.get_value(pct)
 
         rgb = [int(255*x) for x in (red, green, blue)]
 

@@ -20,12 +20,9 @@
 import copy
 
 import numpy as np
-from numpy.lib.function_base import interp
 import euklid
 
 import openglider
-from openglider.vector.spline import BSpline
-from openglider.vector.interpolate import Interpolation
 
 
 class ArcSinc:
@@ -37,7 +34,7 @@ class ArcSinc:
     def __call__(self, val):
         if self.arsinc is None:
             self.interpolate(openglider.config['asinc_interpolation_points'])
-        return self.arsinc(val)
+        return self.arsinc.get_value(val)
 
     def interpolate(self, numpoints):
         data = []
@@ -46,7 +43,7 @@ class ArcSinc:
             phi = self.end + (i * 1. / numpoints) * (self.start - self.end)  # reverse for interpolation (increasing x_values)
             data.append([np.sinc(phi / np.pi), phi])
 
-        self.arsinc = Interpolation(data)
+        self.arsinc = euklid.vector.Interpolation(data)
 
     @property
     def numpoints(self):
@@ -55,6 +52,7 @@ class ArcSinc:
     @numpoints.setter
     def numpoints(self, numpoints):
         self.interpolate(numpoints)
+
 
 class BallooningBase():
     arcsinc = ArcSinc()

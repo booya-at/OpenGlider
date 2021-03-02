@@ -3,7 +3,6 @@ import math
 import euklid
 
 from openglider.vector.functions import normalize, rotation_2d
-from openglider.vector.polyline import PolyLine2D
 
 
 class CutResult():
@@ -116,7 +115,7 @@ class SimpleCut(DesignCut):
 
 
 class Cut3D(DesignCut):
-    def apply(self, inner_lists, outer_left: PolyLine2D, outer_right: PolyLine2D, amount_3d=None):
+    def apply(self, inner_lists, outer_left: euklid.vector.PolyLine2D, outer_right: euklid.vector.PolyLine2D, amount_3d=None):
         """
 
         :param inner_lists:

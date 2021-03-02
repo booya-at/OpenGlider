@@ -8,7 +8,7 @@ import euklid
 from openglider.glider.cell import Panel
 from openglider.airfoil import get_x_value
 from openglider.plots.glider.config import PatternConfig
-from openglider.vector import PolyLine2D, vector_angle
+from openglider.vector import vector_angle
 from openglider.vector.text import Text
 from openglider.vector.drawing import PlotPart, Layout
 import openglider.vector.projection as projection
@@ -129,8 +129,8 @@ class PanelPlot(object):
         plotpart.layers["envelope"].append(envelope)
 
         if self.config.debug:
-            plotpart.layers["debug"].append(PolyLine2D([line.get(ik) for line, ik in inner_front]))
-            plotpart.layers["debug"].append(PolyLine2D([line.get(ik) for line, ik in inner_back]))
+            plotpart.layers["debug"].append(euklid.vector.PolyLine2D([line.get(ik) for line, ik in inner_front]))
+            plotpart.layers["debug"].append(euklid.vector.PolyLine2D([line.get(ik) for line, ik in inner_back]))
             for front, back in zip(inner_front, inner_back):
                 plotpart.layers["debug"].append(front[0].get(front[1], back[1]))
 
@@ -154,13 +154,13 @@ class PanelPlot(object):
         # TODO
         if False:
             if panel_right:
-                right = PolyLine2D([panel_front.last()]) + panel_right + PolyLine2D([panel_back[0]])
+                right = euklid.vector.PolyLine2D([panel_front.last()]) + panel_right + euklid.vector.PolyLine2D([panel_back[0]])
                 plotpart.layers["cuts"].append(right)
 
             plotpart.layers["cuts"].append(panel_back)
 
             if panel_left:
-                left = PolyLine2D([panel_back.last()]) + panel_left + PolyLine2D([panel_front[0]])
+                left = euklid.vector.PolyLine2D([panel_back.last()]) + panel_left + euklid.vector.PolyLine2D([panel_front[0]])
                 plotpart.layers["cuts"].append(left)
 
             plotpart.layers["cuts"].append(panel_front)
@@ -353,8 +353,8 @@ class PanelPlot(object):
                 plotpart.layers["marks"].append(line)
 
                 # laser dots
-                plotpart.layers["L0"].append(PolyLine2D([line.get(0)]))
-                plotpart.layers["L0"].append(PolyLine2D([line.get(len(line)-1)]))
+                plotpart.layers["L0"].append(euklid.vector.PolyLine2D([line.get(0)]))
+                plotpart.layers["L0"].append(euklid.vector.PolyLine2D([line.get(len(line)-1)]))
 
 
 class DribPlot(object):
@@ -492,7 +492,7 @@ class DribPlot(object):
 
             outer = self.left_out.get(p1, p2)
             outer += self.right_out.get(p3,p4).reverse()
-            outer += PolyLine2D([self.left_out.get(p1)])
+            outer += euklid.vector.PolyLine2D([self.left_out.get(p1)])
             plotpart.layers["cuts"].append(outer)
 
         plotpart.layers["marks"].append(euklid.vector.PolyLine2D([self.left.get(0), self.right.get(0)]))

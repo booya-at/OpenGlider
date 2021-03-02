@@ -5,7 +5,7 @@ import numpy as np
 import euklid
 
 from openglider.glider.shape import Shape
-from openglider.vector import Interpolation, PolyLine2D
+from openglider.vector import PolyLine2D
 from openglider.utils.table import Table
 
 
@@ -57,7 +57,7 @@ class ParametricShape(object):
         for i in range(shape.rib_no):
             line.append(shape.get_point(i, pct))
 
-        return PolyLine2D(line)
+        return euklid.vector.PolyLine2D(line)
 
     @property
     def has_center_cell(self):
@@ -86,10 +86,10 @@ class ParametricShape(object):
         Interpolate Cell-distribution
         """
         data = self.rib_distribution.get_sequence(self.num_distribution_interpolation)
-        interpolation = Interpolation([[p[1], p[0]] for p in data])
+        interpolation = euklid.vector.Interpolation([[p[1], p[0]] for p in data])
         start = self.has_center_cell / self.cell_num
         num = self.cell_num // 2 + 1
-        return [[interpolation(i), i] for i in np.linspace(start, 1, num)]
+        return [[interpolation.get_value(i), i] for i in np.linspace(start, 1, num)]
 
     @property
     def fast_interpolation(self):
@@ -135,10 +135,11 @@ class ParametricShape(object):
         front_int = euklid.vector.Interpolation(self.front_curve.get_sequence(num).nodes)
         back_int = euklid.vector.Interpolation(self.back_curve.get_sequence(num).nodes)
         dist = self.rib_x_values
-        front = [[x, front_int.get_value(x)] for x in dist]
-        back = [[x, back_int.get_value(x)] for x in dist]
+        
+        front = euklid.vector.PolyLine2D([[x, front_int.get_value(x)] for x in dist])
+        back = euklid.vector.PolyLine2D([[x, back_int.get_value(x)] for x in dist])
 
-        return Shape(PolyLine2D(front), PolyLine2D(back))
+        return Shape(front, back)
 
     def get_shape(self):
         """

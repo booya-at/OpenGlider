@@ -21,7 +21,7 @@ from __future__ import division
 import sys
 import logging
 
-from openglider.vector import Interpolation
+import euklid
 
 logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ class LineType():
         if stretch_curve[0][0] != 0:
             stretch_curve.insert(0, [0, 0])
         self.stretch_curve = stretch_curve
-        self.stretch_interpolation = Interpolation(stretch_curve, extrapolate=True)
+        self.stretch_interpolation = euklid.vector.Interpolation(stretch_curve, extrapolate=True)
         self.weight = weight
         self.seam_correction = seam_correction / 1000
         self.colors = colors or []
@@ -54,7 +54,7 @@ class LineType():
         self.min_break_load = min_break_load
     
     def get_spring_constant(self):
-        force, k = self.stretch_interpolation.data[-1]
+        force, k = self.stretch_interpolation.nodes[-1]
         result = force / (k / 100)
 
         if result == float("inf"):
@@ -64,7 +64,7 @@ class LineType():
             return result
 
     def get_stretch_factor(self, force):
-        return 1 + self.stretch_interpolation(force) / 100
+        return 1 + self.stretch_interpolation.get_value(force) / 100
 
     def predict_weight(self):
         t_mm = self.thickness * 1000.

@@ -550,11 +550,11 @@ class Panel(object):
     def _get_ik_interpolation(self, cell: "Cell", numribs=0, exact=True):
         ik_values = self._get_ik_values(cell, numribs=5, exact=exact)
         numpoints = len(ik_values)-1
-        ik_interpolation_front = openglider.vector.Interpolation(
+        ik_interpolation_front = euklid.vector.Interpolation(
             [[i/numpoints, x[0]] for i, x in enumerate(ik_values)]
             )
         
-        ik_interpolation_back = openglider.vector.Interpolation(
+        ik_interpolation_back = euklid.vector.Interpolation(
             [[i/numpoints, x[1]] for i, x in enumerate(ik_values)]
         )
 
@@ -686,8 +686,8 @@ class PanelRigidFoil():
         ik_values = panel._get_ik_values(cell, numribs=5)
         ik_interpolation_front, ik_interpolation_back = panel._get_ik_interpolation(cell, numribs=5)
 
-        start = max(ik_front, ik_interpolation_front(self.y))
-        stop = min(ik_back, ik_interpolation_back(self.y))
+        start = max(ik_front, ik_interpolation_front.get_value(self.y))
+        stop = min(ik_back, ik_interpolation_back.get_value(self.y))
 
         if start < stop:
             return line.get(start, stop)
@@ -711,8 +711,8 @@ class PanelRigidFoil():
         for panel in cell.panels:
             interpolations = panel._get_ik_interpolation(cell, numribs=5)
 
-            panel_iks.append(interpolations[0](self.y))
-            panel_iks.append(interpolations[1](self.y))
+            panel_iks.append(interpolations[0].get_value(self.y))
+            panel_iks.append(interpolations[1].get_value(self.y))
         
         for ik in panel_iks:
             if ik_front < ik < ik_back:

@@ -1,29 +1,10 @@
-#! /usr/bin/python2
-# -*- coding: utf-8; -*-
-#
-# (c) 2013 booya (http://booya.at)
-#
-# This file is part of the OpenGlider project.
-#
-# OpenGlider is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# OpenGlider is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-
-
 import os
 import re
 import asyncio
 import pandas
 import tempfile
+
+import euklid
 
 import openglider.airfoil
 import openglider.vector.interpolate
@@ -138,7 +119,7 @@ class XFoilCalc:
 
         for column in result.columns:
             y=result[column].tolist()
-            interp=openglider.vector.interpolate.Interpolation(zip(x,y))
-            result_dct[column] = interp(aoa)
+            interp = euklid.vector.Interpolation(list(zip(x,y)))
+            result_dct[column] = interp.get_value(aoa)
 
         return result_dct

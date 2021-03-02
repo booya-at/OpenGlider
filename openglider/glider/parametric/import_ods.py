@@ -10,8 +10,6 @@ import typing
 import euklid
 
 from openglider.airfoil import BezierProfile2D, Profile2D
-from openglider.vector.spline import Bezier
-from openglider.vector import Interpolation
 
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.shape import ParametricShape
@@ -300,8 +298,8 @@ def get_geometry_explicit(sheet):
 
     const_arr = [0.] + np.linspace(start, 1, len(front) - (not has_center_cell)).tolist()
     rib_pos = [0.] + [p[0] for p in front[not has_center_cell:]]
-    rib_pos_int = Interpolation(zip(rib_pos, const_arr))
-    rib_distribution = [[i, rib_pos_int(i)] for i in np.linspace(0, rib_pos[-1], 30)]
+    rib_pos_int = euklid.vector.Interpolation(list(zip(rib_pos, const_arr)))
+    rib_distribution = [[i, rib_pos_int.get_value(i)] for i in np.linspace(0, rib_pos[-1], 30)]
 
     rib_distribution = euklid.vector.BezierCurve.fit(rib_distribution, 3)
 

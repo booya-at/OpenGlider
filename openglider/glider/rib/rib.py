@@ -375,18 +375,11 @@ def parabola(x, x0, x1, x_max):
 #     return rot
 
 def rib_rotation(aoa, arc, zrot, xrot=0):
-    #rot0 = Rotation(np.pi / 2 - xrot, [1, 0, 0])
-    #rot1 = Rotation(aoa, [0, 1, 0])
-    #rot2 = Rotation(-arc, [1, 0, 0])
-    #axis = (rot1 * rot2)([0, 0, 1])
-    #rot3 = Rotation(-zrot, axis)
-
     rot0 = euklid.vector.Transformation.rotation(np.pi / 2 - xrot - arc, [1, 0, 0])
     rot1 = euklid.vector.Transformation.rotation(aoa, rot0.apply([0, 0, -1]))
-    #rot1 = euklid.vector.Transformation.rotation(aoa, [0,0,-1])
-    #rot2 = euklid.vector.Transformation.rotation(-arc, [1,0,0])
     axis = (rot0 * rot1).apply([0,0,1])
     rot3 = euklid.vector.Transformation.rotation(-zrot, axis)
+    
     return rot3 * rot1 * rot0
 
 
