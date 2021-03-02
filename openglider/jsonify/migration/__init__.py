@@ -115,7 +115,7 @@ def migrate_07(cls, jsondata):
         for node in cls.find_nodes(jsondata, name="^"+curvetype+"$"):
             node["data"].pop("basefactory")
             node["_type"] = f"{curvetype}Curve"
-            node["_module"] = "openglider_cpp.euklid"
+            node["_module"] = "euklid.spline"
     
     return jsondata
 

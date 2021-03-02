@@ -18,7 +18,7 @@ class MiniRib():
             else:
                 points = points + [[back_cut, 0]]
             
-            curve = euklid.vector.BezierCurve(points).get_sequence(100)
+            curve = euklid.spline.BezierCurve(points).get_sequence(100)
             func = euklid.vector.Interpolation(curve.nodes)
 
         self.__function__ = func

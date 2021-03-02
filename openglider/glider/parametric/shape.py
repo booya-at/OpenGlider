@@ -271,8 +271,8 @@ class ParametricShape(object):
         front = [p + [0, (p[0]-x0)*diff/span] for p, _ in ribs]
         back = [p + [0, (p[0]-x0)*diff/span] for _, p in ribs]
 
-        self.front_curve = euklid.vector.SymmetricBSplineCurve.fit(front, self.front_curve.numpoints)
-        self.back_curve = euklid.vector.SymmetricBSplineCurve.fit(back, self.back_curve.numpoints)
+        self.front_curve = euklid.spline.SymmetricBSplineCurve.fit(front, self.front_curve.numpoints)
+        self.back_curve = euklid.spline.SymmetricBSplineCurve.fit(back, self.back_curve.numpoints)
         
         return self
 

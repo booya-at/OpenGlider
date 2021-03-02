@@ -121,7 +121,7 @@ class DiagonalRib(object):
                 back = rib.profile_2d(cut_back[0] * side)
                 return euklid.vector.PolyLine3D(rib.profile_3d[front:back].data.tolist())
             else:
-                return euklid.vector.PolyLine3D([rib.align(rib.profile_2d.align(p) + [0]) for p in (cut_front, cut_back)])
+                return euklid.vector.PolyLine3D([rib.align(rib.profile_2d.align(p).tolist() + [0]) for p in (cut_front, cut_back)])
 
         left = get_list(cell.rib1, self.left_front, self.left_back)
         right = get_list(cell.rib2, self.right_front, self.right_back)

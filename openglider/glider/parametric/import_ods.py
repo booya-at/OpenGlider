@@ -287,9 +287,9 @@ def get_geometry_explicit(sheet):
         #not_from_center = int(data[0][0] == 0)
         #mirrored = [[-p[0], p[1]] for p in data[not_from_center:]][::-1] + data
         if bspline:
-            return euklid.vector.SymmetricBSplineCurve.fit(data, 3)
+            return euklid.spline.SymmetricBSplineCurve.fit(data, 3)
         else:
-            return euklid.vector.SymmetricBezierCurve.fit(data, 3)
+            return euklid.spline.SymmetricBezierCurve.fit(data, 3)
 
     has_center_cell = not front[0][0] == 0
     cell_no = (len(front) - 1) * 2 + has_center_cell
@@ -301,7 +301,7 @@ def get_geometry_explicit(sheet):
     rib_pos_int = euklid.vector.Interpolation(list(zip(rib_pos, const_arr)))
     rib_distribution = [[i, rib_pos_int.get_value(i)] for i in np.linspace(0, rib_pos[-1], 30)]
 
-    rib_distribution = euklid.vector.BezierCurve.fit(rib_distribution, 3)
+    rib_distribution = euklid.spline.BezierCurve.fit(rib_distribution, 3)
 
     parametric_shape = ParametricShape(symmetric_fit(front), symmetric_fit(back), rib_distribution, cell_no)
     arc_curve = ArcCurve(symmetric_fit(arc))
@@ -332,21 +332,21 @@ def get_geometry_parametric(table: Table, cell_num):
             data[key] = points
 
     parametric_shape = ParametricShape(
-        euklid.vector.SymmetricBSplineCurve(data["front"]),
-        euklid.vector.SymmetricBSplineCurve(data["back"]),
-        euklid.vector.BezierCurve(data["rib_distribution"]),
+        euklid.spline.SymmetricBSplineCurve(data["front"]),
+        euklid.spline.SymmetricBSplineCurve(data["back"]),
+        euklid.spline.BezierCurve(data["rib_distribution"]),
         cell_num
     )
 
-    arc_curve = ArcCurve(euklid.vector.SymmetricBSplineCurve(data["arc"]))
+    arc_curve = ArcCurve(euklid.spline.SymmetricBSplineCurve(data["arc"]))
 
     return {
         "shape": parametric_shape,
         "arc": arc_curve,
-        "aoa": euklid.vector.SymmetricBSplineCurve(data["aoa"]),
-        "zrot": euklid.vector.SymmetricBSplineCurve(data["zrot"]),
-        "profile_merge_curve": euklid.vector.SymmetricBSplineCurve(data["profile_merge_curve"]),
-        "ballooning_merge_curve": euklid.vector.SymmetricBSplineCurve(data["ballooning_merge_curve"])
+        "aoa": euklid.spline.SymmetricBSplineCurve(data["aoa"]),
+        "zrot": euklid.spline.SymmetricBSplineCurve(data["zrot"]),
+        "profile_merge_curve": euklid.spline.SymmetricBSplineCurve(data["profile_merge_curve"]),
+        "ballooning_merge_curve": euklid.spline.SymmetricBSplineCurve(data["ballooning_merge_curve"])
     }
     
 

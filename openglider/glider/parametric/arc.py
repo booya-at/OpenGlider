@@ -10,7 +10,7 @@ class ArcCurve(object):
     """
     num_interpolation_points = 100
 
-    def __init__(self, curve: euklid.vector.SymmetricBSplineCurve):
+    def __init__(self, curve: euklid.spline.SymmetricBSplineCurve):
         self.curve = curve
 
     def __json__(self):
@@ -37,7 +37,7 @@ class ArcCurve(object):
         _positions = [arc_curve.walk(0, x * scale_factor) for x in x_values]
         positions = euklid.vector.PolyLine2D([arc_curve.get(p) for p in _positions])
         if not self.has_center_cell(x_values):
-            positions[0][0] = 0
+            positions.nodes[0][0] = 0
         # rescale
         return positions
 
@@ -80,7 +80,7 @@ class ArcCurve(object):
             curve.append(last_pos)
 
         curve = [p * [-1, 1] for p in curve[::-1]] + curve
-        spline = euklid.vector.SymmetricBSpline.fit(curve, 8)
+        spline = euklid.spline.SymmetricBSpline.fit(curve, 8)
         return cls(spline)
 
     def get_rib_angles(self, x_values):

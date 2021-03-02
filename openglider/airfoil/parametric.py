@@ -60,7 +60,7 @@ class BezierProfile2D(Profile2D):
 
     def fit_region(self, start, stop, num_points, control_points):
         smoothened = [self[self(x)] for x in np.linspace(start, stop, num=num_points)]
-        return euklid.vector.Bezier.fit(smoothened, numpoints=num_points)
+        return euklid.spline.Bezier.fit(smoothened, numpoints=num_points)
 
     def fit_profile(self, num_points, control_points):
         # todo: classmethod

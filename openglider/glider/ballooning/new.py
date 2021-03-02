@@ -1,6 +1,11 @@
+import logging
 import euklid
 
 from openglider.glider.ballooning.base import BallooningBase
+
+
+logger = logging.getLogger(__name__)
+
 
 class BallooningNew(BallooningBase):
     def __init__(self, interpolation: euklid.vector.Interpolation, name: str="ballooning_new"):
@@ -39,7 +44,7 @@ class BallooningNew(BallooningBase):
 
 class BallooningBezierNeu(BallooningNew):
     def __init__(self, spline, name="ballooning_new"):
-        self.spline_curve = euklid.vector.BSplineCurve(spline)
+        self.spline_curve = euklid.spline.BSplineCurve(spline)
         self.name = name
         super(BallooningBezierNeu, self).__init__(None, None)
         self.apply_splines()
@@ -58,23 +63,35 @@ class BallooningBezierNeu(BallooningNew):
         return BallooningBezierNeu(self.spline_curve.copy().controlpoints, name=self.name)
 
     @classmethod
-    def from_classic(cls, ballooning, numpoints=14):
+    def from_classic(cls, ballooning, numpoints=6):
         upper = ballooning.upper * [-1, 1]
         lower = ballooning.lower
 
         data = upper.reverse().nodes + lower.nodes
 
+        print(data)
+
+        data[0][0] = -1
+        data[-1][0] = 1
+
         #data = [(-p[0], p[1]) for p in upper[::-1]] + list(lower)
 
-        spline = euklid.vector.BSplineCurve.fit(data, numpoints)
+        spline = euklid.spline.BSplineCurve.fit(data, numpoints)
+        controlpoints = []
+
+        for x, y in spline.controlpoints:
+            x = max(-1, min(x, 1))
+            controlpoints.append([x,y])
+
+        print(controlpoints)
         #return data
-        return cls(spline.controlpoints)
+        return cls(controlpoints)
 
     def get_points(self, n=300):
         return self.spline_curve.get_sequence(n).nodes
 
     def apply_splines(self):
-        self.interpolation = euklid.vector.Interpolation(self.get_points())
+        self.interpolation = euklid.vector.Interpolation(self.get_points(), extrapolate=True)
 
     def __mul__(self, factor):
         return BallooningBezierNeu(self.controlpoints.scale([1, factor]))

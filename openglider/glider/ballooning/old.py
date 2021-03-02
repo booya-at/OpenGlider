@@ -35,7 +35,10 @@ class Ballooning(BallooningBase):
         for point in self.lower.nodes:
             lower.append([point[0], point[1]+other.lower.get_value(point[0])])
 
-        return Ballooning(euklid.vector.Interpolation(upper), euklid.vector.Interpolation(lower))
+        return Ballooning(
+            euklid.vector.Interpolation(upper, extrapolate=True), 
+            euklid.vector.Interpolation(lower, extrapolate=True)
+            )
 
     def __imul__(self, val):
         for point in self.upper.nodes:
@@ -129,8 +132,8 @@ class BallooningBezier(Ballooning):
         upper = upper or [[0, 0], [0.1, 0], [0.2, 0.14], [0.8, 0.14], [0.9, 0], [1, 0]]
         lower = lower or [[0, 0], [0.1, 0], [0.2, 0.14], [0.8, 0.14], [0.9, 0], [1, 0]]
 
-        self.upper_spline = euklid.vector.BSplineCurve(upper)
-        self.lower_spline = euklid.vector.BSplineCurve(lower)
+        self.upper_spline = euklid.spline.BSplineCurve(upper)
+        self.lower_spline = euklid.spline.BSplineCurve(lower)
 
         self.upper_spline.controlpoints.nodes[0][0] = 0
         self.upper_spline.controlpoints.nodes[-1][0] = 1
@@ -157,8 +160,8 @@ class BallooningBezier(Ballooning):
         return upper + lower
 
     def apply_splines(self):
-        self.upper = euklid.vector.Interpolation(self.upper_spline.get_sequence(self.num_points).nodes)
-        self.lower = euklid.vector.Interpolation(self.lower_spline.get_sequence(self.num_points).nodes)
+        self.upper = euklid.vector.Interpolation(self.upper_spline.get_sequence(self.num_points).nodes, extrapolate=True)
+        self.lower = euklid.vector.Interpolation(self.lower_spline.get_sequence(self.num_points).nodes, extrapolate=True)
 
     def __imul__(self, factor):  # TODO: Check consistency
         """Multiplication of BezierBallooning"""

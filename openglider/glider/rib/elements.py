@@ -91,7 +91,7 @@ class FoilCurve(object):
 
         controlpoints = [profile.align(point)*rib.chord for point in curve]
 
-        return euklid.vector.BezierCurve(cp).get_sequence(numpoints)
+        return euklid.spline.BezierCurve(controlpoints).get_sequence(numpoints)
 
 
 class GibusArcs(object):
