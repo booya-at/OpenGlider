@@ -327,9 +327,10 @@ class Cell(CachedObject):
             panel.mirror()
 
     def mean_rib(self, num_midribs=8) -> Profile2D:
-        mean_rib = self.midrib(0).flatten().normalize()
+        mean_rib = self.midrib(0).flatten().normalized()
+
         for y in np.linspace(0, 1, num_midribs)[1:]:
-            mean_rib += self.midrib(y).flatten().normalize()
+            mean_rib += self.midrib(y).flatten().normalized()
         return mean_rib * (1. / num_midribs)
 
     def get_mesh_grid(self, numribs=0, with_numpy=False, half_cell=False):

@@ -52,9 +52,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     # ------------
 
     # profiles = [BezierProfile2D(profile) for profile in transpose_columns(sheets[3])]
-    profiles = [Profile2D(profile, name) for name, profile in transpose_columns(sheets[3])]
-    for foil in profiles:
-        foil.normalize()
+    profiles = [Profile2D(profile, name).normalized() for name, profile in transpose_columns(sheets[3])]
 
     if file_version > 2:
         has_center_cell = not tables[0][0, 0] == 0

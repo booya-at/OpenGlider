@@ -63,13 +63,11 @@ class BallooningBezierNeu(BallooningNew):
         return BallooningBezierNeu(self.spline_curve.copy().controlpoints, name=self.name)
 
     @classmethod
-    def from_classic(cls, ballooning, numpoints=6):
+    def from_classic(cls, ballooning, numpoints=12):
         upper = ballooning.upper * [-1, 1]
         lower = ballooning.lower
 
         data = upper.reverse().nodes + lower.nodes
-
-        print(data)
 
         data[0][0] = -1
         data[-1][0] = 1
@@ -83,7 +81,6 @@ class BallooningBezierNeu(BallooningNew):
             x = max(-1, min(x, 1))
             controlpoints.append([x,y])
 
-        print(controlpoints)
         #return data
         return cls(controlpoints)
 

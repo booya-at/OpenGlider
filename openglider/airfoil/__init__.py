@@ -19,8 +19,8 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
 from openglider.airfoil.profile_2d import Profile2D
+from openglider.airfoil.profile_2d_parametric import BezierProfile2D
 from openglider.airfoil.profile_3d import Profile3D
-from openglider.airfoil.parametric import BezierProfile2D
 
 
 def get_x_value(x_value_list, x):

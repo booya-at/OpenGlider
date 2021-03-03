@@ -226,14 +226,15 @@ class RibHole(object):
 
     def get_points(self, rib, num=80):
         prof = rib.profile_2d
-        p1 = prof[prof(self.pos)]
-        p2 = prof[prof(-self.pos)]
+        
+        p1 = prof.get(self.pos)
+        p2 = prof.get(-self.pos)
 
         phi = np.linspace(0, np.pi * 2, num + 1)
         points = np.array([np.cos(phi), np.sin(phi)]).T
         #delta = (p2 - p1) / 2 * self.vertical_shift + (p1 + p2) / 2
         move_1 = Translation(p1)
-        move_2 = Translation((p2 - p1) / 2 * (1 + self.vertical_shift))
+        move_2 = Translation((p2 - p1) * 0.5 * (1 + self.vertical_shift))
         rot = Rotation(self.rotation)
         scale = Scale(np.linalg.norm(p2 - p1) / 2 * self.size)
         points = (scale * move_2 * rot * move_1).apply(points)
@@ -242,13 +243,16 @@ class RibHole(object):
 
     def get_center(self, rib, scale=True):
         prof = rib.profile_2d
-        p1 = prof[prof(self.pos)]
-        p2 = prof[prof(-self.pos)]
+
+        p1 = prof.get(self.pos)
+        p2 = prof.get(-self.pos)
+
         if scale:
             p1 *= rib.chord
             p2 *= rib.chord
+
         move_1 = Translation(p1)
-        move_2 = Translation((p2 - p1) / 2 * (1 + self.vertical_shift))
+        move_2 = Translation((p2 - p1) * 0.5 * (1 + self.vertical_shift))
         rot = Rotation(self.rotation)
         return (move_2 * rot * move_1)([0., 0.])
 

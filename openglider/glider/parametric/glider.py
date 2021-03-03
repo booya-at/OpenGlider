@@ -141,17 +141,18 @@ class ParametricGlider(object):
         else:
             return first.copy()
 
-    def get_merge_profile(self, factor):
+    def get_merge_profile(self, factor) -> Profile2D:
         factor = max(0, min(len(self.profiles)-1, factor))
         k = factor % 1
         i = int(factor // 1)
-        first = self.profiles[i].copy()
+        first = self.profiles[i]
+
         if k > 0:
             second = self.profiles[i + 1]
             airfoil = first * (1 - k) + second * k
         else:
-            airfoil = first
-        return Profile2D(airfoil.data)
+            airfoil = first.copy()
+        return airfoil
 
     def get_panels(self, glider_3d=None):
         """
@@ -360,9 +361,8 @@ class ParametricGlider(object):
 
             chord = abs(front[1]-back[1])
             factor = profile_merge_values[rib_no]
-            profile = self.get_merge_profile(factor)
+            profile = self.get_merge_profile(factor).set_x_values(profile_x_values)
             profile.name = "Profile{}".format(rib_no)
-            profile.x_values = profile_x_values
 
             this_rib_holes = [RibHole(ribhole["pos"], ribhole["size"]) for ribhole in rib_holes if rib_no in ribhole["ribs"]]
             this_rigid_foils = [RigidFoil(rigid["start"], rigid["end"], rigid["distance"]) for rigid in rigids if rib_no in rigid["ribs"]]

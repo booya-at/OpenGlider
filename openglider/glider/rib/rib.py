@@ -113,14 +113,10 @@ class Rib(CachedObject):
 
     @cached_property('self')
     def profile_3d(self):
-        if self.profile_2d.data is not None:
-            return Profile3D(self.align_all(self.profile_2d.data.tolist()))
-        else:
-            raise ValueError("no 2d-profile present for the rib at rib {}".format(
-                self.name))
+        return Profile3D(self.align_all(self.profile_2d.curve.nodes))
 
     def point(self, x_value):
-        return self.align(self.profile_2d.profilepoint(x_value).tolist())
+        return self.align(self.profile_2d.profilepoint(x_value))
 
     @staticmethod
     def _aoa_diff(arc_angle, glide):
@@ -147,8 +143,7 @@ class Rib(CachedObject):
     def get_hull(self, glider=None):
         """returns the outer contour of the normalized mesh in form
            of a Polyline"""
-        profile = copy.deepcopy(self.profile_2d)
-        return profile
+        return self.profile_2d.curve.copy()
 
     @property
     def normalized_normale(self):
@@ -233,7 +228,7 @@ class SingleSkinRib(Rib):
             self.apply_continued_min()
 
     def apply_continued_min(self):
-        self.profile_2d.move_nearest_point(self.single_skin_par['continued_min_end'])
+        self.profile_2d = self.profile_2d.move_nearest_point(self.single_skin_par['continued_min_end'])
         data = self.profile_2d.data
         x, y = data.T
         min_index = y.argmin()
@@ -262,7 +257,7 @@ class SingleSkinRib(Rib):
         '''
         returns a modified profile2d
         '''
-        profile = copy.deepcopy(self.profile_2d)
+        profile = self.profile_2d.copy()
         attach_pts = glider.get_rib_attachment_points(self)
         pos = list(set([att.rib_pos for att in attach_pts] + [1]))
 
@@ -332,7 +327,8 @@ class SingleSkinRib(Rib):
                     else:
                         return x
                 profile.apply_function(foo)
-        return profile
+
+        return profile.curve
 
 
 def pseudo_2d_cross(v1, v2):

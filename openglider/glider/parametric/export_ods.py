@@ -45,12 +45,12 @@ def export_ods_2d(glider, filename):
 
 def get_airfoil_sheet(glider_2d):
     profiles = glider_2d.profiles
-    max_length = max(len(p) for p in profiles)
+    max_length = max(p.numpoints for p in profiles)
     sheet = ezodf.Sheet(name="Airfoils", size=(max_length+1, len(profiles)*2))
 
     for i, profile in enumerate(profiles):
         sheet[0, 2*i].set_value(profile.name or "unnamed")
-        for j, p in enumerate(profile):
+        for j, p in enumerate(profile.curve):
             sheet[j+1, 2*i].set_value(p[0])
             sheet[j+1, 2*i+1].set_value(p[1])
 
@@ -259,7 +259,7 @@ def get_ballooning_sheet(glider_2d):
     #sheet = ezodf.Sheet(name="Balloonings", size=(row_num, 2*len(balloonings)))
 
     for ballooning_no, ballooning in enumerate(balloonings):
-        print("jjoooo", type(ballooning))
+        
         #sheet.append_columns(2)
         table[0, 2*ballooning_no] = "ballooning_{}".format(ballooning_no)
         if type(ballooning) is BallooningBezierNeu:

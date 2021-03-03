@@ -358,7 +358,7 @@ class Glider(object):
     @profile_x_values.setter
     def profile_x_values(self, xvalues):
         for rib in self.ribs:
-            rib.profile_2d.x_values = xvalues
+            rib.profile_2d = rib.profile_2d.set_x_values(xvalues)
 
     @property
     def span(self):

@@ -29,8 +29,8 @@ loader = unittest.TestLoader().discover(args.folder, pattern)
 for i in range(int(args.num)):
     print("\n\n>>> Running ("+str(i+1)+"/"+str(args.num)+")")
     test_results = unittest.TextTestRunner(verbosity=int(args.verbose)).run(loader)
-    print(">>> Errors: " + str(test_results.errors))
-    print(">>> Failures: " + str(test_results.failures))
+    #print(">>> Errors: " + str(test_results.errors))
+    #print(">>> Failures: " + str(test_results.failures))
 
 print("return: "+str(not test_results.wasSuccessful()))
 sys.exit(not test_results.wasSuccessful())

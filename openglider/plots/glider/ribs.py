@@ -39,9 +39,11 @@ class RibPlot(object):
     def flatten(self, glider):
         self.plotpart = PlotPart(name=self.rib.name, material_code=self.rib.material_code)
         prof2d = self.rib.get_hull(glider)
-        self.x_values = prof2d.x_values
-        self.inner = prof2d.copy().scale(self.rib.chord)
-        self.outer = self.inner.copy().add_stuff(self.config.allowance_general)
+
+        self.x_values = self.rib.profile_2d.x_values
+        self.inner = prof2d.scale(self.rib.chord)
+        self.inner_normals = self.inner.normvectors()
+        self.outer = self.inner.offset(self.config.allowance_general)
 
         self._insert_attachment_points(glider.attachment_points)
         self.insert_holes()
@@ -90,8 +92,8 @@ class RibPlot(object):
         ik = get_x_value(self.x_values, x_value)
 
         #ik = get_x_value(self.x_values, position)
-        inner = self.inner[ik]
-        outer = inner + PolyLine2D(self.inner).get_normal(ik) * self.config.allowance_general
+        inner = self.inner.get(ik)
+        outer = inner + self.inner_normals.get(ik) * self.config.allowance_general
         #inner = self.inner[ik]
         # outer = self.outer[ik]
         return inner, outer
@@ -152,22 +154,25 @@ class RibPlot(object):
         outer_rib = self.outer
         inner_rib = self.inner
         t_e_allowance = self.config.allowance_trailing_edge
-        p1 = inner_rib[0] + [0, 1]
-        p2 = inner_rib[0] + [0, -1]
-        cuts = outer_rib.cut(p1, p2, extrapolate=True)
+        p1 = inner_rib.nodes[0] + [0, 1]
+        p2 = inner_rib.nodes[0] + [0, -1]
+        cuts = outer_rib.cut(p1, p2)
 
-        start = next(cuts)[0]
-        stop = next(cuts)[0]
+        if len(cuts) != 2:
+            raise Exception("could not cut airfoil TE")
 
-        buerzl = np.array([
-            outer_rib[stop],
-            outer_rib[stop] + [t_e_allowance, 0],
-            outer_rib[start] + [t_e_allowance, 0],
-            outer_rib[start]
-            ]).tolist()
+        start = cuts[0][0]
+        stop = cuts[1][0]
+
+        buerzl = [
+            outer_rib.get(stop),
+            outer_rib.get(stop) + [t_e_allowance, 0],
+            outer_rib.get(start) + [t_e_allowance, 0],
+            outer_rib.get(start)
+            ]
 
         contour = euklid.vector.PolyLine2D(
-            outer_rib[start:stop].data.tolist() + buerzl
+            outer_rib.get(start, stop).nodes + buerzl
         )
 
         self.plotpart.layers["cuts"] += [contour]
@@ -182,7 +187,7 @@ class RibPlot(object):
         inner, outer = self._get_inner_outer(self.config.rib_text_pos)
         diff = outer - inner
 
-        p1 = inner + diff/2
+        p1 = inner + diff * 0.5
         p2 = p1 + rotation_2d(np.pi/2).dot(diff)
 
         _text = Text(text, p1, p2, size=norm(outer-inner)*0.5, valign=0)
@@ -236,8 +241,8 @@ class SingleSkinRibPlot(RibPlot):
         outer_rib = self.outer
         inner_rib = self.inner
         t_e_allowance = self.config.allowance_trailing_edge
-        p1 = inner_rib[0] + [0, 1]
-        p2 = inner_rib[0] + [0, -1]
+        p1 = inner_rib.get(0) + [0, 1]
+        p2 = inner_rib.get(0) + [0, -1]
         cuts = outer_rib.cut(p1, p2, extrapolate=True)
 
         start = next(cuts)[0]
@@ -251,22 +256,24 @@ class SingleSkinRibPlot(RibPlot):
             singleskin_cut_left = self._get_singleskin_cut(glider)
             single_skin_cut = self.rib.profile_2d(singleskin_cut_left)
 
-            buerzl = PolyLine2D([inner_rib[0],
-                                 inner_rib[0] + [t_e_allowance, 0],
-                                 outer_rib[start] + [t_e_allowance, 0],
-                                 outer_rib[start]])
-            contour += PolyLine2D(outer_rib[start:single_skin_cut])
-            contour += PolyLine2D(inner_rib[single_skin_cut:stop])
+            buerzl = PolyLine2D([
+                inner_rib.get(0),
+                inner_rib.get(0) + [t_e_allowance, 0],
+                outer_rib.get(start) + [t_e_allowance, 0],
+                outer_rib.get(start)
+                ])
+            contour += PolyLine2D(outer_rib.get(start, single_skin_cut))
+            contour += PolyLine2D(inner_rib.get(single_skin_cut, stop))
             contour += buerzl
 
         else:
 
-            buerzl = PolyLine2D([outer_rib[stop],
-                                 outer_rib[stop] + [t_e_allowance, 0],
-                                 outer_rib[start] + [t_e_allowance, 0],
-                                 outer_rib[start]])
+            buerzl = PolyLine2D([outer_rib.get(stop),
+                                 outer_rib.get(stop) + [t_e_allowance, 0],
+                                 outer_rib.get(start) + [t_e_allowance, 0],
+                                 outer_rib.get(start)])
 
-            contour += PolyLine2D(outer_rib[start:stop])
+            contour += PolyLine2D(outer_rib.get(start, stop))
             contour += buerzl
 
         self.plotpart.layers["cuts"] += [contour]
