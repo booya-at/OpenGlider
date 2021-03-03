@@ -328,7 +328,11 @@ class Profile2D:
         else:
             i = int(ik)+1
         
-        return self.curve.get(i)[0]
+        result = self.curve.get(i)[0]
+
+        if x < 0:
+            result = -result
+        return result
 
     def apply_function(self, foo):
         data = np.array(self.data)

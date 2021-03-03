@@ -429,7 +429,7 @@ class DribPlot(object):
 
         ik_1 = foil(x1)
         ik_2 = foil(x2)
-        length = foil[ik_1:ik_2].get_length() * rib.chord
+        length = foil.curve.get(ik_1, ik_2).get_length() * rib.chord
 
         ik_new = inner.walk(0, length)
         return inner.get(ik_new), outer.get(ik_new)

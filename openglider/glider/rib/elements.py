@@ -42,19 +42,19 @@ class RigidFoil(object):
         return self.get_flattened(rib).get_length()
 
     def get_flattened(self, rib):
-        return euklid.vector.PolyLine2D(self._get_flattened(rib)).fix_errors()
+        return self._get_flattened(rib).fix_errors()
 
     def _get_flattened(self, rib):
         max_segment = 0.005  # 5mm
         profile = rib.profile_2d
-        profile_normvectors = euklid.vector.PolyLine2D(profile.normvectors)
+        profile_normvectors = profile.normvectors
 
-        start = profile(self.start)
-        end = profile(self.end)
+        start = profile.get_ik(self.start)
+        end = profile.get_ik(self.end)
 
         point_range = []
         last_node = None
-        for p in profile[start:end]:
+        for p in profile.curve.get(start, end):
             sign = -1 if p[1] > 0 else +1
 
             if last_node is not None:
@@ -71,7 +71,12 @@ class RigidFoil(object):
 
         indices = [profile(x) for x in point_range]
 
-        return [(profile[ik] - profile_normvectors.get(ik) * self.func(x)) * rib.chord for ik, x in zip(indices, point_range)]
+        nodes = [
+            (profile.curve.get(ik) - profile_normvectors.get(ik) * self.func(x)) * rib.chord 
+            for ik, x in zip(indices, point_range)
+            ]
+
+        return euklid.vector.PolyLine2D(nodes)
 
 
 class FoilCurve(object):

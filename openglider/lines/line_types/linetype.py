@@ -55,13 +55,13 @@ class LineType():
     
     def get_spring_constant(self):
         force, k = self.stretch_interpolation.nodes[-1]
-        result = force / (k / 100)
-
-        if result == float("inf"):
+        try:
+            result = force / (k / 100)
+        except:
             logging.warn(f"invalid stretch for line type: {self.name}")
             return 50000
-        else:
-            return result
+            
+        return result
 
     def get_stretch_factor(self, force):
         return 1 + self.stretch_interpolation.get_value(force) / 100

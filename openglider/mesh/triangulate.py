@@ -11,6 +11,24 @@ except ImportError:
     # new API (pybind11)
 
 
+class Triangle(list):
+    attributes: dict
+
+    def __init__(self, lst, name=""):
+        super().__init__(lst)
+        self.attributes = {
+            "name": name
+        }
+
+
+class TriMesh:
+    def __init__(self, mesh_info: MeshInfo, name=""):
+        self.points = list(mesh_info.points)
+
+        self.elements = [
+            Triangle(v, name) for v in mesh_info.elements
+        ]
+
 class Triangulation(object):
     meshpy_keep_boundary = True
     meshpy_planar_straight_line_graph = True
@@ -18,6 +36,8 @@ class Triangulation(object):
     meshpy_max_area = None
     meshpy_incremental_algorithm = True
     meshpy_quality_mesh = True
+
+    name: str = ""
 
     def __init__(self, vertices, boundary=None, holes=None):
         self.vertices = vertices
@@ -86,4 +106,4 @@ class Triangulation(object):
             if use_locale:
                 locale.setlocale(locale.LC_NUMERIC, prev_num_locale)
 
-        return mesh
+        return TriMesh(mesh, self.name)

@@ -192,12 +192,14 @@ class Rib(CachedObject):
             tri = triangulate.Triangulation(vertices, boundary, hole_centers)
             if max_area is not None:
                 tri.meshpy_max_area = max_area
+            
+            tri.name = self.name
             mesh = tri.triangulate()
 
-            triangles = list(mesh.elements)
-            vertices = self.align_all(list(mesh.points))
+            vertices = self.align_all(mesh.points)
+            boundaries = {self.name: list(range(len(mesh.points)))}
 
-            return Mesh.from_indexed(vertices, polygons={"ribs": triangles} , boundaries={self.name: list(range(len(vertices)))})
+            return Mesh.from_indexed(vertices, polygons={"ribs": mesh.elements} , boundaries=boundaries)
 
 
 class SingleSkinRib(Rib):

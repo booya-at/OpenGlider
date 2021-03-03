@@ -119,7 +119,11 @@ class DiagonalRib(object):
                 side = -cut_front[1]  # -1 -> lower, 1->upper
                 front = rib.profile_2d(cut_front[0] * side)
                 back = rib.profile_2d(cut_back[0] * side)
-                return euklid.vector.PolyLine3D(rib.profile_3d[front:back].data.tolist())
+
+                poly2 = euklid.vector.PolyLine3D(rib.profile_3d.data.tolist())
+
+                return poly2.get(front, back)
+                #return euklid.vector.PolyLine3D(rib.profile_3d[front:back].data.tolist())
             else:
                 return euklid.vector.PolyLine3D([rib.align(rib.profile_2d.align(p).tolist() + [0]) for p in (cut_front, cut_back)])
 
@@ -151,6 +155,7 @@ class DiagonalRib(object):
                 line_indices = []
                 num_points = int(num_left * (1. - y_pos) + num_right * y_pos)
 
+
                 for x_pos in np.linspace(0., 1., num_points):
                     line_points.append(
                         left.get(x_pos * (num_left - 1)) * (1. - y_pos) +
@@ -179,11 +184,14 @@ class DiagonalRib(object):
                 points2d = _mesh.map_to_2d(point_array)
 
             tri = triangulate.Triangulation(points2d, [edge])
+            tri.name = self.name
+
             mesh = tri.triangulate(options="Qz")
             # mesh_info = _mesh.mptriangle.MeshInfo()
             # mesh_info.set_points(points2d)
             # mesh_info.set_facets(segment)
             # mesh = _mesh.custom_triangulation(mesh_info, "Qz")
+            
 
             return Mesh.from_indexed(point_array, {"diagonals": list(mesh.elements)}, boundaries={"diagonals": edge})
 
