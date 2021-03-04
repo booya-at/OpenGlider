@@ -1,5 +1,6 @@
 #ignore dot files:
 .*
+!.vscode
 !.gitignore
 !.travis.yml
 !.github
