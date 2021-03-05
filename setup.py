@@ -89,7 +89,7 @@ setup(
     license='GPL-v3',
     long_description=long_description,
     install_requires=[
-        "euklid"
+        "euklid",
         "svgwrite",
         "numpy",
         "scipy",
