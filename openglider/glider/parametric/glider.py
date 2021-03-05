@@ -493,7 +493,7 @@ class ParametricGlider(object):
         def rescale(curve):
             span_orig = curve.controlpoints.nodes[-1][0]
             factor = span/span_orig
-            curve.controlpoints = curve.controlpoints.scale([1, factor])
+            curve.controlpoints = curve.controlpoints.scale([factor, 1])
 
         rescale(self.ballooning_merge_curve)
         rescale(self.profile_merge_curve)
