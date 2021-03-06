@@ -14,25 +14,17 @@ class BezierProfile2D(Profile2D):
                  upper_spline=None, lower_spline=None,
                  control_num_lower=8, control_num_upper=8):
         super(BezierProfile2D, self).__init__(data=data, name=name)
-        self.close()
-        self.normalize()
-        self.upper_spline = None
-        self.lower_spline = None
-        self.upper_spline = upper_spline or self.fit_upper(control_num=control_num_upper)
-        self.lower_spline = lower_spline or self.fit_lower(control_num=control_num_lower)
+        self.curve = self.normalized().curve
+        self.upper_spline = upper_spline
+        self.lower_spline = lower_spline
+
+        self.apply_splines()
 
     def __json__(self):
         dct = super(BezierProfile2D, self).__json__()
         dct.update({'upper_spline': self.upper_spline,
                     'lower_spline': self.lower_spline})
         return dct
-
-    # @classmethod
-    # def __from_json__(cls, data, name, upper_spline, lower_spline):
-    #     # profile = super(BezierProfile2D, cls).__from_json__(data, name)
-    #     profile.upper_spline = upper_spline
-    #     profile.lower_spline = lower_spline
-    #     return profile
 
     def fit_upper(self, num=100, dist=None, control_num=8):
         upper = self.data[:self.noseindex + 1]
@@ -70,7 +62,7 @@ class BezierProfile2D(Profile2D):
     def apply_splines(self, num=70):
         upper = self.upper_spline.get_sequence(num)
         lower = self.lower_spline.get_sequence(num)
-        self.data = np.array(upper.tolist() + lower[1:].tolist())
+        self.data = np.array(upper.tolist() + lower.tolist()[1:])
 
     def make_smooth_dist(self, points, num=70, dist=None, upper=True):
         # make array [[length, x, y], ...]

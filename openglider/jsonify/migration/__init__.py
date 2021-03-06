@@ -80,17 +80,20 @@ class Migration:
                     for value in jsondata["data"].values():
                         nodes += cls.find_nodes(value, name, module)
 
-            elif isinstance(jsondata, dict):
+            else:
                 for el in jsondata.values():
                     nodes += cls.find_nodes(el, name, module)
-            elif isinstance(jsondata, str):
+        elif isinstance(jsondata, list):
+            for el in jsondata:
+                nodes += cls.find_nodes(el, name, module)
+        elif isinstance(jsondata, str):
+            pass
+        else:
+            try:
+                for el in jsondata:
+                    nodes += cls.find_nodes(el, name, module)
+            except TypeError:
                 pass
-            else:
-                try:
-                    for el in jsondata:
-                        nodes += cls.find_nodes(el, name, module)
-                except TypeError:
-                    pass
 
         return nodes
 
@@ -117,6 +120,10 @@ def migrate_07(cls, jsondata):
             node["_type"] = f"{curvetype}Curve"
             node["_module"] = "euklid.spline"
     
+    
+    with open("/tmp/test_07.json", "w") as outfile:
+        json.dump(jsondata, outfile, indent=4)
+    
     return jsondata
 
 @Migration.add("0.0.8")
@@ -131,6 +138,9 @@ def migrate_08(cls, jsondata):
             path = path_orig
             
         node["_module"] = f"euklid.{path}"
+    
+    for node in cls.find_nodes(jsondata, module=r"openglider.airfoil.parametric"):
+        node["_module"] = "openglider.airfoil.profile_2d_parametric"
 
     return jsondata
 

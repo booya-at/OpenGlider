@@ -64,7 +64,10 @@ def object_hook(dct):
             dct[key] = datetime.datetime.strptime(value, datetime_format)
             
     if '_type' in dct and '_module' in dct:
-        obj = get_element(dct["_module"], dct["_type"])
+        try:
+            obj = get_element(dct["_module"], dct["_type"])
+        except ModuleNotFoundError as e:
+            raise TypeError("{} in element: {} ({})".format(e, dct["_type"], dct["_module"]))
 
         try:
             # use the __from_json__ function if present. __init__ otherwise
@@ -73,7 +76,8 @@ def object_hook(dct):
                 deserializer = obj
             return deserializer(**dct['data'])
         except TypeError as e:
-            raise TypeError("{} in element: {} ({})".format(e, obj, dct["_module"]))
+            print(f"in element: {obj} {dct['_module']}")
+            raise e
 
     else:
         return dct
@@ -106,6 +110,9 @@ def dump(obj, fp, add_meta=True):
 
 def loads(obj):
     raw_data = json.loads(obj)
+
+    with open("/tmp/test.json", "w") as outfile:
+        json.dump(raw_data, outfile, indent=4)
     miigration = Migration(raw_data)
     if miigration.required:
         return json.loads(miigration.migrate(), object_hook=object_hook)

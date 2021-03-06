@@ -4,7 +4,7 @@ import math
 import numpy as np
 import euklid
 
-from openglider.airfoil import Profile3D
+from openglider.airfoil import Profile3D, Profile2D
 from openglider.utils.cache import CachedObject, cached_property
 from openglider.vector.functions import rotation_3d, set_dimension
 from openglider.vector.transformation import Rotation, Scale, Translation
@@ -231,7 +231,7 @@ class SingleSkinRib(Rib):
 
     def apply_continued_min(self):
         self.profile_2d = self.profile_2d.move_nearest_point(self.single_skin_par['continued_min_end'])
-        data = self.profile_2d.data
+        data = np.array(self.profile_2d.curve.tolist())
         x, y = data.T
         min_index = y.argmin()
         y_min = y[min_index]
@@ -241,7 +241,9 @@ class SingleSkinRib(Rib):
                 new_y += [y_min + (xy[0] - data[min_index][0]) * np.tan(self.single_skin_par['continued_min_angle'])]
             else:
                 new_y += [xy[1]]
-        self.profile_2d.data = np.array([x, new_y]).T
+
+        data = np.array([x, new_y]).T.tolist()
+        self.profile_2d = Profile2D(data)
 
     @classmethod
     def from_rib(cls, rib, single_skin_par):
@@ -251,7 +253,7 @@ class SingleSkinRib(Rib):
         return single_skin_rib
 
     def __json__(self):
-        json_dict = super(SingleSkinRib, self).__json__()
+        json_dict = super().__json__()
         json_dict["single_skin_par"] = self.single_skin_par
         return json_dict
 
@@ -292,19 +294,19 @@ class SingleSkinRib(Rib):
                     continue # do not insert points between att for double-first ribs (a-b)
 
                 # first we insert the start and end point of the bow
-                profile.insert_point(sp[0])
-                profile.insert_point(sp[1])
+                profile = profile.insert_point(sp[0])
+                profile = profile.insert_point(sp[1])
 
                 # now we remove all points between these two points
                 # we have to use a tolerance to not delete the start and end points of the bow.
                 # problem: the x-value of a point inserted in a profile can have a slightly different
                 # x-value
-                profile.remove_points(sp[0], sp[1], tolerance=1e-5)
+                profile = profile.remove_points(sp[0], sp[1], tolerance=1e-5)
 
                 # insert sequence of xvalues between start and end. endpoint=False is necessary because 
                 # start and end are already inserted.
                 for i in np.linspace(sp[0], sp[1], self.single_skin_par["num_points"], endpoint=False):
-                    profile.insert_point(i)
+                    profile = profile.insert_point(i)
 
             # construct shifting function:
             foo_list = []
@@ -320,41 +322,44 @@ class SingleSkinRib(Rib):
                 height *= self.single_skin_par["height"] # anything bewtween 0..1
                 y_mid = profile.profilepoint(x_mid)[1] + height
                 x_max = np.array([norm(x1 - x0) / 2, height])
+
                 def foo(x, upper):
                     if not upper and x[0] > x0[0] and x[0] < x1[0]:
                         if self.single_skin_par["straight_te"] and i == len(span_list) - 1:
-                            return straight_line(x, x0, x1)
+                            return self.straight_line(x, x0, x1)
                         else:
-                            return parabola(x, x0, x1, x_max)
+                            return self.parabola(x, x0, x1, x_max)
                     else:
                         return x
-                profile.apply_function(foo)
+
+
+                new_data = [
+                    foo(p, upper=index < profile.noseindex) for index, p in enumerate(profile.curve)
+                ]
+
+                profile = Profile2D(new_data)
 
         return profile.curve
 
+    @staticmethod
+    def straight_line(x, x0, x1):
+        x_proj = (x - x0).dot(x1 - x0) / norm(x1 - x0)**2
+        return x0 + (x1 - x0) * x_proj
 
-def pseudo_2d_cross(v1, v2):
-    return v1[0] * v2[1] - v1[1] * v2[0]
-
-
-def straight_line(x, x0, x1):
-    x_proj = (x - x0).dot(x1 - x0) / norm(x1 - x0)**2
-    return x0 + (x1 - x0) * x_proj
-
-
-def parabola(x, x0, x1, x_max):
-    """parabola used for singleskin ribs
-       x, x0, x1, x_max ... numpy 2d arrays
-       xmax = np.sqrt((x1 - x0)**2 + (y1 - y0)**2)"""
-    x_proj = (x - x0).dot(x1 - x0) / norm(x1 - x0)**2
-    x_proj = (x_proj - 0.5) * 2
-    y_proj = -x_proj **2
-    x = np.array([x_proj, y_proj]) * x_max
-    c = (x1 - x0)[0] / norm(x1 - x0)
-    s = (x1 - x0)[1] / norm(x1 - x0)
-    rot = np.array([[c, -s], [s, c]])
-    null = - x_max
-    return rot.dot(x - null) + x0
+    @staticmethod
+    def parabola(x, x0, x1, x_max):
+        """parabola used for singleskin ribs
+        x, x0, x1, x_max ... numpy 2d arrays
+        xmax = np.sqrt((x1 - x0)**2 + (y1 - y0)**2)"""
+        x_proj = (x - x0).dot(x1 - x0) / norm(x1 - x0)**2
+        x_proj = (x_proj - 0.5) * 2
+        y_proj = -x_proj **2
+        x = np.array([x_proj, y_proj]) * x_max
+        c = (x1 - x0)[0] / norm(x1 - x0)
+        s = (x1 - x0)[1] / norm(x1 - x0)
+        rot = np.array([[c, -s], [s, c]])
+        null = - x_max
+        return rot.dot(x - null) + x0
 
 
 # def rib_rotation(aoa, arc, zrot):

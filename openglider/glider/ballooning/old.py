@@ -193,7 +193,7 @@ class BallooningBezier(Ballooning):
             self.upper_spline.controlpoints = upper
         if lower is not None:
             self.lower_spline.controlpoints = lower
-        Ballooning.__init__(self, self.upper_spline.interpolation(), self.lower_spline.interpolation())
+        self.apply_splines()
 
     def scale(self, factor):
         super(BallooningBezier, self).scale(factor)

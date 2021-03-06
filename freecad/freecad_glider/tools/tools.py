@@ -11,9 +11,7 @@ import FreeCADGui
 import openglider
 from openglider.glider import ParametricGlider
 from openglider.jsonify import dump, load
-from openglider.vector.spline import BernsteinBase, BSplineBase
 from PySide import QtGui
-import openglider_cpp
 
 
 
@@ -77,9 +75,9 @@ class ControlPointContainer(coin.SoSeparator):
 def vector3D(vec, z=None):
     if len(vec) == 0:
         return(vec)
-    elif isinstance(vec, openglider_cpp.euklid.PolyLine3D):
+    elif isinstance(vec, euklid.vector.PolyLine3D):
         return [list(i) for i in vec]
-    elif isinstance(vec, openglider_cpp.euklid.PolyLine2D):
+    elif isinstance(vec, euklid.vector.PolyLine2D):
         return [list(i) + [0] for i in vec]
     elif not isinstance(vec[0], (list, tuple, np.ndarray, FreeCAD.Vector)):
         if len(vec) == 3:
@@ -163,12 +161,12 @@ def import_2d(glider):
     else:
         FreeCAD.Console.PrintError('\nonly .ods and .json are supported')
 
-
+import euklid
 class spline_select(QtGui.QComboBox):
     spline_types = {
-        'Bezier': (BernsteinBase, 0),
-        'BSpline_2': (BSplineBase(2), 1),
-        'BSpline_3': (BSplineBase(3), 2)
+        'Bezier': (euklid.spline.BezierCurve, 0),
+        'BSpline_2': (euklid.spline.BSplineCurve, 1),
+        'BSpline_3': (euklid.spline.BSplineCurve, 2)
     }
 
     def __init__(self, spline_objects, update_function, parent=None):
@@ -182,17 +180,18 @@ class spline_select(QtGui.QComboBox):
 
     @property
     def current_spline_type(self):
-        import openglider_cpp
         if self.spline_objects:
             spline_obj = self.spline_objects[0]
-            if spline_obj.__class__ in (openglider_cpp.euklid.SymmetricBezierCurve, openglider_cpp.euklid.BezierCurve):
+            if spline_obj.__class__ in (euklid.spline.SymmetricBezierCurve, euklid.spline.BezierCurve):
                 return "Bezier"
             else:
                 return "BSpline"
 
     def set_spline_type(self, *args):
-        for spline in self.spline_objects:
-            spline.change_base(self.spline_types[self.currentText()][0])
+        spline_type = self.spline_types[self.currentText()][0]
+        self.spline_objects = [
+            spline_type(spline.controlpoints) for spline in self.spline_objects
+        ]
         self.update_function()
 
 

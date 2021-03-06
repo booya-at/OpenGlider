@@ -3,12 +3,12 @@ from __future__ import division
 
 import numpy as np
 from pivy import coin
+from PySide import QtGui
+from pivy import graphics
+import euklid
 
 from openglider.glider.rib import Rib
-import openglider_cpp
-from PySide import QtGui
 
-from pivy import graphics
 from .tools import (BaseTool, input_field, spline_select, text_field, 
                     ControlPointContainer, Line_old, vector3D)
 
@@ -165,7 +165,7 @@ class SpanMappingTool(BaseTool):
             textsep += [color, trans, text]
             self.grid += [textsep]
         sequence = self.spline.get_sequence(SpanMappingTool.num_on_drag)
-        interpolation = openglider_cpp.euklid.Interpolation(sequence.nodes)
+        interpolation = euklid.vector.Interpolation(sequence.nodes)
 
         if drag_release:
             for i in self.back:
