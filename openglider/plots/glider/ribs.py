@@ -1,3 +1,5 @@
+from typing import List
+
 import numpy as np
 import euklid
 
@@ -13,7 +15,7 @@ from openglider.vector.text import Text
 
 class RibPlot(object):
     plotpart: PlotPart
-    x_values: list[float]
+    x_values: List[float]
     inner: PolyLine2D
     outer: PolyLine2D
 

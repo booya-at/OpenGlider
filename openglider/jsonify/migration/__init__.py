@@ -120,10 +120,6 @@ def migrate_07(cls, jsondata):
             node["_type"] = f"{curvetype}Curve"
             node["_module"] = "euklid.spline"
     
-    
-    with open("/tmp/test_07.json", "w") as outfile:
-        json.dump(jsondata, outfile, indent=4)
-    
     return jsondata
 
 @Migration.add("0.0.8")
