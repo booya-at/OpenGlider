@@ -1,5 +1,6 @@
 from __future__ import division
 
+import euklid
 import numpy
 from pivy import coin
 import FreeCADGui as Gui
@@ -201,8 +202,8 @@ class BallooningTool(BaseTool):
         self.constrain(self.upper_cpc.control_points[0], 0, 0.)
         self.constrain(self.lower_cpc.control_points[-1], 1, -self.upper_cpc.control_points[-1].points[0][1])
         self.constrain(self.lower_cpc.control_points[0], 1, -self.upper_cpc.control_points[0].points[0][1])
-        self.current_ballooning.upper_controlpoints = [
-            i[:-1] for i in self.upper_cpc.control_pos]
+        self.current_ballooning.upper_controlpoints = euklid.vector.PolyLine2D([
+            i[:-1] for i in self.upper_cpc.control_pos])
         self.draw_upper_spline(num)
         self._update_lower_spline(num)
 
@@ -213,8 +214,8 @@ class BallooningTool(BaseTool):
         self.upper_spline += [l.object]
 
     def _update_lower_spline(self, num):
-        self.current_ballooning.lower_controlpoints = [
-            i[:-1] for i in self.lower_cpc.control_pos]
+        self.current_ballooning.lower_controlpoints = euklid.vector.PolyLine2D([
+            i[:-1] for i in self.lower_cpc.control_pos])
         self.draw_lower_spline(num)
 
     def draw_lower_spline(self, num):
@@ -272,26 +273,26 @@ class QBalooning(QtGui.QListWidgetItem):
         super(QBalooning, self).__init__()
         self.setText(self.ballooning.name)
         self.scale_y = scale_y
-        self.upper_controlpoints = numpy.array([1., self.scale_y]) * self.ballooning.upper_spline.controlpoints
-        self.lower_controlpoints = numpy.array([1., -self.scale_y]) * self.ballooning.lower_spline.controlpoints
+        self.upper_controlpoints = self.ballooning.upper_spline.controlpoints.scale([1., self.scale_y])
+        self.lower_controlpoints = self.ballooning.lower_spline.controlpoints.scale([1., -self.scale_y])
         self.setFlags(self.flags() | QtCore.Qt.ItemIsEditable)
 
     def get_expl_lower_spline(self, num):
         # self.apply_splines()
-        self.ballooning.lower_spline.controlpoints = self.lower_controlpoints * numpy.array([1., -1./self.scale_y])
+        self.ballooning.lower_spline.controlpoints = self.lower_controlpoints.scale([1., -1./self.scale_y])
         seq = self.ballooning.lower_spline.get_sequence(num)
-        return seq * numpy.array([1., -self.scale_y])
+        return seq * [1., -self.scale_y]
 
     def get_expl_upper_spline(self, num):
         # self.apply_splines()
-        self.ballooning.upper_spline.controlpoints = self.upper_controlpoints * numpy.array([1., 1./self.scale_y])
+        self.ballooning.upper_spline.controlpoints = self.upper_controlpoints.scale([1., 1./self.scale_y])
         seq = self.ballooning.upper_spline.get_sequence(num)
-        return seq * numpy.array([1., self.scale_y])
+        return seq * [1., self.scale_y]
 
     def apply_splines(self):
         self.ballooning.controlpoints = [
-            numpy.array([1., 1./self.scale_y])*self.upper_controlpoints,
-            numpy.array([1., -1./self.scale_y])*self.lower_controlpoints
+            self.upper_controlpoints.scale([1., 1./self.scale_y]),
+            self.lower_controlpoints.scale([1., -1./self.scale_y])
         ]
 
 def insert_point(points, insert_point):

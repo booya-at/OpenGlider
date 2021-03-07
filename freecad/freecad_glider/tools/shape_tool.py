@@ -23,11 +23,11 @@ class ShapeTool(BaseTool):
 
         # scene components
         self.shape = coin.SoSeparator()
-        points = list(map(vector3D, self.parametric_glider.shape.front_curve.controlpoints))
+        points = vector3D(self.parametric_glider.shape.front_curve.controlpoints)
         self.front_cpc = ControlPointContainer(self.rm, points)
-        points = list(map(vector3D, self.parametric_glider.shape.back_curve.controlpoints))
+        points = vector3D(self.parametric_glider.shape.back_curve.controlpoints)
         self.back_cpc = ControlPointContainer(self.rm, points)
-        points = list(map(vector3D, self.parametric_glider.shape.rib_dist_controlpoints))
+        points = vector3D(self.parametric_glider.shape.rib_dist_controlpoints)
         self.cell_dist_cpc = ControlPointContainer(self.rm, points)
 
         # form components
@@ -72,7 +72,7 @@ class ShapeTool(BaseTool):
     def update_controls(self):
         self.front_cpc.control_pos = self.parametric_glider.shape.front_curve.controlpoints
         self.back_cpc.control_pos = self.parametric_glider.shape.back_curve.controlpoints
-        self.cell_dist_cpc.control_pos = self.parametric_glider.shape.rib_distribution.controlpoints[1:-1]
+        self.cell_dist_cpc.control_pos = self.parametric_glider.shape.rib_dist_controlpoints
 
     def setup_widget(self):
         self.Qnum_cells.setValue(int(self.parametric_glider.shape.cell_num))
@@ -235,7 +235,7 @@ class ShapeTool(BaseTool):
 
     def update_num_dist(self, val):
         self.parametric_glider.shape.rib_distribution.numpoints = val + 2
-        self.cell_dist_cpc.control_pos = list(map(vector3D, self.parametric_glider.shape.rib_distribution.controlpoints[1:-1]))
+        self.cell_dist_cpc.control_pos = self.parametric_glider.shape.rib_dist_controlpoints
         self.update_shape()
 
     def update_num_front(self, val):
@@ -301,25 +301,35 @@ class ShapeTool(BaseTool):
         ribs = _shape.ribs
         front = _shape.front
         back = _shape.back
-        front[0, 0] = 0
-        back[0, 0] = 0
-        dist_line = self.parametric_glider.shape.fast_interpolation
+
+        front.nodes[0][0] = 0
+        back.nodes[0][0] = 0
+        
+        dist_line = self.parametric_glider.shape.rib_dist_interpolation
         sep += (Line_old(front, width=2).object)
         sep += (Line_old(back, width=2).object)
-        # sep += (Line_old([back.data[0], front.data[0]], width=2).object)
-        sep += (Line_old([back.data[-1], front.data[-1]], width=2).object)
+        # sep += (Line_old([back.nodes[0], front.nodes[0]], width=2).object)
+        sep += (Line_old([back.nodes[-1], front.nodes[-1]], width=2).object)
 
-        points = list(map(vector3D, self.parametric_glider.shape.front_curve.data))
+        points = list(map(vector3D, self.parametric_glider.shape.front_curve.controlpoints.nodes))
         sep += (Line_old(points, color='grey').object)
-        points = list(map(vector3D, self.parametric_glider.shape.back_curve.data))
+        points = list(map(vector3D, self.parametric_glider.shape.back_curve.controlpoints.nodes))
         sep += (Line_old(points, color='grey').object)
         self.shape += (Line_old(dist_line, color='red', width=2).object)
 
         # draw circles
         self.circle_front.removeAllChildren()
         self.circle_back.removeAllChildren()
-        circle_front = CirclePart(*self.parametric_glider.shape.front_curve.get_sequence()[[0, 10, -1]])
-        circle_back = CirclePart(*self.parametric_glider.shape.back_curve.get_sequence()[[0, 10, -1]])
+
+        def get_circle(curve):
+            center = curve.get(0)
+            tip = curve.get(1)
+
+            return CirclePart(tip * [-1, 1], center, tip)
+
+        circle_front = get_circle(self.parametric_glider.shape.front_curve)
+        circle_back = get_circle(self.parametric_glider.shape.back_curve)
+        
         self.circle_front.addChild(Line_old(circle_front.get_sequence(), color="red").object)
         self.circle_back.addChild(Line_old(circle_back.get_sequence(), color="red").object)
 

@@ -1,7 +1,7 @@
 from __future__ import division
 
 from copy import deepcopy
-
+import euklid
 import numpy as np
 from pivy import coin
 from pivy.graphics import InteractionSeparator, Marker, Line
@@ -67,21 +67,23 @@ class ControlPointContainer(coin.SoSeparator):
 
     @control_pos.setter
     def control_pos(self, points):
-        self.control_points = [ConstrainedMarker(vector3D([point]), dynamic=True) for point in points]
+        controlpoints = vector3D(points)
+        self.control_points = [ConstrainedMarker([point], dynamic=True) for point in controlpoints]
+
         self.interaction.objects.removeAllChildren()
         self.interaction.dynamic_objects = []
         self.interaction += self.control_points
 
-def vector3D(vec, z=None):
+def vector3D(vec, z=0):
     if len(vec) == 0:
         return(vec)
     elif isinstance(vec, euklid.vector.PolyLine3D):
-        return [list(i) for i in vec]
+        return vec.tolist()
     elif isinstance(vec, euklid.vector.PolyLine2D):
-        return [list(i) + [0] for i in vec]
+        return [p + [z] for p in vec.tolist()]
     elif not isinstance(vec[0], (list, tuple, np.ndarray, FreeCAD.Vector)):
         if len(vec) == 3:
-            return vec
+            return list(vec)
         elif len(vec) == 2:
             z = z or 0.
             return np.array(vec).tolist() + [z]
@@ -165,8 +167,9 @@ import euklid
 class spline_select(QtGui.QComboBox):
     spline_types = {
         'Bezier': (euklid.spline.BezierCurve, 0),
-        'BSpline_2': (euklid.spline.BSplineCurve, 1),
-        'BSpline_3': (euklid.spline.BSplineCurve, 2)
+        'BSpline': (euklid.spline.BSplineCurve, 1),
+        'BSpline_2': (euklid.spline.BSplineCurve, 2),
+        'BSpline_3': (euklid.spline.BSplineCurve, 3)
     }
 
     def __init__(self, spline_objects, update_function, parent=None):
@@ -186,6 +189,8 @@ class spline_select(QtGui.QComboBox):
                 return "Bezier"
             else:
                 return "BSpline"
+        
+        return "BSpline"
 
     def set_spline_type(self, *args):
         spline_type = self.spline_types[self.currentText()][0]

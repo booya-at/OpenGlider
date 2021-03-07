@@ -91,23 +91,14 @@ class ParametricShape(object):
         num = self.cell_num // 2 + 1
         return [[interpolation.get_value(i), i] for i in np.linspace(start, 1, num)]
 
-    @property
-    def fast_interpolation(self):
-        data = self.rib_distribution.get_sequence(self.num_distribution_interpolation).T
-        start = self.has_center_cell / self.cell_num
-        num = self.cell_num // 2 + 1
-        positions = np.linspace(start, 1, num)
-        return np.array([np.interp(positions, data[1], data[0]), positions]).T
-
     # besser mit spezieller bezier?
     @property
     def rib_dist_controlpoints(self):
-        return self.rib_distribution.controlpoints.nodes[1:-1]
+        return euklid.vector.PolyLine2D(self.rib_distribution.controlpoints.nodes[1:-1])
 
     @rib_dist_controlpoints.setter
     def rib_dist_controlpoints(self, arr):
-        x0 = self.front_curve.controlpoints.nodes[-1][0]
-        self.rib_distribution.controlpoints.nodes = [[0, 0]] + arr + [[x0, 1]]
+        self.rib_distribution.controlpoints = [[0, 0]] + arr + [[1, 1]]
 
     @property
     def rib_x_values(self):

@@ -25,8 +25,7 @@ class ArcTool(BaseTool):
         sbrot2.setValue(coin.SbVec3f(0, 0, 1), coin.SbVec3f(0, 1, 0))
         self.obj.ViewObject.Proxy.rotate(sbrot1 * sbrot2)
 
-        controlpoints = list(map(vector3D, self.parametric_glider.arc.curve.controlpoints))
-        self.arc_cpc = ControlPointContainer(self.rm, controlpoints)
+        self.arc_cpc = ControlPointContainer(self.rm, self.parametric_glider.arc.curve.controlpoints)
         self.Qnum_arc = QtGui.QSpinBox(self.base_widget)
         self.spline_select = spline_select(
             [self.parametric_glider.arc.curve], self.update_spline_type, self.base_widget)
