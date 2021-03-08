@@ -230,8 +230,8 @@ def get_rib_sheet(glider_2d):
         hole_table[0, 0] = "HOLE"
 
         for rib_no in hole["ribs"]:
-            table[rib_no+1, 0] = hole["pos"]
-            table[rib_no+1, 1] = hole["size"]
+            hole_table[rib_no+1, 0] = hole["pos"]
+            hole_table[rib_no+1, 1] = hole["size"]
         
         table.append_right(hole_table)
 
