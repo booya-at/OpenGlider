@@ -111,8 +111,6 @@ def dump(obj, fp, add_meta=True):
 def loads(obj):
     raw_data = json.loads(obj)
 
-    with open("/tmp/test.json", "w") as outfile:
-        json.dump(raw_data, outfile, indent=4)
     miigration = Migration(raw_data)
     if miigration.required:
         return json.loads(miigration.migrate(), object_hook=object_hook)
