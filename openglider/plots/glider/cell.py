@@ -370,8 +370,8 @@ class DribPlot(object):
         self.left_out = self.left.offset(self.config.allowance_general)
         self.right_out = self.right.offset(-self.config.allowance_general)
 
-        print("l", len(self.left), len(self.left_out))
-        print("r", len(self.right), len(self.right_out))
+        #print("l", len(self.left), len(self.left_out))
+        #print("r", len(self.right), len(self.right_out))
 
     def get_left(self, x):
         return self.get_p1_p2(x, side=0)

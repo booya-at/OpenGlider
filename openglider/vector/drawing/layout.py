@@ -547,13 +547,18 @@ class Layout(object):
                     for elem in layer:
                         dxfattribs = {"layer": layer_name}
                         if len(elem) == 1:
-                            if self.point_width is None:
-                                dxf_obj = ms.add_point(elem[0], dxfattribs=dxfattribs)
-                            else:
-                                x, y = elem[0]
-                                dxf_obj = ms.add_lwpolyline([[x-self.point_width/2, y], [x+self.point_width/2, y]])
+                            for node in elem:
+                                if self.point_width is None:
+                                    dxf_obj = ms.add_point(node, dxfattribs=dxfattribs)
+                                else:
+                                    x, y = node
+                                    dxf_obj = ms.add_lwpolyline([[x-self.point_width/2, y], [x+self.point_width/2, y]])
                         else:
-                            dxf_obj = ms.add_lwpolyline(elem, dxfattribs=dxfattribs)
+                            if hasattr(elem, "tolist"):
+                                lst = elem.tolist()
+                            else:
+                                lst = elem
+                            dxf_obj = ms.add_lwpolyline(lst, dxfattribs=dxfattribs)
                             if len(elem) > 2 and all([elem.get(len(elem)-1)[i] == elem.get(0)[i] for i in range(2)]):
                                 dxf_obj.closed = True
                         part_group.append(dxf_obj)

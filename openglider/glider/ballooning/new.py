@@ -12,6 +12,19 @@ class BallooningNew(BallooningBase):
         self.interpolation = interpolation
         self.name = name
 
+    def __json__(self):
+        return {
+            "interpolation": self.interpolation.tolist(),
+            "name": self.name
+        }
+    
+    @classmethod
+    def __from_json__(cls, interpolation, name):
+        _interpolation = euklid.vector.Interpolation(interpolation)
+
+        return cls(_interpolation, name)
+
+
     def __getitem__(self, xval):
         """Get Ballooning Value (%) for a certain XValue"""
         if -1 <= xval <= 1:

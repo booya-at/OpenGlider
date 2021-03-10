@@ -725,8 +725,7 @@ class PanelRigidFoil():
         for ik in panel_iks:
             if ik_front < ik < ik_back:
                 marks.append(euklid.vector.PolyLine2D([
-                    left[ik],
-                    right[ik]
+                    left.get(ik), right.get(ik)
                 ]))
 
         return openglider.vector.drawing.PlotPart(

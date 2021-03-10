@@ -253,9 +253,10 @@ class PlotPart(object):
         return self
 
     def scale(self, factor):
-        for layer in self.layers.values():
-            for p in layer:
-                p.scale(factor)
+        for layer_name, layer in self.layers.items():
+            layer.polylines = [
+                line.scale(factor) for line in layer.polylines
+            ]
 
     def get_svg_group(self, non_scaling_stroke=True):
         import svgwrite
