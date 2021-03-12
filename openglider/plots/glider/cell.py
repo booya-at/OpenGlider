@@ -82,38 +82,39 @@ class PanelPlot(object):
             dist = np.linspace(shape_3d_amount_back[0], shape_3d_amount_back[-1], len(shape_3d_amount_back))
             shape_3d_amount_back = list(dist)
 
-        cut_front_result = cut_front.apply(inner_front, self.outer[0], self.outer[1], shape_3d_amount_front)
-        cut_back_result = cut_back.apply(inner_back, self.outer[0], self.outer[1], shape_3d_amount_back)
+        cut_front_result = cut_front.apply(inner_front, self.outer_orig[0], self.outer_orig[1], shape_3d_amount_front)
+        cut_back_result = cut_back.apply(inner_back, self.outer_orig[0], self.outer_orig[1], shape_3d_amount_back)
 
-        panel_left = self.outer[0].get(cut_front_result.index_left, cut_back_result.index_left)
+        panel_left = self.outer_orig[0].get(cut_front_result.index_left, cut_back_result.index_left).fix_errors()
         panel_back = cut_back_result.curve.copy()
-        panel_right = self.outer[1].get(cut_back_result.index_right, cut_front_result.index_right)
+        panel_right = self.outer_orig[1].get(cut_back_result.index_right, cut_front_result.index_right).fix_errors()
         panel_front = cut_front_result.curve.copy()
 
         # spitzer schnitt
         # rechts
-        if cut_front_result.index_right >= cut_back_result.index_right:
-            panel_right = euklid.vector.PolyLine2D([])
+        # TODO: FIX!
+        # if cut_front_result.index_right >= cut_back_result.index_right:
+        #     panel_right = euklid.vector.PolyLine2D([])
 
-            _cuts = panel_front.cut_with_polyline(panel_back, startpoint=len(panel_front) - 1)
-            try:
-                ik_front, ik_back = next(_cuts)
-                panel_back = panel_back.get(0, ik_back)
-                panel_front = panel_front.get(0, ik_front)
-            except StopIteration:
-                pass  # todo: fix!!
+        #     _cuts = panel_front.cut_with_polyline(panel_back, startpoint=len(panel_front) - 1)
+        #     try:
+        #         ik_front, ik_back = next(_cuts)
+        #         panel_back = panel_back.get(0, ik_back)
+        #         panel_front = panel_front.get(0, ik_front)
+        #     except StopIteration:
+        #         pass  # todo: fix!!
 
-        # lechts
-        if cut_front_result.index_left >= cut_back_result.index_left:
-            panel_left = euklid.vector.PolyLine2D([])
+        # # lechts
+        # if cut_front_result.index_left >= cut_back_result.index_left:
+        #     panel_left = euklid.vector.PolyLine2D([])
 
-            _cuts = panel_front.cut_with_polyline(panel_back, startpoint=0)
-            try:
-                ik_front, ik_back = next(_cuts)
-                panel_back = panel_back.get(ik_back, len(panel_back)-1)
-                panel_front = panel_front[ik_front, len(panel_back)-1]
-            except StopIteration:
-                pass  # todo: fix as well!
+        #     _cuts = panel_front.cut_with_polyline(panel_back, startpoint=0)
+        #     try:
+        #         ik_front, ik_back = next(_cuts)
+        #         panel_back = panel_back.get(ik_back, len(panel_back)-1)
+        #         panel_front = panel_front[ik_front, len(panel_back)-1]
+        #     except StopIteration:
+        #         pass  # todo: fix as well!
 
         panel_back = panel_back.get(len(panel_back)-1, 0)
         if panel_right:
@@ -325,8 +326,8 @@ class PanelPlot(object):
                     if d1 < dmin and d2 + d1 > 2*dmin:
                         offset = dmin - d1
                         ik = get_x_value(self.x_values, rib_pos)
-                        left = bl[bl.walk(ik, offset)]
-                        right = br[br.walk(ik, offset)]
+                        left = bl.get(bl.walk(ik, offset))
+                        right = br.get(br.walk(ik, offset))
                     elif d2 < dmin and d1 + d2 > 2*dmin:
                         offset = dmin - d2
                         ik = get_x_value(self.x_values, rib_pos)

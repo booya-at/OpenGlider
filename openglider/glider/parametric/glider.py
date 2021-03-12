@@ -354,6 +354,7 @@ class ParametricGlider(object):
 
         logger.info("create ribs")
         profile_merge_values = self.get_profile_merge()
+
         for rib_no, pos in enumerate(x_values):
             front, back = shape_ribs[rib_no]
             arc = arc_pos[rib_no]
@@ -401,7 +402,6 @@ class ParametricGlider(object):
 
             glider.cells.append(cell)
 
-        glider.close_rib()
 
         logger.info("create cell elements")
         # CELL-ELEMENTS
@@ -421,6 +421,44 @@ class ParametricGlider(object):
 
         # RIB-ELEMENTS
         #self.apply_holes(glider)
+                # add stabi rib
+        if True:
+            rib1 = glider.ribs[-2]
+            rib2 = glider.ribs[-1]
+
+            p1 = rib1.align([0.15,0])
+            p2 = rib2.align([0.15,0])
+
+            p_new = p2 + (p2-p1) * 0.4
+
+            rib = rib2.copy()
+            rib.pos = np.array(list(p_new))
+            rib.chord = rib2.chord * 0.75
+            rib.holes = rib2.holes[:]
+
+            glider.ribs.append(rib)
+
+            import openglider.glider.ballooning
+            ballooning = openglider.glider.ballooning.BallooningBezierNeu([[-1,0.015],[-0.7, 0.04], [-0.2, 0.04], [0, 0.02], [0.2, 0.04], [0.7, 0.04], [1,0.015]])
+            cell = Cell(
+                rib2, rib, ballooning, name="cTip"
+            )
+            cell.panels = [
+                Panel(
+                    {"type": "parallel", "left": -1, "right": -1},
+                    {"type": "parallel", "left": 1, "right": 1},
+                    name="ctp2",material_code=glider.cells[-1].panels[0].material_code
+
+                )
+            ]
+            glider.cells.append(cell)
+            #last_rib.
+
+            glider.ribs[-2].profile_2d *= 0.7
+            glider.ribs[-1].profile_2d *= 0.
+        
+        else:
+            glider.close_rib()
 
         glider.rename_parts()
 

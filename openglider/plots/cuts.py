@@ -76,7 +76,7 @@ class DesignCut(object):
         cuts_right = outer_right.cut(p1, p2)
         cuts_right.sort(key=lambda cut: abs(cut[1]))
         rightcut_index = cuts_right[0][0]
-        rightcut = outer_right[rightcut_index]
+        rightcut = outer_right.get(rightcut_index)
 
         newlist.append(rightcut+normvector*self.amount)
         newlist.append(rightcut)

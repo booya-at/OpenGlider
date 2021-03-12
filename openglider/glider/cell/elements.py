@@ -500,7 +500,6 @@ class Panel(object):
         self.cut_front["left"] = p_l.nearest_x_value(self.cut_front["left"])
         self.cut_front["right"] = p_r.nearest_x_value(self.cut_front["right"])
 
-    @cached_function("self")
     def _get_ik_values(self, cell: "openglider.glider.cell.Cell", numribs=0, exact=True):
         """
         :param cell: the parent cell of the panel
@@ -545,10 +544,15 @@ class Panel(object):
                 line: euklid.vector.PolyLine2D = inner[i]
 
                 _ik_front, _ = line.cut(p_front_left, p_front_right, ik_front)
+                if abs(_ik_front-ik_front) > 20:
+                    _ik_front = ik_front
                 _ik_back, _ = line.cut(p_back_left, p_back_right, ik_back)
+                if abs(_ik_back-ik_back) > 20:
+                    _ik_back = ik_back
 
                 ik_values_new.append((_ik_front, _ik_back))
             
+            nix = 1
             return ik_values_new
         
         else:

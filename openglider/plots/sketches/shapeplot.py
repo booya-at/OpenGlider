@@ -144,7 +144,8 @@ class ShapePlot(object):
 
     def insert_cell_names(self):
         names = []
-        for cell_no, cell in enumerate(self.glider_3d.cells):
+        for cell_no in range(self.glider_2d.shape.half_cell_num):
+            cell = self.glider_3d.cells[cell_no]
             p1 = self.glider_2d.shape.get_shape_point(cell_no+0.5, 0)
             p2 = self.glider_2d.shape.get_shape_point(cell_no+0.5, 1)
             width = self.glider_2d.shape.get_shape_point(cell_no+1, 0)[0] - p1[0]
@@ -160,7 +161,8 @@ class ShapePlot(object):
     def insert_rib_numbers(self):
         midrib = self.glider_2d.shape.has_center_cell
         names = []
-        for rib_no, rib in enumerate(self.glider_3d.ribs):
+        for rib_no in range(self.glider_2d.shape.half_rib_num):
+            rib = self.glider_3d.ribs[rib_no]
             rib_no = max(0, rib_no)
             p1 = self.glider_2d.shape.get_shape_point(rib_no, -0.05)
             try:
@@ -186,7 +188,8 @@ class ShapePlot(object):
         )
 
     def insert_straps(self):
-        for cell_no, cell in enumerate(self.glider_3d.cells):
+        for cell_no in range(self.glider_2d.shape.half_cell_num):
+            cell = self.glider_3d.cells[cell_no]
             for diagonal in cell.straps:
                 left = [abs(p[0]) for p in (diagonal.left_front, diagonal.left_back)]
                 right = [abs(p[0]) for p in (diagonal.right_front, diagonal.right_back)]
@@ -199,7 +202,8 @@ class ShapePlot(object):
         return self
 
     def insert_diagonals(self):
-        for cell_no, cell in enumerate(self.glider_3d.cells):
+        for cell_no in range(self.glider_2d.shape.half_cell_num):
+            cell = self.glider_3d.cells[cell_no]
             for diagonal in cell.diagonals:
                 left = [abs(p[0]) for p in (diagonal.left_front, diagonal.left_back)]
                 right = [abs(p[0]) for p in (diagonal.right_front, diagonal.right_back)]

@@ -13,7 +13,7 @@ class PatternConfig(Config):
 
     cut_entry = cuts.FoldedCut
     cut_trailing_edge = cuts.ParallelCut
-    cut_design = cuts.ParallelCut
+    cut_design = cuts.Cut3D
     cut_diagonal_fold = cuts.FoldedCut
     cut_3d = cuts.Cut3D
 
