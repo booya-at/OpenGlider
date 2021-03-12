@@ -447,7 +447,7 @@ class ParametricGlider(object):
                 Panel(
                     {"type": "parallel", "left": -1, "right": -1},
                     {"type": "parallel", "left": 1, "right": 1},
-                    name="ctp2",material_code=glider.cells[-1].panels[0].material_code
+                    name="ctp2",material_code=glider.cells[-1].panels[1].material_code
 
                 )
             ]
