@@ -111,9 +111,9 @@ class PatternsNew(object):
         all_patterns.scale(1000)
 
         all_patterns.export_svg(fn("plots_all.svg"))
-        all_patterns.export_dxf(fn("plots_all_dxf2000.dxf"))
-        all_patterns.export_dxf(fn("plots_all_dxf2007.dxf"), "AC1021")
-        all_patterns.export_ntv(fn("plots_all.ntv"))
+        all_patterns.export_dxf(fn("plots_all.dxf"))
+        #all_patterns.export_dxf(fn("plots_all_dxf2007.dxf"), "AC1021")
+        #all_patterns.export_ntv(fn("plots_all.ntv"))
 
 
 
@@ -125,16 +125,14 @@ class PatternsNew(object):
         # for sheet_no, sheet in enumerate(panels):
         #     openglider.plots.create_svg(sheet, fn("panels_{}".format(sheet_no)))
 
-        # sketches = openglider.plots.sketches.get_all_plots(self.glider_2d, glider)
-        #
-        # for sketch_name in ("design_upper", "design_lower"):
-        #     sketch = sketches.pop(sketch_name)
-        #     sketch.drawing.scale_a4()
-        #     sketch.drawing.export_svg(fn(sketch_name+".svg"), add_styles=True)
-        #
-        # for sketch_name, sketch in sketches.items():
-        #     sketch.drawing.scale_a4()
-        #     sketch.drawing.export_svg(fn(sketch_name+".svg"), add_styles=False)
+        sketches = openglider.plots.sketches.get_all_plots(self.project)
+
+        for sketch_name, sketch in sketches.items():
+            styles = False
+            if sketch_name in ("design_upper", "design_lower"):
+                styles=True
+
+            sketch.export_a4(fn(sketch_name+".svg"), add_styles=styles)
 
         self.logger.info("create spreadsheets")
         excel = PatternsNew.spreadsheet(self.project)

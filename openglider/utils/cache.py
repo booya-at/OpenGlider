@@ -16,15 +16,9 @@ class CachedObject(object):
     """
     name: str = "unnamed"
     hashlist = ()
-    cached_properties = []
 
     def __hash__(self):
         return hash_attributes(self, self.hashlist)
-
-    def __del__(self):
-        for prop in self.cached_properties:
-            if id(self) in prop.cache:
-                prop.cache.pop(id(self))
 
     def __repr__(self):
         rep = super(CachedObject, self).__repr__()

@@ -82,12 +82,18 @@ class PanelPlot(object):
             dist = np.linspace(shape_3d_amount_back[0], shape_3d_amount_back[-1], len(shape_3d_amount_back))
             shape_3d_amount_back = list(dist)
 
-        cut_front_result = cut_front.apply(inner_front, self.outer_orig[0], self.outer_orig[1], shape_3d_amount_front)
-        cut_back_result = cut_back.apply(inner_back, self.outer_orig[0], self.outer_orig[1], shape_3d_amount_back)
+        left = inner_front[0][0].get(inner_front[0][1], inner_back[0][1])
+        right = inner_front[-1][0].get(inner_front[-1][1], inner_back[-1][1])
 
-        panel_left = self.outer_orig[0].get(cut_front_result.index_left, cut_back_result.index_left).fix_errors()
+        outer_left = left.offset(-self.config.allowance_general)
+        outer_right = right.offset(self.config.allowance_general)
+
+        cut_front_result = cut_front.apply(inner_front, outer_left, outer_right, shape_3d_amount_front)
+        cut_back_result = cut_back.apply(inner_back, outer_left, outer_right, shape_3d_amount_back)
+
+        panel_left = outer_left.get(cut_front_result.index_left, cut_back_result.index_left).fix_errors()
         panel_back = cut_back_result.curve.copy()
-        panel_right = self.outer_orig[1].get(cut_back_result.index_right, cut_front_result.index_right).fix_errors()
+        panel_right = outer_right.get(cut_back_result.index_right, cut_front_result.index_right).fix_errors()
         panel_front = cut_front_result.curve.copy()
 
         # spitzer schnitt

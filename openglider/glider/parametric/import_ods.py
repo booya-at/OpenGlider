@@ -95,14 +95,21 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
                 raise ValueError("No ballooning type specified")
 
 
-    data = {}
+    data_dct = {}
     datasheet = tables[-1]
     for row in range(datasheet.num_rows):
         name = datasheet[row, 0]
         if name:
-            data[name] = datasheet[row, 1]
+            data_dct[name] = datasheet[row, 1]
 
-    
+    # set stabi cell
+    if data_dct.pop("STABICELL", None):
+        shape = geometry["shape"]
+        if not hasattr(shape, "stabi_cell"):
+            raise Exception(f"Cannot add stabi cell on {geometry['shape']}")
+        
+        shape.stabi_cell = True
+        
     attachment_points_cell_table = filter_elements_from_table(cell_sheet, "ATP", 4)
     attachment_points_cell_table.append_right(filter_elements_from_table(cell_sheet, "AHP", 4))
 
@@ -117,7 +124,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
 
     attachment_points = {n.name: n for n in attachment_points}
 
-    attachment_points_lower = get_lower_aufhaengepunkte(data)
+    attachment_points_lower = get_lower_aufhaengepunkte(data_dct)
 
     def get_grouped_elements(sheet, names, keywords):
         group_kw = keywords[0]
@@ -231,9 +238,12 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
                          profiles=profiles,
                          balloonings=balloonings,
                          lineset=lineset,
-                         speed=data["SPEED"],
-                         glide=data["GLIDE"],
+                         speed=data_dct.pop("SPEED"),
+                         glide=data_dct.pop("GLIDE"),
                          **geometry)
+    
+    if len(data_dct) > 0:
+        logger.error(f"Unknown data keys: {list(data_dct.keys())}")
 
     if calc_lineset_nodes:
         glider_3d = glider_2d.get_glider_3d()
@@ -363,18 +373,27 @@ def get_material_codes(sheet):
 
 def get_lower_aufhaengepunkte(data):
     aufhaengepunkte = {}
+
     axis_to_index = {"X": 0, "Y": 1, "Z": 2}
     regex = re.compile("AHP([XYZ])(.*)")
-    for key in data:
-        if key is not None:
-            res = regex.match(key)
-            if res:
-                axis, pos = res.groups()
 
-                aufhaengepunkte.setdefault(pos, [0, 0, 0])
-                aufhaengepunkte[pos][axis_to_index[axis]] = data[key]
-    return {name: LowerNode2D([0, 0], pos, name)
-            for name, pos in aufhaengepunkte.items()}
+    keys_to_remove = []
+
+    for key in data:
+        if isinstance(key, str):
+            match = regex.match(key)
+            if match:
+                axis, name = match.groups()
+
+                aufhaengepunkte.setdefault(name, [0, 0, 0])
+                aufhaengepunkte[name][axis_to_index[axis]] = data[key]
+                keys_to_remove.append(key)
+    
+    for key in keys_to_remove:
+        data.pop(key)
+
+    return {name: LowerNode2D([0, 0], position, name)
+            for name, position in aufhaengepunkte.items()}
 
 
 def transpose_columns(sheet, columnswidth=2):
@@ -421,7 +440,7 @@ def read_elements(sheet: Table, keyword, len_data=2):
             for row in range(1, sheet.num_rows):
                 line = [sheet[row, column + k] for k in range(len_data)]
                 
-                if line[0]:
+                if line[0] is not None:
                     line.insert(0, row-1)
                     elements.append(line)
             column += len_data

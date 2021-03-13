@@ -9,6 +9,7 @@ import euklid
 
 from openglider.glider.parametric.shape import ParametricShape
 from openglider.airfoil import Profile2D
+from openglider.glider.ballooning.new import BallooningBezierNeu
 from openglider.glider.glider import Glider
 from openglider.glider.cell import Panel, DiagonalRib, TensionStrap, TensionLine, Cell
 from openglider.glider.cell.elements import PanelRigidFoil
@@ -36,6 +37,8 @@ class ParametricGlider(object):
     num_depth_integral = 100
     num_interpolate = 30
     num_profile = None
+
+    shape: ParametricShape
 
     def __init__(self, shape, arc, aoa, profiles, profile_merge_curve,
                  balloonings, ballooning_merge_curve, lineset,
@@ -422,44 +425,14 @@ class ParametricGlider(object):
         # RIB-ELEMENTS
         #self.apply_holes(glider)
                 # add stabi rib
-        if True:
-            rib1 = glider.ribs[-2]
-            rib2 = glider.ribs[-1]
-
-            p1 = rib1.align([0.15,0])
-            p2 = rib2.align([0.15,0])
-
-            p_new = p2 + (p2-p1) * 0.4
-
-            rib = rib2.copy()
-            rib.pos = np.array(list(p_new))
-            rib.chord = rib2.chord * 0.75
-            rib.holes = rib2.holes[:]
-
-            glider.ribs.append(rib)
-
-            import openglider.glider.ballooning
-            ballooning = openglider.glider.ballooning.BallooningBezierNeu([[-1,0.015],[-0.7, 0.04], [-0.2, 0.04], [0, 0.02], [0.2, 0.04], [0.7, 0.04], [1,0.015]])
-            cell = Cell(
-                rib2, rib, ballooning, name="cTip"
-            )
-            cell.panels = [
-                Panel(
-                    {"type": "parallel", "left": -1, "right": -1},
-                    {"type": "parallel", "left": 1, "right": 1},
-                    name="ctp2",material_code=glider.cells[-1].panels[1].material_code
-
-                )
-            ]
-            glider.cells.append(cell)
-            #last_rib.
+        if self.shape.stabi_cell:
+            cell = glider.cells[-1]
+            ballooning = BallooningBezierNeu([[-1,0.015],[-0.7, 0.04], [-0.2, 0.04], [0, 0.02], [0.2, 0.04], [0.7, 0.04], [1,0.015]])
+            cell.ballooning = ballooning
 
             glider.ribs[-2].profile_2d *= 0.7
-            glider.ribs[-1].profile_2d *= 0.
         
-        else:
-            glider.close_rib()
-
+        glider.close_rib()
         glider.rename_parts()
 
 

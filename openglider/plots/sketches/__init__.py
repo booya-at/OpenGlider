@@ -2,8 +2,9 @@ from openglider.plots.sketches.shapeplot import ShapePlot
 from openglider.plots.sketches.lineplan import LinePlan
 
 
-def get_all_plots(glider_2d, glider_3d=None):
-    glider_3d = glider_3d or glider_2d.get_glider_3d()
+def get_all_plots(project):
+    glider_2d = project.glider
+    glider_3d = project.glider_3d
 
     design_upper = ShapePlot(glider_2d, glider_3d)
     design_upper.insert_design(lower=False)
@@ -21,7 +22,7 @@ def get_all_plots(glider_2d, glider_3d=None):
 
     diagonals = ShapePlot(glider_2d, glider_3d)
     diagonals.insert_design(lower=True)
-    #diagonals.insert_diagonals()
+    diagonals.insert_diagonals()
 
 
     return {

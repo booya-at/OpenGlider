@@ -1,7 +1,12 @@
 import euklid
+import logging
 
 from openglider.vector.drawing import PlotPart, Layout
 from openglider.vector import norm
+
+
+logger = logging.getLogger(__name__)
+
 
 class Shape(object):
     def __init__(self, front: euklid.vector.PolyLine2D, back: euklid.vector.PolyLine2D):
@@ -65,10 +70,14 @@ class Shape(object):
         return area
 
     def scale(self, x=1, y=1):
-        self.front = self.front.scale(x, y)
-        self.bak = self.back.scale(x, y)
+        logger.warning(f"deprecation: Shape scale!")
+        self.front = self.front.scale([x, y])
+        self.back = self.back.scale([x, y])
 
         return self
+    
+    def copy(self):
+        return Shape(self.front.copy(), self.back.copy())
 
     def copy_complete(self):
         front = self.front.mirror([0, 0], [0, 1]).reverse()

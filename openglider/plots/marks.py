@@ -21,7 +21,7 @@ class Polygon(Mark):
         return {"scale": self.scale, "edges": self.num_edges}
 
     def __call__(self, p1, p2):
-        center = (p1+p2)/2
+        center = (p1+p2)*0.5
         diff = self.scale*(p2-center)
         points = [center + rotation_2d(math.pi*2*i/self.num_edges).dot(diff) for i in range(self.num_edges+1)]
         #points = np.array(points) * self.scale
@@ -72,7 +72,7 @@ class Line(Mark):
 
     def __call__(self, p1, p2):
         if self.rotation:
-            center = (p1+p2)/2
+            center = (p1+p2)*0.5
             rot = rotation_2d(self.rotation)
             return [PolyLine2D([center + rot.dot(p1-center), center+rot.dot(p2-center)], name=self.name)]
         else:
@@ -82,7 +82,7 @@ class Line(Mark):
 class Cross(Line):
     def __call__(self, p1, p2):
         l1 = Line(rotation=self.rotation)
-        l2 = Line(rotation=self.rotation+math.pi/2)
+        l2 = Line(rotation=self.rotation+math.pi*0.5)
         return l1(p1, p2) + l2(p1, p2)
 
 

@@ -187,13 +187,16 @@ class Line(CachedObject):
         """
         return 1 / 2 * self.type.cw * self.type.thickness * self.rho_air * norm(self.v_inf) ** 2
 
-    @cached_property('lower_node.vec', 'upper_node.vec', 'v_inf')
+    #@cached_property('lower_node.vec', 'upper_node.vec', 'v_inf')
+    @property
     def drag_total(self):
         """
         Get total drag of line
         :return: 1/2 * cw * A * v^2
         """
-        return self.ortho_pressure * self.length_projected
+        drag = self.ortho_pressure * self.length_projected
+        print(f"drag: {self.name} {self.type.name} {self.type.thickness} {self.length_projected} {drag}")
+        return drag
 
     def get_weight(self):
         if self.type.weight is None:

@@ -500,6 +500,7 @@ class Panel(object):
         self.cut_front["left"] = p_l.nearest_x_value(self.cut_front["left"])
         self.cut_front["right"] = p_r.nearest_x_value(self.cut_front["right"])
 
+    @cached_function("self")
     def _get_ik_values(self, cell: "openglider.glider.cell.Cell", numribs=0, exact=True):
         """
         :param cell: the parent cell of the panel

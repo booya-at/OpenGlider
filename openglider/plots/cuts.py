@@ -146,8 +146,15 @@ class Cut3D(DesignCut):
         right_2 = point_list[-1]
         right_ik = inner_ik[-1]
 
-        leftcut_index, _ = outer_left.cut(left_1, left_2, left_ik)
-        rightcut_index, _ = outer_right.cut(right_1, right_2, right_ik)
+        try:
+            leftcut_index, _ = outer_left.cut(left_1, left_2, left_ik)
+        except:
+            leftcut_index = left_ik
+        
+        try:
+            rightcut_index, _ = outer_right.cut(right_1, right_2, right_ik)
+        except:
+            rightcut_index = right_ik
 
         curve = euklid.vector.PolyLine2D(point_list)
 

@@ -59,7 +59,9 @@ class UpperNode2D(object):
         return "<UpperNode2D name:{} cell_no:{} cell_pos: {} rib_pos:{}".format(self.name, self.cell_no, self.cell_pos, self.rib_pos)
 
     def get_2D(self, parametric_shape):
-        return parametric_shape[self.cell_no, self.rib_pos]
+        x = self.cell_no + self.cell_pos + parametric_shape.has_center_cell
+        
+        return parametric_shape.get_shape_point(x, self.rib_pos)
 
     def get_node(self, glider):
         if 1 > self.cell_pos > 0: # attachment point between two ribs
@@ -215,7 +217,7 @@ class LineSet2D(object):
 
         for line in lineset_3d.lines:
             pos_3d = line.upper_node.vec
-            pos_2d = [pos_3d[1], pos_3d[2]]
+            pos_2d = [pos_3d[1], pos_3d[2]+0.2*pos_3d[0]]
             line_dict[line.number].upper_node.pos_2D = pos_2d
 
     def sort_lines(self, lower_att):

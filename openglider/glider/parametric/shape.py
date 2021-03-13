@@ -15,6 +15,11 @@ class ParametricShape(object):
     num_depth_integral = 50
     baseline_pos = 0.25
 
+    stabi_cell = False
+    stabi_cell_width = 0.5
+    stabi_cell_length = 0.8
+
+
     def __init__(self, front_curve, back_curve, rib_distribution, cell_num):
         self.front_curve = front_curve
         self.back_curve = back_curve
@@ -65,11 +70,11 @@ class ParametricShape(object):
 
     @property
     def half_cell_num(self):
-        return self.cell_num // 2 + self.has_center_cell
+        return self.cell_num // 2 + self.has_center_cell + self.stabi_cell
 
     @property
     def half_rib_num(self):
-        return self.half_cell_num + 1 - self.has_center_cell
+        return self.half_cell_num + 1 - self.has_center_cell + self.stabi_cell
 
     def rescale_curves(self):
         span = self.span
@@ -102,7 +107,14 @@ class ParametricShape(object):
 
     @property
     def rib_x_values(self):
-        return [p[0]*self.span for p in self.rib_dist_interpolation]
+        xvalues = [p[0]*self.span for p in self.rib_dist_interpolation]
+
+        if self.stabi_cell:
+            width = 0.4 * (xvalues[-1] - xvalues[-2])
+            xvalues.append(xvalues[-1] + width)
+        
+        return xvalues
+
 
     @property
     def cell_x_values(self):
@@ -125,12 +137,29 @@ class ParametricShape(object):
         num = self.num_shape_interpolation
         front_int = euklid.vector.Interpolation(self.front_curve.get_sequence(num).nodes)
         back_int = euklid.vector.Interpolation(self.back_curve.get_sequence(num).nodes)
-        dist = self.rib_x_values
-        
-        front = euklid.vector.PolyLine2D([[x, front_int.get_value(x)] for x in dist])
-        back = euklid.vector.PolyLine2D([[x, back_int.get_value(x)] for x in dist])
+        distribution = self.rib_x_values
 
-        return Shape(front, back)
+        front = [[x, front_int.get_value(x)] for x in distribution]
+        back = [[x, back_int.get_value(x)] for x in distribution]
+
+        if self.stabi_cell:
+            y1 = front[-2][1]
+            y2 = back[-2][1]
+            delta = (y2 - y1) * (1-self.stabi_cell_length)
+
+            front[-1][1] = y1 + delta
+            back[-1][1] = y2 - delta
+        
+        if self.has_center_cell:
+            p1 = front[0][:]
+            p1[0] = - p1[0]
+            front.insert(0, p1)
+
+            p2 = back[0][:]
+            p2[0] = - p2[0]
+            back.insert(0, p2)
+            
+        return Shape(euklid.vector.PolyLine2D(front), euklid.vector.PolyLine2D(back))
 
     def get_shape(self):
         """
@@ -158,19 +187,18 @@ class ParametricShape(object):
 
     def get_rib_point(self, rib_no, x):
         ribs = list(self.ribs)
-        if self.has_center_cell:
-            ribs = [ribs[0] * np.array([-1, 1])] + list(ribs)
         rib = ribs[rib_no]
-        return np.array([rib[0][0], rib[0][1] + x * (rib[1][1] - rib[0][1])])
 
-    def get_shape_point(self, rib_no, x):
-        k = rib_no%1
-        rib1 = int(rib_no)
-        p1 = self.get_rib_point(rib1, x)
+        return rib[0] + (rib[1] - rib[0]) * x
+
+    def get_shape_point(self, x, y):
+        k = x%1
+        rib1 = int(x)
+        p1 = self.get_rib_point(rib1, y)
 
         if k > 0:
-            p2 = self.get_rib_point(rib1+1,x)
-            return p1 + k * (p2-p1)
+            p2 = self.get_rib_point(rib1+1, y)
+            return p1 + (p2-p1) * k
         else:
             return p1
 

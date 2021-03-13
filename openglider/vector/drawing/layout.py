@@ -433,7 +433,7 @@ class Layout(object):
                         if key in layer_config:
                             layer_config.pop(key)
                 else:
-                    layer_config = {"stroke": "black", "fill": "none", "stroke-width": "1"}
+                    layer_config = {"stroke": "black", "fill": "none", "stroke-width": "0.1"}
 
                 lines = part.layers[layer_name]
 
@@ -618,7 +618,7 @@ class Layout(object):
         height = min(self.width, self.height)
         width_a4, height_a4 = 297, 210
 
-        factor = min(width_a4/width, height_a4/height)
+        factor = float(min(width_a4/width, height_a4/height))
         self.scale(factor)
         return self
 
