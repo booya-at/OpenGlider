@@ -39,7 +39,7 @@ class PatternsNew(object):
 
     def _get_sketches(self) -> List[Layout]:
         import openglider.plots.sketches as sketch
-        shapeplot = sketch.ShapePlot(self.project.glider, self.project.glider_3d)
+        shapeplot = sketch.ShapePlot(self.project)
         design_upper = shapeplot.copy().insert_design(lower=True)
         design_upper.insert_cell_names()
         design_lower = shapeplot.copy().insert_design(lower=False)
@@ -49,12 +49,12 @@ class PatternsNew(object):
         lineplan.insert_attachment_points()
         lineplan.insert_rib_numbers()
 
-        diagonals = sketch.ShapePlot(self.project.glider, self.project.glider_3d)
+        diagonals = sketch.ShapePlot(self.project)
         diagonals.insert_cells()
         diagonals.insert_attachment_points(add_text=False)
         diagonals.insert_diagonals()
 
-        straps = sketch.ShapePlot(self.glider_2d, self.project.glider_3d)
+        straps = sketch.ShapePlot(self.project)
         straps.insert_cells()
         straps.insert_attachment_points(add_text=False)
         straps.insert_straps()
@@ -128,11 +128,11 @@ class PatternsNew(object):
         sketches = openglider.plots.sketches.get_all_plots(self.project)
 
         for sketch_name, sketch in sketches.items():
-            styles = False
-            if sketch_name in ("design_upper", "design_lower"):
-                styles=True
+            fill = False
+            if sketch_name in ("design_upper", "design_lower", "lineplan"):
+                fill=True
 
-            sketch.export_a4(fn(sketch_name+".svg"), add_styles=styles)
+            sketch.export_a4(fn(sketch_name+".svg"), fill=fill)
 
         self.logger.info("create spreadsheets")
         excel = PatternsNew.spreadsheet(self.project)

@@ -24,11 +24,9 @@ class ShapePlot(object):
         self.shapes = [self.shape_r, self.shape_l]
 
     def copy(self):
-        glider2d = self.glider_2d
-        glider3d = self.glider_3d
         drawing = self.drawing.copy()
 
-        return ShapePlot(glider2d, glider3d, drawing)
+        return ShapePlot(self.project, drawing)
 
     def _rib_range(self, left):
         start = 0
@@ -242,10 +240,10 @@ class ShapePlot(object):
 
         return self
 
-    def export_a4(self, path, add_styles=False):
+    def export_a4(self, path, fill=False):
         new = self.drawing.copy()
         new.scale_a4()
-        return new.export_svg(path, add_styles)
+        return new.export_svg(path, fill=fill)
 
     def _repr_svg_(self):
         new = self.drawing.copy()

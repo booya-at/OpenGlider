@@ -10,6 +10,9 @@ import openglider.utils.table
 logger = logging.getLogger(__name__)
 
 class GliderProject(object):
+    glider: ParametricGlider
+    glider_3d: Glider
+
     _regex_revision_no = re.compile(r"(.*)_rev([0-9]*)$")
 
     def __init__(self,

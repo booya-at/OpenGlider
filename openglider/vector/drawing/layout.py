@@ -18,44 +18,44 @@ class Layout(object):
     layer_config = {
         "cuts": {
             "id": 'outer',
-            "stroke-width": "0.1",
+            "stroke-width": "0.25",
             "stroke": "red",
             "stroke-color": "#FF0000",
             "fill": "none"},
         "marks": {
             "id": 'marks',
-            "stroke-width": "0.1",
+            "stroke-width": "0.25",
             "stroke": "green",
             "stroke-color": "#00FF00",
             "fill": "none"},
         "debug": {
             "id": 'marks',
-            "stroke-width": "0.1",
+            "stroke-width": "0.25",
             "stroke": "grey",
             "stroke-color": "#bbbbbb",
             "fill": "none"},
         "inner": {
             "id": "inner",
-            "stroke-width": "0.1",
+            "stroke-width": "0.25",
             "stroke": "green",
             "stroke-color": "#00FF00",
             "fill": "none"
         },
         "text": {
             "id": 'text',
-            "stroke-width": "0.1",
+            "stroke-width": "0.25",
             "stroke": "green",
             "stroke-color": "#00FF00",
             "fill": "none"},
         "stitches": {
             "id": "stitches",
-            "stroke-width": "0.1",
+            "stroke-width": "0.25",
             "stroke": "black",
             "stroke-color": "#aaaaaa",
             "fill": "none"},
         "envelope": {
             "id": "envelope",
-            "stroke-width": "0.1",
+            "stroke-width": "0.25",
             "stroke": "black",
             "stroke-color": "#aaaaaa",
             "fill": "none",
@@ -412,7 +412,7 @@ class Layout(object):
         #return blocks
         return dwg
 
-    def get_svg_group(self, config=None):
+    def get_svg_group(self, config=None, fill=False):
         _config = self.layer_config.copy()
         if config is not None:
             _config.update(config)
@@ -433,7 +433,12 @@ class Layout(object):
                         if key in layer_config:
                             layer_config.pop(key)
                 else:
-                    layer_config = {"stroke": "black", "fill": "none", "stroke-width": "0.1"}
+                    layer_config = {"stroke": "black", "fill": "none", "stroke-width": "0.25"}
+
+                if fill:
+                    color = get_material_color(layer_name)
+                    if color:
+                        layer_config["fill"] = color
 
                 lines = part.layers[layer_name]
 
@@ -458,13 +463,13 @@ class Layout(object):
 
         return group
 
-    def get_svg_drawing(self, unit="mm", border=0.02):
+    def get_svg_drawing(self, unit="mm", border=0.02, fill=False):
         border_w, border_h = [2*border*x for x in (self.width, self.height)]
         width, height = self.width+border_w, self.height+border_h
 
         drawing = svgwrite.Drawing(size=[("{}"+unit).format(n) for n in (width, height)])
         drawing.viewbox(self.min_x-border_w/2, -self.max_y-border_h/2, width, height)
-        group = self.get_svg_group()
+        group = self.get_svg_group(fill=fill)
         drawing.add(group)
 
         return drawing
@@ -517,8 +522,8 @@ class Layout(object):
 
         return drawing.tostring()
 
-    def export_svg(self, path, add_styles=False):
-        drawing = self.get_svg_drawing()
+    def export_svg(self, path, add_styles=False, fill=False):
+        drawing = self.get_svg_drawing(fill=fill)
 
         if add_styles:
             self.add_svg_styles(drawing)

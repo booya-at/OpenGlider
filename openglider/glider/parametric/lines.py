@@ -1,8 +1,10 @@
 import copy
 import re
 import ast
-import numpy as np
 import logging
+
+import numpy as np
+import euklid
 
 from openglider.glider.rib.elements import AttachmentPoint, CellAttachmentPoint
 from openglider.lines import Node, Line, LineSet
@@ -209,16 +211,20 @@ class LineSet2D(object):
             node.pos_3D = np.array(node.pos_3D) * factor
             node.pos_2D = np.array(node.pos_2D) * factor
 
-    def set_default_nodes2d_pos(self, glider):
-        lineset_3d = self.return_lineset(glider, [10,0,0])
-        lineset_3d._calc_geo()
-        line_dict = {line_no: line2d for
-                     line_no, line2d in enumerate(self.lines)}
+    def set_default_nodes2d_pos(self, parametricshape):
+        def get_node_pos(node):
+            if isinstance(node, UpperNode2D):
+                return node.get_2D(parametricshape)
+            
+            nodes = [line.upper_node for line in self.get_upper_connected_lines(node)]
 
-        for line in lineset_3d.lines:
-            pos_3d = line.upper_node.vec
-            pos_2d = [pos_3d[1], pos_3d[2]+0.2*pos_3d[0]]
-            line_dict[line.number].upper_node.pos_2D = pos_2d
+            position = sum([get_node_pos(node) for node in nodes], euklid.vector.Vector2D([0, 0])) * (1/len(nodes)) + [0, -0.1]
+            node.pos_2D = position
+
+            return position
+        
+        for node in self.get_lower_attachment_points():
+            get_node_pos(node)
 
     def sort_lines(self, lower_att):
         """

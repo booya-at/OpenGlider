@@ -226,6 +226,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
 
     lineset_table = tables[6]
     lineset = LineSet2D.read_input_table(lineset_table, attachment_points_lower, attachment_points)
+    lineset.set_default_nodes2d_pos(geometry["shape"])
 
     glider_2d = Glider2D(elements={"cuts": cuts,
                                    "holes": rib_holes,
@@ -245,9 +246,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     if len(data_dct) > 0:
         logger.error(f"Unknown data keys: {list(data_dct.keys())}")
 
-    if calc_lineset_nodes:
-        glider_3d = glider_2d.get_glider_3d()
-        glider_2d.lineset.set_default_nodes2d_pos(glider_3d)
+
     return glider_2d
 
 

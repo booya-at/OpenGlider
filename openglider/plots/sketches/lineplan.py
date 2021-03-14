@@ -6,8 +6,8 @@ from openglider.vector.drawing import PlotPart
 
 class LinePlan(ShapePlot):
     def insert_lines(self):
-        self.insert_design()
-        self.insert_design(left=True)
+        self.insert_design(lower=True)
+        self.insert_design(lower=True, left=True)
         self.insert_attachment_points(True)
         self.insert_attachment_points(True, left=True)
 
@@ -26,7 +26,7 @@ class LinePlan(ShapePlot):
 
             for line in all_upper_lines(node):
                 pp = PlotPart()
-                layer = pp.layers["line_"+line.layer]
+                layer = pp.layers[f"line_{i}"]
                 line = euklid.vector.PolyLine2D([
                         line.lower_node.get_2D(self.glider_2d.shape),
                         line.upper_node.get_2D(self.glider_2d.shape)

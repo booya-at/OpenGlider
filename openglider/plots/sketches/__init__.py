@@ -6,28 +6,34 @@ def get_all_plots(project):
     glider_2d = project.glider
     glider_3d = project.glider_3d
 
-    design_upper = ShapePlot(glider_2d, glider_3d)
+    design_upper = ShapePlot(project)
     design_upper.insert_design(lower=False)
+    design_upper.insert_design(lower=False, left=True)
 
-    design_lower = ShapePlot(glider_2d, glider_3d)
+    design_lower = ShapePlot(project)
     design_lower.insert_design(lower=True)
+    design_lower.insert_design(lower=True, left=True)
 
-    lineplan = ShapePlot(glider_2d, glider_3d)  #.draw_shape().draw_attachment_points()
-    lineplan.insert_design(lower=True)
-    lineplan.insert_attachment_points()
+    lineplan = LinePlan(project)  #.draw_shape().draw_attachment_points()
+    lineplan.insert_lines()
 
-    straps = ShapePlot(glider_2d, glider_3d)
-    straps.insert_design(lower=True)
+    base_shape = ShapePlot(project)
+    base_shape.insert_design(lower=True)
+    base_shape.insert_design(lower=True, left=True)
+
+    straps = base_shape.copy()
     straps.insert_straps()
+    straps.insert_straps(left=True)
 
-    diagonals = ShapePlot(glider_2d, glider_3d)
-    diagonals.insert_design(lower=True)
+    diagonals = base_shape.copy()
     diagonals.insert_diagonals()
+    diagonals.insert_diagonals(left=True)
 
 
     return {
         "design_upper": design_upper,
         "design_lower": design_lower,
+        "lineplan": lineplan,
         "straps": straps,
         "diagonals": diagonals
     }

@@ -87,6 +87,9 @@ def cached_function(*hashlist):
                         return f"<cached: {self.function}>"
                     
                     def __call__(self, *args, **kwargs):
+                        if not openglider.config["caching"]:
+                            return self.function(self.parent, *args, **kwargs)
+                            
                         the_hash = hash_attributes(self.parent, self.hashlist)
                         #logging.info(f"{self.parent} {the_hash} {self.hash} {args} {kwargs}")
 
