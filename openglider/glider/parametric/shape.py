@@ -20,11 +20,12 @@ class ParametricShape(object):
     stabi_cell_length = 0.8
 
 
-    def __init__(self, front_curve, back_curve, rib_distribution, cell_num):
+    def __init__(self, front_curve, back_curve, rib_distribution, cell_num, stabi_cell=False):
         self.front_curve = front_curve
         self.back_curve = back_curve
         self.rib_distribution = rib_distribution
         self.cell_num = cell_num
+        self.stabi_cell = stabi_cell
 
         self.rescale_curves()
 
@@ -33,7 +34,8 @@ class ParametricShape(object):
             "front_curve": self.front_curve,
             "back_curve": self.back_curve,
             "rib_distribution": self.rib_distribution,
-            "cell_num": self.cell_num
+            "cell_num": self.cell_num,
+            "stabi_cell": self.stabi_cell
         }
 
     def __repr__(self):
@@ -49,7 +51,8 @@ class ParametricShape(object):
             self.front_curve.copy(),
             self.back_curve.copy(),
             self.rib_distribution.copy(),
-            self.cell_num
+            self.cell_num,
+            stabi_cell=self.stabi_cell
         )
 
     @property
@@ -270,8 +273,13 @@ class ParametricShape(object):
         center_f = ribs[0][0]
         center_b = ribs[0][1]
 
-        tip_f = ribs[-1][0]
-        tip_b = ribs[-1][1]
+        if self.stabi_cell:
+            tip_rib = ribs[-2]
+        else:
+            tip_rib = ribs[-1]
+
+        tip_f = tip_rib[0]
+        tip_b = tip_rib[1]
 
         dy = ((tip_f + tip_b) * 0.5)[1] - center_f[1]
 
@@ -279,10 +287,14 @@ class ParametricShape(object):
     
     def set_sweep(self, sweep):
         current_sweep = self.get_sweep()
+        self.rescale_curves()
+
         ribs = self.ribs
+        if self.stabi_cell:
+            ribs.pop(-1)
+
         center_chord = (ribs[0][0] - ribs[0][1]).length()
         diff = (current_sweep - sweep) * center_chord
-        self.rescale_curves()
 
         x0 = ribs[0][0][0]
         span = ribs[-1][0][0] - x0
@@ -292,6 +304,11 @@ class ParametricShape(object):
 
         self.front_curve = euklid.spline.SymmetricBSplineCurve.fit(front, self.front_curve.numpoints)
         self.back_curve = euklid.spline.SymmetricBSplineCurve.fit(back, self.back_curve.numpoints)
+
+        y0 = self.ribs[0][0][1]
+
+        self.front_curve.controlpoints = self.front_curve.controlpoints.move([0, -y0])
+        self.back_curve.controlpoints = self.back_curve.controlpoints.move([0, -y0])
         
         return self
 

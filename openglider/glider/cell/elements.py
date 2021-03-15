@@ -583,9 +583,10 @@ class Panel(object):
         """
         numribs = len(inner_2d) - 2
         if midribs is None or len(midribs) != len(inner_2d):
-            midribs = cell.get_midribs(numribs)
+            midribs = cell.get_midribs(numribs+2)
 
-        ribs = [cell.prof1] + midribs + [cell.prof2]
+        #ribs = [cell.prof1] + midribs + [cell.prof2]
+        ribs = midribs
 
         # ! vorn + hinten < gesamt !
 
