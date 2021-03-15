@@ -155,6 +155,8 @@ class GibusArcs(object):
 
 
 class CellAttachmentPoint(Node):
+    ballooned=False
+
     def __init__(self, cell, name, cell_pos, rib_pos, force=None):
         super(CellAttachmentPoint, self).__init__(node_type=2)
         self.cell = cell
@@ -181,12 +183,13 @@ class CellAttachmentPoint(Node):
         if self.rib_pos in (-1, 1):
             self.vec = (self.cell.rib1.profile_3d.get(ik) + self.cell.rib2.profile_3d.get(ik))/2
         else:
-            self.vec = self.cell.midrib(self.cell_pos)[ik]
+            self.vec = self.cell.midrib(self.cell_pos, ballooning=self.ballooned)[ik]
             
         return self.vec
 
 # Node from lines
 class AttachmentPoint(Node):
+
     def __init__(self, rib, name, rib_pos, force=None):
         super(AttachmentPoint, self).__init__(node_type=2)
         self.rib = rib
