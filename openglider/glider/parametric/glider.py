@@ -301,6 +301,9 @@ class ParametricGlider(object):
         line = []
         chords = []
 
+        if self.shape.has_center_cell:
+            arc_pos.insert(0, arc_pos[0] * [-1, 1])
+
         for rib_no, x in enumerate(x_values):
             front, back = shape_ribs[rib_no]
             arc = arc_pos[rib_no]
@@ -308,10 +311,6 @@ class ParametricGlider(object):
 
             line.append(startpoint)
             chords.append(abs(front[1]-back[1]))
-
-        if self.shape.has_center_cell:
-            line.insert(0, line[0] * [1, -1, 1])
-            chords.insert(0, chords[0])
 
         for rib_no, p in enumerate(line):
             glider.ribs[rib_no].pos = p
@@ -326,7 +325,7 @@ class ParametricGlider(object):
         self.rescale_curves()
 
         x_values = self.shape.rib_x_values
-        shape_ribs = self.shape.ribs
+        shape_ribs = self.shape.ribs[self.shape.has_center_cell:]
 
         aoa_int = euklid.vector.Interpolation(self.aoa.get_sequence(num).nodes)
         zrot_int = euklid.vector.Interpolation(self.zrot.get_sequence(num).nodes)
