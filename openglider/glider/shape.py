@@ -1,5 +1,6 @@
 import euklid
 import logging
+import math
 
 from openglider.vector.drawing import PlotPart, Layout
 from openglider.vector import norm
@@ -50,7 +51,13 @@ class Shape(object):
 
     @property
     def span(self):
-        return
+        return self.front.nodes[-1][0]
+    
+    @span.setter
+    def span(self, span):
+        span_old = self.span
+        self.scale(span/span_old, 1)
+
 
     @property
     def chords(self):
@@ -68,6 +75,13 @@ class Shape(object):
             l = (front.get(i)[1] - back.get(i)[1]) + (front.get(i+1)[1] - back.get(i+1)[1])
             area += l * (front.get(i+1)[0] - front.get(i)[0]) / 2
         return area
+    
+    @area.setter
+    def area(self, area):
+        area_old = self.area
+        factor = math.sqrt(area / self.area)
+
+        self.scale(factor, factor)
 
     def scale(self, x=1, y=1):
         logger.warning(f"deprecation: Shape scale!")
@@ -83,12 +97,13 @@ class Shape(object):
         front = self.front.mirror([0, 0], [0, 1]).reverse()
         back = self.back.mirror([0, 0], [0, 1]).reverse()
 
-        if front.nodes[-1][0] == 0:
-            front_nodes = front.nodes + self.front.copy().nodes[1:]
-            back_nodes = back.nodes + self.back.copy().nodes[1:]
+        if front.nodes[-1][0] != 0:
+            start = 2
         else:
-            front_nodes = front.nodes + self.front.copy().nodes
-            back_nodes = back.nodes + self.back.copy().nodes
+            start = 1
+
+        front_nodes = front.nodes + self.front.copy().nodes[start:]
+        back_nodes = back.nodes + self.back.copy().nodes[start:]
 
         return Shape(euklid.vector.PolyLine2D(front_nodes), euklid.vector.PolyLine2D(back_nodes))
 

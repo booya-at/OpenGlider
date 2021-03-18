@@ -131,7 +131,7 @@ class ParametricShape(object):
 
         return cells
 
-    def get_half_shape(self):
+    def get_half_shape(self) -> Shape:
         """
         Return shape of the glider:
         [ribs, front, back]
@@ -164,7 +164,7 @@ class ParametricShape(object):
             
         return Shape(euklid.vector.PolyLine2D(front), euklid.vector.PolyLine2D(back))
 
-    def get_shape(self):
+    def get_shape(self) -> Shape:
         """
         Return shape of the glider:
         [ribs, front, back]

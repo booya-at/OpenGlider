@@ -29,7 +29,7 @@ def filter_elements_from_table(table: Table, key: str, length: int):
     new_table = Table()
     for column in range(table.num_columns):
         if table[0, column] == key:
-            new_table.append_right(table.get_columns(column, column+length-1))
+            new_table.append_right(table.get_columns(column, column+length))
     
     return new_table
 

@@ -63,11 +63,23 @@ class Table:
 
     def get_columns(self, from_i, to_j):
         new_table = self.__class__(self.num_rows, to_j-from_i)
-        for i in range(from_i, to_j+1):
-            for j in range(self.num_rows):
-                item = self.str_encrypt(i, j)
+        for i in range(from_i, to_j):
+            for row in range(self.num_rows):
+                item = self.str_encrypt(i, row)
                 if item in self.dct:
-                    new_table.set_value(i-from_i, j, self.dct[item])
+                    new_table.set_value(i-from_i, row, self.dct[item])
+        
+        return new_table
+    
+    def get_rows(self, from_row, to_row):
+        row_count = to_row - from_row
+        new_table = Table(row_count, self.num_columns)
+
+        for i in range(from_row, to_row):
+            for column in range(self.num_columns):
+                item = self.str_encrypt(column, i)
+                if item in self.dct:
+                    new_table.set_value(column, i-from_row, self.dct[item])
         
         return new_table
 

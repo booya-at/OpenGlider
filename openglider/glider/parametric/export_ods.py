@@ -58,25 +58,29 @@ def get_airfoil_sheet(glider_2d):
 
 
 def get_geom_sheet(glider_2d):
-    geom_page = ezodf.Sheet(name="geometry", size=(glider_2d.shape.half_cell_num + 2, 10))
+    table = Table()
+    #geom_page = ezodf.Sheet(name="geometry", size=(glider_2d.shape.half_cell_num + 2, 10))
 
     # rib_nos
-    geom_page[0, 0].set_value("Ribs")
+    table[0, 0] = "Ribs"
 
-    shape = glider_2d.shape.get_half_shape()
+    shape = glider_2d.shape.get_half_shape()    
+    center_cell = glider_2d.shape.has_center_cell
 
-    geom_page[0, 1].set_value("Chord")
-    for i, chord in enumerate(shape.chords):
-        geom_page[i+1, 1].set_value(chord)
+    table[0, 1] = "Chord"
+    for i, chord in enumerate(shape.chords[center_cell:]):
+        table[i+1, 1] = chord
 
-    geom_page[0, 2].set_value("Le x (m)")
-    geom_page[0, 3].set_value("Le y (m)")
-    for i, p in enumerate(shape.front):
-        geom_page[i+1, 2].set_value(p[0])
-        geom_page[i+1, 3].set_value(-p[1])
+    table[0, 2] = "Le x (m)"
+    table[0, 3] = "Le y (m)"
+    for i, p in enumerate(shape.front.nodes[center_cell:]):
+        table[i+1, 2] = p[0]
+        table[i+1, 3] = -p[1]
 
+    for i, p in enumerate(glider_2d.shape.rib_x_values):
+        table[i+1, 3] = p
     # set arc values
-    geom_page[0, 4].set_value("Arc")
+    table[0, 4] = "Arc"
     last_angle = 0
     cell_angles = glider_2d.arc.get_cell_angles(glider_2d.shape.rib_x_values)
     if glider_2d.shape.has_center_cell:
@@ -84,14 +88,14 @@ def get_geom_sheet(glider_2d):
     for i, angle in enumerate(cell_angles + [cell_angles[-1]]):
         this_angle = angle * 180/math.pi
 
-        geom_page[i+1, 4].set_value(this_angle-last_angle)
+        table[i+1, 4] = this_angle-last_angle
         last_angle = this_angle
 
-    geom_page[0, 5].set_value("AOA")
-    geom_page[0, 6].set_value("Z-rotation")
-    geom_page[0, 7].set_value("Y-rotation")
-    geom_page[0, 8].set_value("profile-merge")
-    geom_page[0, 9].set_value("ballooning-merge")
+    table[0, 5] = "AOA"
+    table[0, 6] = "Z-rotation"
+    table[0, 7] = "Y-rotation"
+    table[0, 8] = "profile-merge"
+    table[0, 9] = "ballooning-merge"
 
     def interpolation(curve):
         return euklid.vector.Interpolation(curve.get_sequence(100).nodes)
@@ -101,14 +105,17 @@ def get_geom_sheet(glider_2d):
     ballooning_int = interpolation(glider_2d.ballooning_merge_curve)
 
     for rib_no, x in enumerate(glider_2d.shape.rib_x_values):
-        geom_page[rib_no+1, 0].set_value(rib_no+1)
-        geom_page[rib_no+1, 5].set_value(aoa_int.get_value(x)*180/math.pi)
-        geom_page[rib_no+1, 6].set_value(0)
-        geom_page[rib_no+1, 7].set_value(0)
-        geom_page[rib_no+1, 8].set_value(profile_int.get_value(x))
-        geom_page[rib_no+1, 9].set_value(ballooning_int.get_value(x))
+        table[rib_no+1, 0] = rib_no+1
+        table[rib_no+1, 5] = aoa_int.get_value(x)*180/math.pi
+        table[rib_no+1, 6] = 0
+        table[rib_no+1, 7] = 0
+        table[rib_no+1, 8] = profile_int.get_value(x)
+        table[rib_no+1, 9] = ballooning_int.get_value(x)
+    
+    if glider_2d.shape.stabi_cell:
+        table = table.get_rows(0, table.num_rows-1)
 
-    return geom_page
+    return table.get_ods_sheet(name="geometry")
 
 
 def get_cell_sheet(glider):
@@ -316,26 +323,29 @@ def get_lines_sheet(glider, places=3):
     return ods_sheet
 
 def get_data_sheet(glider):
-    ods_sheet = ezodf.Sheet(name="Data", size=(3, 10))
-    ods_sheet[0,0].set_value("Data")
+    table = Table()
+    table[0,0] = "Data"
+
     current_row = 1
     # lower attachment_points
-    for pt_no, att_pt in enumerate(glider.lineset.get_lower_attachment_points()):
-        ods_sheet.append_rows(3)
+    for att_pt in glider.lineset.get_lower_attachment_points():
         for i, axis in enumerate(['X', 'Y', 'Z']):
-            ods_sheet[current_row + i, 0].set_value("AHP{}{}".format(axis, att_pt.name))
-            ods_sheet[current_row + i, 1].set_value(att_pt.pos_3D[i])
+            table[current_row + i, 0] = "AHP{}{}".format(axis, att_pt.name)
+            table[current_row + i, 1] = att_pt.pos_3D[i]
         current_row += 3
 
-    ods_sheet[current_row, 0].set_value("SPEED")
-    ods_sheet[current_row, 1].set_value(glider.speed)
+    table[current_row, 0] = "SPEED"
+    table[current_row, 1] = glider.speed
 
-    ods_sheet[current_row+1, 0].set_value("GLIDE")
-    ods_sheet[current_row+1, 1].set_value(glider.glide)
+    table[current_row+1, 0] = "GLIDE"
+    table[current_row+1, 1] = glider.glide
+
+    table[current_row+2, 0] = "STABICELL"
+    if glider.shape.stabi_cell:
+        table[current_row+2, 1] = "1"
 
 
-
-    return ods_sheet
+    return table.get_ods_sheet(name="Data")
 
 # for i, value in enumerate(("Ribs", "Chord", "x: (m)", "y LE (m)", "kruemmung", "aoa", "Z-rotation",
 #                      "Y-Rotation-Offset", "merge", "balooning")):
