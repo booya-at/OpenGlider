@@ -428,7 +428,7 @@ class Layout(object):
             for layer_name in part.layers:
                 # todo: simplify
                 if layer_name in config:
-                    layer_config = config[layer_name]
+                    layer_config = config[layer_name].copy()
                     for key in ("stroke-color", "visible"):
                         if key in layer_config:
                             layer_config.pop(key)

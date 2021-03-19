@@ -535,8 +535,10 @@ class Cell(CachedObject):
             # TODO: Investigate
             return [max(0, x) for x in data]
 
+        midribs = [euklid.vector.PolyLine3D(p.data.tolist()) for p in self.get_midribs(len(inner))]
+
         for panel in panels:
-            amount_front, amount_back = panel.integrate_3d_shaping(self, self.sigma_3d_cut, inner)
+            amount_front, amount_back = panel.integrate_3d_shaping(self, self.sigma_3d_cut, inner, midribs)
 
             add_amount(panel.cut_front, amount_front)
             add_amount(panel.cut_back, amount_back)

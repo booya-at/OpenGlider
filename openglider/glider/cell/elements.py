@@ -125,7 +125,7 @@ class DiagonalRib(object):
                 return poly2.get(front, back)
                 #return euklid.vector.PolyLine3D(rib.profile_3d[front:back].data.tolist())
             else:
-                return euklid.vector.PolyLine3D([rib.align(rib.profile_2d.align(p).tolist() + [0]) for p in (cut_front, cut_back)])
+                return euklid.vector.PolyLine3D([rib.align(rib.profile_2d.align(p)) for p in (cut_front, cut_back)])
 
         left = get_list(cell.rib1, self.left_front, self.left_back)
         right = get_list(cell.rib2, self.right_front, self.right_back)
@@ -600,7 +600,7 @@ class Panel(object):
         for rib_no in range(numribs + 2):
             x1, x2 = positions[rib_no]
             rib_2d = inner_2d[rib_no].get(x1,x2)
-            rib_3d = ribs[rib_no][x1:x2]
+            rib_3d = ribs[rib_no].get(x1, x2)
 
             lengthes_2d = rib_2d.get_segment_lengthes()
             lengthes_3d = rib_3d.get_segment_lengthes()

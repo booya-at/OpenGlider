@@ -213,7 +213,10 @@ class Line(CachedObject):
 
     @cached_property('force', 'lower_node.vec', 'upper_node.vec')
     def force_projected(self):
-        return self.force * self.length_projected / self.length_no_sag
+        try:
+            return self.force * self.length_projected / self.length_no_sag
+        except:
+            raise Exception(f"invalid force: {self.name}, {self.force}")
 
     def get_line_points(self, sag=True, numpoints=10):
         """

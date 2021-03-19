@@ -67,7 +67,7 @@ class Profile2D:
         upper = self.get(-x)
         lower = self.get(x)
 
-        return lower + (upper-lower) * (y + 1)/2
+        return lower + (upper-lower) * ((y + 1)/2)
 
     def profilepoint(self, xval, h=-1.):
         """

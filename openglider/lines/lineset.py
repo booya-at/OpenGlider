@@ -262,6 +262,7 @@ class LineSet(object):
                 force = line_lower.upper_node.force
                 force_projected = proj_force(force, normalize(vec))
                 if force_projected is None:
+                    logger.error(f"invalid line: {line.name} ({line.type})")
                     line_lower.force = 10
                 else:
                     line_lower.force = norm(force_projected)
