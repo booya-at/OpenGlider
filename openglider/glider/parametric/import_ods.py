@@ -55,7 +55,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     profiles = [Profile2D(profile, name).normalized() for name, profile in transpose_columns(sheets[3])]
 
     if file_version > 2:
-        has_center_cell = not tables[0][0, 0] == 0
+        has_center_cell = not tables[0]["C2"] == 0
         cell_no = (tables[0].num_rows - 2) * 2 + has_center_cell
         geometry = get_geometry_parametric(tables[5], cell_no)
     else:

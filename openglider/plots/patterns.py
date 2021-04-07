@@ -97,9 +97,6 @@ class PatternsNew(object):
 
         subprocess.call("mkdir -p {}".format(outdir), shell=True)
 
-        if self.config.profile_numpoints:
-            self.glider_2d.num_profile = self.config.profile_numpoints
-
         self.logger.info("create sketches")
         drawings = self._get_sketches()
         designs = Layout.stack_column(drawings, self.config.patterns_align_dist_y)
@@ -135,6 +132,7 @@ class PatternsNew(object):
             sketch.export_a4(fn(sketch_name+".svg"), fill=fill)
 
         self.logger.info("create spreadsheets")
+        self.project.glider_3d.lineset.rename_lines()
         excel = PatternsNew.spreadsheet(self.project)
         excel.saveas(os.path.join(outdir, "data.ods"))
 

@@ -2,6 +2,7 @@ import os
 import re
 import datetime
 import logging
+import euklid
 
 from openglider.glider.glider import Glider
 from openglider.glider.parametric import ParametricGlider
@@ -71,13 +72,28 @@ class GliderProject(object):
         table["B7"] = f"{flattening:.01f} %"
         table["A8"] = "Cells"
         table["B8"] = str(self.glider.shape.cell_num)
-        table["A9"] = "Attachment point z"
 
-        z = self.glider_3d.lineset.get_main_attachment_point().vec[2]
-        table["B9"] = f"{z:.03f}"
-        table["A10"] = "Att. z (relative to span)"
-        z_rel = z / self.glider.shape.span * 100
-        table["B10"] = f"{z_rel:.01f} %"
+        table["A9"] = "Attachment point x"
+        table["A10"] = "Attachment point z"
+
+        attachment_point = euklid.vector.Vector3D(self.glider_3d.lineset.get_main_attachment_point().vec.tolist())
+        table["B9"] = f"{attachment_point[0]:.03f}"
+        table["B10"] = f"{attachment_point[2]:.03f}"
+
+        table["A11"] = "Att. z (relative to span)"
+        z_rel = attachment_point[2] / self.glider.shape.span * 100
+        table["B11"] = f"{z_rel:.01f} %"
+
+        rib = self.glider_3d.ribs[0]
+        p0 = rib.align([0, 0])
+        
+        diff = attachment_point - p0
+        rib_diff = rib.align([1, 0])-p0
+
+        x_rel = diff.dot(rib_diff) / rib_diff.dot(rib_diff) * 100
+
+        table["A11"] = "Att. x (relative to chord)"
+        table["B11"] = f"{x_rel:.01f} %"
 
         return table
 

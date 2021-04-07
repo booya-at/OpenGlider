@@ -73,7 +73,7 @@ class BallooningBase():
             return 1. / value
 
     @classmethod
-    def phi(cls, *baloon):
+    def phi(cls, baloon):
         """
         Return the angle of the piece of cake.
         b/l=R*phi/(R*Sin(phi)) -> Phi=arsinc(l/b)

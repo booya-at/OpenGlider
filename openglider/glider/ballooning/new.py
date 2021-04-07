@@ -41,9 +41,8 @@ class BallooningNew(BallooningBase):
         return BallooningNew(self.interpolation * factor)
 
     def close_trailing_edge(self, start_x):
-        nodes = []
         for n in self.interpolation.nodes:
-            x = n[0]
+            x = abs(n[0])
             if x > start_x:
                 y = n[1]
                 t_e_c = start_x

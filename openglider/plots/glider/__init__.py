@@ -12,8 +12,8 @@ class PlotMaker(object):
     DefaultConfig = OtherPatternConfig
 
     def __init__(self, glider_3d, config=None):
-        self.glider_3d = glider_3d
-        self.config = self.DefaultConfig(config)
+        self.glider_3d = glider_3d.copy()
+        self.config = self.DefaultConfig(config)           
 
         self.panels = Layout()
         self.dribs = collections.OrderedDict()

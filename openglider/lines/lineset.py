@@ -395,23 +395,24 @@ class LineSet(object):
             length += line.get_stretched_length()
         return length
     
-    def sort_lines(self, lines=None):
+    def sort_lines(self, lines=None, x_factor=10):
         if lines is None:
             lines = self.lines
         lines_new = lines[:]
 
         def sort_key(line):
             nodes = self.get_upper_influence_nodes(line)
-            val_x = 0
+            y_value = 0
             val_rib_pos = 0
             for node in nodes:
                 if hasattr(node, "rib_pos"):
                     val_rib_pos += node.rib_pos
                 else:
                     val_rib_pos += 1000*node.vec[0]
-                val_x += node.vec[1]
 
-            return (10*val_rib_pos + val_x) / len(nodes)
+                y_value += node.vec[1]
+
+            return (val_rib_pos*x_factor + y_value) / len(nodes)
         
         lines_new.sort(key=sort_key)
 
@@ -468,6 +469,8 @@ class LineSet(object):
     node_group_rex = re.compile(r"[^A-Za-z]*([A-Za-z]*)[^A-Za-z]*")
     def rename_lines(self):
         floors = max(self.floors.values())
+
+        # get all upper nodes + all connected lines
         upper_nodes = []
         for node in self.attachment_points:
             upper_nodes += self.get_upper_influence_nodes(node=node)
@@ -479,6 +482,7 @@ class LineSet(object):
             
             lines_grouped = {}
             for line in lines:
+                # get all line layer chars (A/B/C/D/BR)
                 line_groups = set()
                 for node in self.get_upper_influence_nodes(line):
                     node_group = self.node_group_rex.match(node.name)
@@ -493,7 +497,7 @@ class LineSet(object):
                 lines_grouped[line_group_name].append(line)
             
             for name, group in lines_grouped.items():
-                group_sorted = self.sort_lines(group)
+                group_sorted = self.sort_lines(group, x_factor=0.1)
 
                 for i, line in enumerate(group_sorted):
                     if floor > 0:
@@ -547,6 +551,7 @@ class LineSet(object):
 
     def get_table(self):
         length_table = self._get_lines_table(lambda line: [round(self.get_line_length(line)*1000)])
+        length_table.name = "lines"
         names_table = self._get_lines_table(lambda line: [line.name, line.type.name, line.color])
 
         def get_checklength(line, upper_lines):
@@ -590,7 +595,9 @@ class LineSet(object):
 
 
     def get_table_2(self):
-        return self._get_lines_table(lambda line: [line.name, line.type.name, round(line.get_stretched_length()*1000)])
+        table = self._get_lines_table(lambda line: [line.name, line.type.name, round(line.get_stretched_length()*1000)])
+        table.name = "lines_2"
+        return table
 
     def get_table_sorted_lengths(self):
         table = Table()

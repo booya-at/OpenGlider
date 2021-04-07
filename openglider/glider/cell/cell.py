@@ -267,7 +267,7 @@ class Cell(CachedObject):
 
     @cached_property('ballooning', 'rib1.profile_2d.numpoints', 'rib2.profile_2d.numpoints')
     def ballooning_phi(self):
-        x_values = self.rib1.profile_2d.x_values
+        x_values = [max(-1, min(1, x)) for x in self.rib1.profile_2d.x_values]
         balloon = [self.ballooning[i] for i in x_values]
         return HashedList([Ballooning.arcsinc(1. / (1+bal)) if bal > 0 else 0 for bal in balloon])
 

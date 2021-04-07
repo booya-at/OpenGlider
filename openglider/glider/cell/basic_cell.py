@@ -24,9 +24,9 @@ class BasicCell(CachedObject):
         return self.midrib(y).point(ik)
 
     def midrib(self, y_value, ballooning=True, arc_argument=True, with_numpy=True, close_trailing_edge=False):
-        if y_value == 0:              # left side
+        if y_value <= 0:              # left side
             return self.prof1
-        elif y_value == 1:            # right side
+        elif y_value >= 1:            # right side
             return self.prof2
         else:                   # somewhere else
             #self._checkxvals()
