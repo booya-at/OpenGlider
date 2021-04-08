@@ -444,13 +444,15 @@ class LineSet2D(object):
         return total_table_ribs, total_table
     
     @staticmethod
-    def read_attachment_point_table(cell_table: Table=None, rib_table:Table=None, half_cell_no=None):
+    def read_attachment_point_table(cell_table: Table=None, rib_table:Table=None, cell_no=None):
         has_center_cell=False
-        if half_cell_no is not None:
-            has_center_cell = half_cell_no % 2
+        if cell_no is not None:
+            has_center_cell = cell_no % 2
+
+        half_cell_no = cell_no // 2 + cell_no % 2
 
         attachment_points = []
-        values = ("name", "cell_pos", "rib_pos", "force")
+        # values = ("name", "cell_pos", "rib_pos", "force")
         num_columns = int(cell_table.num_columns / 4)
 
         def get_force(force):

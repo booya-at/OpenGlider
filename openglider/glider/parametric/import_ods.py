@@ -119,7 +119,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     attachment_points = LineSet2D.read_attachment_point_table(
         cell_table=attachment_points_cell_table,
         rib_table=attachment_points_rib_table,
-        half_cell_no=geometry["shape"].half_cell_num
+        cell_no=geometry["shape"].cell_num
     )
 
     attachment_points = {n.name: n for n in attachment_points}
