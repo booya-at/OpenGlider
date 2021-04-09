@@ -5,7 +5,6 @@ import numpy as np
 import euklid
 
 from openglider.glider.shape import Shape
-from openglider.vector import PolyLine2D
 from openglider.utils.table import Table
 
 

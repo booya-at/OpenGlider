@@ -11,7 +11,6 @@ import numpy as np
 from openglider.utils.cache import HashedList
 from openglider.utils.distribution import Distribution
 from openglider.vector.functions import norm_squared
-from openglider.vector.polygon import Polygon2D
 
 
 logger = logging.getLogger(__name__)

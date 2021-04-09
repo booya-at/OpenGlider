@@ -82,7 +82,9 @@ class ShapePlot(object):
                 p3 = shape.get_point(cell_no+1, right_back)
                 p4 = shape.get_point(cell_no+1, rigth_front)
 
-                part.layers[panel.material_code].append(PolyLine2D([p1, p2, p3, p4, p1]))
+                part.layers[panel.material_code].append(
+                    euklid.vector.PolyLine2D([p1, p2, p3, p4, p1])
+                    )
 
                 #self.drawing.parts.append(PlotPart(
                 #    cuts=[PolyLine2D([p1, p2, p3, p4, p1])],
@@ -152,7 +154,7 @@ class ShapePlot(object):
             p2 = shape.get_point(cell_no+1, 0)
             p3 = shape.get_point(cell_no+1, 1)
             p4 = shape.get_point(cell_no, 1)
-            cells.append(PolyLine2D([p1,p2,p3,p4,p1]))
+            cells.append(euklid.vector.PolyLine2D([p1,p2,p3,p4,p1]))
 
         self.drawing.parts.append(PlotPart(
             marks=cells,
@@ -220,7 +222,7 @@ class ShapePlot(object):
                 points_left = [shape.get_point(cell_no, p) for p in left]
                 points_right = [shape.get_point(cell_no+1, p) for p in right]
 
-                self.drawing.parts.append(PlotPart(marks=[PolyLine2D(points_left + points_right[::-1] + points_left[:1])]))
+                self.drawing.parts.append(PlotPart(marks=[euklid.vector.PolyLine2D(points_left + points_right[::-1] + points_left[:1])]))
 
         return self
 
@@ -236,7 +238,7 @@ class ShapePlot(object):
                 points_left = [shape.get_point(cell_no, p) for p in left]
                 points_right = [shape.get_point(cell_no+1, p) for p in right]
 
-                self.drawing.parts.append(PlotPart(marks=[PolyLine2D(points_left + points_right[::-1] + points_left[:1])]))
+                self.drawing.parts.append(PlotPart(marks=[euklid.vector.PolyLine2D(points_left + points_right[::-1] + points_left[:1])]))
 
         return self
 

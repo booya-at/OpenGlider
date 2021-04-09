@@ -1,8 +1,9 @@
 import math
-import numpy as np
 
+import euklid
+
+import openglider.vector.polygon as polygons
 from openglider.vector.functions import rotation_2d
-from openglider.vector.polyline import PolyLine2D
 from openglider.vector.transformation import Translation, Scale, Rotation
 
 default_scale = 0.8
@@ -21,11 +22,9 @@ class Polygon(Mark):
         return {"scale": self.scale, "edges": self.num_edges}
 
     def __call__(self, p1, p2):
-        center = (p1+p2)*0.5
-        diff = self.scale*(p2-center)
-        points = [center + rotation_2d(math.pi*2*i/self.num_edges).dot(diff) for i in range(self.num_edges+1)]
-        #points = np.array(points) * self.scale
-        return [PolyLine2D(points, name=self.name)]
+        circle = polygons.Circle.from_p1_p2(p1, p2)
+
+        return [circle.get_sequence(self.num_edges-1)]
 
 
 class Triangle(Polygon):
@@ -50,11 +49,16 @@ class Arrow(Mark):
 
     def __call__(self, p1, p2):
         d = (p2 - p1)*self.scale
-        dr = np.array([-d[1], d[0]])/math.sqrt(2)
+        dr = euklid.vector.Vector2D([-d[1], d[0]])*(1/math.sqrt(2))
         if not self.left:
-            dr = -dr
+            dr *= -1.
 
-        return [PolyLine2D([p1, p1+d, p1+d*0.5+dr, p1], name=self.name)]
+        return [euklid.vector.PolyLine2D([
+            p1,
+            p1+d,
+            p1+d*0.5+dr,
+            p1
+            ])]
 
 
 class Line(Mark):
@@ -73,10 +77,13 @@ class Line(Mark):
     def __call__(self, p1, p2):
         if self.rotation:
             center = (p1+p2)*0.5
-            rot = rotation_2d(self.rotation)
-            return [PolyLine2D([center + rot.dot(p1-center), center+rot.dot(p2-center)], name=self.name)]
+            rotation = euklid.vector.Rotation2D(self.rotation)
+            return [euklid.vector.PolyLine2D([
+                center + rotation.apply(p1-center),
+                center + rotation.apply(p2-center)
+                ])]
         else:
-            return [PolyLine2D([p1, p2], name=self.name)]
+            return [euklid.vector.PolyLine2D([p1, p2])]
 
 
 class Cross(Line):
@@ -98,7 +105,7 @@ class Dot(Mark):
         for x in self.positions:
             p = p1 + (p2 - p1) * x
             dots.append(p)
-        return [PolyLine2D([p]) for p in dots]
+        return [euklid.vector.PolyLine2D([p]) for p in dots]
 
 
 class _Modify(Mark):
@@ -118,7 +125,7 @@ class _Modify(Mark):
 class Rotate(_Modify):
     def __init__(self, func, rotation, center=True):
         self.angle = rotation
-        self.rotation = rotation_2d(rotation)
+        self.rotation = euklid.vector.Rotation2D(rotation)
         super(Rotate, self).__init__(func)
 
     def __json__(self):
@@ -131,7 +138,7 @@ class Rotate(_Modify):
     def __call__(self, p1, p2):
         diff = (p2 - p1) * 0.5
         center = (p1 + p2) * 0.5
-        diff_new = self.rotation.dot(diff)
+        diff_new = self.rotation.apply(diff)
 
         p1_new, p2_new = center + diff_new, center - diff_new
         return super(Rotate, self).__call__(p1_new, p2_new)

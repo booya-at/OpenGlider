@@ -194,7 +194,10 @@ class PanelPlot(object):
         side = {"left": 0, "right": 1}[which]
         ik = get_x_value(self.x_values, x)
 
-        return self.ballooned[side].get(ik), self.outer_orig[side].get(ik)
+        p1 = self.ballooned[side].get(ik)
+        p2 = self.outer_orig[side].get(ik)
+
+        return p1, p2
 
     def _align_upright(self, plotpart):
         def get_p1_p2(side):
@@ -296,7 +299,7 @@ class PanelPlot(object):
                 left, right = self.get_point(rib_pos)
 
                 p1 = left + (right - left) * cell_pos
-                d = normalize(right - left) * 0.008  # 8mm
+                d = (right - left).normalized() * 0.008 # 8mm
                 if cell_pos == 1:
                     p2 = p1 + d
                 else:
@@ -310,8 +313,6 @@ class PanelPlot(object):
                 else:
                     plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
                     plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
-
-                #p1, p2 = self.get_p1_p2(attachment_point.rib_pos, which)
                 
                 if self.config.insert_attachment_point_text:
                     text_align = "left" if cell_pos > 0.7 else "right"

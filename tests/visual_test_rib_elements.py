@@ -1,13 +1,15 @@
 import random
 import unittest
 
+import euklid
+
 from visual_test_glider import GliderTestClass
 import common
 
 import openglider
 from openglider.glider.rib import RibHole, RigidFoil, GibusArcs #, Mylar
 import openglider.graphics as Graph
-from openglider.vector import norm, PolyLine2D
+from openglider.vector import norm
 
 
 class TestRibElements(GliderTestClass):
@@ -66,7 +68,7 @@ class TestRibElements(GliderTestClass):
 
     def test_flat(self):
         prof = self.rib.profile_2d.copy()
-        prof = PolyLine2D(prof.data) * [self.rib.chord, self.rib.chord]
+        prof = euklid.vector.PolyLine2D(prof.data) * [self.rib.chord, self.rib.chord]
 
 
         print(self.rib.profile_2d, prof)

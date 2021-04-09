@@ -2,14 +2,13 @@ import os
 import math
 from typing import List, Union
 
-import numpy as np
+import euklid
 import svgwrite
 import svgwrite.container
 import svgwrite.shapes
 
 from openglider.vector.drawing.part import PlotPart
 from openglider.utils.css import get_material_color, normalize_class_names
-from openglider.vector import PolyLine2D
 from openglider.vector.text import Text
 
 
@@ -190,14 +189,14 @@ class Layout(object):
             for col_width in widths[:-1]:
                 x += col_width
                 x += distance_x/2
-                line = PolyLine2D([[x, 0], [x, height]])
+                line = euklid.vector.PolyLine2D([[x, 0], [x, height]])
                 grid.layers["grid"].append(line)
                 x += distance_x/2
 
             for row_height in heights[:-1]:
                 y += row_height
                 y += distance_y/2
-                line = PolyLine2D([[0, y], [width, y]])
+                line = euklid.vector.PolyLine2D([[0, y], [width, y]])
                 grid.layers["grid"].append(line)
                 y += distance_y/2
 
@@ -246,7 +245,7 @@ class Layout(object):
 
         bbox.append(bbox[0])
 
-        data = [PolyLine2D(bbox)]
+        data = [euklid.vector.PolyLine2D(bbox)]
 
         border = PlotPart(drawing_boundary=data)
         if append:
@@ -338,8 +337,8 @@ class Layout(object):
     def move_to(self, vector):
         if not len(self.parts) > 0:
             return
-        diff = np.array(self.bbox[0])-vector
-        self.move(-diff)
+        diff = (euklid.vector.Vector2D(self.bbox[0]) - vector) * -1
+        self.move(diff)
 
     def append_top(self, other: "Layout", distance):
         if self.parts:
@@ -382,7 +381,7 @@ class Layout(object):
 
             for entity in panel:
                 layer = entity.dxf.layer
-                new_panel.layers[layer].append(PolyLine2D([p[:2] for p in entity]))
+                new_panel.layers[layer].append(euklid.vector.PolyLine2D([p[:2] for p in entity]))
 
         #blocks = list(dxf.blocks)
         blockrefs = dxf.modelspace().query("INSERT")
@@ -400,7 +399,7 @@ class Layout(object):
                     line = [v.dxf.location[:2] for v in entity]
                     if entity.dxf.flags % 2:
                         line.append(line[0])
-                    new_panel.layers[layer].append(PolyLine2D(line))
+                    new_panel.layers[layer].append(euklid.vector.PolyLine2D(line))
                 except:
                     pass
 

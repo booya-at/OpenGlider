@@ -1,8 +1,6 @@
 import numpy as np
 import euklid
 
-from openglider.vector.functions import normalize
-from openglider.vector.polyline import PolyLine2D
 from openglider.vector.drawing.part import PlotPart
 
 text_vectors = {

@@ -1,9 +1,6 @@
 import numpy as np
 import euklid
 
-from openglider.vector.functions import norm, normalize
-from openglider.vector.polyline import PolyLine2D
-
 
 def point2d(p1_3d, p1_2d, p2_3d, p2_2d, point_3d):
     """Returns a third points position relative to two known points (3D+2D)"""

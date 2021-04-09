@@ -4,7 +4,6 @@ import euklid
 
 from openglider.lines import Node
 from openglider.vector.polygon import Circle, Ellipse
-from openglider.vector.polyline import PolyLine2D
 from openglider.vector.functions import set_dimension
 from openglider.vector import norm
 from openglider.vector.transformation import Rotation, Translation, Scale
@@ -227,7 +226,7 @@ class RibHole(object):
 
         return points
 
-    def get_points(self, rib, num=80):        
+    def get_points(self, rib, num=80):
         lower = rib.profile_2d.get(self.pos)
         upper = rib.profile_2d.get(-self.pos)
 
@@ -238,12 +237,22 @@ class RibHole(object):
         center = lower + diff * (0.5 + self.vertical_shift/2)
         outer_point = center + diff * (self.size/2)
 
-        print(lower, upper, diff)
-        print(center, outer_point)
-
         circle = Ellipse.from_center_p2(center, outer_point, self.width)
 
         return circle.get_sequence(num)
+    
+    def get_center(self, rib, scale=False):
+        # TODO: remove and use a polygon.centerpoint
+        lower = rib.profile_2d.get(self.pos)
+        upper = rib.profile_2d.get(-self.pos)
+
+        diff = upper - lower
+        if self.rotation:
+            diff = euklid.vector.Rotation2D(self.rotation).apply(diff)
+        
+        return lower + diff * (0.5 + self.vertical_shift/2)
+
+
 
     def __json__(self):
         return {

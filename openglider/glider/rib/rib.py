@@ -181,7 +181,7 @@ class Rib(CachedObject):
                 hole_indices = list(range(len(hole_vertices))) + [0]
                 vertices += hole_vertices
                 boundary.append([start_index + i for i in hole_indices])
-                hole_centers.append(hole.get_center(self, scale=False).tolist())
+                hole_centers.append(list(hole.get_center(self, scale=False)))
 
         if not filled:
             segments = []
@@ -257,7 +257,7 @@ class SingleSkinRib(Rib):
         json_dict["single_skin_par"] = self.single_skin_par
         return json_dict
 
-    def get_hull(self, glider=None):
+    def get_hull(self, glider=None) -> euklid.vector.PolyLine2D:
         '''
         returns a modified profile2d
         '''

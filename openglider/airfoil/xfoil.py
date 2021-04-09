@@ -7,7 +7,6 @@ import tempfile
 import euklid
 
 import openglider.airfoil
-import openglider.vector.interpolate
 
 class XFoilCalc:
     alpha = list(range(0, 15))

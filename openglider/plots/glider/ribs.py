@@ -1,6 +1,6 @@
 from typing import List
+import math
 
-import numpy as np
 import euklid
 
 import openglider.glider
@@ -8,7 +8,6 @@ from openglider.airfoil import get_x_value
 from openglider.plots import marks
 from openglider.vector.drawing import PlotPart
 from openglider.plots.glider.config import PatternConfig
-from openglider.vector import PolyLine2D
 from openglider.vector.functions import rotation_2d, norm
 from openglider.vector.text import Text
 
@@ -16,8 +15,8 @@ from openglider.vector.text import Text
 class RibPlot(object):
     plotpart: PlotPart
     x_values: List[float]
-    inner: PolyLine2D
-    outer: PolyLine2D
+    inner: euklid.vector.PolyLine2D
+    outer: euklid.vector.PolyLine2D
 
     class DefaultConfig(PatternConfig):
         marks_diagonal_front = marks.Inside(marks.Arrow(left=True, name="diagonal_front"))
@@ -26,7 +25,7 @@ class RibPlot(object):
         marks_laser_attachment_point = marks.Dot(0.2, 0.8)
 
         marks_strap = marks.Inside(marks.Line(name="strap"))
-        marks_attachment_point = marks.OnLine(marks.Rotate(marks.Cross(name="attachment_point"), np.pi / 4))
+        marks_attachment_point = marks.OnLine(marks.Rotate(marks.Cross(name="attachment_point"), math.pi / 4))
 
         marks_controlpoint = marks.Dot(0.2)
         marks_panel_cut = marks.Line(name="panel_cut")
@@ -71,7 +70,6 @@ class RibPlot(object):
                     self.insert_drib_mark(diagonal, True)
 
         for cut in panel_cuts:
-            #print(cut, self.marks_panel_cut)
             self.insert_mark(cut, self.config.marks_panel_cut)
 
         # rigidfoils
@@ -190,9 +188,9 @@ class RibPlot(object):
         diff = outer - inner
 
         p1 = inner + diff * 0.5
-        p2 = p1 + rotation_2d(np.pi/2).dot(diff)
+        p2 = p1 + euklid.vector.Rotation2D(-math.pi/2).apply(diff)
 
-        _text = Text(text, p1, p2, size=norm(outer-inner)*0.5, valign=0)
+        _text = Text(text, p1, p2, size=(outer-inner).length()*0.5, valign=0)
         #_text = Text(text, p1, p2, size=0.05)
         self.plotpart.layers["text"] += _text.get_vectors()
 
@@ -250,7 +248,7 @@ class SingleSkinRibPlot(RibPlot):
         start = next(cuts)[0]
         stop = next(cuts)[0]
 
-        contour = PolyLine2D([])
+        contour = euklid.vector.PolyLine2D([])
 
         if isinstance(self.rib, openglider.glider.rib.SingleSkinRib):
             # outer is going from the back back until the singleskin cut
@@ -258,24 +256,24 @@ class SingleSkinRibPlot(RibPlot):
             singleskin_cut_left = self._get_singleskin_cut(glider)
             single_skin_cut = self.rib.profile_2d(singleskin_cut_left)
 
-            buerzl = PolyLine2D([
+            buerzl = euklid.vector.PolyLine2D([
                 inner_rib.get(0),
                 inner_rib.get(0) + [t_e_allowance, 0],
                 outer_rib.get(start) + [t_e_allowance, 0],
                 outer_rib.get(start)
                 ])
-            contour += PolyLine2D(outer_rib.get(start, single_skin_cut))
-            contour += PolyLine2D(inner_rib.get(single_skin_cut, stop))
+            contour += outer_rib.get(start, single_skin_cut)
+            contour += inner_rib.get(single_skin_cut, stop)
             contour += buerzl
 
         else:
 
-            buerzl = PolyLine2D([outer_rib.get(stop),
+            buerzl = euklid.vector.PolyLine2D([outer_rib.get(stop),
                                  outer_rib.get(stop) + [t_e_allowance, 0],
                                  outer_rib.get(start) + [t_e_allowance, 0],
                                  outer_rib.get(start)])
 
-            contour += PolyLine2D(outer_rib.get(start, stop))
+            contour += euklid.vector.PolyLine2D(outer_rib.get(start, stop))
             contour += buerzl
 
         self.plotpart.layers["cuts"] += [contour]

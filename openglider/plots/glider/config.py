@@ -1,4 +1,4 @@
-import numpy as np
+import math
 
 from openglider.utils import Config
 from openglider.utils.distribution import Distribution
@@ -36,7 +36,7 @@ class PatternConfig(Config):
     marks_laser_diagonal = marks.Dot(0.8)
 
     marks_laser_attachment_point = marks.Dot(0.2, 0.8)
-    marks_attachment_point = marks.OnLine(marks.Rotate(marks.Cross(name="attachment_point"), np.pi / 4))
+    marks_attachment_point = marks.OnLine(marks.Rotate(marks.Cross(name="attachment_point"), math.pi / 4))
 
     marks_strap = marks.Inside(marks.Line(name="strap"))
 
