@@ -1,4 +1,5 @@
 import numpy as np
+import euklid
 
 from openglider.vector.functions import normalize
 from openglider.vector.polyline import PolyLine2D
@@ -68,8 +69,8 @@ class Text(object):
         :param valign: vertical align ( -0.5: bottom, 0: centered, 0.5: top)
         """
         self.text = text
-        self.p1 = np.array(list(p1)[:])
-        self.p2 = np.array(list(p2)[:])
+        self.p1 = euklid.vector.Vector2D(list(p1)[:])
+        self.p2 = euklid.vector.Vector2D(list(p2)[:])
         self.size = size
         self.height = height
         self.space = space
@@ -95,40 +96,48 @@ class Text(object):
                 else:
                     raise KeyError("Letter {} from word '{}' not available".format(letter, self.text.upper()))
         
-        data = self.letters[letter]
-        return [text_vectors[letter]]
+        return [self.letters[letter]]
 
     def get_vectors(self, replace_unknown=True):
         # todo: add valign (space)
         vectors = []
-        diff = (self.p2 - self.p1)/len(self.text)
-        if self.size is not None:
-            diff = normalize(diff) * self.size
+        diff = self.p2 - self.p1
+
+        letter_width = self.size
+        if letter_width is None:
+            letter_width = diff.length() / len(self.text)
+
+        letter_height = self.height * letter_width
+        angle = diff.angle()
+
+        text_width = len(self.text) * letter_width
 
         if self.align == "left":
             p1 = self.p1.copy()
         elif self.align == "center":
-            p1 = self.p1 + (self.p2 - self.p1)/2 - len(self.text)/2 * diff
+            p1 = self.p1 + diff * 0.5 - diff.normalized() * (text_width/2)
         elif self.align == "right":
-            p1 = self.p2 - len(self.text) * diff
+            p1 = self.p2 - diff.normalized() * text_width
         else:
-            raise ValueError
+            raise ValueError(f"invalid alignment: {self.align}")
 
-        r_x, r_y = diff[0], diff[1]
 
-        rot = np.array([[r_x, -r_y*self.height], [r_y, r_x*self.height]])
-
-        p1 += np.array([-r_y, r_x]) * (self.valign - 0.5)
+        letter_pos = euklid.vector.Vector2D([0, letter_height * (self.valign - 0.5)])
 
         for letter in self.text:
             points = self.get_letter(letter, replace_unknown=replace_unknown)
             for lst in points:
                 if lst:
-                    vectors.append(PolyLine2D(
-                        [p1 + rot.dot(p) for p in lst],
-                        name="text"
-                    ))
-            p1 += diff
+                    line = euklid.vector.PolyLine2D(lst)\
+                        .scale([letter_width, letter_height])\
+                        .move(letter_pos)\
+                        .rotate(angle, [0, 0])\
+                        .move(p1)
+
+                    vectors.append(line)
+
+            letter_pos += [letter_width, 0]
+
         return vectors
 
     def get_plotpart(self, replace_unknown=True):

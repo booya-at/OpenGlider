@@ -449,7 +449,7 @@ class PolyLine2D(PolyLine):
         """
         if not radians:
             angle = np.pi*angle/180
-        rotation_matrix = rotation_2d(angle)
+        rotation_matrix = rotation_2d(-angle)
         new_data = []
         for point in self.data:
             if startpoint is not None:

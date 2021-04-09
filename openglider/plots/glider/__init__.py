@@ -83,7 +83,7 @@ class PlotMaker(object):
 
             rib_plot.flatten(self.glider_3d)
             if rotate:
-                rib_plot.plotpart.rotate(90, radians=False)
+                rib_plot.plotpart.rotate(-90, radians=False)
             self.ribs.append(rib_plot.plotpart)
 
     def get_dribs(self):
@@ -117,7 +117,7 @@ class PlotMaker(object):
     def get_all_grouped(self) -> Layout:
         # create x-raster
         for rib in self.ribs:
-            rib.rotate(90, radians=False)
+            rib.rotate(-90, radians=False)
 
         panels = self.panels
         ribs = Layout.stack_row(self.ribs, self.config.patterns_align_dist_x)

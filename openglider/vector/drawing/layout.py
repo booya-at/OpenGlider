@@ -405,7 +405,7 @@ class Layout(object):
                     pass
 
 
-            new_panel.rotate(-blockref.dxf.rotation * math.pi / 180)
+            new_panel.rotate(blockref.dxf.rotation * math.pi / 180)
             new_panel.move(blockref.dxf.insert[:2])
 
             # block.name

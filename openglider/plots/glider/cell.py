@@ -207,7 +207,7 @@ class PanelPlot(object):
         vector += get_p1_p2("right")
         angle = vector_angle(vector, [0, 1])
 
-        plotpart.rotate(angle)
+        plotpart.rotate(-angle)
         return plotpart
 
     def _insert_text(self, plotpart):

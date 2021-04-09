@@ -3,7 +3,7 @@ import math
 import euklid
 
 from openglider.lines import Node
-from openglider.vector.polygon import Circle
+from openglider.vector.polygon import Circle, Ellipse
 from openglider.vector.polyline import PolyLine2D
 from openglider.vector.functions import set_dimension
 from openglider.vector import norm
@@ -103,10 +103,11 @@ class GibusArcs(object):
     """
     A Reinforcement, in the shape of an arc, to reinforce attachment points
     """
-    def __init__(self, position, size=0.2, material_code=None):
+    size_abs = True
+
+    def __init__(self, position, size=0.05, material_code=None):
         self.pos = position
         self.size = size
-        self.size_abs = False
         self.material_code = material_code or ""
 
     def __json__(self):
@@ -122,36 +123,25 @@ class GibusArcs(object):
         # get center point
         profile = rib.profile_2d
         start = profile(self.pos)
-        point_1 = profile[start]
+        point_1 = profile.curve.get(start)
 
         if self.size_abs:
             # reverse scale now
             size = self.size / rib.chord
         else:
             size = self.size
-        point_2 = profile.profilepoint(self.pos + size)
-
-        gib_arc = [[], []]  # first, second
-        circle = Circle(point_1, point_2).get_sequence()[1:]
-        #circle = Polygon(edges=num_points)(point_1, point_2)[0][1:] # todo: is_center -> true
-        is_second_run = False
         
-        for i in range(len(circle)):
-            if profile.contains_point(circle[i]) or \
-                    (i < len(circle) - 1 and profile.contains_point(circle[i + 1])) or \
-                    (i > 1 and profile.contains_point(circle[i - 1])):
-                gib_arc[is_second_run].append(circle[i])
-            else:
-                is_second_run = True
+        n = profile.normvectors.get(start)
 
-        # Cut first and last
-        gib_arc = gib_arc[1] + gib_arc[0]  # [secondlist] + [firstlist]
-        start2 = profile.cut(gib_arc[0], gib_arc[1], start)
-        stop = profile.cut(gib_arc[-2], gib_arc[-1], start)
-        # Append Profile_List
-        gib_arc += profile.get(start2.next()[0], stop.next()[0]).tolist()
+        point_2 = point_1 + n * size  # get outside start point
+        circle = Circle.from_center_p2(point_1, point_2).get_sequence()
 
-        return np.array(gib_arc) * rib.chord
+        cuts = circle.cut(profile.curve)
+
+        cut1 = cuts[0]
+        cut2 = cuts[-1]
+
+        return circle.get(cut1[0], cut2[0]) + profile.curve.get(cut2[1], cut1[1])
 
 
 class CellAttachmentPoint(Node):
@@ -213,13 +203,18 @@ class AttachmentPoint(Node):
 
 
 class RibHole(object):
-    def __init__(self, pos, size=0.5, vertical_shift=0., rotation=0.):
+    """
+    Round holes.
+    height is relative to profile height, rotation is from lower point
+    """
+    def __init__(self, pos, size=0.5, width=1, vertical_shift=0., rotation=0.):
         self.pos = pos
         if isinstance(size, (list, tuple)):
             size = np.array(list(size))
         self.size = size
         self.vertical_shift = vertical_shift
-        self.rotation = rotation  # rotation about p1
+        self.rotation = rotation  # rotation around lower point
+        self.width = width
 
     def get_3d(self, rib, num=20):
         hole = self.get_points(rib, num=num)
@@ -232,37 +227,23 @@ class RibHole(object):
 
         return points
 
-    def get_points(self, rib, num=80):
-        prof = rib.profile_2d
+    def get_points(self, rib, num=80):        
+        lower = rib.profile_2d.get(self.pos)
+        upper = rib.profile_2d.get(-self.pos)
+
+        diff = upper - lower
+        if self.rotation:
+            diff = euklid.vector.Rotation2D(self.rotation).apply(diff)
         
-        p1 = prof.get(self.pos)
-        p2 = prof.get(-self.pos)
+        center = lower + diff * (0.5 + self.vertical_shift/2)
+        outer_point = center + diff * (self.size/2)
 
-        phi = np.linspace(0, np.pi * 2, num + 1)
-        points = np.array([np.cos(phi), np.sin(phi)]).T
-        #delta = (p2 - p1) / 2 * self.vertical_shift + (p1 + p2) / 2
-        move_1 = Translation(p1)
-        move_2 = Translation((p2 - p1) * 0.5 * (1 + self.vertical_shift))
-        rot = Rotation(self.rotation)
-        scale = Scale(np.linalg.norm(p2 - p1) / 2 * self.size)
-        points = (scale * move_2 * rot * move_1).apply(points)
+        print(lower, upper, diff)
+        print(center, outer_point)
 
-        return euklid.vector.PolyLine2D(points.tolist())
+        circle = Ellipse.from_center_p2(center, outer_point, self.width)
 
-    def get_center(self, rib, scale=True):
-        prof = rib.profile_2d
-
-        p1 = prof.get(self.pos)
-        p2 = prof.get(-self.pos)
-
-        if scale:
-            p1 *= rib.chord
-            p2 *= rib.chord
-
-        move_1 = Translation(p1)
-        move_2 = Translation((p2 - p1) * 0.5 * (1 + self.vertical_shift))
-        rot = Rotation(self.rotation)
-        return (move_2 * rot * move_1)([0., 0.])
+        return circle.get_sequence(num)
 
     def __json__(self):
         return {
