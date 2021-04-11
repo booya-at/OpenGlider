@@ -2,7 +2,6 @@ import numpy as np
 import euklid
 
 from openglider.glider import GliderProject
-from openglider.vector import PolyLine2D
 from openglider.vector.text import Text
 from openglider.vector.drawing import Layout, PlotPart
 import openglider.plots.marks as marks
