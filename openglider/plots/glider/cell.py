@@ -493,10 +493,10 @@ class DribPlot(object):
             ]
 
         else:
-            p1 = self.left_out.cut(self.left[0], self.right[0], startpoint=0, extrapolate=True)[0]
-            p2 = self.left_out.cut(self.left[len(self.left)-1], self.right[len(self.right)-1], startpoint=len(self.left_out))[0]
-            p3 = self.right_out.cut(self.left[0], self.right[0], startpoint=0)[0]
-            p4 = self.right_out.cut(self.left[len(self.left)-1], self.right[len(self.right)-1], startpoint=len(self.right_out))[0]
+            p1 = self.left_out.cut(self.left.get(0), self.right.get(0), startpoint=0, extrapolate=True)[0]
+            p2 = self.left_out.cut(self.left.get(len(self.left)-1), self.right.get(len(self.right)-1), startpoint=len(self.left_out))[0]
+            p3 = self.right_out.cut(self.left.get(0), self.right.get(0), startpoint=0)[0]
+            p4 = self.right_out.cut(self.left.get(len(self.left)-1), self.right.get(len(self.right)-1), startpoint=len(self.right_out))[0]
 
             outer = self.left_out.get(p1, p2)
             outer += self.right_out.get(p3,p4).reverse()
