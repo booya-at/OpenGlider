@@ -1,6 +1,7 @@
 from __future__ import division
 
 import time
+import numpy as np
 
 from pivy import coin
 from pivy.graphics import Line as _Line
@@ -52,6 +53,7 @@ class ShapeTool(BaseTool):
         self.circle_front = coin.SoSeparator()
         self.circle_back = coin.SoSeparator()
         self.center_line = coin.SoSeparator()
+        self.rib_lengths = coin.SoSeparator()
 
         self.setup_widget()
         self.setup_pivy()
@@ -166,19 +168,25 @@ class ShapeTool(BaseTool):
         self.task_separator.addChild(self.circle_front)
         self.task_separator.addChild(self.circle_back)
         self.task_separator.addChild(self.center_line)
+        self.task_separator.addChild(self.rib_lengths)
 
 
         # set drag_release callbacks
-        self.front_cpc.on_drag.append(self.update_shape)
-        self.back_cpc.on_drag.append(self.update_shape)
-        self.front_cpc.on_drag.append(self.update_properties)
-        self.back_cpc.on_drag.append(self.update_properties)
-        self.cell_dist_cpc.on_drag.append(self.update_properties)
-        self.front_cpc.drag_release.append(self.auto_update_const_dist)
-        self.back_cpc.drag_release.append(self.auto_update_const_dist)
-        self.cell_dist_cpc.on_drag.append(self.update_shape)
+        self.front_cpc.on_drag += [self.update_shape]
+        self.front_cpc.on_drag += [self.update_properties]
+        self.front_cpc.drag_release += [self.auto_update_const_dist, self.draw_lenghts]
+
+        self.back_cpc.on_drag += [self.update_shape]
+        self.back_cpc.on_drag += [self.update_properties]
+        self.back_cpc.drag_release += [self.auto_update_const_dist, self.draw_lenghts]
+
+        self.cell_dist_cpc.on_drag += [self.update_properties]
+        self.cell_dist_cpc.on_drag += [self.update_shape]
+        self.cell_dist_cpc.on_drag_release += [self.draw_lenghts]
+
 
         self.update_shape()
+        self.draw_lenghts()
 
     def line_edit(self):
         self.front_cpc.set_edit_mode(self.view)
@@ -275,6 +283,7 @@ class ShapeTool(BaseTool):
     def update_num_cells(self, val):
         self.parametric_glider.shape.cell_num = val
         self.update_shape()
+        self.draw_lenghts()
 
     def auto_update_const_dist(self):
         if self.Qset_const_fixed.isChecked():
@@ -284,12 +293,43 @@ class ShapeTool(BaseTool):
         self.parametric_glider.shape.set_const_cell_dist()
         self.cell_dist_cpc.control_pos = self.parametric_glider.shape.rib_dist_controlpoints
         self.update_shape()
+        self.draw_lenghts()
+
+    def draw_lenghts(self):
+        self.rib_lengths.removeAllChildren()
+        _shape = self.parametric_glider.shape.get_half_shape()
+        scale_factor = _shape.ribs[-1][0][0] / len(_shape.ribs) * 0.01
+        rot = coin.SoRotationXYZ()
+        rot.axis = coin.SoRotationXYZ.Z
+        rot.angle.setValue(np.pi / 2)
+        color = coin.SoMaterial()
+        color.diffuseColor = [0, 0, 0]
+        for i, rib in enumerate(_shape.ribs):
+            l = rib[0][1] - rib[1][1]
+            scale = coin.SoScale()
+            scale.scaleFactor = [scale_factor * l]*3  # use total span
+            front = np.array(rib[0] + [0])
+            back = np.array(rib[1] + [0])
+            f = 1.
+            pos = back * f + front * (1 - f)
+            pos[0] = -pos[0]
+            trans = coin.SoTranslation()
+            trans.translation = pos
+            textsep = coin.SoSeparator()
+            text = coin.SoAsciiText()
+            text.string = "rib_{}, l = {} m, x = {}, y = {}".format(i, round(l, 2), round(front[0], 2), round(front[1], 2))
+            textsep += [color, trans, scale, rot, text]
+            self.rib_lengths += textsep
+
+    def text_repr(self, value):
+        return str(round(value, 4))
 
     def update_shape(self, preview=False):
         self.parametric_glider.shape.front_curve.controlpoints = list(map(vector2D, self.front_cpc.control_pos))
         self.parametric_glider.shape.back_curve.controlpoints = list(map(vector2D, self.back_cpc.control_pos))
         self.parametric_glider.shape.rib_dist_controlpoints = list(map(vector2D, self.cell_dist_cpc.control_pos))
         self.shape.removeAllChildren()
+        self.rib_lengths.removeAllChildren()
         mirrored_sep = coin.SoSeparator()
         sep = coin.SoSeparator()
         self.shape += mirrored_sep, sep
