@@ -164,7 +164,7 @@ class LineSet(object):
             mesh += line.get_mesh(numpoints)
         return mesh
 
-    def recalc(self, calculate_sag=True, iterations=1):
+    def recalc(self, calculate_sag=True, iterations=5):
         """
         Recalculate Lineset Geometry.
         if LineSet.calculate_sag = True, drag induced sag will be calculated

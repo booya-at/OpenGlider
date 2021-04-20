@@ -295,7 +295,10 @@ class ParametricGlider(object):
     def apply_shape_and_arc(self, glider):
         x_values = self.shape.rib_x_values
         shape_ribs = self.shape.ribs
+
         arc_pos = list(self.arc.get_arc_positions(x_values))
+        rib_angles = self.arc.get_rib_angles(x_values)
+
         offset_x = shape_ribs[0][0][1]
 
         line = []
@@ -303,18 +306,17 @@ class ParametricGlider(object):
 
         if self.shape.has_center_cell:
             arc_pos.insert(0, arc_pos[0] * [-1, 1])
+            rib_angles.insert(0, -rib_angles[0])
 
         for rib_no, x in enumerate(x_values):
             front, back = shape_ribs[rib_no]
             arc = arc_pos[rib_no]
             startpoint = np.array([-front[1] + offset_x, arc[0], arc[1]])
+            rib = glider.ribs[rib_no]
 
-            line.append(startpoint)
-            chords.append(abs(front[1]-back[1]))
-
-        for rib_no, p in enumerate(line):
-            glider.ribs[rib_no].pos = p
-            glider.ribs[rib_no].chord = chords[rib_no]
+            rib.pos = startpoint
+            rib.chord = abs(front[1]-back[1])
+            rib.arc_angle = rib_angles[rib_no]
 
     def get_glider_3d(self, glider=None, num=50, num_profile=None):
         """returns a new glider from parametric values"""
