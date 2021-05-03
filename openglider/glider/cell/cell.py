@@ -429,7 +429,7 @@ class Cell(CachedObject):
         return mesh
 
     @cached_function("self")
-    def get_flattened_cell(self, numribs=50):
+    def get_flattened_cell(self, numribs=50, num_inner=None):
         midribs = self.get_midribs(numribs)
         numpoints = len(midribs[0])
 
@@ -495,7 +495,11 @@ class Cell(CachedObject):
         ]
 
         inner = []
-        for x in openglider.utils.linspace(0, 1, numribs + 2):
+
+        if num_inner is None:
+            num_inner = numribs+2
+
+        for x in openglider.utils.linspace(0, 1, num_inner):
             inner.append(ballooned[0].mix(ballooned[1], x))
 
         #ballooned = [left_bal, right_bal]

@@ -157,7 +157,7 @@ class Mesh(object):
     @property
     def vertices(self):
         vertices = set()
-        for poly in self.all_polygons:
+        for poly in self.get_all_polygons():
             for node in poly:
                 if not isinstance(node, Vertex):
                     raise Exception("Not a Vertex: {} ({})".format(node, poly))
@@ -189,7 +189,13 @@ class Mesh(object):
 
     @property
     def all_polygons(self):
+        # TODO: deprecate
+        logger.warn(f"deprecated property: all_polygons")
         return sum(self.polygons.values(), [])
+
+    def get_all_polygons(self):
+        return sum(self.polygons.values(), [])
+
 
     def copy(self):
         return copy.deepcopy(self)
@@ -258,7 +264,7 @@ class Mesh(object):
 
     def __repr__(self):
         return "Mesh {} ({} faces, {} vertices)".format(self.name,
-                                           len(self.all_polygons),
+                                           len(self.get_all_polygons()),
                                            len(self.vertices))
 
     # def copy(self):
@@ -527,7 +533,7 @@ class Mesh(object):
                 count = len(to_remove)
                 logger.info(f"deleted {count} duplicated Vertices for boundary group <{boundary_name}> ")
 
-        for polygon in self.all_polygons:
+        for polygon in self.get_all_polygons():
             for i, node in enumerate(polygon):
                 if node in replace_dict:
                     polygon[i] = replace_dict[node]
@@ -554,7 +560,7 @@ class Mesh(object):
         count = 0
         sum = 0
 
-        for poly in self.all_polygons:
+        for poly in self.get_all_polygons():
             if len(poly) in (3, 4):
                 sides = []
                 for i in range(len(poly)):

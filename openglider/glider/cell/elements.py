@@ -27,7 +27,7 @@ import euklid
 
 import openglider.vector
 from openglider.airfoil import get_x_value
-from openglider.mesh import Mesh, triangulate
+import openglider.mesh as mesh
 from openglider.utils.cache import cached_function, hash_list
 from openglider.vector import norm
 from openglider.vector.projection import flatten_list
@@ -183,22 +183,22 @@ class DiagonalRib(object):
             if project_3d:
                 points2d = _mesh.map_to_2d(point_array)
 
-            tri = triangulate.Triangulation(points2d, [edge])
+            tri = mesh.triangulate.Triangulation(points2d, [edge])
             tri.name = self.name
 
-            mesh = tri.triangulate(options="Qz")
+            tri_mesh = tri.triangulate(options="Qz")
             # mesh_info = _mesh.mptriangle.MeshInfo()
             # mesh_info.set_points(points2d)
             # mesh_info.set_facets(segment)
             # mesh = _mesh.custom_triangulation(mesh_info, "Qz")
             
 
-            return Mesh.from_indexed(point_array, {"diagonals": list(mesh.elements)}, boundaries={"diagonals": edge})
+            return mesh.Mesh.from_indexed(point_array, {"diagonals": list(tri_mesh.elements)}, boundaries={"diagonals": edge})
 
         else:
             vertices = np.array(list(left) + list(right)[::-1])
             polygon = [range(len(vertices))]
-            return Mesh.from_indexed(vertices, {"diagonals": polygon})
+            return mesh.Mesh.from_indexed(vertices, {"diagonals": polygon})
 
     def get_flattened(self, cell, ribs_flattened=None):
         first, second = self.get_3d(cell)
@@ -285,7 +285,7 @@ class TensionLine(TensionStrap):
         p2 = rib2.profile_3d[rib2.profile_2d(self.right)]
         boundaries[rib1.name] = [0]
         boundaries[rib2.name] = [1]
-        return Mesh.from_indexed([p1, p2], {"tension_lines": [[0, 1]]}, boundaries=boundaries)
+        return mesh.Mesh.from_indexed([p1, p2], {"tension_lines": [[0, 1]]}, boundaries=boundaries)
 
 
 class PanelCut(object):
@@ -342,6 +342,13 @@ class Panel(object):
                 "material_code": self.material_code,
                 "name": self.name
                 }
+
+    @classmethod
+    def dummy(cls):
+        return cls(
+            {"left": -1, "right": -1, "type": "parallel"},
+            {"left": 1, "right": 1, "type": "parallel"}
+        )
     
     def __hash__(self) -> int:
         return hash_list(*self.cut_front.values(), *self.cut_back.values())
@@ -401,7 +408,7 @@ class Panel(object):
             # todo: return polygon-data
         return ribs
 
-    def get_mesh(self, cell, numribs=0, with_numpy=False):
+    def get_mesh(self, cell, numribs=0, with_numpy=False, exact=False):
         """
         Get Panel-mesh
         :param cell: the parent cell of the panel
@@ -409,85 +416,104 @@ class Panel(object):
         :param with_numpy: compute midribs with numpy (faster if available)
         :return: mesh objects consisting of triangles and quadrangles
         """
-        numribs += 1
         # TODO: doesn't work for numribs=0?
+        
         xvalues = cell.rib1.profile_2d.x_values
-        ribs = []
+        x_value_interpolation = euklid.vector.Interpolation([[i, x] for i, x in enumerate(xvalues)])
+
+        rib_iks = []
         points = []
-        nums = []
-        count = 0
-        for rib_no in range(numribs + 1):
-            y = rib_no / max(numribs, 1)
-            x1 = self.cut_front["left"] + y * (self.cut_front["right"] -
-                                               self.cut_front["left"])
-            front = get_x_value(xvalues, x1)
+        rib_node_indices = []
 
-            x2 = self.cut_back["left"] + y * (self.cut_back["right"] -
-                                              self.cut_back["left"])
-            back = get_x_value(xvalues, x2)
-            midrib = cell.midrib(y, with_numpy=with_numpy)
-            ribs.append([x for x in midrib.get_positions(front, back)])
-            points += list(midrib[front:back])
-            nums.append([i + count for i, _ in enumerate(ribs[-1])])
-            count += len(ribs[-1])
+        ik_values = self._get_ik_values(cell, numribs, exact=exact)
 
-        triangles = []
+        for rib_no in range(numribs + 2):
+            y = rib_no / max(numribs+1, 1)
+
+            front, back = ik_values[rib_no]
+
+            midrib = euklid.vector.PolyLine3D(cell.midrib(y).data.tolist())
+
+            rib_iks.append(midrib.get_positions(front, back))
+
+            i0 = len(points)
+            rib_node_indices.append([i + i0 for i, _ in enumerate(rib_iks[-1])])
+
+            points += list(midrib.get(front, back))
+
+        points = [mesh.Vertex(*p) for p in points]
+
+        polygons = []
 
         # helper functions
         def left_triangle(l_i, r_i):
-            return [l_i + 1, l_i, r_i]
+            return mesh.Polygon([points[l_i+1], points[l_i], points[r_i]])
 
         def right_triangle(l_i, r_i):
-            return [r_i + 1, l_i, r_i]
+            return mesh.Polygon([points[r_i+1], points[l_i], points[r_i]])
 
         def quad(l_i, r_i):
-            return [l_i + 1, l_i, r_i, r_i + 1]
+            return mesh.Polygon([points[l_i+1], points[l_i], points[r_i], points[r_i+1]])
 
-        for rib_no, _ in enumerate(ribs[:-1]):
-            num_l = nums[rib_no]
-            num_r = nums[rib_no + 1]
-            pos_l = ribs[rib_no]
-            pos_r = ribs[rib_no + 1]
+        for rib_no, _ in enumerate(rib_iks[:-1]):
+            x = (2*rib_no+1) / (numribs+1) / 2
+            indices_left = rib_node_indices[rib_no]
+            indices_right = rib_node_indices[rib_no + 1]
+
+            iks_left = rib_iks[rib_no]
+            iks_right = rib_iks[rib_no + 1]
             l_i = r_i = 0
-            while l_i < len(num_l)-1 or r_i < len(num_r)-1:
-                if l_i == len(num_l) - 1:
-                    triangles.append(right_triangle(num_l[l_i], num_r[r_i]))
+
+            while l_i < len(indices_left)-1 or r_i < len(indices_right)-1:
+                if l_i == len(indices_left) - 1:
+                    poly = right_triangle(indices_left[l_i], indices_right[r_i])
                     r_i += 1
 
-                elif r_i == len(num_r) - 1:
-                    triangles.append(left_triangle(num_l[l_i], num_r[r_i]))
+                elif r_i == len(indices_right) - 1:
+                    poly = left_triangle(indices_left[l_i], indices_right[r_i])
                     l_i += 1
 
-                elif abs(pos_l[l_i] - pos_r[r_i]) == 0:
-                    triangles.append(quad(num_l[l_i], num_r[r_i]))
+                elif abs(iks_left[l_i] - iks_right[r_i]) == 0:
+                    poly = quad(indices_left[l_i], indices_right[r_i])
                     r_i += 1
                     l_i += 1
 
-                elif pos_l[l_i] <= pos_r[r_i]:
-                    triangles.append(left_triangle(num_l[l_i], num_r[r_i]))
+                elif iks_left[l_i] <= iks_right[r_i]:
+                    poly = left_triangle(indices_left[l_i], indices_right[r_i])
                     l_i += 1
 
-                elif pos_r[r_i] < pos_l[l_i]:
-                    triangles.append(right_triangle(num_l[l_i], num_r[r_i]))
+                elif iks_right[r_i] < iks_left[l_i]:
+                    poly = right_triangle(indices_left[l_i], indices_right[r_i])
                     r_i += 1
+
+                # TODO: improve logic for triangles
+                iks = [iks_left[l_i], iks_right[r_i]]
+                if l_i < len(iks_left) - 1:
+                    iks.append(iks_left[l_i+1])
+                if r_i < len(iks_right) - 1:
+                    iks.append(iks_right[r_i+1])
+                
+                poly.attributes["center"] = [x, x_value_interpolation.get_value(sum(iks)/len(iks))]
+                polygons.append(poly)
         #connection_info = {cell.rib1: np.array(ribs[0], int),
         #                   cell.rib2: np.array(ribs[-1], int)}
-        return Mesh.from_indexed(points, {"panel_"+self.material_code: triangles}, name=self.name)
+
+        return mesh.Mesh({f"panel_{self.material_code}": polygons}, name=self.name)
 
     def mirror(self):
         """
         mirrors the cuts of the panel
         """
         front = self.cut_front
-        self.cut_front = {
+        self.cut_front.update({
             "right": front["left"],
             "left": front["right"]
-        }
+        })
         back = self.cut_back
-        self.cut_back = {
+        self.cut_back.update({
             "right": back["left"],
             "left": back["right"]
-        }
+        })
     
     def snap(self, cell):
         """
@@ -534,7 +560,7 @@ class Panel(object):
 
         if exact:
             ik_values_new = []
-            inner = cell.get_flattened_cell(numribs)["inner"]
+            inner = cell.get_flattened_cell(num_inner=numribs+2)["inner"]
             p_front_left = inner[0].get(ik_left_front)
             p_front_right = inner[-1].get(ik_right_front)
             p_back_left = inner[0].get(ik_left_back)
@@ -697,7 +723,7 @@ class PanelRigidFoil():
     def draw_panel_marks(self, cell, panel):
         line, ik_front, ik_back = self._get_flattened_line(cell)
 
-        ik_values = panel._get_ik_values(cell, numribs=5)
+        #ik_values = panel._get_ik_values(cell, numribs=5)
         ik_interpolation_front, ik_interpolation_back = panel._get_ik_interpolation(cell, numribs=5)
 
         start = max(ik_front, ik_interpolation_front.get_value(self.y))
