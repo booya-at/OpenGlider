@@ -39,7 +39,9 @@ class XFoilCalc:
             OPER
             VISC {self.re_number}
             VPAR
-            n
+            NT
+            {self.ncrit}
+            NB
             {self.ncrit}
             xtr
             {self.xtr_top}
@@ -68,9 +70,9 @@ class XFoilCalc:
         rex_line = re.compile(rex_line_str)
         values = [
             "alpha",
-            "ca",
-            "cw",
-            "cwp",
+            "cl",
+            "cd",
+            "cdp",
             "cm",
             "top_xtr",
             "bottom_xtr",
@@ -90,7 +92,7 @@ class XFoilCalc:
                     data.append(dct)
 
         df = pandas.DataFrame(data).set_index("alpha")
-        df["glide"] = df["ca"]/df["cw"]
+        df["glide"] = df["cl"]/df["cd"]
                     
         return df
 
