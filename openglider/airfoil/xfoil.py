@@ -32,10 +32,7 @@ class XFoilCalc:
             g
 
             LOAD airfoil.dat
-
-            CADD
-            PANEL
-
+            
             OPER
             VISC {self.re_number}
             VPAR
