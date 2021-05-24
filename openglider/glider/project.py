@@ -92,8 +92,8 @@ class GliderProject(object):
 
         x_rel = diff.dot(rib_diff) / rib_diff.dot(rib_diff) * 100
 
-        table["A11"] = "Att. x (relative to chord)"
-        table["B11"] = f"{x_rel:.01f} %"
+        table["A12"] = "Att. x (relative to chord)"
+        table["B12"] = f"{x_rel:.01f} %"
 
         return table
 
