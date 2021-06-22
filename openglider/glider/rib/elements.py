@@ -170,10 +170,9 @@ class CellAttachmentPoint(Node):
         ik = self.cell.rib1.profile_2d(self.rib_pos)
 
         if self.rib_pos in (-1, 1):
-            vec = self.cell.rib1.profile_3d.get(ik) + self.cell.rib2.profile_3d.get(ik)
-            self.vec = euklid.vector.Vector3D(vec.tolist())*0.5
+            self.vec = (self.cell.rib1.profile_3d.get(ik) + self.cell.rib2.profile_3d.get(ik))*0.5
         else:
-            self.vec = euklid.vector.Vector3D(self.cell.midrib(self.cell_pos, ballooning=self.ballooned)[ik])
+            self.vec = self.cell.midrib(self.cell_pos, ballooning=self.ballooned)[ik]
             
         return self.vec
 
@@ -199,7 +198,7 @@ class AttachmentPoint(Node):
 
     def get_position(self):
         # todo: PROFILE3D -> return euklid vector
-        self.vec = euklid.vector.Vector3D(self.rib.profile_3d[self.rib.profile_2d(self.rib_pos)].tolist())
+        self.vec = self.rib.profile_3d[self.rib.profile_2d(self.rib_pos)]
         return self.vec
 
 

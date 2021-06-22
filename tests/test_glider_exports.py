@@ -85,6 +85,7 @@ class TestGlider(TestCase):
             jsonify.dump(self.glider, tmp)
             tmp.seek(0)
             glider = jsonify.load(tmp)['data']
+            
         self.assertEqualGlider(self.glider, glider)
 
     def test_export_glider_ods(self):

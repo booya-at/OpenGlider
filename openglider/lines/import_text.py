@@ -19,6 +19,8 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 
+import euklid
+
 from openglider.lines.functions import *
 from openglider.lines.elements import Line, Node
 from openglider.lines import LineSet
@@ -40,7 +42,11 @@ def import_lines(path):
 def store_nodes(values, thalist, key_dict):
     n = Node(try_convert(values[0], int))
     n.type = try_convert(values[1], int)
-    n.vec = np.array([try_convert(x, float) for x in values[2:5]])
+    vec = [try_convert(x, float) for x in values[2:5]]
+    try:
+        n.vec = euklid.vector.Vector3D(vec)
+    except:
+        pass
     n.force = np.array([try_convert(x, float) for x in values[5:8]])
     thalist.append(n)
 

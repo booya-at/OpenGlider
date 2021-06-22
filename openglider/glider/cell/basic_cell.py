@@ -2,6 +2,8 @@ from __future__ import division
 import copy
 import math
 import numpy as np
+import euklid
+
 from openglider.airfoil import Profile3D
 from openglider.utils.cache import CachedObject, cached_property
 from openglider.vector import normalize, norm
@@ -37,6 +39,9 @@ class BasicCell(CachedObject):
             # 2: x2 = R*normvekt*(cos(phi2)-cos(phi)
             # 3: norm(d)/r*(1-x) = 2*sin(phi(2))
             if with_numpy:
+                prof1 = np.array(self.prof1.curve.tolist())
+                prof2 = np.array(self.prof2.curve.tolist())
+
                 phi = np.array(self.ballooning_phi)
                 normals = np.array(self.normvectors)
                 radius = np.array(self.ballooning_radius)
@@ -46,11 +51,11 @@ class BasicCell(CachedObject):
                 l_h = np.cos(phi - psi) - np.cos(phi)
                 l_d = 0.5 * (1 - np.sin(phi - psi) / np.sin(phi))
                 radius = radius * (radius > 0.)  # => radius = min(radius, 0)
-                midrib = self.prof1.data.T - l_d * (self.prof1.data - self.prof2.data).T + (l_h * radius) * normals.T
-                return Profile3D(midrib.T)
+                midrib = prof1.T - l_d * (prof1 - prof2).T + (l_h * radius) * normals.T
+                return Profile3D(midrib.T.tolist())
 
-            for i, _ in enumerate(self.prof1.data):  # Arc -> phi(bal) -> r  # oder so...
-                diff = self.prof1[i] - self.prof2[i]
+            for i in range(len(self.prof1.curve.nodes)):  # Arc -> phi(bal) -> r  # oder so...
+                diff = self.prof1.curve.nodes[i] - self.prof2.curve.nodes[i]
                 if close_trailing_edge and i in (0, len(self.prof1.data)-1):
                     d = y_value
                     h = 0.
@@ -73,14 +78,20 @@ class BasicCell(CachedObject):
 
     @cached_property('prof1', 'prof2')
     def normvectors(self, j=None):
-        prof1 = self.prof1.data
-        prof2 = self.prof2.data
-        p1 = np.array(self.prof1.tangents)
-        p2 = np.array(self.prof2.tangents)
+        prof1 = self.prof1.curve
+        prof2 = self.prof2.curve
+        
+        t_1 = self.prof1.tangents
+        t_2 = self.prof2.tangents
         # cross differenzvektor, tangentialvektor
-        normal_vec = np.cross(p1 + p2, prof1 - prof2, axis=1).T
-        normal_vec /= np.linalg.norm(normal_vec, axis=0)
-        return normal_vec.T
+
+        normals = []
+
+        for p1, p2, t1, t2 in zip(prof1, prof2, t_1, t_2):
+            normal = (t1 + t2).cross(p1 - p2)
+            normals.append(normal.normalized())
+        
+        return normals
 
     @cached_property('ballooning_phi')
     def ballooning_cos_phi(self):
@@ -90,10 +101,19 @@ class BasicCell(CachedObject):
 
     @cached_property('ballooning_phi', 'prof1', 'prof2')
     def ballooning_radius(self):
-        p1 = self.prof1.data
-        p2 = self.prof2.data
+        prof1 = self.prof1.curve
+        prof2 = self.prof2.curve
+
         phi = np.array(self.ballooning_phi)
-        return np.linalg.norm(p1 - p2, axis=1) / (2 * np.sin(phi) + (phi == 0)) * (phi != 0)
+
+        radius = []
+
+        for p1, p2, phi in zip(prof1, prof2, self.ballooning_phi):
+            r = (p1-p2).length() / (2 * math.sin(phi) + (phi==0))
+
+            radius.append(r*(phi != 0))
+
+        return radius
 
     def copy(self):
         return copy.deepcopy(self)

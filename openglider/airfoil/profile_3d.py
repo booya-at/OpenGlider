@@ -19,6 +19,7 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
 import numpy as np
+import euklid
 
 from openglider.utils.cache import cached_property
 from openglider.vector import Plane
@@ -26,15 +27,30 @@ from openglider.vector.functions import norm, normalize
 from openglider.vector.polyline import PolyLine
 from openglider.airfoil import Profile2D
 
+class Profile3D:
+    def __init__(self, data, name="unnamed"):
+        self.curve = euklid.vector.PolyLine3D(data)
+        self.name = name
 
-class Profile3D(PolyLine):
+    def __getitem__(self, ik):
+        return self.curve.get(ik)
+    
+    def get_positions(self, start, stop):
+        return self.curve.get_positions(start, stop)
+    
+    def get(self, start, stop=None):
+        if stop is None:
+            return self.curve.get(start)
+            
+        return self.curve.get(start, stop)
+
     @cached_property('self')
     def noseindex(self):
-        p0 = self.data[0]
+        p0 = self.curve.nodes[0]
         max_dist = 0
         noseindex = 0
-        for i, p1 in enumerate(self.data):
-            diff = norm(p1 - p0)
+        for i, p1 in enumerate(self.curve.nodes):
+            diff = (p1 - p0).length()
             if diff > max_dist:
                 noseindex = i
                 max_dist = diff
@@ -45,30 +61,26 @@ class Profile3D(PolyLine):
         """
         Projection Layer of profile_3d
         """
-        p1 = self.data[0]
-        diff = [p - p1 for p in self.data]
+        p1 = self.curve.nodes[0]
+        diff = [p - p1 for p in self.curve.nodes]
 
-        xvect = normalize(-diff[self.noseindex])
-        yvect = np.array([0, 0, 0])
+
+
+        xvect = diff[self.noseindex].normalized() * -1
+        yvect = euklid.vector.Vector3D([0, 0, 0])
 
         for i in range(len(diff)):
             sign = 1 - 2 * (i > self.noseindex)
-            yvect = yvect + sign * (diff[i] - xvect * xvect.dot(diff[i]))
+            yvect = yvect + (diff[i] - xvect * xvect.dot(diff[i])) * sign
 
-        # prev
-        try:
-            yvect = normalize(yvect)
-        except ValueError as e:
-            # yvect  = [0,0,0] (stabi)
-            # TODO: handle somewhere else
-            pass
+        yvect = yvect.normalized()
 
-        return Plane(self.data[self.noseindex], xvect, yvect)
+        return Plane(self.curve.nodes[self.noseindex], xvect, yvect)
 
     def flatten(self):
         """Flatten the airfoil and return a 2d-Representative"""
         layer = self.projection_layer
-        return Profile2D([layer.projection(p) for p in self.data],
+        return Profile2D([layer.projection(p) for p in self.curve.nodes],
                          name=self.name or 'profile' + "_flattened")
 
     @cached_property('self')
@@ -88,19 +100,4 @@ class Profile3D(PolyLine):
 
     @property
     def tangents(self):
-        second = self.data[0]
-        third = self.data[1]
-        tangents = [normalize(third - second)]
-        for element in self.data[2:]:
-            first = second
-            second = third
-            third = element
-            tangent = np.array([0, 0, 0])
-            for vec in [third-second, second-first]:
-                try:
-                    tangent = tangent + normalize(vec)
-                except ValueError:  # zero-length vector
-                    pass
-            tangents.append(tangent)
-        tangents.append(normalize(third - second))
-        return tangents
+        return self.curve.get_tangents()

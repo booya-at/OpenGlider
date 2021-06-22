@@ -649,7 +649,7 @@ class LineSet(object):
         return {
             'lines': new.lines,
             'nodes': nodes,
-            'v_inf': self.v_inf.tolist()
+            'v_inf': self.v_inf
         }
 
     @classmethod

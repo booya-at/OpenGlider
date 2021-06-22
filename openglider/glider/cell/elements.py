@@ -120,7 +120,7 @@ class DiagonalRib(object):
                 front = rib.profile_2d(cut_front[0] * side)
                 back = rib.profile_2d(cut_back[0] * side)
 
-                poly2 = euklid.vector.PolyLine3D(rib.profile_3d.data.tolist())
+                poly2 = rib.profile_3d.curve
 
                 return poly2.get(front, back)
                 #return euklid.vector.PolyLine3D(rib.profile_3d[front:back].data.tolist())
@@ -432,7 +432,7 @@ class Panel(object):
 
             front, back = ik_values[rib_no]
 
-            midrib = euklid.vector.PolyLine3D(cell.midrib(y).data.tolist())
+            midrib = cell.midrib(y)
 
             rib_iks.append(midrib.get_positions(front, back))
 

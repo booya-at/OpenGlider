@@ -347,7 +347,7 @@ class Cell(CachedObject):
             rib_indices = rib_indices[(numribs) // 2:]
         for rib_no in rib_indices:
             y = rib_no / max(numribs, 1)
-            rib = self.midrib(y, with_numpy=with_numpy).data
+            rib = self.midrib(y, with_numpy=with_numpy).curve.nodes
             grid.append(Vertex.from_vertices_list(rib[:-1]))
         return grid
 
@@ -431,7 +431,7 @@ class Cell(CachedObject):
     @cached_function("self")
     def get_flattened_cell(self, numribs=50, num_inner=None):
         midribs = self.get_midribs(numribs)
-        numpoints = len(midribs[0])
+        numpoints = len(midribs[0].curve.nodes)
 
         len_dct = {}
         def get_length(ik1, ik2):
@@ -539,7 +539,7 @@ class Cell(CachedObject):
             # TODO: Investigate
             return [max(0, x) for x in data]
 
-        midribs = [euklid.vector.PolyLine3D(p.data.tolist()) for p in self.get_midribs(len(inner))]
+        midribs = [p.curve for p in self.get_midribs(len(inner))]
 
         for panel in panels:
             amount_front, amount_back = panel.integrate_3d_shaping(self, self.sigma_3d_cut, inner, midribs)
