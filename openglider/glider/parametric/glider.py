@@ -466,7 +466,8 @@ class ParametricGlider(object):
     @property
     def v_inf(self):
         angle = np.arctan(1/self.glide)
-        return np.array([np.cos(angle), 0, np.sin(angle)]) * self.speed
+
+        return euklid.vector.Vector3D([np.cos(angle), 0, np.sin(angle)]) * self.speed
 
     def set_area(self, area):
         factor = math.sqrt(area/self.shape.area)

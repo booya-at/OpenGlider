@@ -36,7 +36,7 @@ class LowerNode2D(object):
         return self.pos_2D
 
     def get_node(self, glider):
-        return Node(node_type=0, position_vector=np.array(self.pos_3D), name=self.name)
+        return Node(node_type=0, position_vector=self.pos_3D, name=self.name)
 
 
 class UpperNode2D(object):
@@ -208,8 +208,8 @@ class LineSet2D(object):
                 if scale_lower_floor or line.lower_node not in lower_nodes:
                     line.target_length *= factor
         for node in lower_nodes:
-            node.pos_3D = np.array(node.pos_3D) * factor
-            node.pos_2D = np.array(node.pos_2D) * factor
+            node.pos_3D = node.pos_3D * factor
+            node.pos_2D = node.pos_2D * factor
 
     def set_default_nodes2d_pos(self, parametricshape):
         def get_node_pos(node):

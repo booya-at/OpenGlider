@@ -2,10 +2,11 @@ import re
 import numpy as np
 import copy
 import logging
-from openglider.lines import SagMatrix
+
+import euklid
 
 from openglider.lines.functions import proj_force
-from openglider.lines.elements import Node
+from openglider.lines.elements import Node, SagMatrix
 from openglider.mesh import Mesh
 from openglider.vector.functions import norm, normalize
 from openglider.utils.table import Table
@@ -23,12 +24,12 @@ class LineSet(object):
     ]
 
     def __init__(self, lines, v_inf=None):
-        if v_inf is not None:
-            v_inf = np.array(v_inf)
-        self.v_inf = v_inf
+        self.v_inf = euklid.vector.Vector3D(v_inf)
         self.lines = lines or []
+
         for line in lines:
             line.lineset = self
+        
         self.mat = None
         self.glider = None
 
@@ -60,7 +61,7 @@ class LineSet(object):
 
     def scale(self, factor):
         for p in self.lower_attachment_points:
-            p.vec = np.array(p.vec) * factor
+            p.vec = p.vec * factor
         for line in self.lines:
             if line.target_length:
                 line.target_length *= factor
@@ -314,7 +315,7 @@ class LineSet(object):
 
     def get_normalized_drag(self):
         """get the line drag normalized by the velocity ** 2 / 2"""
-        return self.get_drag()[1] / norm(self.v_inf) ** 2 * 2
+        return self.get_drag()[1] / self.v_inf.length()**2 * 2
 
     # -----CALCULATE GEO-----#
     def get_tangential_comp(self, line, pos_vec):
@@ -332,7 +333,8 @@ class LineSet(object):
             # compute the compensation factor s with a system of linear equation. The movement
             # of the upper node has impact on the compensation of residual force
             # of the lower node (and the other way).
-            return normalize(line.diff_vector + r / s * 0.5)
+            comp = line.diff_vector + r / s * 0.5
+            return euklid.vector.Vector3D(comp.tolist()).normalized()
 
             # if norm(r) == 0:
             #     return line.diff_vector
@@ -344,12 +346,12 @@ class LineSet(object):
         else:
             # if there are no computed forces available, use all the uppermost forces to compute
             # the direction of the line
-
-            tangent = np.array([0., 0., 0.])
+            tangent = euklid.vector.Vector3D([0,0,0])
             upper_node = self.get_upper_influence_nodes(line)
             for node in upper_node:
                 tangent += node.calc_force_infl(pos_vec)
-            return normalize(tangent)
+
+            return tangent.normalized()
 
     def get_upper_influence_nodes(self, line=None, node=None):
         """

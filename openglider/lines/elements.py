@@ -338,33 +338,44 @@ class Line(CachedObject):
 class Node(object):
     def __init__(self, node_type, position_vector=None, attachment_point=None, name=None):
         self.type = node_type  # lower, middle, top (0, 1, 2)
-        if position_vector is not None:
-            position_vector = np.array(position_vector)
-        self.vec = position_vector
+        if position_vector is None:
+            position_vector = [0,0,0]
+        self._vec = euklid.vector.Vector3D(position_vector)
 
         self.vec_proj = None  # pos_proj
-        self.force = np.array([None, None, None])  # top-node force
+        self.force = euklid.vector.Vector3D() # top-node force
         self.attachment_point = attachment_point
         self.name = name or "name_not_set"
 
+    @property
+    def vec(self):
+        return self._vec
+
+    @vec.setter
+    def vec(self, value):
+        self._vec = euklid.vector.Vector3D(value)
+
     def calc_force_infl(self, vec):
-        v = np.array(vec)
+        v = euklid.vector.Vector3D(vec)
+
         direction = self.vec - v
         if self.type == 2:
             force = proj_force(self.force, direction)
         else:
-            force = self.force @ direction / np.linalg.norm(direction)
+            force = direction.normalized().dot(self.force)
         if force is None:
             logging.warn("projected force for line {} is None, direction: {}, force: {}".format(
                 self.name, direction, self.force))
             force = 0.00001
-        return normalize(direction) * force
+
+        return direction.normalized() * force
 
     def get_position(self):
         pass
 
     def calc_proj_vec(self, v_inf):
-        self.vec_proj = proj_to_surface(self.vec, v_inf)
+        self.vec_proj = self.vec - v_inf * (v_inf.dot(self.vec) / v_inf.dot(v_inf))
+
         return proj_to_surface(self.vec, v_inf)
 
     def get_diff(self):

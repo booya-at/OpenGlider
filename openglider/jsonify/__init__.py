@@ -102,10 +102,16 @@ def dumps(obj, add_meta=True):
     return json.dumps(obj, cls=Encoder)
 
 
-def dump(obj, fp, add_meta=True):
+def dump(obj, fp, add_meta=True, pretty=True):
+    if pretty:
+        kwargs = {
+            "indent": 4
+        }
+    else:
+        kwargs = {}
     if add_meta:
         obj = add_metadata(obj)
-    return json.dump(obj, fp, cls=Encoder, indent=4)
+    return json.dump(obj, fp, cls=Encoder, **kwargs)
 
 
 def loads(obj):

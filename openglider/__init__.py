@@ -49,6 +49,14 @@ def load(filename):
 
     return res
 
+def load_demokite():
+    import os
+    filename = os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests/common/demokite.ods")
+
+    if not os.path.isfile(filename):
+        raise FileNotFoundError()
+
+    return load(filename)
 
 def save(data, filename, add_meta=True):
     with open(filename,"w") as outfile:

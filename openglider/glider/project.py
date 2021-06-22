@@ -76,7 +76,7 @@ class GliderProject(object):
         table["A9"] = "Attachment point x"
         table["A10"] = "Attachment point z"
 
-        attachment_point = euklid.vector.Vector3D(self.glider_3d.lineset.get_main_attachment_point().vec.tolist())
+        attachment_point = self.glider_3d.lineset.get_main_attachment_point().vec
         table["B9"] = f"{attachment_point[0]:.03f}"
         table["B10"] = f"{attachment_point[2]:.03f}"
 
