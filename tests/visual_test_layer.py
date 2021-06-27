@@ -26,12 +26,12 @@ import os
 import math
 import sys
 import numpy as np
+import euklid
 
 try:
     import openglider
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
-from openglider.vector import Plane
 from openglider.graphics import Graphics, Line, Red, Point, Blue
 
 
@@ -40,7 +40,7 @@ class TestLayer(unittest.TestCase):
         p0 = [0.,0.,0.]
         v1 = [1.,0.,0.]
         v2 = [0.,1.,0.]
-        self.layer = Plane(p0, v1, v2)
+        self.layer = euklid.plane.Plane(p0, v1, v2)
 
     def testCut(self):
         p1 = np.array([0., 0., -1.])

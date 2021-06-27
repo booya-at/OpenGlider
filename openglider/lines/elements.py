@@ -131,7 +131,7 @@ class Line(CachedObject):
 
     @property
     def v_inf_0(self):
-        return normalize(self.v_inf)
+        return self.v_inf.normalized()
 
     @property
     def v_inf(self):
@@ -144,20 +144,20 @@ class Line(CachedObject):
         Line Direction vector (normalized)
         :return:
         """
-        return normalize(self.upper_node.vec - self.lower_node.vec)
+        return (self.upper_node.vec - self.lower_node.vec).normalized()
 
     #@cached_property('lower_node.vec', 'upper_node.vec')
     @property
     def diff_vector_projected(self):
-        return normalize(self.upper_node.vec_proj - self.lower_node.vec_proj)
+        return (self.upper_node.vec_proj - self.lower_node.vec_proj).normalized()
 
     @cached_property('lower_node.vec', 'upper_node.vec', 'v_inf')
     def length_projected(self):
-        return norm(self.lower_node.vec_proj - self.upper_node.vec_proj)
+        return (self.lower_node.vec_proj - self.upper_node.vec_proj).length()
 
     @property
     def length_no_sag(self):
-        return norm(self.upper_node.vec - self.lower_node.vec)
+        return (self.upper_node.vec - self.lower_node.vec).length()
 
     @cached_property('lower_node.vec', 'upper_node.vec', 'v_inf', 'sag_par_1', 'sag_par_2')
     def length_with_sag(self):
@@ -185,7 +185,7 @@ class Line(CachedObject):
         drag per meter (projected)
         :return: 1/2 * cw * d * v^2
         """
-        return 1 / 2 * self.type.cw * self.type.thickness * self.rho_air * norm(self.v_inf) ** 2
+        return 1 / 2 * self.type.cw * self.type.thickness * self.rho_air * self.v_inf.dot(self.v_inf)
 
     #@cached_property('lower_node.vec', 'upper_node.vec', 'v_inf')
     @property
@@ -195,7 +195,6 @@ class Line(CachedObject):
         :return: 1/2 * cw * A * v^2
         """
         drag = self.ortho_pressure * self.length_projected
-        print(f"drag: {self.name} {self.type.name} {self.type.thickness} {self.length_projected} {drag}")
         return drag
 
     def get_weight(self):
@@ -269,8 +268,8 @@ class Line(CachedObject):
 
     @property
     def _get_projected_par(self):
-        c1_n = np.dot(self.lower_node.get_diff(), self.v_inf_0)
-        c2_n = np.dot(self.upper_node.get_diff(), self.v_inf_0)
+        c1_n = self.lower_node.get_diff().dot(self.v_inf_0)
+        c2_n = self.upper_node.get_diff().dot(self.v_inf_0)
         return [c1_n + self.sag_par_1, c2_n / self.length_projected + self.sag_par_2]
 
     def __json__(self):
@@ -307,10 +306,12 @@ class Line(CachedObject):
         return the rib normal of the connected rib(s)
         '''
         ribs = self.get_connected_ribs(glider)
-        result = np.array([0., 0., 0.])
+        result = euklid.vector.Vector3D()
+
         for rib in ribs:
             result += rib.normalized_normale
-        return result / np.linalg.norm(result)
+
+        return result.normalized()
 
     def rib_line_norm(self, glider):
         '''
@@ -327,11 +328,12 @@ class Line(CachedObject):
         of the residual force
         '''
         diff = self.diff_vector
-        l = np.linalg.norm(diff)
-        r = np.linalg.norm(residual_force)
+        l = diff.length()
+        r = residual_force.length()
+        
         normed_residual_force = residual_force / r
         normed_diff_vector = diff / l
-        f = 1. - normed_residual_force @ normed_diff_vector   # 1 if normal, 0 if parallel
+        f = 1. - normed_residual_force.dot(normed_diff_vector)   # 1 if normal, 0 if parallel
         return f * self.force / l
 
 

@@ -22,7 +22,6 @@ import numpy as np
 import euklid
 
 from openglider.utils.cache import cached_property
-from openglider.vector import Plane
 from openglider.vector.functions import norm, normalize
 from openglider.vector.polyline import PolyLine
 from openglider.airfoil import Profile2D
@@ -75,12 +74,12 @@ class Profile3D:
 
         yvect = yvect.normalized()
 
-        return Plane(self.curve.nodes[self.noseindex], xvect, yvect)
+        return euklid.plane.Plane(self.curve.nodes[self.noseindex], xvect, yvect)
 
     def flatten(self):
         """Flatten the airfoil and return a 2d-Representative"""
         layer = self.projection_layer
-        return Profile2D([layer.projection(p) for p in self.curve.nodes],
+        return Profile2D([layer.project(p) for p in self.curve.nodes],
                          name=self.name or 'profile' + "_flattened")
 
     @cached_property('self')

@@ -1,5 +1,4 @@
 import re
-import numpy as np
 import copy
 import logging
 
@@ -71,7 +70,7 @@ class LineSet(object):
         for node in self.nodes:
             if node.type == 2: # upper att-node
                 node.force *= factor ** 2
-        self.recalc()
+        self.recalc(update_attachment_points=False)
         return self
 
     @property
@@ -165,7 +164,7 @@ class LineSet(object):
             mesh += line.get_mesh(numpoints)
         return mesh
 
-    def recalc(self, calculate_sag=True, iterations=5):
+    def recalc(self, calculate_sag=True, update_attachment_points=True, iterations=5):
         """
         Recalculate Lineset Geometry.
         if LineSet.calculate_sag = True, drag induced sag will be calculated
@@ -181,11 +180,15 @@ class LineSet(object):
             for line in self.lines:
                 line.force = None
 
-        for point in self.attachment_points:
-            point.get_position()
+        if update_attachment_points:
+            logger.info("get positions")
+            for point in self.attachment_points:
+                point.get_position()
+
         self.calculate_sag = calculate_sag
         
-        for i in range(iterations):
+        logger.info("calc geo")
+        for _i in range(iterations):
             self._calc_geo()
             if self.calculate_sag:
                 self._calc_sag()
@@ -243,30 +246,30 @@ class LineSet(object):
     def calc_forces(self, start_lines):
         for line_lower in start_lines:
             upper_node = line_lower.upper_node
-            vec = line_lower.diff_vector
+            vec = line_lower.diff_vector.normalized()
             if line_lower.upper_node.type != 2:  # not a gallery line
                 # recursive force-calculation
                 # setting the force from top to down
                 lines_upper = self.get_upper_connected_lines(upper_node)
                 self.calc_forces(lines_upper)
 
-                force = np.zeros(3)
+                force = euklid.vector.Vector3D()
                 for line in lines_upper:
                     if line.force is None:
                         logger.warning(f"error line force not set: {line}")
                     else:
-                        force += line.force * line.diff_vector
+                        force += line.diff_vector * line.force
                 # vec = line_lower.upper_node.vec - line_lower.lower_node.vec
-                line_lower.force = norm(np.dot(force, normalize(vec)))
+                line_lower.force = force.dot(vec)
 
             else:
                 force = line_lower.upper_node.force
-                force_projected = proj_force(force, normalize(vec))
+                force_projected = proj_force(force, vec)
                 if force_projected is None:
-                    logger.error(f"invalid line: {line.name} ({line.type})")
+                    logger.error(f"invalid line: {line_lower.name} ({line_lower.type})")
                     line_lower.force = 10
                 else:
-                    line_lower.force = norm(force_projected)
+                    line_lower.force = force_projected
 
     def get_upper_connected_lines(self, node):
         return [line for line in self.lines if line.lower_node is node]
@@ -295,7 +298,7 @@ class LineSet(object):
         :return: Center of Pressure, Drag (1/2*cw*A*v^2)
         """
         drag_total = 0.
-        center = np.array([0.,0.,0.])
+        center = euklid.vector.Vector3D()
 
         for line in self.lines:
             drag_total += line.drag_total
@@ -334,7 +337,7 @@ class LineSet(object):
             # of the upper node has impact on the compensation of residual force
             # of the lower node (and the other way).
             comp = line.diff_vector + r / s * 0.5
-            return euklid.vector.Vector3D(comp.tolist()).normalized()
+            return comp.normalized()
 
             # if norm(r) == 0:
             #     return line.diff_vector
@@ -384,7 +387,7 @@ class LineSet(object):
                     diff = l.get_stretched_length(pre_load) - l.target_length
                     l.init_length -= diff
                     #l.init_length = l.target_length * l.init_length / l.get_stretched_length(pre_load)
-            self.recalc()
+            self.recalc(update_attachment_points=False)
 
     def _set_line_indices(self):
         for i, line in enumerate(self.lines):
@@ -618,7 +621,7 @@ class LineSet(object):
         '''
         get the sum of the forces of all upper-connected lines
         '''
-        force = np.array([0., 0., 0.])
+        force = euklid.vector.Vector3D()
         for line in self.get_upper_connected_lines(node):
             force += line.force * line.diff_vector
         return force
@@ -627,13 +630,14 @@ class LineSet(object):
         '''
         compute the residual force in a node to due simplified computation of lines
         '''
-        residual_force = np.zeros(3)
+        residual_force = euklid.vector.Vector3D()
         upper_lines = self.get_upper_connected_lines(node)
         lower_lines = self.get_lower_connected_lines(node)
         for line in upper_lines:
-            residual_force += line.force * line.diff_vector
+            residual_force += line.diff_vector * line.force
         for line in lower_lines:
-            residual_force -= line.force * line.diff_vector
+            residual_force -= line.diff_vector * line.force
+
         return residual_force
 
     def copy(self):

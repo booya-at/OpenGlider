@@ -19,20 +19,19 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import division
-import numpy as np
 import logging
 import traceback
 logger = logging.getLogger(__name__)
 
 def proj_force(force, vec):
-    proj = np.dot(vec, force)
+    projection = vec.dot(force)
     try:
-        assert proj**2 >= 0.00001
-    except AssertionError as e:
-        logger.warning(f"singular force projection: {vec} / {force} ({proj}")
+        assert projection**2 >= 0.00001
+    except AssertionError:
+        logger.warning(f"singular force projection: {vec} / {force} ({projection}")
         return None
-    return np.dot(force, force) / proj
+    return force.dot(force) / projection
 
 
 def proj_to_surface(vec, n_vec):
-    return vec - np.array(n_vec) * np.dot(n_vec, vec) / np.dot(n_vec, n_vec)
+    return vec - n_vec * n_vec.dot(vec) / n_vec.dot(n_vec)

@@ -24,6 +24,7 @@ import math
 from typing import List
 
 import numpy as np
+import euklid
 
 import openglider
 
@@ -199,7 +200,7 @@ class Glider(object):
         """
         num += 1
         if not self.cells:
-            return np.array([])
+            return []
         #will hold all the points
         ribs = []
         for cell in self.cells:
@@ -280,9 +281,9 @@ class Glider(object):
             p.get_position()
         for node in [node for node in other2.lineset.nodes]:
             if node.type != 2:
-                node.vec *= np.array([1, -1, 1])
+                node.vec *= [1, -1, 1]
             if all(node.force):
-                node.force *= np.array([1, -1, 1])
+                node.force *= [1, -1, 1]
         other2.lineset.lines += other.lineset.lines
         other2.lineset._set_line_indices()
         other2.lineset.recalc()
@@ -301,21 +302,24 @@ class Glider(object):
         """
         Simple (rectangular) shape representation for spline inputs
         """
-        last_pos = np.array([0, 0])  # y,z
+        last_pos = euklid.vector.Vector2D([0,0])  # y,z
         front = []
         back = []
         x = 0
         for rib in self.ribs:
-            width = norm(rib.pos[1:] - last_pos)
-            last_pos = rib.pos[1:]
+            p1 = euklid.vector.Vector2D([rib.pos[1], rib.pos[2]])
+
+            width = (p1-last_pos).length()
+            last_pos = p1
 
             x += width * (rib.pos[1] > 0)  # x-value
             if x == 0:
-                last_pos = np.array([0., 0.])
+                last_pos = euklid.vector.Vector2D([0,0])
+
             y_front = -rib.pos[0] + rib.chord * rib.startpos
             y_back = -rib.pos[0] + rib.chord * (rib.startpos - 1)
-            front.append([x, y_front])
-            back.append([x, y_back])
+            front.append(euklid.vector.Vector2D([x, y_front]))
+            back.append(euklid.vector.Vector2D([x, y_back]))
 
         return Shape(front, back)
 
@@ -324,9 +328,9 @@ class Glider(object):
         """
         Projected Shape of the glider (as it would lie on the ground - flattened)
         """
-        rot = rotation_2d(np.pi / 2)
         front, back = flatten_list(self.get_spanwise(0), self.get_spanwise(1))
-        return Shape([rot.dot(p) for p in front], [rot.dot(p) for p in back])
+
+        return Shape(front.rotate(-math.pi/2, [0,0]), back.rotate(-math.pi/2, [0,0]))
 
     # delete ?
     @property
@@ -395,13 +399,13 @@ class Glider(object):
         area = 0.
         if len(self.ribs) == 0:
             return 0
-        front = self.get_spanwise(0)
-        back = self.get_spanwise(1)
+        front = self.get_spanwise(0).nodes
+        back = self.get_spanwise(1).nodes
         front[0][1] = 0  # Get only half a midrib, if there is...
         back[0][1] = 0
         for i in range(len(front) - 1):
-            area += norm(np.cross(front[i] - front[i + 1], back[i + 1] - front[i + 1]))
-            area += norm(np.cross(back[i] - back[i + 1], back[i] - front[i]))
+            area += (front[i] - front[i+1]).cross(back[i+1]-front[i+1]).length()
+            area += (back[i] - back[i + 1]).cross(back[i] - front[i]).length()
             # By this we get twice the area of half the glider :)
             # http://en.wikipedia.org/wiki/Triangle#Using_vectors
         return area
@@ -440,9 +444,9 @@ class Glider(object):
         Return a list of points for a x_value
         """
         if x == 0:
-            return copy.deepcopy([rib.pos for rib in self.ribs])  # This is much faster
+            return euklid.vector.PolyLine3D([rib.pos for rib in self.ribs])  # This is much faster
         else:
-            return [rib.align([x, 0, 0]) for rib in self.ribs]
+            return euklid.vector.PolyLine3D([rib.align([x, 0, 0]) for rib in self.ribs])
 
     @property
     def centroid(self):
@@ -510,6 +514,6 @@ class Glider(object):
         for rib in self.ribs:
             rib.glide = glide
 
-        angle = np.arctan(1/glide)
-        speed = norm(self.lineset.v_inf)
-        self.lineset.v_inf = np.array([np.cos(angle), 0, np.sin(angle)]) * speed
+        angle = math.atan(1/glide)
+        speed = self.lineset.v_inf.length()
+        self.lineset.v_inf = euklid.vector.Vector3D(math.cos(angle), 0, math.sin(angle)) * speed

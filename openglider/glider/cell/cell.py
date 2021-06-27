@@ -109,7 +109,7 @@ class Cell(CachedObject):
         p4 = self.rib1.point(0)
         p3 = self.rib2.point(-1)
 
-        return normalize(np.cross(p1-p2, p3-p4))
+        return (p1-p2).cross(p3-p4).normalized()
 
     @cached_property('miniribs', 'rib1', 'rib2')
     def rib_profiles_3d(self) -> list:
@@ -281,24 +281,26 @@ class Cell(CachedObject):
         p1_2 = self.rib1.align([1, 0, 0])
         p2_1 = self.rib2.align([0, 0, 0])
         p2_2 = self.rib2.align([1, 0, 0])
-        return 0.5 * (norm(np.cross(p1_2 - p1_1, p2_1 - p1_1)) + norm(np.cross(p2_2 - p2_1, p2_2 - p1_2)))
+
+        return 0.5 * ((p1_2 - p1_1).cross(p2_1 - p1_1).length() + (p2_2-p2_1).cross(p2_2-p1_2).length())
 
     @property
     def projected_area(self):
         """ return the z component of the crossproduct
             of the cell diagonals"""
-        p1_1 = np.array(self.rib1.align([0, 0, 0]))
-        p1_2 = np.array(self.rib1.align([1, 0, 0]))
-        p2_1 = np.array(self.rib2.align([0, 0, 0]))
-        p2_2 = np.array(self.rib2.align([1, 0, 0]))
-        return -0.5 * np.cross(p2_1 - p1_2, p2_2 - p1_1)[-1]
+        p1_1 = self.rib1.align([0, 0, 0])
+        p1_2 = self.rib1.align([1, 0, 0])
+        p2_1 = self.rib2.align([0, 0, 0])
+        p2_2 = self.rib2.align([1, 0, 0])
+
+        return -0.5 * (p2_1-p1_2).cross(p2_2-p1_1)[2]
 
     @property
     def centroid(self):
-        p1_1 = np.array(self.rib1.align([0, 0, 0]))
-        p1_2 = np.array(self.rib1.align([1, 0, 0]))
-        p2_1 = np.array(self.rib2.align([0, 0, 0]))
-        p2_2 = np.array(self.rib2.align([1, 0, 0]))
+        p1_1 = self.rib1.align([0, 0, 0])
+        p1_2 = self.rib1.align([1, 0, 0])
+        p2_1 = self.rib2.align([0, 0, 0])
+        p2_2 = self.rib2.align([1, 0, 0])
 
         centroid = (p1_1 + p1_2 + p2_1 + p2_2) / 4
         return centroid

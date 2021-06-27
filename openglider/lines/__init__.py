@@ -19,9 +19,6 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
 
-import numpy as np
-from numpy import dot
-
 from openglider.lines.elements import Line, Node, SagMatrix
 from openglider.lines.lineset import LineSet
 from openglider.vector.functions import norm, normalize

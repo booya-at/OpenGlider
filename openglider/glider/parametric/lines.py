@@ -69,7 +69,7 @@ class UpperNode2D(object):
         if 1 > self.cell_pos > 0: # attachment point between two ribs
             cell = glider.cells[self.cell_no + glider.has_center_cell]
             if isinstance(self.force, (list, tuple, np.ndarray)):
-                force = list(self.force)
+                force = euklid.vector.Vector3D(self.force)
             else:
                 force = cell.get_normvector() * self.force
 
@@ -77,7 +77,7 @@ class UpperNode2D(object):
         else: # attachment point on the rib
             rib = glider.ribs[self.cell_no + self.cell_pos + glider.has_center_cell]
             if isinstance(self.force, (list, tuple, np.ndarray)):
-                force = list(self.force)
+                force = euklid.vector.Vector3D(self.force)
             else:
                 force = rib.rotation_matrix.apply([0, self.force, 0])
 

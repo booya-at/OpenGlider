@@ -24,10 +24,7 @@ class Profile2D:
     """
     def __init__(self, data, name="unnamed"):
         self.name = name
-        if isinstance(data, euklid.vector.PolyLine2D):
-            self.curve = data
-        else:
-            self.curve = euklid.vector.PolyLine2D(data)
+        self.curve = euklid.vector.PolyLine2D(data)
         self._setup()
 
     def _setup(self):
@@ -193,7 +190,7 @@ class Profile2D:
         # find the smallest xvalue to reset the nose
         x = np.array([i[0] for i in profile])
         profile = cls(profile, "TrefftzKuttaAirfoil_m=" + str(m) + "_tau=" + str(tau))
-        profile.normalize()
+        profile = profile.normalized()
         profile.numpoints = numpoints
         return profile
 
@@ -344,10 +341,8 @@ class Profile2D:
         temp_name = os.path.join(tempfile.gettempdir(), airfoil_name)
         with urllib.request.urlopen(url + airfoil_name) as data_file, open(temp_name, 'w') as dat_file:
             dat_file.write(data_file.read().decode('utf8'))
-        data = np.loadtxt(temp_name, usecols=(0, 1), skiprows=1)
-        if data[0, 0] > 1.5:
-            data = data[1:]
-        return cls(data, name)
+
+        return cls.import_from_dat(temp_name)
 
     def set_flap(self, flap_begin, flap_amount):
         @np.vectorize
@@ -409,8 +404,6 @@ class Profile2D:
         airfoil = JoukowskyAirfoil(m)
         profile = [[c.real, c.imag] for c in airfoil.coordinates(numpoints)]
 
-        # find the smallest xvalue to reset the nose
-        x = np.array([i[0] for i in profile])
         profile = cls(profile, "joukowsky_" + str(m)).normalized()
         profile.numpoints = numpoints
         return profile
@@ -427,3 +420,33 @@ class Profile2D:
         profile = profile.normalized()
         profile.numpoints = numpoints
         return profile
+    
+    def _repr_svg_(self):
+        import svgwrite
+        dwg = svgwrite.Drawing('test.svg')
+
+        y = [p[1] for p in self.curve.nodes]
+
+        ymin = min(y)
+        ymax = max(y)
+        height = ymax - ymin
+        dwg.viewbox(-0.1, ymin-0.1, 1.2, height+0.2)
+
+        group = svgwrite.container.Group()
+        group.scale(1, -1)  # svg coordinate system is x->right y->down
+
+
+        style = svgwrite.container.Style()
+        style.append("\nline { vector-effect: non-scaling-stroke; stroke-width: 1; fill: none}")
+        style.append("\npolyline { vector-effect: non-scaling-stroke; stroke-width: 1; fill: none}")
+
+        pl=svgwrite.shapes.Polyline(self.curve.tolist(), stroke= "black", stroke_width= 0.25)
+        group.add(pl)
+        group.add(svgwrite.shapes.Polyline(
+            self.camber_line.tolist(), stroke="red", stroke_width=0.25
+        ))
+        
+        dwg.add(group)
+        dwg.defs.add(style)
+        
+        return dwg.tostring()
