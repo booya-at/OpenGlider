@@ -158,6 +158,7 @@ class Cell(CachedObject):
         get all the sub-cells within the current cell,
         (separated by miniribs)
         """
+        # TODO: test / fix
         cells = []
         for leftrib, rightrib in zip(self.rib_profiles_3d[:-1], self.rib_profiles_3d[1:]):
             cells.append(BasicCell(leftrib, rightrib, ballooning=[]))
@@ -165,11 +166,11 @@ class Cell(CachedObject):
             return cells
 
         for index, xvalue in enumerate(self.x_values):
-            left_point = self.rib1.profile_3d.data[index]
-            right_point = self.rib2.profile_3d.data[index]
+            left_point = self.rib1.profile_3d.curve.nodes[index]
+            right_point = self.rib2.profile_3d.curve.nodes[index]
             bl = self.ballooning[xvalue]
 
-            l = norm(right_point - left_point)  # L
+            l = (right_point - left_point).length()  # L
             lnew = sum([norm(c.prof1.data[index] - c.prof2.data[index]) for c in cells])  # L-NEW
 
             for c in cells:
@@ -273,7 +274,7 @@ class Cell(CachedObject):
 
     @property
     def span(self):
-        return norm((self.rib1.pos - self.rib2.pos) * [0, 1, 1])
+        return ((self.rib1.pos - self.rib2.pos) * [0, 1, 1]).length()
 
     @property
     def area(self):
@@ -452,8 +453,11 @@ class Cell(CachedObject):
 
         l_0 = get_length(0, 0)
 
-        left_bal = [np.array([0, 0])]
-        right_bal = [np.array([l_0, 0])]
+        left_bal = [euklid.vector.Vector2D([0, 0])]
+        right_bal = [euklid.vector.Vector2D([l_0, 0])]
+
+        rotate_left = euklid.vector.Rotation2D(-math.pi/2)
+        rotate_right = euklid.vector.Rotation2D(math.pi/2)
 
         def get_point(p1, p2, l_0, l_l, l_r, left=True):
             lx = (l_0**2 + l_l**2 - l_r**2) / (2*l_0)
@@ -462,13 +466,13 @@ class Cell(CachedObject):
                 ly = math.sqrt(ly_sq)
             else:
                 ly = 0
-            diff = openglider.vector.normalize(p2 - p1)
+            diff = (p2 - p1).normalized()
             if left:
-                diff_y = diff.dot([[0, 1], [-1, 0]])
+                diff_y = rotate_right.apply(diff)
             else:
-                diff_y = diff.dot([[0, -1], [1, 0]])
+                diff_y = rotate_left.apply(diff)
 
-            return p1 + lx * diff + ly * diff_y
+            return p1 + diff*lx + diff_y*ly
 
 
         for i in range(numpoints-1):
@@ -476,8 +480,8 @@ class Cell(CachedObject):
             p2 = right_bal[-1]
 
 
-            d_l = openglider.vector.norm(midribs[0][i] - midribs[0][i+1])
-            d_r = openglider.vector.norm(midribs[-1][i] - midribs[-1][i+1])
+            d_l = (midribs[0][i] - midribs[0][i+1]).length()
+            d_r = (midribs[-1][i] - midribs[-1][i+1]).length()
             l_0 = get_length(i, i)
 
             if False:

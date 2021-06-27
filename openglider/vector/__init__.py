@@ -21,7 +21,6 @@
 import numpy as np
 
 from openglider.vector.functions import norm, norm_squared, normalize, rangefrom, vector_angle
-from openglider.vector.polyline import PolyLine
 
 def depth(arg):
     try:

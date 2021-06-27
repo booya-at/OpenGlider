@@ -12,7 +12,7 @@ class CirclePart(object):
        /) <-- p1
       /   )
      /     )
-    |       ) <-- p2
+    X       ) <-- p2
      \     )
       \   )
        \) <-- p3
@@ -22,11 +22,13 @@ class CirclePart(object):
         self.p2 = p2
         self.p3 = p3
 
-        l1 = numpy.array(p2) - numpy.array(p1)
-        l2 = numpy.array(p3) - numpy.array(p2)
+        l1 = p2 - p1
+        l2 = p3 - p2
 
-        n1 = numpy.array([-l1[1], l1[0]])
-        n2 = numpy.array([-l2[1], l2[0]])
+        rotation = euklid.vector.Rotation2D(-math.pi)
+
+        n1 = rotation.apply(l1)
+        n2 = rotation.apply(l2)
 
         c1 = p1 + l1/2
         c2 = p2 + l2/2
@@ -34,14 +36,18 @@ class CirclePart(object):
         d1 = c1 + n1
         d2 = c2 + n2
 
-        self.center, i, k = cut(c1, d1, c2, d2)
-        self.r = numpy.array(p1) - self.center
+        cut_result: euklid.vector.CutResult = euklid.vector.cut(c1, d1, c2, d2)
+
+        self.center = cut_result.point
+        self.r: euklid.vector.Vector2D = p1 - self.center
 
     def get_sequence(self, num=20):
         lst = []
-        end = vector_angle(self.r, numpy.array(self.p3) - self.center)
+
+        end = self.r.angle() - (self.p3-self.center).angle()
+        
         for angle in numpy.linspace(0, end, num):
-            lst.append(self.center + rotation_2d(angle).dot(self.r))
+            lst.append(self.center + euklid.vector.Rotation2D(angle).apply(self.r))
 
         return euklid.vector.PolyLine2D(lst)
 
@@ -100,5 +106,5 @@ class Circle(Ellipse):
     @classmethod
     def from_p1_p2(cls, p1, p2):
         center = (p1 + p2)*0.5
-        radius = norm(p2 - p1)*0.5
+        radius = (p2-p1).length() * 0.5
         return cls(center, radius)

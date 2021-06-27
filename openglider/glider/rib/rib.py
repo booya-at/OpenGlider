@@ -39,7 +39,7 @@ class Rib(CachedObject):
         self.arcang = arcang
         self.zrot = zrot
         self.xrot = xrot
-        self.pos = np.array(startpoint)  # or HashedList([0, 0, 0])
+        self.pos = euklid.vector.Vector3D(startpoint)  # or HashedList([0, 0, 0])
         self.chord = chord
         self.holes = holes or []
         self.rigidfoils = rigidfoils or []
@@ -50,7 +50,7 @@ class Rib(CachedObject):
 
     def __json__(self):
         return {"profile_2d": self.profile_2d,
-                "startpoint": self.pos.tolist(),
+                "startpoint": self.pos,
                 "chord": self.chord,
                 "arcang": self.arcang,
                 "aoa_absolute": self.aoa_absolute,
@@ -109,7 +109,7 @@ class Rib(CachedObject):
     @cached_property('arcang', 'glide', 'zrot', 'xrot', 'aoa_absolute', 'chord', 'pos')
     def transformation(self):
         zrot = np.arctan(self.arcang) / self.glide * self.zrot
-        return rib_transformation(self.aoa_absolute, self.arcang, zrot, self.xrot, self.chord, self.pos.tolist())
+        return rib_transformation(self.aoa_absolute, self.arcang, zrot, self.xrot, self.chord, self.pos)
 
     @cached_property('self')
     def profile_3d(self):
@@ -127,7 +127,7 @@ class Rib(CachedObject):
         self.arcang *= -1.
         self.xrot *= -1.
         # self.zrot = -self.zrot
-        self.pos = np.multiply(self.pos, [1, -1., 1])
+        self.pos = self.pos * [1, -1, 1]
 
     def copy(self):
         new = copy.deepcopy(self)

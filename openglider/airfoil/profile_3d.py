@@ -23,7 +23,6 @@ import euklid
 
 from openglider.utils.cache import cached_property
 from openglider.vector.functions import norm, normalize
-from openglider.vector.polyline import PolyLine
 from openglider.airfoil import Profile2D
 
 class Profile3D:
@@ -86,14 +85,16 @@ class Profile3D:
     def normvectors(self):
         layer = self.projection_layer
         profnorm = layer.normvector
-        get_normvector = lambda x: normalize(np.cross(x, profnorm))
 
-        vectors = [get_normvector(self.data[1] - self.data[0])]
-        for i in range(1, len(self.data) - 1):
+        get_normvector = lambda x: x.cross(profnorm).normalized()
+
+        vectors = [get_normvector(self.curve.nodes[1] - self.curve.nodes[0])]
+        for i in range(1, len(self.curve.nodes) - 1):
             vectors.append(get_normvector(
-                normalize(self.data[i + 1] - self.data[i]) +
-                normalize(self.data[i] - self.data[i - 1])))
-        vectors.append(get_normvector(self.data[-1] - self.data[-2]))
+                (self.curve.nodes[i + 1] - self.curve.nodes[i]).normalized() +
+                (self.curve.nodes[i] - self.curve.nodes[i - 1]).normalized()
+                ))
+        vectors.append(get_normvector(self.curve.nodes[-1] - self.curve.nodes[-2]))
 
         return vectors
 

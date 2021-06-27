@@ -34,7 +34,6 @@ from openglider.glider.shape import Shape
 from openglider.mesh import Mesh
 from openglider.utils import consistent_value
 from openglider.utils.distribution import Distribution
-from openglider.vector.functions import norm, rotation_2d
 from openglider.vector.projection import flatten_list
 from openglider.lines.lineset import LineSet
 
@@ -385,7 +384,7 @@ class Glider(object):
             ballooning = (cell.ballooning[1] + cell.ballooning[-1])/2
             vektor = cell.prof1.point(-1) - cell.prof2.point(-1)
 
-            diff = norm(vektor) * (1 + ballooning)
+            diff = vektor.length() * (1 + ballooning)
 
             if i == 0 and self.has_center_cell:
                 d += diff

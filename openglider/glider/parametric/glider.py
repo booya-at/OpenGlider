@@ -362,7 +362,7 @@ class ParametricGlider(object):
         for rib_no, pos in enumerate(x_values):
             front, back = shape_ribs[rib_no]
             arc = arc_pos[rib_no]
-            startpoint = np.array([-front[1] + offset_x, arc[0], arc[1]])
+            startpoint = euklid.vector.Vector3D([-front[1] + offset_x, arc[0], arc[1]])
 
             chord = abs(front[1]-back[1])
             factor = profile_merge_values[rib_no]

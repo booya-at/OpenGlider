@@ -2,7 +2,6 @@ import math
 import numpy as np
 
 # from openglider.graphics import Graphics3D, Line
-from openglider.vector.functions import norm, normalize
 from openglider.utils.distribution import Distribution
 
 
@@ -183,7 +182,7 @@ def export_apame(glider, path="", midribs=0, numpoints=None, *other):
         other.profile_numpoints = numpoints
     ribs = other.return_ribs(midribs)
     v_inf = glider.lineset.v_inf
-    speed = norm(v_inf)
+    speed = v_inf.length()
     glide = np.arctan(v_inf[2]/v_inf[0])
     # write config
     outfile = open(path, "w")

@@ -14,7 +14,7 @@ def fit_glider_3d(cls, glider, numpoints=3):
     """
     shape = glider.shape_simple
     front, back = shape.front, shape.back
-    arc = [rib.pos[1:] for rib in glider.ribs]
+    arc = [list(rib.pos)[1:] for rib in glider.ribs]
     aoa = [[front.get(i)[0], rib.aoa_relative] for i, rib in enumerate(glider.ribs)]
     zrot = [[front.get(i)[0], rib.zrot] for i, rib in enumerate(glider.ribs)]
 

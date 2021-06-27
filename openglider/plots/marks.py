@@ -3,8 +3,6 @@ import math
 import euklid
 
 import openglider.vector.polygon as polygons
-from openglider.vector.functions import rotation_2d
-from openglider.vector.transformation import Translation, Scale, Rotation
 
 default_scale = 0.8
 

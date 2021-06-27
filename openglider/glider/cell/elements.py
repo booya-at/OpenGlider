@@ -29,7 +29,6 @@ import openglider.vector
 from openglider.airfoil import get_x_value
 import openglider.mesh as mesh
 from openglider.utils.cache import cached_function, hash_list
-from openglider.vector import norm
 from openglider.vector.projection import flatten_list
 from openglider.utils import Config
 
@@ -105,7 +104,7 @@ class DiagonalRib(object):
     def get_center_length(self, cell):
         p1 = cell.rib1.point(self.center_left)
         p2 = cell.rib2.point(self.center_right)
-        return norm(p2 - p1)
+        return (p2 - p1).length()
 
     def get_3d(self, cell):
         """
@@ -269,7 +268,7 @@ class TensionLine(TensionStrap):
         left = rib1.profile_3d[rib1.profile_2d(self.left)]
         right = rib2.profile_3d[rib2.profile_2d(self.right)]
 
-        return norm(left - right)
+        return (left - right).length()
 
     def get_center_length(self, cell):
         return self.get_length(cell)
