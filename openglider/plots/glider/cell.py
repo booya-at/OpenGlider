@@ -8,11 +8,9 @@ import euklid
 from openglider.glider.cell import Panel
 from openglider.airfoil import get_x_value
 from openglider.plots.glider.config import PatternConfig
-from openglider.vector import vector_angle
 from openglider.vector.text import Text
 from openglider.vector.drawing import PlotPart, Layout
 import openglider.vector.projection as projection
-from openglider.vector import normalize, norm
 import openglider.utils
 
 
@@ -208,7 +206,8 @@ class PanelPlot(object):
 
         vector = get_p1_p2("left")
         vector += get_p1_p2("right")
-        angle = vector_angle(vector, [0, 1])
+
+        angle = vector.angle() - math.pi/2
 
         plotpart.rotate(-angle)
         return plotpart
@@ -318,11 +317,11 @@ class PanelPlot(object):
                     text_align = "left" if cell_pos > 0.7 else "right"
 
                     if text_align == "right":
-                        d1 = norm(self.get_point(cut_f_l)[0] - left)
-                        d2 = norm(self.get_point(cut_b_l)[0] - left)
+                        d1 = (self.get_point(cut_f_l)[0] - left).length()
+                        d2 = ((self.get_point(cut_b_l)[0] - left)).length()
                     else:
-                        d1 = norm(self.get_point(cut_f_r)[1] - right)
-                        d2 = norm(self.get_point(cut_b_r)[1] - right)
+                        d1 = ((self.get_point(cut_f_r)[1] - right)).length()
+                        d2 = ((self.get_point(cut_b_r)[1] - right)).length()
 
                     bl = self.ballooned[0]
                     br = self.ballooned[1]

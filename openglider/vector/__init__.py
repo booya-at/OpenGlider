@@ -20,8 +20,6 @@
 
 import numpy as np
 
-from openglider.vector.functions import norm, norm_squared, normalize, rangefrom, vector_angle
-
 def depth(arg):
     try:
         return max([depth(i) for i in arg]) + 1
@@ -59,35 +57,3 @@ def arrtype(arg):
             return 0
     else:
         return 0
-
-class mirror_func:
-    def __init__(self, direction=None):
-        if direction is None:
-            direction = [1., 0., 0.]
-        if len(direction) == 2:
-            x, y = normalize(direction)
-            self.matrix = np.array(
-                [
-                    [1 - 2 * x ** 2, -2 * x * y],
-                    [-2 * x * y, 1 - 2 * y ** 2]
-                ]
-            )
-        else:
-            x, y, z = normalize(direction)
-            self.matrix = np.array(
-                [
-                    [1 - 2 * x ** 2, -2 * x * y, -2 * x * z],
-                    [-2 * x * y, 1 - 2 * y ** 2, -2 * y * z],
-                    [-2 * x * z, -2 * y * z, 1 - 2 * z ** 2]
-                ]
-            )
-
-    def __call__(self, vec):
-        if len(vec) == 2 and not isinstance(vec[0], (np.ndarray, list, tuple)):
-            return np.dot(vec, self.matrix).tolist()
-        else:
-            return np.array([self(i) for i in vec]).tolist()
-
-
-mirror2D_x = mirror_func(direction=[1., 0.])
-mirror_x = mirror_func(direction=[1., 0., 0.])

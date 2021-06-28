@@ -3,7 +3,6 @@ import numpy as np
 import euklid
 
 from openglider.airfoil import Profile2D
-from openglider.vector import norm
 
 # TODO: FIX!
 
@@ -27,7 +26,7 @@ class BezierProfile2D(Profile2D):
         return dct
 
     def fit_upper(self, num=100, dist=None, control_num=8):
-        upper = self.data[:self.noseindex + 1]
+        upper = self.curve.nodes[:self.noseindex + 1]
         upper_smooth = self.make_smooth_dist(upper, num, dist)
         constraints = [[None] * 2 for i in range(control_num)]
         constraints[0] = [1., 0.]
@@ -36,10 +35,10 @@ class BezierProfile2D(Profile2D):
         if self.upper_spline:
             return self.upper_spline.__class__.constraint_fit(upper_smooth, constraints)
         else:
-            return BSpline.constraint_fit(upper_smooth, constraints)
+            return euklid.spline.BSplineCurve.constraint_fit(upper_smooth, constraints)
 
     def fit_lower(self, num=100, dist=None, control_num=8):
-        lower = self.data[self.noseindex:]
+        lower = self.curve.nodes[self.noseindex:]
         lower_smooth = self.make_smooth_dist(lower, num, dist, upper=False)
         constraints = [[None] * 2 for i in range(control_num)]
         constraints[-1] = [1, 0]
@@ -48,7 +47,7 @@ class BezierProfile2D(Profile2D):
         if self.lower_spline:
             return self.lower_spline.__class__.constraint_fit(lower_smooth, constraints)
         else:
-            return BSpline.constraint_fit(lower_smooth, constraints)
+            return euklid.spline.BSplineCurve.constraint_fit(lower_smooth, constraints)
 
     def fit_region(self, start, stop, num_points, control_points):
         smoothened = [self[self(x)] for x in np.linspace(start, stop, num=num_points)]
@@ -70,7 +69,7 @@ class BezierProfile2D(Profile2D):
             return points
         length = [0]
         for i, point in enumerate(points[1:]):
-            length.append(length[-1] + norm(point - points[i]))
+            length.append(length[-1] + (point - points[i]).length())
         interpolation_x = euklid.vector.Interpolation(list(zip(length, [p[0] for p in points])))
         interpolation_y = euklid.vector.Interpolation(points)
 

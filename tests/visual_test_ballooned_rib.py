@@ -20,7 +20,6 @@
 import math
 import os
 import sys
-from openglider.vector.functions import norm
 
 try:
     import openglider

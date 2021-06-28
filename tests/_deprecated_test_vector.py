@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
-from openglider.vector.functions import norm, rotation_3d
+from openglider.vector.functions import norm
 
 
 __author__ = 'simon'
@@ -33,6 +33,7 @@ class TestVectorFunctions3D(unittest.TestCase):
             for _ in range(100)
         ]
 
+    @unittest.skip("move to euklid")
     def test_rotation_scale(self):
         angle = 2*random.random() - 1
         rot = rotation_3d(0, [1, 0, 0])
@@ -43,6 +44,7 @@ class TestVectorFunctions3D(unittest.TestCase):
                 self.assertAlmostEqual(norm(rot.dot(v)), norm(v))
                 self.assertAlmostEqual(norm(rotation_matrix.dot(v)), norm(v))
 
+    @unittest.skip("move to euklid")
     def test_rotation_scale_2(self):
         rot = rotation_3d(0, [1,0,0])
         for axis in self.vectors:

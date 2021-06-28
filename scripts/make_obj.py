@@ -3,8 +3,8 @@ import sys
 import os
 import math
 import numpy as np
+import euklid
 from openglider.glider import Glider
-from openglider.vector.functions import normalize
 
 if len(sys.argv) >= 4:
     inputfile = os.path.abspath(sys.argv[1])
@@ -28,10 +28,10 @@ if len(sys.argv) >= 4:
     # Print v_inf, ca_projection, cw_projection
     alpha = math.atan(1 / glider.ribs[0].glide)
     v = glider.data["GESCHWINDIGKEIT"]
-    v_inf = [-math.cos(alpha) * v, 0, -math.sin(alpha) * v]
-    ca = normalize([-v_inf[2], 0, v_inf[0]])
+    v_inf = euklid.vector.Vector3D([-math.cos(alpha) * v, 0, -math.sin(alpha) * v])
+    ca = euklid.vector.Vector3D([-v_inf[2], 0, v_inf[0]]).normalized()
     print("v_inf ", v_inf)
     print("ca: ", ca)
-    print("cw: ", normalize(v_inf))
+    print("cw: ", v_inf.normalized())
 else:
     print("please give me an input file + number of midribs + numpoints (0=Original)")

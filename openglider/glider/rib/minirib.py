@@ -21,15 +21,15 @@ class MiniRib():
             curve = euklid.spline.BezierCurve(points).get_sequence(100)
             func = euklid.vector.Interpolation(curve.nodes)
 
-        self.__function__ = func
+        self.function = func
 
         self.y_value = yvalue
         self.front_cut = front_cut
         self.back_cut = back_cut
 
-    def function(self, x):
+    def multiplier(self, x):
         if self.front_cut <= abs(x) <= self.back_cut:
-            return min(1, max(0, self.__function__(abs(x))))
+            return min(1, max(0, self.function.get_value(abs(x))))
         else:
             return 1
 
@@ -42,7 +42,7 @@ class MiniRib():
         points = []
         for xval, with_bal, without_bal in zip(
                 cell.x_values, shape_with_bal, shape_wo_bal):
-            fakt = self.function(xval)  # factor ballooned/unb. (0-1)
+            fakt = self.multiplier(xval)  # factor ballooned/unb. (0-1)
             point = without_bal + fakt * (with_bal - without_bal)
             points.append(point)
 

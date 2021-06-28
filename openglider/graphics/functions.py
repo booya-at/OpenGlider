@@ -24,7 +24,6 @@ import numpy as np
 
 from openglider.vector import depth
 # Quick graphics lib to imitate mathematicas graphics functions
-from openglider.vector.functions import norm, normalize
 
 
 def tofloat(lst):

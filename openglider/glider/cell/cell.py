@@ -22,7 +22,6 @@ from openglider.utils.cache import (
     cached_function,
     cached_property, hash_list,
 )
-from openglider.vector import norm, normalize
 
 
 logging.getLogger(__file__)
@@ -140,15 +139,13 @@ class Cell(CachedObject):
     def _make_profile3d_from_minirib(self, minirib):
         # self.basic_cell.prof1 = self.prof1
         # self.basic_cell.prof2 = self.prof2
-        shape_with_ballooning = self.basic_cell.midrib(minirib.y_value,
-                                                       True).data
-        shape_without_ballooning = self.basic_cell.midrib(minirib.y_value,
-                                                          False).data
+        shape_with_ballooning = self.basic_cell.midrib(minirib.y_value, True).curve.nodes
+        shape_without_ballooning = self.basic_cell.midrib(minirib.y_value, False).curve.nodes
         points = []
         for xval, with_bal, without_bal in zip(
                 self.x_values, shape_with_ballooning, shape_without_ballooning):
-            fakt = minirib.function(xval)  # factor ballooned/unb. (0-1)
-            point = without_bal + fakt * (with_bal - without_bal)
+            fakt = minirib.multiplier(xval)  # factor ballooned/unb. (0-1)
+            point = without_bal + (with_bal - without_bal) * fakt
             points.append(point)
         return Profile3D(points)
 
@@ -160,8 +157,10 @@ class Cell(CachedObject):
         """
         # TODO: test / fix
         cells = []
-        for leftrib, rightrib in zip(self.rib_profiles_3d[:-1], self.rib_profiles_3d[1:]):
-            cells.append(BasicCell(leftrib, rightrib, ballooning=[]))
+        for cell_no in range(len(self.rib_profiles_3d)-1):
+            leftrib = self.rib_profiles_3d[cell_no]
+            rightrib = self.rib_profiles_3d[cell_no+1]
+            cells.append(BasicCell(leftrib, rightrib, ballooning=[], name=f"{self.name}_{cell_no}"))
         if not self.miniribs:
             return cells
 
@@ -171,7 +170,7 @@ class Cell(CachedObject):
             bl = self.ballooning[xvalue]
 
             l = (right_point - left_point).length()  # L
-            lnew = sum([norm(c.prof1.data[index] - c.prof2.data[index]) for c in cells])  # L-NEW
+            lnew = sum([(c.prof1.curve.nodes[index] - c.prof2.curve.nodes[index]).length() for c in cells])  # L-NEW
 
             for c in cells:
                 if bl > 0:

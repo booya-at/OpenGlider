@@ -515,4 +515,4 @@ class Glider(object):
 
         angle = math.atan(1/glide)
         speed = self.lineset.v_inf.length()
-        self.lineset.v_inf = euklid.vector.Vector3D(math.cos(angle), 0, math.sin(angle)) * speed
+        self.lineset.v_inf = euklid.vector.Vector3D([math.cos(angle), 0, math.sin(angle)]) * speed

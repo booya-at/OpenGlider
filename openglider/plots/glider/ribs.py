@@ -8,7 +8,6 @@ from openglider.airfoil import get_x_value
 from openglider.plots import marks
 from openglider.vector.drawing import PlotPart
 from openglider.plots.glider.config import PatternConfig
-from openglider.vector.functions import rotation_2d, norm
 from openglider.vector.text import Text
 
 

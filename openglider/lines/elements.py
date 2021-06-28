@@ -6,7 +6,6 @@ import euklid
 from openglider.lines import line_types
 from openglider.lines.functions import proj_force, proj_to_surface
 from openglider.utils.cache import cached_property, CachedObject
-from openglider.vector.functions import norm, normalize
 from openglider.mesh import Mesh, Vertex, Polygon
 
 logger = logging.getLogger(__name__)
@@ -227,11 +226,11 @@ class Line(CachedObject):
 
     def get_line_point(self, x, sag=True):
         """pos(x) [x,y,z], x: [0,1]"""
+        point = self.lower_node.vec * (1. - x) + self.upper_node.vec * x
         if sag:
-            return (self.lower_node.vec * (1. - x) + self.upper_node.vec * x +
-                    self.get_sag(x) * self.v_inf_0)
-        else:
-            return self.lower_node.vec * (1. - x) + self.upper_node.vec * x
+            return point + self.v_inf_0 * self.get_sag(x)
+
+        return point
 
     def get_sag(self, x):
         """sag u(x) [m], x: [0,1]"""
@@ -239,7 +238,7 @@ class Line(CachedObject):
         u = (- xi ** 2 / 2 * self.ortho_pressure /
              self.force_projected + xi *
              self.sag_par_1 + self.sag_par_2)
-        return u
+        return float(u)
 
     def get_mesh(self, numpoints):
         line_points = [Vertex(*point) for point in self.get_line_points(numpoints=numpoints)]

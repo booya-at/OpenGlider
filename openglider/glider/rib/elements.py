@@ -4,9 +4,6 @@ import euklid
 
 from openglider.lines import Node
 from openglider.vector.polygon import Circle, Ellipse
-from openglider.vector.functions import set_dimension
-from openglider.vector import norm
-from openglider.vector.transformation import Rotation, Translation, Scale
 
 
 class RigidFoil(object):
@@ -57,7 +54,7 @@ class RigidFoil(object):
             sign = -1 if p[1] > 0 else +1
 
             if last_node is not None:
-                diff = norm(p - last_node) * rib.chord
+                diff = (p - last_node).length() * rib.chord
                 if diff > max_segment:
                     segments = int(math.ceil(diff/max_segment))
                     point_range += list(np.linspace(point_range[-1], sign*p[0], segments))[1:]
@@ -218,7 +215,8 @@ class RibHole(object):
 
     def get_3d(self, rib, num=20):
         hole = self.get_points(rib, num=num)
-        return rib.align_all(set_dimension(hole, 3))
+
+        return rib.align_all(hole)
 
     def get_flattened(self, rib, num=80, scale=True):
         points = self.get_points(rib, num)
@@ -269,7 +267,7 @@ class RibSquareHole:
 
     def get_3d(self, rib, num=20):
         hole = self.get_points(rib, num=num)
-        return rib.align_all(set_dimension(hole, 3))
+        return rib.align_all(hole, 3)
 
     def get_flattened(self, rib, num=80, scale=True):
         points = self.get_points(rib, num).data

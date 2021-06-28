@@ -1,7 +1,7 @@
 import numpy as np
 import vtk
+import euklid
 from .functions import _isintlist
-from openglider.vector.functions import norm
 
 
 class GraphicObject(object):
@@ -79,7 +79,9 @@ class Arrow(GraphicObject):
         p1, p2 = graphics.get_points(*pointnums)
         transform = vtk.vtkTransform()
         transform.Translate(p1)
-        length = norm(p2-p1)
+        p1 = euklid.vector.Vector3D(p1)
+        p2 = euklid.vector.Vector3D(p2)
+        length = (p2-p1).length()
         transform.Scale(length, length, length)
 
 

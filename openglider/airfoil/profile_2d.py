@@ -10,7 +10,6 @@ import numpy as np
 
 from openglider.utils.cache import HashedList
 from openglider.utils.distribution import Distribution
-from openglider.vector.functions import norm_squared
 
 
 logger = logging.getLogger(__name__)
@@ -88,9 +87,10 @@ class Profile2D:
         new_curve = self.curve.move(nose * -1)
 
         diff = (new_curve.nodes[0] + new_curve.nodes[-1]) * 0.5
+        diff_sq = diff.dot(diff)
         
-        sin_sq = diff.dot([0, -1]) / norm_squared(diff)  # Angle: a.b=|a|*|b|*sin(alpha)
-        cos_sq = diff.dot([1, 0]) / norm_squared(diff)
+        sin_sq = diff.dot([0, -1]) / diff_sq  # Angle: a.b=|a|*|b|*sin(alpha)
+        cos_sq = diff.dot([1, 0]) / diff_sq
         matrix = np.array([[cos_sq, -sin_sq], [sin_sq, cos_sq]])  # de-rotate and scale
         
         data = np.array([matrix.dot(i) for i in new_curve]).tolist()

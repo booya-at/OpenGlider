@@ -7,7 +7,6 @@ import euklid
 from openglider.lines.functions import proj_force
 from openglider.lines.elements import Node, SagMatrix
 from openglider.mesh import Mesh
-from openglider.vector.functions import norm, normalize
 from openglider.utils.table import Table
 
 logger = logging.getLogger(__name__)

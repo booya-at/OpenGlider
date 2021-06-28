@@ -22,7 +22,6 @@ import numpy as np
 import euklid
 
 from openglider.utils.cache import cached_property
-from openglider.vector.functions import norm, normalize
 from openglider.airfoil import Profile2D
 
 class Profile3D:

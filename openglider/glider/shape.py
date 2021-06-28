@@ -3,8 +3,6 @@ import logging
 import math
 
 from openglider.vector.drawing import PlotPart, Layout
-from openglider.vector import norm
-
 
 logger = logging.getLogger(__name__)
 

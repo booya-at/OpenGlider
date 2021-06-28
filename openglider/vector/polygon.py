@@ -2,8 +2,6 @@ import numpy
 import euklid
 import math
 
-from openglider.vector.functions import cut, rotation_2d, vector_angle, norm
-
 
 class CirclePart(object):
     """

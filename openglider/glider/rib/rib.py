@@ -2,17 +2,17 @@ from __future__ import division
 import copy
 import math
 import numpy as np
+import logging
+
 import euklid
 
 from openglider.airfoil import Profile3D, Profile2D
 from openglider.utils.cache import CachedObject, cached_property
-from openglider.vector.functions import rotation_3d, set_dimension
-from openglider.vector.transformation import Rotation, Scale, Translation
 from openglider.mesh import Mesh, triangulate
 from openglider.glider.rib.elements import FoilCurve
 from numpy.linalg import norm
 
-
+logger = logging.getLogger(__name__)
 
 class Rib(CachedObject):
     """

@@ -21,7 +21,6 @@ from __future__ import division
 
 from openglider.lines.elements import Line, Node, SagMatrix
 from openglider.lines.lineset import LineSet
-from openglider.vector.functions import norm, normalize
 from openglider.lines.functions import proj_force
 
 __all__ = ["Line", "Node", "LineSet"]
