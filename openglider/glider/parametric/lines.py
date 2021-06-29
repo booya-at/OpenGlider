@@ -41,13 +41,14 @@ class LowerNode2D(object):
 
 class UpperNode2D(object):
     """stores the 2d data of an attachment point"""
-    def __init__(self, cell_no, rib_pos, cell_pos=0, force=1., name="unnamed", layer=None):
+    def __init__(self, cell_no, rib_pos, cell_pos=0, force=1., name="unnamed", layer=None, is_cell=False):
         self.cell_no = cell_no
         self.cell_pos = cell_pos
         self.rib_pos = rib_pos  # value from 0...1
         self.force = force
         self.name = name
         self.layer = layer or ""
+        self.is_cell = is_cell
 
     def __json__(self):
         return {'cell_no': self.cell_no,
@@ -66,8 +67,8 @@ class UpperNode2D(object):
         return parametric_shape.get_shape_point(x, self.rib_pos)
 
     def get_node(self, glider):
-        if 1 > self.cell_pos > 0: # attachment point between two ribs
-            cell = glider.cells[self.cell_no + glider.has_center_cell]
+        if self.is_cell: # attachment point between two ribs
+            cell = glider.cells[self.cell_no]
             if isinstance(self.force, (list, tuple, np.ndarray)):
                 force = euklid.vector.Vector3D(self.force)
             else:
@@ -470,15 +471,14 @@ class LineSet2D(object):
                     force = get_force(cell_table[row, column_0+3])
                     
                     cell_no = row - 1
-                    if has_center_cell:
-                        cell_no -= 1
 
                     attachment_points.append(UpperNode2D(
                         cell_no=cell_no,
                         name=name,
                         cell_pos = cell_table[row, column_0+1],
                         rib_pos = cell_table[row, column_0+2],
-                        force=force # parse list/tuple
+                        force=force, # parse list/tuple
+                        is_cell=True
                         ))
         
         for column in range(int(rib_table.num_columns / 3)):

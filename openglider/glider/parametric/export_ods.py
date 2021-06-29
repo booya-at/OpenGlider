@@ -163,7 +163,7 @@ def get_cell_sheet(glider):
         for cell_no_temp in range(cell_no+1, cell_num):
             cut_next = find_next(cut, cell_no_temp)
             if not cut_next:
-                break
+                continue
             column.insert_row(cut_next[:2], cell_no_temp+1)
             cut = cut_next
 
@@ -178,36 +178,90 @@ def get_cell_sheet(glider):
     table.append_right(cuts_table)
 
     # Diagonals
-    for diagonal in elems["diagonals"]:
+    diagonals = elems["diagonals"][:]
+
+    while diagonals:
+        diagonals_this = [diagonals.pop(0)]
+        cells = set(diagonals_this[0]["cells"])
+
+        to_remove = []
+        for d in diagonals:
+            if len(cells.intersection(d["cells"])) == 0:
+                diagonals_this.append(d)
+                to_remove.append(d)
+                cells = cells.union(d["cells"])
+        
+        for d in to_remove:
+            diagonals.remove(d)
+
         diagonal_table = Table()
-        diagonal = copy.copy(diagonal)
-        diagonal_table[0, 0] = "QR"
-        cells = diagonal.pop("cells")
-        _diagonal = DiagonalRib(**diagonal)
 
-        for cell_no in cells:
-            # center_left, center_right, width_left, width_right, height_left, height_right
+        for diagonal in diagonals_this:
+            diagonal = copy.copy(diagonal)
+            diagonal_table[0, 0] = "QR"
+            cells = diagonal.pop("cells")
+            _diagonal = DiagonalRib(**diagonal)
 
-            diagonal_table[cell_no+1, 0] = _diagonal.center_left
-            diagonal_table[cell_no+1, 1] = _diagonal.center_right
-            diagonal_table[cell_no+1, 2] = _diagonal.width_left
-            diagonal_table[cell_no+1, 3] = _diagonal.width_right
-            diagonal_table[cell_no+1, 4] = _diagonal.left_front[1]
-            diagonal_table[cell_no+1, 5] = _diagonal.right_front[1]
+            for cell_no in cells:
+                # center_left, center_right, width_left, width_right, height_left, height_right
+
+                diagonal_table[cell_no+1, 0] = _diagonal.center_left
+                diagonal_table[cell_no+1, 1] = _diagonal.center_right
+                diagonal_table[cell_no+1, 2] = _diagonal.width_left
+                diagonal_table[cell_no+1, 3] = _diagonal.width_right
+                diagonal_table[cell_no+1, 4] = _diagonal.left_front[1]
+                diagonal_table[cell_no+1, 5] = _diagonal.right_front[1]
 
         table.append_right(diagonal_table)
 
     # Straps
-    for strap in elems["straps"]:
-        strap_table = Table()
-        strap_table[0, 0] = "STRAP"
-        for cell_no in strap["cells"]:
-            # 
-            strap_table[cell_no+1, 0] = strap["left"]
-            strap_table[cell_no+1, 1] = strap["right"]
-            strap_table[cell_no+1, 2] = strap["width"]
 
-        table.append_right(strap_table)
+    straps_per_cell = []
+    for cell_no in range(cell_num):
+        straps_this = []
+        for strap in elems["straps"]:
+            if cell_no in strap["cells"]:
+                straps_this.append((strap["left"], strap["right"], strap["width"]))
+
+        straps_this.sort(key=lambda x: sum(x[:2]))
+        straps_per_cell.append(straps_this)
+        
+    def find_next_strap(strap, cell_no):
+        straps_this = straps_per_cell[cell_no]
+        for new_strap in straps_this:
+            if strap[1] == new_strap[0]:
+                straps_this.remove(new_strap)
+                return new_strap
+
+    def add_column(cell_no):
+        straps_this = straps_per_cell[cell_no]
+
+        #print("jo", cell_no, straps_this)
+        if not straps_this:
+            return False
+
+        strap = straps_this.pop(0)
+
+        column = Table()
+        column[0, 0] = "STRAP"
+
+        column.insert_row(strap, cell_no+1)
+
+
+        for cell_no_temp in range(cell_no+1, cell_num):
+            strap_next = find_next_strap(strap, cell_no_temp)
+            if not strap_next:
+                continue
+            column.insert_row(strap_next, cell_no_temp+1)
+            strap = strap_next
+
+        table.append_right(column)
+
+        return column
+
+    for cell_no in range(cell_num):
+        while add_column(cell_no):
+            pass
 
     # Material
     material_table = Table()

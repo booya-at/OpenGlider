@@ -167,7 +167,9 @@ class CellAttachmentPoint(Node):
         ik = self.cell.rib1.profile_2d(self.rib_pos)
 
         if self.rib_pos in (-1, 1):
-            self.vec = (self.cell.rib1.profile_3d.get(ik) + self.cell.rib2.profile_3d.get(ik))*0.5
+            p1 = self.cell.rib1.profile_3d.get(ik)
+            p2 = self.cell.rib2.profile_3d.get(ik)
+            self.vec = p1 + (p2 - p1)*self.cell_pos
         else:
             self.vec = self.cell.midrib(self.cell_pos, ballooning=self.ballooned)[ik]
             
