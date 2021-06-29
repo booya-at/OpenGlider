@@ -7,7 +7,6 @@ from pivy import coin
 import FreeCADGui as Gui
 from openglider import jsonify
 from openglider.airfoil import BezierProfile2D
-from openglider.vector import norm, normalize
 from PySide import QtCore, QtGui
 
 from .tools import BaseTool, ControlPointContainer, Line_old, vector3D
