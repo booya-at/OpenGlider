@@ -81,7 +81,7 @@ class ShapePlot(object):
                 p3 = shape.get_point(cell_no+1, right_back)
                 p4 = shape.get_point(cell_no+1, rigth_front)
 
-                part.layers[panel.material_code].append(
+                part.layers[str(panel.material)].append(
                     euklid.vector.PolyLine2D([p1, p2, p3, p4, p1])
                     )
 

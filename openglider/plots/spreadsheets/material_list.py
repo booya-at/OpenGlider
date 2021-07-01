@@ -9,7 +9,7 @@ def get_material_sheets(glider):
     ribs_sheet[0, 1].set_value("Material")
     for rib_no, rib in enumerate(glider.ribs):
         ribs_sheet[rib_no+1, 0].set_value(rib.name)
-        ribs_sheet[rib_no+1, 1].set_value(rib.material_code)
+        ribs_sheet[rib_no+1, 1].set_value(str(rib.material))
 
     # panels
     all_panels = sum([cell.panels for cell in glider.cells], [])
@@ -19,7 +19,7 @@ def get_material_sheets(glider):
     panel_sheet[0, 1].set_value("Material")
     for panel_no, panel in enumerate(all_panels):
         panel_sheet[panel_no+1, 0].set_value(panel.name)
-        panel_sheet[panel_no+1, 1].set_value(panel.material_code)
+        panel_sheet[panel_no+1, 1].set_value(str(panel.material))
 
     # dribs
     all_dribs = sum([cell.diagonals for cell in glider.cells], [])

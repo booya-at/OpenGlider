@@ -26,6 +26,7 @@ import math
 import euklid
 
 import openglider.vector
+from openglider.materials import cloth, Material
 from openglider.airfoil import get_x_value
 import openglider.mesh as mesh
 from openglider.utils.cache import cached_function, hash_list
@@ -316,6 +317,7 @@ class Panel(object):
     Glider cell-panel
     :param cut_front {'left': 0.06, 'right': 0.06, 'type': 'orthogonal'}
     """
+    material = cloth.get("porcher.skytex.32")
     class CUT_TYPES(Config):
         """
         all available cut_types:
@@ -329,16 +331,21 @@ class Panel(object):
         singleskin = "singleskin"
         cut_3d = "cut_3d"
 
-    def __init__(self, cut_front, cut_back, material_code=None, name="unnamed"):
+    def __init__(self, cut_front, cut_back, material: Material=None, name="unnamed"):
         self.cut_front = cut_front  # (left, right, style(int))
         self.cut_back = cut_back
-        self.material_code = material_code or ""
+
+        if material is not None:
+            if isinstance(material, str):
+                material = cloth.get(material)
+            self.material = material
+
         self.name = name
 
     def __json__(self):
         return {'cut_front': self.cut_front,
                 'cut_back': self.cut_back,
-                "material_code": self.material_code,
+                "material": str(self.material),
                 "name": self.name
                 }
 
@@ -370,9 +377,9 @@ class Panel(object):
 
     def __add__(self, other):
         if self.cut_front == other.cut_back:
-            return Panel(other.cut_front, self.cut_back, material_code=self.material_code)
+            return Panel(other.cut_front, self.cut_back, material=self.material)
         elif self.cut_back == other.cut_front:
-            return Panel(self.cut_front, other.cut_back, material_code=self.material_code)
+            return Panel(self.cut_front, other.cut_back, material=self.material)
         else:
             return None
 
@@ -497,7 +504,7 @@ class Panel(object):
         #connection_info = {cell.rib1: np.array(ribs[0], int),
         #                   cell.rib2: np.array(ribs[-1], int)}
 
-        return mesh.Mesh({f"panel_{self.material_code}": polygons}, name=self.name)
+        return mesh.Mesh({f"panel_{self.material}#{self.material.color_code}": polygons}, name=self.name)
 
     def mirror(self):
         """

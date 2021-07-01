@@ -139,6 +139,11 @@ class LineSet2D(object):
             nodes.add(line.upper_node)
             nodes.add(line.lower_node)
 
+            if line.upper_node is None:
+                raise ValueError(f"upper node is None: {line.name} / {line.line_type}")
+            if line.lower_node is None:
+                raise ValueError(f"lower node is None: {line.name} / {line.line_type}")
+
         return list(nodes)
 
     def get_upper_nodes(self, rib_no=None):
@@ -328,14 +333,16 @@ class LineSet2D(object):
         while row < num_rows:
             value = sheet[row, column]  # length or node_no
 
-            if value:
+            if value is not None:
                 if column == 0:  # first (line-)floor
                     lower_node_name = sheet[row, 0]
                     if not type(lower_node_name) == str:
                         lower_node_name = str(int(lower_node_name))
                     
-                    current_nodes = [attachment_points_lower[lower_node_name]] + \
-                                    [None for __ in range(num_cols)]
+                    lower_node = attachment_points_lower[lower_node_name]
+                    current_nodes.clear()
+                    current_nodes.append(lower_node)
+                    current_nodes +=  [None for __ in range(num_cols)]
                     column += 1
 
                 else:
@@ -357,6 +364,9 @@ class LineSet2D(object):
                         current_nodes[column // 2 + 1] = upper
                         line_length = sheet[row, column]
                         column += 2
+                    
+                    if lower_node is None:
+                        print("jo")
 
                     linelist.append(
                         Line2D(lower_node, upper, target_length=line_length, line_type=line_type_name))

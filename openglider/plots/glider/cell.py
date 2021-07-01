@@ -34,7 +34,7 @@ class PanelPlot(object):
         self.logger = logging.getLogger(r"{self.__class__.__module__}.{self.__class__.__name__}")
 
     def flatten(self, attachment_points):
-        plotpart = PlotPart(material_code=self.panel.material_code, name=self.panel.name)
+        plotpart = PlotPart(material_code=str(self.panel.material), name=self.panel.name)
 
         cut_allowances = {
             "folded": self.config.allowance_entry_open,

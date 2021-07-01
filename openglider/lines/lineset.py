@@ -86,8 +86,14 @@ class LineSet(object):
             if ap.name.upper() == "MAIN":
                 main_attachment_point = ap
 
+        # backwards compat
         if main_attachment_point is None:
-            raise RuntimeError("No 'main' attachment point")
+            for ap in self.lower_attachment_points:
+                if ap.name.upper() == "0":
+                    main_attachment_point = ap
+            
+            if main_attachment_point is None:
+                raise RuntimeError("No 'main' attachment point")
 
         return main_attachment_point
 

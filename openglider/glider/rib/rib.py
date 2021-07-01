@@ -10,6 +10,7 @@ from openglider.airfoil import Profile3D, Profile2D
 from openglider.utils.cache import CachedObject, cached_property
 from openglider.mesh import Mesh, triangulate
 from openglider.glider.rib.elements import FoilCurve
+from openglider.materials import cloth
 from numpy.linalg import norm
 
 logger = logging.getLogger(__name__)
@@ -29,7 +30,7 @@ class Rib(CachedObject):
                  chord=1., arcang=0, aoa_absolute=0, zrot=0, xrot = 0, glide=1,
                  name="unnamed rib", startpos=0.,
                  rigidfoils=None,
-                 holes=None, material_code=None):
+                 holes=None, material=None):
         self.startpos = startpos
         # TODO: Startpos > Set Rotation Axis in Percent
         self.name = name
@@ -43,7 +44,12 @@ class Rib(CachedObject):
         self.chord = chord
         self.holes = holes or []
         self.rigidfoils = rigidfoils or []
-        self.material_code = material_code or ""
+
+        if material is not None:
+            if isinstance(material, str):
+                material = cloth.get(material)
+            self.material = material
+            
         # self.curves = [FoilCurve()]
         # TODO: add in paramteric way
         self.curves = []
@@ -60,7 +66,7 @@ class Rib(CachedObject):
                 "name": self.name,
                 "rigidfoils": self.rigidfoils,
                 "holes": self.holes,
-                "material_code": self.material_code,
+                "material": str(self.material),
                 "name": self.name
                 }
 

@@ -53,6 +53,9 @@ class LineType():
 
         self.min_break_load = min_break_load
     
+    def __str__(self):
+        return f"linetype: {self.name}"
+    
     def get_spring_constant(self):
         force, k = self.stretch_interpolation.nodes[-1]
         try:

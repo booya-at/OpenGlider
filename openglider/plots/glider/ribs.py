@@ -37,7 +37,7 @@ class RibPlot(object):
         self.plotpart = self.x_values = self.inner = self.outer = None
 
     def flatten(self, glider):
-        self.plotpart = PlotPart(name=self.rib.name, material_code=self.rib.material_code)
+        self.plotpart = PlotPart(name=self.rib.name, material_code=str(self.rib.material))
         prof2d = self.rib.get_hull(glider)
 
         self.x_values = self.rib.profile_2d.x_values

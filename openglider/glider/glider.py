@@ -134,8 +134,9 @@ class Glider(object):
         panels = {}
         for cell in self.cells:
             for panel in cell.panels:
-                panels.setdefault(panel.material_code, [])
-                panels[panel.material_code].append(panel)
+                material_code = str(panel.material)
+                panels.setdefault(material_code, [])
+                panels[material_code].append(panel)
 
         return panels
 

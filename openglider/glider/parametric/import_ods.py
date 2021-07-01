@@ -17,6 +17,7 @@ from openglider.glider.parametric.lines import UpperNode2D, LowerNode2D, BatchNo
 from openglider.glider.rib import MiniRib
 from openglider.glider.ballooning import BallooningBezier, BallooningBezierNeu
 from openglider.utils.table import Table
+from openglider.materials import cloth
 
 
 logger = logging.getLogger(__name__)
@@ -212,7 +213,8 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
             })
     straps = group(straps, "cells")
 
-    materials = get_material_codes(cell_sheet)
+    material_cells = get_material_codes(cell_sheet)
+    material_ribs = get_material_codes(rib_sheet)
 
     # minirib -> y, start (x)
     miniribs = []
@@ -234,7 +236,8 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
                                    "rigidfoils": rigidfoils,
                                    "cell_rigidfoils": cell_rigidfoils,
                                    "straps": straps,
-                                   "materials": materials,
+                                   "material_cells": material_cells,
+                                   "material_ribs": material_ribs,
                                    "miniribs": miniribs},
                          profiles=profiles,
                          balloonings=balloonings,
@@ -358,7 +361,7 @@ def get_geometry_parametric(table: Table, cell_num):
     
 
 def get_material_codes(sheet):
-    materials = read_elements(sheet, "MATERIAL", len_data=1)
+    materials = [[m[0], cloth.get(m[1])] for m in read_elements(sheet, "MATERIAL", len_data=1)]
     i = 0
     ret = []
     while materials:

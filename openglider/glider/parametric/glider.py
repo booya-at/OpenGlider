@@ -19,6 +19,7 @@ from openglider.glider.parametric.import_ods import import_ods_2d
 from openglider.glider.parametric.lines import LineSet2D, UpperNode2D
 from openglider.glider.rib import RibHole, RigidFoil, Rib, MiniRib
 from openglider.glider.parametric.fitglider import fit_glider_3d
+import openglider.materials
 from openglider.utils.distribution import Distribution
 from openglider.utils.table import Table
 from openglider.utils import ZipCmp
@@ -210,13 +211,13 @@ class ParametricGlider(object):
                     continue
 
                 try:
-                    material_code = self.elements["materials"][cell_no][part_no]
+                    material = self.elements["material_cells"][cell_no][part_no]
                 except (KeyError, IndexError):
-                    material_code = "unknown"
+                    material = openglider.materials.cloth.get("unknown")
 
                 panel = Panel(cut1, cut2,
                               name="c{}p{}".format(cell_no+1, part_no+1),
-                              material_code=material_code)
+                              material=material)
                 panel_lst.append(panel)
 
 
@@ -311,7 +312,7 @@ class ParametricGlider(object):
         for rib_no, x in enumerate(x_values):
             front, back = shape_ribs[rib_no]
             arc = arc_pos[rib_no]
-            startpoint = np.array([-front[1] + offset_x, arc[0], arc[1]])
+            startpoint = euklid.vector.Vector3D([-front[1] + offset_x, arc[0], arc[1]])
             rib = glider.ribs[rib_no]
 
             rib.pos = startpoint
@@ -352,9 +353,6 @@ class ParametricGlider(object):
         cell_centers = [(p1+p2)/2 for p1, p2 in zip(x_values[:-1], x_values[1:])]
         offset_x = shape_ribs[0][0][1]
 
-        rib_material = None
-        if "rib_material" in self.elements:
-            rib_material = self.elements["rib_material"]
 
         logger.info("create ribs")
         profile_merge_values = self.get_profile_merge()
@@ -363,6 +361,11 @@ class ParametricGlider(object):
             front, back = shape_ribs[rib_no]
             arc = arc_pos[rib_no]
             startpoint = euklid.vector.Vector3D([-front[1] + offset_x, arc[0], arc[1]])
+
+            try:
+                material = self.elements["material_ribs"][rib_no][0]
+            except (KeyError, IndexError):
+                material = openglider.materials.cloth.get("unknown")
 
             chord = abs(front[1]-back[1])
             factor = profile_merge_values[rib_no]
@@ -383,7 +386,7 @@ class ParametricGlider(object):
                 holes=this_rib_holes,
                 rigidfoils=this_rigid_foils,
                 name="rib{}".format(rib_no),
-                material_code=rib_material
+                material=material
             ))
             ribs[-1].aoa_relative = aoa_int.get_value(pos)
 
