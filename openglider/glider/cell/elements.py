@@ -317,7 +317,8 @@ class Panel(object):
     Glider cell-panel
     :param cut_front {'left': 0.06, 'right': 0.06, 'type': 'orthogonal'}
     """
-    material = cloth.get("porcher.skytex.32")
+    material = cloth.get("porcher.skytex_32.white")
+    
     class CUT_TYPES(Config):
         """
         all available cut_types:

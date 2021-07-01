@@ -21,9 +21,10 @@
 import os
 import tempfile
 import unittest
+import random
+
 from common import import_dir
 from openglider.airfoil import Profile2D
-from test_vector import *
 
 TEMPDIR =  tempfile.gettempdir()
 

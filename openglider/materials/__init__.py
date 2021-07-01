@@ -23,9 +23,10 @@ class MaterialRegistry:
         module = importlib.import_module(path)
 
         for material in module.materials:
-            self.materials[str(material)] = material
+            self.materials[str(material).lower()] = material
     
-    def get(self, name):
+    def get(self, name: str):
+        name = name.lower()
         if name in self.materials:
             return self.materials[name]
 
