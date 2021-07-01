@@ -62,7 +62,15 @@ class BallooningBezierNeu(BallooningNew):
         self.apply_splines()
 
     def __json__(self):
-        return {"spline": self.spline_curve.controlpoints}
+        return {
+            "spline": self.spline_curve.controlpoints,
+            "name": self.name
+            }
+
+    @classmethod
+    def __from_json__(cls, spline, name=None):
+        return cls(spline, name)
+
 
     def __getitem__(self, xval):
         """Get Ballooning Value (%) for a certain XValue"""

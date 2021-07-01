@@ -265,7 +265,7 @@ def get_cell_sheet(glider):
 
     # Material
     material_table = Table()
-    for cell_no, cell in enumerate(elems["materials"]):
+    for cell_no, cell in enumerate(elems["material_cells"]):
         for part_no, part in enumerate(cell):
             material_table[cell_no+1, part_no] = part
 
@@ -309,6 +309,13 @@ def get_rib_sheet(glider_2d):
             rigidfoil_table[rib_no+1, 2] = rigidfoil["distance"]
         
         table.append_right(rigidfoil_table)
+
+    material_table = Table()
+    material_table[0, 0] = "MATERIAL"
+    for rib_no, material in enumerate(glider_2d.elements.get("material_ribs", [])):
+        material_table[rib_no+1, 0] = str(material)
+
+
 
     return table
 
