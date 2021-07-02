@@ -90,11 +90,19 @@ class SimpleCut(DesignCut):
 
         normvector = euklid.vector.Rotation2D(-math.pi/2).apply(p1-p2).normalized()
 
-        leftcut_index = outer_left.cut(p1, p2, inner_lists[0][1])
-        rightcut_index = outer_right.cut(p1, p2, inner_lists[-1][1])
+        # TODO: fix in euklid!
+        try:
+            leftcut_index = outer_left.cut(p1, p2, inner_lists[0][1])
+            index_left = leftcut_index[0]
+        except RuntimeError:
+            index_left = inner_lists[0][1]
 
-        index_left = leftcut_index[0]
-        index_right = rightcut_index[0]
+        try:
+            rightcut_index = outer_right.cut(p1, p2, inner_lists[-1][1])
+            index_right = rightcut_index[0]
+        except RuntimeError:
+            index_right = inner_lists[-1][1]
+
 
         leftcut = outer_left.get(index_left)
         rightcut = outer_right.get(index_right)
@@ -108,7 +116,7 @@ class SimpleCut(DesignCut):
 
         curve = euklid.vector.PolyLine2D([leftcut, leftcut+diff_l, rightcut+diff_r, rightcut])
 
-        return CutResult(curve, leftcut_index[0], rightcut_index[0], indices)
+        return CutResult(curve, index_left, index_right, indices)
 
 
 class Cut3D(DesignCut):

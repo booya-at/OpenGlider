@@ -347,7 +347,6 @@ class ParametricGlider(object):
 
         logger.info("apply elements")
 
-        rib_holes = self.elements.get("holes", [])
         rigids = self.elements.get("rigidfoils", [])
 
         cell_centers = [(p1+p2)/2 for p1, p2 in zip(x_values[:-1], x_values[1:])]
@@ -372,7 +371,7 @@ class ParametricGlider(object):
             profile = self.get_merge_profile(factor).set_x_values(profile_x_values)
             profile.name = "Profile{}".format(rib_no)
 
-            this_rib_holes = [RibHole(ribhole["pos"], ribhole["size"]) for ribhole in rib_holes if rib_no in ribhole["ribs"]]
+            this_rib_holes = self.elements["holes"].get(rib_no)
             this_rigid_foils = [RigidFoil(rigid["start"], rigid["end"], rigid["distance"]) for rigid in rigids if rib_no in rigid["ribs"]]
 
             ribs.append(Rib(

@@ -139,11 +139,8 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
 
 
     # RIB HOLES
-    rib_hole_keywords = ["ribs", "pos", "size"]
-    rib_holes = read_elements(rib_sheet, "QUERLOCH", len_data=2)
-    rib_holes += read_elements(rib_sheet, "HOLE", len_data=2)
-    rib_holes = to_dct(rib_holes, rib_hole_keywords)
-    rib_holes = group(rib_holes, "ribs")
+    from openglider.glider.parametric.table.holes import HolesTable
+    rib_holes = HolesTable(rib_sheet)
 
     rigidfoil_keywords = ["ribs", "start", "end", "distance"]
     rigidfoils = read_elements(rib_sheet, "RIGIDFOIL", len_data=3)

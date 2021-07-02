@@ -1,3 +1,5 @@
+import re
+
 class Material:
     weight: float = 0 # g / sqm
     
@@ -6,21 +8,33 @@ class Material:
     color: str = ""
     color_code: int = int("FFFFFF", base=16)
 
+    _regex_color = re.compile(r".*#([A-F0-9a-f]{6})")
+
     def __init__(self, **kwargs):
         if "color_code" in kwargs:
             color_code = kwargs.pop("color_code")
-            color_code_int = int(color_code, base=16)
-
-            if color_code_int < 0 or color_code_int > int("FFFFFF", base=16):
-                raise ValueError(f"invalid color code: {color_code}")
+            self._set_color_code(color_code)
         
-            self.color_code = color_code
+        else:
+            match = self._regex_color.match(kwargs.get("name", ""))
+
+            if match:
+                self._set_color_code(match.group(1))
+                
         
         for arg, value in kwargs.items():
             if not hasattr(self, arg):
                 raise ValueError(f"invalid attribute: {arg}")
         
             setattr(self, arg, value)
+        
+    def _set_color_code(self, color_code):
+        color_code_int = int(color_code, base=16)
+
+        if color_code_int < 0 or color_code_int > int("FFFFFF", base=16):
+            raise ValueError(f"invalid color code: {color_code}")
+    
+        self.color_code = color_code
 
     def __str__(self):
         full_name = f"{self.manufacturer}.{self.name}"

@@ -47,6 +47,25 @@ class Table:
         self.num_rows = rows
         self.num_columns = columns
         self.name=None
+    
+    def __json__(self):
+        return {
+            "dct": self.dct
+        }
+    
+    @classmethod
+    def __from_json__(cls, dct):
+        table = cls()
+        table.dct = dct
+
+        for key in dct:
+            row, column = cls.str_decrypt(key)
+
+            table.num_rows = max(table.num_rows, row+1)
+            table.num_columns = max(table.num_columns, column+1)
+        
+        return table
+
 
     def __setitem__(self, key, value):
         if isinstance(key, tuple):

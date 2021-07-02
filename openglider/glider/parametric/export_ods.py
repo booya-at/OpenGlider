@@ -285,16 +285,7 @@ def get_rib_sheet(glider_2d):
         table[i, 0] = f"rib{i}"
 
     # holes
-    for hole in glider_2d.elements["holes"]:
-        hole_table = Table()
-
-        hole_table[0, 0] = "HOLE"
-
-        for rib_no in hole["ribs"]:
-            hole_table[rib_no+1, 0] = hole["pos"]
-            hole_table[rib_no+1, 1] = hole["size"]
-        
-        table.append_right(hole_table)
+    table.append_right(glider_2d.elements["holes"].table)
 
     # rigidfoils
     rigidfoils = glider_2d.elements.get("rigidfoils", [])
