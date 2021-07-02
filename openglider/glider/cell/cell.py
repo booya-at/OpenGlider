@@ -128,7 +128,7 @@ class Cell(CachedObject):
         p0 = self.panels[0]
         for p in self.panels[1:]:
             if p.cut_front["type"] != skip and  p.cut_front == p0.cut_back:
-                p0 = Panel(p0.cut_front, p.cut_back, material_code=p0.material_code)
+                p0 = Panel(p0.cut_front, p.cut_back, material=p0.material)
             else:
                 panels.append(p0)
                 p0 = p
