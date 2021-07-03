@@ -181,13 +181,18 @@ class Rib(CachedObject):
         hole_centers = []
 
         if len(self.holes) > 0 and hole_num > 3:
-            for nr, hole in enumerate(self.holes):
-                start_index = len(vertices)
-                hole_vertices = list(hole.get_flattened(self, num=hole_num, scale=False))[:-1]
-                hole_indices = list(range(len(hole_vertices))) + [0]
-                vertices += hole_vertices
-                boundary.append([start_index + i for i in hole_indices])
-                hole_centers.append(list(hole.get_center(self, scale=False)))
+            for hole in self.holes:
+                curves = hole.get_flattened(self, num=hole_num, scale=False)
+
+                for curve in curves:
+                    start_index = len(vertices)
+                    hole_vertices = list(curve)[:-1]
+                    hole_indices = list(range(len(hole_vertices))) + [0]
+                    vertices += hole_vertices
+                    boundary.append([start_index + i for i in hole_indices])
+
+                for p in hole.get_centers(self, scale=False):
+                    hole_centers.append(list(p))
 
         if not filled:
             segments = []

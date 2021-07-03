@@ -144,7 +144,8 @@ class RibPlot(object):
 
     def insert_holes(self):
         for hole in self.rib.holes:
-            self.plotpart.layers["cuts"].append(hole.get_flattened(self.rib))
+            for l in hole.get_flattened(self.rib):
+                self.plotpart.layers["cuts"].append(l)
 
     def draw_rib(self, glider):
         """

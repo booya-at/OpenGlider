@@ -1,10 +1,12 @@
 import numpy as np
+import logging
 import math
 import euklid
 
 from openglider.lines import Node
 from openglider.vector.polygon import Circle, Ellipse
 
+logger = logging.getLogger(__name__)
 
 class RigidFoil(object):
     def __init__(self, start=-0.1, end=0.1, distance=0.005, circle_radius=0.03):
@@ -216,18 +218,17 @@ class RibHole(object):
         self.width = width
 
     def get_3d(self, rib, num=20):
-        hole = self.get_points(rib, num=num)
-
-        return rib.align_all(hole)
+        hole = self.get_curves(rib, num=num)
+        return [rib.align_all(c) for c in hole]
 
     def get_flattened(self, rib, num=80, scale=True):
-        points = self.get_points(rib, num)
+        points = self.get_curves(rib, num)
         if scale:
-            points = points * [rib.chord, rib.chord]
-
+            points = [l.scale(rib.chord) for l in points]
+        
         return points
 
-    def get_points(self, rib, num=80):
+    def get_curves(self, rib, num=80):
         lower = rib.profile_2d.get(self.pos)
         upper = rib.profile_2d.get(-self.pos)
 
@@ -240,9 +241,9 @@ class RibHole(object):
 
         circle = Ellipse.from_center_p2(center, outer_point, self.width)
 
-        return circle.get_sequence(num)
+        return [circle.get_sequence(num)]
     
-    def get_center(self, rib, scale=False):
+    def get_centers(self, rib, scale=False):
         # TODO: remove and use a polygon.centerpoint
         lower = rib.profile_2d.get(self.pos)
         upper = rib.profile_2d.get(-self.pos)
@@ -251,7 +252,7 @@ class RibHole(object):
         if self.rotation:
             diff = euklid.vector.Rotation2D(self.rotation).apply(diff)
         
-        return lower + diff * (0.5 + self.vertical_shift/2)
+        return [lower + diff * (0.5 + self.vertical_shift/2)]
 
 
 
@@ -263,29 +264,98 @@ class RibHole(object):
             "rotation": self.rotation}
 
 
-class RibSquareHole:
-    def __init__(self, start, stop, height):
-        pass
+class RibSquareHole(RibHole):
+    def __init__(self, x, width, height, corner_size=0.5):
+        self.x = x
+        self.width = width
+        self.height = height
+        self.corner_size = corner_size
 
-    def get_3d(self, rib, num=20):
-        hole = self.get_points(rib, num=num)
-        return rib.align_all(hole, 3)
+    def get_centers(self, rib, scale=False):
+        return [rib.profile_2d.align([self.x, 0])]
 
-    def get_flattened(self, rib, num=80, scale=True):
-        points = self.get_points(rib, num).data
-        if scale:
-            points *= rib.chord
-        return euklid.vector.PolyLine2D(points)
-        #return Polygon(p1, p2, num=num, scale=self.size, is_center=False)[0]
-
-    def get_points(self, rib, num=80):
+    def get_curves(self, rib, num=80):
         points = []
 
-        return euklid.vector.PolyLine2D(points, name=f"{rib.name}-hole")
+        x1 = self.x - self.width/2
+        x2 = self.x + self.width/2
+
+        # y -> [-1, 1]
+        corner_height = (1-self.corner_size) * self.height
+        corner_width = (1-self.corner_size) * self.width/2        
+
+        controlpoints = [
+            [x1, 0],
+            [x1, corner_height],
+            [x1, self.height],
+            [self.x - corner_width, self.height],
+            [self.x, self.height],
+            [self.x + corner_width, self.height],
+            [x2, self.height],
+            [x2, corner_height],
+            [x2, 0],
+            [x2, -corner_height],
+            [x2, -self.height],
+            [self.x + corner_width, -self.height],
+            [self.x, -self.height],
+            [self.x - corner_width, -self.height],
+            [x1, -self.height],
+            [x1, -corner_height],
+            [x1, 0]
+        ]
+
+        curve = euklid.spline.BSplineCurve([rib.profile_2d.align(p) for p in controlpoints])
+
+        return [curve.get_sequence(num)]
 
     def __json__(self):
         return {
             }
+
+class MultiSquareHole(RibHole):
+    def __init__(self, start, end, height, num_holes, border_width):
+        self.start = start
+        self.end = end
+        self.height = height
+        self.num_holes = num_holes
+        self.border_width = border_width
+
+    @property
+    def total_border(self):
+        return (self.num_holes-1) * self.border_width
+
+    @property
+    def hole_width(self):
+
+        width = (self.end - self.start - self.total_border) / self.num_holes
+        if width < 1e-5:
+            raise ValueError(f"Cannot fit {self.num_holes} with border: {self.border_width}")
+
+        return width
+    
+    @property
+    def hole_x_values(self):
+        hole_width = self.hole_width
+
+        x = self.start + hole_width/2
+
+        return [x + i*(hole_width+self.border_width) for i in range(self.num_holes)]
+    
+    def get_centers(self, rib, scale=False):
+        return [rib.profile_2d.align([x, 0]) for x in self.hole_x_values]
+    
+    def get_curves(self, rib, num=80):
+        hole_width = self.hole_width
+
+        curves = []
+        for center in self.hole_x_values:
+            hole = RibSquareHole(center, hole_width, self.height)
+
+            logger.warning([hole.x, hole.width, hole.height])
+
+            curves += hole.get_curves(rib, num)
+        
+        return curves
 
 
 

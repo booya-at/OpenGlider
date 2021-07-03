@@ -389,7 +389,8 @@ class LineSet(object):
         for i in range(steps):
             for l in self.lines:
                 if l.target_length is not None:
-                    diff = l.get_stretched_length(pre_load) - l.target_length
+                    diff = self.get_line_length(l) - l.target_length
+                    #diff = l.get_stretched_length(pre_load) - l.target_length
                     l.init_length -= diff
                     #l.init_length = l.target_length * l.init_length / l.get_stretched_length(pre_load)
             self.recalc(update_attachment_points=False)
@@ -561,6 +562,8 @@ class LineSet(object):
 
     def get_table(self):
         length_table = self._get_lines_table(lambda line: [round(self.get_line_length(line)*1000)])
+        #length_table = self._get_lines_table(lambda line: [round(line.get_stretched_length()*1000)])
+        
         length_table.name = "lines"
         names_table = self._get_lines_table(lambda line: [line.name, line.type.name, line.color])
 
