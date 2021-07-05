@@ -31,15 +31,20 @@ from openglider.airfoil import get_x_value
 import openglider.mesh as mesh
 from openglider.utils.cache import cached_function, hash_list
 from openglider.vector.projection import flatten_list
+from openglider.vector.mapping import Mapping, Mapping3D
 from openglider.utils import Config
-
+import openglider.jsonify
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openglider.glider.cell import Cell
 
 class DiagonalRib(object):
-    def __init__(self, left_front, left_back, right_front, right_back, material_code="", name="unnamed"):
+    hole_num = 2
+    hole_border_side = 0.15
+    hole_border_front_back = 0.1
+
+    def __init__(self, left_front, left_back, right_front, right_back, num_folds=1, material_code="", name="unnamed"):
         """
         [left_front, left_back, right_front, right_back]
         -> Cut: (x_value, height)
@@ -57,6 +62,7 @@ class DiagonalRib(object):
         self.right_back = right_back
         self.material_code = material_code
         self.name = name
+        self.num_folds = 0
 
     def __json__(self):
         return {'left_front': self.left_front,
@@ -132,73 +138,114 @@ class DiagonalRib(object):
 
         return left, right
 
-    def get_mesh(self, cell, insert_points=4, project_3d=False):
+    def get_mesh(self, cell, insert_points=10, project_3d=False):
         """
         get a mesh from a diagonal (2 poly lines)
         """
         left, right = self.get_3d(cell)
+        left_2d, right_2d = self.get_flattened(cell)
 
-        if insert_points:
-            point_array = []
-            points2d = []
-            number_array = []
-            # create array of points
-            # the outermost points build the segments
-            num_left = len(left)
-            num_right = len(right)
-            count = 0
+        node_no = max(len(c.nodes) for c in (left, right, left_2d, right_2d))
 
-            for y_pos in np.linspace(0., 1., insert_points + 2):
-                # from left to right
-                line_points = []
-                line_points_2d = []  # TODO: mesh 2d (x, y) -> 3d nodes
-                line_indices = []
-                num_points = int(num_left * (1. - y_pos) + num_right * y_pos)
+        left = left.resample(node_no)
+        right = right.resample(node_no)
+        left_2d = left_2d.resample(node_no)
+        right_2d = right_2d.resample(node_no)
+        
+        points_2d = left_2d.tolist()
+
+        p1 = left_2d.nodes[-1]
+        p2 = right_2d.nodes[-1]
+
+        for i in range(insert_points):
+            points_2d.append(list(p1 + (p2-p1) * ((i+1)/(insert_points+1))))
+
+        points_2d += right_2d.reverse().tolist()
+
+        p1 = right_2d.nodes[0]
+        p2 = left_2d.nodes[0]
+
+        for i in range(insert_points):
+            points_2d.append(list(p1 + (p2-p1) * ((i+1)/(insert_points+1))))
+        
+        boundary_nodes = list(range(len(points_2d)))
+        boundary = [boundary_nodes+[0]]
+        
+        holes, hole_centers = self.get_holes(cell)
+        
+        for curve in holes:
+            start_index = len(points_2d)
+            hole_vertices = curve.tolist()[:-1]
+            hole_indices = list(range(len(hole_vertices))) + [0]
+            points_2d += hole_vertices
+            boundary.append([start_index + i for i in hole_indices])
+
+        hole_centers = [list(p) for p in hole_centers]
+
+        tri = mesh.triangulate.Triangulation(points_2d, boundary, hole_centers)
+
+        tri.name = self.name or "DIAGONAL"
+        #tri.meshpy_quality_mesh = False
+        #tri.meshpy_incremental_algorithm = False
+        #tri.meshpy_planar_straight_line_graph = False
+
+        tri_mesh = tri.triangulate()
+
+        mapping_2d = Mapping([left_2d, right_2d])
+        mapping_3d = Mapping3D([left, right])
+
+        points_3d = []
+
+        for point in tri_mesh.points:
+            ik = mapping_2d.get_iks(euklid.vector.Vector2D(point))
+            points_3d.append(list(mapping_3d.get_point(*ik)))
+
+        return mesh.Mesh.from_indexed(points_3d, {"diagonals": list(tri_mesh.elements)}, boundaries={"diagonals": boundary_nodes})
 
 
-                for x_pos in np.linspace(0., 1., num_points):
-                    line_points.append(
-                        left.get(x_pos * (num_left - 1)) * (1. - y_pos) +
-                        right.get(x_pos * (num_right - 1)) * y_pos)
-                    line_points_2d.append([x_pos, y_pos])
-                    line_indices.append(count)
-                    count += 1
+    def get_holes(self, cell, points=40):
+        left, right = self.get_flattened(cell)
 
-                point_array += line_points
-                points2d += line_points_2d
-                number_array.append(line_indices)
+        len_left = left.get_length()
+        len_right = right.get_length()
 
-            # outline
-            edge = number_array[0]
-            edge += [line[-1] for line in number_array[1:]]
-            edge += number_array[-1][-2::-1]  # last line reversed without the last element
-            edge += [line[0] for line in number_array[1:-1]][::-1]
+        def get_point(x, y):
+            p1 = left.get(left.walk(0, len_left*x))
+            p2 = right.get(right.walk(0, len_right*x))
 
-            segment = [[edge[i], edge[i +1]] for i in range(len(edge) - 1)]
-            segment.append([edge[-1], edge[0]])
+            return p1 + (p2-p1)*y
+        
+        holes = []
+        centers = []
+        
+        if self.hole_num == 2:
+            holes = [
+                euklid.spline.BSplineCurve([
+                    get_point(self.hole_border_side, 0.5),
+                    get_point(self.hole_border_side, self.hole_border_front_back),
+                    get_point(0.5-self.hole_border_side/2, self.hole_border_front_back),
+                    get_point(0.5-self.hole_border_side/2, 1-self.hole_border_front_back),
+                    get_point(self.hole_border_side, 1-self.hole_border_front_back),
+                    get_point(self.hole_border_side, 0.5),
+                ]).get_sequence(points),
 
-            point_array = np.array(point_array)
-            import openglider.mesh.mesh as _mesh
+                euklid.spline.BSplineCurve([
+                    get_point(0.5+self.hole_border_side/2, 0.5),
+                    get_point(0.5+self.hole_border_side/2, self.hole_border_front_back),
+                    get_point(1-self.hole_border_side, self.hole_border_front_back),
+                    get_point(1-self.hole_border_side, 1-self.hole_border_front_back),
+                    get_point(0.5+self.hole_border_side/2, 1-self.hole_border_front_back),
+                    get_point(0.5+self.hole_border_side/2, 0.5),
+                ]).get_sequence(points),
 
-            if project_3d:
-                points2d = _mesh.map_to_2d(point_array)
+            ]
 
-            tri = mesh.triangulate.Triangulation(points2d, [edge])
-            tri.name = self.name
+            centers = [
+                get_point(0.25 + self.hole_border_side/4, 0.5),
+                get_point(0.75 - self.hole_border_side/4, 0.5),
+            ]
 
-            tri_mesh = tri.triangulate(options="Qz")
-            # mesh_info = _mesh.mptriangle.MeshInfo()
-            # mesh_info.set_points(points2d)
-            # mesh_info.set_facets(segment)
-            # mesh = _mesh.custom_triangulation(mesh_info, "Qz")
-            
-
-            return mesh.Mesh.from_indexed(point_array, {"diagonals": list(tri_mesh.elements)}, boundaries={"diagonals": edge})
-
-        else:
-            vertices = np.array(list(left) + list(right)[::-1])
-            polygon = [range(len(vertices))]
-            return mesh.Mesh.from_indexed(vertices, {"diagonals": polygon})
+        return holes, centers
 
     def get_flattened(self, cell, ribs_flattened=None):
         first, second = self.get_3d(cell)
@@ -218,6 +265,8 @@ class DoubleDiagonalRib(object):
 
 
 class TensionStrap(DiagonalRib):
+    hole_num = 0
+
     def __init__(self, left, right, width, height=-1, material_code="", name=""):
         """
         Similar to a Diagonalrib but always connected to the bottom-sail.
@@ -227,7 +276,6 @@ class TensionStrap(DiagonalRib):
         :param material_code: color/material-name (optional)
         :param name: name of TensionStrap (optional)
         """
-        width /= 2
         super(TensionStrap, self).__init__((left - width / 2, height),
                                            (left + width / 2, height),
                                            (right - width / 2, height),
@@ -586,7 +634,6 @@ class Panel(object):
 
                 ik_values_new.append((_ik_front, _ik_back))
             
-            nix = 1
             return ik_values_new
         
         else:

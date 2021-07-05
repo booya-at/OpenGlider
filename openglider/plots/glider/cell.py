@@ -473,7 +473,7 @@ class DribPlot(object):
                                         valign=0.6).get_vectors()
 
     def flatten(self, attachment_points=None):
-        return self._flatten(attachment_points, self.config.drib_num_folds)
+        return self._flatten(attachment_points, self.drib.num_folds)
 
     def _flatten(self, attachment_points, num_folds):
         plotpart = PlotPart(material_code=self.drib.material_code, name=self.drib.name)
@@ -492,15 +492,27 @@ class DribPlot(object):
             ]
 
         else:
-            p1 = self.left_out.cut(self.left.get(0), self.right.get(0), startpoint=0, extrapolate=True)[0]
-            p2 = self.left_out.cut(self.left.get(len(self.left)-1), self.right.get(len(self.right)-1), startpoint=len(self.left_out))[0]
-            p3 = self.right_out.cut(self.left.get(0), self.right.get(0), startpoint=0)[0]
-            p4 = self.right_out.cut(self.left.get(len(self.left)-1), self.right.get(len(self.right)-1), startpoint=len(self.right_out))[0]
+            p1 = self.left_out.cut(self.left.get(0), self.right.get(0), 0)[0]
+            p2 = self.left_out.cut(self.left.get(len(self.left)-1), self.right.get(len(self.right)-1), len(self.left_out))[0]
+            p3 = self.right_out.cut(self.left.get(0), self.right.get(0), 0)[0]
+            p4 = self.right_out.cut(self.left.get(len(self.left)-1), self.right.get(len(self.right)-1), len(self.right_out))[0]
 
-            outer = self.left_out.get(p1, p2)
-            outer += self.right_out.get(p3,p4).reverse()
-            outer += euklid.vector.PolyLine2D([self.left_out.get(p1)])
+            #outer = self.left_out.get(p1, p2)
+            #outer += self.right_out.get(p3,p4).reverse()
+            #outer += euklid.vector.PolyLine2D([self.left_out.get(p1)])
+
+            outer = self.left_out.copy()
+            outer += euklid.vector.PolyLine2D([self.left.nodes[-1]])
+            outer += euklid.vector.PolyLine2D([self.right.nodes[-1]])
+            outer += self.right_out.reverse()
+            outer += euklid.vector.PolyLine2D([self.right.nodes[0]])
+            outer += euklid.vector.PolyLine2D([self.left.nodes[0]])
+            outer += euklid.vector.PolyLine2D([self.left_out.nodes[0]])
+            #outer += euklid.vector.PolyLine2D([self.left_out.get(p1)])
             plotpart.layers["cuts"].append(outer)
+
+        for curve in self.drib.get_holes(self.cell)[0]:
+            plotpart.layers["cuts"].append(curve)
 
         plotpart.layers["marks"].append(euklid.vector.PolyLine2D([self.left.get(0), self.right.get(0)]))
         plotpart.layers["marks"].append(euklid.vector.PolyLine2D([self.left.get(len(self.left) - 1), self.right.get(len(self.right) - 1)]))

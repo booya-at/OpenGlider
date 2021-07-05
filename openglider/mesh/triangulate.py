@@ -32,7 +32,6 @@ class TriMesh:
 class Triangulation(object):
     meshpy_keep_boundary = True
     meshpy_planar_straight_line_graph = True
-    meshpy_restrict_area = True
     meshpy_max_area = None
     meshpy_incremental_algorithm = True
     meshpy_quality_mesh = True
@@ -67,10 +66,9 @@ class Triangulation(object):
         if self.meshpy_planar_straight_line_graph:
             opts += "p"
 
-        if self.meshpy_restrict_area:
+        if self.meshpy_max_area is not None:
             opts += "a"
-            if self.meshpy_max_area is not None:
-                opts += "{:f}".format(self.meshpy_max_area)
+            opts += "{:f}".format(self.meshpy_max_area)
 
         return opts
 

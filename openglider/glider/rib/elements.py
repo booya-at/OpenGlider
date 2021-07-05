@@ -351,8 +351,6 @@ class MultiSquareHole(RibHole):
         for center in self.hole_x_values:
             hole = RibSquareHole(center, hole_width, self.height)
 
-            logger.warning([hole.x, hole.width, hole.height])
-
             curves += hole.get_curves(rib, num)
         
         return curves
