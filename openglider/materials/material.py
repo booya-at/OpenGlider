@@ -6,7 +6,7 @@ class Material:
     manufacturer: str = "unknown"
     name: str = "unnamed"
     color: str = ""
-    color_code: int = int("FFFFFF", base=16)
+    color_code: str = "FFFFFF"
 
     _regex_color = re.compile(r".*#([A-F0-9a-f]{6})")
 
@@ -35,14 +35,6 @@ class Material:
             raise ValueError(f"invalid color code: {color_code}")
     
         self.color_code = color_code
-    
-    def get_color_rgb(self):
-        r = (self.color_code//256**2) % 256
-        g = (self.color_code//256) % 256
-        b = self.color_code % 256
-
-        return r, g, b
-
 
     def __str__(self):
         full_name = f"{self.manufacturer}.{self.name}"

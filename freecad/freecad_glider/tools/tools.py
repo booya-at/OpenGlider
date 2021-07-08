@@ -101,7 +101,7 @@ def hex_to_rgb(hex_string):
         if len(split) > 1:
             prefix, value = split
         else:
-            value = split
+            value = split[0]
         lv = len(value)
         return tuple(int(value[i:i + lv // 3], 16) / 256. for i in range(0, lv, lv // 3))
     except (IndexError, ValueError) as e:

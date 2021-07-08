@@ -10,6 +10,10 @@ def migrate_diagonals(cls, jsondata):
         table = get_hole_table(holes)
 
         elements["holes"] = table.__json__()
+
+        materials = elements.pop("materials")
+        if materials:
+            elements["material_cells"] = materials
     
     return jsondata
 

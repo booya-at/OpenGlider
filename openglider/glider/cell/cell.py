@@ -324,9 +324,19 @@ class Cell(CachedObject):
 
         for strap in self.straps:
             strap.mirror()
-
+        
+        cuts = list()
         for panel in self.panels:
-            panel.mirror()
+            if panel.cut_front not in cuts:
+                cuts.append(panel.cut_front)
+            if panel.cut_back not in cuts:
+                cuts.append(panel.cut_back)
+        
+        for cut in cuts:
+            cut.update({
+                "right": cut["left"],
+                "left": cut["right"]
+            })
 
     def mean_rib(self, num_midribs=8) -> Profile2D:
         mean_rib = self.midrib(0).flatten().normalized()
