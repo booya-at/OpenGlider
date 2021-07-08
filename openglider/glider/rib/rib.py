@@ -217,7 +217,7 @@ class SingleSkinRib(Rib):
     def __init__(self, profile_2d=None, startpoint=None,
                  chord=1., arcang=0, aoa_absolute=0, zrot=0, xrot=0., glide=1,
                  name="unnamed rib", startpos=0.,
-                 rigidfoils=None, holes=None, material_code=None,
+                 rigidfoils=None, holes=None, material=None,
                  single_skin_par=None):
         super(SingleSkinRib, self).__init__(profile_2d=profile_2d, 
                                             startpoint=startpoint,
@@ -231,7 +231,7 @@ class SingleSkinRib(Rib):
                                             startpos=startpos,
                                             rigidfoils=rigidfoils,
                                             holes=holes,
-                                            material_code=material_code)
+                                            material=material)
         self.single_skin_par = single_skin_par or {}
 
         # we have to apply this function once for the profile2d
@@ -355,7 +355,7 @@ class SingleSkinRib(Rib):
     @staticmethod
     def straight_line(x, x0, x1):
         x_proj = (x - x0).dot(x1 - x0) / norm(x1 - x0)**2
-        return x0 + (x1 - x0) * x_proj
+        return euklid.vector.Vector2D(list(x0 + (x1 - x0) * x_proj))
 
     @staticmethod
     def parabola(x, x0, x1, x_max):
@@ -370,7 +370,7 @@ class SingleSkinRib(Rib):
         s = (x1 - x0)[1] / norm(x1 - x0)
         rot = np.array([[c, -s], [s, c]])
         null = - x_max
-        return rot.dot(x - null) + x0
+        return euklid.vector.Vector2D(list(rot.dot(x - null) + x0))
 
 
 # def rib_rotation(aoa, arc, zrot):

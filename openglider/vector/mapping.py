@@ -98,23 +98,20 @@ class Mapping:
 
     
     def get_iks(self, point: euklid.vector.Vector2D):
+        min_distance = float("inf")
         for quads_row in self.quads:
             for quad in quads_row:
                 m, l = quad.to_local(point)
 
-                if -d <= m < 0:
-                    m = 0
-                
-                if 1 < m < 1+d:
-                    m = 1
-                if -d <= l < 0:
-                    l = 0
-                
-                if 1 < l < 1+d:
-                    l = 1
+                distance = max([
+                    min([abs(m), abs(m-1)]),
+                    min([abs(l), abs(l-1)])
+                ])
+
+                min_distance = min(min_distance, distance)
                 
 
-                if 0 <= m <= 1 and 0 <= l <= 1:
+                if distance < 1+d:
                     offset_i, offset_x = self.quad_map[quad]
 
                     return offset_x + m, offset_i + l
@@ -122,7 +119,6 @@ class Mapping:
         with open("/tmp/data.json", "w") as outfile:
             openglider.jsonify.dump([self, point], outfile)
 
-        raise Exception(f"could not fit point: {point}")
 
 class Mapping3D:
     def __init__(self, curves):
@@ -130,13 +126,11 @@ class Mapping3D:
 
     def get_point(self, ik_x, ik_y):
         i_y = int(ik_y)
+        if i_y >= len(self.curves)-1:
+            i_y = len(self.curves)-2
+            
         k_y = ik_y-i_y
 
-        if i_y >= len(self.curves)-1:
-            if i_y == len(self.curves)-1 and k_y < 1e-6:
-                return self.curves[len(self.curves)-1].get(ik_x)
-
-            raise ValueError()
 
         p1 = self.curves[i_y].get(ik_x)
         p2 = self.curves[i_y+1].get(ik_x)

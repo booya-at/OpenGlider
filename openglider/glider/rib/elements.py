@@ -210,8 +210,8 @@ class RibHole(object):
     """
     def __init__(self, pos, size=0.5, width=1, vertical_shift=0., rotation=0.):
         self.pos = pos
-        if isinstance(size, (list, tuple)):
-            size = np.array(list(size))
+        if isinstance(size, (list, tuple, np.ndarray)):
+            size = list(size)
         self.size = size
         self.vertical_shift = vertical_shift
         self.rotation = rotation  # rotation around lower point
@@ -237,7 +237,7 @@ class RibHole(object):
             diff = euklid.vector.Rotation2D(self.rotation).apply(diff)
         
         center = lower + diff * (0.5 + self.vertical_shift/2)
-        outer_point = center + diff * (self.size/2)
+        outer_point = center + diff*self.size/2
 
         circle = Ellipse.from_center_p2(center, outer_point, self.width)
 
