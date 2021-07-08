@@ -149,8 +149,6 @@ class PlotMaker(object):
         dribs_grouped = group(dribs, "dribs")
         straps_grouped = group(straps, "straps")
 
-        rigidfoils.draw_border()
-        rigidfoils.add_text(f"rigidfoils")
 
         panels.add_text("panels_all")
 
@@ -159,7 +157,11 @@ class PlotMaker(object):
         all_layouts += ribs_grouped
         all_layouts += dribs_grouped
         all_layouts += straps_grouped
-        all_layouts += [rigidfoils]
+
+        if len(rigidfoils.parts):
+            rigidfoils.draw_border()
+            rigidfoils.add_text(f"rigidfoils")
+            all_layouts += [rigidfoils]
 
         return Layout.stack_column(all_layouts, 0.1, center_x=False)
 
