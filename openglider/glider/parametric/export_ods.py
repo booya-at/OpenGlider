@@ -129,6 +129,21 @@ def get_cell_sheet(glider):
 
     elems = glider.elements
 
+
+    # rigidfoils
+    rigidfoils = elems.get("cell_rigidfoils", [])
+    rigidfoils.sort(key=lambda r: r["x_start"])
+    for rigidfoil in rigidfoils:
+        rigidfoil_table = Table()
+        rigidfoil_table[0, 0] = "RIGIDFOIL"
+
+        for cell_no in rigidfoil["cells"]:
+            rigidfoil_table[cell_no+1, 0] = rigidfoil["x_start"]
+            rigidfoil_table[cell_no+1, 1] = rigidfoil["x_end"]
+            rigidfoil_table[cell_no+1, 2] = rigidfoil["y"]
+        
+        table.append_right(rigidfoil_table)
+
     # cuts
     cuts_table = Table()
     cuts_per_cell = []

@@ -140,6 +140,7 @@ class PlotMaker(object):
             for material_name, material_layout in grouped.items():
                 material_layout.parts.append(border.copy())
                 material_layout.add_text(f"{prefix}_{material_name}")
+                #material_layout.draw_border(append=True, border=0.1)
             
             return grouped.values()
 
@@ -147,6 +148,9 @@ class PlotMaker(object):
         ribs_grouped = group(ribs, "ribs")
         dribs_grouped = group(dribs, "dribs")
         straps_grouped = group(straps, "straps")
+
+        rigidfoils.draw_border()
+        rigidfoils.add_text(f"rigidfoils")
 
         panels.add_text("panels_all")
 
@@ -157,7 +161,7 @@ class PlotMaker(object):
         all_layouts += straps_grouped
         all_layouts += [rigidfoils]
 
-        return Layout.stack_column(all_layouts, 0.01, center_x=False)
+        return Layout.stack_column(all_layouts, 0.1, center_x=False)
 
     def unwrap(self):
         self.get_panels()

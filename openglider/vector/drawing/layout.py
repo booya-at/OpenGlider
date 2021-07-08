@@ -212,16 +212,19 @@ class Layout(object):
 
             
 
-    def add_text(self, text):
+    def add_text(self, text, distance=0.1):
         """
         Add text to bottom-left corner
         :param text:
         :return:
         """
         bbox = self.bbox[:]
+        p1, p2 = bbox[:2]
+        p1[1] -= distance
+        p2[1] -= distance
         data = []
         if text is not None:
-            _text = Text(text, bbox[0], bbox[1], valign=-0.6, size=0.1)
+            _text = Text(text, p1, p2, valign=-0.5, size=0.1)
             data += _text.get_vectors()
 
         pp = PlotPart(drawing_boundary=data)
