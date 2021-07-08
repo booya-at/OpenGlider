@@ -391,7 +391,7 @@ def get_lower_aufhaengepunkte(data):
     for key in keys_to_remove:
         data.pop(key)
 
-    return {name: LowerNode2D([0, 0], position, name)
+    return {name: LowerNode2D([0, 0], euklid.vector.Vector3D(position), name)
             for name, position in aufhaengepunkte.items()}
 
 

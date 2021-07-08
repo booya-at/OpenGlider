@@ -30,6 +30,8 @@ class RibPlot(object):
         marks_panel_cut = marks.Line(name="panel_cut")
         rib_text_pos = -0.005
 
+        protoloops = 0.02
+
     def __init__(self, rib, config=None):
         self.rib = rib
         self.config = self.DefaultConfig(config)
@@ -180,8 +182,15 @@ class RibPlot(object):
     def _insert_attachment_points(self, points):
         for attachment_point in points:
             if hasattr(attachment_point, "rib") and attachment_point.rib == self.rib:
-                self.insert_mark(attachment_point.rib_pos, self.config.marks_attachment_point)
-                self.insert_mark(attachment_point.rib_pos, self.config.marks_laser_attachment_point, "L0")
+                positions = [attachment_point.rib_pos]
+
+                if self.config.protoloops:
+                    positions.append(attachment_point.rib_pos + self.config.protoloops)
+                    positions.append(attachment_point.rib_pos - self.config.protoloops)
+
+                for position in positions:
+                    self.insert_mark(position, self.config.marks_attachment_point)
+                    self.insert_mark(position, self.config.marks_laser_attachment_point, "L0")
 
     def _insert_text(self, text):
         inner, outer = self._get_inner_outer(self.config.rib_text_pos)

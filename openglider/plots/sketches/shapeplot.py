@@ -1,3 +1,5 @@
+from typing import List
+
 import numpy as np
 import euklid
 
@@ -5,6 +7,7 @@ from openglider.glider import GliderProject
 from openglider.vector.text import Text
 from openglider.vector.drawing import Layout, PlotPart
 import openglider.plots.marks as marks
+from openglider.glider.cell.elements import Panel
 
 
 class ShapePlot(object):
@@ -61,7 +64,7 @@ class ShapePlot(object):
                     # should start before zero at least once
                     return panel.cut_front["left"] < 0 or panel.cut_front["right"] < 0
 
-            cell_side_panels = filter(match, cell_panels)
+            cell_side_panels: List[Panel] = filter(match, cell_panels)
 
             for panel in cell_side_panels:
 
@@ -85,11 +88,11 @@ class ShapePlot(object):
                     euklid.vector.PolyLine2D([p1, p2, p3, p4, p1])
                     )
 
-                #self.drawing.parts.append(PlotPart(
-                #    cuts=[PolyLine2D([p1, p2, p3, p4, p1])],
-                #    material_code=panel.material_code))
+                self.drawing.parts.append(PlotPart(
+                    cuts=[euklid.vector.PolyLine2D([p1, p2, p3, p4, p1])],
+                    material_code=f"{panel.material}#{panel.material.color_code}"))
 
-        self.drawing.parts.append(part)
+        #self.drawing.parts.append(part)
 
         return self
 

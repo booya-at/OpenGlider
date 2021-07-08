@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     from openglider.glider.cell import Cell
 
 class DiagonalRib(object):
-    hole_num = 2
+    hole_num = 0
     hole_border_side = 0.15
     hole_border_front_back = 0.1
 
@@ -62,7 +62,7 @@ class DiagonalRib(object):
         self.right_back = right_back
         self.material_code = material_code
         self.name = name
-        self.num_folds = 0
+        self.num_folds = num_folds
 
     def __json__(self):
         return {'left_front': self.left_front,

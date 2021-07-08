@@ -436,6 +436,10 @@ class Layout(object):
 
                 if fill:
                     color = get_material_color(layer_name)
+
+                    if color is None:
+                        color = get_material_color(part.material_code)
+                        
                     if color:
                         layer_config["fill"] = color
 

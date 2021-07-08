@@ -10,6 +10,7 @@ d = 1e-5
 class Quad:
     # arbitrary quadrilateral interpolation
     # barycentric coordinates
+    # https://numfactory.upc.edu/web/FiniteElements/Pract/P4-QuadInterpolation/html/QuadInterpolation.html
     matrix = numpy.matrix([
         [1,0,0,0],
         [1,1,0,0],
@@ -97,8 +98,8 @@ class Mapping:
 
     
     def get_iks(self, point: euklid.vector.Vector2D):
-        for row, quads in enumerate(self.quads):
-            for column, quad in enumerate(quads):
+        for quads_row in self.quads:
+            for quad in quads_row:
                 m, l = quad.to_local(point)
 
                 if -d <= m < 0:

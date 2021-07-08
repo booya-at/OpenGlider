@@ -37,7 +37,7 @@ def load(filename):
     """
     """
     if filename.endswith(".ods"):
-        res = openglider.glider.ParametricGlider.import_ods(filename)
+        res = openglider.glider.GliderProject.import_ods(filename)
     else:
         with open(filename) as infile:
             res = openglider.jsonify.load(infile)
