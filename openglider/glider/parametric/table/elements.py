@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Any
 
 from openglider.utils.table import Table
 
@@ -19,7 +19,7 @@ class ElementTable:
         }
     
     @staticmethod
-    def get_columns(table: Table, keyword, data_length):
+    def get_columns(table: Table, keyword, data_length) -> List[Table]:
         columns = []
         column = 0
         while column < table.num_columns:
@@ -32,7 +32,7 @@ class ElementTable:
 
         return columns
     
-    def get(self, row_no):
+    def get(self, row_no: int) -> List[Any]:
         row_no += 1  # skip header line
         elements = []
         for keyword, data_length in self.keywords:
@@ -42,7 +42,7 @@ class ElementTable:
         
         return elements
     
-    def get_element(self, keyword, data):
+    def get_element(self, keyword, data) -> Any:
         raise NotImplementedError()
 
     def _repr_html_(self):

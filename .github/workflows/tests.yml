@@ -25,7 +25,7 @@ jobs:
           pip install .
       - name: mypy
         run: |
-          mypy --ignore-missing-imports openglider
+          mypy --config-file mypy.ini openglider
       - name: test
         run: |
           python testall.py

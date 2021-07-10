@@ -118,6 +118,8 @@ class Mapping:
         
         with open("/tmp/data.json", "w") as outfile:
             openglider.jsonify.dump([self, point], outfile)
+        
+        raise ValueError(f"couldn't fit {point}")
 
 
 class Mapping3D:

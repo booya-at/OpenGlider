@@ -7,12 +7,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 class HolesTable(ElementTable):
-    keywords = (
-        ["HOLE", 2],
-        ["QUERLOCH", 2],
-        ["HOLESQ", 3],
-        ["HOLESQMULTI", 5]  # start, end, height, num_holes, border_width
-    )
+    keywords = [
+        ("HOLE", 2),
+        ("QUERLOCH", 2),
+        ("HOLESQ", 3),
+        ("HOLESQMULTI", 5)  # start, end, height, num_holes, border_width
+    ]
     
     def get_element(self, keyword, data):
         if keyword in ("HOLE", "QUERLOCH"):
