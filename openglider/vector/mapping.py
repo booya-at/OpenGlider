@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import math
 import numpy
@@ -11,14 +11,14 @@ class Quad:
     # arbitrary quadrilateral interpolation
     # barycentric coordinates
     # https://numfactory.upc.edu/web/FiniteElements/Pract/P4-QuadInterpolation/html/QuadInterpolation.html
-    matrix = numpy.matrix([
+    matrix: numpy.matrix = numpy.matrix([
         [1,0,0,0],
         [1,1,0,0],
         [1,1,1,1],
         [1,0,1,0]
     ])
 
-    matrix_inverse = numpy.linalg.inv(matrix)
+    matrix_inverse: numpy.matrix = numpy.linalg.inv(matrix)
 
     def __init__(self, p1, p2, p3, p4):
         self.nodes = [
@@ -29,13 +29,13 @@ class Quad:
         self.b = list(self.matrix_inverse.dot([p[1] for p in self.nodes]).flat)
 
 
-    def to_global(self, l, m):
+    def to_global(self, l, m) -> euklid.vector.Vector2D:
         x = self.a[0] + l*self.a[1] + m*self.a[2] + self.a[3]*l*m
         y = self.b[0] + l*self.b[1] + m*self.b[2] + self.b[3]*l*m
         
         return euklid.vector.Vector2D([x,y])
 
-    def to_local(self, point: euklid.vector.Vector2D):
+    def to_local(self, point: euklid.vector.Vector2D) -> Tuple[float, float]:
         a = self.a[3]*self.b[2] - self.a[2]*self.b[3]
         b = self.a[3]*self.b[0] - self.a[0]*self.b[3] + self.a[1]*self.b[2] - self.a[2]*self.b[1] + self.b[3]*point[0] - self.a[3]*point[1]
         c = self.a[1]*self.b[0] - self.a[0]*self.b[1] + self.b[1]*point[0] - self.a[1]*point[1]
@@ -83,7 +83,7 @@ class Mapping:
             "curves": self.curves
         }
 
-    def get_point(self, ik_x, ik_y):
+    def get_point(self, ik_x, ik_y) -> euklid.vector.Vector2D:
         i_y = int(ik_y)
         k_y = ik_y-i_y
 
@@ -97,7 +97,7 @@ class Mapping:
         return poly.to_global(k_x, k_y)
 
     
-    def get_iks(self, point: euklid.vector.Vector2D):
+    def get_iks(self, point: euklid.vector.Vector2D) -> Tuple[float, float]:
         min_distance = float("inf")
         for quads_row in self.quads:
             for quad in quads_row:
@@ -124,7 +124,7 @@ class Mapping3D:
     def __init__(self, curves):
         self.curves = curves
 
-    def get_point(self, ik_x, ik_y):
+    def get_point(self, ik_x, ik_y) -> euklid.vector.Vector3D:
         i_y = int(ik_y)
         if i_y >= len(self.curves)-1:
             i_y = len(self.curves)-2

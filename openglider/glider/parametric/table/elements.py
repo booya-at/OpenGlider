@@ -1,8 +1,10 @@
+from typing import List, Tuple
+
 from openglider.utils.table import Table
 
 
 class ElementTable:
-    keywords: list[tuple[str, int]] = []
+    keywords: List[Tuple[str, int]] = []
 
     def __init__(self, table: Table):
         self.table = Table()

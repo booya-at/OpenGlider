@@ -39,7 +39,7 @@ class CirclePart(object):
         self.center = cut_result.point
         self.r: euklid.vector.Vector2D = p1 - self.center
 
-    def get_sequence(self, num=20):
+    def get_sequence(self, num=20) -> euklid.vector.PolyLine2D:
         lst = []
 
         end = self.r.angle() - (self.p3-self.center).angle()

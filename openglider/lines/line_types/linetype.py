@@ -17,7 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/
-from __future__ import division
+from typing import Dict
 import sys
 import logging
 
@@ -26,7 +26,7 @@ import euklid
 logging.getLogger(__name__)
 
 class LineType():
-    types: dict[str, "LineType"] = {}
+    types: Dict[str, "LineType"] = {}
 
     def __init__(self, name, thickness, stretch_curve, min_break_load=None, weight=None, seam_correction=0, colors=None, cw=1.1):
         """
