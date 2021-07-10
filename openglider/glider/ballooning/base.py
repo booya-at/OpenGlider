@@ -60,11 +60,14 @@ class BallooningBase():
     def __call__(self, xval):
         return self.get_phi(xval)
 
-    def get_phi(self, xval):
+    def __getitem__(self, xval):
+        raise NotImplementedError()
+
+    def get_phi(self, xval) -> float:
         """Get Ballooning Arc (phi) for a certain XValue"""
         return self.phi(1. / (self[xval] + 1))
 
-    def get_tension_factor(self, xval):
+    def get_tension_factor(self, xval) -> float:
         """Get the tension due to ballooning"""
         value =  2. * np.tan(self.get_phi(xval))
         if 0. in value:
@@ -73,7 +76,7 @@ class BallooningBase():
             return 1. / value
 
     @classmethod
-    def phi(cls, baloon):
+    def phi(cls, baloon) -> float:
         """
         Return the angle of the piece of cake.
         b/l=R*phi/(R*Sin(phi)) -> Phi=arsinc(l/b)

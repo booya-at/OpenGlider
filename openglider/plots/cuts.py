@@ -49,7 +49,7 @@ class DesignCut(object):
 
         return indices
 
-    def apply(self, inner_lists, outer_left, outer_right, amount_3d=None):
+    def apply(self, inner_lists, outer_left: euklid.vector.PolyLine2D, outer_right: euklid.vector.PolyLine2D, amount_3d=None) -> CutResult:
         #p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
         #p2 = inner_lists[-1][0][inner_lists[-1][1]]
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
@@ -84,7 +84,7 @@ class DesignCut(object):
 
 
 class SimpleCut(DesignCut):
-    def apply(self, inner_lists, outer_left, outer_right, amount_3d=None):
+    def apply(self, inner_lists, outer_left: euklid.vector.PolyLine2D, outer_right: euklid.vector.PolyLine2D, amount_3d=None) -> CutResult:
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
         indices = self._get_indices(inner_lists, amount_3d)
 
@@ -120,7 +120,7 @@ class SimpleCut(DesignCut):
 
 
 class Cut3D(DesignCut):
-    def apply(self, inner_lists, outer_left: euklid.vector.PolyLine2D, outer_right: euklid.vector.PolyLine2D, amount_3d=None):
+    def apply(self, inner_lists, outer_left: euklid.vector.PolyLine2D, outer_right: euklid.vector.PolyLine2D, amount_3d=None) -> CutResult:
         """
 
         :param inner_lists:

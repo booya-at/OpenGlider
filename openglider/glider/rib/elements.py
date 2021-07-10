@@ -115,7 +115,9 @@ class GibusArcs(object):
     def get_3d(self, rib, num_points=10):
         # create circle with center on the point
         gib_arc = self.get_flattened(rib, num_points=num_points)
-        return [rib.align([p[0], p[1], 0], scale=False) for p in gib_arc]
+
+        return rib.align(gib_arc, scale=False)
+        #return [rib.align([p[0], p[1], 0], scale=False) for p in gib_arc]
 
     def get_flattened(self, rib, num_points=10):
         # get center point
@@ -165,7 +167,7 @@ class CellAttachmentPoint(Node):
             "force": self.force
         }
 
-    def get_position(self):
+    def get_position(self) -> euklid.vector.Vector3D:
         ik = self.cell.rib1.profile_2d(self.rib_pos)
 
         if self.rib_pos in (-1, 1):
@@ -197,7 +199,7 @@ class AttachmentPoint(Node):
                 "force": self.force}
 
 
-    def get_position(self):
+    def get_position(self) -> euklid.vector.Vector3D:
         # todo: PROFILE3D -> return euklid vector
         self.vec = self.rib.profile_3d[self.rib.profile_2d(self.rib_pos)]
         return self.vec
@@ -228,7 +230,7 @@ class RibHole(object):
         
         return points
 
-    def get_curves(self, rib, num=80):
+    def get_curves(self, rib, num=80) -> list[euklid.vector.PolyLine2D]:
         lower = rib.profile_2d.get(self.pos)
         upper = rib.profile_2d.get(-self.pos)
 
@@ -243,7 +245,7 @@ class RibHole(object):
 
         return [circle.get_sequence(num)]
     
-    def get_centers(self, rib, scale=False):
+    def get_centers(self, rib, scale=False) -> list[euklid.vector.Vector2D]:
         # TODO: remove and use a polygon.centerpoint
         lower = rib.profile_2d.get(self.pos)
         upper = rib.profile_2d.get(-self.pos)
@@ -271,12 +273,10 @@ class RibSquareHole(RibHole):
         self.height = height
         self.corner_size = corner_size
 
-    def get_centers(self, rib, scale=False):
+    def get_centers(self, rib, scale=False) -> list[euklid.vector.Vector2D]:
         return [rib.profile_2d.align([self.x, 0])]
 
-    def get_curves(self, rib, num=80):
-        points = []
-
+    def get_curves(self, rib, num=80) -> list[euklid.vector.PolyLine2D]:
         x1 = self.x - self.width/2
         x2 = self.x + self.width/2
 
@@ -321,7 +321,7 @@ class MultiSquareHole(RibHole):
         self.border_width = border_width
 
     @property
-    def total_border(self):
+    def total_border(self) -> float:
         return (self.num_holes-1) * self.border_width
 
     @property
@@ -341,10 +341,10 @@ class MultiSquareHole(RibHole):
 
         return [x + i*(hole_width+self.border_width) for i in range(self.num_holes)]
     
-    def get_centers(self, rib, scale=False):
+    def get_centers(self, rib, scale=False) -> list[euklid.vector.Vector2D]:
         return [rib.profile_2d.align([x, 0]) for x in self.hole_x_values]
     
-    def get_curves(self, rib, num=80):
+    def get_curves(self, rib, num=80) -> list[euklid.vector.PolyLine2D]:
         hole_width = self.hole_width
 
         curves = []

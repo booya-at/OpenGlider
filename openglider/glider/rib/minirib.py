@@ -51,11 +51,13 @@ class MiniRib():
     def get_flattened(self, cell):
         prof_3d = self.get_3d(cell)
         prof_flat = prof_3d.flatten()
-        prof_normalized = prof_flat.copy().normalize()
+        prof_normalized = prof_flat.copy().normalized()
 
         p1 = prof_normalized(-self.back_cut)
         p2 = prof_normalized(-self.front_cut)
 
         p3 = prof_normalized(self.front_cut)
         p4 = prof_normalized(self.back_cut)
+
+        raise NotImplementedError()
 

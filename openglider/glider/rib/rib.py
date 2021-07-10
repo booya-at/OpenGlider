@@ -24,7 +24,7 @@ class Rib(CachedObject):
     hole_naming_scheme = "{rib.name}h{}"
     rigid_naming_scheme = "{rib.name}rigid{}"
 
-    hashlist = ('aoa_absolute', 'glide', 'arcang', 'zrot', 'chord', 'pos', 'profile_2d')  # pos
+    hashlist = ['aoa_absolute', 'glide', 'arcang', 'zrot', 'chord', 'pos', 'profile_2d']  # pos
 
     def __init__(self, profile_2d=None, startpoint=None,
                  chord=1., arcang=0, aoa_absolute=0, zrot=0, xrot = 0, glide=1,
@@ -320,7 +320,6 @@ class SingleSkinRib(Rib):
                     profile = profile.insert_point(i)
 
             # construct shifting function:
-            foo_list = []
             for i, sp in enumerate(span_list):
                 # parabola from 3 points
                 if self.single_skin_par["double_first"] and i == 0:

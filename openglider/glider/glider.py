@@ -29,7 +29,6 @@ import euklid
 import openglider
 
 from openglider.glider.cell.cell import Cell
-from openglider.glider.in_out import IMPORT_GEOMETRY, EXPORT_3D
 from openglider.glider.shape import Shape
 from openglider.mesh import Mesh
 from openglider.utils import consistent_value
@@ -43,7 +42,7 @@ class Glider(object):
 
     def __init__(self, cells=None, lineset: LineSet=None):
         self.cells: List[Cell] = cells or []
-        self.lineset = lineset
+        self.lineset = lineset or LineSet([])
 
     def __json__(self):
         new = self.copy()
@@ -105,20 +104,6 @@ class Glider(object):
             att.get_position()
         
         self.lineset.recalc()
-
-
-    @classmethod
-    def import_geometry(cls, path, filetype=None):
-        if not filetype:
-            filetype = path.split(".")[-1]
-        glider = cls()
-        IMPORT_GEOMETRY[filetype](path, glider=glider)
-        return glider
-
-    def export_3d(self, path="", *args, **kwargs):
-        # todo: fix
-        filetype = path.split(".")[-1]
-        return EXPORT_3D[filetype](self, path, *args, **kwargs)
 
     def rename_parts(self):
         for rib_no, rib in enumerate(self.ribs):
@@ -298,7 +283,7 @@ class Glider(object):
         self.lineset.scale(faktor)
 
     @property
-    def shape_simple(self, cut_center=True):
+    def shape_simple(self):
         """
         Simple (rectangular) shape representation for spline inputs
         """

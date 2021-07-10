@@ -455,11 +455,7 @@ class LineSet2D(object):
         return total_table_ribs, total_table
     
     @staticmethod
-    def read_attachment_point_table(cell_table: Table=None, rib_table:Table=None, cell_no=None):
-        has_center_cell=False
-        if cell_no is not None:
-            has_center_cell = cell_no % 2
-
+    def read_attachment_point_table(cell_table: Table, rib_table:Table, cell_no=None):
         half_cell_no = cell_no // 2 + cell_no % 2
 
         attachment_points = []

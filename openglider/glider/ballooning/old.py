@@ -15,7 +15,7 @@ class Ballooning(BallooningBase):
         return {'f_upper': self.upper,
                 'f_lower': self.lower}
 
-    def __getitem__(self, xval):
+    def __getitem__(self, xval) -> float:
         """Get Ballooning Value (%) for a certain XValue"""
         if -1 <= xval < 0:
             #return self.upper.xpoint(-xval)[1]
@@ -63,6 +63,11 @@ class Ballooning(BallooningBase):
     def amount_maximal(self):
         return max(max([p[1] for p in self.upper]), max([p[1] for p in self.lower]))
 
+    @amount_maximal.setter
+    def amount_maximal(self, amount):
+        factor = float(amount) / self.amount_maximal
+        self.scale(factor)
+
     @property
     def amount_integral(self):
         # Integration of 2-points always:
@@ -76,11 +81,6 @@ class Ballooning(BallooningBase):
                 #  |___|
                 amount += (p1[1] + (p2[1]-p1[1])/2) * (p2[0]-p1[0])
         return amount / 2
-
-    @amount_maximal.setter
-    def amount_maximal(self, amount):
-        factor = float(amount) / self.amount_maximal
-        self.scale(factor)
 
     def scale(self, factor):
         self.upper.scale(1, factor)

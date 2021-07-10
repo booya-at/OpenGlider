@@ -94,7 +94,6 @@ class BasicCell(CachedObject):
 
     @cached_property('ballooning_phi')
     def ballooning_cos_phi(self):
-        tolerance = 0.00001
         phi = np.array(self.ballooning_phi)
         return np.cos(phi)
 

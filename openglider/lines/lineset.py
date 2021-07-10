@@ -5,7 +5,7 @@ import logging
 import euklid
 
 from openglider.lines.functions import proj_force
-from openglider.lines.elements import Node, SagMatrix
+from openglider.lines.elements import Node, SagMatrix, Line
 from openglider.mesh import Mesh
 from openglider.utils.table import Table
 
@@ -21,7 +21,9 @@ class LineSet(object):
         ["liros.ltc65", "liros.ltc65", 2, 2.0, 2.0]
     ]
 
-    def __init__(self, lines, v_inf=None):
+    def __init__(self, lines: list[Line], v_inf=None):
+        if v_inf is None:
+            v_inf = [0,0,0]
         self.v_inf = euklid.vector.Vector3D(v_inf)
         self.lines = lines or []
 
@@ -29,7 +31,6 @@ class LineSet(object):
             line.lineset = self
         
         self.mat = None
-        self.glider = None
 
     def __repr__(self):
         return """
@@ -42,11 +43,11 @@ class LineSet(object):
         
 
     @property
-    def lowest_lines(self):
+    def lowest_lines(self) -> list[Line]:
         return [line for line in self.lines if line.lower_node.type == 0]
 
     @property
-    def uppermost_lines(self):
+    def uppermost_lines(self) -> list[Line]:
         return [line for line in self.lines if line.upper_node.type == 2]
 
     @property
@@ -57,7 +58,7 @@ class LineSet(object):
             nodes.add(line.lower_node)
         return nodes
 
-    def scale(self, factor):
+    def scale(self, factor) -> "LineSet":
         for p in self.lower_attachment_points:
             p.vec = p.vec * factor
         for line in self.lines:
@@ -136,12 +137,12 @@ class LineSet(object):
                     
         return recursive_level(node, 0)
 
-    def get_floor_strength(self, node: Node=None):
+    def get_floor_strength(self, node: Node=None) -> list[float]:
         strength_list = []
         node =  node or self.get_main_attachment_point()
         for i in range(self.floors[node]):
             lines = self.get_lines_by_floor(i, node, en_style=True)
-            strength = 0
+            strength = 0.
             for line in lines:
                 if line.type.min_break_load is None:
                     logger.warning(f"no min_break_load set for {line.type.name}")
@@ -152,14 +153,14 @@ class LineSet(object):
             strength_list.append(strength)
         return strength_list
 
-    def get_mesh(self, numpoints=10, main_lines_only=False):
+    def get_mesh(self, numpoints=10, main_lines_only=False) -> Mesh:
         if main_lines_only:
             lines = self.get_upper_lines(self.get_main_attachment_point())
         else:
             lines = self.lines
         return sum([line.get_mesh(numpoints) for line in lines], Mesh())
 
-    def get_upper_line_mesh(self, numpoints=1, breaks=False):
+    def get_upper_line_mesh(self, numpoints=1, breaks=False) -> Mesh:
         mesh = Mesh()
         for line in self.uppermost_lines:
             if not breaks:

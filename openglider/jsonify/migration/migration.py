@@ -1,3 +1,5 @@
+import typing
+
 import re
 import json
 import io
@@ -10,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class Migration:
-    migrations = []
+    migrations: list[tuple[str, typing.Callable]] = []
 
     def __init__(self, jsondata):
         self.json_data = jsondata

@@ -15,7 +15,7 @@ class CachedObject(object):
     Provide a list of attributes to hash down for tracking changes
     """
     name: str = "unnamed"
-    hashlist = ()
+    hashlist: list[str] = []
 
     def __hash__(self):
         return hash_attributes(self, self.hashlist)

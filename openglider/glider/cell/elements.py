@@ -77,9 +77,21 @@ class DiagonalRib(object):
     def width_left(self):
         return abs(self.left_front[0] - self.left_back[0])
 
+    @width_left.setter
+    def width_left(self, width):
+        center = self.center_left
+        self.left_front[0] = center - width/2
+        self.left_back[0] = center + width/2
+
     @property
     def width_right(self):
         return abs(self.right_front[0] - self.right_back[0])
+
+    @width_right.setter
+    def width_right(self, width):
+        center = self.center_right
+        self.right_front[0] = center - width/2
+        self.right_back[0] = center + width/2
 
     @property
     def center_left(self):
@@ -89,17 +101,7 @@ class DiagonalRib(object):
     def center_right(self):
         return (self.right_front[0] + self.right_back[0])/2
 
-    @width_left.setter
-    def width_left(self, width):
-        center = self.center_left
-        self.left_front[0] = center - width/2
-        self.left_back[0] = center + width/2
 
-    @width_right.setter
-    def width_right(self, width):
-        center = self.center_right
-        self.right_front[0] = center - width/2
-        self.right_back[0] = center + width/2
 
     def copy(self):
         return copy.copy(self)

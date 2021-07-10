@@ -55,10 +55,10 @@ class ParametricShape(object):
         )
 
     @property
-    def baseline(self):
+    def baseline(self) -> euklid.vector.PolyLine2D:
         return self.get_baseline(self.baseline_pos)
 
-    def get_baseline(self, pct):
+    def get_baseline(self, pct) -> euklid.vector.PolyLine2D:
         shape = self.get_half_shape()
         line = []
         for i in range(shape.rib_no):
@@ -67,18 +67,18 @@ class ParametricShape(object):
         return euklid.vector.PolyLine2D(line)
 
     @property
-    def has_center_cell(self):
+    def has_center_cell(self) -> bool:
         return self.cell_num % 2
 
     @property
-    def half_cell_num(self):
+    def half_cell_num(self) -> int:
         return self.cell_num // 2 + self.has_center_cell + self.stabi_cell
 
     @property
-    def half_rib_num(self):
+    def half_rib_num(self) -> int:
         return self.half_cell_num + 1 - self.has_center_cell + self.stabi_cell
 
-    def rescale_curves(self):
+    def rescale_curves(self) -> None:
         span = self.span
 
         dist_scale = 1 / self.rib_distribution.controlpoints.nodes[-1][0]
@@ -100,7 +100,7 @@ class ParametricShape(object):
 
     # besser mit spezieller bezier?
     @property
-    def rib_dist_controlpoints(self):
+    def rib_dist_controlpoints(self) -> euklid.vector.PolyLine2D:
         return euklid.vector.PolyLine2D(self.rib_distribution.controlpoints.nodes[1:-1])
 
     @rib_dist_controlpoints.setter
@@ -108,7 +108,7 @@ class ParametricShape(object):
         self.rib_distribution.controlpoints = [[0, 0]] + arr + [[1, 1]]
 
     @property
-    def rib_x_values(self):
+    def rib_x_values(self) -> list[float]:
         xvalues = [p[0]*self.span for p in self.rib_dist_interpolation]
 
         if self.stabi_cell:
@@ -119,7 +119,7 @@ class ParametricShape(object):
 
 
     @property
-    def cell_x_values(self):
+    def cell_x_values(self) -> list[float]:
         ribs = self.rib_x_values
         if self.has_center_cell:
             ribs.insert(0, -ribs[0])
@@ -170,18 +170,20 @@ class ParametricShape(object):
         """
         return self.get_half_shape().copy_complete()
 
-    def __getitem__(self, pos):
+    def __getitem__(self, pos) -> euklid.vector.Vector2D:
         """if first argument is negative the point is returned mirrored"""
         rib_nr, rib_pos = pos
         ribs = self.ribs
         neg = (rib_nr < 0)
         sign = -neg * 2 + 1
-        if rib_nr <= len(ribs):
-            fr, ba = ribs[abs(rib_nr + neg * self.has_center_cell)]
-            chord = ba[1] - fr[1]
-            x = fr[0]
-            y = fr[1] + rib_pos * chord
-            return [sign * x, y]
+        if rib_nr > len(ribs):
+            raise ValueError(f"invalid rib_nr: {rib_nr}")
+
+        fr, ba = ribs[abs(rib_nr + neg * self.has_center_cell)]
+        chord = ba[1] - fr[1]
+        x = fr[0]
+        y = fr[1] + rib_pos * chord
+        return euklid.vector.Vector2D([sign * x, y])
 
     @property
     def ribs(self):
@@ -245,7 +247,7 @@ class ParametricShape(object):
         #self.rib_distribution.controlpoints = self.rib_distribution.controlpoints.scale([factor, 1])
 
     @property
-    def area(self):
+    def area(self) -> float:
         return self.get_shape().area
 
     def set_area(self, area, fixed="aspect_ratio"):
@@ -312,11 +314,11 @@ class ParametricShape(object):
         return self
 
     @property
-    def aspect_ratio(self):
+    def aspect_ratio(self) -> float:
         # todo: span -> half span, area -> full area???
         return (2*self.span) ** 2 / self.area
 
-    def set_aspect_ratio(self, ar, fixed="span"):
+    def set_aspect_ratio(self, ar, fixed="span") -> None:
         ar0 = self.aspect_ratio
         if fixed == "span":
             self.scale(y=ar0 / ar)
@@ -324,16 +326,16 @@ class ParametricShape(object):
             self.scale(x=np.sqrt(ar / ar0), y=np.sqrt(ar0 / ar))
 
     @property
-    def span(self):
+    def span(self) -> float:
         span = self.front_curve.controlpoints.nodes[-1][0]
         return span
 
     @span.setter
-    def span(self, span):
+    def span(self, span: float):
         factor = span/self.span
         self.scale(factor, 1)
 
-    def set_span(self, span, fixed="area"):
+    def set_span(self, span, fixed="area") -> None:
         span_0 = self.span
         if fixed == "area":
             self.scale(x=span / span_0, y=span_0 / span)

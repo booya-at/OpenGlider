@@ -22,8 +22,7 @@ class PatternsNew(object):
     spreadsheet = get_glider_data
     plotmaker = PlotMaker
 
-    class DefaultConf(PlotMaker.DefaultConfig):
-        pass
+    DefaultConf = PlotMaker.DefaultConfig
 
     def __init__(self, project: GliderProject, config=None):
         self.project = project

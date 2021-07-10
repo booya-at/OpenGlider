@@ -2,7 +2,8 @@ from openglider.utils.table import Table
 
 
 class ElementTable:
-    keywords = []
+    keywords: list[tuple[str, int]] = []
+
     def __init__(self, table: Table):
         self.table = Table()
 

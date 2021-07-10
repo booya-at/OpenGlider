@@ -16,14 +16,14 @@ class ArcCurve(object):
     def __json__(self):
         return {"curve": self.curve}
 
-    def copy(self):
+    def copy(self) -> "ArcCurve":
         return copy.deepcopy(self)
 
     @staticmethod
-    def has_center_cell(x_values):
+    def has_center_cell(x_values) -> bool:
         return x_values[0] != 0
 
-    def get_arc_positions(self, x_values):
+    def get_arc_positions(self, x_values) -> euklid.vector.PolyLine2D:
         """
         calculate y/z positions vor the arc-curve, given a shape's rib-x-values
 
@@ -41,7 +41,7 @@ class ArcCurve(object):
         # rescale
         return positions
 
-    def get_cell_angles(self, x_values, rad=True):
+    def get_cell_angles(self, x_values, rad=True) -> list[float]:
         """
         Calculate cell rotation angles given a shape's rib-x-values
         :param x_values:
@@ -53,7 +53,7 @@ class ArcCurve(object):
 
         if self.has_center_cell(x_values):
             # center cell is always straight
-            cell_angles.append(0)
+            cell_angles.append(0.)
 
         for l, r in zip(arc_positions_lst[:-1], arc_positions_lst[1:]):
             d = r - l

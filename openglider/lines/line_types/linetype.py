@@ -26,7 +26,7 @@ import euklid
 logging.getLogger(__name__)
 
 class LineType():
-    types = {}
+    types: dict[str, "LineType"] = {}
 
     def __init__(self, name, thickness, stretch_curve, min_break_load=None, weight=None, seam_correction=0, colors=None, cw=1.1):
         """

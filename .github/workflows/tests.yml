@@ -13,14 +13,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: run tests
     steps:
-      - name: setup xcode version
-        if: startsWith(matrix.os, 'macos')
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: '11'
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'true'
       - name: python
         uses: actions/setup-python@v1
         with:
@@ -28,8 +20,11 @@ jobs:
       - name: install requirements
         run: |
           pip install wheel
-          pip install meshpy
+          pip install mypy
           pip install .
+      - name: mypy
+        run: |
+          mypy --ignore-missing-imports openglider
       - name: test
         run: |
           python testall.py

@@ -10,6 +10,7 @@ import euklid
 from openglider.glider.parametric.shape import ParametricShape
 from openglider.airfoil import Profile2D
 from openglider.glider.ballooning.new import BallooningBezierNeu
+from openglider.glider.ballooning.base import BallooningBase
 from openglider.glider.glider import Glider
 from openglider.glider.cell import Panel, DiagonalRib, TensionStrap, TensionLine, Cell
 from openglider.glider.cell.elements import PanelRigidFoil
@@ -46,7 +47,7 @@ class ParametricGlider(object):
                  speed, glide, zrot, elements=None):
         self.zrot = zrot or aoa
         self.shape: ParametricShape = shape
-        self.arc = arc
+        self.arc: ArcCurve = arc
         self.aoa = aoa
         self.profiles = profiles or []
         self.profile_merge_curve = profile_merge_curve
@@ -116,25 +117,20 @@ class ParametricGlider(object):
     def arc_positions(self):
         return self.arc.get_arc_positions(self.shape.rib_x_values)
 
-    def get_arc_angles(self, arc_curve=None):
+    def get_arc_angles(self) -> list[float]:
         """
         Get rib rotations
-        :param arc_curve:
-        :return: rotation angles
         """
-        #arc_curve = ArcCurve(self.arc)
-        arc_curve = self.arc
-
-        return arc_curve.get_rib_angles(self.shape.rib_x_values)
+        return self.arc.get_rib_angles(self.shape.rib_x_values)
 
     @property
-    def attachment_points(self):
+    def attachment_points(self) -> list[UpperNode2D]:
         """coordinates of the attachment_points"""
         return [a_p.get_2D(self.shape)
                 for a_p in self.lineset.nodes
                 if isinstance(a_p, UpperNode2D)]
 
-    def merge_ballooning(self, factor):
+    def merge_ballooning(self, factor) -> BallooningBase:
         factor = max(0, min(len(self.balloonings)-1, factor))
         k = factor % 1
         i = int(factor // 1)
@@ -251,7 +247,7 @@ class ParametricGlider(object):
     def get_cell_tension_lines(self):
         return self._get_cell_straps("tension_lines", TensionLine)
 
-    def apply_diagonals(self, glider):
+    def apply_diagonals(self, glider: Glider) -> None:
         cell_straps = self.get_cell_straps()
         cell_diagonals = self.get_cell_diagonals()
         cell_tensionlines = self.get_cell_tension_lines()
@@ -262,21 +258,15 @@ class ParametricGlider(object):
             cell.straps += cell_tensionlines[cell_no]
 
     @classmethod
-    def fit_glider_3d(cls, glider, numpoints=3):
+    def fit_glider_3d(cls, glider: Glider, numpoints=3) -> "ParametricGlider":
         return fit_glider_3d(cls, glider, numpoints)
 
-    def get_front_line(self):
-        """
-        Get Nose Positions for cells
-        :return:
-        """
-
-    def get_aoa(self, interpolation_num=None):
+    def get_aoa(self, interpolation_num=None) -> list[float]:
         aoa_interpolation = euklid.vector.Interpolation(self.aoa.get_sequence(interpolation_num or self.num_interpolate).nodes)
 
         return [aoa_interpolation.get_value(x) for x in self.shape.rib_x_values]
 
-    def apply_aoa(self, glider):
+    def apply_aoa(self, glider: Glider) -> None:
         aoa_values = self.get_aoa()
 
         if self.shape.has_center_cell:
@@ -285,15 +275,15 @@ class ParametricGlider(object):
         for rib, aoa in zip(glider.ribs, aoa_values):
             rib.aoa_relative = aoa
 
-    def get_profile_merge(self):
+    def get_profile_merge(self) -> list[float]:
         profile_merge_curve = euklid.vector.Interpolation(self.profile_merge_curve.get_sequence(self.num_interpolate).nodes)
         return [profile_merge_curve.get_value(abs(x)) for x in self.shape.rib_x_values]
 
-    def get_ballooning_merge(self):
+    def get_ballooning_merge(self) -> list[float]:
         ballooning_merge_curve = euklid.vector.Interpolation(self.ballooning_merge_curve.get_sequence(self.num_interpolate).nodes)
         return [ballooning_merge_curve.get_value(abs(x)) for x in self.shape.cell_x_values]
 
-    def apply_shape_and_arc(self, glider):
+    def apply_shape_and_arc(self, glider: Glider) -> None:
         x_values = self.shape.rib_x_values
         shape_ribs = self.shape.ribs
 
@@ -301,9 +291,6 @@ class ParametricGlider(object):
         rib_angles = self.arc.get_rib_angles(x_values)
 
         offset_x = shape_ribs[0][0][1]
-
-        line = []
-        chords = []
 
         if self.shape.has_center_cell:
             arc_pos.insert(0, arc_pos[0] * [-1, 1])
@@ -319,7 +306,7 @@ class ParametricGlider(object):
             rib.chord = abs(front[1]-back[1])
             rib.arc_angle = rib_angles[rib_no]
 
-    def get_glider_3d(self, glider=None, num=50, num_profile=None):
+    def get_glider_3d(self, glider: Glider=None, num=50, num_profile=None) -> Glider:
         """returns a new glider from parametric values"""
         glider = glider or Glider()
         ribs = []
@@ -442,13 +429,12 @@ class ParametricGlider(object):
         logger.info("create lineset")
 
         glider.lineset = self.lineset.return_lineset(glider, self.v_inf)
-        glider.lineset.glider = glider
         #glider.lineset.iterate_target_length()
         glider.lineset.recalc()
 
         return glider
 
-    def apply_ballooning(self, glider3d):
+    def apply_ballooning(self, glider3d: Glider) -> Glider:
         for ballooning in self.balloonings:
             ballooning.apply_splines()
         cell_centers = self.shape.cell_x_values
@@ -463,18 +449,18 @@ class ParametricGlider(object):
         return glider3d
 
     @property
-    def v_inf(self):
+    def v_inf(self) -> euklid.vector.Vector3D:
         angle = np.arctan(1/self.glide)
 
         return euklid.vector.Vector3D([np.cos(angle), 0, np.sin(angle)]) * self.speed
 
-    def set_area(self, area):
+    def set_area(self, area) -> None:
         factor = math.sqrt(area/self.shape.area)
         self.shape.scale(factor)
         self.lineset.scale(factor, scale_lower_floor=False)
         self.rescale_curves()
 
-    def set_aspect_ratio(self, aspect_ratio, remain_area=True):
+    def set_aspect_ratio(self, aspect_ratio, remain_area=True) -> float:
         ar0 = self.shape.aspect_ratio
         area0 = self.shape.area
 

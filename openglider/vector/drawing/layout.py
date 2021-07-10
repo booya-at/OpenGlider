@@ -104,7 +104,7 @@ class Layout(object):
     def stack_column(cls, parts: List[Union[PlotPart,"Layout"]], distance: float, center_x: bool=True) -> "Layout":
         column_dwg = cls()
         direction = (distance >= 0) - (distance < 0)
-        y = 0
+        y = 0.
         widths = [part.width for part in parts]
         max_width = max(widths + [0])
         for width, part in zip(widths, parts):
@@ -127,7 +127,7 @@ class Layout(object):
     def stack_row(cls, parts: List[Union[PlotPart,"Layout"]], distance: float, center_y: bool=True) -> "Layout":
         row_dwg = cls()
         direction = (distance >= 0) - (distance < 0)
-        x = 0
+        x = 0.
 
         # workaround: need proper fix
         heights = [part.height for part in parts]
@@ -164,9 +164,9 @@ class Layout(object):
                 widths[column_no] = max(widths[column_no], part.width)
                 heights[row_no] = max(heights[row_no], part.height)
 
-        y = 0
+        y = 0.
         for row_no, row in enumerate(parts):
-            x = 0
+            x = 0.
             for column_no, part in enumerate(row):
                 if isinstance(part, Layout):
                     drawing = part

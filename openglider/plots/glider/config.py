@@ -11,10 +11,10 @@ class PatternConfig(Config):
     debug = False
     profile_numpoints = 250
 
-    cut_entry = cuts.FoldedCut
-    cut_trailing_edge = cuts.ParallelCut
-    cut_design = cuts.Cut3D
-    cut_diagonal_fold = cuts.FoldedCut
+    cut_entry: object = cuts.FoldedCut
+    cut_trailing_edge: object = cuts.ParallelCut
+    cut_design: object = cuts.Cut3D
+    cut_diagonal_fold: object = cuts.FoldedCut
     cut_3d = cuts.Cut3D
 
     midribs = 50

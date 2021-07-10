@@ -1,5 +1,6 @@
 import euklid
 
+import openglider
 from openglider.utils.cache import cached_function
 from openglider.airfoil import get_x_value
 

@@ -183,7 +183,7 @@ class Cell(CachedObject):
         return cells
 
     @property
-    def ribs(self):
+    def ribs(self) -> list["openglider.glider.rib.Rib"]:
         return [self.rib1, self.rib2]
 
     @property
@@ -195,14 +195,14 @@ class Cell(CachedObject):
         return consistent_value(self.ribs, 'profile_2d.x_values')
 
     @property
-    def prof1(self):
+    def prof1(self) -> openglider.airfoil.Profile3D:
         return self.rib1.profile_3d
 
     @property
-    def prof2(self):
+    def prof2(self) -> openglider.airfoil.Profile3D:
         return self.rib2.profile_3d
 
-    def point(self, y=0, i=0, k=0):
+    def point(self, y=0, i=0, k=0) -> euklid.vector.Vector3D:
         return self.midrib(y).point(i, k)
 
     @cached_function("self")
@@ -225,45 +225,9 @@ class Cell(CachedObject):
         else:
             return self.basic_cell.midrib(y, ballooning=False)
 
-    def get_midribs(self, numribs):
+    def get_midribs(self, numribs) -> list[openglider.airfoil.Profile3D]:
         y_values = linspace(0, 1, numribs)
         return [self.midrib(y) for y in y_values]
-
-    def get_spline(self, numribs, u_poles=20, v_poles=4, u_degree=3, v_degree=3):
-        try:
-            import nurbs
-        except ImportError:
-            logging.error("noorbs library not available")
-            return None
-
-
-        r1 = self.rib1
-        assert v_poles < numribs
-        assert u_poles < len(r1.profile_2d)
-
-        u_space = r1.profile_2d.get_length_parameter(scale=0)
-        v_space = np.linspace(0, 1, numribs)
-        grid = self.get_midribs(numribs)
-        uv_list = []
-        x_list = []
-        for ui, u in enumerate(u_space):
-            for vi, v in enumerate(v_space):
-                uv_list.append([u, v])
-                x_list.append(grid[vi][ui])
-        uv = np.array(uv_list)
-        x = np.array(x_list)
-
-        # create base with nurbs
-        u_knots = nurbs.create_knots_vector(u_min=0, u_max=1, degree=u_degree, num_poles=u_poles)
-        v_knots = nurbs.create_knots_vector(u_min=0, u_max=1, degree=v_degree, num_poles=v_poles)
-        weights = np.ones((u_poles * v_poles))
-        base = nurbs.NurbsBase2D(u_knots, v_knots, weights, u_degree, v_degree)
-        mat = base.getInfluenceMatrix(uv).toarray()
-        # min (mat @ poles - x) ** 2
-        assert v_poles < numribs
-        poles = np.linalg.lstsq(mat, x)[0]
-        return u_poles, v_poles, u_knots, v_knots, u_degree, v_degree, poles, weights
-
 
     @cached_property('ballooning', 'rib1.profile_2d.numpoints', 'rib2.profile_2d.numpoints')
     def ballooning_phi(self):
@@ -272,11 +236,11 @@ class Cell(CachedObject):
         return HashedList([Ballooning.arcsinc(1. / (1+bal)) if bal > 0 else 0 for bal in balloon])
 
     @property
-    def span(self):
+    def span(self) -> float:
         return ((self.rib1.pos - self.rib2.pos) * [0, 1, 1]).length()
 
     @property
-    def area(self):
+    def area(self) -> float:
         p1_1 = self.rib1.align([0, 0, 0])
         p1_2 = self.rib1.align([1, 0, 0])
         p2_1 = self.rib2.align([0, 0, 0])
@@ -285,7 +249,7 @@ class Cell(CachedObject):
         return 0.5 * ((p1_2 - p1_1).cross(p2_1 - p1_1).length() + (p2_2-p2_1).cross(p2_2-p1_2).length())
 
     @property
-    def projected_area(self):
+    def projected_area(self) -> float:
         """ return the z component of the crossproduct
             of the cell diagonals"""
         p1_1 = self.rib1.align([0, 0, 0])
@@ -296,7 +260,7 @@ class Cell(CachedObject):
         return -0.5 * (p2_1-p1_2).cross(p2_2-p1_1)[2]
 
     @property
-    def centroid(self):
+    def centroid(self) -> euklid.vector.Vector3D:
         p1_1 = self.rib1.align([0, 0, 0])
         p1_2 = self.rib1.align([1, 0, 0])
         p2_1 = self.rib2.align([0, 0, 0])
@@ -306,13 +270,13 @@ class Cell(CachedObject):
         return centroid
 
     @property
-    def aspect_ratio(self):
+    def aspect_ratio(self) -> float:
         return self.span ** 2 / self.area
 
-    def copy(self):
+    def copy(self) -> "Cell":
         return copy.deepcopy(self)
 
-    def mirror(self, mirror_ribs=True):
+    def mirror(self, mirror_ribs=True) -> None:
         self.rib2, self.rib1 = self.rib1, self.rib2
 
         if mirror_ribs:
@@ -524,14 +488,14 @@ class Cell(CachedObject):
             "ballooned": ballooned
             }
     
-    def calculate_3d_shaping(self, panels=None, numribs=10):
+    def calculate_3d_shaping(self, panels=None, numribs=10) -> None:
         if panels is None:
             panels = self.panels
 
         flat = self.get_flattened_cell(numribs)
         inner = flat["inner"]
 
-        cuts_3d = {}
+        cuts_3d: dict[str, list[float]] = {}
 
         def cut_hash(cut):
             return "{}-{}-{}".format(cut["left"], cut["right"], cut["type"])
