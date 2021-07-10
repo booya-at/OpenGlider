@@ -17,12 +17,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-
+from typing import List
 import re
 import json
 import logging
 
 import numpy as np
+
+__path__: List[str] = __import__('pkgutil').extend_path(__path__, __name__)
 
 from openglider.config import config
 import openglider.jsonify

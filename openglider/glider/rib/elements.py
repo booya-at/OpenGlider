@@ -3,6 +3,7 @@ import logging
 import math
 import euklid
 
+import openglider
 from openglider.lines import Node
 from openglider.vector.polygon import Circle, Ellipse
 
@@ -112,14 +113,14 @@ class GibusArcs(object):
         return {'position': self.pos,
                 'size': self.size}
 
-    def get_3d(self, rib, num_points=10):
+    def get_3d(self, rib: "openglider.glider.rib.Rib", num_points=10) -> euklid.vector.PolyLine3D:
         # create circle with center on the point
         gib_arc = self.get_flattened(rib, num_points=num_points)
 
-        return rib.align(gib_arc, scale=False)
+        return rib.align_all(gib_arc, scale=False)
         #return [rib.align([p[0], p[1], 0], scale=False) for p in gib_arc]
 
-    def get_flattened(self, rib, num_points=10):
+    def get_flattened(self, rib, num_points=10) -> euklid.vector.PolyLine2D:
         # get center point
         profile = rib.profile_2d
         start = profile(self.pos)

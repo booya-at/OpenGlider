@@ -70,15 +70,14 @@ class Rib(CachedObject):
                 "name": self.name
                 }
 
-    def align_all(self, data):
+    def align_all(self, data, scale=True) -> euklid.vector.PolyLine3D:
         """align 2d coordinates to the 3d pos of the rib"""
-        try:
+        if scale:
             return self.transformation.apply(data)
-        except:
-            print("eeeee", data)
-            return self.transformation.apply(list(data))
+        else:
+            return self.rotation_matrix.apply(data) + self.pos
 
-    def align(self, point, scale=True):
+    def align(self, point, scale=True) -> euklid.vector.Vector3D:
         if scale:
             return self.transformation.apply(point)
         else:
