@@ -2,7 +2,7 @@ from __future__ import division
 import copy
 import logging
 import math
-from typing import Callable, List
+from typing import Callable, List, Dict
 
 import numpy as np
 import euklid
@@ -183,7 +183,7 @@ class Cell(CachedObject):
         return cells
 
     @property
-    def ribs(self) -> list["openglider.glider.rib.Rib"]:
+    def ribs(self) -> List["openglider.glider.rib.Rib"]:
         return [self.rib1, self.rib2]
 
     @property
@@ -225,7 +225,7 @@ class Cell(CachedObject):
         else:
             return self.basic_cell.midrib(y, ballooning=False)
 
-    def get_midribs(self, numribs) -> list[openglider.airfoil.Profile3D]:
+    def get_midribs(self, numribs) -> List[openglider.airfoil.Profile3D]:
         y_values = linspace(0, 1, numribs)
         return [self.midrib(y) for y in y_values]
 
@@ -495,7 +495,7 @@ class Cell(CachedObject):
         flat = self.get_flattened_cell(numribs)
         inner = flat["inner"]
 
-        cuts_3d: dict[str, list[float]] = {}
+        cuts_3d: Dict[str, List[float]] = {}
 
         def cut_hash(cut):
             return "{}-{}-{}".format(cut["left"], cut["right"], cut["type"])

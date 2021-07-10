@@ -1,6 +1,6 @@
 import copy
 import logging
-from typing import TypeVar
+from typing import TypeVar, List
 
 import numpy as np
 
@@ -15,7 +15,7 @@ class CachedObject(object):
     Provide a list of attributes to hash down for tracking changes
     """
     name: str = "unnamed"
-    hashlist: list[str] = []
+    hashlist: List[str] = []
 
     def __hash__(self):
         return hash_attributes(self, self.hashlist)
