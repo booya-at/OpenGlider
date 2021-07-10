@@ -1,4 +1,4 @@
-from __future__ import division
+from typing import List
 import math
 
 import numpy as np
@@ -108,7 +108,7 @@ class ParametricShape(object):
         self.rib_distribution.controlpoints = [[0, 0]] + arr + [[1, 1]]
 
     @property
-    def rib_x_values(self) -> list[float]:
+    def rib_x_values(self) -> List[float]:
         xvalues = [p[0]*self.span for p in self.rib_dist_interpolation]
 
         if self.stabi_cell:
@@ -119,7 +119,7 @@ class ParametricShape(object):
 
 
     @property
-    def cell_x_values(self) -> list[float]:
+    def cell_x_values(self) -> List[float]:
         ribs = self.rib_x_values
         if self.has_center_cell:
             ribs.insert(0, -ribs[0])

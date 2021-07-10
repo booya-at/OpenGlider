@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class Migration:
-    migrations: list[tuple[str, typing.Callable]] = []
+    migrations: typing.List[typing.Tuple[str, typing.Callable]] = []
 
     def __init__(self, jsondata):
         self.json_data = jsondata
@@ -29,8 +29,8 @@ class Migration:
     def migrate(self):
         jsondata = self.json_data
 
-        with open("/tmp/data.json", "w") as outfile:
-            json.dump(jsondata, outfile, indent=2)
+        #with open("/tmp/data.json", "w") as outfile:
+        #    json.dump(jsondata, outfile, indent=2)
         for migration_version, migration in self.get_migrations():
             if self.from_version < migration_version:
                 logger.debug(f"running migration: {migration.__doc__}")

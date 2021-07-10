@@ -1,10 +1,9 @@
-from __future__ import division
-
+from typing import List
 import math
-import numpy as np
 import copy
 import logging
 
+import numpy as np
 import euklid
 
 from openglider.glider.parametric.shape import ParametricShape
@@ -117,14 +116,14 @@ class ParametricGlider(object):
     def arc_positions(self):
         return self.arc.get_arc_positions(self.shape.rib_x_values)
 
-    def get_arc_angles(self) -> list[float]:
+    def get_arc_angles(self) -> List[float]:
         """
         Get rib rotations
         """
         return self.arc.get_rib_angles(self.shape.rib_x_values)
 
     @property
-    def attachment_points(self) -> list[UpperNode2D]:
+    def attachment_points(self) -> List[UpperNode2D]:
         """coordinates of the attachment_points"""
         return [a_p.get_2D(self.shape)
                 for a_p in self.lineset.nodes
@@ -261,7 +260,7 @@ class ParametricGlider(object):
     def fit_glider_3d(cls, glider: Glider, numpoints=3) -> "ParametricGlider":
         return fit_glider_3d(cls, glider, numpoints)
 
-    def get_aoa(self, interpolation_num=None) -> list[float]:
+    def get_aoa(self, interpolation_num=None) -> List[float]:
         aoa_interpolation = euklid.vector.Interpolation(self.aoa.get_sequence(interpolation_num or self.num_interpolate).nodes)
 
         return [aoa_interpolation.get_value(x) for x in self.shape.rib_x_values]
@@ -275,11 +274,11 @@ class ParametricGlider(object):
         for rib, aoa in zip(glider.ribs, aoa_values):
             rib.aoa_relative = aoa
 
-    def get_profile_merge(self) -> list[float]:
+    def get_profile_merge(self) -> List[float]:
         profile_merge_curve = euklid.vector.Interpolation(self.profile_merge_curve.get_sequence(self.num_interpolate).nodes)
         return [profile_merge_curve.get_value(abs(x)) for x in self.shape.rib_x_values]
 
-    def get_ballooning_merge(self) -> list[float]:
+    def get_ballooning_merge(self) -> List[float]:
         ballooning_merge_curve = euklid.vector.Interpolation(self.ballooning_merge_curve.get_sequence(self.num_interpolate).nodes)
         return [ballooning_merge_curve.get_value(abs(x)) for x in self.shape.cell_x_values]
 

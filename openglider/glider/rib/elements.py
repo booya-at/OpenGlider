@@ -1,3 +1,4 @@
+from typing import List
 import numpy as np
 import logging
 import math
@@ -231,7 +232,7 @@ class RibHole(object):
         
         return points
 
-    def get_curves(self, rib, num=80) -> list[euklid.vector.PolyLine2D]:
+    def get_curves(self, rib, num=80) -> List[euklid.vector.PolyLine2D]:
         lower = rib.profile_2d.get(self.pos)
         upper = rib.profile_2d.get(-self.pos)
 
@@ -246,7 +247,7 @@ class RibHole(object):
 
         return [circle.get_sequence(num)]
     
-    def get_centers(self, rib, scale=False) -> list[euklid.vector.Vector2D]:
+    def get_centers(self, rib, scale=False) -> List[euklid.vector.Vector2D]:
         # TODO: remove and use a polygon.centerpoint
         lower = rib.profile_2d.get(self.pos)
         upper = rib.profile_2d.get(-self.pos)
@@ -274,10 +275,10 @@ class RibSquareHole(RibHole):
         self.height = height
         self.corner_size = corner_size
 
-    def get_centers(self, rib, scale=False) -> list[euklid.vector.Vector2D]:
+    def get_centers(self, rib, scale=False) -> List[euklid.vector.Vector2D]:
         return [rib.profile_2d.align([self.x, 0])]
 
-    def get_curves(self, rib, num=80) -> list[euklid.vector.PolyLine2D]:
+    def get_curves(self, rib, num=80) -> List[euklid.vector.PolyLine2D]:
         x1 = self.x - self.width/2
         x2 = self.x + self.width/2
 
@@ -342,10 +343,10 @@ class MultiSquareHole(RibHole):
 
         return [x + i*(hole_width+self.border_width) for i in range(self.num_holes)]
     
-    def get_centers(self, rib, scale=False) -> list[euklid.vector.Vector2D]:
+    def get_centers(self, rib, scale=False) -> List[euklid.vector.Vector2D]:
         return [rib.profile_2d.align([x, 0]) for x in self.hole_x_values]
     
-    def get_curves(self, rib, num=80) -> list[euklid.vector.PolyLine2D]:
+    def get_curves(self, rib, num=80) -> List[euklid.vector.PolyLine2D]:
         hole_width = self.hole_width
 
         curves = []

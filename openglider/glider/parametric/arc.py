@@ -1,3 +1,4 @@
+from typing import List
 import copy
 
 import numpy as np
@@ -41,7 +42,7 @@ class ArcCurve(object):
         # rescale
         return positions
 
-    def get_cell_angles(self, x_values, rad=True) -> list[float]:
+    def get_cell_angles(self, x_values, rad=True) -> List[float]:
         """
         Calculate cell rotation angles given a shape's rib-x-values
         :param x_values:

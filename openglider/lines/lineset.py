@@ -1,3 +1,4 @@
+from typing import List
 import re
 import copy
 import logging
@@ -21,7 +22,7 @@ class LineSet(object):
         ["liros.ltc65", "liros.ltc65", 2, 2.0, 2.0]
     ]
 
-    def __init__(self, lines: list[Line], v_inf=None):
+    def __init__(self, lines: List[Line], v_inf=None):
         if v_inf is None:
             v_inf = [0,0,0]
         self.v_inf = euklid.vector.Vector3D(v_inf)
@@ -43,11 +44,11 @@ class LineSet(object):
         
 
     @property
-    def lowest_lines(self) -> list[Line]:
+    def lowest_lines(self) -> List[Line]:
         return [line for line in self.lines if line.lower_node.type == 0]
 
     @property
-    def uppermost_lines(self) -> list[Line]:
+    def uppermost_lines(self) -> List[Line]:
         return [line for line in self.lines if line.upper_node.type == 2]
 
     @property
@@ -137,7 +138,7 @@ class LineSet(object):
                     
         return recursive_level(node, 0)
 
-    def get_floor_strength(self, node: Node=None) -> list[float]:
+    def get_floor_strength(self, node: Node=None) -> List[float]:
         strength_list = []
         node =  node or self.get_main_attachment_point()
         for i in range(self.floors[node]):
