@@ -13,6 +13,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: run tests
     steps:
+      - uses: actions/checkout@v2
       - name: python
         uses: actions/setup-python@v1
         with:
