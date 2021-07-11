@@ -1,7 +1,7 @@
 import getpass
 import platform
 
-from openglider.utils import Config
+from openglider.utils.config import Config
 
 
 class GlobalConfig(Config):

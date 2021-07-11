@@ -1,15 +1,26 @@
 from openglider.jsonify.migration.migration import Migration
+from openglider.glider.parametric.table.holes import HolesTable
+from openglider.glider.parametric.table.diagonals import DiagonalTable, StrapTable
+
 from openglider.utils.table import Table
 
 @Migration.add("0.0.7")
 def migrate_diagonals(cls, jsondata):
     for node in cls.find_nodes(jsondata, name=r"ParametricGlider"):
         elements = node["data"]["elements"]
+        
         holes = elements.get("holes", [])
-
         table = get_hole_table(holes)
-
         elements["holes"] = table.__json__()
+        
+        diagonals = elements.get("diagonals", [])
+        table_diagonals = get_diagonals_table(diagonals)
+
+        elements["diagonals"] = table_diagonals.__json__()
+        
+        straps = elements.get("straps", [])
+        table_straps = get_straps_table(straps)
+        elements["straps"] = table_straps.__json__()
 
         materials = elements.pop("materials")
         if materials:
@@ -35,7 +46,7 @@ def get_hole_table(holes):
         table.append_right(hole_table)
 
 
-    return table
+    return HolesTable(table)
 
 
 
@@ -78,4 +89,58 @@ def get_diagonals_table(diagonals):
 
         table.append_right(diagonal_table)
 
-    return table
+    return DiagonalTable(table)
+
+def get_straps_table(straps):
+    table = Table()
+    cell_num = max([max(strap["cells"]) for strap in straps])
+    straps_per_cell = []
+
+    for _i in range(cell_num+1):
+        straps_per_cell.append([])
+    
+    for strap in straps:
+        for cell_no in strap["cells"]:            
+            straps_per_cell[cell_no].append((strap["left"], strap["right"], strap["width"]))
+
+    for cell_straps in straps_per_cell:
+        cell_straps.sort(key=lambda x: sum(x[:2]))
+        
+    def find_next_strap(strap, cell_no):
+        straps_this = straps_per_cell[cell_no]
+        for new_strap in straps_this:
+            if strap[1] == new_strap[0]:
+                straps_this.remove(new_strap)
+                return new_strap
+
+    def add_column(cell_no):
+        straps_this = straps_per_cell[cell_no]
+
+        #print("jo", cell_no, straps_this)
+        if not straps_this:
+            return False
+
+        strap = straps_this.pop(0)
+
+        column = Table()
+        column[0, 0] = "STRAP"
+
+        column.insert_row(strap, cell_no+1)
+
+
+        for cell_no_temp in range(cell_no+1, cell_num):
+            strap_next = find_next_strap(strap, cell_no_temp)
+            if not strap_next:
+                continue
+            column.insert_row(strap_next, cell_no_temp+1)
+            strap = strap_next
+
+        table.append_right(column)
+
+        return column
+
+    for cell_no in range(cell_num):
+        while add_column(cell_no):
+            pass
+    
+    return StrapTable(table)

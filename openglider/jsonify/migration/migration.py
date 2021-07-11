@@ -5,7 +5,7 @@ import json
 import io
 import logging
 
-import openglider
+#import openglider
 import openglider.version
 
 logger = logging.getLogger(__name__)

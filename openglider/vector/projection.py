@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import numpy as np
 import euklid
 
@@ -17,7 +19,7 @@ def point2d(p1_3d, p1_2d, p2_3d, p2_2d, point_3d):
     return point_2d + diff_2d * diff_3d.dot(diff_point)
 
 
-def flatten_list(list1, list2):
+def flatten_list(list1, list2) -> Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
     if not isinstance(list1, euklid.vector.PolyLine3D):
         list1 = euklid.vector.PolyLine2D(list1.data.tolist())
     if not isinstance(list2, euklid.vector.PolyLine3D):

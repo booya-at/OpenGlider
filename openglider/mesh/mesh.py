@@ -1,3 +1,4 @@
+from typing import List, Dict
 import copy
 import logging
 
@@ -137,6 +138,8 @@ class Mesh(object):
         triangle (3 vertices)
         quadrangle (4 vertices)
     """
+    boundary_nodes_type = Dict[str, List[int]]
+
     def __init__(self, polygons=None, boundary_nodes=None, name=None):
         """
 

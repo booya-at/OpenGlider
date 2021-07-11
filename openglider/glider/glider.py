@@ -1,24 +1,4 @@
-# ! /usr/bin/python2
-# -*- coding: utf-8; -*-
-#
-# (c) 2013 booya (http://booya.at)
-#
-# This file is part of the OpenGlider project.
-#
-# OpenGlider is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# OpenGlider is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import division
-
+from typing import List, Dict
 import copy
 import math
 from typing import List
@@ -91,7 +71,7 @@ class Glider(object):
                    self.aspect_ratio,
                    len(self.cells))
 
-    def replace_ribs(self, new_ribs):
+    def replace_ribs(self, new_ribs) -> None:
         replace_dict = {}
         assert(len(new_ribs) == len(self.ribs))
         for i, rib in enumerate(self.ribs):
@@ -105,7 +85,7 @@ class Glider(object):
         
         self.lineset.recalc()
 
-    def rename_parts(self):
+    def rename_parts(self) -> None:
         for rib_no, rib in enumerate(self.ribs):
             k = not self.has_center_cell
             rib.name = self.rib_naming_scheme.format(rib=rib, rib_no=rib_no+k)
@@ -115,8 +95,8 @@ class Glider(object):
             cell.name = self.cell_naming_scheme.format(cell=cell, cell_no=cell_no+1)
             cell.rename_parts()
 
-    def get_panel_groups(self):
-        panels = {}
+    def get_panel_groups(self) -> Dict[str, List["openglider.glider.cell.elements.Panel"]]:
+        panels: Dict[str, List["openglider.glider.cell.elements.Panel"]] = {}
         for cell in self.cells:
             for panel in cell.panels:
                 material_code = str(panel.material)
@@ -125,7 +105,7 @@ class Glider(object):
 
         return panels
 
-    def get_mesh(self, midribs=0):
+    def get_mesh(self, midribs=0) -> Mesh:
         mesh = Mesh()
         for rib in self.ribs:
             if not rib.profile_2d.has_zero_thickness:
@@ -141,7 +121,7 @@ class Glider(object):
 
         return mesh
 
-    def get_mesh_panels(self, num_midribs=0):
+    def get_mesh_panels(self, num_midribs=0) -> Mesh:
         mesh = Mesh(name="panels")
         for cell in self.cells:
             for panel in cell.panels:
@@ -149,14 +129,14 @@ class Glider(object):
 
         return mesh
 
-    def get_mesh_hull(self, num_midribs=0, ballooning=True):
+    def get_mesh_hull(self, num_midribs=0, ballooning=True) -> Mesh:
         ribs = self.return_ribs(num=num_midribs, ballooning=ballooning)
 
         num = len(ribs)
         numpoints = len(ribs[0])  # points per rib
 
         polygons = []
-        boundary = {
+        boundary: Mesh.boundary_nodes_type = {
             "ribs": [],
             "trailing_edge": []
         }
@@ -194,7 +174,7 @@ class Glider(object):
         ribs.append(self.cells[-1].midrib(1.).data)
         return ribs
 
-    def apply_mean_ribs(self, num_mean=8):
+    def apply_mean_ribs(self, num_mean=8) -> None:
         """
         Calculate Mean ribs
         :param num_mean:
@@ -209,10 +189,10 @@ class Glider(object):
         for i in range(len(self.ribs))[:-1]:
             self.ribs[i].profile_2d = (ribs[i] + ribs[i+1]) * 0.5
 
-    def close_rib(self, rib=-1):
+    def close_rib(self, rib=-1) -> None:
         self.ribs[rib].profile_2d *= 0.
 
-    def get_midrib(self, y=0):
+    def get_midrib(self, y=0) -> openglider.airfoil.Profile3D:
         k = y % 1
         i = int(y - k)
         if i == len(self.cells) and k == 0:  # Stabi-rib
@@ -220,7 +200,7 @@ class Glider(object):
             k = 1
         return self.cells[i].midrib(k)
 
-    def get_point(self, y=0, x=-1):
+    def get_point(self, y=0, x=-1) -> euklid.vector.Vector3D:
         """
         Get a point on the glider
         :param y: span-wise argument (0, cell_no)
@@ -241,7 +221,7 @@ class Glider(object):
         ik = ik_l + dy * (ik_r - ik_l)
         return rib[ik]
 
-    def mirror(self, cutmidrib=True):
+    def mirror(self, cutmidrib=True) -> None:
         if self.has_center_cell and cutmidrib:  # Cut midrib
             self.cells = self.cells[1:]
         for rib in self.ribs:
@@ -276,14 +256,14 @@ class Glider(object):
         # rename
         return other2
 
-    def scale(self, faktor):
+    def scale(self, faktor) -> None:
         for rib in self.ribs:
             rib.pos *= faktor
             rib.chord *= faktor
         self.lineset.scale(faktor)
 
     @property
-    def shape_simple(self):
+    def shape_simple(self) -> Shape:
         """
         Simple (rectangular) shape representation for spline inputs
         """
@@ -306,16 +286,17 @@ class Glider(object):
             front.append(euklid.vector.Vector2D([x, y_front]))
             back.append(euklid.vector.Vector2D([x, y_back]))
 
-        return Shape(front, back)
+        return Shape(euklid.vector.PolyLine2D(front), euklid.vector.PolyLine2D(back))
 
     @property
-    def shape_flattened(self):
+    def shape_flattened(self) -> Shape:
         """
         Projected Shape of the glider (as it would lie on the ground - flattened)
         """
         front, back = flatten_list(self.get_spanwise(0), self.get_spanwise(1))
+        zero = euklid.vector.Vector2D([0,0])
 
-        return Shape(front.rotate(-math.pi/2, [0,0]), back.rotate(-math.pi/2, [0,0]))
+        return Shape(front.rotate(-math.pi/2, zero), back.rotate(-math.pi/2, zero))
 
     # delete ?
     @property

@@ -1,6 +1,6 @@
 import math
 
-from openglider.utils import Config
+from openglider.utils.config import Config
 from openglider.utils.distribution import Distribution
 from openglider.plots import marks, cuts
 

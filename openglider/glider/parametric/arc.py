@@ -1,5 +1,6 @@
 from typing import List
 import copy
+import math
 
 import numpy as np
 import euklid
@@ -67,21 +68,26 @@ class ArcCurve(object):
         return cell_angles
 
     @classmethod
-    def from_cell_angles(cls, angles, x_values, rad=True):
-        last_pos = np.array([0,0])
-        last_x = 0
-        curve = []
+    def from_cell_angles(cls, angles: List[float], x_values: List[float], rad=True) -> "ArcCurve":
+        last_pos = euklid.vector.Vector2D([0,0])
+        last_x = 0.
+        nodes = []
         for i, x in enumerate(x_values):
             angle = angles[i]
             l = x - last_x
-            d = np.array([np.cos(angle), -np.sin(angle)])
+            d = euklid.vector.Vector2D([math.cos(angle), -math.sin(angle)])
             last_pos = last_pos + d * l
             last_x = x
 
-            curve.append(last_pos)
+            nodes.append(last_pos)
+        
+        right_curve = euklid.vector.PolyLine2D(nodes)
+        left_curve = right_curve.mirror()
 
-        curve = [p * [-1, 1] for p in curve[::-1]] + curve
-        spline = euklid.spline.SymmetricBSpline.fit(curve, 8)
+        curve = euklid.vector.PolyLine2D(left_curve.nodes[:-1] + right_curve.nodes)
+        
+        spline = euklid.spline.SymmetricBSplineCurve.fit(curve, 8) # type: ignore
+        
         return cls(spline)
 
     def get_rib_angles(self, x_values):

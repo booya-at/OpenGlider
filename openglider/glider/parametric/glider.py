@@ -56,6 +56,7 @@ class ParametricGlider(object):
         self.speed = speed
         self.glide = glide
         self.elements = elements or {}
+        print(self.elements)
 
     def __json__(self):
         return {
@@ -82,7 +83,7 @@ class ParametricGlider(object):
     def copy(self):
         return copy.deepcopy(self)
 
-    def get_geomentry_table(self):
+    def get_geomentry_table(self) -> Table:
         table = Table()
         table.insert_row(["", "Ribs", "Chord", "X", "Y", "%", "Arc", "Arc_diff", "AOA", "Z-rotation", "Y-rotation", "profile-merge", "ballooning-merge"])
         shape = self.shape.get_half_shape()
@@ -97,7 +98,7 @@ class ParametricGlider(object):
             table[1+rib_no, 4] = p[1]
             table[1+rib_no, 5] = self.shape.baseline_pos
 
-        last_angle = 0
+        last_angle = 0.
         for cell_no, angle in enumerate(self.get_arc_angles()):
             angle = angle * 180 / math.pi
             table[1+cell_no, 6] = angle
@@ -218,43 +219,20 @@ class ParametricGlider(object):
 
         return cells
 
-    def _get_cell_straps(self, name, _cls):
-        elements = []
-        for cell_no in range(self.shape.half_cell_num):
-            cell_elements = []
-            for strap in self.elements.get(name, []):
-                if cell_no in strap["cells"]:
-                    dct = strap.copy()
-                    dct.pop("cells")
-                    cell_elements.append(_cls(**dct))
-
-            cell_elements.sort(key=lambda strap: strap.get_average_x())
-
-            for strap_no, strap in enumerate(cell_elements):
-                strap.name = "c{}{}{}".format(cell_no+1, name[0], strap_no)
-            
-            elements.append(cell_elements)
-        
-        return elements
-
-    def get_cell_diagonals(self):
-        return self._get_cell_straps("diagonals", DiagonalRib)
-    
-    def get_cell_straps(self):
-        return self._get_cell_straps("straps", TensionStrap)
-    
-    def get_cell_tension_lines(self):
-        return self._get_cell_straps("tension_lines", TensionLine)
-
     def apply_diagonals(self, glider: Glider) -> None:
-        cell_straps = self.get_cell_straps()
-        cell_diagonals = self.get_cell_diagonals()
-        cell_tensionlines = self.get_cell_tension_lines()
-
         for cell_no, cell in enumerate(glider.cells):
-            cell.diagonals = cell_diagonals[cell_no]
-            cell.straps = cell_straps[cell_no]
-            cell.straps += cell_tensionlines[cell_no]
+            cell.diagonals = self.elements["diagonals"].get(cell_no)
+
+            cell.diagonals.sort(key=lambda strap: strap.get_average_x())
+
+            for strap_no, strap in enumerate(cell.diagonals):
+                strap.name = "c{}{}{}".format(cell_no+1, "d", strap_no)
+
+            cell.straps = self.elements["straps"].get(cell_no)
+            cell.straps.sort(key=lambda strap: strap.get_average_x())
+
+            for strap_no, strap in enumerate(cell.diagonals):
+                strap.name = "c{}{}{}".format(cell_no+1, "s", strap_no)
 
     @classmethod
     def fit_glider_3d(cls, glider: Glider, numpoints=3) -> "ParametricGlider":

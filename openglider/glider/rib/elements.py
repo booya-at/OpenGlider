@@ -269,7 +269,7 @@ class RibHole(object):
 
 
 class RibSquareHole(RibHole):
-    def __init__(self, x, width, height, corner_size=0.5):
+    def __init__(self, x, width, height, corner_size=0.9):
         self.x = x
         self.width = width
         self.height = height

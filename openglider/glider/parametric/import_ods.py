@@ -18,6 +18,8 @@ from openglider.glider.rib import MiniRib
 from openglider.glider.ballooning import BallooningBezier, BallooningBezierNeu
 from openglider.utils.table import Table
 from openglider.materials import cloth
+from openglider.glider.parametric.table.holes import HolesTable
+from openglider.glider.parametric.table.diagonals import DiagonalTable, StrapTable
 
 
 logger = logging.getLogger(__name__)
@@ -139,7 +141,6 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
 
 
     # RIB HOLES
-    from openglider.glider.parametric.table.holes import HolesTable
     rib_holes = HolesTable(rib_sheet)
 
     rigidfoil_keywords = ["ribs", "start", "end", "distance"]
@@ -171,44 +172,9 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     cuts += get_cuts(["singleskin"], "singleskin")
 
     # Diagonals: center_left, center_right, width_l, width_r, height_l, height_r
-    diagonals = []
-    for res in read_elements(cell_sheet, "QR", len_data=6):
-        height1 = res[5]
-        height2 = res[6]
-        # migration
-        if file_version == 1:
-            # height (0,1) -> (-1,1)
-            height1 = height1 * 2 - 1
-            height2 = height2 * 2 - 1
-        # ---------
+    diagonals = DiagonalTable(cell_sheet, file_version)
+    straps = StrapTable(cell_sheet)
 
-        diagonals.append({"left_front": (res[1] - res[3] / 2, height1),
-                          "left_back": (res[1] + res[3] / 2, height1),
-                          "right_front": (res[2] - res[4] / 2, height2),
-                          "right_back": (res[2] + res[4] / 2, height2),
-                          "cells": res[0]})
-
-    diagonals = group(diagonals, "cells")
-
-    straps = []
-    straps_keywords = ["cells", "left", "right"]
-    for res in read_elements(cell_sheet, "VEKTLAENGE", len_data=2):
-        straps.append({
-            "left": res[1],
-            "right": res[2],
-            "width": 0.02,
-            "cells": res[0]
-        })
-
-    for res in read_elements(cell_sheet, "STRAP", len_data=3):
-        # [cell_no, x_left, x_right, width]
-        straps.append({
-            "left": res[1],
-            "right": res[2],
-            "width": res[3],
-            "cells": res[0]
-            })
-    straps = group(straps, "cells")
 
     material_cells = get_material_codes(cell_sheet)
     material_ribs = get_material_codes(rib_sheet)

@@ -19,7 +19,7 @@
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import copy
 import logging
-from typing import Tuple
+from typing import Tuple, List
 import numpy as np
 import math
 
@@ -32,7 +32,7 @@ import openglider.mesh as mesh
 from openglider.utils.cache import cached_function, hash_list
 from openglider.vector.projection import flatten_list
 from openglider.vector.mapping import Mapping, Mapping3D
-from openglider.utils import Config
+from openglider.utils.config import Config
 import openglider.jsonify
 
 from typing import TYPE_CHECKING
@@ -74,48 +74,46 @@ class DiagonalRib(object):
         }
 
     @property
-    def width_left(self):
+    def width_left(self) -> float:
         return abs(self.left_front[0] - self.left_back[0])
 
     @width_left.setter
-    def width_left(self, width):
+    def width_left(self, width: float):
         center = self.center_left
         self.left_front[0] = center - width/2
         self.left_back[0] = center + width/2
 
     @property
-    def width_right(self):
+    def width_right(self) -> float:
         return abs(self.right_front[0] - self.right_back[0])
 
     @width_right.setter
-    def width_right(self, width):
+    def width_right(self, width: float):
         center = self.center_right
         self.right_front[0] = center - width/2
         self.right_back[0] = center + width/2
 
     @property
-    def center_left(self):
+    def center_left(self) -> float:
         return (self.left_front[0] + self.left_back[0])/2
 
     @property
-    def center_right(self):
+    def center_right(self) -> float:
         return (self.right_front[0] + self.right_back[0])/2
-
-
 
     def copy(self):
         return copy.copy(self)
 
-    def mirror(self):
+    def mirror(self) -> None:
         self.left_front, self.right_front = self.right_front, self.left_front
         self.left_back, self.right_back = self.right_back, self.left_back
 
-    def get_center_length(self, cell):
+    def get_center_length(self, cell) -> float:
         p1 = cell.rib1.point(self.center_left)
         p2 = cell.rib2.point(self.center_right)
         return (p2 - p1).length()
 
-    def get_3d(self, cell):
+    def get_3d(self, cell) -> Tuple[euklid.vector.PolyLine3D, euklid.vector.PolyLine3D]:
         """
         Get 3d-Points of a diagonal rib
         :return: (left_list, right_list)
@@ -140,14 +138,15 @@ class DiagonalRib(object):
 
         return left, right
 
-    def get_mesh(self, cell, insert_points=10, project_3d=False):
+    def get_mesh(self, cell, insert_points=10, project_3d=False) -> mesh.Mesh:
         """
         get a mesh from a diagonal (2 poly lines)
         """
         left, right = self.get_3d(cell)
         left_2d, right_2d = self.get_flattened(cell)
 
-        node_no = max(len(c.nodes) for c in (left, right, left_2d, right_2d))
+        node_no = max([len(c.nodes) for c in (left, right)])
+        node_no = max(node_no, max([len(c.nodes) for c in (left_2d, right_2d)]))
 
         left = left.resample(node_no)
         right = right.resample(node_no)
@@ -182,9 +181,9 @@ class DiagonalRib(object):
             points_2d += hole_vertices
             boundary.append([start_index + i for i in hole_indices])
 
-        hole_centers = [list(p) for p in hole_centers]
+        hole_centers_lst = [list(p) for p in hole_centers]
 
-        tri = mesh.triangulate.Triangulation(points_2d, boundary, hole_centers)
+        tri = mesh.triangulate.Triangulation(points_2d, boundary, hole_centers_lst)
 
         tri.name = self.name or "DIAGONAL"
         #tri.meshpy_quality_mesh = False
@@ -205,7 +204,7 @@ class DiagonalRib(object):
         return mesh.Mesh.from_indexed(points_3d, {"diagonals": list(tri_mesh.elements)}, boundaries={"diagonals": boundary_nodes})
 
 
-    def get_holes(self, cell, points=40):
+    def get_holes(self, cell, points=40) -> Tuple[List[euklid.vector.PolyLine2D], List[euklid.vector.Vector2D]]:
         left, right = self.get_flattened(cell)
 
         len_left = left.get_length()
@@ -249,12 +248,12 @@ class DiagonalRib(object):
 
         return holes, centers
 
-    def get_flattened(self, cell, ribs_flattened=None):
+    def get_flattened(self, cell, ribs_flattened=None) -> Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
         first, second = self.get_3d(cell)
         left, right = flatten_list(first, second)
         return left, right
 
-    def get_average_x(self):
+    def get_average_x(self) -> float:
         """
         return average x value for sorting
         """
@@ -313,7 +312,7 @@ class TensionLine(TensionStrap):
                 "name": self.name
             }
 
-    def get_length(self, cell):
+    def get_length(self, cell) -> float:
         rib1 = cell.rib1
         rib2 = cell.rib2
         left = rib1.profile_3d[rib1.profile_2d(self.left)]
@@ -321,13 +320,13 @@ class TensionLine(TensionStrap):
 
         return (left - right).length()
 
-    def get_center_length(self, cell):
+    def get_center_length(self, cell) -> float:
         return self.get_length(cell)
 
     def mirror(self):
         self.left, self.right = self.right, self.left
 
-    def get_mesh(self, cell):
+    def get_mesh(self, cell, insert_points=10, project_3d=False) -> mesh.Mesh:
         boundaries = {}
         rib1 = cell.rib1
         rib2 = cell.rib2
@@ -434,7 +433,7 @@ class Panel(object):
         else:
             return None
 
-    def is_lower(self):
+    def is_lower(self) -> bool:
         return self.mean_x() > 0
 
     def get_3d(self, cell, numribs=0, midribs=None, with_numpy=False):
@@ -465,7 +464,7 @@ class Panel(object):
             # todo: return polygon-data
         return ribs
 
-    def get_mesh(self, cell, numribs=0, with_numpy=False, exact=False):
+    def get_mesh(self, cell, numribs=0, with_numpy=False, exact=False) -> mesh.Mesh:
         """
         Get Panel-mesh
         :param cell: the parent cell of the panel
@@ -479,7 +478,7 @@ class Panel(object):
         x_value_interpolation = euklid.vector.Interpolation([[i, x] for i, x in enumerate(xvalues)])
 
         rib_iks = []
-        points = []
+        nodes: List[euklid.vector.Vector3D] = []
         rib_node_indices = []
 
         ik_values = self._get_ik_values(cell, numribs, exact=exact)
@@ -493,12 +492,12 @@ class Panel(object):
 
             rib_iks.append(midrib.get_positions(front, back))
 
-            i0 = len(points)
+            i0 = len(nodes)
             rib_node_indices.append([i + i0 for i, _ in enumerate(rib_iks[-1])])
 
-            points += list(midrib.get(front, back))
+            nodes += list(midrib.get(front, back))
 
-        points = [mesh.Vertex(*p) for p in points]
+        points = [mesh.Vertex(*p) for p in nodes]
 
         polygons = []
 
@@ -572,7 +571,7 @@ class Panel(object):
             "left": back["right"]
         })
     
-    def snap(self, cell):
+    def snap(self, cell) -> None:
         """
         replaces panel x_valus with x_values stored in profile-2d-x-values
         """
@@ -655,7 +654,7 @@ class Panel(object):
 
         return ik_interpolation_front, ik_interpolation_back
 
-    def integrate_3d_shaping(self, cell: "Cell", sigma, inner_2d, midribs=None):
+    def integrate_3d_shaping(self, cell: "Cell", sigma, inner_2d, midribs=None) -> Tuple[List[float], List[float]]:
         """
         :param cell: the parent cell of the panel
         :param sigma: std-deviation parameter of gaussian distribution used to weight the length differences.
@@ -687,15 +686,15 @@ class Panel(object):
             lengthes_2d = rib_2d.get_segment_lengthes()
             lengthes_3d = rib_3d.get_segment_lengthes()
 
-            distance = 0
-            amount_front = 0
+            distance = 0.
+            amount_front = 0.
             # influence factor: e^-(x^2/(2*sigma^2))
             # -> sigma = einflussfaktor [m]
             # integral = sqrt(pi/2)*sigma * [ erf(x / (sqrt(2)*sigma) ) ]
 
             def integrate(lengths_2d, lengths_3d):
-                amount = 0
-                distance = 0
+                amount = 0.
+                distance = 0.
 
                 for l2d, l3d in zip(lengths_2d, lengths_3d):
                     if l3d > 0:
@@ -743,8 +742,8 @@ class Panel(object):
                     amount_back *= normalization
 
             if rib_no == 0 or rib_no == numribs+1:
-                amount_front = 0
-                amount_back = 0
+                amount_front = 0.
+                amount_back = 0.
                 
             front.append(amount_front)
             back.append(amount_back)
