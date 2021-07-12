@@ -286,18 +286,19 @@ def get_parametric_sheet(glider : "openglider.glider.parametric.glider.Parametri
     def add_curve(name, curve, column_no):
         #sheet.append_columns(2)
         sheet[0, column_no].set_value(name)
-        for i, p in enumerate(curve):
+        sheet[0, column_no+1].set_value(type(curve).__name__)
+        for i, p in enumerate(curve.controlpoints):
             sheet[i+1, column_no].set_value(p[0])
             sheet[i+1, column_no+1].set_value(p[1])
 
-    add_curve("front", glider.shape.front_curve.controlpoints, 0)
-    add_curve("back", glider.shape.back_curve.controlpoints, 2)
-    add_curve("rib_distribution", glider.shape.rib_distribution.controlpoints, 4)
-    add_curve("arc", glider.arc.curve.controlpoints, 6)
-    add_curve("aoa", glider.aoa.controlpoints, 8)
-    add_curve("zrot", glider.zrot.controlpoints, 10)
-    add_curve("ballooning_merge_curve", glider.ballooning_merge_curve.controlpoints, 12)
-    add_curve("profile_merge_curve", glider.profile_merge_curve.controlpoints, 14)
+    add_curve("front", glider.shape.front_curve, 0)
+    add_curve("back", glider.shape.back_curve, 2)
+    add_curve("rib_distribution", glider.shape.rib_distribution, 4)
+    add_curve("arc", glider.arc.curve, 6)
+    add_curve("aoa", glider.aoa, 8)
+    add_curve("zrot", glider.zrot, 10)
+    add_curve("ballooning_merge_curve", glider.ballooning_merge_curve, 12)
+    add_curve("profile_merge_curve", glider.profile_merge_curve, 14)
 
     return sheet
 

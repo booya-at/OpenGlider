@@ -4,7 +4,7 @@ import numpy as np
 
 from openglider.plots import marks
 from openglider.plots.marks import Inside, OnLine
-from openglider.utils import Config
+from openglider.utils.config import Config
 
 
 class LaserConfig(Config):

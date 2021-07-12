@@ -376,7 +376,7 @@ class CutPoint(Marker):
 
     def get_2D(self):
         try:
-            return list(self.parametric_glider.shape[self.rib_nr, abs(self.rib_pos)] + [0])
+            return list(self.parametric_glider.shape[self.rib_nr, abs(self.rib_pos)]) + [0]
         except IndexError:
             raise IndexError('index ' + self.rib_nr + ' out of range')
 

@@ -1,5 +1,5 @@
 __version__ = "0.1.2"
-#from . import commands
+from . import glider_commands
 
 def show_lineset_points(glider, pattern=None):
 	import Part

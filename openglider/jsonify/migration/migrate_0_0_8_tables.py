@@ -1,30 +1,40 @@
+import logging
+import json
+
+from openglider.jsonify.encoder import Encoder
 from openglider.jsonify.migration.migration import Migration
 from openglider.glider.parametric.table.holes import HolesTable
 from openglider.glider.parametric.table.diagonals import DiagonalTable, StrapTable
-
 from openglider.utils.table import Table
 
-@Migration.add("0.0.7")
+logger = logging.getLogger(__name__)
+
+@Migration.add("0.0.8")
 def migrate_diagonals(cls, jsondata):
-    for node in cls.find_nodes(jsondata, name=r"ParametricGlider"):
+    nodes = cls.find_nodes(jsondata, name=r"ParametricGlider")
+    if not nodes:
+        return jsondata
+
+    for node in nodes:
         elements = node["data"]["elements"]
         
         holes = elements.get("holes", [])
         table = get_hole_table(holes)
-        elements["holes"] = table.__json__()
+        elements["holes"] = table
         
         diagonals = elements.get("diagonals", [])
         table_diagonals = get_diagonals_table(diagonals)
-
-        elements["diagonals"] = table_diagonals.__json__()
+        elements["diagonals"] = table_diagonals
         
         straps = elements.get("straps", [])
         table_straps = get_straps_table(straps)
-        elements["straps"] = table_straps.__json__()
+        elements["straps"] = table_straps
 
         materials = elements.pop("materials")
         if materials:
             elements["material_cells"] = materials
+
+        node["data"]["elements"] = json.loads(json.dumps(elements, cls=Encoder))
     
     return jsondata
 
@@ -55,6 +65,7 @@ def get_diagonals_table(diagonals):
 
 
     table = Table()
+
     while diagonals:
         diagonals_this = [diagonals.pop(0)]
         cells = set(diagonals_this[0]["cells"])

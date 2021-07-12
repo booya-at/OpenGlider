@@ -1,7 +1,9 @@
 from typing import List, Tuple, Any
+import logging
 
 from openglider.utils.table import Table
 
+logger = logging.getLogger(__name__)
 
 class ElementTable:
     keywords: List[Tuple[str, int]] = []

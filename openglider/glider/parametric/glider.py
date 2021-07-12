@@ -56,7 +56,6 @@ class ParametricGlider(object):
         self.speed = speed
         self.glide = glide
         self.elements = elements or {}
-        print(self.elements)
 
     def __json__(self):
         return {
@@ -169,10 +168,10 @@ class ParametricGlider(object):
             cells = [[] for _ in range(self.shape.half_cell_num)]
         else:
             cells = [cell.panels for cell in glider_3d.cells]
-            for cell in cells:
-                cell = []
 
         for cell_no, panel_lst in enumerate(cells):
+            panel_lst.clear()
+
             _cuts = self.elements.get("cuts", [])
             cuts = [cut.copy() for cut in _cuts if cell_no in cut["cells"]]
             for cut in cuts:
@@ -221,14 +220,14 @@ class ParametricGlider(object):
 
     def apply_diagonals(self, glider: Glider) -> None:
         for cell_no, cell in enumerate(glider.cells):
-            cell.diagonals = self.elements["diagonals"].get(cell_no)
+            cell.diagonals = self.elements["diagonals"].get(row_no=cell_no)
 
             cell.diagonals.sort(key=lambda strap: strap.get_average_x())
 
             for strap_no, strap in enumerate(cell.diagonals):
                 strap.name = "c{}{}{}".format(cell_no+1, "d", strap_no)
 
-            cell.straps = self.elements["straps"].get(cell_no)
+            cell.straps = self.elements["straps"].get(row_no=cell_no)
             cell.straps.sort(key=lambda strap: strap.get_average_x())
 
             for strap_no, strap in enumerate(cell.diagonals):
@@ -452,17 +451,7 @@ class ParametricGlider(object):
 
         return self.shape.aspect_ratio
 
-
-
-##############################################################
-# is this used?
-    def scale(self, x=1, y=1):
-        self.shape.scale(x, y)
-        if x != 1:
-            self.rescale_curves()
-##############################################################
-
-    def rescale_curves(self):
+    def rescale_curves(self) -> None:
         span = self.shape.span
 
         def rescale(curve):
@@ -475,6 +464,7 @@ class ParametricGlider(object):
         rescale(self.aoa)
         rescale(self.zrot)
         self.arc.rescale(self.shape.rib_x_values)
+
     def get_line_bbox(self):
         points = []
         for point in self.lineset.nodes:
@@ -484,43 +474,3 @@ class ParametricGlider(object):
             [min([p[0] for p in points]), min([p[1] for p in points])],
             [max([p[0] for p in points]), max([p[1] for p in points])],
         ]
-
-    def export_lines2D_as_svg(self, file_name=None):
-        # sollte im lineset2D sein, aber des lineset hat keine moeglichkeit auf diese Klasse
-        # zuzugreifen...
-        border = 0.1
-        bbox = self.get_line_bbox()
-        width = bbox[1][0] - bbox[0][0]
-        height = bbox[1][1] - bbox[0][1]
-
-        import svgwrite
-        import svgwrite.container
-        drawing = svgwrite.Drawing(size=[800, 800*height/width])
-
-        drawing.viewbox(bbox[0][0]-border*width, -bbox[1][1]-border*height, width*(1+2*border), height*(1+2*border))
-        lines = svgwrite.container.Group()
-        lines.scale(1, -1)
-        for line in self.lineset.lines:
-            p1 = line.lower_node.get_2D(self.shape)
-            p2 = line.upper_node.get_2D(self.shape)
-            drawing_line = drawing.polyline([p1, p2], style="stroke:black; vector-effect: fill: none; stroke-width:0.01px")
-            lines.add(drawing_line)
-        drawing.add(lines)
-
-        ribs = svgwrite.container.Group()
-
-        ribs.scale(1, -1)
-        p1_old, p2_old = None, None
-        for rib in self.shape.ribs:
-            p1 = rib[0]
-            p2 = rib[1]
-            ribs.add(drawing.polyline([p1, p2], style="stroke:black; vector-effect: fill: none; stroke-width:0.01px"))
-            if p1_old and p2_old:
-                ribs.add(drawing.polyline([p1_old, p1], style="stroke:black; vector-effect: fill: none; stroke-width:0.01px"))
-                ribs.add(drawing.polyline([p2_old, p2], style="stroke:black; vector-effect: fill: none; stroke-width:0.01px"))
-            p1_old, p2_old = p1, p2
-
-        drawing.add(ribs)
-        if file_name:
-            drawing.saveas(file_name)
-        return drawing.tostring()

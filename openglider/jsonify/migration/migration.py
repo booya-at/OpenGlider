@@ -7,6 +7,7 @@ import logging
 
 #import openglider
 import openglider.version
+from openglider.jsonify.encoder import Encoder
 
 logger = logging.getLogger(__name__)
 
@@ -28,15 +29,15 @@ class Migration:
     
     def migrate(self):
         jsondata = self.json_data
-
         #with open("/tmp/data.json", "w") as outfile:
         #    json.dump(jsondata, outfile, indent=2)
         for migration_version, migration in self.get_migrations():
             if self.from_version < migration_version:
-                logger.debug(f"running migration: {migration.__doc__}")
+                logger.warning(f"running migration: {migration_version} / {migration.__name__}")
                 jsondata = migration(jsondata)
+                logger.warning(f"migration {migration.__name__} done")
         
-        return json.dumps(jsondata)
+        return json.dumps(jsondata, cls=Encoder)
     
     @classmethod
     def add(cls, version):
@@ -46,6 +47,7 @@ class Migration:
                 return function(cls, jsondata)
 
             function_wrapper.__doc__ = function.__doc__
+            function_wrapper.__name__ = function.__name__
             cls.migrations.append([version, function_wrapper])
         
         return decorate
@@ -73,6 +75,9 @@ class Migration:
         :param jsondata:
         :return: list of nodes
         """
+        if jsondata is None:
+            return []
+        #logger.warning(f"find nodes: {name}, {jsondata}")
         rex_name = re.compile(name)
         rex_module = re.compile(module)
         nodes = []
@@ -99,5 +104,7 @@ class Migration:
                     nodes += cls.find_nodes(el, name, module)
             except TypeError:
                 pass
+
+        #logger.warning(f"found nodes ({name}): {len(nodes)}")
 
         return nodes

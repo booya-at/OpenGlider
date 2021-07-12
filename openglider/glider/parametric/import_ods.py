@@ -291,35 +291,47 @@ def get_geometry_explicit(sheet):
 
 def get_geometry_parametric(table: Table, cell_num):
     data = {}
-    
-    for key in ("front", "back", "rib_distribution", "arc", "zrot", "aoa", "profile_merge_curve", "ballooning_merge_curve"):
-        column = None
-        for col in range(table.num_columns):
-            if table[0, col] == key:
-                column = col
-        if column is not None:
-            points = []
-            for row in range(1, table.num_rows):
-                if table[row, column] is not None:
-                    points.append([table[row, column], table[row, column+1]])
-            data[key] = points
+    curve_types = {
+        "front": euklid.spline.SymmetricBSplineCurve,
+        "back": euklid.spline.SymmetricBSplineCurve,
+        "rib_distribution": euklid.spline.BezierCurve,
+        "arc": euklid.spline.SymmetricBSplineCurve,
+        "aoa": euklid.spline.SymmetricBSplineCurve,
+        "zrot": euklid.spline.SymmetricBSplineCurve,
+        "profile_merge_curve": euklid.spline.SymmetricBSplineCurve,
+        "ballooning_merge_curve": euklid.spline.SymmetricBSplineCurve
+    }
+
+    for column in range(0, table.num_columns, 2):
+        key = table[0, column]
+        points = []
+        
+        if table[0, column+1] is not None:
+            curve_type = getattr(euklid.spline, table[0, column+1])
+        else:
+            logger.warning(f"default curve for {key}")
+            curve_type = curve_types[key]
+
+        for row in range(1, table.num_rows):
+            if table[row, column] is not None:
+                points.append([table[row, column], table[row, column+1]])
+        
+        data[key] = curve_type(points)
+        
 
     parametric_shape = ParametricShape(
-        euklid.spline.SymmetricBSplineCurve(data["front"]),
-        euklid.spline.SymmetricBSplineCurve(data["back"]),
-        euklid.spline.BezierCurve(data["rib_distribution"]),
-        cell_num
+        data["front"], data["back"], data["rib_distribution"], cell_num
     )
 
-    arc_curve = ArcCurve(euklid.spline.SymmetricBSplineCurve(data["arc"]))
+    arc_curve = ArcCurve(data["arc"])
 
     return {
         "shape": parametric_shape,
         "arc": arc_curve,
-        "aoa": euklid.spline.SymmetricBSplineCurve(data["aoa"]),
-        "zrot": euklid.spline.SymmetricBSplineCurve(data["zrot"]),
-        "profile_merge_curve": euklid.spline.SymmetricBSplineCurve(data["profile_merge_curve"]),
-        "ballooning_merge_curve": euklid.spline.SymmetricBSplineCurve(data["ballooning_merge_curve"])
+        "aoa": data["aoa"],
+        "zrot": data["zrot"],
+        "profile_merge_curve": data["profile_merge_curve"],
+        "ballooning_merge_curve": data["ballooning_merge_curve"]
     }
     
 

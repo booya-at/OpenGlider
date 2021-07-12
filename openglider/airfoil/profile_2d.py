@@ -1,3 +1,4 @@
+from typing import List
 import os
 import re
 import math
@@ -21,7 +22,7 @@ class Profile2D:
     """
     Profile2D: 2 Dimensional Standard airfoil representative
     """
-    def __init__(self, data, name="unnamed"):
+    def __init__(self, data, name="unnamed") -> None:
         self.name = name
         self.curve = euklid.vector.PolyLine2D(data)
         self._setup()
@@ -39,23 +40,23 @@ class Profile2D:
             [[ p[0], i+self.noseindex] for i, p in enumerate(self.curve.nodes[self.noseindex:])]
         )
 
-    def __mul__(self, value):
-        fakt = [1, float(value)]
+    def __mul__(self, value) -> "Profile2D":
+        fakt = euklid.vector.Vector2D([1, float(value)])
 
         return Profile2D(self.curve * fakt)
 
-    def __call__(self, xval):
+    def __call__(self, xval) -> float:
         return self.get_ik(xval)
 
-    def get_ik(self, x):
+    def get_ik(self, x) -> float:
         xval = float(x)
         return self._interpolation_x_values.get_value(xval)
     
-    def get(self, x):
+    def get(self, x) -> euklid.vector.Vector2D:
         ik = self.get_ik(x)
         return self.curve.get(ik)
 
-    def align(self, p):
+    def align(self, p) -> euklid.vector.Vector2D:
         """Align a point (x, y) on the airfoil. x: (0,1), y: (-1,1)"""
         x, y = p
 
@@ -64,7 +65,7 @@ class Profile2D:
 
         return lower + (upper-lower) * ((y + 1)/2)
 
-    def profilepoint(self, xval, h=-1.):
+    def profilepoint(self, xval, h=-1.) -> euklid.vector.Vector2D:
         """
         Get airfoil Point for x-value (<0:upper side)
         optional: height (-1:lower,1:upper)
@@ -74,7 +75,7 @@ class Profile2D:
         else:
             return self.align([xval, h])
 
-    def normalized(self, close=True):
+    def normalized(self, close=True) -> "Profile2D":
         """
         Normalize the airfoil.
         This routine does:
@@ -88,9 +89,12 @@ class Profile2D:
 
         diff = (new_curve.nodes[0] + new_curve.nodes[-1]) * 0.5
         diff_sq = diff.dot(diff)
+
+        v1 = euklid.vector.Vector2D([0, -1])
+        v2 = euklid.vector.Vector2D([1,0])
         
-        sin_sq = diff.dot([0, -1]) / diff_sq  # Angle: a.b=|a|*|b|*sin(alpha)
-        cos_sq = diff.dot([1, 0]) / diff_sq
+        sin_sq = diff.dot(v1) / diff_sq  # Angle: a.b=|a|*|b|*sin(alpha)
+        cos_sq = diff.dot(v2) / diff_sq
         matrix = np.array([[cos_sq, -sin_sq], [sin_sq, cos_sq]])  # de-rotate and scale
         
         data = np.array([matrix.dot(i) for i in new_curve]).tolist()
@@ -102,10 +106,10 @@ class Profile2D:
         return Profile2D(data)
     
     @property
-    def normvectors(self):
+    def normvectors(self) -> euklid.vector.PolyLine2D:
         return self.curve.normvectors()
 
-    def copy(self):
+    def copy(self) -> "Profile2D":
         new_name = f"{self.name}_copy"
         return Profile2D(self.curve.nodes, new_name)
 
@@ -142,16 +146,16 @@ class Profile2D:
     _re_coord_line = re.compile(rf"\s*{_re_number}\s+{_re_number}\s*")
 
     @classmethod
-    def import_from_dat(cls, path):
+    def import_from_dat(cls, path) -> "Profile2D":
         """
         Import an airfoil from a '.dat' file
         """
-        name = 'imported from {}'.format(path)
+        name = os.path.split(path)[-1]
         with open(path, "r") as p_file:
-            return cls._import_dat(p_file)
+            return cls._import_dat(p_file, name=name)
     
     @classmethod
-    def _import_dat(cls, p_file, name="unnamed"):
+    def _import_dat(cls, p_file, name="unnamed") -> "Profile2D":
         profile = []
         for i, line in enumerate(p_file):
             if line.endswith(","):
@@ -169,7 +173,7 @@ class Profile2D:
         return cls(profile, name)
 
 
-    def export_dat(self, pfad):
+    def export_dat(self, pfad) -> str:
         """
         Export airfoil to .dat Format
         """
@@ -182,21 +186,19 @@ class Profile2D:
 
 
     @classmethod
-    def compute_trefftz(cls, m=-0.1+0.1j, tau=0.05, numpoints=100):
+    def compute_trefftz(cls, m=-0.1+0.1j, tau=0.05, numpoints=100) -> "Profile2D":
         from openglider.airfoil.conformal_mapping import TrefftzKuttaAirfoil
         airfoil = TrefftzKuttaAirfoil(midpoint=m, tau=tau)
-        profile = [[c.real, c.imag] for c in airfoil.coordinates(numpoints)]
+        nodes = [[c.real, c.imag] for c in airfoil.coordinates(numpoints)]
 
         # find the smallest xvalue to reset the nose
-        x = np.array([i[0] for i in profile])
-        profile = cls(profile, "TrefftzKuttaAirfoil_m=" + str(m) + "_tau=" + str(tau))
+        profile = cls(nodes, "TrefftzKuttaAirfoil_m=" + str(m) + "_tau=" + str(tau))
         profile = profile.normalized()
-        profile.numpoints = numpoints
         return profile
 
     #@cached_property('self')
     @property
-    def x_values(self):
+    def x_values(self) -> List[float]:
         """Get XValues of airfoil. upper side neg, lower positive"""
         i = self.noseindex
 
