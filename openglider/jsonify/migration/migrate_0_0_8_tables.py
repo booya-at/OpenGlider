@@ -104,7 +104,7 @@ def get_diagonals_table(diagonals):
 
 def get_straps_table(straps):
     table = Table()
-    cell_num = max([max(strap["cells"]) for strap in straps])
+    cell_num = max([max(strap["cells"]) for strap in straps], default=0)
     straps_per_cell = []
 
     for _i in range(cell_num+1):

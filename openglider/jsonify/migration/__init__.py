@@ -28,7 +28,8 @@ def migrate_splines_07(cls, jsondata):
     for curvetype in ("Bezier", "SymmetricBezier", "BSpline", "SymmetricBSpline"):
         for node in cls.find_nodes(jsondata, name="^"+curvetype+"$"):
             logger.warning(f'curve:  {node["data"]}')
-            node["data"].pop("basefactory")
+            node["data"].pop("basefactory", None)
+            node["data"].pop("degree", None)
             node["_type"] = f"{curvetype}Curve"
             node["_module"] = "euklid.spline"
     
