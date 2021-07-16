@@ -10,6 +10,7 @@ class HolesTable(ElementTable):
     keywords = [
         ("HOLE", 2),
         ("QUERLOCH", 2),
+        ("HOLE5", 5),  # pos, width, height, vertical shift, rotation 
         ("HOLESQ", 3),
         ("HOLESQMULTI", 5)  # start, end, height, num_holes, border_width
     ]
@@ -23,5 +24,9 @@ class HolesTable(ElementTable):
         elif keyword == "HOLESQMULTI":
             logger.info(str(data))
             return MultiSquareHole(*data)
+        elif keyword == "HOLE5":
+            size = [data[1], data[2]]
+
+            return RibHole(data[0], size, vertical_shift=data[3], rotation=data[4])
 
         raise ValueError()

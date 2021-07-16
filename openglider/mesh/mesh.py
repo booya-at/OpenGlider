@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Tuple
 import copy
 import logging
 
@@ -214,7 +214,7 @@ class Mesh(object):
         return self
 
 
-    def get_indexed(self):
+    def get_indexed(self) -> Tuple[List[Vertex], Dict[str, List[List[int]]], Dict[str, List[int]]]:
         """
         Get [vertices, polygons, boundaries] with references by index
         """

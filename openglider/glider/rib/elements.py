@@ -214,9 +214,11 @@ class RibHole(object):
     """
     def __init__(self, pos, size=0.5, width=1, vertical_shift=0., rotation=0.):
         self.pos = pos
-        if isinstance(size, (list, tuple, np.ndarray)):
-            size = list(size)
-        self.size = size
+        if isinstance(size, (list, tuple, np.ndarray, euklid.vector.Vector2D)):
+            width = size[0]/size[1]
+            self.size = size[1]
+        else:
+            self.size = size
         self.vertical_shift = vertical_shift
         self.rotation = rotation  # rotation around lower point
         self.width = width

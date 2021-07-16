@@ -464,7 +464,7 @@ class Panel(object):
             # todo: return polygon-data
         return ribs
 
-    def get_mesh(self, cell, numribs=0, with_numpy=False, exact=False) -> mesh.Mesh:
+    def get_mesh(self, cell, numribs=0, with_numpy=False, exact=False, tri=False) -> mesh.Mesh:
         """
         Get Panel-mesh
         :param cell: the parent cell of the panel
@@ -500,16 +500,23 @@ class Panel(object):
         points = [mesh.Vertex(*p) for p in nodes]
 
         polygons = []
+        lines = []
 
         # helper functions
         def left_triangle(l_i, r_i):
-            return mesh.Polygon([points[l_i+1], points[l_i], points[r_i]])
+            return [mesh.Polygon([points[l_i+1], points[l_i], points[r_i]])]
 
         def right_triangle(l_i, r_i):
-            return mesh.Polygon([points[r_i+1], points[l_i], points[r_i]])
+            return [mesh.Polygon([points[r_i+1], points[l_i], points[r_i]])]
 
         def quad(l_i, r_i):
-            return mesh.Polygon([points[l_i+1], points[l_i], points[r_i], points[r_i+1]])
+            if tri:
+                return left_triangle(l_i, r_i) + right_triangle(l_i, r_i)
+            else:
+                return [mesh.Polygon([points[l_i+1], points[l_i], points[r_i], points[r_i+1]])]
+
+        lines += [points[i] for i in rib_node_indices[0]]
+        lines += [points[i] for i in rib_node_indices[-1]]
 
         for rib_no, _ in enumerate(rib_iks[:-1]):
             x = (2*rib_no+1) / (numribs+1) / 2
@@ -519,6 +526,10 @@ class Panel(object):
             iks_left = rib_iks[rib_no]
             iks_right = rib_iks[rib_no + 1]
             l_i = r_i = 0
+
+            lines.append([points[indices_left[0]], points[indices_right[0]]])
+            lines.append([points[indices_left[-1]], points[indices_right[-1]]])
+            
 
             while l_i < len(indices_left)-1 or r_i < len(indices_right)-1:
                 if l_i == len(indices_left) - 1:
@@ -549,12 +560,20 @@ class Panel(object):
                 if r_i < len(iks_right) - 1:
                     iks.append(iks_right[r_i+1])
                 
-                poly.attributes["center"] = [x, x_value_interpolation.get_value(sum(iks)/len(iks))]
-                polygons.append(poly)
+                for p in poly:
+                    p.attributes["center"] = [x, x_value_interpolation.get_value(sum(iks)/len(iks))]
+
+                polygons += poly
         #connection_info = {cell.rib1: np.array(ribs[0], int),
         #                   cell.rib2: np.array(ribs[-1], int)}
 
-        return mesh.Mesh({f"panel_{self.material}#{self.material.color_code}": polygons}, name=self.name)
+        mesh_data = {
+            f"panel_{self.material}#{self.material.color_code}": polygons,
+            f"boundary_panels": lines
+            }
+
+
+        return mesh.Mesh(mesh_data, name=self.name)
 
     def mirror(self):
         """
