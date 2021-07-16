@@ -214,11 +214,11 @@ class Mesh(object):
         return self
 
 
-    def get_indexed(self) -> Tuple[List[Vertex], Dict[str, List[List[int]]], Dict[str, List[int]]]:
+    def get_indexed(self) -> Tuple[List[Vertex], Dict[str, List[Polygon]], Dict[str, List[int]]]:
         """
         Get [vertices, polygons, boundaries] with references by index
         """
-        vertices = list(self.vertices)
+        vertices: List[Vertex] = list(self.vertices)
         for i, v in enumerate(vertices):
             v.index = i
             

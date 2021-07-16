@@ -515,8 +515,13 @@ class Panel(object):
             else:
                 return [mesh.Polygon([points[l_i+1], points[l_i], points[r_i], points[r_i+1]])]
 
-        lines += [points[i] for i in rib_node_indices[0]]
-        lines += [points[i] for i in rib_node_indices[-1]]
+        def zipline(nodes):
+            return [[p1, p2] for p1, p2 in zip(nodes[:-1], nodes[1:])]
+
+        lines += [
+            zipline([points[i] for i in rib_node_indices[0]]),
+            zipline([points[i] for i in rib_node_indices[-1]])
+        ]
 
         for rib_no, _ in enumerate(rib_iks[:-1]):
             x = (2*rib_no+1) / (numribs+1) / 2
@@ -569,7 +574,7 @@ class Panel(object):
 
         mesh_data = {
             f"panel_{self.material}#{self.material.color_code}": polygons,
-            f"boundary_panels": lines
+            #f"boundary_panels": lines
             }
 
 

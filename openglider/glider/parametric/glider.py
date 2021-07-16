@@ -129,16 +129,18 @@ class ParametricGlider(object):
                 for a_p in self.lineset.nodes
                 if isinstance(a_p, UpperNode2D)]
 
-    def merge_ballooning(self, factor) -> BallooningBase:
+    def merge_ballooning(self, factor, multiplier) -> BallooningBase:
         factor = max(0, min(len(self.balloonings)-1, factor))
         k = factor % 1
         i = int(factor // 1)
         first = self.balloonings[i]
         if k > 0:
             second = self.balloonings[i + 1]
-            return first * (1 - k) + second * k
+            result = first * (1 - k) + second * k
         else:
-            return first.copy()
+            result = first
+        
+        return result * multiplier
 
     def get_merge_profile(self, factor) -> Profile2D:
         factor = max(0, min(len(self.profiles)-1, factor))
@@ -255,9 +257,17 @@ class ParametricGlider(object):
         profile_merge_curve = euklid.vector.Interpolation(self.profile_merge_curve.get_sequence(self.num_interpolate).nodes)
         return [profile_merge_curve.get_value(abs(x)) for x in self.shape.rib_x_values]
 
-    def get_ballooning_merge(self) -> List[float]:
+    def get_ballooning_merge(self) -> List[Tuple[float, float]]:
         ballooning_merge_curve = euklid.vector.Interpolation(self.ballooning_merge_curve.get_sequence(self.num_interpolate).nodes)
-        return [ballooning_merge_curve.get_value(abs(x)) for x in self.shape.cell_x_values]
+        factors = [ballooning_merge_curve.get_value(abs(x)) for x in self.shape.cell_x_values]
+
+        table = self.elements.get("ballooning_factors", None)
+        if table is not None:
+            all_factors = table.get_merge_factors(factors)
+        else:
+            all_factors = [(factor, i) for factor in factors]
+
+        return all_factors
 
     def apply_shape_and_arc(self, glider: Glider) -> None:
         x_values = self.shape.rib_x_values
@@ -364,8 +374,9 @@ class ParametricGlider(object):
         ballooning_factors = self.get_ballooning_merge()
         glider.cells = []
         for cell_no, (rib1, rib2) in enumerate(zip(ribs[:-1], ribs[1:])):
+
             ballooning_factor = ballooning_factors[cell_no]
-            ballooning = self.merge_ballooning(ballooning_factor)
+            ballooning = self.merge_ballooning(*ballooning_factor)
             
             cell = Cell(rib1, rib2, ballooning, name="c{}".format(cell_no+1))
 
@@ -416,10 +427,11 @@ class ParametricGlider(object):
         cell_centers = self.shape.cell_x_values
 
 
-        ballooning_merge_curve = euklid.vector.Interpolation(self.ballooning_merge_curve.get_sequence(self.num_interpolate).nodes)
+        ballooning_factors = self.get_ballooning_merge()
+
         for cell_no, cell in enumerate(glider3d.cells):
-            ballooning_factor = ballooning_merge_curve.get_value(cell_centers[cell_no])
-            ballooning = self.merge_ballooning(ballooning_factor)
+            ballooning_factor = ballooning_factors[cell_no]
+            ballooning = self.merge_ballooning(*ballooning_factor)
             cell.ballooning = ballooning
 
         return glider3d
