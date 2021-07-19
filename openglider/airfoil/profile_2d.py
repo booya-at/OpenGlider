@@ -295,11 +295,18 @@ class Profile2D:
     def remove_points(self, start, end, tolerance=0.):
         new_data = []
 
-        for i, p in enumerate(self.curve.nodes):
-            x = p[0]
+        ik_start = self.get_ik(start)
+        ik_end = self.get_ik(end)
 
-            if not (x > (start + tolerance) and x < (end - tolerance)):
-                new_data.append(p)
+        i_start = int(ik_start - ik_start%1)
+        if (self.curve.get(ik_start)-self.curve.get(i_start)).length() > tolerance:
+            i_start += 1
+        
+        i_end = int(ik_end - ik_end%1)
+        if (self.curve.get(ik_end)-self.curve.get(i_end+1)).length() <= tolerance:
+            i_end += 1
+
+        new_data = self.curve.nodes[:i_start+1] + self.curve.nodes[i_end:]
         
         return Profile2D(new_data)
 

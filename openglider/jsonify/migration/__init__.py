@@ -51,5 +51,8 @@ def migrate_08(cls, jsondata):
     for node in cls.find_nodes(jsondata, module=r"openglider.airfoil.parametric"):
         node["_module"] = "openglider.airfoil.profile_2d_parametric"
 
+    for node in cls.find_nodes(jsondata, name=r"SingleSkinRib"):
+        node["_module"] = "openglider.glider.rib.rib"
+
     return jsondata
 

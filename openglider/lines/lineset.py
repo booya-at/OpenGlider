@@ -479,7 +479,37 @@ class LineSet(object):
 
         return table
     
+    def get_input_table(self):
+        line_tree = self.create_tree()
+        table = Table()
+
+        def insert_block(line, upper, row, column):
+            if column == 0:
+                table.set_value(0, row, line.lower_node.name)
+                column += 1
+
+            if upper:
+                table.set_value(column, row, line.target_length)
+                table.set_value(column+1, row, line.type.name)
+                for line, line_upper in upper:
+                    row = insert_block(line, line_upper, row, column+2)
+            else:
+                table.set_value(column, row, line.upper_node.name)
+                table.set_value(column+1, row, line.type.name)
+                row += 1
+
+            return row
+
+        row = 0
+        for line, upper_lines in line_tree:
+            row = insert_block(line, upper_lines, row, 0)
+        
+        return table
+
+
+    
     node_group_rex = re.compile(r"[^A-Za-z]*([A-Za-z]*)[^A-Za-z]*")
+
     def rename_lines(self):
         floors = max(self.floors.values())
 

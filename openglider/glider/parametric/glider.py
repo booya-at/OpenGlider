@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import math
 import copy
 import logging
@@ -17,7 +17,7 @@ from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.export_ods import export_ods_2d
 from openglider.glider.parametric.import_ods import import_ods_2d
 from openglider.glider.parametric.lines import LineSet2D, UpperNode2D
-from openglider.glider.rib import RibHole, RigidFoil, Rib, MiniRib
+from openglider.glider.rib import RibHole, RigidFoil, Rib, MiniRib, SingleSkinRib
 from openglider.glider.parametric.fitglider import fit_glider_3d
 import openglider.materials
 from openglider.utils.distribution import Distribution
@@ -265,7 +265,7 @@ class ParametricGlider(object):
         if table is not None:
             all_factors = table.get_merge_factors(factors)
         else:
-            all_factors = [(factor, i) for factor in factors]
+            all_factors = [(factor, 1) for factor in factors]
 
         return all_factors
 
@@ -347,7 +347,7 @@ class ParametricGlider(object):
             this_rib_holes = self.elements["holes"].get(rib_no)
             this_rigid_foils = [RigidFoil(rigid["start"], rigid["end"], rigid["distance"]) for rigid in rigids if rib_no in rigid["ribs"]]
 
-            ribs.append(Rib(
+            rib = Rib(
                 profile_2d=profile,
                 startpoint=startpoint,
                 chord=chord,
@@ -359,8 +359,14 @@ class ParametricGlider(object):
                 rigidfoils=this_rigid_foils,
                 name="rib{}".format(rib_no),
                 material=material
-            ))
-            ribs[-1].aoa_relative = aoa_int.get_value(pos)
+            )
+            rib.aoa_relative = aoa_int.get_value(pos)
+
+            singleskin_data = self.elements.get("singleskin_ribs", {}).get(rib_no)
+            if singleskin_data:
+                rib = SingleSkinRib.from_rib(rib, singleskin_data[0])
+
+            ribs.append(rib)
 
         if self.shape.has_center_cell:
             new_rib = ribs[0].copy()
@@ -371,11 +377,13 @@ class ParametricGlider(object):
             cell_centers.insert(0, 0.)
 
         logger.info("create cells")
+
         ballooning_factors = self.get_ballooning_merge()
         glider.cells = []
         for cell_no, (rib1, rib2) in enumerate(zip(ribs[:-1], ribs[1:])):
 
             ballooning_factor = ballooning_factors[cell_no]
+            logger.info(f"ballooning factor: {ballooning_factor}")
             ballooning = self.merge_ballooning(*ballooning_factor)
             
             cell = Cell(rib1, rib2, ballooning, name="c{}".format(cell_no+1))
@@ -424,15 +432,12 @@ class ParametricGlider(object):
     def apply_ballooning(self, glider3d: Glider) -> Glider:
         for ballooning in self.balloonings:
             ballooning.apply_splines()
-        cell_centers = self.shape.cell_x_values
-
 
         ballooning_factors = self.get_ballooning_merge()
 
         for cell_no, cell in enumerate(glider3d.cells):
             ballooning_factor = ballooning_factors[cell_no]
-            ballooning = self.merge_ballooning(*ballooning_factor)
-            cell.ballooning = ballooning
+            cell.ballooning = self.merge_ballooning(*ballooning_factor)
 
         return glider3d
 

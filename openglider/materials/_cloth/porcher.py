@@ -53,3 +53,16 @@ materials += [
     Skytex38(color="petrol_blue", color_code="01567D"),
     Skytex38(color="deep_blue", color_code="243882"),
 ]
+
+class Skytex27(Porcher):
+    weight = 27
+    name = "skytex_27"
+
+class Skytex27DC(Porcher):
+    weight = 29
+    name = "skytex_27_double_coated"
+
+materials += [
+    Skytex27(color="white", color_code="FFFFFF"),
+    Skytex27DC(color="white", color_code="FFFFFF")
+]

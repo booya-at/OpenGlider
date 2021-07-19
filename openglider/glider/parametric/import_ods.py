@@ -20,6 +20,8 @@ from openglider.utils.table import Table
 from openglider.materials import cloth
 from openglider.glider.parametric.table.holes import HolesTable
 from openglider.glider.parametric.table.diagonals import DiagonalTable, StrapTable
+from openglider.glider.parametric.table.ballooning import BallooningTable
+from openglider.glider.parametric.table.ribs_singleskin import SingleSkinTable
 
 
 logger = logging.getLogger(__name__)
@@ -193,7 +195,11 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     lineset = LineSet2D.read_input_table(lineset_table, attachment_points_lower, attachment_points)
     lineset.set_default_nodes2d_pos(geometry["shape"])
 
+    ballooning_factors = BallooningTable(cell_sheet)
+    skin_ribs = SingleSkinTable(rib_sheet)
+
     glider_2d = Glider2D(elements={"cuts": cuts,
+                                   "ballooning_factors": ballooning_factors,
                                    "holes": rib_holes,
                                    "diagonals": diagonals,
                                    "rigidfoils": rigidfoils,
@@ -201,7 +207,9 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
                                    "straps": straps,
                                    "material_cells": material_cells,
                                    "material_ribs": material_ribs,
-                                   "miniribs": miniribs},
+                                   "miniribs": miniribs,
+                                   "singleskin_ribs": skin_ribs
+                                   },
                          profiles=profiles,
                          balloonings=balloonings,
                          lineset=lineset,

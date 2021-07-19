@@ -196,6 +196,9 @@ def get_cell_sheet(glider):
     table.append_right(elems["diagonals"].table)
     table.append_right(elems["straps"].table)
 
+    if "ballooning_factors" in elems:
+        table.append_right(elems["ballooning_factors"].table)
+
     # Material
     material_table = Table()
     for cell_no, cell in enumerate(elems["material_cells"]):
@@ -213,6 +216,7 @@ def get_cell_sheet(glider):
 def get_rib_sheet(glider_2d):
     table = Table()
     table[0, 0] = file_version
+    elems = glider_2d.elements
 
     for i in range(1, glider_2d.shape.half_cell_num+1):
         table[i, 0] = f"rib{i}"
@@ -235,11 +239,15 @@ def get_rib_sheet(glider_2d):
         table.append_right(rigidfoil_table)
 
     material_table = Table()
-    material_table[0, 0] = "MATERIAL"
-    for rib_no, material in enumerate(glider_2d.elements.get("material_ribs", [])):
-        material_table[rib_no+1, 0] = str(material)
+    for rib_no, materials in enumerate(glider_2d.elements.get("material_ribs", [])):
+        for i, material in enumerate(materials):
+            material_table[0, i] = "MATERIAL"
+            material_table[rib_no+1, i] = str(material)
+    
+    table.append_right(material_table)
 
-
+    if "singleskin_ribs" in elems:
+        table.append_right(elems["singleskin_ribs"].table)
 
     return table
 

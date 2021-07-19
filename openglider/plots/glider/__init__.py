@@ -73,7 +73,7 @@ class PlotMaker(object):
         return self.panels
 
     def get_ribs(self, rotate=False):
-        from openglider.glider.rib.rib import SingleSkinRib
+        from openglider.glider.rib.singleskin import SingleSkinRib
         self.ribs = []
         for rib in self.glider_3d.ribs:
             if isinstance(rib, SingleSkinRib):

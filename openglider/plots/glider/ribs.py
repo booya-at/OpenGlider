@@ -30,7 +30,8 @@ class RibPlot(object):
         marks_panel_cut = marks.Line(name="panel_cut")
         rib_text_pos = -0.005
 
-        protoloops = 0.02
+        #protoloops = 0.02
+        protoloops = False
 
     def __init__(self, rib, config=None):
         self.rib = rib
@@ -42,8 +43,8 @@ class RibPlot(object):
         self.plotpart = PlotPart(name=self.rib.name, material_code=str(self.rib.material))
         prof2d = self.rib.get_hull(glider)
 
-        self.x_values = self.rib.profile_2d.x_values
-        self.inner = prof2d.scale(self.rib.chord)
+        self.x_values = prof2d.x_values
+        self.inner = prof2d.curve.scale(self.rib.chord)
         self.inner_normals = self.inner.normvectors()
         self.outer = self.inner.offset(self.config.allowance_general)
 
@@ -252,10 +253,10 @@ class SingleSkinRibPlot(RibPlot):
         t_e_allowance = self.config.allowance_trailing_edge
         p1 = inner_rib.get(0) + [0, 1]
         p2 = inner_rib.get(0) + [0, -1]
-        cuts = outer_rib.cut(p1, p2, extrapolate=True)
+        cuts = outer_rib.cut(p1, p2)
 
-        start = next(cuts)[0]
-        stop = next(cuts)[0]
+        start = cuts[0][0]
+        stop = cuts[-1][0]
 
         contour = euklid.vector.PolyLine2D([])
 

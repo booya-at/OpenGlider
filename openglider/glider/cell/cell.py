@@ -28,13 +28,13 @@ logging.getLogger(__file__)
 
 class Cell(CachedObject):
     diagonal_naming_scheme = "{cell.name}d{diagonal_no}"
-    strap_naming_scheme = "{cell.name}s{strap_no}"
+    strap_naming_scheme = "{cell.name}s{side}{diagonal_no}"
     panel_naming_scheme = "{cell.name}p{panel_no}"
     panel_naming_scheme_upper = "{cell.name}pu{panel_no}"
     panel_naming_scheme_lower = "{cell.name}pl{panel_no}"
     minirib_naming_scheme = "{cell.name}mr{minirib_no}"
 
-    sigma_3d_cut = 0.1
+    sigma_3d_cut = 0.06
 
     def __init__(self, rib1, rib2, ballooning, miniribs=None, panels: List["Panel"]=None,
                  diagonals: list=None, straps: list=None, rigidfoils: list=None, name="unnamed", **kwargs):
@@ -84,13 +84,31 @@ class Cell(CachedObject):
             self.panels.sort(key=lambda panel: panel.mean_x())
             for panel_no, panel in enumerate(self.panels):
                 panel.name = self.panel_naming_scheme.format(cell=self, panel=panel, panel_no=panel_no+1)
+    
+    def rename_diagonals(self, diagonals, naming_scheme):
+        upper = []
+        lower = []
+
+        for diagonal in diagonals:
+            if diagonal.get_average_x() > 0:
+                lower.append(diagonal)
+            else:
+                upper.append(diagonal)
+        
+        lower.sort(key=lambda d: d.get_average_x())
+        upper.sort(key=lambda d: -d.get_average_x())
+
+        for i, d in enumerate(lower):
+            d.name = naming_scheme.format(cell=self, diagonal=d, diagonal_no=i+1, side="l")
+
+        for i, d in enumerate(upper):
+            d.name = naming_scheme.format(cell=self, diagonal=d, diagonal_no=i+1, side="u")
+
+
 
     def rename_parts(self, seperate_upper_lower=False):
-        for diagonal_no, diagonal in enumerate(self.diagonals):
-            diagonal.name = self.diagonal_naming_scheme.format(cell=self, diagonal=diagonal, diagonal_no=diagonal_no+1)
-
-        for strap_no, strap in enumerate(self.straps):
-            strap.name = self.strap_naming_scheme.format(cell=self, strap=strap, strap_no=strap_no+1)
+        self.rename_diagonals(self.diagonals, self.diagonal_naming_scheme)
+        self.rename_diagonals(self.straps, self.strap_naming_scheme)
 
         for minirib_no, minirib in enumerate(self.miniribs):
             minirib.name = self.minirib_naming_scheme.format(cell=self, minirib=minirib, minirib_no=minirib_no+1)
