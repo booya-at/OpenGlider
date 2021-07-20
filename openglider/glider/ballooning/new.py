@@ -33,12 +33,14 @@ class BallooningNew(BallooningBase):
             raise ValueError("Value {} not between -1 and 1".format(xval))
     
     def __add__(self, other):
-        new_interpolation = self.interpolation + other.interpolation
+        new_interpolation = euklid.vector.Interpolation(self.interpolation + other.interpolation)
 
         return BallooningNew(new_interpolation)
     
     def __mul__(self, factor):
-        return BallooningNew(self.interpolation * factor)
+        curve = self.interpolation * factor
+        interpolation = euklid.vector.Interpolation(curve.nodes)
+        return BallooningNew(interpolation)
 
     def close_trailing_edge(self, start_x):
         for n in self.interpolation.nodes:

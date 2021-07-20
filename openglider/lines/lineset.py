@@ -408,10 +408,32 @@ class LineSet(object):
             length += line.get_stretched_length()
         return length
     
-    def sort_lines(self, lines=None, x_factor=10):
+    def sort_lines(self, lines=None, x_factor=10, names=False):
         if lines is None:
             lines = self.lines
         lines_new = lines[:]
+
+        if names:
+            re_name = re.compile(r"^(?P<n>[0-9]+_)?([A-Za-z]+)([0-9]+)")
+
+            matches = {line.name: re_name.match(line.name) for line in lines_new}
+
+            if all(matches.values()):
+                line_values = {}
+                for name, match in matches.items():
+                    floor, layer, index = match.groups()
+
+                    floor_no = 0
+                    if floor:
+                        floor_no = int(floor[:-1]) # strip "_"
+
+                    layer_no = sum([ord(l) for l in layer.lower()])
+
+                    line_values[name] = 100000*floor_no + layer_no * 50 + int(index)
+
+                lines_new.sort(key=lambda line: line_values[line.name])
+
+                return lines_new
 
         def sort_key(line):
             nodes = self.get_upper_influence_nodes(line)
@@ -559,9 +581,14 @@ class LineSet(object):
     
     def get_line_length(self, line):
         length = line.get_stretched_length()
-        # seam correction
+
+        # apply seam correction
         length += line.type.seam_correction
-        # loop correction
+
+        if len(self.get_upper_connected_lines(line.upper_node)) == 0:
+            length -= 0.01
+
+        # apply loop correction
         lower_lines = self.get_lower_connected_lines(line.lower_node)
         if len(lower_lines) == 0:
             return length

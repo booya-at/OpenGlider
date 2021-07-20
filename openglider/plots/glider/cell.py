@@ -5,7 +5,7 @@ from typing import Tuple
 import numpy as np
 import euklid
 
-from openglider.glider.cell import Panel
+from openglider.glider.cell import Panel, DiagonalRib
 from openglider.airfoil import get_x_value
 from openglider.plots.glider.config import PatternConfig
 from openglider.vector.text import Text
@@ -367,15 +367,15 @@ class PanelPlot(object):
 class DribPlot(object):
     DefaultConf = PatternConfig
 
-    def __init__(self, drib, cell, config):
-        self.drib = drib
+    def __init__(self, drib: DiagonalRib, cell, config):
+        self.drib: DiagonalRib = drib
         self.cell = cell
         self.config = self.DefaultConf(config)
 
         self.left, self.right = self.drib.get_flattened(self.cell)
 
-        self.left_out = self.left.offset(self.config.allowance_general)
-        self.right_out = self.right.offset(-self.config.allowance_general)
+        self.left_out = self.left.offset(-self.config.allowance_general)
+        self.right_out = self.right.offset(self.config.allowance_general)
 
         #print("l", len(self.left), len(self.left_out))
         #print("r", len(self.right), len(self.right_out))
@@ -463,11 +463,15 @@ class DribPlot(object):
             plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
             plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
 
-    def _insert_text(self, plotpart):
+    def _insert_text(self, plotpart, reverse=False):
+        if reverse:
+            node_index = -1
+        else:
+            node_index = 0
         # text_p1 = left_out[0] + self.config.drib_text_position * (right_out[0] - left_out[0])
         plotpart.layers["text"] += Text(" {} ".format(self.drib.name),
-                                        self.left.get(0),
-                                        self.right.get(0),
+                                        self.left.nodes[node_index],
+                                        self.right.nodes[node_index],
                                         size=self.config.drib_allowance_folds * 0.6,
                                         height=0.6,
                                         valign=0.6).get_vectors()
@@ -480,8 +484,8 @@ class DribPlot(object):
 
         if num_folds > 0:
             alw2 = self.config.drib_allowance_folds
-            cut_front = self.config.cut_diagonal_fold(alw2, num_folds=num_folds)
-            cut_back = self.config.cut_diagonal_fold(-alw2, num_folds=num_folds)
+            cut_front = self.config.cut_diagonal_fold(-alw2, num_folds=num_folds)
+            cut_back = self.config.cut_diagonal_fold(alw2, num_folds=num_folds)
             cut_front_result = cut_front.apply([[self.left, 0], [self.right, 0]], self.left_out, self.right_out)
             cut_back_result = cut_back.apply([[self.left, len(self.left) - 1], [self.right, len(self.right) - 1]], self.left_out, self.right_out)
             
@@ -520,7 +524,15 @@ class DribPlot(object):
         plotpart.layers["stitches"] += [self.left, self.right]
 
         self._insert_attachment_points(plotpart, attachment_points)
-        self._insert_text(plotpart)
+
+
+        if self.drib.get_average_x() > 0:
+            p1 = euklid.vector.Vector2D([0, 0])
+            p2 = euklid.vector.Vector2D([1, 0])
+            plotpart = plotpart.mirror(p1, p2)
+            self._insert_text(plotpart)
+        else:
+            self._insert_text(plotpart, reverse=True)
 
         return plotpart
 
@@ -587,20 +599,24 @@ class CellPlotMaker:
         return self.get_panels(panels)
 
     def get_dribs(self):
+        diagonals = self.cell.diagonals[:]
+        diagonals.sort(key=lambda d: d.name)
         dribs = []
-        for drib in self.cell.diagonals:
+        for drib in self.cell.diagonals[::-1]:
             drib_plot = self.DribPlot(drib, self.cell, self.config)
             dribs.append(drib_plot.flatten(self.attachment_points))
         
         return dribs
 
     def get_straps(self):
-        straps = []
-        for strap in self.cell.straps:
+        straps = self.cell.straps[:]
+        straps.sort(key=lambda d: d.name)
+        result = []
+        for strap in straps[::-1]:
             plot = self.StrapPlot(strap, self.cell, self.config)
-            straps.append(plot.flatten(self.attachment_points))
+            result.append(plot.flatten(self.attachment_points))
         
-        return straps
+        return result
     
     def get_rigidfoils(self):
         rigidfoils = []

@@ -192,8 +192,8 @@ class DiagonalRib(object):
 
         tri_mesh = tri.triangulate()
 
-        mapping_2d = Mapping([left_2d, right_2d])
-        mapping_3d = Mapping3D([left, right])
+        mapping_2d = Mapping([right_2d, left_2d])
+        mapping_3d = Mapping3D([right, left])
 
         points_3d = []
 

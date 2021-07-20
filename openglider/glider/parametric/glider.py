@@ -426,6 +426,7 @@ class ParametricGlider(object):
         glider.lineset = self.lineset.return_lineset(glider, self.v_inf)
         #glider.lineset.iterate_target_length()
         glider.lineset.recalc()
+        glider.lineset.rename_lines()
 
         return glider
 

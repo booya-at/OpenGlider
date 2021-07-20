@@ -91,7 +91,7 @@ class PlotMaker(object):
         for cell in self.glider_3d.cells:
             # missing attachmentpoints []
             dribs = self._get_cellplotmaker(cell).get_dribs()
-            self.dribs[cell] = dribs[::-1]
+            self.dribs[cell] = dribs[:]
 
         return self.dribs
 

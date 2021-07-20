@@ -276,6 +276,14 @@ class RibSquareHole(RibHole):
         self.width = width
         self.height = height
         self.corner_size = corner_size
+    
+    def __json__(self):
+        return {
+            "x": self.x,
+            "width": self.width,
+            "height": self.height,
+            "corner_size": self.corner_size
+        }
 
     def get_centers(self, rib, scale=False) -> List[euklid.vector.Vector2D]:
         return [rib.profile_2d.align([self.x, 0])]
@@ -312,10 +320,6 @@ class RibSquareHole(RibHole):
 
         return [curve.get_sequence(num)]
 
-    def __json__(self):
-        return {
-            }
-
 class MultiSquareHole(RibHole):
     def __init__(self, start, end, height, num_holes, border_width):
         self.start = start
@@ -323,6 +327,15 @@ class MultiSquareHole(RibHole):
         self.height = height
         self.num_holes = num_holes
         self.border_width = border_width
+    
+    def __json__(self):
+        return {
+            "start": self.start,
+            "end": self.end,
+            "height": self.height,
+            "num_holes": self.num_holes,
+            "border_width": self.border_width
+        }
 
     @property
     def total_border(self) -> float:

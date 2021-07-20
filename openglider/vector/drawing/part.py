@@ -137,6 +137,16 @@ class PlotPart(object):
     def copy(self):
         return copy.deepcopy(self)
 
+    def mirror(self, p1, p2):
+        layers = {}
+
+        for layer_name, layer in self.layers.items():
+            layer_new = [line.mirror(p1, p2) for line in layer]
+            layers[layer_name] = layer_new
+
+        return PlotPart(**layers, material_code=self.material_code, name=self.name)
+
+
     def max_function(self, axis, layer):
         start = float("-Inf")
         if layer:
