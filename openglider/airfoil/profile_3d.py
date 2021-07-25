@@ -1,28 +1,7 @@
-#! /usr/bin/python2
-# -*- coding: utf-8; -*-
-#
-# (c) 2013 booya (http://booya.at)
-#
-# This file is part of the OpenGlider project.
-#
-# OpenGlider is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# OpenGlider is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import division
-import numpy as np
 import euklid
+import pyfoil
 
 from openglider.utils.cache import cached_property
-from openglider.airfoil import Profile2D
 
 class Profile3D:
     def __init__(self, data, name="unnamed"):
@@ -54,7 +33,7 @@ class Profile3D:
         return noseindex
 
     @cached_property('self')
-    def projection_layer(self):
+    def projection_layer(self) -> euklid.plane.Plane:
         """
         Projection Layer of profile_3d
         """
@@ -76,8 +55,8 @@ class Profile3D:
 
     def flatten(self):
         """Flatten the airfoil and return a 2d-Representative"""
-        layer = self.projection_layer
-        return Profile2D([layer.project(p) for p in self.curve.nodes],
+        layer: euklid.plane.Plane = self.projection_layer
+        return pyfoil.Airfoil([layer.project(p) for p in self.curve.nodes],
                          name=self.name or 'profile' + "_flattened")
 
     @cached_property('self')

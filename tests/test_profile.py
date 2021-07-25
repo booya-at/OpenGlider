@@ -35,7 +35,7 @@ class TestProfile(unittest.TestCase):
     def test_numpoints(self):
         num = random.randint(4, 500)
 
-        prof2 = self.prof.set_numpoints(num)
+        prof2 = self.prof.resample(num)
 
         self.assertEqual(num + 1 - num % 2, prof2.numpoints)
 

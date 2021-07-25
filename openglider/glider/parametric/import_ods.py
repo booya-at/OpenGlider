@@ -1,16 +1,14 @@
-from __future__ import division
-
 import numbers
 import re
-
-import ezodf
-import numpy as np
 import logging
 import typing
+import math
+
+import ezodf
 import euklid
+import pyfoil
 
-from openglider.airfoil import BezierProfile2D, Profile2D
-
+from openglider.utils import linspace
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.parametric.lines import UpperNode2D, LowerNode2D, BatchNode2D, Line2D, LineSet2D
@@ -57,7 +55,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     # ------------
 
     # profiles = [BezierProfile2D(profile) for profile in transpose_columns(sheets[3])]
-    profiles = [Profile2D(profile, name).normalized() for name, profile in transpose_columns(sheets[3])]
+    profiles = [pyfoil.Airfoil(profile, name).normalized() for name, profile in transpose_columns(sheets[3])]
 
     if file_version > 2:
         has_center_cell = not tables[0]["C2"] == 0
@@ -246,12 +244,12 @@ def get_geometry_explicit(sheet):
         chord = line[1]
         span = line[2]
         x = line[3]
-        y += np.cos(alpha) * (span - span_last)
-        z -= np.sin(alpha) * (span - span_last)
+        y += math.cos(alpha) * (span - span_last)
+        z -= math.sin(alpha) * (span - span_last)
 
-        alpha += line[4] * np.pi / 180  # angle after the rib
+        alpha += line[4] * math.pi / 180  # angle after the rib
 
-        aoa.append([span, line[5] * np.pi / 180])
+        aoa.append([span, line[5] * math.pi / 180])
         arc.append([y, z])
         front.append([span, -x])
         back.append([span, -x - chord])
@@ -260,7 +258,7 @@ def get_geometry_explicit(sheet):
         profile_merge.append([span, line[8]])
         ballooning_merge.append([span, line[9]])
 
-        zrot.append([span, line[7] * np.pi / 180])
+        zrot.append([span, line[7] * math.pi / 180])
 
         span_last = span
 
@@ -277,10 +275,10 @@ def get_geometry_explicit(sheet):
 
     start = (2 - has_center_cell) / cell_no
 
-    const_arr = [0.] + np.linspace(start, 1, len(front) - (not has_center_cell)).tolist()
+    const_arr = [0.] + linspace(start, 1, len(front) - (not has_center_cell))
     rib_pos = [0.] + [p[0] for p in front[not has_center_cell:]]
     rib_pos_int = euklid.vector.Interpolation(list(zip(rib_pos, const_arr)))
-    rib_distribution = [[i, rib_pos_int.get_value(i)] for i in np.linspace(0, rib_pos[-1], 30)]
+    rib_distribution = [[i, rib_pos_int.get_value(i)] for i in linspace(0, rib_pos[-1], 30)]
 
     rib_distribution = euklid.spline.BezierCurve.fit(rib_distribution, 3)
 

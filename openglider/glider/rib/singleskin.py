@@ -1,8 +1,8 @@
 import numpy as np
 from numpy.linalg import norm
 import euklid
+import pyfoil
 
-from openglider.airfoil import Profile2D
 from openglider.glider.rib.rib import Rib
 
 
@@ -63,7 +63,7 @@ class SingleSkinRib(Rib):
                 new_y += [xy[1]]
 
         data = np.array([x, new_y]).T.tolist()
-        self.profile_2d = Profile2D(data)
+        self.profile_2d = pyfoil.Airfoil(data)
 
     @classmethod
     def from_rib(cls, rib, single_skin_par):
@@ -159,7 +159,7 @@ class SingleSkinRib(Rib):
                     foo(p, upper=index < profile.noseindex) for index, p in enumerate(profile.curve)
                 ]
 
-                profile = Profile2D(new_data)
+                profile = pyfoil.Airfoil(new_data)
 
         return profile
 

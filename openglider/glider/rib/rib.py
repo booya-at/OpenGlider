@@ -6,7 +6,7 @@ import logging
 
 import euklid
 
-from openglider.airfoil import Profile3D, Profile2D
+from openglider.airfoil import Profile3D
 from openglider.utils.cache import CachedObject, cached_property
 from openglider.mesh import Mesh, triangulate
 from openglider.glider.rib.elements import FoilCurve
@@ -142,7 +142,7 @@ class Rib(CachedObject):
         return new
 
     def is_closed(self):
-        return self.profile_2d.has_zero_thickness
+        return self.profile_2d.thickness < 0.01
 
     def get_hull(self, glider=None):
         """returns the outer contour of the normalized mesh in form

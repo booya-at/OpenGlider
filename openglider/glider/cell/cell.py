@@ -6,8 +6,8 @@ from typing import Callable, List, Dict
 
 import numpy as np
 import euklid
+import pyfoil
 
-from openglider.airfoil.profile_2d import Profile2D
 import openglider.vector
 import openglider.utils
 from openglider.airfoil import Profile3D
@@ -320,10 +320,11 @@ class Cell(CachedObject):
                 "left": cut["right"]
             })
 
-    def mean_rib(self, num_midribs=8) -> Profile2D:
+    def mean_airfoil(self, num_midribs=8) -> pyfoil.Airfoil:
         mean_rib = self.midrib(0).flatten().normalized()
 
-        for y in np.linspace(0, 1, num_midribs)[1:]:
+        for i in range(1, num_midribs):
+            y = i/(num_midribs-1)
             mean_rib += self.midrib(y).flatten().normalized()
         return mean_rib * (1. / num_midribs)
 
@@ -374,52 +375,6 @@ class Cell(CachedObject):
             trailing_edge.append(rib[0])
         mesh = Mesh({"hull": quads}, 
                     {self.rib1.name: grid[0], self.rib2.name: grid[-1], "trailing_edge": trailing_edge})
-        return mesh
-
-    def get_mesh_mapping_grid(self, cell_number=0, numribs=0, with_numpy=False, half_cell=False):
-        """
-        Get Cell-grid
-        :cell_number: number of cell
-        :param numribs: number of miniribs to calculate
-        :return: mesh
-        """
-        numribs += 1
-
-        grid = []
-        rib_indices = range(numribs + 1)
-        if half_cell:
-            rib_indices = rib_indices[(numribs) // 2:]
-        for rib_no in rib_indices:
-            y = rib_no / max(numribs, 1)
-            rib = (self.rib1.profile_2d.get_data(negative_x=True) * (1 - y) + 
-                   self.rib2.profile_2d.get_data(negative_x=True) * y)
-            y += cell_number
-            rib = np.array([rib.T[0], np.array([y]*len(rib)), rib.T[1]]).T  # insert y-value
-            grid.append(Vertex.from_vertices_list(rib))
-        return grid
-
-    def get_mesh_mapping(self, cell_number=0, numribs=0, with_numpy=False, half_cell=False):
-        """
-        Get Cell-mesh
-        :cell_number: number of cell
-        :param numribs: number of miniribs to calculate
-        :return: mesh
-        """
-
-        grid = self.get_mesh_mapping_grid(cell_number=cell_number, 
-                                          numribs=numribs,
-                                          with_numpy=with_numpy,
-                                          half_cell=half_cell)     
-
-        quads = []
-        for rib_left, rib_right in zip(grid[:-1], grid[1:]):
-            numpoints = len(rib_left)
-            for i in range(numpoints - 1):
-                i_next = i+1
-                pol = Polygon([rib_left[i], rib_right[i], rib_right[i_next], rib_left[i_next]])
-                quads.append(pol)
-        mesh = Mesh({"hull": quads}, 
-                    {self.rib1.name: grid[0], self.rib2.name: grid[-1]})
         return mesh
 
     @cached_function("self")

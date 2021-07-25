@@ -3,11 +3,11 @@ import math
 import copy
 import logging
 
-import numpy as np
 import euklid
+import pyfoil
 
+from openglider.utils import linspace
 from openglider.glider.parametric.shape import ParametricShape
-from openglider.airfoil import Profile2D
 from openglider.glider.ballooning.new import BallooningBezierNeu
 from openglider.glider.ballooning.base import BallooningBase
 from openglider.glider.glider import Glider
@@ -142,7 +142,7 @@ class ParametricGlider(object):
         
         return result * multiplier
 
-    def get_merge_profile(self, factor) -> Profile2D:
+    def get_merge_profile(self, factor) -> pyfoil.Airfoil:
         factor = max(0, min(len(self.profiles)-1, factor))
         k = factor % 1
         i = int(factor // 1)
@@ -444,9 +444,9 @@ class ParametricGlider(object):
 
     @property
     def v_inf(self) -> euklid.vector.Vector3D:
-        angle = np.arctan(1/self.glide)
+        angle = math.arctan(1/self.glide)
 
-        return euklid.vector.Vector3D([np.cos(angle), 0, np.sin(angle)]) * self.speed
+        return euklid.vector.Vector3D([math.cos(angle), 0, math.sin(angle)]) * self.speed
 
     def set_area(self, area) -> None:
         factor = math.sqrt(area/self.shape.area)

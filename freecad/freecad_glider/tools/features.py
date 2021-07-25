@@ -275,7 +275,7 @@ class FlapFeature(BaseFeature):
 
         for i, rib in enumerate(glider.ribs):
             if i in self.obj.flap_ribs:
-                rib.profile_2d.set_flap(self.obj.flap_begin, self.obj.flap_amount)
+                rib.profile_2d = rib.profile_2d.add_flap(self.obj.flap_begin, self.obj.flap_amount)
         return glider
 
 

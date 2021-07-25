@@ -8,7 +8,7 @@ class GlobalConfig(Config):
     asinc_interpolation_points = 2000
     caching = True
     debug = False
-    json_allowed_modules = [r"openglider\..*", r"euklid\..*"]
+    json_allowed_modules = [r"openglider\..*", r"euklid\..*", r"pyfoil\..*"]
     json_forbidden_modules = [r".*eval", r".*subprocess.*"]
     user = "{}/{}".format(platform.node(), getpass.getuser())
 

@@ -69,7 +69,7 @@ class TestGlider(GliderTestClass):
 
     def test_mean_rib(self):
         for cell in self.glider.cells:
-            cell.mean_rib(10)
+            cell.mean_airfoil(10)
 
 
 if __name__ == '__main__':
