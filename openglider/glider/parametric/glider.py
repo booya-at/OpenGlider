@@ -444,7 +444,7 @@ class ParametricGlider(object):
 
     @property
     def v_inf(self) -> euklid.vector.Vector3D:
-        angle = math.arctan(1/self.glide)
+        angle = math.atan(1/self.glide)
 
         return euklid.vector.Vector3D([math.cos(angle), 0, math.sin(angle)]) * self.speed
 

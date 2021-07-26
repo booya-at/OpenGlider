@@ -90,6 +90,7 @@ setup(
     long_description=long_description,
     install_requires=[
         "euklid",
+        "pyfoil",
         "svgwrite",
         "numpy",
         "scipy",

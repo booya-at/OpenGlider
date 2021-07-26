@@ -180,7 +180,7 @@ class Glider(object):
         :param num_mean:
         :return:
         """
-        ribs = [cell.mean_rib(num_mean) for cell in self.cells]
+        ribs = [cell.mean_airfoil(num_mean) for cell in self.cells]
         if self.has_center_cell:
             ribs.insert(0, ribs[1])
         else:
