@@ -1,13 +1,13 @@
 import copy
 import logging
-from typing import TypeVar, List
+from typing import TypeVar, List, Any
 
 import numpy as np
 
 import openglider
 
 
-cache_instances: List["CachedProperty"] = []
+cache_instances: List[Any] = []
 
 
 class CachedObject(object):

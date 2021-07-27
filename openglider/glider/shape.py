@@ -43,7 +43,7 @@ class Shape(object):
 
     @property
     def ribs(self) -> List[Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]]:
-        return [[self.front.get(x), self.back.get(x)] for x in range(len(self.front))]
+        return [(self.front.get(x), self.back.get(x)) for x in range(len(self.front))]
 
     @property
     def ribs_front_back(self):

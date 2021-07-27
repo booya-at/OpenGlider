@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Dict
 
 import euklid
 
 from openglider.vector.drawing.part import PlotPart
 
-text_vectors = {
+text_vectors: Dict[str, List[List[float]]] = {
     "1": [[0.2, 0.5], [0.6, 1.], [0.6, 0.]],
     "2": [[0.2, 1.], [0.8, 1.], [0.8, 0.5], [0.2, 0.5], [0.2, 0.], [0.8, 0.]],
     "3": [[0.2, 1.], [0.8, 1.], [0.8, 0.5], [0.2, 0.5], [0.8, 0.5], [0.8, 0.], [0.2, 0.]],
@@ -87,7 +87,7 @@ class Text(object):
             "align": self.align
         }
 
-    def get_letter(self, letter, replace_unknown=True) -> List[List[float]]:
+    def get_letter(self, letter, replace_unknown=True) -> List[List[List[float]]]:
         letter = letter.upper()
         if letter not in self.letters:
                 if replace_unknown:
@@ -95,7 +95,9 @@ class Text(object):
                 else:
                     raise KeyError("Letter {} from word '{}' not available".format(letter, self.text.upper()))
         
-        return [self.letters[letter]]
+        letter_vec = self.letters[letter]
+        
+        return [letter_vec]
 
     def get_vectors(self, replace_unknown=True) -> List[euklid.vector.PolyLine2D]:
         # todo: add valign (space)
@@ -130,7 +132,7 @@ class Text(object):
                     line = euklid.vector.PolyLine2D(lst)\
                         .scale(euklid.vector.Vector2D([letter_width, letter_height]))\
                         .move(letter_pos)\
-                        .rotate(angle, [0, 0])\
+                        .rotate(angle, euklid.vector.Vector2D([0, 0]))\
                         .move(p1)
 
                     vectors.append(line)
