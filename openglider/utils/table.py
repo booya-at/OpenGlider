@@ -147,21 +147,21 @@ class Table:
         key = self.str_encrypt(column_no, row_no)
         return self.dct.get(key, None)
 
-    def append_right(self, table):
+    def append_right(self, table, space=0):
         col = self.num_columns
         for row_no in range(table.num_rows):
             for column_no in range(table.num_columns):
                 value = table.get(column_no, row_no)
                 if value is not None:
-                    self.set_value(col+column_no, row_no, value)
+                    self.set_value(col+column_no+space, row_no, value)
 
-    def append_bottom(self, table):
+    def append_bottom(self, table, space=0):
         total_rows = self.num_rows
         for row_no in range(table.num_rows):
             for column_no in range(table.num_columns):
-                value = table.get(column_no+1, row_no+1)
+                value = table.get(column_no, row_no)
                 if value is not None:
-                    self.set_value(column_no+1, total_rows+row_no+1, value)
+                    self.set_value(column_no, total_rows+row_no+space, value)
 
     def get_ods_sheet(self, name=None):
         ods_sheet = ezodf.Table(size=(self.num_rows, self.num_columns))

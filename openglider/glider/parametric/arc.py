@@ -5,6 +5,8 @@ import math
 import numpy as np
 import euklid
 
+from openglider.vector.polygon import CirclePart
+
 
 class ArcCurve(object):
     """
@@ -90,7 +92,7 @@ class ArcCurve(object):
         
         return cls(spline)
 
-    def get_rib_angles(self, x_values):
+    def get_rib_angles(self, x_values) -> List[float]:
         """
         Calculate rib rotation angles given a shape's rib-x-values
         :param x_values:
@@ -101,7 +103,7 @@ class ArcCurve(object):
 
         if not self.has_center_cell(x_values):
             # center rib -> straight
-            rib_angles.append(0)
+            rib_angles.append(0.)
 
         for cell_left, cell_right in zip(cell_angles[:-1], cell_angles[1:]):
             # rotation of the rib is the median of the left and right cell's rotation
@@ -112,18 +114,20 @@ class ArcCurve(object):
 
         return rib_angles
 
-    def get_flattening(self, x_values):
+    def get_flattening(self, x_values) -> float:
         arc_curve = self.get_arc_positions(x_values)
         span_projected = arc_curve.nodes[-1][0]
         return span_projected / arc_curve.get_length()
 
-    def get_circle(self):
+    def get_circle(self, n=50) -> euklid.vector.PolyLine2D:
         p1, p2 = self.curve.get_sequence(1)
+        p3 = p1 * euklid.vector.Vector2D([-1, 1])
+        return CirclePart(p1, p2, p3).get_sequence(n)
 
 
-    def rescale(self, x_values):
+    def rescale(self, x_values) -> None:
         positions = self.get_arc_positions(x_values)
-        diff = [0, -positions.nodes[0][1]]
+        diff = euklid.vector.Vector2D([0, -positions.nodes[0][1]])
         self.curve.controlpoints = euklid.vector.PolyLine2D([p + diff for p in self.curve.controlpoints.nodes])
 
         arc_curve: euklid.vector.PolyLine2D = self.curve.get_sequence(self.num_interpolation_points)

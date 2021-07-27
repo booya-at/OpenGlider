@@ -33,16 +33,33 @@ class TestProfile(unittest.TestCase):
         self.fixpoints = [(random.random()-0.5)*2 for _ in range(self.num_fixed)]
 
         self.dist_types = "cos, cos_2, nose_cos, const"
+    
+    def _get_kwargs(self):
+        return {
+            "numpoints": self.num_dist,
+        }
+    
+    def _test_dist(self, dist):
+        dist.insert_values(self.fixpoints)
+        for fixed in self.fixpoints:
+            self.assertAlmostEqual(min(np.abs(dist.data - fixed)), 0)
 
-    def test_is_in_list(self):
-        for typ in self.dist_types:
-            a = Distribution.new(
-                numpoints=self.num_dist,
-                fixed_nodes=self.fixpoints,
-                dist_type=typ
-                )
-            for fixed in self.fixpoints:
-                self.assertAlmostEqual(min(np.abs(a.data - fixed)), 0)
+    def test_cos(self):
+        dist = Distribution.from_cos_distribution(self.num_dist)
+        self._test_dist(dist)
+
+    def test_cos2(self):
+        dist = Distribution.from_cos_2_distribution(self.num_dist)
+        self._test_dist(dist)
+
+    def test_nose_cos(self):
+        dist = Distribution.from_nose_cos_distribution(self.num_dist)
+        self._test_dist(dist)
+
+    def test_linear(self):
+        dist = Distribution.from_linear(self.num_dist)
+        self._test_dist(dist)
+
 
 
 if __name__ == '__main__':

@@ -1,36 +1,10 @@
-from __future__ import division
-
+from typing import List
 import numpy as np
 
 from openglider.utils.cache import HashedList
 
 
 class Distribution(HashedList):
-    @classmethod
-    def new(cls, numpoints=20, dist_type=None, fixed_nodes=None, **kwargs):
-        """
-        create a new distribution
-        Distribution.new(num_points=20, dist_type="cos", fixed_nodes=[-0.2, 0.2])
-            -> list of 20 cos-distributed values, with shifted values so the given fixed_nodes are included in the set
-        dist_type:
-            * linear (default)
-            * cos
-            * cos_2
-            * nose_cos
-        """
-
-        _types = {
-            "cos": cls.from_cos_distribution,
-            "cos_2": cls.from_cos_2_distribution,
-            "nose_cos": cls.from_nose_cos_distribution
-        }
-        dist_func = _types.get(dist_type, cls.from_linear)
-        dist = dist_func(numpoints, **kwargs)
-        if fixed_nodes:
-            dist.insert_values(fixed_nodes)
-
-        return dist
-
     def get_index(self, x):
         i = x_last = x_this = -1
         for i, x_this in enumerate(self.data):
@@ -51,7 +25,7 @@ class Distribution(HashedList):
     def insert_value(self, value, start_ind=0, to_nose=True):
 
         if start_ind  >= len(self.data):
-            self.data = list(self.data[:-1]) + [value] + [self.data[-1]]
+            self.data = np.array(list(self.data[:-1]) + [value] + [self.data[-1]])
             return start_ind + 1
 
         nearest_ind = np.abs(self.data[start_ind:] - value).argmin() + 1 + start_ind

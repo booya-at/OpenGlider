@@ -1,23 +1,5 @@
-# ! /usr/bin/python2
-# -*- coding: utf-8; -*-
-#
-# (c) 2013 booya (http://booya.at)
-#
-# This file is part of the OpenGlider project.
-#
-# OpenGlider is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# OpenGlider is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 import copy
+import math
 
 import numpy as np
 import euklid
@@ -28,15 +10,13 @@ import openglider
 class ArcSinc:
     def __init__(self):
         self.start = 0.
-        self.end = np.pi
-        self.arsinc = None
+        self.end = math.pi
+        self.interpolate(openglider.config['asinc_interpolation_points'])
 
     def __call__(self, val):
-        if self.arsinc is None:
-            self.interpolate(openglider.config['asinc_interpolation_points'])
         return self.arsinc.get_value(val)
 
-    def interpolate(self, numpoints):
+    def interpolate(self, numpoints: int) -> None:
         data = []
 
         for i in range(numpoints + 1):
@@ -46,8 +26,8 @@ class ArcSinc:
         self.arsinc = euklid.vector.Interpolation(data)
 
     @property
-    def numpoints(self):
-        return len(self.arsinc.data)
+    def numpoints(self) -> int:
+        return len(self.arsinc.nodes)
 
     @numpoints.setter
     def numpoints(self, numpoints):

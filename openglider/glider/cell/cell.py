@@ -13,7 +13,7 @@ import openglider.utils
 from openglider.airfoil import Profile3D
 from openglider.glider.ballooning import Ballooning
 from openglider.glider.cell import BasicCell
-from openglider.glider.cell.elements import Panel
+from openglider.glider.cell.elements import Panel, PanelRigidFoil
 from openglider.mesh import Mesh, Polygon, Vertex
 from openglider.utils import consistent_value, linspace
 from openglider.utils.cache import (
@@ -37,7 +37,7 @@ class Cell(CachedObject):
     sigma_3d_cut = 0.06
 
     def __init__(self, rib1, rib2, ballooning, miniribs=None, panels: List["Panel"]=None,
-                 diagonals: list=None, straps: list=None, rigidfoils: list=None, name="unnamed", **kwargs):
+                 diagonals: list=None, straps: list=None, rigidfoils: List[PanelRigidFoil]=None, name="unnamed", **kwargs):
         self.rib1 = rib1
         self.rib2 = rib2
         self.miniribs = miniribs or []

@@ -22,6 +22,9 @@ class MaterialRegistry:
     def register(self, path):
         module = importlib.import_module(path)
 
+        if not hasattr(module, "materials"):
+            raise Exception(f"can't register module: {path} ('materials' not defined)")
+
         for material in module.materials:
             self.materials[str(material).lower()] = material
     

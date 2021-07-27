@@ -789,7 +789,12 @@ class PanelRigidFoil():
             "y": self.y
         }
     
-    def _get_flattened_line(self, cell):
+    def get_length(self, cell):
+        line, start, end = self._get_flattened_line(cell)
+
+        return line.get(start, end).get_length()
+    
+    def _get_flattened_line(self, cell) -> Tuple[euklid.vector.PolyLine2D, float, float]:
         flattened_cell = cell.get_flattened_cell()
         left, right = flattened_cell["ballooned"]
         line = left.mix(right, self.y)

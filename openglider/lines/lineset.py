@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict, Tuple
 import re
 import copy
 import logging
@@ -7,6 +7,7 @@ import euklid
 
 from openglider.lines.functions import proj_force
 from openglider.lines.elements import Node, SagMatrix, Line
+from openglider.lines.line_types.linetype import LineType
 from openglider.mesh import Mesh
 from openglider.utils.table import Table
 
@@ -17,10 +18,11 @@ class LineSet(object):
     Set of different lines
     """
     calculate_sag = True
-    knots_table = [
+    knots_table: List[Tuple[str, str, int, float, float]] = [
         # lower_line_type, upper_line_type, upper_line_count, first_line_correction, last_line_correction
-        ["liros.ltc65", "liros.ltc65", 2, 2.0, 2.0]
+        ("liros.ltc65", "liros.ltc65", 2, 2.0, 2.0)
     ]
+    mat: SagMatrix
 
     def __init__(self, lines: List[Line], v_inf=None):
         if v_inf is None:
@@ -30,8 +32,9 @@ class LineSet(object):
 
         for line in lines:
             line.lineset = self
+
+        self.mat = SagMatrix(len(self.lines))
         
-        self.mat = None
 
     def __repr__(self):
         return """
@@ -408,6 +411,16 @@ class LineSet(object):
             length += line.get_stretched_length()
         return length
     
+    def get_consumption(self) -> Dict[LineType, float]:
+        consumption: Dict[LineType, float] = {}
+        for line in self.lines:
+            length = self.get_line_length(line)
+            linetype = line.type
+            consumption.setdefault(linetype, 0)
+            consumption[linetype] += length
+        
+        return consumption
+    
     def sort_lines(self, lines=None, x_factor=10, names=False):
         if lines is None:
             lines = self.lines
@@ -421,6 +434,8 @@ class LineSet(object):
             if all(matches.values()):
                 line_values = {}
                 for name, match in matches.items():
+                    if match is None:
+                        raise ValueError(f"this is unreachable")
                     floor, layer, index = match.groups()
 
                     floor_no = 0
@@ -545,7 +560,7 @@ class LineSet(object):
 
         for floor in range(floors):
             
-            lines_grouped = {}
+            lines_grouped: Dict[str, List[Line]] = {}
             for line in lines:
                 # get all line layer chars (A/B/C/D/BR)
                 line_groups = set()

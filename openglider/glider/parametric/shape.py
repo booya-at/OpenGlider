@@ -1,9 +1,9 @@
 from typing import List
 import math
 
-import numpy as np
 import euklid
 
+from openglider.utils import linspace
 from openglider.glider.shape import Shape
 from openglider.utils.table import Table
 
@@ -82,10 +82,14 @@ class ParametricShape(object):
         span = self.span
 
         dist_scale = 1 / self.rib_distribution.controlpoints.nodes[-1][0]
-        self.rib_distribution.controlpoints = self.rib_distribution.controlpoints.scale([dist_scale, 1])
+        self.rib_distribution.controlpoints = self.rib_distribution.controlpoints.scale(
+            euklid.vector.Vector2D([dist_scale, 1])
+        )
 
         back_scale = span / self.back_curve.controlpoints.nodes[-1][0]
-        self.back_curve.controlpoints = self.back_curve.controlpoints.scale([back_scale, 1])
+        self.back_curve.controlpoints = self.back_curve.controlpoints.scale(
+            euklid.vector.Vector2D([back_scale, 1])
+        )
 
     @property
     def rib_dist_interpolation(self):
@@ -96,7 +100,7 @@ class ParametricShape(object):
         interpolation = euklid.vector.Interpolation([[p[1], p[0]] for p in data])
         start = self.has_center_cell / self.cell_num
         num = self.cell_num // 2 + 1
-        return [[interpolation.get_value(i), i] for i in np.linspace(start, 1, num)]
+        return [[interpolation.get_value(i), i] for i in linspace(start, 1, num)]
 
     # besser mit spezieller bezier?
     @property
@@ -212,7 +216,7 @@ class ParametricShape(object):
         Return A(x)
         """
         num = self.num_depth_integral
-        x_values = np.linspace(0, self.span, num)
+        x_values = linspace(0, self.span, num)
         front_int = euklid.vector.Interpolation(self.front_curve.get_sequence(num).nodes)
         back_int = euklid.vector.Interpolation(self.back_curve.get_sequence(num).nodes)
         integrated_depth = [0.]
@@ -221,8 +225,8 @@ class ParametricShape(object):
             integrated_depth.append(integrated_depth[-1] + 1. / depth)
         y_values = [i / integrated_depth[-1] for i in integrated_depth]
 
-        x_values = [x/self.span for x in x_values]
-        return zip(x_values, y_values)
+        x_values_normalized = [x/self.span for x in x_values]
+        return zip(x_values_normalized, y_values)
 
     def set_const_cell_dist(self):
         const_dist = list(self.depth_integrated)
@@ -300,8 +304,8 @@ class ParametricShape(object):
         x0 = ribs[0][0][0]
         span = ribs[-1][0][0] - x0
 
-        front = [p + [0, (p[0]-x0)*diff/span] for p, _ in ribs]
-        back = [p + [0, (p[0]-x0)*diff/span] for _, p in ribs]
+        front = euklid.vector.PolyLine2D([p + [0, (p[0]-x0)*diff/span] for p, _ in ribs])
+        back = euklid.vector.PolyLine2D([p + [0, (p[0]-x0)*diff/span] for _, p in ribs])
 
         self.front_curve = euklid.spline.SymmetricBSplineCurve.fit(front, self.front_curve.numpoints)
         self.back_curve = euklid.spline.SymmetricBSplineCurve.fit(back, self.back_curve.numpoints)
@@ -323,7 +327,7 @@ class ParametricShape(object):
         if fixed == "span":
             self.scale(y=ar0 / ar)
         elif fixed == "area":
-            self.scale(x=np.sqrt(ar / ar0), y=np.sqrt(ar0 / ar))
+            self.scale(x=math.sqrt(ar / ar0), y=math.sqrt(ar0 / ar))
 
     @property
     def span(self) -> float:

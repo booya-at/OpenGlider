@@ -11,11 +11,13 @@ from openglider.plots.glider.config import PatternConfig
 from openglider.vector.text import Text
 from openglider.vector.drawing import PlotPart, Layout
 import openglider.vector.projection as projection
+from openglider.plots.usage_stats import MaterialUsage, Material
 import openglider.utils
 
 
 class PanelPlot(object):
     DefaultConf = PatternConfig
+    plotpart: PlotPart
 
     def __init__(self, panel: Panel, cell, flattended_cell, config=None):
         self.panel = panel
@@ -182,7 +184,15 @@ class PanelPlot(object):
 
         self._align_upright(plotpart)
 
+        self.plotpart = plotpart
         return plotpart
+
+    def get_material_usage(self):
+        part = self.flatten([])
+        envelope = part.layers["envelope"].polylines[0]
+
+        return MaterialUsage().consume(self.panel.material, envelope.get_area())
+
 
     def get_point(self, x):
         ik = get_x_value(self.x_values, x)
@@ -533,8 +543,26 @@ class DribPlot(object):
             self._insert_text(plotpart)
         else:
             self._insert_text(plotpart, reverse=True)
-
+        
+        self.plotpart = plotpart
         return plotpart
+    
+    def get_material_usage(self) -> MaterialUsage:
+        dwg = self.plotpart
+
+        curves = dwg.layers["envelope"].polylines
+        usage = MaterialUsage()
+        material = Material(weight=38, name="dribs")
+
+        if curves:
+            area = curves[0].get_area()
+        
+            for curve in self.drib.get_holes(self.cell)[0]:
+                area -= curve.get_area()
+                
+            usage.consume(material, area)
+
+        return usage
 
 
 class StrapPlot(DribPlot):
@@ -549,8 +577,11 @@ class CellPlotMaker:
     StrapPlot = StrapPlot
     PanelPlot = PanelPlot
 
+    consumption: MaterialUsage
+
     def __init__(self, cell, attachment_points, config=None):
         self.cell = cell
+        self.consumption = MaterialUsage()
         self.attachment_points = attachment_points
         self.config = self.DefaultConf(config)
 
@@ -587,6 +618,7 @@ class CellPlotMaker:
             plot = self.PanelPlot(panel, self.cell, flattened_cell, self.config)
             dwg = plot.flatten(self.attachment_points)
             cell_panels.append(dwg)
+            self.consumption += plot.get_material_usage()
         
         return cell_panels
 
@@ -605,6 +637,7 @@ class CellPlotMaker:
         for drib in self.cell.diagonals[::-1]:
             drib_plot = self.DribPlot(drib, self.cell, self.config)
             dribs.append(drib_plot.flatten(self.attachment_points))
+            self.consumption += drib_plot.get_material_usage()
         
         return dribs
 
@@ -615,6 +648,7 @@ class CellPlotMaker:
         for strap in straps[::-1]:
             plot = self.StrapPlot(strap, self.cell, self.config)
             result.append(plot.flatten(self.attachment_points))
+            self.consumption += plot.get_material_usage()
         
         return result
     

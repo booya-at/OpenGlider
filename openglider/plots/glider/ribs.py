@@ -9,6 +9,7 @@ from openglider.plots import marks
 from openglider.vector.drawing import PlotPart
 from openglider.plots.glider.config import PatternConfig
 from openglider.vector.text import Text
+from openglider.plots.usage_stats import MaterialUsage
 
 
 class RibPlot(object):
@@ -49,7 +50,7 @@ class RibPlot(object):
         self.outer = self.inner.offset(self.config.allowance_general)
 
         self._insert_attachment_points(glider.attachment_points)
-        self.insert_holes()
+        holes = self.insert_holes()
 
         panel_cuts = set()
         for cell in glider.cells:
@@ -85,7 +86,14 @@ class RibPlot(object):
         self.insert_controlpoints()
 
         # insert cut
-        self.draw_rib(glider)
+        envelope = self.draw_rib(glider)
+
+        area = envelope.get_area()
+        for hole in holes:
+            area -= hole.get_area()
+
+        self.weight = MaterialUsage().consume(self.rib.material, area)
+
         self.plotpart.layers["stitches"].append(self.inner)
 
         return self.plotpart
@@ -146,9 +154,13 @@ class RibPlot(object):
             self.plotpart.layers["marks"].append(euklid.vector.PolyLine2D([p1, p2], name=drib.name))
 
     def insert_holes(self):
+        holes = []
         for hole in self.rib.holes:
             for l in hole.get_flattened(self.rib):
                 self.plotpart.layers["cuts"].append(l)
+                holes.append(l)
+        
+        return holes
 
     def draw_rib(self, glider):
         """
@@ -179,6 +191,7 @@ class RibPlot(object):
         )
 
         self.plotpart.layers["cuts"] += [contour]
+        return contour
 
     def _insert_attachment_points(self, points):
         for attachment_point in points:

@@ -6,7 +6,8 @@ import numpy as np
 
 import openglider
 
-cache_instances = []
+
+cache_instances: List["CachedProperty"] = []
 
 
 class CachedObject(object):
@@ -25,6 +26,8 @@ class CachedObject(object):
         if hasattr(self, "name"):
             rep = rep[:-1] + ': "{}">'.format(self.name)
         return rep
+
+
 
 
 def cached_property(*hashlist):
@@ -116,8 +119,10 @@ def cached_function(*hashlist):
 
 
 def clear_cache():
-    for instance in cache_instances:
-        instance.cache.clear()
+    #for instance in cache_instances:
+    #   instance.cache.clear()
+    # Todo: fix!!!
+    pass
 
 
 def recursive_getattr(obj, attr):

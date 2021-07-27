@@ -4,6 +4,7 @@ import euklid
 import pyfoil
 
 from openglider.glider.rib.rib import Rib
+from openglider.utils import linspace
 
 
 class SingleSkinRib(Rib):
@@ -128,8 +129,8 @@ class SingleSkinRib(Rib):
 
                 # insert sequence of xvalues between start and end. endpoint=False is necessary because 
                 # start and end are already inserted.
-                for i in np.linspace(span[0], span[1], self.single_skin_par["num_points"], endpoint=False):
-                    profile = profile.insert_point(i)
+                for x in linspace(span[0], span[1], self.single_skin_par["num_points"])[:-1]:
+                    profile = profile.insert_point(x)
 
             # construct shifting function:
             for i, span in enumerate(span_list):

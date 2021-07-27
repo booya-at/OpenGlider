@@ -1,9 +1,11 @@
 import collections
+from typing import Dict
 
 from openglider.vector.drawing import Layout
 from openglider.plots.glider.cell import CellPlotMaker
 from openglider.plots.glider.ribs import RibPlot, SingleSkinRibPlot
 from openglider.plots.glider.config import PatternConfig, OtherPatternConfig
+from openglider.plots.usage_stats import MaterialUsage
 
 
 class PlotMaker(object):
@@ -21,6 +23,8 @@ class PlotMaker(object):
         self.rigidfoils = collections.OrderedDict()
         self.ribs = []
         self._cellplotmakers = dict()
+
+        self.weight: Dict[str, MaterialUsage] = {}
 
     def __json__(self):
         return {
@@ -53,12 +57,21 @@ class PlotMaker(object):
         panels_upper = []
         panels_lower = []
 
-        for cell in self.glider_3d.cells:
+        weight = MaterialUsage()
+
+        for cell_no, cell in enumerate(self.glider_3d.cells):
             pm = self._get_cellplotmaker(cell)
             lower = pm.get_panels_lower()
             upper = pm.get_panels_upper()
             panels_lower.append(Layout.stack_column(lower, self.config.patterns_align_dist_y))
             panels_upper.append(Layout.stack_column(upper, self.config.patterns_align_dist_y))
+
+            panel_weight = pm.consumption
+            if cell_no > 0 or not self.glider_3d.has_center_cell:
+                panel_weight *= 2
+
+            weight += panel_weight
+
 
         if self.config.layout_seperate_panels:
             layout_lower = Layout.stack_row(panels_lower, self.config.patterns_align_dist_x)
@@ -70,21 +83,37 @@ class PlotMaker(object):
         else:
             self.panels = Layout.stack_grid([panels_upper, panels_lower], self.config.patterns_align_dist_x, self.config.patterns_align_dist_y)
 
+        self.weight["panels"] = weight
+
         return self.panels
 
     def get_ribs(self, rotate=False):
         from openglider.glider.rib.singleskin import SingleSkinRib
+
+        weight = MaterialUsage()
         self.ribs = []
-        for rib in self.glider_3d.ribs:
+        for rib_no, rib in enumerate(self.glider_3d.ribs):
             if isinstance(rib, SingleSkinRib):
                 rib_plot = SingleSkinRibPlot(rib)
             else:
                 rib_plot = self.RibPlot(rib, self.config)
 
             rib_plot.flatten(self.glider_3d)
+
+            rib_weight = rib_plot.weight
+            if rib_no == 0:
+                if self.glider_3d.has_center_cell:
+                    rib_weight = MaterialUsage()
+            else:
+                rib_weight *= 2
+            
+            weight += rib_weight
+
             if rotate:
                 rib_plot.plotpart.rotate(-90, radians=False)
             self.ribs.append(rib_plot.plotpart)
+        
+        self.weight["ribs"] = weight
 
     def get_dribs(self):
         self.dribs.clear()

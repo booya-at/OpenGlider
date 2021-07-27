@@ -23,6 +23,10 @@ class Vertex(object):
         yield self.x
         yield self.y
         yield self.z
+    
+    @property
+    def pos(self):
+        return euklid.vector.Vector3D([self.x, self.y, self.z])
 
     def __json__(self):
         data = list(self)
@@ -71,15 +75,14 @@ class Polygon(object):
     """the polygon is a simple list, but using a Polygon-object instead of \
        a list let you monkey-patch the object"""
     def __init__(self, nodes, attributes=None):
-        self.nodes = nodes
+        self.nodes: List[Vertex] = nodes
         self.attributes = attributes or {}
 
     def __json__(self):
         data = {
-            "nodes": self.nodes
+            "nodes": self.nodes,
+            "attributes": self.attributes
         }
-        if self.attributes:
-            data["attributes"] = self.attributes
 
         return data
 
@@ -104,23 +107,36 @@ class Polygon(object):
 
     @property
     def center(self):
-        center = np.array([0, 0, 0], dtype=float)
+        center = euklid.vector.Vector3D([0,0,0])
         for vert in self.nodes:
-            center += np.array(list(vert))
+            center += vert.pos
         return center / len(self.nodes)
+    
+    def _get_normal(self) -> euklid.vector.Vector3D:
+        if len(self) == 2:
+            n = self.nodes[1].pos - self.nodes[0].pos
+
+        elif len(self) == 3:
+            l1 = self.nodes[1].pos-self.nodes[0].pos
+            l2 = self.nodes[0].pos-self.nodes[2].pos
+            n = l1.cross(l2)
+
+        elif len(self) == 4:
+            l1 = self.nodes[2].pos-self.nodes[0].pos
+            l2 = self.nodes[3].pos-self.nodes[1].pos
+            n = l1.cross(l2)
+        
+        return n
+
 
     @property
-    def normal(self):
-        points = np.array([list(v) for v in self.nodes])
-        if len(self) == 2:
-            n = points[1] - points[0]
-        elif len(self) == 3:
-            n = np.cross(points[1] -points[0],
-                         points[0] -points[2])
-        elif len(self) == 4:
-            n = np.cross(points[2] -points[0],
-                         points[3] -points[1])
-        return n / np.linalg.norm(n)
+    def normal(self) -> euklid.vector.Vector3D:
+        return self._get_normal().normalized()
+    
+    @property
+    def area(self) -> float:
+        return self._get_normal().length() * 0.5
+
 
 
     def get_node_average(self, attribute):
@@ -174,21 +190,6 @@ class Mesh(object):
         upper = np.max(vertices, 0)
         lower = np.min(vertices, 0)
         return lower, upper
-
-    def create_subspaces(self, num_subspaces=None):
-        dmin = 10**-10
-        lower, upper = self.bounding_box
-        num_subspaces = num_subspaces or 5
-        space = np.linspcae(lower, upper, num_subspaces)
-        x0, y0, z0 = space[0]
-        subspaces = []
-        for i, x1 in enumerate(space.T[0,1:]):
-            for j, y1 in enumerate(space.T[1,1:]):
-                for k, z1 in enumerate(space.T[2,1:]):
-                    s = [[x0 - dmin, y0 - dmin, z0 - dmin],
-                         [x1 + dmin, y0 + dmin, z0 + dmin]]
-                    subspaces.append(s)
-        return subspaces
 
     @property
     def all_polygons(self):
@@ -313,9 +314,9 @@ class Mesh(object):
         for vertex in vertices:
             out += "v {:.6f} {:.6f} {:.6f}\n".format(*vertex)
 
-        for polygon_group_name, polygons in polygons.items():
+        for polygon_group_name, group_polygons in polygons.items():
             out += "o {}\n".format(polygon_group_name)
-            for obj in polygons:
+            for obj in group_polygons:
                 if len(obj) == 2:
                     # line
                     code = "l"
@@ -495,8 +496,8 @@ class Mesh(object):
     # def __iadd__(self, other):
     #     self = self + other
     @staticmethod
-    def _find_duplicates(nodes):
-        node_lst = [list(p) for p in nodes]
+    def _find_duplicates(nodes: List[Vertex]) -> Dict[Vertex, Vertex]:
+        node_lst = [p.pos for p in nodes]
         duplicates = euklid.mesh.find_duplicates(node_lst, Vertex.dmin)
         duplicates_dct = {}
 
@@ -509,7 +510,7 @@ class Mesh(object):
                 
         return duplicates_dct
 
-    def delete_duplicates(self, boundaries=None):
+    def delete_duplicates(self, boundaries=None) -> "Mesh":
         """
         :param boundaries: list of boundary names to be joined (None->all)
         :return: Mesh (self)
@@ -517,7 +518,7 @@ class Mesh(object):
 
         boundaries = boundaries or self.boundary_nodes.keys()
         replace_dict = {}
-        all_boundary_nodes = sum([self.boundary_nodes[name] for name in boundaries], [])
+        all_boundary_nodes: List[Vertex] = sum([self.boundary_nodes[name] for name in boundaries], [])
 
         replace_dict = self._find_duplicates(all_boundary_nodes)
 
@@ -542,7 +543,6 @@ class Mesh(object):
                     polygon[i] = replace_dict[node]
 
         # delete duplicated nodes in every element
-        polygons = []
         for group_name, poly_group in self.polygons.items():
             for i, polygon in enumerate(poly_group):
                 poly_set = set(polygon)
@@ -560,34 +560,13 @@ class Mesh(object):
     def polygon_size(self):
         size_min = float("inf")
         size_max = float("-inf")
-        count = 0
-        sum = 0
 
-        for poly in self.get_all_polygons():
-            if len(poly) in (3, 4):
-                sides = []
-                for i in range(len(poly)):
-                    i_plus = i+1
-                    if i_plus == len(poly):
-                        i_plus = 0
-                    side = np.array(list(poly[i])) - np.array(list(poly[i_plus]))
-                    sides.append(side)
+        size_total = 0.
+        polygons = self.get_all_polygons()
 
-                if len(poly) == 3:
-                    size_poly = 0.5 * vector.norm(np.cross(sides[0], sides[1]))
-                elif len(poly) == 4:
-                    size_poly = 0.5 * (vector.norm(np.cross(sides[0], sides[1])) + vector.norm(np.cross(sides[2], sides[3])))
-                else:
-                    size_poly = 0
+        polygon_sizes = [poly.area for poly in polygons if len(poly) in (3, 4)]
 
-                sum += size_poly
-                count += 1
-
-                size_min = min(size_min, size_poly)
-                size_max = max(size_max, size_poly)
-
-        return size_min, size_max, sum/count
-
+        return min(polygon_sizes), max(polygon_sizes), sum(polygon_sizes)/len(polygon_sizes)
 
 def apply_z(vertices):
     v = vertices.T

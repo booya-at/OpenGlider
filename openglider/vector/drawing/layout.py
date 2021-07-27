@@ -272,13 +272,13 @@ class Layout(object):
 
         return area
 
-    def rasterize(self, columns=None, distance_x=0.2, distance_y=0.1):
+    def rasterize(self, columns=None, distance_x=0.2, distance_y=0.1) -> None:
         """
         create a raster with cells containing the parts
         """
         columns = columns or round(math.sqrt(len(self.parts)))
         columns = int(columns)  # python2 fix
-        column_lst = [[] for _ in range(columns)]
+        column_lst: List[List[PlotPart]] = [[] for _ in range(columns)]
 
         for i, part in enumerate(self.parts):
             column = i%columns
@@ -376,7 +376,7 @@ class Layout(object):
         dxf = ezdxf.readfile(dxfile)
         dwg = cls()
 
-        groups = list(dxf.groups)
+        groups = [group for group in dxf.groups]
 
         for panel_name, panel in groups:
             new_panel = PlotPart(name=panel_name)

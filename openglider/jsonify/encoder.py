@@ -23,7 +23,10 @@ class Encoder(json.JSONEncoder):
                 type_str = str(obj.__class__)
                 module = obj.__class__.__module__
                 type_regex = "<class '{}\.(.*)'>".format(module.replace(".", "\."))
-                class_name = re.match(type_regex, type_str).group(1)
+                match = re.match(type_regex, type_str)
+                if match is None:
+                    raise ValueError(f"couldn't match type: {type_str}")
+                class_name = match.group(1)
 
                 return {"_type": class_name,
                         "_module": module,

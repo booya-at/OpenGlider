@@ -1,3 +1,4 @@
+from typing import List, Dict
 import logging
 
 import numpy as np
@@ -133,7 +134,9 @@ class Line(CachedObject):
         return self.v_inf.normalized()
 
     @property
-    def v_inf(self):
+    def v_inf(self) -> euklid.vector.Vector3D:
+        if self.lineset is None:
+            raise ValueError(f"no lineset for line {self}")
         return self.lineset.v_inf
 
     #@cached_property('lower_node.vec', 'upper_node.vec')
@@ -242,7 +245,7 @@ class Line(CachedObject):
 
     def get_mesh(self, numpoints):
         line_points = [Vertex(*point) for point in self.get_line_points(numpoints=numpoints)]
-        boundary = {"lines": []}
+        boundary: Dict[str, List[Vertex]] = {"lines": []}
         if self.lower_node.type == 0:
             boundary["lower_attachment_points"] = [line_points[0]]
         else:

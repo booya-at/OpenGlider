@@ -1,4 +1,5 @@
-import numpy as np
+from typing import List
+
 import euklid
 
 from openglider.vector.drawing.part import PlotPart
@@ -86,7 +87,7 @@ class Text(object):
             "align": self.align
         }
 
-    def get_letter(self, letter, replace_unknown=True):
+    def get_letter(self, letter, replace_unknown=True) -> List[List[float]]:
         letter = letter.upper()
         if letter not in self.letters:
                 if replace_unknown:
@@ -96,7 +97,7 @@ class Text(object):
         
         return [self.letters[letter]]
 
-    def get_vectors(self, replace_unknown=True):
+    def get_vectors(self, replace_unknown=True) -> List[euklid.vector.PolyLine2D]:
         # todo: add valign (space)
         vectors = []
         diff = self.p2 - self.p1
@@ -127,17 +128,17 @@ class Text(object):
             for lst in points:
                 if lst:
                     line = euklid.vector.PolyLine2D(lst)\
-                        .scale([letter_width, letter_height])\
+                        .scale(euklid.vector.Vector2D([letter_width, letter_height]))\
                         .move(letter_pos)\
                         .rotate(angle, [0, 0])\
                         .move(p1)
 
                     vectors.append(line)
 
-            letter_pos += [letter_width, 0]
+            letter_pos += euklid.vector.Vector2D([letter_width, 0])
 
         return vectors
 
-    def get_plotpart(self, replace_unknown=True):
+    def get_plotpart(self, replace_unknown=True) -> PlotPart:
         vectors = self.get_vectors(replace_unknown)
         return PlotPart(vectors)

@@ -1,6 +1,8 @@
-import euklid
+from typing import List, Tuple
 import logging
 import math
+
+import euklid
 
 from openglider.vector.drawing import PlotPart, Layout
 
@@ -17,7 +19,7 @@ class Shape(object):
         self.front = front
         self.back = back
 
-    def get_point(self, x, y):
+    def get_point(self, x, y) -> euklid.vector.Vector2D:
         front = self.front.get(x)
         back = self.back.get(x)
 
@@ -32,15 +34,15 @@ class Shape(object):
         return p1, p2, p3, p4
 
     @property
-    def cell_no(self):
+    def cell_no(self) -> int:
         return len(self.front) - 1
 
     @property
-    def rib_no(self):
+    def rib_no(self) -> int:
         return len(self.front)
 
     @property
-    def ribs(self):
+    def ribs(self) -> List[Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]]:
         return [[self.front.get(x), self.back.get(x)] for x in range(len(self.front))]
 
     @property
@@ -48,7 +50,7 @@ class Shape(object):
         return [self.ribs, self.front, self.back]
 
     @property
-    def span(self):
+    def span(self) -> float:
         return self.front.nodes[-1][0]
     
     @span.setter
@@ -58,17 +60,17 @@ class Shape(object):
 
 
     @property
-    def chords(self):
+    def chords(self) -> List[float]:
         return [(p1-p2).length() for p1, p2 in zip(self.front, self.back)]
 
     @property
-    def cell_widths(self):
+    def cell_widths(self) -> List[float]:
         return [p2[0]-p1[0] for p1, p2 in zip(self.front.nodes[:-1], self.front.nodes[1:])]
 
     @property
-    def area(self):
+    def area(self) -> float:
         front, back = self.front, self.back
-        area = 0
+        area = 0.
         for i in range(len(self.front) - 1):
             l = (front.get(i)[1] - back.get(i)[1]) + (front.get(i+1)[1] - back.get(i+1)[1])
             area += l * (front.get(i+1)[0] - front.get(i)[0]) / 2
@@ -76,24 +78,23 @@ class Shape(object):
     
     @area.setter
     def area(self, area):
-        area_old = self.area
         factor = math.sqrt(area / self.area)
 
         self.scale(factor, factor)
 
-    def scale(self, x=1, y=1):
+    def scale(self, x: float=1, y: float =1.) -> "Shape":
         logger.warning(f"deprecation: Shape scale!")
-        self.front = self.front.scale([x, y])
-        self.back = self.back.scale([x, y])
+        self.front = self.front.scale(euklid.vector.Vector2D([x, y]))
+        self.back = self.back.scale(euklid.vector.Vector2D([x, y]))
 
         return self
     
-    def copy(self):
+    def copy(self) -> "Shape":
         return Shape(self.front.copy(), self.back.copy())
 
     def copy_complete(self):
-        front = self.front.mirror([0, 0], [0, 1]).reverse()
-        back = self.back.mirror([0, 0], [0, 1]).reverse()
+        front = self.front.mirror().reverse()
+        back = self.back.mirror().reverse()
 
         if front.nodes[-1][0] != 0:
             start = 2

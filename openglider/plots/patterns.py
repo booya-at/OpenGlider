@@ -2,13 +2,14 @@ import datetime
 import os
 import subprocess
 import logging
-from typing import List
+from typing import List, Dict
 
 import openglider.glider
 import openglider.plots.spreadsheets
 from openglider.plots.spreadsheets import get_glider_data
 import openglider.plots.cuts
 import openglider.plots.marks
+from openglider.plots.usage_stats import MaterialUsage
 
 from openglider.vector.drawing import Layout
 from openglider.vector.text import Text
@@ -18,7 +19,6 @@ from openglider.glider.project import GliderProject
 
 
 class PatternsNew(object):
-    plotmaker = PlotMaker
     spreadsheet = get_glider_data
     plotmaker = PlotMaker
 
@@ -29,6 +29,7 @@ class PatternsNew(object):
         self.glider_2d = project.glider
         self.config = self.DefaultConf(config)
         self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+        self.weight: Dict[str, MaterialUsage] = {}
 
     def __json__(self):
         return {
@@ -86,6 +87,7 @@ class PatternsNew(object):
         glider.lineset.iterate_target_length()
             
         plots.unwrap()
+        self.weight = plots.weight
         all_patterns = plots.get_all_grouped()
 
         return all_patterns
@@ -132,7 +134,7 @@ class PatternsNew(object):
 
         self.logger.info("create spreadsheets")
         self.project.glider_3d.lineset.rename_lines()
-        excel = PatternsNew.spreadsheet(self.project)
+        excel = PatternsNew.spreadsheet(self.project, consumption=self.weight)
         excel.saveas(os.path.join(outdir, "data.ods"))
 
         openglider.save(self.project, os.path.join(outdir, "project.json"))

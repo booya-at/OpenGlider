@@ -321,7 +321,7 @@ class Glider(object):
         self.profile_x_values = Distribution.from_nose_cos_distribution(numpoints, 0.3)
 
     @property
-    def profile_x_values(self):
+    def profile_x_values(self) -> List[float]:
         return self.ribs[0].profile_2d.x_values
         # return consistent_value(self.ribs, 'profile_2d.x_values')
 
@@ -331,7 +331,7 @@ class Glider(object):
             rib.profile_2d = rib.profile_2d.set_x_values(xvalues)
 
     @property
-    def span(self):
+    def span(self) -> float:
         span = sum([cell.span for cell in self.cells])
 
         if self.has_center_cell:
@@ -345,13 +345,13 @@ class Glider(object):
         self.scale(faktor)
 
     @property
-    def trailing_edge_length(self):
-        d = 0
+    def trailing_edge_length(self) -> float:
+        d = 0.
         for i, cell in enumerate(self.cells):
             ballooning = (cell.ballooning[1] + cell.ballooning[-1])/2
-            vektor = cell.prof1.point(-1) - cell.prof2.point(-1)
+            vector = cell.prof1.get(0) - cell.prof2.get(0)
 
-            diff = vektor.length() * (1 + ballooning)
+            diff = vector.length() * (1 + ballooning)
 
             if i == 0 and self.has_center_cell:
                 d += diff
@@ -383,7 +383,7 @@ class Glider(object):
 
     @property
     def projected_area(self):
-        projected_area = 0
+        projected_area = 0.
         for i, cell in enumerate(self.cells):
             cell_area = cell.projected_area
             if i == 0 and self.has_center_cell:
@@ -416,8 +416,8 @@ class Glider(object):
 
     @property
     def centroid(self):
-        area = 0
-        p = 0
+        area = 0.
+        p = 0.
 
         for i, cell in enumerate(self.cells):
             cell_area = cell.area
