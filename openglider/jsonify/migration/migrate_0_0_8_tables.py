@@ -1,10 +1,12 @@
 import logging
 import json
+import copy
 
 from openglider.jsonify.encoder import Encoder
 from openglider.jsonify.migration.migration import Migration
 from openglider.glider.parametric.table.holes import HolesTable
 from openglider.glider.parametric.table.diagonals import DiagonalTable, StrapTable
+from openglider.materials import cloth
 from openglider.utils.table import Table
 
 logger = logging.getLogger(__name__)
@@ -17,7 +19,7 @@ def migrate_diagonals(cls, jsondata):
 
     for node in nodes:
         elements = node["data"]["elements"]
-        
+
         holes = elements.get("holes", [])
         table = get_hole_table(holes)
         elements["holes"] = table
@@ -32,7 +34,14 @@ def migrate_diagonals(cls, jsondata):
 
         materials = elements.pop("materials")
         if materials:
-            elements["material_cells"] = materials
+            materials_new = []
+            for cell in materials:
+                cell_new = []
+                for panel in cell:
+                    cell_new.append(cloth.get(str(panel)))
+                
+                materials_new.append(cell_new)
+            elements["material_cells"] = materials_new
 
         node["data"]["elements"] = json.loads(json.dumps(elements, cls=Encoder))
     

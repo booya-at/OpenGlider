@@ -1,9 +1,8 @@
 import copy
 import math
 
-import ezodf
 import euklid
-
+import ezodf
 import openglider.glider
 import openglider.glider.parametric.glider
 from openglider.glider.ballooning import BallooningBezierNeu
@@ -145,52 +144,7 @@ def get_cell_sheet(glider):
         table.append_right(rigidfoil_table)
 
     # cuts
-    cuts_table = Table()
-    cuts_per_cell = []
-    for cell_no in range(cell_num):
-        cuts_this = []
-        for cut in elems["cuts"]:
-            if cell_no in cut["cells"]:
-                cuts_this.append((cut["left"], cut["right"], cut["type"]))
-
-        cuts_this.sort(key=lambda x: sum(x[:2]))
-        cuts_per_cell.append(cuts_this)
-
-    def find_next(cut, cell_no):
-        cuts_this = cuts_per_cell[cell_no]
-        for new_cut in cuts_this:
-            if cut[1] == new_cut[0] and new_cut[2] == cut[2]:
-                cuts_this.remove(new_cut)
-                return new_cut
-
-    def add_column(cell_no):
-        cuts_this = cuts_per_cell[cell_no]
-        if not cuts_this:
-            return False
-
-        cut = cuts_this[0]
-        column = Table()
-        column[0, 0] = cut[2]
-        column.insert_row(cut[:2], cell_no+1)
-        cuts_this.remove(cut)
-
-
-        for cell_no_temp in range(cell_no+1, cell_num):
-            cut_next = find_next(cut, cell_no_temp)
-            if not cut_next:
-                continue
-            column.insert_row(cut_next[:2], cell_no_temp+1)
-            cut = cut_next
-
-        cuts_table.append_right(column)
-
-        return column
-
-    for cell_no in range(cell_num):
-        while add_column(cell_no):
-            pass
-
-    table.append_right(cuts_table)
+    table.append_right(elems["cuts"].table)
 
     # Diagonals
     table.append_right(elems["diagonals"].table)

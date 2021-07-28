@@ -565,9 +565,10 @@ class LineSet(object):
                 # get all line layer chars (A/B/C/D/BR)
                 line_groups = set()
                 for node in self.get_upper_influence_nodes(line):
-                    node_group = self.node_group_rex.match(node.name)
-                    if node_group:
-                        line_groups.add(node_group.group(1))
+                    if node.name:
+                        node_group = self.node_group_rex.match(node.name)
+                        if node_group:
+                            line_groups.add(node_group.group(1))
                 
                 line_groups_list = list(line_groups)
                 line_groups_list.sort()

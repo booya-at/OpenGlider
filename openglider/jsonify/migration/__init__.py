@@ -3,6 +3,7 @@ import logging
 
 from openglider.jsonify.migration.migration import Migration
 import openglider.jsonify.migration.migrate_0_0_8_tables
+import openglider.jsonify.migration.migrate_0_0_9_cuts_table
 
 logger = logging.getLogger(__name__)
 

@@ -3,7 +3,7 @@ from __future__ import division
 import numpy as np
 
 import FreeCAD as App
-from openglider.glider.cell.elements import Panel
+from openglider.glider.cell.panel import Panel, PanelCut
 from PySide import QtCore, QtGui
 
 from .tools import BaseTool, coin, input_field, text_field, vector3D
@@ -60,8 +60,8 @@ class DesignTool(BaseTool):
         self.form.append(self.tool_widget)
 
         self.Qcut_type = QtGui.QComboBox(self.tool_widget)
-        for _, cut_type in Panel.CUT_TYPES():
-            self.Qcut_type.addItem(cut_type)
+        for cut_type in PanelCut.CUT_TYPES:
+            self.Qcut_type.addItem(cut_type.name)
         self.Qcut_type.setEnabled(False)
         self.Qcut_type.currentIndexChanged.connect(self.cut_type_changed)
 
@@ -125,7 +125,7 @@ class DesignTool(BaseTool):
     def cut_type_changed(self):
         for element in self.event_separator.selected_objects:
             if isinstance(element, CutLine):
-                element.cut_type = self.Qcut_type.currentText()
+                element.cut_type = getattr(PanelCut.CUT_TYPES, self.Qcut_type.currentText())
 
     def point_pos_changed(self):
         points = set()

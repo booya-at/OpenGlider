@@ -1,18 +1,17 @@
-import math
 import logging
+import math
 from typing import Tuple
 
-import numpy as np
 import euklid
-
-from openglider.glider.cell import Panel, DiagonalRib
-from openglider.airfoil import get_x_value
-from openglider.plots.glider.config import PatternConfig
-from openglider.vector.text import Text
-from openglider.vector.drawing import PlotPart, Layout
-import openglider.vector.projection as projection
-from openglider.plots.usage_stats import MaterialUsage, Material
+import numpy as np
 import openglider.utils
+import openglider.vector.projection as projection
+from openglider.airfoil import get_x_value
+from openglider.glider.cell import DiagonalRib, Panel, PanelCut
+from openglider.plots.glider.config import PatternConfig
+from openglider.plots.usage_stats import Material, MaterialUsage
+from openglider.vector.drawing import Layout, PlotPart
+from openglider.vector.text import Text
 
 
 class PanelPlot(object):
@@ -38,47 +37,45 @@ class PanelPlot(object):
     def flatten(self, attachment_points):
         plotpart = PlotPart(material_code=str(self.panel.material), name=self.panel.name)
 
+        _cut_types = PanelCut.CUT_TYPES
+
         cut_allowances = {
-            "folded": self.config.allowance_entry_open,
-            "parallel": self.config.allowance_trailing_edge,
-            "orthogonal": self.config.allowance_design,
-            "singleskin": self.config.allowance_entry_open,
-            "cut_3d": self.config.allowance_design
+            _cut_types.folded: self.config.allowance_entry_open,
+            _cut_types.parallel: self.config.allowance_trailing_edge,
+            _cut_types.orthogonal: self.config.allowance_design,
+            _cut_types.singleskin: self.config.allowance_entry_open,
+            _cut_types.cut_3d: self.config.allowance_design
         }
 
         cut_types = {
-            "folded": self.config.cut_entry,
-            "parallel": self.config.cut_trailing_edge,
-            "orthogonal": self.config.cut_design,
-            "singleskin": self.config.cut_entry,
-            "cut_3d": self.config.cut_3d
+            _cut_types.folded: self.config.cut_entry,
+            _cut_types.parallel: self.config.cut_trailing_edge,
+            _cut_types.orthogonal: self.config.cut_design,
+            _cut_types.singleskin: self.config.cut_entry,
+            _cut_types.cut_3d: self.config.cut_3d
         }
 
         ik_values = self.panel._get_ik_values(self.cell, self.config.midribs, exact=True)
 
         # allowance fallbacks
-        allowance_front = cut_allowances[self.panel.cut_front["type"]]
-        allowance_back = cut_allowances[self.panel.cut_back["type"]]
-
-        # get allowance from self.panel
-        amount_front = -self.panel.cut_front.get("amount", allowance_front)
-        amount_back = self.panel.cut_back.get("amount", allowance_back)
+        allowance_front = -cut_allowances[self.panel.cut_front.cut_type]
+        allowance_back = cut_allowances[self.panel.cut_back.cut_type]
 
         # cuts -> cut-line, index left, index right
-        cut_front = cut_types[self.panel.cut_front["type"]](amount_front)
-        cut_back = cut_types[self.panel.cut_back["type"]](amount_back)
+        cut_front = cut_types[self.panel.cut_front.cut_type](allowance_front)
+        cut_back = cut_types[self.panel.cut_back.cut_type](allowance_back)
 
         inner_front = [(line, ik[0]) for line, ik in zip(self.inner, ik_values)]
         inner_back = [(line, ik[1]) for line, ik in zip(self.inner, ik_values)]
 
-        shape_3d_amount_front = [-x for x in self.panel.cut_front["amount_3d"]]
-        shape_3d_amount_back = self.panel.cut_back["amount_3d"]
+        shape_3d_amount_front = [-x for x in self.panel.cut_front.cut_3d_amount]
+        shape_3d_amount_back = self.panel.cut_back.cut_3d_amount
 
-        if self.panel.cut_front["type"] != "cut_3d":
+        if self.panel.cut_front.cut_type != _cut_types.cut_3d:
             dist = np.linspace(shape_3d_amount_front[0], shape_3d_amount_front[-1], len(shape_3d_amount_front))
             shape_3d_amount_front = list(dist)
 
-        if self.panel.cut_back["type"] != "cut_3d":
+        if self.panel.cut_back.cut_type != _cut_types.cut_3d:
             dist = np.linspace(shape_3d_amount_back[0], shape_3d_amount_back[-1], len(shape_3d_amount_back))
             shape_3d_amount_back = list(dist)
 
@@ -209,8 +206,8 @@ class PanelPlot(object):
 
     def _align_upright(self, plotpart):
         def get_p1_p2(side):
-            p1 = self.get_p1_p2(self.panel.cut_front[side], side)[0]
-            p2 = self.get_p1_p2(self.panel.cut_back[side], side)[0]
+            p1 = self.get_p1_p2(getattr(self.panel.cut_front, f"x_{side}"), side)[0]
+            p2 = self.get_p1_p2(getattr(self.panel.cut_back, f"x_{side}"), side)[0]
 
             return p2 - p1
 
@@ -224,14 +221,14 @@ class PanelPlot(object):
 
     def _insert_text(self, plotpart):
         if self.config.layout_seperate_panels and not self.panel.is_lower():
-            left = get_x_value(self.x_values, self.panel.cut_back["left"])
-            right = get_x_value(self.x_values, self.panel.cut_back["right"])
+            left = get_x_value(self.x_values, self.panel.cut_back.x_left)
+            right = get_x_value(self.x_values, self.panel.cut_back.x_right)
             p2 = self.ballooned[1].get(right)
             p1 = self.ballooned[0].get(left)
             align = "left"
         else:
-            left = get_x_value(self.x_values, self.panel.cut_front["left"])
-            right = get_x_value(self.x_values, self.panel.cut_front["right"])
+            left = get_x_value(self.x_values, self.panel.cut_front.x_left)
+            right = get_x_value(self.x_values, self.panel.cut_front.x_right)
             p1 = self.ballooned[1].get(right)
             p2 = self.ballooned[0].get(left)
             align = "right"
@@ -246,7 +243,7 @@ class PanelPlot(object):
     def _insert_controlpoints(self, plotpart):
         for x in self.config.distribution_controlpoints:
             for side in ("left", "right"):
-                if self.panel.cut_front[side] <= x <= self.panel.cut_back[side]:
+                if getattr(self.panel.cut_front, f"x_{side}") <= x <= getattr(self.panel.cut_back, f"x_{side}"):
                     p1, p2 = self.get_p1_p2(x, side)
                     plotpart.layers["L0"] += self.config.marks_laser_controlpoint(p1, p2)
 
@@ -259,7 +256,7 @@ class PanelPlot(object):
             else:
                 return
 
-            if self.panel.cut_front[side] <= xval <= self.panel.cut_back[side]:
+            if getattr(self.panel.cut_front, f"x_{side}") <= xval <= getattr(self.panel.cut_back, f"x_{side}"):
                 p1, p2 = self.get_p1_p2(xval, side)
                 plotpart.layers["L0"] += self.config.marks_laser_diagonal(p1, p2)
                 if (front and height == -1) or (not front and height == 1):
@@ -296,10 +293,10 @@ class PanelPlot(object):
             else:
                 raise AttributeError
 
-            cut_f_l = self.panel.cut_front["left"]
-            cut_f_r = self.panel.cut_front["right"]
-            cut_b_l = self.panel.cut_back["left"]
-            cut_b_r = self.panel.cut_back["right"]
+            cut_f_l = self.panel.cut_front.x_left
+            cut_f_r = self.panel.cut_front.x_right
+            cut_b_l = self.panel.cut_back.x_left
+            cut_b_r = self.panel.cut_back.x_right
             cut_f = cut_f_l + cell_pos * (cut_f_r - cut_f_l)
             cut_b = cut_b_l + cell_pos * (cut_b_r - cut_b_l)
 

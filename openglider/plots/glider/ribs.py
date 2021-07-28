@@ -1,15 +1,14 @@
-from typing import List
 import math
+from typing import List
 
 import euklid
-
 import openglider.glider
 from openglider.airfoil import get_x_value
 from openglider.plots import marks
-from openglider.vector.drawing import PlotPart
 from openglider.plots.glider.config import PatternConfig
-from openglider.vector.text import Text
 from openglider.plots.usage_stats import MaterialUsage
+from openglider.vector.drawing import PlotPart
+from openglider.vector.text import Text
 
 
 class RibPlot(object):
@@ -57,8 +56,8 @@ class RibPlot(object):
             if cell.rib1 == self.rib:
                 # panel-cuts
                 for panel in cell.panels:
-                    panel_cuts.add(panel.cut_front["left"])
-                    panel_cuts.add(panel.cut_back["left"])
+                    panel_cuts.add(panel.cut_front.x_left)
+                    panel_cuts.add(panel.cut_back.x_left)
 
                 # diagonals
                 for diagonal in cell.diagonals + cell.straps:
@@ -66,8 +65,8 @@ class RibPlot(object):
 
             elif cell.rib2 == self.rib:
                 for panel in cell.panels:
-                    panel_cuts.add(panel.cut_front["right"])
-                    panel_cuts.add(panel.cut_back["right"])
+                    panel_cuts.add(panel.cut_front.x_right)
+                    panel_cuts.add(panel.cut_back.x_right)
 
                 for diagonal in cell.diagonals + cell.straps:
                     self.insert_drib_mark(diagonal, True)
@@ -240,13 +239,13 @@ class SingleSkinRibPlot(RibPlot):
                 # maybe asserts no singleskin rib on stabilo
                 if cell.rib1 == self.rib:
                     for panel in cell.panels:
-                        if panel.cut_back["type"] == "singleskin":
-                            singleskin_cut = panel.cut_back["left"]
+                        if panel.cut_back.cut_type == panel.CUT_TYPES.singleskin:
+                            singleskin_cut = panel.cut_back.x_left
                             break
                 if cell.rib2 == self.rib:
                     for panel in cell.panels:
-                        if panel.cut_back["type"] == "singleskin":
-                            singleskin_cut = panel.cut_back["right"]
+                        if panel.cut_back.cut_type == panel.CUT_TYPES.singleskin:
+                            singleskin_cut = panel.cut_back.x_right
                             break
 
             self.skin_cut = singleskin_cut

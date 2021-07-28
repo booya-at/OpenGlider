@@ -11,7 +11,7 @@ from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.ballooning.new import BallooningBezierNeu
 from openglider.glider.ballooning.base import BallooningBase
 from openglider.glider.glider import Glider
-from openglider.glider.cell import Panel, DiagonalRib, TensionStrap, TensionLine, Cell
+from openglider.glider.cell import Panel, PanelCut, DiagonalRib, TensionStrap, TensionLine, Cell
 from openglider.glider.cell.elements import PanelRigidFoil
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.export_ods import export_ods_2d
@@ -174,27 +174,22 @@ class ParametricGlider(object):
         for cell_no, panel_lst in enumerate(cells):
             panel_lst.clear()
 
-            _cuts = self.elements.get("cuts", [])
-            cuts = [cut.copy() for cut in _cuts if cell_no in cut["cells"]]
-            for cut in cuts:
-                cut.pop("cells")
+            cuts: List[PanelCut] = self.elements["cuts"].get(cell_no)
 
-            # add trailing edge (2x)
-            all_values = [c["left"] for c in cuts] + [c["right"] for c in cuts]
+            all_values = [c.x_left for c in cuts] + [c.x_right for c in cuts]
 
             if -1 not in all_values:
-                cuts.append({"type": "parallel",
-                             "left": -1, "right": -1})
+                cuts.append(PanelCut(-1, -1, PanelCut.CUT_TYPES.parallel))
+            
             if 1 not in all_values:
-                cuts.append({"type": "parallel",
-                            "left": 1, "right": 1})
+                cuts.append(PanelCut(1, 1, PanelCut.CUT_TYPES.parallel))
 
-            cuts.sort(key=lambda cut: cut["left"])
+            cuts.sort(key=lambda cut: cut.x_left + cut.x_right)
 
             for cut1, cut2 in ZipCmp(cuts):
                 part_no = len(panel_lst)
                 
-                if cut1["right"] > cut2["right"]:
+                if cut1.x_right > cut2.x_right or cut1.x_left > cut2.x_left:
                     error_str = "Invalid cut: C{} {:.02f}/{:.02f}/{} + {:.02f}/{:.02f}/{}".format(
                         cell_no+1,
                         cut1["left"], cut1["right"], cut1["type"],
@@ -202,10 +197,9 @@ class ParametricGlider(object):
                     )
                     raise ValueError(error_str)
 
-                if (cut1["type"] == cut2["type"] == "folded" or
-                    cut1["type"] == cut2["type"] == "singleskin"):
-                    # entry
-                    continue
+                if cut1.cut_type == cut2.cut_type:
+                    if cut1.cut_type in (PanelCut.CUT_TYPES.folded, PanelCut.CUT_TYPES.singleskin):
+                        continue
 
                 try:
                     material = self.elements["material_cells"][cell_no][part_no]

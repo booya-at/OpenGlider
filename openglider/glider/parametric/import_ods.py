@@ -20,6 +20,7 @@ from openglider.glider.parametric.table.holes import HolesTable
 from openglider.glider.parametric.table.diagonals import DiagonalTable, StrapTable
 from openglider.glider.parametric.table.ballooning import BallooningTable
 from openglider.glider.parametric.table.ribs_singleskin import SingleSkinTable
+from openglider.glider.parametric.table.cuts import CutTable
 
 
 logger = logging.getLogger(__name__)
@@ -154,22 +155,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
         ["cells", "x_start", "x_end", "y"]
         )
 
-
-    # CUTS
-    def get_cuts(names, target_name):
-        objs = []
-        for name_src in names:
-            objs += read_elements(cell_sheet, name_src, len_data=2)
-
-        cuts_this = [{"cells": cut[0], "left": float(cut[1]), "right": float(cut[2]), "type": target_name} for cut in
-                     objs]
-
-        return group(cuts_this, "cells")
-
-    cuts = get_cuts(["EKV", "EKH", "folded"], "folded")
-    cuts += get_cuts(["DESIGNM", "DESIGNO", "orthogonal"], "orthogonal")
-    cuts += get_cuts(["CUT3D", "cut_3d"], "cut_3d")
-    cuts += get_cuts(["singleskin"], "singleskin")
+    cuts = CutTable(cell_sheet)
 
     # Diagonals: center_left, center_right, width_l, width_r, height_l, height_r
     diagonals = DiagonalTable(cell_sheet, file_version)

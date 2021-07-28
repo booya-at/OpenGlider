@@ -1,13 +1,12 @@
 from typing import List
 
-import numpy as np
 import euklid
-
-from openglider.glider import GliderProject
-from openglider.vector.text import Text
-from openglider.vector.drawing import Layout, PlotPart
+import numpy as np
 import openglider.plots.marks as marks
-from openglider.glider.cell.elements import Panel
+from openglider.glider import GliderProject
+from openglider.glider.cell.panel import Panel
+from openglider.vector.drawing import Layout, PlotPart
+from openglider.vector.text import Text
 
 
 class ShapePlot(object):

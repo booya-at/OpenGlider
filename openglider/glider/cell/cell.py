@@ -13,7 +13,8 @@ import openglider.utils
 from openglider.airfoil import Profile3D
 from openglider.glider.ballooning import Ballooning
 from openglider.glider.cell import BasicCell
-from openglider.glider.cell.elements import Panel, PanelRigidFoil
+from openglider.glider.cell.elements import PanelRigidFoil
+from openglider.glider.cell.panel import Panel,PanelCut
 from openglider.mesh import Mesh, Polygon, Vertex
 from openglider.utils import consistent_value, linspace
 from openglider.utils.cache import (
@@ -470,11 +471,8 @@ class Cell(CachedObject):
 
         cuts_3d: Dict[str, List[float]] = {}
 
-        def cut_hash(cut):
-            return "{}-{}-{}".format(cut["left"], cut["right"], cut["type"])
-
         def add_amount(cut, amount):
-            cut_key = cut_hash(cut)
+            cut_key = cut.__hash__()
 
             for key in cuts_3d:
                 if key == cut_key:
@@ -486,7 +484,7 @@ class Cell(CachedObject):
             cuts_3d[cut_key] = amount
 
         def get_amount(cut):
-            cut_key = cut_hash(cut)
+            cut_key = cut.__hash__()
             data = cuts_3d[cut_key]
             # TODO: Investigate
             return [max(0, x) for x in data]
@@ -499,14 +497,15 @@ class Cell(CachedObject):
             add_amount(panel.cut_front, amount_front)
             add_amount(panel.cut_back, amount_back)
 
-        cut_3d_types = ["cut_3d"]
+        cut_3d_types = [PanelCut.CUT_TYPES.cut_3d]
         for panel in panels:
-            if panel.cut_front["type"] in cut_3d_types:
-                panel.cut_front["amount_3d"] = get_amount(panel.cut_front)
+            if panel.cut_front.cut_type in cut_3d_types:
+                panel.cut_front.cut_3d_amount = get_amount(panel.cut_front)
             else:
-                panel.cut_front["amount_3d"] = [0] * (numribs+2)
-            if panel.cut_back["type"] in cut_3d_types:
-                panel.cut_back["amount_3d"] = get_amount(panel.cut_back)
+                panel.cut_front.cut_3d_amount = [0] * (numribs+2)
+            
+            if panel.cut_back.cut_type in cut_3d_types:
+                panel.cut_back.cut_3d_amount = get_amount(panel.cut_back)
             else:
-                panel.cut_back["amount_3d"] = [0] * (numribs+2)
+                panel.cut_back.cut_3d_amount = [0] * (numribs+2)
 

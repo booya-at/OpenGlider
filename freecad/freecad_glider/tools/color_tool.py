@@ -1,5 +1,6 @@
 from __future__ import division
 
+import copy
 import numpy as np
 
 import FreeCAD as App
@@ -9,7 +10,7 @@ from .tools import (BaseTool, coin, hex_to_rgb, input_field, rgb_to_hex,
                      text_field, vector3D)
 from pivy.graphics import InteractionSeparator, Polygon, COLORS
 
-
+from openglider.materials import cloth
 
 class ColorPolygon(Polygon):
     std_col = [0.5, 0.5, 0.5]
@@ -45,7 +46,7 @@ class ColorTool(BaseTool):
         # panel.materialcode
         # panel.cut_back
         # panel.cut_front
-        # cut_front['left']
+        # cut_front.x_left
 
 
         # setup the GUI
@@ -75,14 +76,13 @@ class ColorTool(BaseTool):
             x_values = [-x_values[0]] + x_values
         for i, cell in enumerate(self.panels):
             for j, panel in enumerate(cell):
-                p1 = [x_values[i], panel.cut_front['left'], 0.]
-                p2 = [x_values[i], panel.cut_back['left'], 0.]
-                p3 = [x_values[i + 1], panel.cut_back['right'], 0.]
-                p4 = [x_values[i + 1], panel.cut_front['right'], 0.]
+                p1 = [x_values[i], panel.cut_front.x_left, 0.]
+                p2 = [x_values[i], panel.cut_back.x_left, 0.]
+                p3 = [x_values[i + 1], panel.cut_back.x_right, 0.]
+                p4 = [x_values[i + 1], panel.cut_front.x_right, 0.]
                 vis_panel = ColorPolygon([p1, p2, p3, p4][::-1], True)
                 panel.vis_panel = vis_panel
-                if panel.material_code:
-                    vis_panel.set_color(hex_to_rgb(panel.material_code))
+                vis_panel.set_color(hex_to_rgb("#"+panel.material.color_code))
                 self.selector += [vis_panel]
 
         self.selector.register()
@@ -101,16 +101,24 @@ class ColorTool(BaseTool):
                 panel.set_color(color)
 
     def accept(self):
+        materials = self.parametric_glider.elements['material_cells']
         self.selector.unregister()
         colors = []
-        for cell in self.panels:
+        for cell_no, cell in enumerate(self.panels):
             cell_colors = []
-            for panel in cell:
+            for panel_no, panel in enumerate(cell):
                 # TODO: make this parametric
-                cell_colors.append(rgb_to_hex(panel.vis_panel.std_col, "skytex32_"))
+                if len(materials) > cell_no and len(materials[cell_no]) > panel_no:
+                    material = copy.copy(materials[cell_no][panel_no])
+                else:
+                    material = cloth.get("unnamed")
+
+                material.color_code = rgb_to_hex(panel.vis_panel.std_col, "")[1:]
+                
+                cell_colors.append(material)
             colors.append(cell_colors)
 
-        self.parametric_glider.elements['materials'] = colors
+        self.parametric_glider.elements['material_cells'] = colors
         super(ColorTool, self).accept()
         self.update_view_glider()
 
