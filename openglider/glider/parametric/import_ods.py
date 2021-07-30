@@ -1,27 +1,24 @@
+import logging
+import math
 import numbers
 import re
-import logging
-import typing
-import math
 
-import ezodf
 import euklid
+import ezodf
 import pyfoil
-
-from openglider.utils import linspace
-from openglider.glider.parametric.arc import ArcCurve
-from openglider.glider.parametric.shape import ParametricShape
-from openglider.glider.parametric.lines import UpperNode2D, LowerNode2D, BatchNode2D, Line2D, LineSet2D
-from openglider.glider.rib import MiniRib
 from openglider.glider.ballooning import BallooningBezier, BallooningBezierNeu
-from openglider.utils.table import Table
-from openglider.materials import cloth
-from openglider.glider.parametric.table.holes import HolesTable
-from openglider.glider.parametric.table.diagonals import DiagonalTable, StrapTable
+from openglider.glider.parametric.arc import ArcCurve
+from openglider.glider.parametric.lines import LineSet2D, LowerNode2D
+from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.parametric.table.ballooning import BallooningTable
-from openglider.glider.parametric.table.ribs_singleskin import SingleSkinTable
 from openglider.glider.parametric.table.cuts import CutTable
-
+from openglider.glider.parametric.table.diagonals import DiagonalTable, StrapTable
+from openglider.glider.parametric.table.holes import HolesTable
+from openglider.glider.parametric.table.material import ClothTable
+from openglider.glider.parametric.table.ribs_singleskin import SingleSkinTable
+from openglider.materials import cloth
+from openglider.utils import linspace
+from openglider.utils.table import Table
 
 logger = logging.getLogger(__name__)
 element_keywords = {
@@ -161,10 +158,6 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     diagonals = DiagonalTable(cell_sheet, file_version)
     straps = StrapTable(cell_sheet)
 
-
-    material_cells = get_material_codes(cell_sheet)
-    material_ribs = get_material_codes(rib_sheet)
-
     # minirib -> y, start (x)
     miniribs = []
     for minirib in read_elements(cell_sheet, "MINIRIB", len_data=2):
@@ -189,8 +182,8 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
                                    "rigidfoils": rigidfoils,
                                    "cell_rigidfoils": cell_rigidfoils,
                                    "straps": straps,
-                                   "material_cells": material_cells,
-                                   "material_ribs": material_ribs,
+                                   "material_cells": ClothTable(cell_sheet),
+                                   "material_ribs": ClothTable(rib_sheet),
                                    "miniribs": miniribs,
                                    "singleskin_ribs": skin_ribs
                                    },
@@ -325,29 +318,6 @@ def get_geometry_parametric(table: Table, cell_num):
         "profile_merge_curve": data["profile_merge_curve"],
         "ballooning_merge_curve": data["ballooning_merge_curve"]
     }
-    
-
-def get_material_codes(sheet):
-    materials = []
-
-    for m in read_elements(sheet, "MATERIAL", len_data=1):
-        if m[1] == "empty":
-            material = None
-        else:
-            material = cloth.get(m[1])
-        
-        materials.append([m[0], material])
-
-    i = 0
-    ret = []
-    while materials:
-        codes = [el[1] for el in materials if el[0] == i]
-        materials = [el for el in materials if el[0] != i]
-        ret.append(codes)
-        i += 1
-    # cell_no, part_no, code
-    return ret
-
 
 def get_lower_aufhaengepunkte(data):
     aufhaengepunkte = {}

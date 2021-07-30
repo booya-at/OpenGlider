@@ -316,31 +316,6 @@ class TensionLine(TensionStrap):
         return mesh.Mesh.from_indexed([p1, p2], {"tension_lines": [[0, 1]]}, boundaries=boundaries)
 
 
-class PanelCut(object):
-    def __init__(self, left, right, style=0, is_3d=False):
-        self.left = left
-        self.right = right
-        self.style = style
-        self.is_3d = is_3d
-        self.amount_3d = []
-
-    def add_3d_amount(self, amount):
-        self.amount_3d.append(amount)
-
-    def get_3d_amount(self):
-        if len(self.amount_3d) == 0:
-            return 0
-
-        return sum(self.amount_3d) / len(self.amount_3d)
-
-    @property
-    def mean_x(self):
-        return (self.left + self.right) / 2
-
-
-
-
-
 class PanelRigidFoil():
     channel_width = 0.01
     def __init__(self, x_start: float, x_end: float, y: float=0.5):

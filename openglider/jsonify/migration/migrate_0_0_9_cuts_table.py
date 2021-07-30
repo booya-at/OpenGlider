@@ -1,5 +1,6 @@
 import logging
 import json
+from openglider.glider.parametric.table.material import ClothTable, Material
 
 from openglider.jsonify.encoder import Encoder
 from openglider.jsonify.migration.migration import Migration
@@ -20,10 +21,30 @@ def migrate_diagonals(cls, jsondata):
         cuts = elements.get("cuts", [])
         cuts_table = get_cuts_table(cuts)
         elements["cuts"] = cuts_table
-    
 
+        material_cells = elements.get("material_cells", [])
+        elements["material_cells"] = get_materials_table(material_cells)
+
+        material_ribs = elements.get("material_ribs", [])
+        elements["material_ribs"] = get_materials_table(material_ribs)
+    
     return jsondata
 
+def get_materials_table(materials):
+    # Material
+    material_table = Table()
+    for cell_no, cell in enumerate(materials):
+        for part_no, part in enumerate(cell):
+            material_name = part
+            if isinstance(part, dict):
+                material_name = part["data"]["name"]
+
+            material_table[cell_no+1, part_no] = material_name
+
+    for part_no in range(material_table.num_columns):
+        material_table[0, part_no] = "MATERIAL"
+    
+    return ClothTable(material_table)
 
 def get_cuts_table(cuts):
     cuts_table = Table()

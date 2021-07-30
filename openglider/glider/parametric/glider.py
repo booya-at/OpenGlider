@@ -186,8 +186,8 @@ class ParametricGlider(object):
 
             cuts.sort(key=lambda cut: cut.get_average_x())
 
-            part_no = 0
             i = 0
+            materials = self.elements["material_cells"].get(cell_no)
 
             for cut1, cut2 in ZipCmp(cuts):
                 
@@ -204,9 +204,10 @@ class ParametricGlider(object):
                         continue
 
                 try:
-                    material = self.elements["material_cells"][cell_no][i]
+                    material = materials[i]
                 except (KeyError, IndexError):
-                    material = openglider.materials.cloth.get("unknown")
+                    logger.warning(f"No material for panel {cell_no}/{i+1}")
+                    material = openglider.materials.Material(name="unknown")
                 
                 i += 1
 
@@ -334,9 +335,10 @@ class ParametricGlider(object):
             startpoint = euklid.vector.Vector3D([-front[1] + offset_x, arc[0], arc[1]])
 
             try:
-                material = self.elements["material_ribs"][rib_no][0]
+                material = self.elements["material_ribs"].get(rib_no)[0]
             except (KeyError, IndexError):
-                material = openglider.materials.cloth.get("unknown")
+                logger.warning(f"no material set for rib: {rib_no+1}")
+                material = openglider.materials.Material(name="unknown")
 
             chord = abs(front[1]-back[1])
             factor = profile_merge_values[rib_no]

@@ -27,8 +27,8 @@ class RigidFoil(object):
 
         if dsq is not None:
             dsq = max(dsq, 0)
-            return self.distance + (self.circle_radius - np.sqrt(dsq)) * 0.35
-        return self.distance
+            return (self.circle_radius - np.sqrt(dsq)) * 0.35
+        return 0
 
     def __json__(self):
         return {'start': self.start,
@@ -72,7 +72,7 @@ class RigidFoil(object):
         indices = [profile(x) for x in point_range]
 
         nodes = [
-            (profile.curve.get(ik) - profile_normvectors.get(ik) * self.func(x)) * rib.chord 
+            (profile.curve.get(ik) - profile_normvectors.get(ik) * (self.distance/rib.chord + self.func(x))) * rib.chord 
             for ik, x in zip(indices, point_range)
             ]
 
