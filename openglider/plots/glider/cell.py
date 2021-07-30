@@ -44,7 +44,8 @@ class PanelPlot(object):
             _cut_types.parallel: self.config.allowance_trailing_edge,
             _cut_types.orthogonal: self.config.allowance_design,
             _cut_types.singleskin: self.config.allowance_entry_open,
-            _cut_types.cut_3d: self.config.allowance_design
+            _cut_types.cut_3d: self.config.allowance_design,
+            _cut_types.round: self.config.allowance_design
         }
 
         cut_types = {
@@ -52,14 +53,22 @@ class PanelPlot(object):
             _cut_types.parallel: self.config.cut_trailing_edge,
             _cut_types.orthogonal: self.config.cut_design,
             _cut_types.singleskin: self.config.cut_entry,
-            _cut_types.cut_3d: self.config.cut_3d
+            _cut_types.cut_3d: self.config.cut_3d,
+            _cut_types.round: self.config.cut_round
         }
 
         ik_values = self.panel._get_ik_values(self.cell, self.config.midribs, exact=True)
 
-        # allowance fallbacks
-        allowance_front = -cut_allowances[self.panel.cut_front.cut_type]
-        allowance_back = cut_allowances[self.panel.cut_back.cut_type]
+        # get seam allowance
+        if self.panel.cut_front.seam_allowance is not None:
+            allowance_front = -self.panel.cut_front.seam_allowance
+        else:
+            allowance_front = -cut_allowances[self.panel.cut_front.cut_type]
+        
+        if self.panel.cut_back.seam_allowance is not None:
+            allowance_back = self.panel.cut_back.seam_allowance
+        else:
+            allowance_back = cut_allowances[self.panel.cut_back.cut_type]
 
         # cuts -> cut-line, index left, index right
         cut_front = cut_types[self.panel.cut_front.cut_type](allowance_front)

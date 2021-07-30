@@ -184,16 +184,18 @@ class ParametricGlider(object):
             if 1 not in all_values:
                 cuts.append(PanelCut(1, 1, PanelCut.CUT_TYPES.parallel))
 
-            cuts.sort(key=lambda cut: cut.x_left + cut.x_right)
+            cuts.sort(key=lambda cut: cut.get_average_x())
+
+            part_no = 0
+            i = 0
 
             for cut1, cut2 in ZipCmp(cuts):
-                part_no = len(panel_lst)
                 
                 if cut1.x_right > cut2.x_right or cut1.x_left > cut2.x_left:
                     error_str = "Invalid cut: C{} {:.02f}/{:.02f}/{} + {:.02f}/{:.02f}/{}".format(
                         cell_no+1,
-                        cut1["left"], cut1["right"], cut1["type"],
-                        cut2["left"], cut2["right"], cut2["type"],
+                        cut1.x_left, cut1.x_right, cut1.cut_type,
+                        cut2.x_left, cut2.x_right, cut2.cut_type
                     )
                     raise ValueError(error_str)
 
@@ -202,14 +204,17 @@ class ParametricGlider(object):
                         continue
 
                 try:
-                    material = self.elements["material_cells"][cell_no][part_no]
+                    material = self.elements["material_cells"][cell_no][i]
                 except (KeyError, IndexError):
                     material = openglider.materials.cloth.get("unknown")
+                
+                i += 1
 
-                panel = Panel(cut1, cut2,
-                              name="c{}p{}".format(cell_no+1, part_no+1),
-                              material=material)
-                panel_lst.append(panel)
+                if material is not None:
+                    panel = Panel(cut1, cut2,
+                                name="c{}p{}".format(cell_no+1, len(panel_lst)+1),
+                                material=material)
+                    panel_lst.append(panel)
 
 
         return cells

@@ -16,6 +16,7 @@ class PatternConfig(Config):
     cut_design: object = cuts.Cut3D
     cut_diagonal_fold: object = cuts.FoldedCut
     cut_3d = cuts.Cut3D
+    cut_round = cuts.Cut3D
 
     midribs = 50
 

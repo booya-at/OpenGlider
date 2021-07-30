@@ -24,23 +24,28 @@ class PanelCut:
         cut_3d = 3
         singleskin = 4
         parallel = 5
+        round = 6
 
-    def __init__(self, x_left: float, x_right: float, cut_type: CUT_TYPES, cut_3d_amount=None):
+    def __init__(self, x_left: float, x_right: float, cut_type: CUT_TYPES, cut_3d_amount=None, x_center: float = None, seam_allowance=None):
         self.x_left = x_left
         self.x_right = x_right
+        self.x_center = x_center
         self.cut_type = cut_type
+        self.seam_allowance = seam_allowance
 
         if cut_3d_amount is None:
             cut_3d_amount = [0,0]
             
-        self.cut_3d_amount = [cut_3d_amount]
+        self.cut_3d_amount = cut_3d_amount
     
     def __json__(self):
         return {
             "x_left": self.x_left,
             "x_right": self.x_right,
+            "x_center": self.x_center,
             "cut_type": self.cut_type.name,
-            "cut_3d_amount": self.cut_3d_amount
+            "cut_3d_amount": self.cut_3d_amount,
+            "seam_allowance": self.seam_allowance
         }
 
     @classmethod    
@@ -62,55 +67,94 @@ class PanelCut:
         if self.cut_type != other.cut_type:
             return False
         
+        if self.x_center != other.x_center:
+            return False
+        
         return True
+    
+    def get_average_x(self):
+        values = [self.x_left, self.x_right]
+
+        if self.x_center is not None:
+            values.append(self.x_center)
+        
+        return sum(values)/len(values)
     
     def __hash__(self):
         return hash_list(self.x_left, self.x_right, self.cut_type)
 
     @cached_function("self")
     def _get_ik_values(self, cell: "openglider.glider.cell.Cell", numribs=0, exact=True):
-        """
-        :param cell: the parent cell of the panel
-        :param numribs: number of interpolation steps between ribs
-        :return: [[front_ik_0, back_ik_0], ..[front_ik_n, back_ik_n]] with n is numribs + 1
-        """
-        # TODO: move to cut!!
         x_values_left = cell.rib1.profile_2d.x_values
         x_values_right = cell.rib2.profile_2d.x_values
 
         ik_left = get_x_value(x_values_left, self.x_left)
         ik_right = get_x_value(x_values_right, self.x_right)
 
+        points_2d = [
+            [0, self.x_left],
+            [1, self.x_right]
+        ]
+
+        if self.x_center is not None:
+            points_2d.insert(1, [0.5, self.x_center])
+            bspline = euklid.spline.BSplineCurve(points_2d).get_sequence(50)
+            curve = euklid.vector.Interpolation(bspline.nodes)
+        else:
+            curve = euklid.vector.Interpolation(points_2d)
+        
         ik_values = [ik_left]
 
-        for i in range(numribs):
-            y = float(i+1)/(numribs+1)
+        for i in range(1, numribs+1):
+            x = i / (numribs+1)
+            y = curve.get_value(x)
 
-            ik = ik_left + y * (ik_right - ik_left)
-            ik_values.append(ik)
+            if self.x_center:
+                print(numribs, x, y)
+
+            _ik_left = get_x_value(x_values_left, y)
+            _ik_right = get_x_value(x_values_right, y)
+            ik_values.append(_ik_left + (_ik_right-_ik_left) * x)
         
         ik_values.append(ik_right)
 
         if not exact:
+            if self.x_center:
+                print(ik_values)
             return ik_values
 
         ik_values_new = []
         inner = cell.get_flattened_cell(num_inner=numribs+2)["inner"]
-        p_front_left = inner[0].get(ik_left)
-        p_front_right = inner[-1].get(ik_right)
+
+        points_2d = [
+            inner[0].get(ik_left),
+            inner[-1].get(ik_right)
+        ]
+
+        if self.x_center:
+            p = [0.5, self.x_center]
+            p1 = inner[0].get(get_x_value(x_values_left, p[1]))
+            p2 = inner[-1].get(get_x_value(x_values_left, p[1]))
+
+            points_2d.insert(1, p1+(p2-p1)*p[0])
+        
+        if self.x_center:
+            curve = euklid.spline.BSplineCurve(points_2d).get_sequence(50)
+        else:
+            curve = euklid.vector.PolyLine2D(points_2d)
 
         for i, ik in enumerate(ik_values):
-            ik_front = ik
             line: euklid.vector.PolyLine2D = inner[i]
 
-            _ik_front, _ = line.cut(p_front_left, p_front_right, ik_front)
+            _ik, _ = line.cut(curve, ik)
 
-            if abs(_ik_front-ik_front) > 20:
-                _ik_front = ik_front
+            if abs(_ik-ik) < 20:
+                ik = _ik
 
-            ik_values_new.append(_ik_front)
+            ik_values_new.append(ik)
         
         return ik_values_new
+
 
     @cached_function("self")
     def _get_ik_interpolation(self, cell: "openglider.glider.cell.Cell", numribs=0, exact=True) -> euklid.vector.Interpolation:

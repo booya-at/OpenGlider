@@ -38,6 +38,7 @@ class Skytex38(Porcher):
 materials += [
     Porcher(name="skytex_38_hf", weight=38),
     Skytex38(color="black", color_code="000000"),
+    Skytex38(color="white", color_code="FFFFFF"),
     Skytex38(color="dark_grey", color_code="909C9C"),
     Skytex38(color="lime_green_500", color_code="96C11E"),
     Skytex38(color="lime_green_530", color_code="BCB21F"),

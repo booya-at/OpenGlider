@@ -328,7 +328,16 @@ def get_geometry_parametric(table: Table, cell_num):
     
 
 def get_material_codes(sheet):
-    materials = [[m[0], cloth.get(m[1])] for m in read_elements(sheet, "MATERIAL", len_data=1)]
+    materials = []
+
+    for m in read_elements(sheet, "MATERIAL", len_data=1):
+        if m[1] == "empty":
+            material = None
+        else:
+            material = cloth.get(m[1])
+        
+        materials.append([m[0], material])
+
     i = 0
     ret = []
     while materials:
