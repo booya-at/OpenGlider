@@ -27,11 +27,11 @@ class LineSet(object):
     def __init__(self, lines: List[Line], v_inf=None):
         if v_inf is None:
             v_inf = [0,0,0]
-        self.v_inf = euklid.vector.Vector3D(v_inf)
+        self._v_inf = v_inf
+        
         self.lines = lines or []
+        self.v_inf = v_inf
 
-        for line in lines:
-            line.lineset = self
 
         self.mat = SagMatrix(len(self.lines))
         
@@ -44,15 +44,24 @@ class LineSet(object):
         """.format(super(LineSet, self).__repr__(),
                    len(self.lines),
                    self.total_length)
-        
+    @property
+    def v_inf(self):
+        return self._v_inf
+    
+    @v_inf.setter
+    def v_inf(self, v_inf):
+        self._v_inf = euklid.vector.Vector3D(v_inf)
+        for line in self.lines:
+            line.v_inf = self._v_inf
+
 
     @property
     def lowest_lines(self) -> List[Line]:
-        return [line for line in self.lines if line.lower_node.type == 0]
+        return [line for line in self.lines if line.lower_node.type == Node.NODE_TYPE.LOWER]
 
     @property
     def uppermost_lines(self) -> List[Line]:
-        return [line for line in self.lines if line.upper_node.type == 2]
+        return [line for line in self.lines if line.upper_node.type == Node.NODE_TYPE.UPPER]
 
     @property
     def nodes(self):
@@ -72,18 +81,18 @@ class LineSet(object):
                 line.init_length *= factor
             line.force = None
         for node in self.nodes:
-            if node.type == 2: # upper att-node
+            if node.type == Node.NODE_TYPE.UPPER:
                 node.force *= factor ** 2
         self.recalc(update_attachment_points=False)
         return self
 
     @property
     def attachment_points(self):
-        return [n for n in self.nodes if n.type == 2]
+        return [n for n in self.nodes if n.type == Node.NODE_TYPE.UPPER]
 
     @property
     def lower_attachment_points(self):
-        return [n for n in self.nodes if n.type == 0]
+        return [n for n in self.nodes if n.type == Node.NODE_TYPE.LOWER]
 
     def get_main_attachment_point(self):
         main_attachment_point = None
@@ -108,7 +117,7 @@ class LineSet(object):
         floors: number of line-levels
         """
         def recursive_count_floors(node):
-            if node.type == 2:
+            if node.type == Node.NODE_TYPE.UPPER:
                 return 0
 
             lines = self.get_upper_connected_lines(node)
@@ -213,7 +222,7 @@ class LineSet(object):
             start = self.lowest_lines
         for line in start:
             logger.debug(f"upper line: {line.number}")
-            if line.upper_node.type == 1:  # no gallery line
+            if line.upper_node.type == Node.NODE_TYPE.KNOT:  # no gallery line
                 lower_point = line.lower_node.vec
                 tangential = self.get_tangential_comp(line, lower_point)
                 line.upper_node.vec = lower_point + tangential * line.init_length
@@ -240,13 +249,13 @@ class LineSet(object):
     # -----CALCULATE SAG-----#
     def _calc_matrix_entries(self, line):
         up = self.get_upper_connected_lines(line.upper_node)
-        if line.lower_node.type == 0:
+        if line.lower_node.type == Node.NODE_TYPE.LOWER:
             self.mat.insert_type_0_lower(line)
         else:
             lo = self.get_lower_connected_lines(line.lower_node)
             self.mat.insert_type_1_lower(line, lo[0])
 
-        if line.upper_node.type == 1:
+        if line.upper_node.type == Node.NODE_TYPE.KNOT:
             self.mat.insert_type_1_upper(line, up)
         else:
             self.mat.insert_type_2_upper(line)
@@ -257,7 +266,7 @@ class LineSet(object):
         for line_lower in start_lines:
             upper_node = line_lower.upper_node
             vec = line_lower.diff_vector.normalized()
-            if line_lower.upper_node.type != 2:  # not a gallery line
+            if line_lower.upper_node.type != Node.NODE_TYPE.UPPER:  # not a gallery line
                 # recursive force-calculation
                 # setting the force from top to down
                 lines_upper = self.get_upper_connected_lines(upper_node)
@@ -377,7 +386,7 @@ class LineSet(object):
         if node is None:
             raise ValueError("Must either provide a node or line")
 
-        if node.type == 2:
+        if node.type == Node.NODE_TYPE.UPPER:
             return [node]
         else:
             upper_lines = self.get_upper_connected_lines(node)
@@ -542,8 +551,6 @@ class LineSet(object):
             row = insert_block(line, upper_lines, row, 0)
         
         return table
-
-
     
     node_group_rex = re.compile(r"[^A-Za-z]*([A-Za-z]*)[^A-Za-z]*")
 
@@ -629,8 +636,6 @@ class LineSet(object):
                 return length
 
         logger.warning(f"no shortening values for: {lower_line.type.name} / {line.type.name} ({total_lines})")
-
-
 
         return length
 
@@ -741,6 +746,7 @@ class LineSet(object):
 
     @classmethod
     def __from_json__(cls, lines, nodes, v_inf):
+        return cls([], v_inf)
         for line in lines:
             if isinstance(line.upper_node, int):
                 line.upper_node = nodes[line.upper_node]

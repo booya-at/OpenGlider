@@ -1,10 +1,11 @@
-from typing import List
+from openglider.materials import material
+from typing import List, Iterator
 
 import euklid
 import numpy as np
 import openglider.plots.marks as marks
 from openglider.glider import GliderProject
-from openglider.glider.cell.panel import Panel
+from openglider.glider.cell.panel import Panel, PanelCut
 from openglider.vector.drawing import Layout, PlotPart
 from openglider.vector.text import Text
 
@@ -46,10 +47,9 @@ class ShapePlot(object):
 
         return range(start, end)
 
-    def insert_design(self, lower=True, left=False):
+    def insert_design(self, lower=True, left=False) -> "ShapePlot":
         shape = self.shapes[left]
 
-        part = PlotPart()
         panels = self.glider_2d.get_panels()
 
         for cell_no in self._cell_range(left):
@@ -58,40 +58,37 @@ class ShapePlot(object):
             def match(panel):
                 if lower:
                     # -> either on the left or on the right it should go further than 0
-                    return panel.cut_back["left"] > 0 or panel.cut_back["right"] > 0
+                    return panel.cut_back.x_left > 0 or panel.cut_back.x_right > 0
                 else:
                     # should start before zero at least once
-                    return panel.cut_front["left"] < 0 or panel.cut_front["right"] < 0
+                    return panel.cut_front.x_left < 0 or panel.cut_front.x_right < 0
 
-            cell_side_panels: List[Panel] = filter(match, cell_panels)
+            cell_side_panels: Iterator[Panel] = filter(match, cell_panels)
 
             for panel in cell_side_panels:
-
-                def get_val(val):
+                def normalize_x(val):
                     if lower:
                         return max(val, 0)
                     else:
                         return max(-val, 0)
 
-                left_front = get_val(panel.cut_front["left"])
-                rigth_front = get_val(panel.cut_front["right"])
-                left_back = get_val(panel.cut_back["left"])
-                right_back = get_val(panel.cut_back["right"])
+                def get_cut_line(cut: PanelCut):
+                    left = shape.get_point(cell_no, normalize_x(cut.x_left))
+                    right = shape.get_point(cell_no+1, normalize_x(cut.x_right))
 
-                p1 = shape.get_point(cell_no, left_front)
-                p2 = shape.get_point(cell_no, left_back)
-                p3 = shape.get_point(cell_no+1, right_back)
-                p4 = shape.get_point(cell_no+1, rigth_front)
-
-                part.layers[str(panel.material)].append(
-                    euklid.vector.PolyLine2D([p1, p2, p3, p4, p1])
-                    )
+                    if cut.x_center is not None:
+                        center = shape.get_point(cell_no+0.5, normalize_x(cut.x_center))
+                        return euklid.spline.BSplineCurve([left, center, right]).get_sequence(8)
+                    
+                    return euklid.vector.PolyLine2D([left, right])
+                
+                l1 = get_cut_line(panel.cut_front)
+                l2 = get_cut_line(panel.cut_back).reverse()
 
                 self.drawing.parts.append(PlotPart(
-                    cuts=[euklid.vector.PolyLine2D([p1, p2, p3, p4, p1])],
-                    material_code=f"{panel.material}#{panel.material.color_code}"))
-
-        #self.drawing.parts.append(part)
+                    cuts=[euklid.vector.PolyLine2D(l1.nodes + l2.nodes + [l1.nodes[0]])],
+                    material_code=f"{panel.material}#{panel.material.color_code}"
+                ))
 
         return self
 

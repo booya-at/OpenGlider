@@ -14,7 +14,7 @@ class ClothTable(ElementTable):
         ("MATERIAL", 1)
     ]
 
-    def get_element(self, keyword, data) -> Optional[Material]:
+    def get_element(self, row, keyword, data) -> Optional[Material]:
         name = data[0]
 
         if name == "empty":

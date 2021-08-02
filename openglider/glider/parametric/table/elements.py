@@ -40,11 +40,11 @@ class ElementTable:
         for keyword, data_length in self.keywords:
             for column in self.get_columns(self.table, keyword, data_length):
                 if column[row_no, 0] is not None:
-                    elements.append(self.get_element(keyword, [column[row_no, i] for i in range(data_length)]))
+                    elements.append(self.get_element(row_no-1, keyword, [column[row_no, i] for i in range(data_length)]))
         
         return elements
     
-    def get_element(self, keyword, data) -> Any:
+    def get_element(self, row: int, keyword, data) -> Any:
         raise NotImplementedError()
 
     def _repr_html_(self):

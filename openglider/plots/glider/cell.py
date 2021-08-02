@@ -229,23 +229,24 @@ class PanelPlot(object):
         return plotpart
 
     def _insert_text(self, plotpart):
-        if self.config.layout_seperate_panels and not self.panel.is_lower():
-            left = get_x_value(self.x_values, self.panel.cut_back.x_left)
-            right = get_x_value(self.x_values, self.panel.cut_back.x_right)
-            p2 = self.ballooned[1].get(right)
-            p1 = self.ballooned[0].get(left)
-            align = "left"
-        else:
-            left = get_x_value(self.x_values, self.panel.cut_front.x_left)
-            right = get_x_value(self.x_values, self.panel.cut_front.x_right)
-            p1 = self.ballooned[1].get(right)
-            p2 = self.ballooned[0].get(left)
-            align = "right"
         text = self.panel.name
+        text_width = self.config.allowance_design * 0.8 * len(text)
+
+        if self.config.layout_seperate_panels and not self.panel.is_lower():
+            curve = self.panel.cut_back.get_curve_2d(self.cell, self.config.midribs, exact=True)
+        else:
+            curve = self.panel.cut_front.get_curve_2d(self.cell, self.config.midribs, exact=True).reverse()
+
+        ik_p1 = curve.walk(0, curve.get_length()*0.15)
+
+        p1 = curve.get(ik_p1)
+        ik_p2 = curve.walk(ik_p1, text_width)
+        p2 = curve.get(ik_p2)
+        align = "left"
+
         part_text = Text(text, p1, p2,
-                         size=self.config.allowance_design * 0.8,
                          align=align,
-                         valign=0.6,
+                         valign=-0.9,
                          height=0.8)
         plotpart.layers["text"] += part_text.get_vectors()
 

@@ -57,7 +57,10 @@ class PanelCut:
 
         return cls(**dct)
 
-    def __eq__(self, other: "PanelCut"):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, PanelCut):
+            return NotImplemented
+
         if self.x_left != other.x_left:
             return False
         
@@ -72,6 +75,9 @@ class PanelCut:
         
         return True
     
+    def mirror(self) -> None:
+        self.x_left, self.x_right = self.x_right, self.x_left
+    
     def get_average_x(self):
         values = [self.x_left, self.x_right]
 
@@ -80,7 +86,7 @@ class PanelCut:
         
         return sum(values)/len(values)
     
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash_list(self.x_left, self.x_right, self.cut_type)
 
     @cached_function("self")
@@ -139,14 +145,14 @@ class PanelCut:
             points_2d.insert(1, p1+(p2-p1)*p[0])
         
         if self.x_center:
-            curve = euklid.spline.BSplineCurve(points_2d).get_sequence(50)
+            curve_exact = euklid.spline.BSplineCurve(points_2d).get_sequence(50)
         else:
-            curve = euklid.vector.PolyLine2D(points_2d)
+            curve_exact = euklid.vector.PolyLine2D(points_2d)
 
         for i, ik in enumerate(ik_values):
             line: euklid.vector.PolyLine2D = inner[i]
 
-            _ik, _ = line.cut(curve, ik)
+            _ik, _ = line.cut(curve_exact, ik)
 
             if abs(_ik-ik) < 20:
                 ik = _ik
@@ -165,6 +171,14 @@ class PanelCut:
             )
         
         return ik_interpolation
+    
+    def get_curve_2d(self, cell: "openglider.glider.cell.Cell", numribs=0, exact=True) -> euklid.vector.PolyLine2D:
+        ik_values = self._get_ik_values(cell, numribs=numribs, exact=exact)
+
+        ribs = cell.get_flattened_cell(num_inner=numribs+2)["inner"]
+        points_2d = [rib.get(ik) for rib, ik in zip(ribs, ik_values)]
+
+        return euklid.vector.PolyLine2D(points_2d)
     
     def get_curve_3d(self, cell: "openglider.glider.cell.Cell", numribs=0, exact=True):
         ik_values = self._get_ik_values(cell, numribs, exact)
@@ -278,7 +292,7 @@ class Panel(object):
             # todo: return polygon-data
         return ribs
 
-    def get_mesh(self, cell, numribs=0, with_numpy=False, exact=False, tri=False) -> mesh.Mesh:
+    def get_mesh(self, cell: "openglider.glider.cell.Cell", numribs=0, with_numpy=True, exact=False, tri=False) -> mesh.Mesh:
         """
         Get Panel-mesh
         :param cell: the parent cell of the panel
@@ -302,7 +316,7 @@ class Panel(object):
 
             front, back = ik_values[rib_no]
 
-            midrib = cell.midrib(y)
+            midrib = cell.midrib(y, with_numpy=with_numpy)
 
             rib_iks.append(midrib.get_positions(front, back))
 
@@ -398,11 +412,8 @@ class Panel(object):
         """
         mirrors the cuts of the panel
         """
-        front = self.cut_front
-        front.x_left, front.x_right = front.x_right, front.x_left
-
-        back = self.cut_back
-        back.x_left, back.x_right = back.x_right, back.x_left
+        self.cut_front.mirror()
+        self.cut_back.mirror()
     
     def snap(self, cell) -> None:
         """
@@ -428,13 +439,13 @@ class Panel(object):
         return [(ik1, ik2) for ik1, ik2 in zip(ik_front, ik_back)]
         
     @cached_function("self")
-    def _get_ik_interpolation(self, cell: "Cell", numribs=0, exact=True):
+    def _get_ik_interpolation(self, cell: "openglider.glider.cell.Cell", numribs=0, exact=True):
         i1 = self.cut_front._get_ik_interpolation(cell, numribs, exact)
         i2 = self.cut_back._get_ik_interpolation(cell, numribs, exact)
 
         return i1, i2
 
-    def integrate_3d_shaping(self, cell: "Cell", sigma, inner_2d, midribs=None) -> Tuple[List[float], List[float]]:
+    def integrate_3d_shaping(self, cell: "openglider.glider.cell.Cell", sigma, inner_2d, midribs=None) -> Tuple[List[float], List[float]]:
         """
         :param cell: the parent cell of the panel
         :param sigma: std-deviation parameter of gaussian distribution used to weight the length differences.

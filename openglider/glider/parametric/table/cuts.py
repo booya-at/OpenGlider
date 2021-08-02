@@ -21,7 +21,7 @@ class CutTable(ElementTable):
         ("singleskin", 2),
     ]
 
-    def get_element(self, keyword, data):
+    def get_element(self, row, keyword, data):
         cut_type = None
         if keyword in ("EKV", "EKH", "folded"):
             cut_type = PanelCut.CUT_TYPES.folded

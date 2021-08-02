@@ -5,6 +5,7 @@ import numpy as np
 import logging
 
 import euklid
+import pyfoil
 
 from openglider.airfoil import Profile3D
 from openglider.utils.cache import CachedObject, cached_property
@@ -25,7 +26,7 @@ class Rib(CachedObject):
 
     hashlist = ['aoa_absolute', 'glide', 'arcang', 'zrot', 'chord', 'pos', 'profile_2d']  # pos
 
-    def __init__(self, profile_2d=None, startpoint=None,
+    def __init__(self, profile_2d: pyfoil.Airfoil, startpoint=None,
                  chord=1., arcang=0, aoa_absolute=0, zrot=0, xrot = 0, glide=1,
                  name="unnamed rib", startpos=0.,
                  rigidfoils=None,
@@ -153,12 +154,14 @@ class Rib(CachedObject):
     def normalized_normale(self):
         return self.rotation_matrix.apply([0., 0., 1.])
 
-    @property
-    def in_plane_normale(self):
-        return self.rotation_matrix.apply([0., 1., 0.])
-
     def get_attachment_points(self, glider, brake=True):
-        return glider.get_rib_attachment_points(self, brake=brake)
+        attach_pts = []
+        for att in glider.attachment_points:
+            if hasattr(att, "rib"):
+                if att.rib == self:
+                    if brake or att.rib_pos != 1.:
+                        attach_pts.append(att)
+        return attach_pts
 
     def get_lines(self, glider, brake=False):
         att = self.get_attachment_points(glider, brake=brake)

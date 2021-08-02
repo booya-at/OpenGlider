@@ -6,8 +6,6 @@ import ezodf
 import openglider.glider
 import openglider.glider.parametric.glider
 from openglider.glider.ballooning import BallooningBezierNeu
-from openglider.glider.cell import DiagonalRib
-from openglider.glider.parametric.arc import ArcCurve
 from openglider.utils.table import Table
 
 file_version = "V3"
@@ -118,7 +116,6 @@ def get_geom_sheet(glider_2d):
 
 
 def get_cell_sheet(glider):
-    cell_num = glider.shape.half_cell_num
     row_num = glider.shape.half_cell_num
     table = Table()
     table["A1"] = file_version
@@ -128,20 +125,7 @@ def get_cell_sheet(glider):
 
     elems = glider.elements
 
-
-    # rigidfoils
-    rigidfoils = elems.get("cell_rigidfoils", [])
-    rigidfoils.sort(key=lambda r: r["x_start"])
-    for rigidfoil in rigidfoils:
-        rigidfoil_table = Table()
-        rigidfoil_table[0, 0] = "RIGIDFOIL"
-
-        for cell_no in rigidfoil["cells"]:
-            rigidfoil_table[cell_no+1, 0] = rigidfoil["x_start"]
-            rigidfoil_table[cell_no+1, 1] = rigidfoil["x_end"]
-            rigidfoil_table[cell_no+1, 2] = rigidfoil["y"]
-        
-        table.append_right(rigidfoil_table)
+    table.append_right(elems["cell_rigidfoils"].table)
 
     # cuts
     table.append_right(elems["cuts"].table)
@@ -166,23 +150,8 @@ def get_rib_sheet(glider_2d):
     for i in range(1, glider_2d.shape.half_cell_num+1):
         table[i, 0] = f"rib{i}"
 
-    # holes
-    table.append_right(glider_2d.elements["holes"].table)
-
-    # rigidfoils
-    rigidfoils = glider_2d.elements.get("rigidfoils", [])
-    rigidfoils.sort(key=lambda r: r["start"])
-    for rigidfoil in rigidfoils:
-        rigidfoil_table = Table()
-        rigidfoil_table[0, 0] = "RIGIDFOIL"
-
-        for rib_no in rigidfoil["ribs"]:
-            rigidfoil_table[rib_no+1, 0] = rigidfoil["start"]
-            rigidfoil_table[rib_no+1, 1] = rigidfoil["end"]
-            rigidfoil_table[rib_no+1, 2] = rigidfoil["distance"]
-        
-        table.append_right(rigidfoil_table)
-    
+    table.append_right(glider_2d.elements["holes"].table)    
+    table.append_right(glider_2d.elements["rigidfoils"].table)
     table.append_right(glider_2d.elements["material_ribs"].table)
 
     if "singleskin_ribs" in elems:

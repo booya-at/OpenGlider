@@ -316,10 +316,15 @@ class Cell(CachedObject):
                 cuts.append(panel.cut_back)
         
         for cut in cuts:
-            cut.update({
-                "right": cut["left"],
-                "left": cut["right"]
-            })
+            cut.mirror()
+        
+    def get_attachment_points(self, glider):
+        attach_pts = []
+        for att in glider.attachment_points:
+            if hasattr(att, "cell"):
+                if att.cell == self:
+                    attach_pts.append(att)
+        return attach_pts
 
     def mean_airfoil(self, num_midribs=8) -> pyfoil.Airfoil:
         mean_rib = self.midrib(0).flatten().normalized()

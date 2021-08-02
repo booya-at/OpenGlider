@@ -95,8 +95,8 @@ class Glider(object):
             cell.name = self.cell_naming_scheme.format(cell=cell, cell_no=cell_no+1)
             cell.rename_parts()
 
-    def get_panel_groups(self) -> Dict[str, List["openglider.glider.cell.elements.Panel"]]:
-        panels: Dict[str, List["openglider.glider.cell.elements.Panel"]] = {}
+    def get_panel_groups(self) -> Dict[str, List["openglider.glider.cell.panel.Panel"]]:
+        panels: Dict[str, List["openglider.glider.cell.panel.Panel"]] = {}
         for cell in self.cells:
             for panel in cell.panels:
                 material_code = str(panel.material)
@@ -245,7 +245,7 @@ class Glider(object):
         for p in other2.lineset.attachment_points:
             p.get_position()
         for node in [node for node in other2.lineset.nodes]:
-            if node.type != 2:
+            if node.type != node.NODE_TYPE.UPPER:
                 node.vec *= [1, -1, 1]
             if all(node.force):
                 node.force *= [1, -1, 1]
@@ -436,26 +436,6 @@ class Glider(object):
         for line in self.lineset.lowest_lines:
             points += self.lineset.get_upper_influence_nodes(line)
         return points
-
-    def get_rib_attachment_points(self, rib, brake=True, include_mirrored=True):
-        attach_pts = []
-        if include_mirrored:
-            if hasattr(rib, 'mirrored_rib') and rib.mirrored_rib:
-                rib = rib.mirrored_rib
-        for att in self.attachment_points:
-            if hasattr(att, "rib"):
-                if att.rib == rib:
-                    if not ((not brake) and att.rib_pos == 1.):
-                        attach_pts.append(att)
-        return attach_pts
-
-    def get_cell_attachment_points(self, cell):
-        attach_pts = []
-        for att in self.attachment_points:
-            if hasattr(att, "cell"):
-                if att.cell == cell:
-                    attach_pts.append(att)
-        return attach_pts
 
     def get_main_attachment_point(self):
         """

@@ -1,6 +1,6 @@
 import copy
 import logging
-from typing import TypeVar, List, Any
+from typing import Tuple, TypeVar, List, Any
 
 import numpy as np
 
@@ -174,8 +174,8 @@ def hash_attributes(class_instance, hashlist):
     return hash(value_lst)
 
 
-def hash_list(*lst):
-    value_lst = ()
+def hash_list(*lst) -> int:
+    value_lst: List[int] = []
     for el in lst:
 
         hash_func = getattr(el, "__hash__", None)
@@ -191,9 +191,9 @@ def hash_list(*lst):
                 except TypeError:
                     thahash = hash(str(el))
         
-        value_lst += (thahash, )
+        value_lst.append(thahash)
 
-    return hash(value_lst)
+    return hash(tuple(value_lst))
 
 
 

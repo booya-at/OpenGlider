@@ -7,6 +7,7 @@ import euklid
 import openglider
 from openglider.lines import Node
 from openglider.vector.polygon import Circle, Ellipse
+from openglider.glider.shape import Shape
 
 logger = logging.getLogger(__name__)
 
@@ -150,7 +151,7 @@ class CellAttachmentPoint(Node):
     ballooned=False
 
     def __init__(self, cell, name, cell_pos, rib_pos, force=None):
-        super(CellAttachmentPoint, self).__init__(node_type=2)
+        super().__init__(node_type=self.NODE_TYPE.UPPER)
         self.cell = cell
         self.cell_pos = cell_pos
         self.rib_pos = rib_pos
@@ -168,6 +169,9 @@ class CellAttachmentPoint(Node):
             "name": self.name,
             "force": self.force
         }
+    
+    def __from_json__(self, *data):
+        raise Exception(f"jooo {data}")
 
     def get_position(self) -> euklid.vector.Vector3D:
         ik = self.cell.rib1.profile_2d(self.rib_pos)
@@ -180,16 +184,25 @@ class CellAttachmentPoint(Node):
             self.vec = self.cell.midrib(self.cell_pos, ballooning=self.ballooned)[ik]
             
         return self.vec
+    
+    def get_position_2d(self, shape: Shape, glider) -> euklid.vector.Vector2D:
+        cell_no = glider.cells.index(self.cell) + shape.has_center_cell
+
+        return shape.get_point(cell_no+self.cell_pos, self.rib_pos)
+
 
 # Node from lines
 class AttachmentPoint(Node):
 
     def __init__(self, rib, name, rib_pos, force=None):
-        super(AttachmentPoint, self).__init__(node_type=2)
+        super().__init__(node_type=self.NODE_TYPE.UPPER)
         self.rib = rib
         self.rib_pos = rib_pos
         self.name = name
         self.force = force
+
+        self.protoloops = 0
+        self.protoloop_distance = 0.02
 
     def __repr__(self):
         return "<Attachment point '{}' ({})>".format(self.name, self.rib_pos)
@@ -200,11 +213,15 @@ class AttachmentPoint(Node):
                 "rib_pos": self.rib_pos,
                 "force": self.force}
 
-
     def get_position(self) -> euklid.vector.Vector3D:
         # todo: PROFILE3D -> return euklid vector
         self.vec = self.rib.profile_3d[self.rib.profile_2d(self.rib_pos)]
         return self.vec
+    
+    def get_position_2d(self, shape: Shape, glider) -> euklid.vector.Vector2D:
+        rib_no = glider.ribs.index(self.rib)
+
+        return shape.get_point(rib_no, self.rib_pos)
 
 
 class RibHole(object):
@@ -371,9 +388,3 @@ class MultiSquareHole(RibHole):
             curves += hole.get_curves(rib, num)
         
         return curves
-
-
-
-class Mylar(object):
-    pass
-

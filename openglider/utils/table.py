@@ -59,7 +59,7 @@ class Table:
         table.dct = dct
 
         for key in dct:
-            row, column = cls.str_decrypt(key)
+            column, row = cls.str_decrypt(key)
 
             table.num_rows = max(table.num_rows, row+1)
             table.num_columns = max(table.num_columns, column+1)

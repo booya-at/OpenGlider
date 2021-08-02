@@ -12,7 +12,7 @@ class SingleSkinTable(ElementTable):
         ("SkinRib", 2),  # continued_min_end, xrot
     ]
 
-    def get_element(self, keyword, data) -> Dict[str, float]:
+    def get_element(self, row, keyword, data) -> Dict[str, float]:
         return {
             "continued_min_end": data[0],
             "xrot": data[1]

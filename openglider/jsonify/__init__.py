@@ -54,7 +54,8 @@ def object_hook(dct):
             return deserializer(**dct['data'])
         except TypeError as e:
             print(f"in element: {obj} {dct['_module']}")
-            raise e
+
+            raise TypeError(f"error in elem: {obj}")
 
     else:
         return dct

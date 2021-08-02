@@ -16,7 +16,7 @@ from openglider.glider.parametric.table.diagonals import DiagonalTable, StrapTab
 from openglider.glider.parametric.table.holes import HolesTable
 from openglider.glider.parametric.table.material import ClothTable
 from openglider.glider.parametric.table.ribs_singleskin import SingleSkinTable
-from openglider.materials import cloth
+from openglider.glider.parametric.table.rigidfoil import RibRigidTable, CellRigidTable
 from openglider.utils import linspace
 from openglider.utils.table import Table
 
@@ -110,16 +110,11 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
             raise Exception(f"Cannot add stabi cell on {geometry['shape']}")
         
         shape.stabi_cell = True
-        
-    attachment_points_cell_table = filter_elements_from_table(cell_sheet, "ATP", 4)
-    attachment_points_cell_table.append_right(filter_elements_from_table(cell_sheet, "AHP", 4))
 
-    attachment_points_rib_table = filter_elements_from_table(rib_sheet, "AHP", 3)
-    attachment_points_rib_table.append_right(filter_elements_from_table(rib_sheet, "ATP", 3))
 
     attachment_points = LineSet2D.read_attachment_point_table(
-        cell_table=attachment_points_cell_table,
-        rib_table=attachment_points_rib_table,
+        cell_table=cell_sheet,
+        rib_table=rib_sheet,
         cell_no=geometry["shape"].cell_num
     )
 
@@ -127,31 +122,10 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
 
     attachment_points_lower = get_lower_aufhaengepunkte(data_dct)
 
-    def get_grouped_elements(sheet, names, keywords):
-        group_kw = keywords[0]
-        elements = []
-        for name in names:
-            elements += read_elements(sheet, name, len_data=len(keywords)-1)
-        
-        element_dct = to_dct(elements, keywords)
-
-        return group(element_dct, group_kw)
-
-
     # RIB HOLES
     rib_holes = HolesTable(rib_sheet)
-
-    rigidfoil_keywords = ["ribs", "start", "end", "distance"]
-    rigidfoils = read_elements(rib_sheet, "RIGIDFOIL", len_data=3)
-    rigidfoils = to_dct(rigidfoils, rigidfoil_keywords)
-    rigidfoils = group(rigidfoils, "ribs")
-
-    cell_rigidfoils = get_grouped_elements(
-        cell_sheet, 
-        ["RIGIDFOIL"], 
-        ["cells", "x_start", "x_end", "y"]
-        )
-
+    rigidfoils = RibRigidTable(rib_sheet)
+    cell_rigidfoils = CellRigidTable(cell_sheet)
     cuts = CutTable(cell_sheet)
 
     # Diagonals: center_left, center_right, width_l, width_r, height_l, height_r

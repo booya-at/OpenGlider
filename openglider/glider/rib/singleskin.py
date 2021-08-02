@@ -85,7 +85,7 @@ class SingleSkinRib(Rib):
         returns a modified profile2d
         '''
         profile = self.profile_2d
-        attach_pts = glider.get_rib_attachment_points(self)
+        attach_pts = self.get_attachment_points(glider)
         fixed_positions = list(set([att.rib_pos for att in attach_pts] + [1]))
 
         if len(fixed_positions) > 1:

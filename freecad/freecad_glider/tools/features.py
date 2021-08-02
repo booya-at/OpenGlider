@@ -97,7 +97,8 @@ class RibFeature(BaseFeature):
         for i, rib in enumerate(glider.ribs):
             if i in self.obj.ribs:
                 rib.profile_2d = airfoil
-                rib.pos += rib.in_plane_normale * self.obj.rib_offset * rib.chord
+                normale = rib.rotation_matrix.apply([0., 1., 0.])
+                rib.pos += normale * self.obj.rib_offset * rib.chord
                 rib.aoa_absolute += self.obj.delta_aoa
         return glider
 

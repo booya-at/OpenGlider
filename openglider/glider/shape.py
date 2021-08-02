@@ -19,6 +19,10 @@ class Shape(object):
         self.front = front
         self.back = back
 
+    @property
+    def has_center_cell(self):
+        return abs(self.front.nodes[0][0]) > 1e-5 and abs(self.back.nodes[0][0]) > 1e-5
+
     def get_point(self, x, y) -> euklid.vector.Vector2D:
         front = self.front.get(x)
         back = self.back.get(x)

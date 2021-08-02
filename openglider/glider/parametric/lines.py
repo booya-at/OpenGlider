@@ -8,7 +8,7 @@ import euklid
 
 from openglider.glider.rib.elements import AttachmentPoint, CellAttachmentPoint
 from openglider.lines import Node, Line, LineSet
-from openglider.utils import recursive_getattr
+from openglider.utils import recursive_getattr, sign
 from openglider.lines import line_types
 from openglider.utils.table import Table
 
@@ -16,11 +16,10 @@ logger = logging.getLogger(__name__)
 
 class LowerNode2D(object):
     """lower attachment point"""
-    def __init__(self, pos_2D, pos_3D, name="unnamed", layer=None):
+    def __init__(self, pos_2D, pos_3D, name="unnamed"):
         self.pos_2D = pos_2D
         self.pos_3D = pos_3D
         self.name = name
-        self.layer = layer or ""
 
     def __repr__(self):
         return "<LowerNode2D {}>".format(self.name)
@@ -29,37 +28,37 @@ class LowerNode2D(object):
         return{
             "pos_2D": self.pos_2D,
             "pos_3D": self.pos_3D,
-            "name": self.name,
-            "layer": self.layer}
+            "name": self.name
+        }
 
     def get_2D(self, *args):
         return self.pos_2D
 
     def get_node(self, glider):
-        return Node(node_type=0, position_vector=self.pos_3D, name=self.name)
+        return Node(node_type=Node.NODE_TYPE.LOWER, position_vector=self.pos_3D, name=self.name)
 
 
 class UpperNode2D(object):
     """stores the 2d data of an attachment point"""
-    def __init__(self, cell_no, rib_pos, cell_pos=0, force=1., name="unnamed", layer=None, is_cell=False):
+    def __init__(self, cell_no, rib_pos, cell_pos=0, force=1., name="unnamed", is_cell=False):
         self.cell_no = cell_no
         self.cell_pos = cell_pos
         self.rib_pos = rib_pos  # value from 0...1
         self.force = force
         self.name = name
-        self.layer = layer or ""
         self.is_cell = is_cell
+        self.proto_dist = 0
 
     def __json__(self):
         return {'cell_no': self.cell_no,
                 'rib_pos': self.rib_pos,
                 "cell_pos": self.cell_pos,
                 'force': self.force,
-                'name': self.name,
-                "layer": self.layer}
+                'name': self.name
+                }
 
     def __repr__(self):
-        return "<UpperNode2D name:{} cell_no:{} cell_pos: {} rib_pos:{}".format(self.name, self.cell_no, self.cell_pos, self.rib_pos)
+        return f"<UpperNode2D name:{self.name} cell_no:{self.cell_no} cell_pos: {self.cell_pos} rib_pos:{self.rib_pos}>"
 
     def get_2D(self, parametric_shape):
         x = self.cell_no + self.cell_pos + parametric_shape.has_center_cell
@@ -70,7 +69,7 @@ class UpperNode2D(object):
         if self.is_cell: # attachment point between two ribs
             cell = glider.cells[self.cell_no]
             if isinstance(self.force, (list, tuple, np.ndarray)):
-                force = euklid.vector.Vector3D(self.force)
+                force = euklid.vector.Vector3D(list(self.force))
             else:
                 force = cell.get_normvector() * self.force
 
@@ -78,11 +77,15 @@ class UpperNode2D(object):
         else: # attachment point on the rib
             rib = glider.ribs[self.cell_no + self.cell_pos + glider.has_center_cell]
             if isinstance(self.force, (list, tuple, np.ndarray)):
-                force = euklid.vector.Vector3D(self.force)
+                force = euklid.vector.Vector3D(list(self.force))
             else:
                 force = rib.rotation_matrix.apply([0, self.force, 0])
 
             node = AttachmentPoint(rib, self.name, self.rib_pos, force)
+            
+            if self.proto_dist:
+                node.protoloops = 1
+                node.protoloop_distance = self.proto_dist
 
         node.get_position()
         return node
@@ -102,7 +105,7 @@ class BatchNode2D(object):
         }
 
     def get_node(self, glider):
-        return Node(node_type=1)
+        return Node(node_type=Node.NODE_TYPE.KNOT)
 
     def get_2D(self, *args):
         return self.pos_2D
@@ -195,36 +198,44 @@ class LineSet2D(object):
 
         return LineSet(lines, v_inf)
 
-    def scale_forces(self, glider, node, weight):
-        '''
-        scales all forces to match a certain weight in a node
-        '''
-        # get upper connected force of the node
-        # use z-direction of this force
-        # compute scaling
-        # scale all forces
-        pass
+    def scale(self, factor, scale_lower_floor=True, scale_y=False):
+        lower_nodes = []
 
+        if not scale_lower_floor:
+            lower_nodes = [n for n in self.get_lower_attachment_points() if n.name == "main"]
+            if len(lower_nodes) != 1:
+                raise ValueError("There are no lower floor nodes")
+            
+        lower_nodes_offset = 0
+        lower_lines_count = 0
 
-    def scale(self, factor, scale_lower_floor=True):
-        lower_nodes = self.get_lower_attachment_points()
         for line in self.lines:
             target_length = getattr(line, "target_length", None)
             if target_length is not None:
                 if scale_lower_floor or line.lower_node not in lower_nodes:
                     line.target_length *= factor
-        for node in lower_nodes:
-            node.pos_3D = node.pos_3D * factor
-            node.pos_2D = node.pos_2D * factor
+                else:
+                    lower_nodes_offset += line.target_length * (1-factor)
+                    lower_lines_count += 1
+        
+        if lower_lines_count != 0:
+            lower_nodes_offset /= lower_lines_count
+
+        for node in self.get_lower_attachment_points():
+            node.pos_3D[0] = node.pos_3D[0] * factor
+            if scale_y:
+                node.pos_3D[1] = node.pos_3D[1] * factor
+            node.pos_3D[2] = node.pos_3D[2] * factor + sign(node.pos_3D[2]) * lower_nodes_offset
+            #node.pos_2D = node.pos_2D * (factor + lower_nodes_offset / node.pos_2D.length())
 
     def set_default_nodes2d_pos(self, parametricshape):
-        def get_node_pos(node):
+        def get_node_pos(node) -> euklid.vector.Vector2D:
             if isinstance(node, UpperNode2D):
                 return node.get_2D(parametricshape)
             
             nodes = [line.upper_node for line in self.get_upper_connected_lines(node)]
 
-            position = sum([get_node_pos(node) for node in nodes], euklid.vector.Vector2D([0, 0])) * (1/len(nodes)) + [0, -0.1]
+            position = sum([get_node_pos(node) for node in nodes], euklid.vector.Vector2D([0, 0])) * (1/len(nodes)) + euklid.vector.Vector2D([0, -0.1])
             node.pos_2D = position
 
             return position
@@ -328,7 +339,6 @@ class LineSet2D(object):
         current_nodes = [None for row in range(num_cols)]
         row = 0
         column = 0
-        count = 0
 
         while row < num_rows:
             value = sheet[row, column]  # length or node_no
@@ -366,12 +376,11 @@ class LineSet2D(object):
                         column += 2
                     
                     if lower_node is None:
-                        print("jo")
+                        logger.error(f"no lower_node: {row}/{column}")
 
                     linelist.append(
                         Line2D(lower_node, upper, target_length=line_length, line_type=line_type_name))
-                    count += 1
-
+                        
             else:
                 if column == 0:
                     column += 1
@@ -389,7 +398,6 @@ class LineSet2D(object):
         num_cells = 0
         tables_cell = []
         tables_rib = []
-        tables = []
 
         # sort by layer
         for node in nodes:
@@ -403,6 +411,7 @@ class LineSet2D(object):
             node_groups[layer_name].append(node)
             num_cells = max(num_cells, node.cell_no)+1  # WHAT?
 
+        # layer_groups
         groups = list(node_groups.keys())
 
         # per layer table
@@ -414,6 +423,8 @@ class LineSet2D(object):
             return res
 
         groups.sort(key=sorted)
+
+        # for all layers layers
         for key in groups:
             table = Table()
             group_nodes = node_groups[key]
@@ -456,53 +467,20 @@ class LineSet2D(object):
     
     @staticmethod
     def read_attachment_point_table(cell_table: Table, rib_table:Table, cell_no=None):
+        from openglider.glider.parametric.table.attachment_points import CellAttachmentPointTable, AttachmentPointTable
+
         half_cell_no = cell_no // 2 + cell_no % 2
 
+        cell_table_reader = CellAttachmentPointTable(cell_table)
+        rib_table_reader = AttachmentPointTable(rib_table)
+
         attachment_points = []
-        # values = ("name", "cell_pos", "rib_pos", "force")
-        num_columns = int(cell_table.num_columns / 4)
 
-        def get_force(force):
-            if isinstance(force, str):
-                return ast.literal_eval(force)
-            return force
+        for i in range(half_cell_no):
+            attachment_points += cell_table_reader.get(i)
+            attachment_points += rib_table_reader.get(i)
         
-        for column in range(num_columns):
-            column_0 = column*4
-            assert cell_table[0, column_0] in ("ATP", "AHP")
-
-            for row in range(1, cell_table.num_rows):
-                name = cell_table[row, column_0]
-                if name:
-                    force = get_force(cell_table[row, column_0+3])
-                    
-                    cell_no = row - 1
-
-                    attachment_points.append(UpperNode2D(
-                        cell_no=cell_no,
-                        name=name,
-                        cell_pos = cell_table[row, column_0+1],
-                        rib_pos = cell_table[row, column_0+2],
-                        force=force, # parse list/tuple
-                        is_cell=True
-                        ))
-        
-        for column in range(int(rib_table.num_columns / 3)):
-            for row in range(1, rib_table.num_rows):
-                name = rib_table[row, column*3]
-                if name:
-                    rib_no = row-1
-                    
-                    rib_pos = rib_table[row, column*3+1]
-                    force = get_force(rib_table[row, column*3+2])
-
-                    attachment_points.append(UpperNode2D(
-                        name=name,
-                        cell_no=rib_no,
-                        rib_pos=rib_pos,
-                        force=force
-                    ))
-        
+        attachment_points += rib_table_reader.get(half_cell_no)
 
         for attachment_point in attachment_points:
             if attachment_point.cell_no >= half_cell_no:

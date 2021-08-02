@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import FreeCADGui as Gui
-from openglider.glider.in_out.export_3d import parabem_Panels
+#from openglider.glider.in_out.export_3d import parabem_Panels
 from openglider.utils.distribution import Distribution
 from PySide import QtCore, QtGui
 

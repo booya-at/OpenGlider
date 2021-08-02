@@ -39,5 +39,6 @@ class MaterialRegistry:
 
 
 cloth = MaterialRegistry(
-    "openglider.materials._cloth.porcher"
+    "openglider.materials._cloth.porcher",
+    "openglider.materials._cloth.other"
 )

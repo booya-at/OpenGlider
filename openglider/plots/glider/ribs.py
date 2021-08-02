@@ -37,7 +37,7 @@ class RibPlot(object):
         self.rib = rib
         self.config = self.DefaultConfig(config)
 
-        self.plotpart = self.x_values = self.inner = self.outer = None
+        #self.plotpart = self.x_values = self.inner = self.outer = None
 
     def flatten(self, glider):
         self.plotpart = PlotPart(name=self.rib.name, material_code=str(self.rib.material))
@@ -197,9 +197,10 @@ class RibPlot(object):
             if hasattr(attachment_point, "rib") and attachment_point.rib == self.rib:
                 positions = [attachment_point.rib_pos]
 
-                if self.config.protoloops:
-                    positions.append(attachment_point.rib_pos + self.config.protoloops)
-                    positions.append(attachment_point.rib_pos - self.config.protoloops)
+                if attachment_point.protoloops:
+                    for i in range(attachment_point.protoloops):
+                        positions.append(attachment_point.rib_pos + (i+1)*attachment_point.protoloop_distance)
+                        positions.append(attachment_point.rib_pos - (i+1)*attachment_point.protoloop_distance)
 
                 for position in positions:
                     self.insert_mark(position, self.config.marks_attachment_point)

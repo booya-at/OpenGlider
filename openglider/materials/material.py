@@ -3,7 +3,7 @@ import re
 class Material:
     weight: float = 0 # g / sqm
     
-    manufacturer: str = "unknown"
+    manufacturer: str = "generic"
     name: str = "unnamed"
     color: str = ""
     color_code: str = "FFFFFF"

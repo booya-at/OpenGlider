@@ -23,7 +23,7 @@ class DiagonalTable(ElementTable):
         ("QR", 6),  # start, end, height, num_holes, border_width
     ]
     
-    def get_element(self, keyword, data):
+    def get_element(self, row, keyword, data):
         if keyword == "QR":
             height1 = data[4]
             height2 = data[5]
@@ -44,7 +44,7 @@ class StrapTable(ElementTable):
         ("VEKTLAENGE", 2) # left, right
     ]
     
-    def get_element(self, keyword, data):
+    def get_element(self, row, keyword, data):
         if keyword == "STRAP":
             return TensionStrap(*data)
         elif keyword == "VEKTLAENGE":

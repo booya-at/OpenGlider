@@ -127,7 +127,7 @@ class PatternsNew(object):
 
         for sketch_name, sketch in sketches.items():
             fill = False
-            if sketch_name in ("design_upper", "design_lower", "lineplan"):
+            if sketch_name in ("design_upper", "design_lower"):
                 fill=True
 
             sketch.export_a4(fn(sketch_name+".svg"), fill=fill)

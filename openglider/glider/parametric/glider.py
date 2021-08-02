@@ -155,7 +155,7 @@ class ParametricGlider(object):
             airfoil = first.copy()
         return airfoil
 
-    def get_panels(self, glider_3d=None):
+    def get_panels(self, glider_3d=None) -> List[List[Panel]]:
         """
         Create Panels Objects and apply on gliders cells if provided, otherwise create a list of panels
         :param glider_3d: (optional)
@@ -165,6 +165,8 @@ class ParametricGlider(object):
             if cut_1["left"] >= cut_2["left"] and cut_1["right"] >= cut_2["left"]:
                 return True
             return False
+
+        cells: List[List[Panel]]
 
         if glider_3d is None:
             cells = [[] for _ in range(self.shape.half_cell_num)]
@@ -320,8 +322,6 @@ class ParametricGlider(object):
 
         logger.info("apply elements")
 
-        rigids = self.elements.get("rigidfoils", [])
-
         cell_centers = [(p1+p2)/2 for p1, p2 in zip(x_values[:-1], x_values[1:])]
         offset_x = shape_ribs[0][0][1]
 
@@ -346,7 +346,7 @@ class ParametricGlider(object):
             profile.name = "Profile{}".format(rib_no)
 
             this_rib_holes = self.elements["holes"].get(rib_no)
-            this_rigid_foils = [RigidFoil(rigid["start"], rigid["end"], rigid["distance"]) for rigid in rigids if rib_no in rigid["ribs"]]
+            this_rigid_foils = self.elements["rigidfoils"].get(rib_no)
 
             rib = Rib(
                 profile_2d=profile,
@@ -389,6 +389,8 @@ class ParametricGlider(object):
             
             cell = Cell(rib1, rib2, ballooning, name="c{}".format(cell_no+1))
 
+            cell.rigidfoils = self.elements["cell_rigidfoils"].get(cell_no)
+
             glider.cells.append(cell)
 
 
@@ -402,11 +404,6 @@ class ParametricGlider(object):
             cells = data.pop("cells")
             for cell_no in cells:
                 glider.cells[cell_no].miniribs.append(MiniRib(**data))
-
-        for rigidfoil in self.elements.get("cell_rigidfoils", []):
-            data = rigidfoil.copy()
-            for cell_no in data.pop("cells"):
-                glider.cells[cell_no].rigidfoils.append(PanelRigidFoil(**data))
 
         # RIB-ELEMENTS
         #self.apply_holes(glider)

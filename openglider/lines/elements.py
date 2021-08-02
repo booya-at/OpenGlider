@@ -88,6 +88,7 @@ class Line(CachedObject):
         """
         self.number = number
         self.type = line_type  # type of line
+        self.v_inf = v_inf  # free-stream velocity
         
         self._color = None
         self.color = color
@@ -132,12 +133,6 @@ class Line(CachedObject):
     @property
     def v_inf_0(self):
         return self.v_inf.normalized()
-
-    @property
-    def v_inf(self) -> euklid.vector.Vector3D:
-        if self.lineset is None:
-            raise ValueError(f"no lineset for line {self}")
-        return self.lineset.v_inf
 
     #@cached_property('lower_node.vec', 'upper_node.vec')
     @property
@@ -246,11 +241,11 @@ class Line(CachedObject):
     def get_mesh(self, numpoints):
         line_points = [Vertex(*point) for point in self.get_line_points(numpoints=numpoints)]
         boundary: Dict[str, List[Vertex]] = {"lines": []}
-        if self.lower_node.type == 0:
+        if self.lower_node.type == Node.NODE_TYPE.LOWER:
             boundary["lower_attachment_points"] = [line_points[0]]
         else:
             boundary["lines"].append(line_points[0])
-        if self.upper_node.type == 2:
+        if self.upper_node.type == Node.NODE_TYPE.UPPER:
             boundary["attachment_points"] = [line_points[-1]]
         else:
             boundary["lines"].append(line_points[-1])
@@ -338,9 +333,14 @@ class Line(CachedObject):
         f = 1. - normed_residual_force.dot(normed_diff_vector)   # 1 if normal, 0 if parallel
         return f * self.force / l
 
-
+import enum
 class Node(object):
-    def __init__(self, node_type, position_vector=None, attachment_point=None, name=None):
+    class NODE_TYPE(enum.Enum):
+        LOWER = 0
+        KNOT = 1
+        UPPER = 2
+
+    def __init__(self, node_type: NODE_TYPE, position_vector=None, attachment_point=None, name=None):
         self.type = node_type  # lower, middle, top (0, 1, 2)
         if position_vector is None:
             position_vector = [0,0,0]
@@ -363,7 +363,7 @@ class Node(object):
         v = euklid.vector.Vector3D(vec)
 
         direction = self.vec - v
-        if self.type == 2:
+        if self.type == self.NODE_TYPE.UPPER:
             force = proj_force(self.force, direction)
         else:
             force = direction.normalized().dot(self.force)
@@ -386,14 +386,21 @@ class Node(object):
         return self.vec - self.vec_proj
 
     def is_upper(self):
-        return self.type == 2
+        return self.type == self.NODE_TYPE.UPPER
 
     def __json__(self):
         return{
-            'node_type': self.type,
+            'node_type': self.type.name,
             'position_vector': list(self.vec),
             "name": self.name
         }
+    
+    @classmethod
+    def __from_json__(cls, **kwargs):
+        if "node_type" in kwargs:
+            kwargs["node_type"] = getattr(cls.NODE_TYPE, kwargs["node_type"])
+        
+        return cls(**kwargs)
 
     def copy(self):
         return self.__class__(self.type, self.vec, self.attachment_point, self.name)

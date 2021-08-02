@@ -15,7 +15,7 @@ class HolesTable(ElementTable):
         ("HOLESQMULTI", 5)  # start, end, height, num_holes, border_width
     ]
     
-    def get_element(self, keyword, data):
+    def get_element(self, row, keyword, data):
         if keyword in ("HOLE", "QUERLOCH"):
             return RibHole(data[0], data[1])
         

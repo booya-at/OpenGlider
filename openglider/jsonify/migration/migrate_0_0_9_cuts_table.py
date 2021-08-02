@@ -1,5 +1,6 @@
 import logging
 import json
+from openglider.glider.parametric.table.rigidfoil import CellRigidTable, RibRigidTable
 from openglider.glider.parametric.table.material import ClothTable, Material
 
 from openglider.jsonify.encoder import Encoder
@@ -23,12 +24,59 @@ def migrate_diagonals(cls, jsondata):
         elements["cuts"] = cuts_table
 
         material_cells = elements.get("material_cells", [])
-        elements["material_cells"] = get_materials_table(material_cells)
+        material_table = get_materials_table(material_cells)
+        elements["material_cells"] = material_table
+        material_table.table.save("/tmp/materials.ods")
 
         material_ribs = elements.get("material_ribs", [])
         elements["material_ribs"] = get_materials_table(material_ribs)
+
+        cell_rigids = elements.get("cell_rigidfoils", [])
+        elements["cell_rigidfoils"] = get_cell_rigidfoil_table(cell_rigids)
+
+        rib_rigids = elements.get("rigidfoils", [])
+        elements["rigidfoils"] = get_rib_rigidfoil_table(rib_rigids)
     
+    for node_type in (r"LowerNode2D", r"UpperNode2D", r"BatchNode2D"):
+        for node in cls.find_nodes(jsondata, name=node_type):
+            node["data"].pop("layer")
+        
     return jsondata
+
+def get_cell_rigidfoil_table(rigidfoils):
+    table = Table()
+    rigidfoils.sort(key=lambda r: r["x_start"])
+    for rigidfoil in rigidfoils:
+        rigidfoil_table = Table()
+        rigidfoil_table[0, 0] = "RIGIDFOIL"
+
+        for cell_no in rigidfoil["cells"]:
+            rigidfoil_table[cell_no+1, 0] = rigidfoil["x_start"]
+            rigidfoil_table[cell_no+1, 1] = rigidfoil["x_end"]
+            rigidfoil_table[cell_no+1, 2] = rigidfoil["y"]
+        
+        table.append_right(rigidfoil_table)
+
+    return CellRigidTable(table)
+
+
+def get_rib_rigidfoil_table(rigidfoils):
+    table = Table()
+
+    rigidfoils.sort(key=lambda r: r["start"])
+    for rigidfoil in rigidfoils:
+        rigidfoil_table = Table()
+        rigidfoil_table[0, 0] = "RIGIDFOIL"
+
+        for rib_no in rigidfoil["ribs"]:
+            rigidfoil_table[rib_no+1, 0] = rigidfoil["start"]
+            rigidfoil_table[rib_no+1, 1] = rigidfoil["end"]
+            rigidfoil_table[rib_no+1, 2] = rigidfoil["distance"]
+        
+        table.append_right(rigidfoil_table)
+    
+    return RibRigidTable(table)
+
 
 def get_materials_table(materials):
     # Material
