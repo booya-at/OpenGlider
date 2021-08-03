@@ -50,7 +50,7 @@ class BallooningBase():
     def get_tension_factor(self, xval) -> float:
         """Get the tension due to ballooning"""
         value =  2. * np.tan(self.get_phi(xval))
-        if 0. in value:
+        if value == 0:
             return value
         else:
             return 1. / value
