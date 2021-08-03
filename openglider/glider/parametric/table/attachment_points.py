@@ -1,5 +1,6 @@
-import re
+import ast
 import logging
+import re
 
 from openglider.utils.table import Table
 from openglider.glider.parametric.table.elements import ElementTable
@@ -19,7 +20,12 @@ class AttachmentPointTable(ElementTable):
 
     def get_element(self, row, keyword, data) -> UpperNode2D:
         # cell_no, rib_pos, cell_pos, force, name, is_cell
-        node = UpperNode2D(row, data[1], 0, data[2], name=data[0], is_cell=False)
+        force = data[2]
+
+        if isinstance(force, str):
+            force = ast.literal_eval(force)
+            
+        node = UpperNode2D(row, data[1], 0, force, name=data[0], is_cell=False)
 
         if keyword == "ATPPROTO":
             node.proto_dist = data[3]
@@ -61,4 +67,9 @@ class CellAttachmentPointTable(ElementTable):
     ]
 
     def get_element(self, row, keyword, data) -> UpperNode2D:
-        return UpperNode2D(row, data[2], data[1], data[3], name=data[0], is_cell=True)
+        force = data[3]
+
+        if isinstance(force, str):
+            force = ast.literal_eval(force)
+
+        return UpperNode2D(row, data[2], data[1], force, name=data[0], is_cell=True)
