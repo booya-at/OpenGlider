@@ -421,10 +421,10 @@ class Panel(object):
         """
         p_l = cell.rib1.profile_2d
         p_r = cell.rib2.profile_2d
-        self.cut_back.x_left = p_l.nearest_x_value(self.cut_back.x_left)
-        self.cut_back.x_right = p_r.nearest_x_value(self.cut_back.x_right)
-        self.cut_front.x_left = p_l.nearest_x_value(self.cut_front.x_left)
-        self.cut_front.x_right = p_r.nearest_x_value(self.cut_front.x_right)
+        self.cut_back.x_left = p_l.find_nearest_x_value(self.cut_back.x_left)
+        self.cut_back.x_right = p_r.find_nearest_x_value(self.cut_back.x_right)
+        self.cut_front.x_left = p_l.find_nearest_x_value(self.cut_front.x_left)
+        self.cut_front.x_right = p_r.find_nearest_x_value(self.cut_front.x_right)
 
     @cached_function("self")
     def _get_ik_values(self, cell: "openglider.glider.cell.Cell", numribs=0, exact=True):

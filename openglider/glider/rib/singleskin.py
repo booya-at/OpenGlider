@@ -80,7 +80,7 @@ class SingleSkinRib(Rib):
         json_dict["single_skin_par"] = self.single_skin_par
         return json_dict
 
-    def get_hull(self, glider=None) -> euklid.vector.PolyLine2D:
+    def get_hull(self, glider=None) -> pyfoil.Airfoil:
         '''
         returns a modified profile2d
         '''

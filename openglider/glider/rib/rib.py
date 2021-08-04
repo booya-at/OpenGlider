@@ -1,4 +1,4 @@
-from __future__ import division
+from typing import List, Any
 import copy
 import math
 import numpy as np
@@ -52,7 +52,7 @@ class Rib(CachedObject):
             
         # self.curves = [FoilCurve()]
         # TODO: add in paramteric way
-        self.curves = []
+        self.curves: List[Any] = []
 
     def __json__(self):
         return {"profile_2d": self.profile_2d,
@@ -145,7 +145,7 @@ class Rib(CachedObject):
     def is_closed(self):
         return self.profile_2d.thickness < 0.01
 
-    def get_hull(self, glider=None):
+    def get_hull(self, glider=None) -> pyfoil.Airfoil:
         """returns the outer contour of the normalized mesh in form
            of a Polyline"""
         return self.profile_2d

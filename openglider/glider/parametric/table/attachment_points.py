@@ -1,7 +1,9 @@
+from typing import Dict
 import ast
 import logging
 import re
 
+import openglider
 from openglider.utils.table import Table
 from openglider.glider.parametric.table.elements import ElementTable
 
@@ -36,13 +38,13 @@ class AttachmentPointTable(ElementTable):
     def from_glider(cls, glider: "openglider.glider.Glider"):
         table = Table()
 
-        layer_columns = {}
+        layer_columns: Dict[str, int] = {}
 
         for cell_no, cell in enumerate(glider.cells):
-            cell_layers = []
-            attachment_points = cell.get_attachment_points()
+            #cell_layers = []
+            attachment_points = cell.get_attachment_points(glider)
             for att_point in attachment_points:
-                match = self.regex_node_layer.match(att_point.name)
+                match = cls.regex_node_layer.match(att_point.name)
                 
                 if match:
                     layer = match.group(1)

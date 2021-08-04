@@ -1,3 +1,5 @@
+from typing import Union, Optional, overload
+
 import euklid
 import pyfoil
 
@@ -8,13 +10,36 @@ class Profile3D:
         self.curve = euklid.vector.PolyLine3D(data)
         self.name = name
 
-    def __getitem__(self, ik):
+    @overload
+    def __getitem__(self, ik: float) -> euklid.vector.Vector3D: ...
+
+    @overload
+    def __getitem__(self, ik: slice) -> euklid.vector.PolyLine3D: ...
+
+    def __getitem__(self, ik: Union[float, slice]) -> Union[euklid.vector.PolyLine3D, euklid.vector.Vector3D]:
+        if isinstance(ik, slice):
+            start = ik.start
+            stop = ik.stop
+            if ik.step == -1:
+                stop, start = start, stop
+            elif ik.step not in (None, 1):
+                raise Exception(f"invalid step: {ik.step}")
+            
+            return self.curve.get(start, stop)
+
         return self.curve.get(ik)
     
     def get_positions(self, start, stop):
         return self.curve.get_positions(start, stop)
-    
-    def get(self, start, stop=None):
+
+    @overload
+    def get(self, start: float) -> euklid.vector.Vector3D: ...
+
+    @overload
+    def get(self, start: float, stop: float) -> euklid.vector.PolyLine3D: ...
+
+
+    def get(self, start: float, stop: Optional[float]=None) -> Union[euklid.vector.PolyLine3D, euklid.vector.Vector3D]:
         if stop is None:
             return self.curve.get(start)
             
