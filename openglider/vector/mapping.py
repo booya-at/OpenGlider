@@ -5,17 +5,20 @@ import numpy
 import euklid
 import openglider.jsonify
 
-d = 1e-5
+d = 1e-4
 
 class Quad:
     # arbitrary quadrilateral interpolation
     # barycentric coordinates
     # https://numfactory.upc.edu/web/FiniteElements/Pract/P4-QuadInterpolation/html/QuadInterpolation.html
+    # https://www.particleincell.com/2012/quad-interpolation/
+    # x = a[0] + a[1]*l + a[2]*m + a[3]*l*m
+    # y = b[0] + b[1]*l + b[2]*m + b[3]*l*m
     matrix: numpy.matrix = numpy.matrix([
-        [1,0,0,0],
-        [1,1,0,0],
-        [1,1,1,1],
-        [1,0,1,0]
+        [1,0,0,0], #p1: l=0, m=0
+        [1,1,0,0], #p2: l=1, m=0
+        [1,1,1,1], #p3: l=1, m=1
+        [1,0,1,0]  #p4: l=0, m=1
     ])
 
     matrix_inverse: numpy.matrix = numpy.linalg.inv(matrix)
@@ -30,23 +33,35 @@ class Quad:
 
 
     def to_global(self, l, m) -> euklid.vector.Vector2D:
+        #return self.nodes[0] + (self.nodes[4]-self.nodes[0]) * 
         x = self.a[0] + l*self.a[1] + m*self.a[2] + self.a[3]*l*m
         y = self.b[0] + l*self.b[1] + m*self.b[2] + self.b[3]*l*m
         
         return euklid.vector.Vector2D([x,y])
 
     def to_local(self, point: euklid.vector.Vector2D) -> Tuple[float, float]:
+        #for i, node in enumerate(self.nodes):
+        if abs(point[0] - self.nodes[0][0]) < 1e-10 and abs(point[1] - self.nodes[0][1]) < 1e-10:
+            return 0., 0.
+        
         a = self.a[3]*self.b[2] - self.a[2]*self.b[3]
         b = self.a[3]*self.b[0] - self.a[0]*self.b[3] + self.a[1]*self.b[2] - self.a[2]*self.b[1] + self.b[3]*point[0] - self.a[3]*point[1]
         c = self.a[1]*self.b[0] - self.a[0]*self.b[1] + self.b[1]*point[0] - self.a[1]*point[1]
         
         if abs(a) < 1e-10:
             m = -c/b
-            l = m
         else:
             m = (-b + math.sqrt(b**2 - 4*a*c))/(2*a)
-            l = (point[0] - self.a[0] - self.a[2]*m) / (self.a[1] + self.a[3]*m)
+        
+        divisor = self.a[1] + self.a[3]*m
+        divisor2 = self.b[1] + self.b[3]*m
 
+        # pick the numerically more stable solution
+        if abs(divisor) < abs(divisor2):
+            l = (point[1] - self.b[0] - self.b[2]*m) / divisor2
+        else:
+            l = (point[0] - self.a[0] - self.a[2]*m) / divisor
+        
         return l, m
 
 
@@ -103,21 +118,19 @@ class Mapping:
             for quad in quads_row:
                 m, l = quad.to_local(point)
 
-                distance = max([
-                    min([abs(m), abs(m-1)]),
-                    min([abs(l), abs(l-1)])
-                ])
-
-                min_distance = min(min_distance, distance)
+                if abs(m) < d:
+                    m = 0.
+                elif abs(m-1) < d:
+                    m = 1.
                 
-
-                if distance < 1+d:
+                if abs(l) < d:
+                    l = 0.
+                elif abs(l-1) < d:
+                    l = 1.
+                
+                if 0. <= l <= 1. and 0. <= m <= 1.:
                     offset_i, offset_x = self.quad_map[quad]
-
                     return offset_x + m, offset_i + l
-        
-        with open("/tmp/data.json", "w") as outfile:
-            openglider.jsonify.dump([self, point], outfile)
         
         raise ValueError(f"couldn't fit {point}")
 

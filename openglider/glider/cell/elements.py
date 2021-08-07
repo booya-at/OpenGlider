@@ -18,6 +18,8 @@ from openglider.vector.projection import flatten_list
 if TYPE_CHECKING:
     from openglider.glider.cell import Cell
 
+logger = logging.getLogger(__name__)
+
 class DiagonalRib(object):
     hole_num = 0
     hole_border_side = 0.15
@@ -123,64 +125,68 @@ class DiagonalRib(object):
         """
         left, right = self.get_3d(cell)
         left_2d, right_2d = self.get_flattened(cell)
-
-        node_no = max([len(c.nodes) for c in (left, right)])
-        node_no = max(node_no, max([len(c.nodes) for c in (left_2d, right_2d)]))
-
-        left = left.resample(node_no)
-        right = right.resample(node_no)
-        left_2d = left_2d.resample(node_no)
-        right_2d = right_2d.resample(node_no)
         
-        points_2d = left_2d.tolist()
+        envelope_2d = left_2d.tolist()
+        envelope_3d = left.tolist()
 
-        p1 = left_2d.nodes[-1]
-        p2 = right_2d.nodes[-1]
 
-        for i in range(insert_points):
-            points_2d.append(list(p1 + (p2-p1) * ((i+1)/(insert_points+1))))
+        def get_list(p1, p2):
+            return [
+                list(p1 + (p2-p1) * ((i+1)/(insert_points+1)))
+                for i in range(insert_points)
+            ]
 
-        points_2d += right_2d.reverse().tolist()
+        envelope_2d += get_list(left_2d.nodes[-1], right_2d.nodes[-1])
+        envelope_3d += get_list(left.nodes[-1], right.nodes[-1])
 
-        p1 = right_2d.nodes[0]
-        p2 = left_2d.nodes[0]
+        envelope_2d += right_2d.reverse().tolist()
+        envelope_3d += right.reverse().tolist()
 
-        for i in range(insert_points):
-            points_2d.append(list(p1 + (p2-p1) * ((i+1)/(insert_points+1))))
+        envelope_2d += get_list(right_2d.nodes[0], left_2d.nodes[0])
+        envelope_3d += get_list(right.nodes[0], left.nodes[0])
         
-        boundary_nodes = list(range(len(points_2d)))
+        boundary_nodes = list(range(len(envelope_2d)))
         boundary = [boundary_nodes+[0]]
         
         holes, hole_centers = self.get_holes(cell)
         
         for curve in holes:
-            start_index = len(points_2d)
+            start_index = len(envelope_2d)
             hole_vertices = curve.tolist()[:-1]
             hole_indices = list(range(len(hole_vertices))) + [0]
-            points_2d += hole_vertices
+            envelope_2d += hole_vertices
             boundary.append([start_index + i for i in hole_indices])
 
         hole_centers_lst = [list(p) for p in hole_centers]
 
-        tri = mesh.triangulate.Triangulation(points_2d, boundary, hole_centers_lst)
-
-        tri.name = self.name or "DIAGONAL"
-        #tri.meshpy_quality_mesh = False
-        #tri.meshpy_incremental_algorithm = False
-        #tri.meshpy_planar_straight_line_graph = False
-
+        tri = mesh.triangulate.Triangulation(envelope_2d, boundary, hole_centers_lst)
         tri_mesh = tri.triangulate()
 
-        mapping_2d = Mapping([right_2d, left_2d])
-        mapping_3d = Mapping3D([right, left])
+        # map 2d-points to 3d-points
 
-        points_3d = []
+        # todo: node_no = kgv(len(left), len(right))
+        node_no = 100
 
-        for point in tri_mesh.points:
+        mapping_2d = Mapping([right_2d.resample(node_no), left_2d.resample(node_no)])
+        mapping_3d = Mapping3D([right.resample(node_no), left.resample(node_no)])
+
+        points_3d: List[List[float]] = []
+
+        for point_3d, point_2d in zip(envelope_3d, tri_mesh.points[:len(envelope_2d)]):
+            vector_3d = euklid.vector.Vector3D(point_3d)
+            points_3d.append(vector_3d)
+
+        for point in tri_mesh.points[len(envelope_2d):]:
             ik = mapping_2d.get_iks(euklid.vector.Vector2D(point))
             points_3d.append(list(mapping_3d.get_point(*ik)))
+        
+        drib_mesh = mesh.Mesh.from_indexed(points_3d, {"diagonals": list(tri_mesh.elements)}, boundaries={"diagonals": boundary_nodes})
 
-        return mesh.Mesh.from_indexed(points_3d, {"diagonals": list(tri_mesh.elements)}, boundaries={"diagonals": boundary_nodes})
+        min_size = drib_mesh.polygon_size()[0]
+        if  min_size < 1e-20:
+            raise Exception(f"min polygon size: {min_size} in drib: {self.name}")
+
+        return drib_mesh
 
 
     def get_holes(self, cell, points=40) -> Tuple[List[euklid.vector.PolyLine2D], List[euklid.vector.Vector2D]]:
