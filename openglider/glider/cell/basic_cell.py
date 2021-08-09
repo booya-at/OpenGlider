@@ -106,6 +106,21 @@ class BasicCell(CachedObject):
                 radius.append(r)
 
         return radius
+    
+    @cached_property('ballooning_phi', 'prof1', 'prof2')
+    def ballooning_tension_factors(self):
+        prof1 = self.prof1.curve
+        prof2 = self.prof2.curve
+        tension = []
+        for p1, p2, phi in zip(prof1, prof2, self.ballooning_phi):
+            value =  2. * np.tan(phi)
+            if value > 1e-10:
+                value = 1/value
+            
+            tension.append(value * (p1-p2).length())
+        
+        return tension
+            
 
     def copy(self):
         return copy.deepcopy(self)

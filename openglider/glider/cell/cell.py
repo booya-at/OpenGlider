@@ -158,8 +158,8 @@ class Cell(CachedObject):
     def _make_profile3d_from_minirib(self, minirib):
         # self.basic_cell.prof1 = self.prof1
         # self.basic_cell.prof2 = self.prof2
-        shape_with_ballooning = self.basic_cell.midrib(minirib.y_value, True).curve.nodes
-        shape_without_ballooning = self.basic_cell.midrib(minirib.y_value, False).curve.nodes
+        shape_with_ballooning = self.basic_cell.midrib(minirib.y_value, ballooning=True, arc_argument=False).curve.nodes
+        shape_without_ballooning = self.basic_cell.midrib(minirib.y_value, ballooning=False).curve.nodes
         points = []
         for xval, with_bal, without_bal in zip(
                 self.x_values, shape_with_ballooning, shape_without_ballooning):
@@ -182,23 +182,42 @@ class Cell(CachedObject):
             cells.append(BasicCell(leftrib, rightrib, ballooning=[], name=f"{self.name}_{cell_no}"))
         if not self.miniribs:
             return cells
+        
+        cell_phi = self.basic_cell.ballooning_phi
+        profile_phi = []
+
+        for index in range(len(self.x_values)):
+            phi_values = [0]
+            for mrib in self.miniribs:
+                phi = cell_phi[index] + math.asin((2 * mrib.y_value - 1) * math.sin(cell_phi[index]))
+                phi_values.append(phi)
+            phi_values.append(2*cell_phi[index])
+
+            profile_phi.append(phi_values)
 
         for index, xvalue in enumerate(self.x_values):
             left_point = self.rib1.profile_3d.curve.nodes[index]
             right_point = self.rib2.profile_3d.curve.nodes[index]
+
+            phi_values = profile_phi[index]
+            phi_max = max(phi_values)
+
             bl = self.ballooning[xvalue]
 
-            l = (right_point - left_point).length()  # L
+            length_bow = (1+bl) * (right_point - left_point).length()  # L
+
             lnew = sum([(c.prof1.curve.nodes[index] - c.prof2.curve.nodes[index]).length() for c in cells])  # L-NEW
 
-            for c in cells:
+            for cell_no, cell in enumerate(cells):
                 if bl > 0:
-                    newval = l / lnew * (bl+1/2) - 1/2
-                    #newval = l/lnew / bl
-                    #newval = lnew / l / bl if bl != 0 else 1
-                    c.ballooning_phi.append(Ballooning.arcsinc(1/(1+newval)))  # B/L NEW 1 / (bl * l / lnew)
+                    length_bow_part = length_bow * (phi_values[cell_no+1] - phi_values[cell_no]) / phi_max
+                    lnew = (cell.prof1.curve.nodes[index] - cell.prof2.curve.nodes[index]).length()
+                    
+                    ballooning_new = (length_bow_part/lnew) - 1
+
+                    cell.ballooning_phi.append(Ballooning.arcsinc(1/(1+ballooning_new)))  # B/L NEW 1 / (bl * l / lnew)
                 else:
-                    c.ballooning_phi.append(0.)
+                    cell.ballooning_phi.append(0.)
         return cells
 
     @property
@@ -253,6 +272,33 @@ class Cell(CachedObject):
         x_values = [max(-1, min(1, x)) for x in self.rib1.profile_2d.x_values]
         balloon = [self.ballooning[i] for i in x_values]
         return HashedList([Ballooning.arcsinc(1. / (1+bal)) if bal > 0 else 0 for bal in balloon])
+    
+    @cached_property('ballooning', '_child_cells')
+    def ballooning_tension_factors(self):
+        if len(self._child_cells) <= 1:
+            return self.basic_cell.ballooning_tension_factors
+        
+        child_factors = [cell.ballooning_tension_factors for cell in self._child_cells]
+
+        factors = []
+
+        prof1 = self.prof1.curve
+        prof2 = self.prof2.curve
+
+        for i in range(len(prof1.nodes)):
+            tension = 0
+            diff = (prof1.nodes[i] - prof2.nodes[i]).normalized()
+
+            for cell, cell_factors in zip(self._child_cells, child_factors):
+                diff_child = (cell.prof1.curve.nodes[i] - cell.prof2.curve.nodes[i])
+                cos_psi = abs(diff.dot(diff_child.normalized()))
+
+                tension = max(tension, cell_factors[i]*cos_psi - math.sqrt(1-cos_psi**2)*diff_child.length()/2)
+            
+            factors.append(tension)
+        
+        return factors
+
 
     @property
     def span(self) -> float:

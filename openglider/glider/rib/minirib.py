@@ -7,18 +7,20 @@ class MiniRib():
     def __init__(self, yvalue, front_cut, back_cut=1, func=None, name="minirib"):
         #Profile3D.__init__(self, [], name)
 
+        p1_x = 2/3
+
         if not func:  # Function is a bezier-function depending on front/back
             if front_cut > 0:
-                points = [[front_cut, 1], [front_cut * 2. / 3 + back_cut * 1. / 3, 0]]  #
+                points = [[front_cut, 1], [front_cut + (back_cut - front_cut) * (1-p1_x), 0]]  #
             else:
-                points = [[front_cut, 0]]
+                points = [[0, 0]]
 
             if back_cut < 1:
-                points = points + [[front_cut * 1. / 3 + back_cut * 2. / 3, 0], [back_cut, 1]]
+                points = points + [[front_cut + (back_cut-front_cut) * p1_x, 0], [back_cut, 1]]
             else:
-                points = points + [[back_cut, 0]]
+                points = points + [[1., 0.]]
             
-            curve = euklid.spline.BezierCurve(points).get_sequence(100)
+            curve = euklid.spline.BSplineCurve(points).get_sequence(100)
             func = euklid.vector.Interpolation(curve.nodes)
 
         self.function = func

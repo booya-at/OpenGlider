@@ -17,7 +17,7 @@ from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.export_ods import export_ods_2d
 from openglider.glider.parametric.import_ods import import_ods_2d
 from openglider.glider.parametric.lines import LineSet2D, UpperNode2D
-from openglider.glider.rib import RibHole, RigidFoil, Rib, MiniRib, SingleSkinRib
+from openglider.glider.rib import Rib, MiniRib, SingleSkinRib
 from openglider.glider.parametric.fitglider import fit_glider_3d
 import openglider.materials
 from openglider.utils.distribution import Distribution
@@ -399,11 +399,8 @@ class ParametricGlider(object):
         self.get_panels(glider)
         self.apply_diagonals(glider)
 
-        for minirib in self.elements.get("miniribs", []):
-            data = minirib.copy()
-            cells = data.pop("cells")
-            for cell_no in cells:
-                glider.cells[cell_no].miniribs.append(MiniRib(**data))
+        for cell_no, cell in enumerate(glider.cells):
+            cell.miniribs = self.elements["miniribs"].get(row_no=cell_no)
 
         # RIB-ELEMENTS
         #self.apply_holes(glider)

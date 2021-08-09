@@ -15,24 +15,13 @@ from openglider.glider.parametric.table.cuts import CutTable
 from openglider.glider.parametric.table.diagonals import DiagonalTable, StrapTable
 from openglider.glider.parametric.table.holes import HolesTable
 from openglider.glider.parametric.table.material import ClothTable
+from openglider.glider.parametric.table.miniribs import MiniRibTable
 from openglider.glider.parametric.table.ribs_singleskin import SingleSkinTable
 from openglider.glider.parametric.table.rigidfoil import RibRigidTable, CellRigidTable
 from openglider.utils import linspace
 from openglider.utils.table import Table
 
 logger = logging.getLogger(__name__)
-element_keywords = {
-    "cuts": ["cells", "left", "right", "type"],
-    "a": "",
-}
-
-def filter_elements_from_table(table: Table, key: str, length: int):
-    new_table = Table()
-    for column in range(table.num_columns):
-        if table[0, column] == key:
-            new_table.append_right(table.get_columns(column, column+length))
-    
-    return new_table
 
 def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     logger.info(f"Import file: {filename}")
@@ -132,15 +121,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     diagonals = DiagonalTable(cell_sheet, file_version)
     straps = StrapTable(cell_sheet)
 
-    # minirib -> y, start (x)
-    miniribs = []
-    for minirib in read_elements(cell_sheet, "MINIRIB", len_data=2):
-        miniribs.append({
-            "yvalue": minirib[1],
-            "front_cut": minirib[2],
-            "cells": minirib[0]
-        })
-    miniribs = group(miniribs, "cells")
+    miniribs = MiniRibTable(cell_sheet)
 
     lineset_table = tables[6]
     lineset = LineSet2D.read_input_table(lineset_table, attachment_points_lower, attachment_points)
