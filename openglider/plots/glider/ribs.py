@@ -223,7 +223,7 @@ class SingleSkinRibPlot(RibPlot):
 
     def _get_inner_outer(self, x_value):
         # TODO: shift when after the endpoint
-        inner, outer = super(SingleSkinRibPlot, self)._get_inner_outer(x_value)
+        inner, outer = super()._get_inner_outer(x_value)
 
         if self.skin_cut is None or x_value < self.skin_cut:
             return inner, outer
@@ -232,7 +232,7 @@ class SingleSkinRibPlot(RibPlot):
 
     def _get_singleskin_cut(self, glider):
         if self.skin_cut is None:
-            singleskin_cut = None
+            singleskin_cut = -1
 
             for cell in glider.cells:
                 # asserts first cut never is a singlesking cut!
@@ -248,6 +248,9 @@ class SingleSkinRibPlot(RibPlot):
                         if panel.cut_back.cut_type == panel.CUT_TYPES.singleskin:
                             singleskin_cut = panel.cut_back.x_right
                             break
+            
+            if singleskin_cut is None:
+                raise ValueError(f"no singleskin cut found for rib: {self.rib.name}")
 
             self.skin_cut = singleskin_cut
 
@@ -255,7 +258,7 @@ class SingleSkinRibPlot(RibPlot):
 
     def flatten(self, glider):
         self._get_singleskin_cut(glider)
-        return super(SingleSkinRibPlot, self).flatten(glider)
+        return super().flatten(glider)
 
     def draw_rib(self, glider):
         """
@@ -300,3 +303,5 @@ class SingleSkinRibPlot(RibPlot):
             contour += buerzl
 
         self.plotpart.layers["cuts"] += [contour]
+        
+        return contour

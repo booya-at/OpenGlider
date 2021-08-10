@@ -206,14 +206,22 @@ class Cell(CachedObject):
 
             length_bow = (1+bl) * (right_point - left_point).length()  # L
 
-            lnew = sum([(c.prof1.curve.nodes[index] - c.prof2.curve.nodes[index]).length() for c in cells])  # L-NEW
+            #lnew = sum([(c.prof1.curve.nodes[index] - c.prof2.curve.nodes[index]).length() for c in cells])  # L-NEW
 
             for cell_no, cell in enumerate(cells):
                 if bl > 0:
-                    length_bow_part = length_bow * (phi_values[cell_no+1] - phi_values[cell_no]) / phi_max
+                    phi2= (phi_values[cell_no+1] - phi_values[cell_no]) / phi_max
+                    length_bow_part = length_bow * phi2
                     lnew = (cell.prof1.curve.nodes[index] - cell.prof2.curve.nodes[index]).length()
                     
                     ballooning_new = (length_bow_part/lnew) - 1
+
+                    #print(index, cell_no, phi2, phi_values, phi_max, length_bow_part, lnew, ballooning_new)
+
+                    if ballooning_new < 0:
+                        raise ValueError(f"invalid ballooning for subcell: {self.name} / {cell_no}")
+                        ballooning_new = 0
+                        #print("JO")
 
                     cell.ballooning_phi.append(Ballooning.arcsinc(1/(1+ballooning_new)))  # B/L NEW 1 / (bl * l / lnew)
                 else:
@@ -292,8 +300,12 @@ class Cell(CachedObject):
             for cell, cell_factors in zip(self._child_cells, child_factors):
                 diff_child = (cell.prof1.curve.nodes[i] - cell.prof2.curve.nodes[i])
                 cos_psi = abs(diff.dot(diff_child.normalized()))
+                _tension = cell_factors[i]
 
-                tension = max(tension, cell_factors[i]*cos_psi - math.sqrt(1-cos_psi**2)*diff_child.length()/2)
+                if cos_psi > 1e-5 and cos_psi < 1:
+                    _tension = cell_factors[i]*cos_psi - math.sqrt(1-cos_psi**2)*diff_child.length()/2
+
+                tension = max(tension, _tension)
             
             factors.append(tension)
         
