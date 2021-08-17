@@ -195,19 +195,6 @@ class Panel(object):
     :param cut_front {'left': 0.06, 'right': 0.06, 'type': 'orthogonal'}
     """
     material = cloth.get("porcher.skytex_32.white")
-    
-    class CUT_TYPES(Config):
-        """
-        all available cut_types:
-        - folded: start end of open panel (entry)
-        - orthogonal: design cuts
-        - singleskin-cut: start/end of a open singleskin-section (used for different rib-modifications)
-        - 3d: 3d design cut
-        """
-        folded = "folded"
-        orthogonal = "orthogonal"
-        singleskin = "singleskin"
-        cut_3d = "cut_3d"
 
     def __init__(self, cut_front: PanelCut, cut_back: PanelCut, material: Material=None, name="unnamed"):
         self.cut_front = cut_front  # (left, right, style(int))

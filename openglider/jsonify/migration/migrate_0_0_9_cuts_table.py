@@ -2,6 +2,7 @@ import logging
 import json
 from openglider.glider.parametric.table.rigidfoil import CellRigidTable, RibRigidTable
 from openglider.glider.parametric.table.material import ClothTable, Material
+from openglider.glider.parametric.table.miniribs import MiniRibTable
 
 from openglider.jsonify.encoder import Encoder
 from openglider.jsonify.migration.migration import Migration
@@ -36,6 +37,8 @@ def migrate_diagonals(cls, jsondata):
 
         rib_rigids = elements.get("rigidfoils", [])
         elements["rigidfoils"] = get_rib_rigidfoil_table(rib_rigids)
+
+        elements["miniribs"] = MiniRibTable(Table())
     
     for node_type in (r"LowerNode2D", r"UpperNode2D", r"BatchNode2D"):
         for node in cls.find_nodes(jsondata, name=node_type):

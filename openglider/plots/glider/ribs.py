@@ -232,20 +232,20 @@ class SingleSkinRibPlot(RibPlot):
 
     def _get_singleskin_cut(self, glider):
         if self.skin_cut is None:
-            singleskin_cut = -1
+            singleskin_cut = None
 
             for cell in glider.cells:
-                # asserts first cut never is a singlesking cut!
+                # only a back cut can be a singleskin_cut
                 # asserts there is only one removed singleskin Panel!
                 # maybe asserts no singleskin rib on stabilo
                 if cell.rib1 == self.rib:
                     for panel in cell.panels:
-                        if panel.cut_back.cut_type == panel.CUT_TYPES.singleskin:
+                        if panel.cut_back.cut_type == panel.cut_back.CUT_TYPES.singleskin:
                             singleskin_cut = panel.cut_back.x_left
                             break
                 if cell.rib2 == self.rib:
                     for panel in cell.panels:
-                        if panel.cut_back.cut_type == panel.CUT_TYPES.singleskin:
+                        if panel.cut_back.cut_type == panel.cut_back.CUT_TYPES.singleskin:
                             singleskin_cut = panel.cut_back.x_right
                             break
             
