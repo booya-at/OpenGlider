@@ -129,26 +129,32 @@ class Cut3D(DesignCut):
         :param amount_3d: list of 3d-shaping amounts
         :return:
         """
-        p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
-        normvector = euklid.vector.Rotation2D(-math.pi/2).apply(p1-p2).normalized()
 
         inner_ik = []
-        point_list = []
+        inner_points = []
 
         for offset, lst in zip(amount_3d, inner_lists):
             curve, ik = lst
             ik_new = curve.walk(ik, offset)
             inner_ik.append(ik_new)
+            inner_points.append(curve.get(ik_new))
+        
+        inner_curve = euklid.vector.PolyLine2D(inner_points)
+        normvectors = inner_curve.normvectors()
 
-            sewing_mark_point = curve.get(ik_new)
-            point_list.append(sewing_mark_point + normvector*self.amount)
+        curve = inner_curve.add(normvectors * -self.amount)
 
-        left_1 = point_list[0]
-        left_2 = point_list[1]
+
+
+        #    sewing_mark_point = curve.get(ik_new)
+        #point_list.append(sewing_mark_point + normvector*self.amount)
+
+        left_1 = curve.nodes[0]
+        left_2 = curve.nodes[1]
         left_ik = inner_ik[0]
 
-        right_1 = point_list[-2]
-        right_2 = point_list[-1]
+        right_1 = curve.nodes[-1]
+        right_2 = curve.nodes[-2]
         right_ik = inner_ik[-1]
 
         try:
@@ -161,7 +167,9 @@ class Cut3D(DesignCut):
         except:
             rightcut_index = right_ik
 
-        curve = euklid.vector.PolyLine2D(point_list)
+        
+
+        #curve = euklid.vector.PolyLine2D(point_list)
 
         return CutResult(curve, leftcut_index, rightcut_index, inner_ik)
 
