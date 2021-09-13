@@ -34,17 +34,23 @@ class ElementTable:
 
         return columns
     
-    def get(self, row_no: int) -> List[Any]:
+    def get(self, row_no: int, **kwargs) -> List[Any]:
         row_no += 1  # skip header line
         elements = []
         for keyword, data_length in self.keywords:
             for column in self.get_columns(self.table, keyword, data_length):
                 if column[row_no, 0] is not None:
-                    elements.append(self.get_element(row_no-1, keyword, [column[row_no, i] for i in range(data_length)]))
+                    data = [column[row_no, i] for i in range(data_length)]
+                    try:
+                        element = self.get_element(row_no-1, keyword, data, **kwargs)
+                    except Exception:
+                        raise ValueError(f"failed to get element ({keyword}: {row_no-1}, ({data})")
+                        
+                    elements.append(element)
         
         return elements
     
-    def get_element(self, row: int, keyword, data) -> Any:
+    def get_element(self, row: int, keyword, data, **kwargs) -> Any:
         raise NotImplementedError()
 
     def _repr_html_(self):

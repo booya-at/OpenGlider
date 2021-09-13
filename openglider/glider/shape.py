@@ -5,6 +5,7 @@ import math
 import euklid
 
 from openglider.vector.drawing import PlotPart, Layout
+from openglider.utils.cache import cached_property
 
 logger = logging.getLogger(__name__)
 
@@ -123,4 +124,3 @@ class Shape(object):
             da.parts.append(PlotPart(marks=[points]))
 
         return da._repr_svg_()
-

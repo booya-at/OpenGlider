@@ -1,3 +1,4 @@
+from openglider.glider.parametric.table.curve import CurveTable
 from typing import List, Tuple
 import math
 import copy
@@ -43,7 +44,7 @@ class ParametricGlider(object):
 
     def __init__(self, shape, arc, aoa, profiles, profile_merge_curve,
                  balloonings, ballooning_merge_curve, lineset,
-                 speed, glide, zrot, elements=None):
+                 speed, glide, zrot, elements=None, curves=None):
         self.zrot = zrot or aoa
         self.shape: ParametricShape = shape
         self.arc: ArcCurve = arc
@@ -56,6 +57,7 @@ class ParametricGlider(object):
         self.speed = speed
         self.glide = glide
         self.elements = elements or {}
+        self.curves = curves
 
     def __json__(self):
         return {
@@ -155,12 +157,16 @@ class ParametricGlider(object):
             airfoil = first.copy()
         return airfoil
 
+    def get_curves(self):
+        return self.curves.get_curves(self.shape.get_half_shape())
+
     def get_panels(self, glider_3d=None) -> List[List[Panel]]:
         """
         Create Panels Objects and apply on gliders cells if provided, otherwise create a list of panels
         :param glider_3d: (optional)
         :return: list of "cells"
         """
+        curves = self.get_curves()
         def is_greater(cut_1, cut_2):
             if cut_1["left"] >= cut_2["left"] and cut_1["right"] >= cut_2["left"]:
                 return True
@@ -176,7 +182,7 @@ class ParametricGlider(object):
         for cell_no, panel_lst in enumerate(cells):
             panel_lst.clear()
 
-            cuts: List[PanelCut] = self.elements["cuts"].get(cell_no)
+            cuts: List[PanelCut] = self.elements["cuts"].get(cell_no, curves=curves)
 
             all_values = [c.x_left for c in cuts] + [c.x_right for c in cuts]
 
@@ -223,15 +229,17 @@ class ParametricGlider(object):
         return cells
 
     def apply_diagonals(self, glider: Glider) -> None:
+        curves = self.get_curves()
+
         for cell_no, cell in enumerate(glider.cells):
-            cell.diagonals = self.elements["diagonals"].get(row_no=cell_no)
+            cell.diagonals = self.elements["diagonals"].get(row_no=cell_no, curves=curves)
 
             cell.diagonals.sort(key=lambda strap: strap.get_average_x())
 
             for strap_no, strap in enumerate(cell.diagonals):
                 strap.name = "c{}{}{}".format(cell_no+1, "d", strap_no)
 
-            cell.straps = self.elements["straps"].get(row_no=cell_no)
+            cell.straps = self.elements["straps"].get(row_no=cell_no, curves=curves)
             cell.straps.sort(key=lambda strap: strap.get_average_x())
 
             for strap_no, strap in enumerate(cell.diagonals):

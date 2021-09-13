@@ -61,7 +61,7 @@ class UpperNode2D(object):
         return f"<UpperNode2D name:{self.name} cell_no:{self.cell_no} cell_pos: {self.cell_pos} rib_pos:{self.rib_pos}>"
 
     def get_2D(self, parametric_shape):
-        x = self.cell_no + self.cell_pos + parametric_shape.has_center_cell
+        x = self.cell_no + self.cell_pos
         
         return parametric_shape.get_shape_point(x, self.rib_pos)
 
@@ -75,7 +75,7 @@ class UpperNode2D(object):
 
             node = CellAttachmentPoint(cell, self.name, self.cell_pos, self.rib_pos, force)
         else: # attachment point on the rib
-            rib = glider.ribs[self.cell_no + self.cell_pos + glider.has_center_cell]
+            rib = glider.ribs[self.cell_no + self.cell_pos]
             if isinstance(self.force, (list, tuple, np.ndarray)):
                 force = euklid.vector.Vector3D(list(self.force))
             else:
@@ -202,9 +202,11 @@ class LineSet2D(object):
         lower_nodes = []
 
         if not scale_lower_floor:
-            lower_nodes = [n for n in self.get_lower_attachment_points() if n.name == "main"]
-            if len(lower_nodes) != 1:
-                raise ValueError("There are no lower floor nodes")
+            lower_nodes = [n for n in self.get_lower_attachment_points() if "main" in n.name]
+            if len(lower_nodes) < 1:
+                lower_nodes = self.get_lower_attachment_points()
+                if len(lower_nodes) < 1:
+                    raise ValueError("There are no lower floor nodes")
             
         lower_nodes_offset = 0
         lower_lines_count = 0
@@ -466,7 +468,7 @@ class LineSet2D(object):
         return total_table_ribs, total_table
     
     @staticmethod
-    def read_attachment_point_table(cell_table: Table, rib_table:Table, cell_no=None):
+    def read_attachment_point_table(cell_table: Table, rib_table:Table, cell_no=None, curves=None, add_center_rib=False):
         from openglider.glider.parametric.table.attachment_points import CellAttachmentPointTable, AttachmentPointTable
 
         half_cell_no = cell_no // 2 + cell_no % 2
@@ -474,13 +476,18 @@ class LineSet2D(object):
         cell_table_reader = CellAttachmentPointTable(cell_table)
         rib_table_reader = AttachmentPointTable(rib_table)
 
+        if add_center_rib:
+            table = rib_table_reader.table.get_rows(0, 1)
+            table.num_rows += 1
+            table.append_bottom(rib_table_reader.table.get_rows(1, rib_table_reader.table.num_rows))
+
         attachment_points = []
 
         for i in range(half_cell_no):
             attachment_points += cell_table_reader.get(i)
-            attachment_points += rib_table_reader.get(i)
+            attachment_points += rib_table_reader.get(i, curves=curves)
         
-        attachment_points += rib_table_reader.get(half_cell_no)
+        attachment_points += rib_table_reader.get(half_cell_no, curves=curves)
 
         for attachment_point in attachment_points:
             if attachment_point.cell_no >= half_cell_no:

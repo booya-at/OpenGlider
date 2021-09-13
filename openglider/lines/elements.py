@@ -1,5 +1,6 @@
 from typing import List, Dict
 import logging
+import enum
 
 import numpy as np
 import euklid
@@ -104,9 +105,7 @@ class Line(CachedObject):
         self.sag_par_1 = None
         self.sag_par_2 = None
 
-        self.name = name or "line_name_not_set"
-
-        self.lineset = None      # the parent have to be set after initialization
+        self.name = name or "unnamed_line"
 
     @property
     def color(self):
@@ -333,7 +332,6 @@ class Line(CachedObject):
         f = 1. - normed_residual_force.dot(normed_diff_vector)   # 1 if normal, 0 if parallel
         return f * self.force / l
 
-import enum
 class Node(object):
     class NODE_TYPE(enum.Enum):
         LOWER = 0

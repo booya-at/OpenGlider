@@ -34,7 +34,7 @@ def cached_property(*hashlist):
     #@functools.wraps
     class CachedProperty(object):
         def __init__(self, fget=None, doc=None):
-            super(CachedProperty, self).__init__()
+            super().__init__()
             self.function = fget
             self.__doc__ = doc or fget.__doc__
             self.__module__ = fget.__module__
@@ -163,7 +163,7 @@ def hash_attributes(class_instance, hashlist):
             try:
                 thahash = hash(el)
             except TypeError:  # Lists p.e.
-                #logging.warning(f"bad cache: {el} / {class_instance} / {attribute}, {type(el)}")
+                logging.warning(f"bad cache: {el} / {class_instance} / {attribute}, {type(el)}")
                 try:
                     thahash = hash(frozenset(el))
                 except TypeError:

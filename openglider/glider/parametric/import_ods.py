@@ -10,13 +10,14 @@ from openglider.glider.ballooning import BallooningBezier, BallooningBezierNeu
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.lines import LineSet2D, LowerNode2D
 from openglider.glider.parametric.shape import ParametricShape
-from openglider.glider.parametric.table.ballooning import BallooningTable
-from openglider.glider.parametric.table.cuts import CutTable
-from openglider.glider.parametric.table.diagonals import DiagonalTable, StrapTable
-from openglider.glider.parametric.table.holes import HolesTable
 from openglider.glider.parametric.table.material import ClothTable
-from openglider.glider.parametric.table.miniribs import MiniRibTable
-from openglider.glider.parametric.table.ribs_singleskin import SingleSkinTable
+from openglider.glider.parametric.table.cell.ballooning import BallooningTable
+from openglider.glider.parametric.table.cell.cuts import CutTable
+from openglider.glider.parametric.table.cell.diagonals import DiagonalTable, StrapTable
+from openglider.glider.parametric.table.cell.miniribs import MiniRibTable
+from openglider.glider.parametric.table.curve import CurveTable
+from openglider.glider.parametric.table.rib.holes import HolesTable
+from openglider.glider.parametric.table.rib.singleskin import SingleSkinTable
 from openglider.glider.parametric.table.rigidfoil import RibRigidTable, CellRigidTable
 from openglider.utils import linspace
 from openglider.utils.table import Table
@@ -86,7 +87,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
 
 
     data_dct = {}
-    datasheet = tables[-1]
+    datasheet = tables[7]
     for row in range(datasheet.num_rows):
         name = datasheet[row, 0]
         if name:
@@ -100,11 +101,21 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
         
         shape.stabi_cell = True
 
+    if len(tables) > 8:
+        curves_table = tables[8]
+    else:
+        curves_table = Table()
+    
+    curves = CurveTable(curves_table)
+
+    add_rib = shape.has_center_cell and data_dct.get("version", "0.0.1") >= "0.1.0"
 
     attachment_points = LineSet2D.read_attachment_point_table(
         cell_table=cell_sheet,
         rib_table=rib_sheet,
-        cell_no=geometry["shape"].cell_num
+        cell_no=geometry["shape"].cell_num,
+        curves=curves.get_curves(geometry["shape"].get_half_shape()),
+        add_center_rib=add_rib
     )
 
     attachment_points = {n.name: n for n in attachment_points}
@@ -130,6 +141,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     ballooning_factors = BallooningTable(cell_sheet)
     skin_ribs = SingleSkinTable(rib_sheet)
 
+
     glider_2d = Glider2D(elements={"cuts": cuts,
                                    "ballooning_factors": ballooning_factors,
                                    "holes": rib_holes,
@@ -142,6 +154,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
                                    "miniribs": miniribs,
                                    "singleskin_ribs": skin_ribs
                                    },
+                         curves=curves,
                          profiles=profiles,
                          balloonings=balloonings,
                          lineset=lineset,
@@ -327,61 +340,3 @@ def transpose_columns(sheet, columnswidth=2):
             element.append(row)
         result.append((name, element))
     return result
-
-
-def read_elements(sheet: Table, keyword, len_data=2):
-    """
-    Return rib/cell_no for the element + data
-
-    -> read_elements(sheet, "AHP", 2) -> [ [rib_no, id, x], ...]
-    """
-
-    elements = []
-    column = 0
-    while column < sheet.num_columns:
-        if sheet[0, column] == keyword:
-            for row in range(1, sheet.num_rows):
-                line = [sheet[row, column + k] for k in range(len_data)]
-                
-                if line[0] is not None:
-                    line.insert(0, row-1)
-                    elements.append(line)
-            column += len_data
-        else:
-            column += 1
-    return elements
-
-
-def to_dct(elems, keywords):
-    return [{key: value for key, value in zip(keywords, elem)} for elem in elems]
-
-
-def group(lst, keyword):
-    new_lst = []
-
-    def equal(first, second):
-        if first.keys() != second.keys():
-            return False
-        for key in first:
-            if key == keyword:
-                continue
-            if first[key] != second[key]:
-                return False
-
-        return True
-
-    def insert(_obj):
-        for obj2 in new_lst:
-            if equal(_obj, obj2):
-                obj2[keyword] += _obj[keyword]
-                return
-
-        # nothing found
-        new_lst.append(_obj)
-
-    for obj in lst:
-        # create a list to group
-        obj[keyword] = [obj[keyword]]
-        insert(obj)
-
-    return new_lst

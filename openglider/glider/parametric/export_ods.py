@@ -246,6 +246,9 @@ def get_data_sheet(glider):
     if glider.shape.stabi_cell:
         table[current_row+2, 1] = "1"
 
+    table[current_row+3, 0] = "version"
+    table[current_row+3, 1] = openglider.__version__
+
 
     return table.get_ods_sheet(name="Data")
 

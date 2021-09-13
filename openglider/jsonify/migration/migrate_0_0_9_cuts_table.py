@@ -2,11 +2,11 @@ import logging
 import json
 from openglider.glider.parametric.table.rigidfoil import CellRigidTable, RibRigidTable
 from openglider.glider.parametric.table.material import ClothTable, Material
-from openglider.glider.parametric.table.miniribs import MiniRibTable
+from openglider.glider.parametric.table.cell.miniribs import MiniRibTable
 
 from openglider.jsonify.encoder import Encoder
 from openglider.jsonify.migration.migration import Migration
-from openglider.glider.parametric.table.cuts import CutTable
+from openglider.glider.parametric.table.cell.cuts import CutTable
 from openglider.utils.table import Table
 
 logger = logging.getLogger(__name__)

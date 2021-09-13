@@ -20,18 +20,28 @@ class DiagonalTable(ElementTable):
 
 
     keywords = [
-        ("QR", 6),  # start, end, height, num_holes, border_width
+        ("QR", 6),  # left, right, height, num_holes, border_width
     ]
     
-    def get_element(self, row, keyword, data):
+    def get_element(self, row, keyword, data, curves):
+        left = data[0]
+        right = data[1]
+
+        if isinstance(left, str):
+            left = curves[left].get(row)
+
+        if isinstance(right, str):
+            right = curves[right].get(row+1)
+
+
         if keyword == "QR":
             height1 = data[4]
             height2 = data[5]
 
-            left_front = (data[0] - data[2] / 2, height1)
-            left_back = (data[0] + data[2] / 2, height1)
-            right_front = (data[1] - data[3] / 2, height2)
-            right_back = (data[1] + data[3] / 2, height2)
+            left_front = (left - data[2] / 2, height1)
+            left_back = (left + data[2] / 2, height1)
+            right_front = (right - data[3] / 2, height2)
+            right_back = (right + data[3] / 2, height2)
 
             return DiagonalRib(left_front, left_back, right_front, right_back)
 
@@ -44,10 +54,19 @@ class StrapTable(ElementTable):
         ("VEKTLAENGE", 2) # left, right
     ]
     
-    def get_element(self, row, keyword, data):
+    def get_element(self, row, keyword, data, curves):
+        left = data[0]
+        right = data[1]
+
+        if isinstance(left, str):
+            left = curves[left].get(row)
+
+        if isinstance(right, str):
+            right = curves[right].get(row+1)
+
         if keyword == "STRAP":
-            return TensionStrap(*data)
+            return TensionStrap(left, right, data[2])
         elif keyword == "VEKTLAENGE":
-            return TensionLine(*data)
+            return TensionLine(left, right)
 
         raise ValueError()

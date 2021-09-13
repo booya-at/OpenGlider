@@ -4,8 +4,8 @@ import copy
 
 from openglider.jsonify.encoder import Encoder
 from openglider.jsonify.migration.migration import Migration
-from openglider.glider.parametric.table.holes import HolesTable
-from openglider.glider.parametric.table.diagonals import DiagonalTable, StrapTable
+from openglider.glider.parametric.table.rib.holes import HolesTable
+from openglider.glider.parametric.table.cell.diagonals import DiagonalTable, StrapTable
 from openglider.materials import cloth
 from openglider.utils.table import Table
 

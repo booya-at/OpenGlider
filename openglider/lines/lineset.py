@@ -1,5 +1,7 @@
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional, Union
 import re
+import os
+import csv
 import copy
 import logging
 
@@ -13,15 +15,82 @@ from openglider.utils.table import Table
 
 logger = logging.getLogger(__name__)
 
+class KnotCorrections:
+    knots_table_line_type = Tuple[str, str, int, float, float]
+
+    knots_table: List[knots_table_line_type] = [
+        # lower_line_type, upper_line_type, upper_line_count, first_line_correction, last_line_correction
+        ("liros.ltc65", "liros.ltc65", 2, 2.0, 2.0)
+    ]
+    knots_dict: Dict[str, Tuple[float, float]]
+
+    def __init__(self, knots: Optional[List[knots_table_line_type]]=None):
+        if knots:
+            self.knots_table = knots
+        self.knots_dict = {}
+        
+        self.update()
+    
+    def save_csv(self, filename):
+        with open(filename, 'w') as f:
+            writer = csv.writer(f)
+            writer.writerow(["lower_type", "upper_type", "upper_num", "first_line_correction", "last_line_correction"])
+            for knot in self.knots_table:
+                writer.writerow(knot)
+    
+    @classmethod
+    def read_csv(cls, filename):
+        with open(filename) as f:
+            reader = csv.reader(f)
+            lines = []
+            
+            for i, line in enumerate(reader):
+                if i > 0:
+                    lines.append([
+                        line[0],
+                        line[1],
+                        int(line[2]),
+                        float(line[3]),
+                        float(line[4])
+                    ])
+
+            return cls(lines)
+
+
+    @staticmethod
+    def _knot_key(line_type_1: Union[LineType, str], line_type_2: Union[LineType, str], upper_num: int):
+        if isinstance(line_type_1, LineType):
+            line_type_1 = line_type_1.name
+        if isinstance(line_type_2, LineType):
+            line_type_2 = line_type_2.name
+        return f"{line_type_1}/{line_type_2}/{upper_num}"
+
+    def update(self):
+        self.knots_dict.clear()
+        self.knots_table.sort(key=lambda x: self._knot_key(*x[:3]))
+        for knot in self.knots_table:
+            key = self._knot_key(*knot[:3])
+            self.knots_dict[key] = knot[3:]
+    
+    def get(self, lower_type, upper_type, upper_num):
+        key = self._knot_key(lower_type, upper_type, upper_num)
+
+        if key not in self.knots_dict:
+            logger.warning(f"no shortening values for {lower_type} and {upper_type} with {upper_num} top lines")
+            return [0] * upper_num
+
+        first = self.knots_dict[key][0] * 0.001
+        last = self.knots_dict[key][1] * 0.001
+
+        return [first + index * (last-first) / (upper_num-1) for index in range(upper_num)]
+
+
 class LineSet(object):
     """
     Set of different lines
     """
     calculate_sag = True
-    knots_table: List[Tuple[str, str, int, float, float]] = [
-        # lower_line_type, upper_line_type, upper_line_count, first_line_correction, last_line_correction
-        ("liros.ltc65", "liros.ltc65", 2, 2.0, 2.0)
-    ]
+    knot_corrections = KnotCorrections.read_csv(os.path.join(os.path.dirname(__file__), "knots.csv"))
     mat: SagMatrix
 
     def __init__(self, lines: List[Line], v_inf=None):
@@ -608,6 +677,7 @@ class LineSet(object):
         # apply seam correction
         length += line.type.seam_correction
 
+        # reduce by canopy-loop length
         if len(self.get_upper_connected_lines(line.upper_node)) == 0:
             length -= 0.01
 
@@ -617,28 +687,14 @@ class LineSet(object):
             return length
         
         lower_line = lower_lines[0] # Todo: Reinforce
-        upper_lines = self.sort_lines(self.get_upper_connected_lines(line.lower_node))
+        upper_lines = self.sort_lines(self.get_upper_connected_lines(line.lower_node), names=True)
 
-        index = upper_lines.index(line)
+        line_no = upper_lines.index(line)
         total_lines = len(upper_lines)
 
-        for data in self.knots_table:
-            name1 = data[0]
-            name2 = data[1]
-            count = data[2]
-            min_value = data[3]
-            max_value = data[4]
+        correction = self.knot_corrections.get(lower_line.type, line.type, total_lines)[line_no]
 
-            if name1 == lower_line.type.name and name2 == line.type.name and count == total_lines:
-                shortening = min_value + index * (max_value-min_value) / (total_lines-1)
-                length -= (data[3] + (data[4] - shortening))
-                
-                return length
-
-        logger.warning(f"no shortening values for: {lower_line.type.name} / {line.type.name} ({total_lines})")
-
-        return length
-
+        return length + correction
 
     def get_table(self):
         length_table = self._get_lines_table(lambda line: [round(self.get_line_length(line)*1000)])

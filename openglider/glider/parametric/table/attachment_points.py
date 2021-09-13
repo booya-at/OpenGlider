@@ -20,14 +20,18 @@ class AttachmentPointTable(ElementTable):
         ("ATPPROTO", 4) # name, pos, force, proto_distance
     ]
 
-    def get_element(self, row, keyword, data) -> UpperNode2D:
-        # cell_no, rib_pos, cell_pos, force, name, is_cell
+    def get_element(self, row, keyword, data, curves) -> UpperNode2D:
+        # rib_no, rib_pos, cell_pos, force, name, is_cell
         force = data[2]
 
         if isinstance(force, str):
             force = ast.literal_eval(force)
+
+        rib_pos = data[1]
+        if isinstance(rib_pos, str):
+            rib_pos = curves[rib_pos].get(row)
             
-        node = UpperNode2D(row, data[1], 0, force, name=data[0], is_cell=False)
+        node = UpperNode2D(row, rib_pos, 0, force, name=data[0], is_cell=False)
 
         if keyword == "ATPPROTO":
             node.proto_dist = data[3]
