@@ -1,11 +1,14 @@
-from typing import List, Tuple, Any
+from typing import List, Tuple, Any, Optional, TypeVar, Generic
 import logging
 
 from openglider.utils.table import Table
 
 logger = logging.getLogger(__name__)
 
-class ElementTable:
+
+ElementType = TypeVar("ElementType")
+
+class ElementTable(Generic[ElementType]):
     keywords: List[Tuple[str, int]] = []
 
     def __init__(self, table: Table):
@@ -34,7 +37,7 @@ class ElementTable:
 
         return columns
     
-    def get(self, row_no: int, **kwargs) -> List[Any]:
+    def get(self, row_no: int, **kwargs) -> List[ElementType]:
         row_no += 1  # skip header line
         elements = []
         for keyword, data_length in self.keywords:
@@ -50,7 +53,7 @@ class ElementTable:
         
         return elements
     
-    def get_element(self, row: int, keyword, data, **kwargs) -> Any:
+    def get_element(self, row: int, keyword: str, data: List[Any], **kwargs) -> ElementType:
         raise NotImplementedError()
 
     def _repr_html_(self):

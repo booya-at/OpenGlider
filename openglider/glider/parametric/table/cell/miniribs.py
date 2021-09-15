@@ -7,5 +7,5 @@ class MiniRibTable(ElementTable):
         ("MINIRIB", 2) # yvalue, front_cut
     ]
 
-    def get_element(self, row: int, keyword, data) -> MiniRib:
+    def get_element(self, row: int, keyword, data, **kwargs) -> MiniRib:
         return MiniRib(data[0], data[1], name=f"minirib_{row}_{data[0]:02f}")

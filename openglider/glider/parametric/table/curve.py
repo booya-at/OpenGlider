@@ -7,6 +7,11 @@ class CurveTable:
     def __init__(self, table: Table):
         self.table = table
 
+    def __json__(self):
+        return {
+            "table": self.table
+        }
+
     def get_curves(self, shape: Shape):
         curves = {}
         column = 0

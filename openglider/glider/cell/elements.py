@@ -170,7 +170,7 @@ class DiagonalRib(object):
         mapping_2d = Mapping([right_2d.resample(node_no), left_2d.resample(node_no)])
         mapping_3d = Mapping3D([right.resample(node_no), left.resample(node_no)])
 
-        points_3d: List[List[float]] = []
+        points_3d: List[euklid.vector.Vector3D] = []
 
         for point_3d, point_2d in zip(envelope_3d, tri_mesh.points[:len(envelope_2d)]):
             vector_3d = euklid.vector.Vector3D(point_3d)
@@ -178,7 +178,7 @@ class DiagonalRib(object):
 
         for point in tri_mesh.points[len(envelope_2d):]:
             ik = mapping_2d.get_iks(euklid.vector.Vector2D(point))
-            points_3d.append(list(mapping_3d.get_point(*ik)))
+            points_3d.append(mapping_3d.get_point(*ik))
         
         drib_mesh = mesh.Mesh.from_indexed(points_3d, {"diagonals": list(tri_mesh.elements)}, boundaries={"diagonals": boundary_nodes})
 

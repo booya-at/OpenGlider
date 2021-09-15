@@ -1,5 +1,6 @@
 import logging
 import json
+from openglider.glider.parametric.table.curve import CurveTable
 from openglider.glider.parametric.table.rigidfoil import CellRigidTable, RibRigidTable
 from openglider.glider.parametric.table.material import ClothTable, Material
 from openglider.glider.parametric.table.cell.miniribs import MiniRibTable
@@ -39,10 +40,27 @@ def migrate_diagonals(cls, jsondata):
         elements["rigidfoils"] = get_rib_rigidfoil_table(rib_rigids)
 
         elements["miniribs"] = MiniRibTable(Table())
+
+        node["data"].setdefault("curves", CurveTable(Table()))
     
     for node_type in (r"LowerNode2D", r"UpperNode2D", r"BatchNode2D"):
         for node in cls.find_nodes(jsondata, name=node_type):
             node["data"].pop("layer")
+
+
+    to_rename = [
+        ("ballooning", "cell.ballooning"),
+        ("holes", "rib.holes"),
+        ("diagonals", "cell.diagonals"),
+        ("ribs_singleskin", "rib.singleskin")
+    ]
+
+    for name, target in to_rename:
+        module_name_old = rf"openglider.glider.parametric.table.{name}"
+        module_name_new = f"openglider.glider.parametric.table.{target}"
+        for node in cls.find_nodes(jsondata, module=module_name_old):
+            #print("noooode", node)
+            node["_module"] = module_name_new
         
     return jsondata
 

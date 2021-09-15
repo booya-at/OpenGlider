@@ -7,7 +7,7 @@ from openglider.utils.cache import cached_property
 
 class Curve:
     upper = False
-    def __init__(self, points, shape: Optional[Shape]=None):
+    def __init__(self, points, shape: Shape):
         self.interpolation = euklid.vector.Interpolation(points)
         self.shape = shape
 

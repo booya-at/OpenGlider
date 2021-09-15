@@ -108,7 +108,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     
     curves = CurveTable(curves_table)
 
-    add_rib = shape.has_center_cell and data_dct.get("version", "0.0.1") >= "0.1.0"
+    add_rib = geometry["shape"].has_center_cell and data_dct.get("version", "0.0.1") >= "0.1.0"
 
     attachment_points = LineSet2D.read_attachment_point_table(
         cell_table=cell_sheet,
