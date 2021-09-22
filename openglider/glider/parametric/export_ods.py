@@ -33,6 +33,8 @@ def export_ods_2d(glider, filename):
     doc.sheets.append(get_lines_sheet(glider))
     doc.sheets.append(get_data_sheet(glider))
 
+    doc.sheets.append(glider.curves.table.get_ods_sheet("Curves"))
+
     # airfoil sheet
 
 

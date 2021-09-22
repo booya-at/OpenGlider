@@ -17,7 +17,55 @@ class Curve:
     
     @controlpoints.setter
     def controlpoints(self, points):
-        self.interpolation.nodes = points
+        self.interpolation = euklid.vector.Interpolation(points)
+
+    @property
+    def controlpoints_2d(self):
+        return [
+            euklid.vector.Vector2D(self.shape.get_point(*p)) for p in self.controlpoints
+        ]
+    
+    def set_controlpoints_2d(self, points):
+        controlpoints = self.to_controlpoints(points)
+        self.controlpoints = controlpoints
+    
+    def to_controlpoints(self, points):
+        controlpoints = []
+
+        x_values = [p[0] for p in self.shape.front]
+        ribs = self.shape.ribs
+
+        for point in points:
+            distance = abs(x_values[0] - point[0])
+            index = 0
+
+            for i, x in enumerate(x_values):
+                _distance = abs(x - point[0])
+
+                if _distance < distance:
+                    distance = _distance
+                    index = i
+
+            if index == 0 and self.shape.has_center_cell:
+                index = 1
+
+            y1 = ribs[index][0][1]
+            y2 = ribs[index][1][1]
+
+            y = (point[1]-y1) / (y2-y1)
+
+            y = max(0, y)
+            y = min(1, y)
+            
+            controlpoints.append(euklid.vector.Vector2D([index, y]))
+        
+        return controlpoints
+    
+    @property
+    def points_2d(self):
+        return [
+            euklid.vector.Vector2D(self.shape.get_point(*p)) for p in self.interpolation.nodes
+        ]
     
     def get(self, rib_no: int):
         if rib_no == 0 and self.shape.has_center_cell:
@@ -38,7 +86,7 @@ class Curve:
 
         start_int = int(start) + (start % 1) > 1e-10
 
-        x_values_lst = list(range(start_int, int(end)))
+        x_values_lst = list(range(start_int, int(end)+1))
 
         if start % 1:
             x_values_lst.insert(0, start)
@@ -53,7 +101,6 @@ class Curve:
 class ShapeCurve(Curve):
     @cached_property('shape', 'interpolation')
     def points_2d(self) -> euklid.vector.PolyLine2D:
-        print("jooo")
         return euklid.vector.PolyLine2D([
             euklid.vector.Vector2D(self.shape.get_point(*p)) for p in self.interpolation.nodes
         ])

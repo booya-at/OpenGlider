@@ -1,3 +1,5 @@
+from typing import Dict
+
 from openglider.utils.table import Table
 from openglider.glider.shape import Shape
 import openglider.glider.curve
@@ -39,3 +41,22 @@ class CurveTable:
             column += curve_columns
         
         return curves
+    
+    def apply_curves(self, curves: Dict[str, any]):
+        self.table = Table()
+        column = 0
+
+        for name, curve in curves.items():
+            self.table[0, column] = name
+            self.table[0, column + 1] = curve.__class__.__name__
+
+            for row, point in enumerate(curve.controlpoints):
+                self.table[row+1, column] = point[0]
+                self.table[row+1, column+1] = point[1]
+            
+            column += 2
+        
+        return self.table
+
+
+
