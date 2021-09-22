@@ -493,7 +493,6 @@ class LineSet2D(object):
             if attachment_point.cell_no >= half_cell_no:
                 attachment_point.cell_no -= 1
                 attachment_point.cell_pos = 1
-
         
         return attachment_points
 

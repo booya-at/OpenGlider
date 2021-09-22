@@ -3,6 +3,7 @@ import ast
 import logging
 import re
 
+import euklid
 import openglider
 from openglider.utils.table import Table
 from openglider.glider.parametric.table.elements import ElementTable
@@ -38,6 +39,23 @@ class AttachmentPointTable(ElementTable):
         
         return node
     
+    def apply_forces(self, forces: Dict[str, euklid.vector.Vector3D]):
+        new_table = Table()
+
+        for keyword, data_length in self.keywords:
+            for column in self.get_columns(self.table, keyword, data_length):
+                for row in range(1, column.num_rows):
+                    name = column[row, 0]
+                    if name:
+                        if name in forces:
+                            column[row, 2] = str(list(forces[name]))
+                        else:
+                            logger.warning(f"no force for {name}")
+                
+                new_table.append_right(column)
+        
+        self.table = new_table
+    
     @classmethod
     def from_glider(cls, glider: "openglider.glider.Glider"):
         table = Table()
@@ -59,6 +77,8 @@ class AttachmentPointTable(ElementTable):
                     column_no = 2*layer_columns[layer]
                     table[cell_no+1, column_no] = att_point.name
                     table[cell_no+1, column_no+1] = att_point.pos
+        
+        return cls(table)
 
                     
                     

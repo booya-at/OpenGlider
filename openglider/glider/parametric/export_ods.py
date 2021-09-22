@@ -22,8 +22,16 @@ def export_ods_2d(glider, filename):
     rib_sheet.name = "Rib Elements"
     
     attachment_points = glider.lineset.get_attachment_point_table()
-    rib_sheet.append_right(attachment_points[0])
-    cell_sheet.append_right(attachment_points[1])
+
+    if "attachment_points_rib" in glider.elements:
+        rib_sheet.append_right(glider.elements["attachment_points_rib"].table)
+    else:
+        rib_sheet.append_right(attachment_points[0])
+    
+    if "attachment_points_cell" in glider.elements:
+        cell_sheet.append_right(glider.elements["attachment_points_cell"].table)
+    else:
+        cell_sheet.append_right(attachment_points[1])
 
     doc.sheets.append(cell_sheet.get_ods_sheet())
     doc.sheets.append(rib_sheet.get_ods_sheet())
