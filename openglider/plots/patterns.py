@@ -95,7 +95,11 @@ class PatternsNew(object):
         def fn(filename):
             return os.path.join(outdir, filename)
 
-        subprocess.call("mkdir -p {}".format(outdir), shell=True)
+        # subprocess.call("mkdir -p {}".format(outdir), shell=True)
+        try:
+            os.mkdir(outdir)
+        except FileExistsError as e:
+            print("directory {} already exists, overwrite files".format(outdir)") 
 
         if self.config.profile_numpoints:
             self.glider_2d.num_profile = self.config.profile_numpoints
