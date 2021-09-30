@@ -21,7 +21,8 @@ def get_glider_data(project: GliderProject, consumption: Dict[str, MaterialUsage
     lines = glider.lineset.sort_lines(names=True)
     for i, line in enumerate(lines):
         linesheet2[i+2, 0] = line.name
-        linesheet2[i+2, 1] = f"{glider.lineset.get_line_length(line) * 1000:.0f}"
+        linesheet2[i+2, 1] = f"{line.type}"
+        linesheet2[i+2, 2] = f"{glider.lineset.get_line_length(line) * 1000:.0f}"
     #linesheet2 = glider.lineset.get_table_2()
 
     # linesheet = glider.lineset.get_table_2()

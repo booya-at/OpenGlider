@@ -56,6 +56,16 @@ class LineType():
     def __str__(self):
         return f"linetype: {self.name}"
     
+    def __repr__(self):
+        return str(self)
+
+    def get_similar_lines(self):
+        lines = list(self.types.values())
+        lines.remove(self)
+        lines.sort(key=lambda line: abs(line.thickness - self.thickness))
+        
+        return lines
+
     def get_spring_constant(self):
         force, k = self.stretch_interpolation.nodes[-1]
         try:
@@ -102,7 +112,7 @@ class LineType():
             html += f"""
                 <tr>
                     <td>{line_type.name}</td>
-                    <td>{line_type.thickness:.02f}</td>
+                    <td>{line_type.thickness*1000:.02f}</td>
                     <td>{line_type.stretch_curve}</td>
                     <td>{line_type.get_spring_constant() or 0:.0f}</td>
                     <td>{line_type.min_break_load or 0:.02f}</td>

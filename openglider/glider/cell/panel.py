@@ -217,8 +217,8 @@ class Panel(object):
     @classmethod
     def dummy(cls):
         return cls(
-            {"left": -1, "right": -1, "type": "parallel"},
-            {"left": 1, "right": 1, "type": "parallel"}
+            PanelCut(-1, -1, PanelCut.CUT_TYPES.parallel),
+            PanelCut(1, 1, PanelCut.CUT_TYPES.parallel)
         )
     
     def __hash__(self) -> int:

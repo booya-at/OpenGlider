@@ -2,6 +2,7 @@ import copy
 import re
 import ast
 import logging
+import math
 
 import numpy as np
 import euklid
@@ -237,7 +238,30 @@ class LineSet2D(object):
             
             nodes = [line.upper_node for line in self.get_upper_connected_lines(node)]
 
-            position = sum([get_node_pos(node) for node in nodes], euklid.vector.Vector2D([0, 0])) * (1/len(nodes)) + euklid.vector.Vector2D([0, -0.1])
+            if len(nodes) == 1:
+                position = get_node_pos(nodes[0])
+                node.pos_2D = position + euklid.vector.Vector2D([0, -0.2])
+                return position
+
+            node_positions = [get_node_pos(node) for node in nodes]
+
+            position = sum(node_positions, euklid.vector.Vector2D()) * (1/len(node_positions))
+
+            direction = euklid.vector.Vector2D()
+
+            for node_pos in node_positions:
+                diff = node_pos - position
+
+                if diff.dot(euklid.vector.Vector2D([1, -1])) < 0:
+                    direction += diff * -1
+                else:
+                    direction += diff
+            
+            rotation = euklid.vector.Rotation2D(-math.pi/2)
+            direction.normalized()
+            
+            position += rotation.apply(direction.normalized()*0.1)
+
             node.pos_2D = position
 
             return position

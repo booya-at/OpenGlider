@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Any
 
 from openglider.utils.table import Table
 from openglider.glider.shape import Shape
@@ -42,7 +42,7 @@ class CurveTable:
         
         return curves
     
-    def apply_curves(self, curves: Dict[str, any]):
+    def apply_curves(self, curves: Dict[str, Any]):
         self.table = Table()
         column = 0
 

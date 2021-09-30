@@ -119,7 +119,7 @@ class ShapePlot(object):
 
         part = PlotPart()
         for attachment_point in self.glider_2d.lineset.get_upper_nodes():
-            rib_no = attachment_point.cell_pos + attachment_point.cell_no + self.glider_2d.shape.has_center_cell
+            rib_no = attachment_point.cell_pos + attachment_point.cell_no
 
             # glider2d does not contain the mirrored rib:
             p1 = shape.get_point(rib_no, attachment_point.rib_pos)

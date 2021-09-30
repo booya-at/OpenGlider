@@ -83,13 +83,10 @@ class AttachmentPointTable(ElementTable):
                     
                     
 
-
-
-
-
 class CellAttachmentPointTable(ElementTable):
     keywords = [
-        ("ATP", 4) # name, cell_pos, rib_pos, force
+        ("ATP", 4), # name, cell_pos, rib_pos, force
+        ("AHP", 4) # name, cell_pos, rib_pos, force
     ]
 
     def get_element(self, row, keyword, data, **kwargs) -> UpperNode2D:

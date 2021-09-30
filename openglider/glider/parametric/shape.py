@@ -307,8 +307,8 @@ class ParametricShape(object):
         front = euklid.vector.PolyLine2D([p + [0, (p[0]-x0)*diff/span] for p, _ in ribs])
         back = euklid.vector.PolyLine2D([p + [0, (p[0]-x0)*diff/span] for _, p in ribs])
 
-        self.front_curve = euklid.spline.SymmetricBSplineCurve.fit(front, self.front_curve.numpoints)
-        self.back_curve = euklid.spline.SymmetricBSplineCurve.fit(back, self.back_curve.numpoints)
+        self.front_curve = self.front_curve.fit(front, self.front_curve.numpoints)
+        self.back_curve = self.back_curve.fit(back, self.back_curve.numpoints)
 
         y0 = self.ribs[0][0][1]
 
