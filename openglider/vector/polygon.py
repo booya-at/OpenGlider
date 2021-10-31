@@ -23,18 +23,15 @@ class CirclePart(object):
         l1 = p2 - p1
         l2 = p3 - p2
 
-        rotation = euklid.vector.Rotation2D(-math.pi)
+        rotation = euklid.vector.Rotation2D(-math.pi/2)
 
         n1 = rotation.apply(l1)
         n2 = rotation.apply(l2)
 
-        c1 = p1 + l1/2
-        c2 = p2 + l2/2
+        p12 = (p1 + p2)/2
+        p23 = (p2 + p3)/2
 
-        d1 = c1 + n1
-        d2 = c2 + n2
-
-        cut_result: euklid.vector.CutResult = euklid.vector.cut(c1, d1, c2, d2)
+        cut_result: euklid.vector.CutResult = euklid.vector.cut(p12, p12+n1, p23, p23+n2)
 
         self.center = cut_result.point
         self.r: euklid.vector.Vector2D = p1 - self.center
@@ -45,7 +42,7 @@ class CirclePart(object):
         end = self.r.angle() - (self.p3-self.center).angle()
         
         for angle in numpy.linspace(0, end, num):
-            lst.append(self.center + euklid.vector.Rotation2D(angle).apply(self.r))
+            lst.append(self.center + euklid.vector.Rotation2D(-angle).apply(self.r))
 
         return euklid.vector.PolyLine2D(lst)
 

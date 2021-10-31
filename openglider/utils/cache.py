@@ -8,7 +8,7 @@ import openglider
 
 
 cache_instances: List[Any] = []
-
+logger = logging.getLogger(__name__)
 
 class CachedObject(object):
     """
@@ -163,7 +163,7 @@ def hash_attributes(class_instance, hashlist):
             try:
                 thahash = hash(el)
             except TypeError:  # Lists p.e.
-                logging.warning(f"bad cache: {el} / {class_instance} / {attribute}, {type(el)}")
+                logger.debug(f"bad cache: {el} / {class_instance} / {attribute}, {type(el)}")
                 try:
                     thahash = hash(frozenset(el))
                 except TypeError:

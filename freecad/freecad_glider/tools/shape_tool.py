@@ -250,12 +250,11 @@ class ShapeTool(BaseTool):
 
     def update_data_back(self):
         if self.front_cpc.control_points[-1] in self.front_cpc.interaction.drag_objects:
-            old_value = self.parametric_glider.shape.back_curve.controlpoints[-1][0]
+            old_value = self.parametric_glider.shape.back_curve.controlpoints.nodes[-1][0]
             new_value = self.front_cpc.control_points[-1].points[0][0]
             p = self.back_cpc.control_points[-1].points
             p[0][0] = new_value
             self.back_cpc.control_points[-1].points = p
-            self.parametric_glider.shape.rib_distribution._data[:, 0] *= (new_value / old_value)
             self.cell_dist_cpc.control_pos = self.parametric_glider.shape.rib_dist_controlpoints
         self.update_shape(preview=True)
 

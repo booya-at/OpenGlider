@@ -81,6 +81,10 @@ def vector3D(vec, z=0):
         return vec.tolist()
     elif isinstance(vec, euklid.vector.PolyLine2D):
         return [p + [z] for p in vec.tolist()]
+    elif isinstance(vec[0], euklid.vector.Vector3D):
+        return vector3D(euklid.vector.PolyLine3D(vec))
+    elif isinstance(vec[0], euklid.vector.Vector2D):
+        return vector3D(euklid.vector.PolyLine2D(vec))
     elif not isinstance(vec[0], (list, tuple, np.ndarray, FreeCAD.Vector)):
         if len(vec) == 3:
             return list(vec)

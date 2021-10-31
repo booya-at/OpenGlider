@@ -208,7 +208,7 @@ class AirfoilTool(BaseTool):
                 width = 0.5
                 if index == self.QList_View.currentRow() and not thin:
                     width = 2
-                self.airfoil_sep += [Line_old(vector3D(airfoil), width=width).object]
+                self.airfoil_sep += [Line_old(vector3D(airfoil.curve), width=width).object]
 
     def spline_edit(self):
         if self.is_edit:

@@ -7,6 +7,9 @@ from openglider.airfoil import Profile2D
 # TODO: FIX!
 
 class BezierProfile2D(Profile2D):
+    upper_spline = None
+    lower_spline = None
+
     # TODO make new fit bezier method to set the second x value of the
     # controllpoints to zero.
     def __init__(self, data=None, name=None,
@@ -14,7 +17,14 @@ class BezierProfile2D(Profile2D):
                  control_num_lower=8, control_num_upper=8):
         super(BezierProfile2D, self).__init__(data=data, name=name)
         self.curve = self.normalized().curve
+        if upper_spline is None:
+            upper_spline = self.fit_upper()
+            
         self.upper_spline = upper_spline
+
+        if lower_spline is None:
+            lower_spline = self.fit_lower()
+        
         self.lower_spline = lower_spline
 
         self.apply_splines()
@@ -28,26 +38,20 @@ class BezierProfile2D(Profile2D):
     def fit_upper(self, num=100, dist=None, control_num=8):
         upper = self.curve.nodes[:self.noseindex + 1]
         upper_smooth = self.make_smooth_dist(upper, num, dist)
-        constraints = [[None] * 2 for i in range(control_num)]
-        constraints[0] = [1., 0.]
-        constraints[-2][0] = 0.
-        constraints[-1] = [0., 0.]
+        
         if self.upper_spline:
-            return self.upper_spline.__class__.constraint_fit(upper_smooth, constraints)
+            return self.upper_spline.fit(upper_smooth, control_num)
         else:
-            return euklid.spline.BSplineCurve.constraint_fit(upper_smooth, constraints)
+            return euklid.spline.BSplineCurve.fit(upper_smooth, control_num)
 
     def fit_lower(self, num=100, dist=None, control_num=8):
         lower = self.curve.nodes[self.noseindex:]
         lower_smooth = self.make_smooth_dist(lower, num, dist, upper=False)
-        constraints = [[None] * 2 for i in range(control_num)]
-        constraints[-1] = [1, 0]
-        constraints[1][0] = 0
-        constraints[0] = [0, 0]
+        
         if self.lower_spline:
-            return self.lower_spline.__class__.constraint_fit(lower_smooth, constraints)
+            return self.lower_spline.fit(lower_smooth, control_num)
         else:
-            return euklid.spline.BSplineCurve.constraint_fit(lower_smooth, constraints)
+            return euklid.spline.BSplineCurve.fit(lower_smooth, control_num)
 
     def fit_region(self, start, stop, num_points, control_points):
         smoothened = [self[self(x)] for x in np.linspace(start, stop, num=num_points)]
@@ -89,5 +93,5 @@ class BezierProfile2D(Profile2D):
         return [get_point(d) for d in dist]
 
     @classmethod
-    def from_profile_2d(cls, profile_2d):
-        return cls(profile_2d.data, profile_2d.name)
+    def from_profile_2d(cls, profile_2d: Profile2D):
+        return cls(profile_2d.curve, profile_2d.name)
