@@ -58,9 +58,9 @@ class BallooningNew(BallooningBase):
 
 class BallooningBezierNeu(BallooningNew):
     def __init__(self, spline, name="ballooning_new"):
+        super().__init__(None, None)
         self.spline_curve = euklid.spline.BSplineCurve(spline)
         self.name = name
-        super(BallooningBezierNeu, self).__init__(None, None)
         self.apply_splines()
 
     def __json__(self):

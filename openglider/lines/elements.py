@@ -348,6 +348,13 @@ class Node(object):
         self.force = euklid.vector.Vector3D() # top-node force
         self.attachment_point = attachment_point
         self.name = name or "name_not_set"
+    
+    @classmethod
+    def __from_json__(cls, **kwargs):
+        if isinstance(kwargs["force"], list):
+            kwargs["force"] = euklid.vector.Vector3D(kwargs["force"])
+        
+        return cls(**kwargs)
 
     @property
     def vec(self):

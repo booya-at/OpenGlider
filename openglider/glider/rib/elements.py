@@ -169,9 +169,6 @@ class CellAttachmentPoint(Node):
             "name": self.name,
             "force": self.force
         }
-    
-    def __from_json__(self, *data):
-        raise Exception(f"jooo {data}")
 
     def get_position(self) -> euklid.vector.Vector3D:
         ik = self.cell.rib1.profile_2d(self.rib_pos)

@@ -54,7 +54,6 @@ class LineSet(object):
         for line in self.lines:
             line.v_inf = self._v_inf
 
-
     @property
     def lowest_lines(self) -> List[Line]:
         return [line for line in self.lines if line.lower_node.type == Node.NODE_TYPE.LOWER]
@@ -733,12 +732,13 @@ class LineSet(object):
 
     @classmethod
     def __from_json__(cls, lines, nodes, v_inf):
-        return cls([], v_inf)
         for line in lines:
             if isinstance(line.upper_node, int):
                 line.upper_node = nodes[line.upper_node]
             if isinstance(line.lower_node, int):
                 line.lower_node = nodes[line.lower_node]
+        
+        v_inf = euklid.vector.Vector3D(v_inf)
         obj = cls(lines, v_inf)
         for line in obj.lines:
             line.lineset = obj

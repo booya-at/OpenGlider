@@ -28,7 +28,6 @@ def migrate_diagonals(cls, jsondata):
         material_cells = elements.get("material_cells", [])
         material_table = get_materials_table(material_cells)
         elements["material_cells"] = material_table
-        material_table.table.save("/tmp/materials.ods")
 
         material_ribs = elements.get("material_ribs", [])
         elements["material_ribs"] = get_materials_table(material_ribs)
