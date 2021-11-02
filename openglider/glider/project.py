@@ -134,6 +134,7 @@ class GliderProject(object):
         return {"glider": self.glider,
                 "glider_3d": self.glider_3d,
                 "name": self.name,
+                "filename": self.filename,
                 "modified": self.modified
                 }
 
