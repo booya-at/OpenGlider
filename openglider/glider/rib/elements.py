@@ -208,7 +208,8 @@ class AttachmentPoint(Node):
         return {"rib": self.rib,
                 "name": self.name,
                 "rib_pos": self.rib_pos,
-                "force": self.force}
+                "force": self.force
+                }
 
     def get_position(self) -> euklid.vector.Vector3D:
         # todo: PROFILE3D -> return euklid vector

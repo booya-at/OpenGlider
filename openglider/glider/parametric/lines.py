@@ -238,7 +238,9 @@ class LineSet2D(object):
             
             nodes = [line.upper_node for line in self.get_upper_connected_lines(node)]
 
-            if len(nodes) == 1:
+            if len(nodes) == 0:
+                raise ValueError(f"no upper nodes for node {node}, {type(node)}, {UpperNode2D}")
+            elif len(nodes) == 1:
                 position = get_node_pos(nodes[0])
                 node.pos_2D = position + euklid.vector.Vector2D([0, -0.2])
                 return position

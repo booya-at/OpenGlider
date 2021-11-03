@@ -56,6 +56,8 @@ class Glider(object):
                 att.rib = ribs[att.rib]
             if hasattr(att, "cell") and isinstance(att.cell, int):
                 att.cell = cells[att.cell]
+            
+            att.get_position()
         return cls(cells, lineset=lineset)
 
     def __repr__(self):

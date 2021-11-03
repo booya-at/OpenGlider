@@ -107,6 +107,27 @@ class Line(CachedObject):
 
         self.name = name or "unnamed_line"
 
+    def __json__(self):
+        return{
+            'number': self.number,
+            'lower_node': self.lower_node,
+            'upper_node': self.upper_node,
+            'v_inf': None,               # remove this!
+            'line_type': self.type.name,
+            'target_length': self.target_length,
+            'name': self.name
+        }
+
+    @classmethod
+    def __from_json__(cls, number, lower_node, upper_node, v_inf, line_type, target_length, name):
+        return cls(lower_node,
+                   upper_node,
+                   v_inf,
+                   line_types.LineType.get(line_type),
+                   target_length,
+                   number,
+                   name)
+
     @property
     def color(self):
         return self._color or "default"
@@ -268,27 +289,6 @@ class Line(CachedObject):
         c2_n = self.upper_node.get_diff().dot(self.v_inf_0)
         return [c1_n + self.sag_par_1, c2_n / self.length_projected + self.sag_par_2]
 
-    def __json__(self):
-        return{
-            'number': self.number,
-            'lower_node': self.lower_node,
-            'upper_node': self.upper_node,
-            'v_inf': None,               # remove this!
-            'line_type': self.type.name,
-            'target_length': self.target_length,
-            'name': self.name
-        }
-
-    @classmethod
-    def __from_json__(cls, number, lower_node, upper_node, v_inf, line_type, target_length, name):
-        return cls(lower_node,
-                   upper_node,
-                   v_inf,
-                   line_types.LineType.get(line_type),
-                   target_length,
-                   number,
-                   name)
-
     def get_connected_ribs(self, glider):
         '''
         return the connected ribs
@@ -349,12 +349,29 @@ class Node(object):
         self.attachment_point = attachment_point
         self.name = name or "name_not_set"
     
+    def __json__(self):
+        return{
+            'node_type': self.type.name,
+            'position_vector': list(self.vec),
+            "name": self.name
+        }
+    
     @classmethod
     def __from_json__(cls, **kwargs):
-        if isinstance(kwargs["force"], list):
-            kwargs["force"] = euklid.vector.Vector3D(kwargs["force"])
+        if "node_type" in kwargs:
+            kwargs["node_type"] = getattr(cls.NODE_TYPE, kwargs["node_type"])
         
-        return cls(**kwargs)
+        force = kwargs.pop("force", None)
+        
+        result = cls(**kwargs)
+
+        if force:
+            if isinstance(force, list):
+                force = euklid.vector.Vector3D(force)
+            
+            result.force = force
+        
+        return result
 
     @property
     def vec(self):
@@ -392,20 +409,6 @@ class Node(object):
 
     def is_upper(self):
         return self.type == self.NODE_TYPE.UPPER
-
-    def __json__(self):
-        return{
-            'node_type': self.type.name,
-            'position_vector': list(self.vec),
-            "name": self.name
-        }
-    
-    @classmethod
-    def __from_json__(cls, **kwargs):
-        if "node_type" in kwargs:
-            kwargs["node_type"] = getattr(cls.NODE_TYPE, kwargs["node_type"])
-        
-        return cls(**kwargs)
 
     def copy(self):
         return self.__class__(self.type, self.vec, self.attachment_point, self.name)

@@ -30,10 +30,15 @@ class GliderProject(object):
 
         self.glider_3d = glider_3d
         self.filename = filename
-        self.name = name
         self.modified = modified or datetime.datetime.now()
 
-        self.setup()
+        if name is None:
+            if self.filename is not None:
+                name = os.path.split(self.filename)[1]
+            else:
+                name = "unnamed_project"
+        
+        self.name = name
 
     def increase_revision_nr(self):
         match = self._regex_revision_no.match(self.name)
@@ -106,11 +111,6 @@ class GliderProject(object):
             raise ValueError("Invalid Extension ({})".format(filename))
         
         self.filename = filename
-
-    def setup(self):
-        #self.name = self.glider.name
-        if self.filename is not None:
-            self.name = os.path.split(self.filename)[1]
 
     def copy(self):
         new_glider = self.glider.copy()
