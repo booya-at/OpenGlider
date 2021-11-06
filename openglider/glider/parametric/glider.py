@@ -1,4 +1,3 @@
-from openglider.glider.parametric.table.curve import CurveTable
 from typing import List, Tuple
 import math
 import copy
@@ -18,6 +17,7 @@ from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.export_ods import export_ods_2d
 from openglider.glider.parametric.import_ods import import_ods_2d
 from openglider.glider.parametric.lines import LineSet2D, UpperNode2D
+from openglider.glider.parametric.table.curve import CurveTable
 from openglider.glider.rib import Rib, MiniRib, SingleSkinRib
 from openglider.glider.parametric.fitglider import fit_glider_3d
 import openglider.materials
@@ -57,7 +57,7 @@ class ParametricGlider(object):
         self.speed = speed
         self.glide = glide
         self.elements = elements or {}
-        self.curves = curves
+        self.curves = curves or CurveTable(Table())
 
     def __json__(self):
         return {

@@ -123,8 +123,9 @@ class GliderProject(object):
     @classmethod
     def import_ods(cls, path):
         glider_2d = ParametricGlider.import_ods(path)
-
-        return cls(glider_2d)
+        filename = os.path.split(path)[-1]
+        name, ext = os.path.splitext(filename)
+        return cls(glider_2d, name=name)
 
     def update_all(self):
         self.glider.get_glider_3d(self.glider_3d)
