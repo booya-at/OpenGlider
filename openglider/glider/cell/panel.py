@@ -17,6 +17,9 @@ from openglider.utils.config import Config
 from openglider.vector.mapping import Mapping
 
 
+logger = logging.getLogger(__name__)
+
+
 class PanelCut:
     class CUT_TYPES(Enum):
         folded = 1
@@ -152,10 +155,12 @@ class PanelCut:
         for i, ik in enumerate(ik_values):
             line: euklid.vector.PolyLine2D = inner[i]
 
-            _ik, _ = line.cut(curve_exact, ik)
-
-            if abs(_ik-ik) < 20:
-                ik = _ik
+            try:
+                _ik, _ = line.cut(curve_exact, ik)
+                if abs(_ik-ik) < 20:
+                    ik = _ik
+            except RuntimeError:
+                logger.error(f"no cut found for panel: {self.name} ({i}/{ik})")
 
             ik_values_new.append(ik)
         
