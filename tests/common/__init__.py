@@ -49,6 +49,7 @@ class TestCase(unittest.TestCase):
         self.assertEqual(glider1.shape.cell_num, glider2.shape.cell_num)
 
 if __name__ == "__main__":
-    glider = ParametricGlider.import_ods("./demokite.ods")
+    dirname = os.path.dirname(__file__)
+    glider = ParametricGlider.import_ods(os.path.join(dirname, "demokite.ods"))
     with open(demokite, "w") as outfile:
         openglider.jsonify.dump(glider, outfile)
