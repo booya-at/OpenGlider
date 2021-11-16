@@ -3,6 +3,7 @@ import math
 from typing import List, Union
 
 import euklid
+import cairosvg
 import svgwrite
 import svgwrite.container
 import svgwrite.shapes
@@ -469,7 +470,7 @@ class Layout(object):
 
         return group
 
-    def get_svg_drawing(self, unit="mm", border=0.02, fill=False):
+    def get_svg_drawing(self, unit="mm", border=0.02, fill=False) -> svgwrite.Drawing:
         border_w, border_h = [2*border*x for x in (self.width, self.height)]
         width, height = self.width+border_w, self.height+border_h
 
@@ -623,6 +624,10 @@ class Layout(object):
 
             # end
             outfile.write("\n0")
+            
+    def export_pdf(self, path, fill=False):
+        bytestring = self.get_svg_drawing(fill=fill).tostring().encode('utf-8')
+        cairosvg.svg2pdf(bytestring=bytestring, write_to=path)
 
     def scale_a4(self):
         width = max(self.width, self.height)

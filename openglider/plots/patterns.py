@@ -130,7 +130,7 @@ class PatternsNew(object):
             if sketch_name in ("design_upper", "design_lower"):
                 fill=True
 
-            sketch.export_a4(fn(sketch_name+".svg"), fill=fill)
+            sketch.export_a4(fn(sketch_name+".pdf"), fill=fill)
 
         self.logger.info("create spreadsheets")
         self.project.glider_3d.lineset.rename_lines()

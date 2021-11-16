@@ -12,21 +12,31 @@ logger = logging.getLogger(__name__)
 
 
 class Vertex(object):
+    _position: List[float]
+
     dmin = 10**-10
 
     def __init__(self, x, y, z, attributes=None):
-        self.set_values(x, y, z)
+        self._position = euklid.vector.Vector3D([x,y,z])
         self.attributes = attributes or {}
         self.index = -1
 
     def __iter__(self):
-        yield self.x
-        yield self.y
-        yield self.z
+        return self.position.__iter__()
     
     @property
-    def pos(self):
-        return euklid.vector.Vector3D([self.x, self.y, self.z])
+    def position(self):
+        return self._position
+    
+    @property
+    def x(self):
+        return self.position[0]
+    @property
+    def y(self):
+        return self.position[1]
+    @property
+    def z(self):
+        return self.position[2]
 
     def __json__(self):
         data = list(self)
@@ -36,9 +46,7 @@ class Vertex(object):
         return data
 
     def set_values(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
+        self.position = [x,y,z]
 
     def __len__(self):
         return 3
@@ -55,16 +63,16 @@ class Vertex(object):
         return True
 
     def is_in_range(self, minimum, maximum):
-        return (self.x >= minimum[0] and self.y >= minimum[1] and self.z >= minimum[2] and
-                self.x <= maximum[0] and self.y <= maximum[1] and self.z <= maximum[2])
+        return (self.position[0] >= minimum[0] and self.position[1] >= minimum[1] and self.position[2] >= minimum[2] and
+                self.position[0] <= maximum[0] and self.position[1] <= maximum[1] and self.position[2] <= maximum[2])
 
     def round(self, places):
-        self.x = round(self.x, places)
-        self.y = round(self.y, places)
-        self.z = round(self.z, places)
+        self.position[0] = round(self.position[0], places)
+        self.position[1] = round(self.position[1], places)
+        self.position[2] = round(self.position[2], places)
 
     def __repr__(self):
-        return super(Vertex, self).__repr__() + " {}, {}, {}\n".format(self.x, self.y, self.z)
+        return super(Vertex, self).__repr__() + " {}, {}, {}\n".format(self.position[0], self.position[1], self.position[2])
 
     @classmethod
     def from_vertices_list(cls, vertices):
@@ -109,21 +117,21 @@ class Polygon(object):
     def center(self):
         center = euklid.vector.Vector3D([0,0,0])
         for vert in self.nodes:
-            center += vert.pos
+            center += vert.position
         return center / len(self.nodes)
     
     def _get_normal(self) -> euklid.vector.Vector3D:
         if len(self) == 2:
-            n = self.nodes[1].pos - self.nodes[0].pos
+            n = self.nodes[1].position - self.nodes[0].position
 
         elif len(self) == 3:
-            l1 = self.nodes[1].pos-self.nodes[0].pos
-            l2 = self.nodes[0].pos-self.nodes[2].pos
+            l1 = self.nodes[1].position-self.nodes[0].position
+            l2 = self.nodes[0].position-self.nodes[2].position
             n = l1.cross(l2)
 
         elif len(self) == 4:
-            l1 = self.nodes[2].pos-self.nodes[0].pos
-            l2 = self.nodes[3].pos-self.nodes[1].pos
+            l1 = self.nodes[2].position-self.nodes[0].position
+            l2 = self.nodes[3].position-self.nodes[1].position
             n = l1.cross(l2)
         
         return n
@@ -205,12 +213,18 @@ class Mesh(object):
         return copy.deepcopy(self)
 
     def mirror(self, axis="x"):
+        multiplication = {
+            "x": euklid.vector.Vector3D([-1, 1, 1]),
+            "y": euklid.vector.Vector3D([1, -1, 1]),
+            "z": euklid.vector.Vector3D([1, 1, -1])
+        }[axis]
         for vertex in self.vertices:
-            setattr(vertex, axis, -getattr(vertex, axis))
+            vertex._position = vertex._position * multiplication
 
         for name, group in self.polygons.items():
             for polygon in group:
-                polygon.nodes = polygon.nodes[::-1]
+                if len(polygon) > 2:
+                    polygon.nodes = polygon.nodes[::-1]
 
         return self
 
@@ -497,7 +511,7 @@ class Mesh(object):
     #     self = self + other
     @staticmethod
     def _find_duplicates(nodes: List[Vertex]) -> Dict[Vertex, Vertex]:
-        node_lst = [p.pos for p in nodes]
+        node_lst = [p.position for p in nodes]
         duplicates = euklid.mesh.find_duplicates(node_lst, Vertex.dmin)
         duplicates_dct = {}
 

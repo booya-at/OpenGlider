@@ -98,7 +98,8 @@ setup(
         "ezodf",
         "lxml", # missing in ezodf:q;
         "pyexcel-ods",
-        "meshpy"
+        "meshpy",
+        "cairosvg"
     ],
     author='Booya',
     url='http://openglider.org',

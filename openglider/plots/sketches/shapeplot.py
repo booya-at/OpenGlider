@@ -243,7 +243,8 @@ class ShapePlot(object):
     def export_a4(self, path, fill=False):
         new = self.drawing.copy()
         new.scale_a4()
-        return new.export_svg(path, fill=fill)
+        
+        new.export_pdf(path, fill=fill)
 
     def _repr_svg_(self):
         new = self.drawing.copy()
