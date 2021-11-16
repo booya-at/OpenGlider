@@ -160,7 +160,7 @@ class PanelCut:
                 if abs(_ik-ik) < 20:
                     ik = _ik
             except RuntimeError:
-                logger.error(f"no cut found for panel: {self.name} ({i}/{ik})")
+                logger.error(f"no cut found for panel: {self} ({i}/{ik})")
 
             ik_values_new.append(ik)
         
