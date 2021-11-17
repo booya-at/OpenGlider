@@ -3,7 +3,6 @@ import math
 from typing import List, Union, Optional
 
 import euklid
-import cairosvg
 import svgwrite
 import svgwrite.container
 import svgwrite.shapes
@@ -626,8 +625,16 @@ class Layout(object):
             outfile.write("\n0")
             
     def export_pdf(self, path, fill=False):
-        bytestring = self.get_svg_drawing(fill=fill).tostring().encode('utf-8')
-        cairosvg.svg2pdf(bytestring=bytestring, write_to=path)
+        try:
+            import cairosvg
+            bytestring = self.get_svg_drawing(fill=fill).tostring().encode('utf-8')
+            cairosvg.svg2pdf(bytestring=bytestring, write_to=path)
+        except ImportError:
+            logger.error(f"could not load cairosvg, consider installing pango/gtk")
+            if path.endswith(".pdf"):
+                path = path[:-4] + ".svg"
+            
+            self.export_svg(path)
 
     def scale_a4(self):
         width = max(self.width, self.height)
