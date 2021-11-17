@@ -21,7 +21,7 @@ class Migration:
         metadata = jsondata.get("MetaData", {})
         version = metadata.get("version", openglider.version.__version__)
 
-        old_version_match = re.match(r"([0-9])\.([0-9]+)", version)
+        old_version_match = re.match(r"^([0-9]+)\.([0-9]+)$", version)
         if old_version_match:
             major, minor = old_version_match.groups()
 
