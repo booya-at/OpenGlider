@@ -1,6 +1,6 @@
 import os
 import math
-from typing import List, Union
+from typing import List, Union, Optional
 
 import euklid
 import cairosvg
@@ -14,7 +14,7 @@ from openglider.vector.text import Text
 
 
 class Layout(object):
-    point_width = None
+    point_width: Optional[float] = None
     layer_config = {
         "cuts": {
             "id": 'outer',

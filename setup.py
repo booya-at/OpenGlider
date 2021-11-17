@@ -73,6 +73,8 @@ for directory in og_dirs:
             package_files.extend([os.path.join(path, f) for f in filenames])
 
 
+package_data["openglider"] = ["py.typed"]
+
 with open("openglider/version.py") as version_file:
     #print(version_file.read())
     version = re.match(r"__version__\s=\s['\"]([0-9\._]+)['\"]", version_file.read()).group(1)
