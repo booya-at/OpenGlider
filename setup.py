@@ -101,7 +101,7 @@ setup(
         "lxml", # missing in ezodf:q;
         "pyexcel-ods",
         "meshpy",
-        "cairosvg"
+        "svglib"
     ],
     author='Booya',
     url='http://openglider.org',

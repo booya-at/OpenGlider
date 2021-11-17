@@ -1,4 +1,5 @@
 import os
+import io
 import math
 from typing import List, Union, Optional
 
@@ -6,6 +7,8 @@ import euklid
 import svgwrite
 import svgwrite.container
 import svgwrite.shapes
+import svglib.svglib
+from reportlab.graphics import renderPDF
 
 from openglider.vector.drawing.part import PlotPart
 from openglider.utils.css import get_material_color, normalize_class_names
@@ -625,16 +628,10 @@ class Layout(object):
             outfile.write("\n0")
             
     def export_pdf(self, path, fill=False):
-        try:
-            import cairosvg
-            bytestring = self.get_svg_drawing(fill=fill).tostring().encode('utf-8')
-            cairosvg.svg2pdf(bytestring=bytestring, write_to=path)
-        except ImportError:
-            logger.error(f"could not load cairosvg, consider installing pango/gtk")
-            if path.endswith(".pdf"):
-                path = path[:-4] + ".svg"
-            
-            self.export_svg(path)
+        dwg = self.get_svg_drawing(fill=fill).tostring().encode("utf-8")
+        with io.BytesIO(dwg) as fp:
+            report = svglib.svglib.svg2rlg(fp)
+            renderPDF.drawToFile(report, path)
 
     def scale_a4(self):
         width = max(self.width, self.height)
