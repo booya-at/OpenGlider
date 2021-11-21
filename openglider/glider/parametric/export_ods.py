@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING
 import copy
 import math
 
@@ -8,30 +9,22 @@ import openglider.glider.parametric.glider
 from openglider.glider.ballooning import BallooningBezierNeu
 from openglider.utils.table import Table
 
+if TYPE_CHECKING:
+    from openglider.glider.parametric import ParametricGlider
+
 file_version = "V3"
 
-def export_ods_2d(glider, filename):
+def export_ods_2d(glider: "ParametricGlider", filename):
     doc = ezodf.newdoc(doctype="ods", filename=filename)
     assert isinstance(glider, openglider.glider.parametric.glider.ParametricGlider)
 
     doc.sheets.append(get_geom_sheet(glider))
-    
-    cell_sheet = get_cell_sheet(glider)
-    cell_sheet.name = "Cell Elements"
-    rib_sheet = get_rib_sheet(glider)
-    rib_sheet.name = "Rib Elements"
-    
-    attachment_points = glider.lineset.get_attachment_point_table()
 
-    if "attachment_points_rib" in glider.elements:
-        rib_sheet.append_right(glider.elements["attachment_points_rib"].table)
-    else:
-        rib_sheet.append_right(attachment_points[0])
-    
-    if "attachment_points_cell" in glider.elements:
-        cell_sheet.append_right(glider.elements["attachment_points_cell"].table)
-    else:
-        cell_sheet.append_right(attachment_points[1])
+    cell_sheet = glider.tables.get_cell_sheet()
+    rib_sheet = glider.tables.get_rib_sheet()
+
+    cell_sheet["A1"] = file_version
+    rib_sheet["A1"] = file_version
 
     doc.sheets.append(cell_sheet.get_ods_sheet())
     doc.sheets.append(rib_sheet.get_ods_sheet())
@@ -123,51 +116,6 @@ def get_geom_sheet(glider_2d):
         table = table.get_rows(0, table.num_rows-1)
 
     return table.get_ods_sheet(name="geometry")
-
-
-def get_cell_sheet(glider):
-    row_num = glider.shape.half_cell_num
-    table = Table()
-    table["A1"] = file_version
-
-    for i in range(1, row_num+1):
-        table[i, 0] = str(i)
-
-    elems = glider.elements
-
-    table.append_right(elems["cell_rigidfoils"].table)
-
-    # cuts
-    table.append_right(elems["cuts"].table)
-
-    # Diagonals
-    table.append_right(elems["diagonals"].table)
-    table.append_right(elems["straps"].table)
-
-    table.append_right(elems["material_cells"].table)
-
-    if "ballooning_factors" in elems:
-        table.append_right(elems["ballooning_factors"].table)
-
-    return table
-
-
-def get_rib_sheet(glider_2d):
-    table = Table()
-    table[0, 0] = file_version
-    elems = glider_2d.elements
-
-    for i in range(1, glider_2d.shape.half_cell_num+1):
-        table[i, 0] = f"rib{i}"
-
-    table.append_right(glider_2d.elements["holes"].table)    
-    table.append_right(glider_2d.elements["rigidfoils"].table)
-    table.append_right(glider_2d.elements["material_ribs"].table)
-
-    if "singleskin_ribs" in elems:
-        table.append_right(elems["singleskin_ribs"].table)
-
-    return table
 
 
 def get_ballooning_sheet(glider_2d):

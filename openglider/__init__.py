@@ -38,6 +38,8 @@ def load(filename):
     """
     if filename.endswith(".ods"):
         res = openglider.glider.GliderProject.import_ods(filename)
+    elif filename.lower().endswith(".fcstd") or filename.lower().endswith(".fcstd1"):
+        res = openglider.glider.GliderProject.import_freecad(filename)
     else:
         with open(filename) as infile:
             res = openglider.jsonify.load(infile)

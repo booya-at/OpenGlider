@@ -1,17 +1,17 @@
 from typing import List, Tuple
 
 from openglider.utils.table import Table
-from openglider.glider.parametric.table.elements import ElementTable
+from openglider.glider.parametric.table.elements import ElementTable, Keyword
 
 import logging
 
 logger = logging.getLogger(__name__)
 
 class BallooningTable(ElementTable):
-    keywords = [
-        ("BallooningFactor", 1),
-        ("BallooningMerge", 1),
-    ]
+    keywords = {
+        "BallooningFactor": Keyword(attributes=["amount_factor"]),
+        "BallooningMerge": Keyword(attributes=["merge_factor"]),
+    }
 
     def get_merge_factors(self, factor_list) -> List[Tuple[float, float]]:
 

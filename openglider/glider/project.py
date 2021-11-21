@@ -2,10 +2,12 @@ import os
 import re
 import datetime
 import logging
+
 import euklid
 
 from openglider.glider.glider import Glider
 from openglider.glider.parametric import ParametricGlider
+from openglider.glider.parametric.import_freecad import import_freecad
 import openglider.utils.table
 
 logger = logging.getLogger(__name__)
@@ -123,6 +125,13 @@ class GliderProject(object):
     @classmethod
     def import_ods(cls, path):
         glider_2d = ParametricGlider.import_ods(path)
+        filename = os.path.split(path)[-1]
+        name, ext = os.path.splitext(filename)
+        return cls(glider_2d, name=name)
+    
+    @classmethod
+    def import_freecad(cls, path):
+        glider_2d = import_freecad(path)
         filename = os.path.split(path)[-1]
         name, ext = os.path.splitext(filename)
         return cls(glider_2d, name=name)

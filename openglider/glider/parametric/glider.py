@@ -20,6 +20,7 @@ from openglider.glider.parametric.lines import LineSet2D, UpperNode2D
 from openglider.glider.parametric.table.curve import CurveTable
 from openglider.glider.rib import Rib, MiniRib, SingleSkinRib
 from openglider.glider.parametric.fitglider import fit_glider_3d
+from openglider.glider.parametric.table import GliderTables
 import openglider.materials
 from openglider.utils.distribution import Distribution
 from openglider.utils.table import Table
@@ -41,10 +42,11 @@ class ParametricGlider(object):
     num_profile = None
 
     shape: ParametricShape
+    tables: GliderTables
 
     def __init__(self, shape, arc, aoa, profiles, profile_merge_curve,
                  balloonings, ballooning_merge_curve, lineset,
-                 speed, glide, zrot, elements=None, curves=None):
+                 speed, glide, zrot, tables: GliderTables=None, curves=None):
         self.zrot = zrot or aoa
         self.shape: ParametricShape = shape
         self.arc: ArcCurve = arc
@@ -56,7 +58,7 @@ class ParametricGlider(object):
         self.lineset = lineset or LineSet2D([])
         self.speed = speed
         self.glide = glide
-        self.elements = elements or {}
+        self.tables = tables
         self.curves = curves or CurveTable(Table())
 
     def __json__(self):
@@ -72,7 +74,7 @@ class ParametricGlider(object):
             "lineset": self.lineset,
             "speed": self.speed,
             "glide": self.glide,
-            "elements": self.elements
+            "tables": self.tables
         }
 
     @classmethod
@@ -182,7 +184,7 @@ class ParametricGlider(object):
         for cell_no, panel_lst in enumerate(cells):
             panel_lst.clear()
 
-            cuts: List[PanelCut] = self.elements["cuts"].get(cell_no, curves=curves)
+            cuts: List[PanelCut] = self.tables.cuts.get(cell_no, curves=curves)
 
             all_values = [c.x_left for c in cuts] + [c.x_right for c in cuts]
 
@@ -195,7 +197,7 @@ class ParametricGlider(object):
             cuts.sort(key=lambda cut: cut.get_average_x())
 
             i = 0
-            materials = self.elements["material_cells"].get(cell_no)
+            materials = self.tables.material_cells.get(cell_no)
 
             for cut1, cut2 in ZipCmp(cuts):
                 
@@ -232,14 +234,14 @@ class ParametricGlider(object):
         curves = self.get_curves()
 
         for cell_no, cell in enumerate(glider.cells):
-            cell.diagonals = self.elements["diagonals"].get(row_no=cell_no, curves=curves)
+            cell.diagonals = self.tables.diagonals.get(row_no=cell_no, curves=curves)
 
             cell.diagonals.sort(key=lambda strap: strap.get_average_x())
 
             for strap_no, strap in enumerate(cell.diagonals):
                 strap.name = "c{}{}{}".format(cell_no+1, "d", strap_no)
 
-            cell.straps = self.elements["straps"].get(row_no=cell_no, curves=curves)
+            cell.straps = self.tables.straps.get(row_no=cell_no, curves=curves)
             cell.straps.sort(key=lambda strap: strap.get_average_x())
 
             for strap_no, strap in enumerate(cell.diagonals):
@@ -271,7 +273,8 @@ class ParametricGlider(object):
         ballooning_merge_curve = euklid.vector.Interpolation(self.ballooning_merge_curve.get_sequence(self.num_interpolate).nodes)
         factors = [ballooning_merge_curve.get_value(abs(x)) for x in self.shape.cell_x_values]
 
-        table = self.elements.get("ballooning_factors", None)
+        table = self.tables.ballooning_factors
+
         if table is not None:
             all_factors = table.get_merge_factors(factors)
         else:
@@ -343,7 +346,7 @@ class ParametricGlider(object):
             startpoint = euklid.vector.Vector3D([-front[1] + offset_x, arc[0], arc[1]])
 
             try:
-                material = self.elements["material_ribs"].get(rib_no)[0]
+                material = self.tables.material_ribs.get(rib_no)[0]
             except (KeyError, IndexError):
                 logger.warning(f"no material set for rib: {rib_no+1}")
                 material = openglider.materials.Material(name="unknown")
@@ -353,8 +356,12 @@ class ParametricGlider(object):
             profile = self.get_merge_profile(factor).set_x_values(profile_x_values)
             profile.name = "Profile{}".format(rib_no)
 
-            this_rib_holes = self.elements["holes"].get(rib_no)
-            this_rigid_foils = self.elements["rigidfoils"].get(rib_no)
+            if flap := self.tables.profiles.get_flap(rib_no):
+                logger.warning(f"add flap: {flap}")
+                profile = profile.add_flap(*flap)
+
+            this_rib_holes = self.tables.holes.get(rib_no)
+            this_rigid_foils = self.tables.rigidfoils_rib.get(rib_no)
 
             rib = Rib(
                 profile_2d=profile,
@@ -371,7 +378,7 @@ class ParametricGlider(object):
             )
             rib.aoa_relative = aoa_int.get_value(pos)
 
-            singleskin_data = self.elements.get("singleskin_ribs", {}).get(rib_no)
+            singleskin_data = self.tables.singleskin_ribs.get(rib_no)
             if singleskin_data:
                 rib = SingleSkinRib.from_rib(rib, singleskin_data[0])
 
@@ -397,7 +404,7 @@ class ParametricGlider(object):
             
             cell = Cell(rib1, rib2, ballooning, name="c{}".format(cell_no+1))
 
-            cell.rigidfoils = self.elements["cell_rigidfoils"].get(cell_no)
+            cell.rigidfoils = self.tables.rigidfoils_cell.get(cell_no)
 
             glider.cells.append(cell)
 
@@ -408,7 +415,7 @@ class ParametricGlider(object):
         self.apply_diagonals(glider)
 
         for cell_no, cell in enumerate(glider.cells):
-            cell.miniribs = self.elements["miniribs"].get(row_no=cell_no)
+            cell.miniribs = self.tables.miniribs.get(row_no=cell_no)
 
         # RIB-ELEMENTS
         #self.apply_holes(glider)

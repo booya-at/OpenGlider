@@ -1,5 +1,5 @@
 from openglider.utils.table import Table
-from openglider.glider.parametric.table.elements import ElementTable
+from openglider.glider.parametric.table.elements import ElementTable, Keyword
 from openglider.glider.cell.elements import DiagonalRib, TensionLine, TensionStrap
 
 import logging
@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 class DiagonalTable(ElementTable):
 
-    def __init__(self, table: Table, file_version: int=None):
+    def __init__(self, table: Table=None, file_version: int=None):
         if file_version == 1:
             pass
             # height (0,1) -> (-1,1)
@@ -19,9 +19,9 @@ class DiagonalTable(ElementTable):
         super().__init__(table)
 
 
-    keywords = [
-        ("QR", 6),  # left, right, height, num_holes, border_width
-    ]
+    keywords = {
+        "QR": Keyword(["left", "right", "width_left", "width_right", "height_left", "height_right"])
+    }
     
     def get_element(self, row, keyword, data, curves):
         left = data[0]
@@ -49,10 +49,10 @@ class DiagonalTable(ElementTable):
 
 
 class StrapTable(ElementTable):
-    keywords = [
-        ("STRAP", 3),  # left, right, width
-        ("VEKTLAENGE", 2) # left, right
-    ]
+    keywords = {
+        "STRAP": Keyword(["left", "right", "width"], target_cls=TensionStrap),  # left, right, width
+        "VEKTLAENGE": Keyword(["left", "right"], target_cls=TensionLine)
+    }
     
     def get_element(self, row, keyword, data, curves):
         left = data[0]
@@ -60,13 +60,10 @@ class StrapTable(ElementTable):
 
         if isinstance(left, str):
             left = curves[left].get(row)
+            data[0] = left
 
         if isinstance(right, str):
             right = curves[right].get(row+1)
+            data[1] = right
 
-        if keyword == "STRAP":
-            return TensionStrap(left, right, data[2])
-        elif keyword == "VEKTLAENGE":
-            return TensionLine(left, right)
-
-        raise ValueError()
+        super().get_element(row, keyword, data)

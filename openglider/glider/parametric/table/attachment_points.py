@@ -6,7 +6,7 @@ import re
 import euklid
 import openglider
 from openglider.utils.table import Table
-from openglider.glider.parametric.table.elements import ElementTable
+from openglider.glider.parametric.table.elements import ElementTable, Keyword
 
 from openglider.glider.parametric.lines import UpperNode2D
 
@@ -15,11 +15,11 @@ logger = logging.getLogger(__name__)
 class AttachmentPointTable(ElementTable):
     regex_node_layer = re.compile(r"([a-zA-Z]*)([0-9]*)")
 
-    keywords = [
-        ("ATP", 3), # name, pos, force
-        ("AHP", 3), # name, pos, force
-        ("ATPPROTO", 4) # name, pos, force, proto_distance
-    ]
+    keywords = {
+        "ATP": Keyword(["name", "pos", "force"]), 
+        "AHP": Keyword(["name", "pos", "force"]),
+        "ATPPROTO": Keyword(["name", "pos", "force", "proto_distance"])
+    }
 
     def get_element(self, row, keyword, data, curves={}, **kwargs) -> UpperNode2D:
         # rib_no, rib_pos, cell_pos, force, name, is_cell
@@ -84,10 +84,10 @@ class AttachmentPointTable(ElementTable):
                     
 
 class CellAttachmentPointTable(ElementTable):
-    keywords = [
-        ("ATP", 4), # name, cell_pos, rib_pos, force
-        ("AHP", 4) # name, cell_pos, rib_pos, force
-    ]
+    keywords = {
+        "ATP": Keyword(["name", "cell_pos", "rib_pos", "force"]), 
+        "AHP": Keyword(["name", "cell_pos", "rib_pos", "force"]),
+    }
 
     def get_element(self, row, keyword, data, **kwargs) -> UpperNode2D:
         force = data[3]

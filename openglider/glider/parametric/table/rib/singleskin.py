@@ -1,19 +1,29 @@
 from typing import Dict, Optional
 
 from openglider.utils.table import Table
-from openglider.glider.parametric.table.elements import ElementTable
+from openglider.glider.parametric.table.elements import ElementTable, Keyword
 
 import logging
 
 logger = logging.getLogger(__name__)
 
-class SingleSkinTable(ElementTable):
-    keywords = [
-        ("SkinRib", 2),  # continued_min_end, xrot
-    ]
+SkinRib7 = Keyword([
+    "att_dist",
+    "height",
+    "continued_min",
+    "continued_min_angle",
+    "continued_min_delta_y",
+    "continued_min_end",
+    "continued_min_x",
+    "double_first",
+    "le_gap",
+    "straight_te",
+    "te_gap",
+    "num_points",
+], target_cls=dict)
 
-    def get_element(self, row, keyword, data, **kwargs) -> Dict[str, float]:
-        return {
-            "continued_min_end": data[0],
-            "xrot": data[1]
-        }
+class SingleSkinTable(ElementTable):
+    keywords = {
+        "SkinRib": Keyword(["continued_min_end", "xrot"], target_cls=dict),
+        "SkinRib7": SkinRib7
+    }

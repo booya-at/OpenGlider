@@ -43,6 +43,8 @@ class SingleSkinRib(Rib):
 
         if single_skin_par:
             self.single_skin_par.update(single_skin_par)
+            self.single_skin_par["num_points"] = 30
+            #print(self.single_skin_par)
 
         # we have to apply this function once for the profile2d
         # this will change the position of the attachmentpoints!

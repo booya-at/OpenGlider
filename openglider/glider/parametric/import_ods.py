@@ -10,6 +10,7 @@ from openglider.glider.ballooning import BallooningBezier, BallooningBezierNeu
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.lines import LineSet2D, LowerNode2D
 from openglider.glider.parametric.shape import ParametricShape
+from openglider.glider.parametric.table import GliderTables
 from openglider.glider.parametric.table.material import ClothTable
 from openglider.glider.parametric.table.cell.ballooning import BallooningTable
 from openglider.glider.parametric.table.cell.cuts import CutTable
@@ -142,21 +143,23 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     ballooning_factors = BallooningTable(cell_sheet)
     skin_ribs = SingleSkinTable(rib_sheet)
 
+    tables = GliderTables()
+    tables.cuts = cuts
+    tables.ballooning_factors = ballooning_factors
+    tables.holes = rib_holes
+    tables.diagonals = diagonals
+    tables.rigidfoils = rigidfoils
+    tables.cell_rigidfoils = cell_rigidfoils
+    tables.straps = straps
+    tables.material_cells = ClothTable(cell_sheet)
+    tables.material_ribs = ClothTable(rib_sheet)
+    tables.miniribs = miniribs
+    tables.singleskin_ribs = skin_ribs
+    tables.attachment_points_rib = AttachmentPointTable(rib_sheet)
+    tables.attachment_points_cell = CellAttachmentPointTable(cell_sheet)
+    
 
-    glider_2d = Glider2D(elements={"cuts": cuts,
-                                   "ballooning_factors": ballooning_factors,
-                                   "holes": rib_holes,
-                                   "diagonals": diagonals,
-                                   "rigidfoils": rigidfoils,
-                                   "cell_rigidfoils": cell_rigidfoils,
-                                   "straps": straps,
-                                   "material_cells": ClothTable(cell_sheet),
-                                   "material_ribs": ClothTable(rib_sheet),
-                                   "miniribs": miniribs,
-                                   "singleskin_ribs": skin_ribs,
-                                   "attachment_points_rib": AttachmentPointTable(rib_sheet),
-                                   "attachment_points_cell": CellAttachmentPointTable(cell_sheet)
-                                   },
+    glider_2d = Glider2D(tables=tables,
                          curves=curves,
                          profiles=profiles,
                          balloonings=balloonings,
