@@ -58,7 +58,7 @@ class ParametricGlider(object):
         self.lineset = lineset or LineSet2D([])
         self.speed = speed
         self.glide = glide
-        self.tables = tables
+        self.tables = tables or GliderTables()
         self.curves = curves or CurveTable(Table())
 
     def __json__(self):

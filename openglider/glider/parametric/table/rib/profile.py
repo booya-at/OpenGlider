@@ -18,7 +18,7 @@ class ProfileTable(ElementTable):
     def get_element(self, row, keyword, data):
         return data
 
-    def get_merge_factors(self, merge_factor_list) -> List[Tuple[float, float, Tuple[float, float]]]:
+    def get_merge_factors(self, merge_factor_list: List[float]) -> List[Tuple[float, float]]:
 
         merge_factors = merge_factor_list[:]
 
@@ -50,12 +50,15 @@ class ProfileTable(ElementTable):
         elif len(flaps) == 1:
             flap = flaps[0]
             return flap
+        
+        return None
     
     def get_factors(self, row_no: int) -> Tuple[Optional[float], Optional[float]]:
         merge_factors = self.get(row_no, keywords=["ProfileMerge"])
         scale_factors = self.get(row_no, keywords=["ProfileFactor"])
 
-        merge, scale = None
+        merge = None
+        scale = None
 
         if len(merge_factors):
             merge = merge_factors[-1]

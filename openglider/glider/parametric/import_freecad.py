@@ -154,8 +154,42 @@ class FreeCADFile:
                     table[rib_no+1, 1] = flap_amount
                 
                 parametric_glider.tables.profiles.table.append_right(table)
+            
+            elif classname == "HoleFeature":
+                ribs = self.get_property(obj_name, "ribs")
+                hole_width = self.get_property(obj_name, "hole_width")
+                hole_height = self.get_property(obj_name, "hole_height")
+                vertical_shift = self.get_property(obj_name, "vertical_shift")
+                rotation = self.get_property(obj_name, "rotation")
 
+                position_min = self.get_property(obj_name, "min_hole_pos")
+                position_max = self.get_property(obj_name, "max_hole_pos")
 
+                table = Table()
+                count = 0
+                for rib_no in ribs:
+                    attachment_points = parametric_glider.lineset.get_upper_nodes(rib_no)
+                    logger.warning(f"jo: {attachment_points}")
+                    count_this = 0
+                    for attachment_point in attachment_points:
+                        if attachment_point.rib_pos > position_min and attachment_point.rib_pos < position_max:
+                             # "pos", "size", "width", "vertical_shift", "rotation"
+                            table[rib_no+1, count_this*5+0] = attachment_point.rib_pos
+                            table[rib_no+1, count_this*5+1] = hole_height
+                            table[rib_no+1, count_this*5+2] = hole_width/hole_height
+                            table[rib_no+1, count_this*5+3] = vertical_shift
+                            table[rib_no+1, count_this*5+4] = rotation
+                            count_this += 1
+                           
+                    
+                    logger.warning(f"jo2: {count_this}")
+                        
+                    count = max(count, count_this)
+                
+                for i in range(count):
+                    table[0, 5*i] = "HOLE5"
+                
+                parametric_glider.tables.holes.table.append_right(table)
             
             else:
                 logger.warning(classname)

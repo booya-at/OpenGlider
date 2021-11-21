@@ -46,6 +46,9 @@ class Migration:
     
     @classmethod
     def add(cls, version):
+        """
+        add new migration. version parameter is the version to migrate to
+        """
         def decorate(function):
             def function_wrapper(jsondata):
                 logger.info(f"migrating to {version}")

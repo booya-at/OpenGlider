@@ -42,8 +42,9 @@ class AttachmentPointTable(ElementTable):
     def apply_forces(self, forces: Dict[str, euklid.vector.Vector3D]):
         new_table = Table()
 
-        for keyword, data_length in self.keywords:
-            for column in self.get_columns(self.table, keyword, data_length):
+        for keyword_name, keyword in self.keywords.items():
+            data_length = keyword.attribute_length
+            for column in self.get_columns(self.table, keyword_name, data_length):
                 for row in range(1, column.num_rows):
                     name = column[row, 0]
                     if name:
