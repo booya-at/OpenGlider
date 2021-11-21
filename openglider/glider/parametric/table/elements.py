@@ -26,11 +26,11 @@ class Keyword:
         return self._attribute_length
     
     def describe(self) -> str:
-        description = f"length: {self.attribute_length}"
+        description = f"  * length: {self.attribute_length}"
         if self.attributes:
-            description += f", attributes: {self.attributes} "
+            description += f"\n  * attributes: {self.attributes} "
         if self.description:
-            description += f", description: {self.description}"
+            description += f"\n  * description: {self.description}"
         
         return description
 

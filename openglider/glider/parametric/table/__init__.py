@@ -54,7 +54,8 @@ class GliderTables:
             text += f"## {name}\n\n"
 
             for keyword_name, keyword in _cls.keywords.items():
-                text += f"- {keyword_name}: {keyword.describe()}\n"
+                text += f"- {keyword_name}\n"
+                text += f"{keyword.describe()}\n"
             
             text += "\n\n"
 
