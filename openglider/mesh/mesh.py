@@ -388,7 +388,7 @@ class Mesh(object):
             lines = list(filter(lambda x: len(x) == 2, poly_group))
             if lines:
                 for line in lines:
-                    ms.add_polyline3d([list(p) for p in line], {"layer": name})
+                    ms.add_polyline3d([list(p) for p in line], dxfattribs={"layer": name})
 
         if path is not None:
             dwg.saveas(path)

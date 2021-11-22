@@ -29,8 +29,6 @@ class Migration:
             version = f"0.0.{minor}"
 
         self.from_version = version
-
-        print("jo", self.from_version, self.required)
     
     def migrate(self):
         jsondata = self.json_data

@@ -18,7 +18,7 @@ from openglider.glider.parametric.table.cell.diagonals import DiagonalTable, Str
 from openglider.glider.parametric.table.cell.miniribs import MiniRibTable
 from openglider.glider.parametric.table.curve import CurveTable
 from openglider.glider.parametric.table.rib.holes import HolesTable
-from openglider.glider.parametric.table.rib.singleskin import SingleSkinTable
+from openglider.glider.parametric.table.rib.rib import SingleSkinTable
 from openglider.glider.parametric.table.rigidfoil import RibRigidTable, CellRigidTable
 from openglider.glider.parametric.table.attachment_points import CellAttachmentPointTable, AttachmentPointTable
 from openglider.utils import linspace
@@ -154,7 +154,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     tables.material_cells = ClothTable(cell_sheet)
     tables.material_ribs = ClothTable(rib_sheet)
     tables.miniribs = miniribs
-    tables.singleskin_ribs = skin_ribs
+    tables.rib_modifiers = skin_ribs
     tables.attachment_points_rib = AttachmentPointTable(rib_sheet)
     tables.attachment_points_cell = CellAttachmentPointTable(cell_sheet)
     

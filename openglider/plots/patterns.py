@@ -108,7 +108,7 @@ class PatternsNew(object):
 
         all_patterns.scale(1000)
 
-        all_patterns.export_svg(fn("plots_all.svg"))
+        #all_patterns.export_svg(fn("plots_all.svg"))
         all_patterns.export_dxf(fn("plots_all.dxf"))
         #all_patterns.export_dxf(fn("plots_all_dxf2007.dxf"), "AC1021")
         #all_patterns.export_ntv(fn("plots_all.ntv"))

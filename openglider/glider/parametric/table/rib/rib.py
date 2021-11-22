@@ -25,5 +25,18 @@ SkinRib7 = Keyword([
 class SingleSkinTable(ElementTable):
     keywords = {
         "SkinRib": Keyword(["continued_min_end", "xrot"], target_cls=dict),
-        "SkinRib7": SkinRib7
+        "SkinRib7": SkinRib7,
+        "XRot": Keyword(["angle"], target_cls=dict)
     }
+
+    def get_singleskin_ribs(self, rib_no: int):
+        return self.get(rib_no, keywords=["SkinRib", "SkinRib7"])
+    
+    def get_xrot(self, rib_no: int) -> float:
+        rotation = 0
+        if rot := self.get(rib_no, keywords=["XRot"]):
+            if len(rot) > 1:
+                logger.warning(f"multiple xrot values: {rot}; using the last one")
+            rotation = rot[-1]["angle"]
+        
+        return rotation

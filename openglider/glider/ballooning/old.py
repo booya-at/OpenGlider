@@ -116,8 +116,8 @@ class Ballooning(BallooningBase):
 
         g = svgwrite.container.Group()
         g.scale(1, -1)
-        upper = drawing.polyline(self.upper.data, style="stroke:black; vector-effect: non-scaling-stroke; fill: none;")
-        lower = drawing.polyline([(p[0], -p[1]) for p in self.lower.data], style="stroke:black; vector-effect: non-scaling-stroke; fill: none;")
+        upper = drawing.polyline(self.upper.nodes, style="stroke:black; vector-effect: non-scaling-stroke; fill: none;")
+        lower = drawing.polyline([(p[0], -p[1]) for p in self.lower.nodes], style="stroke:black; vector-effect: non-scaling-stroke; fill: none;")
         g.add(upper)
         g.add(lower)
         drawing.add(g)

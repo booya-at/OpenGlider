@@ -110,7 +110,7 @@ class Glider(object):
     def get_mesh(self, midribs=0) -> Mesh:
         mesh = Mesh()
         for rib in self.ribs:
-            if not rib.profile_2d.has_zero_thickness:
+            if rib.profile_2d.thickness > 1e-5:
                 mesh += rib.get_mesh(filled=True, glider=self)
 
         for cell in self.cells:
@@ -172,8 +172,8 @@ class Glider(object):
         ribs = []
         for cell in self.cells:
             for y in range(num):
-                ribs.append(cell.midrib(y * 1. / num, ballooning=ballooning).data)
-        ribs.append(self.cells[-1].midrib(1.).data)
+                ribs.append(cell.midrib(y * 1. / num, ballooning=ballooning).curve.nodes)
+        ribs.append(self.cells[-1].midrib(1.).curve.nodes)
         return ribs
 
     def apply_mean_ribs(self, num_mean=8) -> None:

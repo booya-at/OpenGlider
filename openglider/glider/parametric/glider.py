@@ -43,6 +43,7 @@ class ParametricGlider(object):
 
     shape: ParametricShape
     tables: GliderTables
+    lineset: LineSet2D
 
     def __init__(self, shape, arc, aoa, profiles, profile_merge_curve,
                  balloonings, ballooning_merge_curve, lineset,
@@ -280,7 +281,7 @@ class ParametricGlider(object):
         else:
             all_factors = [(factor, 1) for factor in factors]
 
-        return all_factors
+        return [(max(0, x), y) for x,y in all_factors]
 
     def apply_shape_and_arc(self, glider: Glider) -> None:
         x_values = self.shape.rib_x_values
@@ -368,6 +369,7 @@ class ParametricGlider(object):
                 startpoint=startpoint,
                 chord=chord,
                 arcang=rib_angles[rib_no],
+                xrot=self.tables.rib_modifiers.get_xrot(rib_no),
                 glide=self.glide,
                 aoa_absolute=aoa_int.get_value(pos),
                 zrot=zrot_int.get_value(pos),
@@ -378,7 +380,7 @@ class ParametricGlider(object):
             )
             rib.aoa_relative = aoa_int.get_value(pos)
 
-            singleskin_data = self.tables.singleskin_ribs.get(rib_no)
+            singleskin_data = self.tables.rib_modifiers.get(rib_no)
             if singleskin_data:
                 rib = SingleSkinRib.from_rib(rib, singleskin_data[0])
 

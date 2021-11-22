@@ -1,5 +1,5 @@
 import math
-from typing import List
+from typing import List, TYPE_CHECKING
 
 import euklid
 import openglider.glider
@@ -9,6 +9,9 @@ from openglider.plots.glider.config import PatternConfig
 from openglider.plots.usage_stats import MaterialUsage
 from openglider.vector.drawing import PlotPart
 from openglider.vector.text import Text
+
+if TYPE_CHECKING:
+    from openglider.glider import Glider
 
 
 class RibPlot(object):
@@ -48,7 +51,7 @@ class RibPlot(object):
         self.inner_normals = self.inner.normvectors()
         self.outer = self.inner.offset(self.config.allowance_general)
 
-        self._insert_attachment_points(glider.attachment_points)
+        self._insert_attachment_points(glider)
         holes = self.insert_holes()
 
         panel_cuts = set()
@@ -192,9 +195,14 @@ class RibPlot(object):
         self.plotpart.layers["cuts"] += [contour]
         return contour
 
-    def _insert_attachment_points(self, points):
-        for attachment_point in points:
-            if hasattr(attachment_point, "rib") and attachment_point.rib == self.rib:
+    def _insert_attachment_points(self, glider: "Glider"):
+        for attachment_point in glider.lineset.attachment_points:
+
+            rib = self.rib
+            if glider.has_center_cell and glider.ribs.index(self.rib) == 0:
+                rib = glider.ribs[1]
+
+            if hasattr(attachment_point, "rib") and attachment_point.rib == rib:
                 positions = [attachment_point.rib_pos]
 
                 if attachment_point.protoloops:

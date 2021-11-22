@@ -1,3 +1,4 @@
+from typing import Tuple, List, Dict
 import copy
 import re
 import ast
@@ -150,12 +151,12 @@ class LineSet2D(object):
 
         return list(nodes)
 
-    def get_upper_nodes(self, rib_no=None):
+    def get_upper_nodes(self, rib_no=None) -> List[UpperNode2D]:
         nodes = set()
         for line in self.lines:
             node = line.upper_node
             if isinstance(node, UpperNode2D):
-                if rib_no is None or node.cell_no == rib_no:
+                if rib_no is None or node.cell_no == rib_no + 1:
                     nodes.add(line.upper_node)
 
         return list(nodes)
@@ -420,9 +421,9 @@ class LineSet2D(object):
 
         return cls(linelist)
 
-    def get_attachment_point_table(self):
+    def get_attachment_point_table(self) -> Tuple[Table, Table]:
         nodes = self.get_upper_nodes()
-        node_groups = {}
+        node_groups: Dict[str, List[UpperNode2D]] = {}
         num_cells = 0
         tables_cell = []
         tables_rib = []

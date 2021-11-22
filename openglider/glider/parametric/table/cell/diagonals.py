@@ -66,4 +66,4 @@ class StrapTable(ElementTable):
             right = curves[right].get(row+1)
             data[1] = right
 
-        super().get_element(row, keyword, data)
+        return super().get_element(row, keyword, data)

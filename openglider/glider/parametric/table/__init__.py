@@ -5,7 +5,7 @@ from openglider.glider.parametric.table.cell.diagonals import DiagonalTable, Str
 from openglider.glider.parametric.table.cell.miniribs import MiniRibTable
 from openglider.glider.parametric.table.curve import CurveTable
 from openglider.glider.parametric.table.rib.holes import HolesTable
-from openglider.glider.parametric.table.rib.singleskin import SingleSkinTable
+from openglider.glider.parametric.table.rib.rib import SingleSkinTable
 from openglider.glider.parametric.table.rigidfoil import RibRigidTable, CellRigidTable
 from openglider.glider.parametric.table.attachment_points import CellAttachmentPointTable, AttachmentPointTable
 from openglider.glider.parametric.table.rib.profile import ProfileTable
@@ -20,25 +20,33 @@ class GliderTables:
     ballooning_factors: BallooningTable
     holes: HolesTable
     diagonals: DiagonalTable
+    straps: StrapTable
     rigidfoils_rib: RibRigidTable
     rigidfoils_cell: CellRigidTable
-    straps: StrapTable
     material_cells: ClothTable
     material_ribs: ClothTable
     miniribs: MiniRibTable
-    singleskin_ribs: SingleSkinTable
+    rib_modifiers: SingleSkinTable
     profiles: ProfileTable
     attachment_points_rib: AttachmentPointTable
     attachment_points_cell: CellAttachmentPointTable
 
     def __init__(self, **kwargs):
+        used_names = []
+
         for name, _cls in self.__annotations__.items():
             if name in kwargs:
                 table = kwargs[name]
+                used_names.append(name)
             else:
                 table = _cls()
             
             setattr(self, name, table)
+
+        for name in kwargs:
+            if name not in used_names:
+                logger.warning(f"unused table/element kwarg: {name}")
+        
     
     def __json__(self):
         dct = {}
@@ -64,12 +72,13 @@ class GliderTables:
     def get_rib_sheet(self) -> Table:
         table = Table()
         table.name = "Rib Elements"
+        table[0,0] = "V"
 
         table.append_right(self.profiles.table)
         table.append_right(self.holes.table)
         table.append_right(self.attachment_points_rib.table)
         table.append_right(self.rigidfoils_rib.table)
-        table.append_right(self.singleskin_ribs.table)
+        table.append_right(self.rib_modifiers.table)
         table.append_right(self.material_ribs.table)
 
         for i in range(1, table.num_rows+1):
@@ -80,6 +89,7 @@ class GliderTables:
     def get_cell_sheet(self) -> Table:
         table = Table()
         table.name = "Cell Elements"
+        table[0,0] = "V"
 
         table.append_right(self.cuts.table)
         table.append_right(self.diagonals.table)
@@ -88,6 +98,7 @@ class GliderTables:
         table.append_right(self.material_cells.table)
         table.append_right(self.miniribs.table)
         table.append_right(self.attachment_points_cell.table)
+        table.append_right(self.ballooning_factors.table)
 
         for i in range(1, table.num_rows+1):
             table[i, 0] = str(i)

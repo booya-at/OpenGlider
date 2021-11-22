@@ -286,7 +286,7 @@ class TensionLine(TensionStrap):
         :param material_code: color/material-name
         :param name: optional argument names
         """
-        super(TensionLine, self).__init__(left, right, 0.01, material_code=material_code, name=name)
+        super().__init__(left, right, 0.01, material_code=material_code, name=name)
         self.left = left
         self.right = right
 

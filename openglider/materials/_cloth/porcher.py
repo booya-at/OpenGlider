@@ -61,9 +61,11 @@ class Skytex27(Porcher):
 
 class Skytex27DC(Porcher):
     weight = 29
-    name = "skytex_27_double_coated"
+    name = "skytex_27_dc"
 
 materials += [
     Skytex27(color="white", color_code="FFFFFF"),
-    Skytex27DC(color="white", color_code="FFFFFF")
+    Skytex27DC(color="white", color_code="FFFFFF"),
+    Skytex27DC(color="dragon_red", color_code="E62E39"),
+    Skytex27DC(color="petrol_blue", color_code="01567D")
 ]

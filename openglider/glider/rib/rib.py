@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import List, Any, TYPE_CHECKING
 import copy
 import math
 import numpy as np
@@ -12,6 +12,11 @@ from openglider.utils.cache import CachedObject, cached_property
 from openglider.mesh import Mesh, triangulate
 from openglider.glider.rib.elements import FoilCurve
 from openglider.materials import cloth
+
+
+if TYPE_CHECKING:
+    from openglider.glider.glider import  Glider
+
 
 logger = logging.getLogger(__name__)
 
@@ -154,8 +159,12 @@ class Rib(CachedObject):
     def normalized_normale(self):
         return self.rotation_matrix.apply([0., 0., 1.])
 
-    def get_attachment_points(self, glider, brake=True):
+    def get_attachment_points(self, glider: "Glider", brake=True):
         attach_pts = []
+
+        if glider.has_center_cell and glider.ribs.index(self) == 0:
+            return glider.ribs[1].get_attachment_points(glider)
+
         for att in glider.attachment_points:
             if hasattr(att, "rib"):
                 if att.rib == self:
@@ -231,12 +240,14 @@ class Rib(CachedObject):
 #     return rot
 
 def rib_rotation(aoa, arc, zrot, xrot=0):
-    rot0 = euklid.vector.Transformation.rotation(np.pi / 2 - xrot - arc, [1, 0, 0])
-    rot1 = euklid.vector.Transformation.rotation(aoa, rot0.apply([0, 0, -1]))
-    axis = (rot0 * rot1).apply([0,0,1])
+    rot0 = euklid.vector.Transformation.rotation(np.pi / 2 - xrot, [1, 0, 0])
+    rot1 = euklid.vector.Transformation.rotation(aoa, [0, 1, 0])
+    rot2 = euklid.vector.Transformation.rotation(-arc, [1,0,0])
+    axis = (rot1 * rot2).apply([0,0,1])
     rot3 = euklid.vector.Transformation.rotation(-zrot, axis)
     
-    return rot3 * rot1 * rot0
+    # reverse order
+    return rot3 * rot2 * rot1 * rot0
 
 
 def rib_transformation(aoa, arc, zrot, xrot, scale, pos):
