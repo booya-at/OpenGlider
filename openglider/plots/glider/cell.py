@@ -13,6 +13,7 @@ from openglider.plots.usage_stats import Material, MaterialUsage
 from openglider.vector.drawing import Layout, PlotPart
 from openglider.vector.text import Text
 
+logger = logging.getLogger(__name__)
 
 class PanelPlot(object):
     DefaultConf = PatternConfig
@@ -196,8 +197,10 @@ class PanelPlot(object):
     def get_material_usage(self):
         part = self.flatten([])
         envelope = part.layers["envelope"].polylines[0]
+        area = envelope.get_area()
+        logger.warning(f"consume {area} of {self.panel.material}")
 
-        return MaterialUsage().consume(self.panel.material, envelope.get_area())
+        return MaterialUsage().consume(self.panel.material, area)
 
 
     def get_point(self, x):

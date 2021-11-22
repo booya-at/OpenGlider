@@ -27,7 +27,7 @@ def export_ods_2d(glider: "ParametricGlider", filename):
         cell_sheet.append_right(attachment_points_cell)
     rib_sheet = glider.tables.get_rib_sheet()
     if glider.tables.attachment_points_rib.table.num_columns < 1:
-        cell_sheet.append_right(attachment_points_rib)
+        rib_sheet.append_right(attachment_points_rib)
 
     cell_sheet["A1"] = file_version
     rib_sheet["A1"] = file_version

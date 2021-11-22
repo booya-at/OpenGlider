@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING
 import logging
 import math
 import numbers
@@ -24,9 +25,12 @@ from openglider.glider.parametric.table.attachment_points import CellAttachmentP
 from openglider.utils import linspace
 from openglider.utils.table import Table
 
+if TYPE_CHECKING:
+    from openglider.glider.parametric import ParametricGlider
+
 logger = logging.getLogger(__name__)
 
-def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
+def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False) -> "ParametricGlider":
     logger.info(f"Import file: {filename}")
     ods = ezodf.opendoc(filename)
     sheets = ods.sheets
@@ -148,8 +152,8 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     tables.ballooning_factors = ballooning_factors
     tables.holes = rib_holes
     tables.diagonals = diagonals
-    tables.rigidfoils = rigidfoils
-    tables.cell_rigidfoils = cell_rigidfoils
+    tables.rigidfoils_rib = rigidfoils
+    tables.rigidfoils_cell = cell_rigidfoils
     tables.straps = straps
     tables.material_cells = ClothTable(cell_sheet)
     tables.material_ribs = ClothTable(rib_sheet)

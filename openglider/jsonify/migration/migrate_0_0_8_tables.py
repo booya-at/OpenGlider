@@ -32,6 +32,10 @@ def migrate_diagonals(cls, jsondata):
         table_straps = get_straps_table(straps)
         elements["straps"] = table_straps
 
+        straps_simple = elements.pop("tension_lines", [])
+        table_straps_simple = get_straps_table(straps_simple, simple=True)
+        elements["straps"].table.append_right(table_straps_simple.table)
+        
         materials = elements.pop("materials")
         if materials:
             materials_new = []
@@ -111,7 +115,7 @@ def get_diagonals_table(diagonals):
 
     return DiagonalTable(table)
 
-def get_straps_table(straps):
+def get_straps_table(straps, simple=False):
     table = Table()
     cell_num = max([max(strap["cells"]) for strap in straps], default=0)
     straps_per_cell = []
@@ -120,8 +124,14 @@ def get_straps_table(straps):
         straps_per_cell.append([])
     
     for strap in straps:
-        for cell_no in strap["cells"]:            
-            straps_per_cell[cell_no].append((strap["left"], strap["right"], strap["width"]))
+        for cell_no in strap["cells"]:
+            strap_data = [
+                strap["left"],
+                strap["right"]
+            ]
+            if not simple:
+                strap_data.append(strap["width"])
+            straps_per_cell[cell_no].append(strap_data)
 
     for cell_straps in straps_per_cell:
         cell_straps.sort(key=lambda x: sum(x[:2]))
@@ -143,7 +153,10 @@ def get_straps_table(straps):
         strap = straps_this.pop(0)
 
         column = Table()
-        column[0, 0] = "STRAP"
+        if simple:
+            column[0,0] = "VEKTLAENGE"
+        else:
+            column[0, 0] = "STRAP"
 
         column.insert_row(strap, cell_no+1)
 

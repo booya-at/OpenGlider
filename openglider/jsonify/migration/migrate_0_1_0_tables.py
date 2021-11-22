@@ -38,6 +38,12 @@ def migrate_tables(cls, jsondata):
 
         if "singleskin_ribs" in elements:
             elements["singleskin_ribs"]["_module"] = "openglider.glider.parametric.table.rib.rib"
+        
+        if "rigidfoils" in elements:
+            elements["rigidfoils_rib"] = elements.pop("rigidfoils")
+
+        if "cell_rigidfoils" in elements:
+            elements["rigidfoils_cell"] = elements.pop("cell_rigidfoils")
 
         node["data"]["tables"] = {
             "_type": "GliderTables",
