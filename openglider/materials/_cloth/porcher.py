@@ -64,8 +64,20 @@ class Skytex27DC(Porcher):
     name = "skytex_27_dc"
 
 materials += [
+    Skytex27(color="black", color_code="000000"),
     Skytex27(color="white", color_code="FFFFFF"),
+    Skytex27(color="lime_green", color_code="96C11E"),
+    Skytex27(color="green", color_code="00945E"),
+    Skytex27(color="sunflower", color_code="FDC529"),
+    Skytex27(color="gold", color_code="FBBD3D"),
+    Skytex27(color="orange", color_code="EC6728"),
+    Skytex27(color="dragon_red", color_code="E62E39"),
+    Skytex27(color="purple", color_code="8F4795"),
+    Skytex27(color="royal_blue", color_code="0F81C4"),
+    Skytex27(color="deep_blue", color_code="243882"),
+    
     Skytex27DC(color="white", color_code="FFFFFF"),
     Skytex27DC(color="dragon_red", color_code="E62E39"),
-    Skytex27DC(color="petrol_blue", color_code="01567D")
+    Skytex27DC(color="petrol_blue", color_code="01567D"),
+
 ]

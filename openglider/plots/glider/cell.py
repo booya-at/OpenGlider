@@ -198,7 +198,6 @@ class PanelPlot(object):
         part = self.flatten([])
         envelope = part.layers["envelope"].polylines[0]
         area = envelope.get_area()
-        logger.warning(f"consume {area} of {self.panel.material}")
 
         return MaterialUsage().consume(self.panel.material, area)
 

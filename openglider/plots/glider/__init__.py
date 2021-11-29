@@ -69,7 +69,6 @@ class PlotMaker(object):
             panels_upper.append(Layout.stack_column(upper, self.config.patterns_align_dist_y))
 
             panel_weight = pm.consumption
-            logger.warning(f"{cell_no}: consumed {panel_weight}")
             if cell_no > 0 or not self.glider_3d.has_center_cell:
                 panel_weight *= 2
 
