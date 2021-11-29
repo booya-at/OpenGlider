@@ -50,6 +50,7 @@ class UpperNode2D(object):
         self.name = name
         self.is_cell = is_cell
         self.proto_dist = 0
+        self.offset = None
 
     def __json__(self):
         return {'cell_no': self.cell_no,
@@ -74,8 +75,9 @@ class UpperNode2D(object):
                 force = euklid.vector.Vector3D(list(self.force))
             else:
                 force = cell.get_normvector() * self.force
+            
+            node = CellAttachmentPoint(cell, self.name, self.cell_pos, self.rib_pos, force, self.offset)
 
-            node = CellAttachmentPoint(cell, self.name, self.cell_pos, self.rib_pos, force)
         else: # attachment point on the rib
             rib = glider.ribs[self.cell_no + self.cell_pos]
             if isinstance(self.force, (list, tuple, np.ndarray)):
@@ -83,7 +85,7 @@ class UpperNode2D(object):
             else:
                 force = rib.rotation_matrix.apply([0, self.force, 0])
 
-            node = AttachmentPoint(rib, self.name, self.rib_pos, force)
+            node = AttachmentPoint(rib, self.name, self.rib_pos, force, self.offset)
             
             if self.proto_dist:
                 node.protoloops = 1
@@ -511,7 +513,7 @@ class LineSet2D(object):
         attachment_points = []
 
         for i in range(half_cell_no):
-            attachment_points += cell_table_reader.get(i)
+            attachment_points += cell_table_reader.get(i, curves=curves)
             attachment_points += rib_table_reader.get(i, curves=curves)
         
         attachment_points += rib_table_reader.get(half_cell_no, curves=curves)

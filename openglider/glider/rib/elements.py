@@ -150,13 +150,17 @@ class GibusArcs(object):
 class CellAttachmentPoint(Node):
     ballooned=False
 
-    def __init__(self, cell, name, cell_pos, rib_pos, force=None):
+    def __init__(self, cell, name, cell_pos, rib_pos, force=None, offset=None):
         super().__init__(node_type=self.NODE_TYPE.UPPER)
         self.cell = cell
         self.cell_pos = cell_pos
         self.rib_pos = rib_pos
         self.name = name
         self.force = force
+
+        if offset is None:
+            offset = 0
+        self.offset: float = offset
 
     def __repr__(self):
         return "<Attachment point '{}' ({})>".format(self.name, self.rib_pos)
@@ -191,12 +195,16 @@ class CellAttachmentPoint(Node):
 # Node from lines
 class AttachmentPoint(Node):
 
-    def __init__(self, rib, name, rib_pos, force=None):
+    def __init__(self, rib, name, rib_pos, force=None, offset=None):
         super().__init__(node_type=self.NODE_TYPE.UPPER)
         self.rib = rib
         self.rib_pos = rib_pos
         self.name = name
         self.force = force
+
+        if offset is None:
+            offset = -0.01
+        self.offset: float = offset
 
         self.protoloops = 0
         self.protoloop_distance = 0.02

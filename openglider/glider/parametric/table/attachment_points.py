@@ -87,13 +87,24 @@ class AttachmentPointTable(ElementTable):
 class CellAttachmentPointTable(ElementTable):
     keywords = {
         "ATP": Keyword(["name", "cell_pos", "rib_pos", "force"]), 
+        "ATPDIFF": Keyword(["name", "cell_pos", "rib_pos", "force", "offset"]), 
         "AHP": Keyword(["name", "cell_pos", "rib_pos", "force"]),
     }
 
-    def get_element(self, row, keyword, data, **kwargs) -> UpperNode2D:
+    def get_element(self, row, keyword, data, curves, **kwargs) -> UpperNode2D:
         force = data[3]
 
         if isinstance(force, str):
             force = ast.literal_eval(force)
 
-        return UpperNode2D(row, data[2], data[1], force, name=data[0], is_cell=True)
+        node = UpperNode2D(row, data[2], data[1], force, name=data[0], is_cell=True)
+
+        if len(data) > 4:
+            offset = data[4]
+            if isinstance(offset, str):
+                offset = curves[offset].get(row)
+            
+            node.offset = offset
+
+        return node
+

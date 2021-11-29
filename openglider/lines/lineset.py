@@ -607,9 +607,12 @@ class LineSet(object):
         # apply seam correction
         length += line.type.seam_correction
 
-        # reduce by canopy-loop length
+        # reduce by canopy-loop length / brake offset
         if len(self.get_upper_connected_lines(line.upper_node)) == 0:
-            length -= 0.01
+            diff = line.upper_node.offset
+            length += diff
+
+        return length
 
         # apply loop correction
         lower_lines = self.get_lower_connected_lines(line.lower_node)
@@ -636,8 +639,9 @@ class LineSet(object):
         def get_checklength(line, upper_lines):
             line_length = line.get_stretched_length()
             if not len(upper_lines):
+                diff = line.upper_node.offset
                 return [
-                    line_length
+                    line_length + diff
                 ]
             else:
                 lengths = []

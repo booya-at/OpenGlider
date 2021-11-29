@@ -312,65 +312,74 @@ class PanelPlot(object):
             cut_f = cut_f_l + cell_pos * (cut_f_r - cut_f_l)
             cut_b = cut_b_l + cell_pos * (cut_b_r - cut_b_l)
 
-            if cut_f <= attachment_point.rib_pos <= cut_b:
-                rib_pos = attachment_point.rib_pos
-                left, right = self.get_point(rib_pos)
+            positions = [attachment_point.rib_pos]
+            
+            if getattr(attachment_point, "protoloops", False):
+                for i in range(attachment_point.protoloops):
+                    positions.append(attachment_point.rib_pos + (i+1)*attachment_point.protoloop_distance)
+                    positions.append(attachment_point.rib_pos - (i+1)*attachment_point.protoloop_distance)
+            
+            for rib_pos_no, rib_pos in enumerate(positions):
+                logger.warning(f"rib_pos: {rib_pos}")
 
-                p1 = left + (right - left) * cell_pos
-                d = (right - left).normalized() * 0.008 # 8mm
-                if cell_pos == 1:
-                    p2 = p1 + d
-                else:
-                    p2 = p1 - d
+                if cut_f <= attachment_point.rib_pos <= cut_b:
+                    left, right = self.get_point(rib_pos)
+
+                    p1 = left + (right - left) * cell_pos
+                    d = (right - left).normalized() * 0.008 # 8mm
+                    if cell_pos == 1:
+                        p2 = p1 + d
+                    else:
+                        p2 = p1 - d
+                        
+                    if cell_pos in (1, 0):
+                        which = ["left", "right"][cell_pos]
+                        x1, x2 = self.get_p1_p2(rib_pos, which)
+                        plotpart.layers["marks"] += self.config.marks_attachment_point(x1, x2)
+                        plotpart.layers["L0"] += self.config.marks_laser_attachment_point(x1, x2)
+                    else:
+                        plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
+                        plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
                     
-                if cell_pos in (1, 0):
-                    which = ["left", "right"][cell_pos]
-                    x1, x2 = self.get_p1_p2(rib_pos, which)
-                    plotpart.layers["marks"] += self.config.marks_attachment_point(x1, x2)
-                    plotpart.layers["L0"] += self.config.marks_laser_attachment_point(x1, x2)
-                else:
-                    plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
-                    plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
-                
-                if self.config.insert_attachment_point_text:
-                    text_align = "left" if cell_pos > 0.7 else "right"
+                    if self.config.insert_attachment_point_text and rib_pos_no == 0:
+                        text_align = "left" if cell_pos > 0.7 else "right"
 
-                    if text_align == "right":
-                        d1 = (self.get_point(cut_f_l)[0] - left).length()
-                        d2 = ((self.get_point(cut_b_l)[0] - left)).length()
-                    else:
-                        d1 = ((self.get_point(cut_f_r)[1] - right)).length()
-                        d2 = ((self.get_point(cut_b_r)[1] - right)).length()
+                        if text_align == "right":
+                            d1 = (self.get_point(cut_f_l)[0] - left).length()
+                            d2 = ((self.get_point(cut_b_l)[0] - left)).length()
+                        else:
+                            d1 = ((self.get_point(cut_f_r)[1] - right)).length()
+                            d2 = ((self.get_point(cut_b_r)[1] - right)).length()
 
-                    bl = self.ballooned[0]
-                    br = self.ballooned[1]
+                        bl = self.ballooned[0]
+                        br = self.ballooned[1]
 
-                    text_height = 0.01 * 0.8
-                    dmin = text_height + 0.001
+                        text_height = 0.01 * 0.8
+                        dmin = text_height + 0.001
 
-                    if d1 < dmin and d2 + d1 > 2*dmin:
-                        offset = dmin - d1
-                        ik = get_x_value(self.x_values, rib_pos)
-                        left = bl.get(bl.walk(ik, offset))
-                        right = br.get(br.walk(ik, offset))
-                    elif d2 < dmin and d1 + d2 > 2*dmin:
-                        offset = dmin - d2
-                        ik = get_x_value(self.x_values, rib_pos)
-                        left = bl.get(bl.walk(ik, -offset))
-                        right = br.get(br.walk(ik, -offset))
+                        if d1 < dmin and d2 + d1 > 2*dmin:
+                            offset = dmin - d1
+                            ik = get_x_value(self.x_values, rib_pos)
+                            left = bl.get(bl.walk(ik, offset))
+                            right = br.get(br.walk(ik, offset))
+                        elif d2 < dmin and d1 + d2 > 2*dmin:
+                            offset = dmin - d2
+                            ik = get_x_value(self.x_values, rib_pos)
+                            left = bl.get(bl.walk(ik, -offset))
+                            right = br.get(br.walk(ik, -offset))
 
-                    if self.config.layout_seperate_panels and self.panel.is_lower:
-                        # rotated later
-                        p2 = left
-                        p1 = right
-                        # text_align = text_align
-                    else:
-                        p1 = left
-                        p2 = right
-                        # text_align = text_align
-                    plotpart.layers["text"] += Text(" {} ".format(attachment_point.name), p1, p2,
-                                                    size=0.01,  # 1cm
-                                                    align=text_align, valign=0, height=0.8).get_vectors()
+                        if self.config.layout_seperate_panels and self.panel.is_lower:
+                            # rotated later
+                            p2 = left
+                            p1 = right
+                            # text_align = text_align
+                        else:
+                            p1 = left
+                            p2 = right
+                            # text_align = text_align
+                        plotpart.layers["text"] += Text(" {} ".format(attachment_point.name), p1, p2,
+                                                        size=0.01,  # 1cm
+                                                        align=text_align, valign=0, height=0.8).get_vectors()
     
     def _insert_rigidfoils(self, plotpart):
         for rigidfoil in self.cell.rigidfoils:
