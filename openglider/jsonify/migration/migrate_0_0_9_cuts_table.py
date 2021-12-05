@@ -2,7 +2,7 @@ import logging
 import json
 from openglider.glider.parametric.table.curve import CurveTable
 from openglider.glider.parametric.table.rigidfoil import CellRigidTable, RibRigidTable
-from openglider.glider.parametric.table.material import ClothTable, Material
+from openglider.glider.parametric.table.material import CellClothTable, RibClothTable, Material
 from openglider.glider.parametric.table.cell.miniribs import MiniRibTable
 
 from openglider.jsonify.encoder import Encoder
@@ -26,11 +26,11 @@ def migrate_diagonals(cls, jsondata):
         elements["cuts"] = cuts_table
 
         material_cells = elements.get("material_cells", [])
-        material_table = get_materials_table(material_cells)
+        material_table = get_materials_table(material_cells, CellClothTable)
         elements["material_cells"] = material_table
 
         material_ribs = elements.get("material_ribs", [])
-        elements["material_ribs"] = get_materials_table(material_ribs)
+        elements["material_ribs"] = get_materials_table(material_ribs, RibClothTable)
 
         cell_rigids = elements.get("cell_rigidfoils", [])
         elements["cell_rigidfoils"] = get_cell_rigidfoil_table(cell_rigids)
@@ -98,7 +98,7 @@ def get_rib_rigidfoil_table(rigidfoils):
     return RibRigidTable(table)
 
 
-def get_materials_table(materials):
+def get_materials_table(materials, _cls):
     # Material
     material_table = Table()
     for cell_no, cell in enumerate(materials):
@@ -112,7 +112,7 @@ def get_materials_table(materials):
     for part_no in range(material_table.num_columns):
         material_table[0, part_no] = "MATERIAL"
     
-    return ClothTable(material_table)
+    return _cls(material_table)
 
 def get_cuts_table(cuts):
     cuts_table = Table()

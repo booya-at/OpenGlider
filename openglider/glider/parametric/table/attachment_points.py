@@ -6,13 +6,13 @@ import re
 import euklid
 import openglider
 from openglider.utils.table import Table
-from openglider.glider.parametric.table.elements import ElementTable, Keyword
+from openglider.glider.parametric.table.elements import CellTable, RibTable, Keyword
 
 from openglider.glider.parametric.lines import UpperNode2D
 
 logger = logging.getLogger(__name__)
 
-class AttachmentPointTable(ElementTable):
+class AttachmentPointTable(RibTable):
     regex_node_layer = re.compile(r"([a-zA-Z]*)([0-9]*)")
 
     keywords = {
@@ -84,7 +84,7 @@ class AttachmentPointTable(ElementTable):
                     
                     
 
-class CellAttachmentPointTable(ElementTable):
+class CellAttachmentPointTable(CellTable):
     keywords = {
         "ATP": Keyword(["name", "cell_pos", "rib_pos", "force"]), 
         "ATPDIFF": Keyword(["name", "cell_pos", "rib_pos", "force", "offset"]), 

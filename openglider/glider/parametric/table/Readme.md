@@ -21,6 +21,20 @@
   * attributes: ['start', 'end', 'height', 'num_holes', 'border_width'] 
 
 
+### rigidfoils_rib
+
+- RIGIDFOIL
+  * length: 3
+  * attributes: ['start', 'end', 'distance'] 
+
+
+### material_ribs
+
+- MATERIAL
+  * length: 1
+  * attributes: ['Name'] 
+
+
 ### rib_modifiers
 
 - SkinRib
@@ -45,6 +59,19 @@
 - Flap
   * length: 2
   * attributes: ['begin', 'amount'] 
+
+
+### attachment_points_rib
+
+- ATP
+  * length: 3
+  * attributes: ['name', 'pos', 'force'] 
+- AHP
+  * length: 3
+  * attributes: ['name', 'pos', 'force'] 
+- ATPPROTO
+  * length: 4
+  * attributes: ['name', 'pos', 'force', 'proto_distance'] 
 
 
 ## Cell Table
@@ -110,22 +137,6 @@
   * attributes: ['left', 'right'] 
 
 
-### miniribs
-
-- MINIRIB
-  * length: 2
-  * attributes: ['yvalue', 'front_cut'] 
-
-
-## General Table
-
-### rigidfoils_rib
-
-- RIGIDFOIL
-  * length: 3
-  * attributes: ['start', 'end', 'distance'] 
-
-
 ### rigidfoils_cell
 
 - RIGIDFOIL
@@ -140,24 +151,11 @@
   * attributes: ['Name'] 
 
 
-### material_ribs
+### miniribs
 
-- MATERIAL
-  * length: 1
-  * attributes: ['Name'] 
-
-
-### attachment_points_rib
-
-- ATP
-  * length: 3
-  * attributes: ['name', 'pos', 'force'] 
-- AHP
-  * length: 3
-  * attributes: ['name', 'pos', 'force'] 
-- ATPPROTO
-  * length: 4
-  * attributes: ['name', 'pos', 'force', 'proto_distance'] 
+- MINIRIB
+  * length: 2
+  * attributes: ['yvalue', 'front_cut'] 
 
 
 ### attachment_points_cell
@@ -172,4 +170,6 @@
   * length: 4
   * attributes: ['name', 'cell_pos', 'rib_pos', 'force'] 
 
+
+## General Table
 

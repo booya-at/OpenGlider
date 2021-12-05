@@ -7,7 +7,7 @@ from openglider.glider.parametric.table.cell.cuts import CutTable
 from openglider.glider.parametric.table.cell.diagonals import DiagonalTable, StrapTable
 from openglider.glider.parametric.table.cell.miniribs import MiniRibTable
 from openglider.glider.parametric.table.curve import CurveTable
-from openglider.glider.parametric.table.material import ClothTable
+from openglider.glider.parametric.table.material import CellClothTable, RibClothTable
 from openglider.glider.parametric.table.rib.holes import HolesTable
 from openglider.glider.parametric.table.rib.profile import ProfileTable
 from openglider.glider.parametric.table.rib.rib import SingleSkinTable
@@ -15,7 +15,9 @@ from openglider.glider.parametric.table.rigidfoil import CellRigidTable, RibRigi
 from openglider.glider.parametric.table.elements import TableType
 from openglider.utils.table import Table
 
+
 logger = logging.getLogger(__name__)
+
 
 class GliderTables:
     cuts: CutTable
@@ -25,8 +27,8 @@ class GliderTables:
     straps: StrapTable
     rigidfoils_rib: RibRigidTable
     rigidfoils_cell: CellRigidTable
-    material_cells: ClothTable
-    material_ribs: ClothTable
+    material_cells: CellClothTable
+    material_ribs: RibClothTable
     miniribs: MiniRibTable
     rib_modifiers: SingleSkinTable
     profiles: ProfileTable
