@@ -82,11 +82,16 @@ class PanelCut:
     def mirror(self) -> None:
         self.x_left, self.x_right = self.x_right, self.x_left
     
-    def get_average_x(self):
+    def get_x_values(self):
         values = [self.x_left, self.x_right]
 
         if self.x_center is not None:
-            values.append(self.x_center)
+            values.insert(1, self.x_center)
+        
+        return values
+    
+    def get_average_x(self):
+        values = self.get_x_values()
         
         return sum(values)/len(values)
     

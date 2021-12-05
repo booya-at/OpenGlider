@@ -20,6 +20,9 @@ class Glider(object):
     cell_naming_scheme = "c{cell_no}"
     rib_naming_scheme = "r{rib_no}"
 
+    cells: List[Cell]
+    lineset: LineSet
+
     def __init__(self, cells=None, lineset: LineSet=None):
         self.cells: List[Cell] = cells or []
         self.lineset = lineset or LineSet([])

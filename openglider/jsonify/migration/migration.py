@@ -30,6 +30,11 @@ class Migration:
 
         self.from_version = version
     
+    @staticmethod
+    def to_dict(data):
+        # TODO: improve (speed-wise)!
+        return json.loads(json.dumps(data, cls=Encoder))
+    
     def migrate(self):
         jsondata = self.json_data
         #with open("/tmp/data.json", "w") as outfile:
@@ -38,7 +43,7 @@ class Migration:
             if self.from_version < migration_version:
                 logger.info(f"running migration: {migration_version} / {migration.__name__}")
                 jsondata = migration(jsondata)
-                logger.debug(f"migration {migration.__name__} done")
+                logger.info(f"migration {migration.__name__} done")
         
         return json.dumps(jsondata, cls=Encoder)
     

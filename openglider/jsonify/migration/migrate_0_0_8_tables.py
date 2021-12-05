@@ -161,7 +161,7 @@ def get_straps_table(straps, simple=False):
         column.insert_row(strap, cell_no+1)
 
 
-        for cell_no_temp in range(cell_no+1, cell_num):
+        for cell_no_temp in range(cell_no+1, cell_num+1):
             strap_next = find_next_strap(strap, cell_no_temp)
             if not strap_next:
                 continue
@@ -172,7 +172,7 @@ def get_straps_table(straps, simple=False):
 
         return column
 
-    for cell_no in range(cell_num):
+    for cell_no in range(cell_num+1):
         while add_column(cell_no):
             pass
     

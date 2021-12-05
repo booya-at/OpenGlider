@@ -19,6 +19,7 @@ def migrate_diagonals(cls, jsondata):
         return jsondata
 
     for node in nodes:
+        logger.info(f"start migration")
         elements = node["data"]["elements"]
 
         cuts = elements.get("cuts", [])
@@ -26,26 +27,34 @@ def migrate_diagonals(cls, jsondata):
         elements["cuts"] = cuts_table
 
         material_cells = elements.get("material_cells", [])
-        material_table = get_materials_table(material_cells, CellClothTable)
+        material_table = cls.to_dict(get_materials_table(material_cells, CellClothTable))
         elements["material_cells"] = material_table
 
         material_ribs = elements.get("material_ribs", [])
-        elements["material_ribs"] = get_materials_table(material_ribs, RibClothTable)
+        elements["material_ribs"] = cls.to_dict(get_materials_table(material_ribs, RibClothTable))
 
+        logger.info(f"start migration2")
         cell_rigids = elements.get("cell_rigidfoils", [])
-        elements["cell_rigidfoils"] = get_cell_rigidfoil_table(cell_rigids)
+        elements["cell_rigidfoils"] = cls.to_dict(get_cell_rigidfoil_table(cell_rigids))
 
         rib_rigids = elements.get("rigidfoils", [])
-        elements["rigidfoils"] = get_rib_rigidfoil_table(rib_rigids)
+        elements["rigidfoils"] = cls.to_dict(get_rib_rigidfoil_table(rib_rigids))
 
-        elements["miniribs"] = MiniRibTable(Table())
+        elements["miniribs"] = cls.to_dict(MiniRibTable(Table()))
 
-        node["data"].setdefault("curves", CurveTable(Table()))
+        if "curves" not in node["data"]:
+            node["data"]["curves"] = cls.to_dict(CurveTable(Table()))
+
+        logger.info(f"done migration")
     
+    logger.info(f"start pop")
+
     for node_type in (r"LowerNode2D", r"UpperNode2D", r"BatchNode2D"):
         for node in cls.find_nodes(jsondata, name=node_type):
+            logger.info("jo")
             node["data"].pop("layer")
 
+    logger.info(f"start rename")
 
     to_rename = [
         ("ballooning", "cell.ballooning"),

@@ -126,7 +126,7 @@ class Cell:
 
         return profiles
 
-    def get_connected_panels(self, skip=None):
+    def get_connected_panels(self, skip=None) -> List[Panel]:
         panels = []
         self.panels.sort(key=lambda panel: panel.mean_x())
 
