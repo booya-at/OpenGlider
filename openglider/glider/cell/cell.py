@@ -11,10 +11,11 @@ import pyfoil
 import openglider.vector
 import openglider.utils
 from openglider.airfoil import Profile3D
-from openglider.glider.ballooning import Ballooning
+from openglider.glider.ballooning.base import BallooningBase
 from openglider.glider.cell import BasicCell
-from openglider.glider.cell.elements import PanelRigidFoil
+from openglider.glider.cell.elements import PanelRigidFoil, DiagonalRib, TensionStrap
 from openglider.glider.cell.panel import Panel,PanelCut
+from openglider.glider.rib import Rib, MiniRib
 from openglider.mesh import Mesh, Polygon, Vertex
 from openglider.utils import consistent_value, linspace
 from openglider.utils.cache import (
@@ -23,47 +24,32 @@ from openglider.utils.cache import (
     cached_function,
     cached_property, hash_list,
 )
+from openglider.utils.dataclass import dataclass, field
 
 
 logging.getLogger(__file__)
 
-class Cell(CachedObject):
+@dataclass
+class Cell:
+    rib1: Rib
+    rib2: Rib
+    ballooning: BallooningBase
+    miniribs: List[MiniRib] = field(default_factory=list)
+    panels: List[Panel] = field(default_factory=list)
+    diagonals: List[DiagonalRib] = field(default_factory=list)
+    straps: List[TensionStrap] = field(default_factory=list)
+    rigidfoils: List[PanelRigidFoil] = field(default_factory=list)
+    name: str = "unnamed"
+
+
+    sigma_3d_cut: float = 0.06
+
     diagonal_naming_scheme = "{cell.name}d{diagonal_no}"
     strap_naming_scheme = "{cell.name}s{side}{diagonal_no}"
     panel_naming_scheme = "{cell.name}p{panel_no}"
     panel_naming_scheme_upper = "{cell.name}pu{panel_no}"
     panel_naming_scheme_lower = "{cell.name}pl{panel_no}"
     minirib_naming_scheme = "{cell.name}mr{minirib_no}"
-
-    sigma_3d_cut = 0.06
-
-    def __init__(self, rib1, rib2, ballooning, miniribs=None, panels: List["Panel"]=None,
-                 diagonals: list=None, straps: list=None, rigidfoils: List[PanelRigidFoil]=None, name="unnamed", **kwargs):
-        self.rib1 = rib1
-        self.rib2 = rib2
-        self.miniribs = miniribs or []
-        self.diagonals = diagonals or []
-        self.straps = straps or []
-        self.ballooning = ballooning
-        self.panels = panels or []
-        self.rigidfoils = rigidfoils or []
-        self.name = name
-
-        for kwarg, value in kwargs.items():
-            setattr(self, kwarg, value)
-
-    def __json__(self):
-        return {"rib1": self.rib1,
-                "rib2": self.rib2,
-                "ballooning": self.ballooning,
-                "miniribs": self.miniribs,
-                "diagonals": self.diagonals,
-                "panels": self.panels,
-                "straps": self.straps,
-                "rigidfoils": self.rigidfoils,
-                "name": self.name,
-                "sigma_3d_cut": self.sigma_3d_cut
-                }
     
     def __hash__(self) -> int:
         return hash_list(self.rib1, self.rib2, *self.miniribs, *self.diagonals)
@@ -223,21 +209,21 @@ class Cell(CachedObject):
                         ballooning_new = 0
                         #print("JO")
 
-                    cell.ballooning_phi.append(Ballooning.arcsinc(1/(1+ballooning_new)))  # B/L NEW 1 / (bl * l / lnew)
+                    cell.ballooning_phi.append(BallooningBase.arcsinc(1/(1+ballooning_new)))  # B/L NEW 1 / (bl * l / lnew)
                 else:
                     cell.ballooning_phi.append(0.)
         return cells
 
     @property
-    def ribs(self) -> List["openglider.glider.rib.Rib"]:
+    def ribs(self) -> List[Rib]:
         return [self.rib1, self.rib2]
 
     @property
-    def _yvalues(self):
-        return [0] + [mrib.y_value for mrib in self.miniribs] + [1]
+    def _yvalues(self) -> List[float]:
+        return [0.] + [mrib.yvalue for mrib in self.miniribs] + [1.]
 
     @property
-    def x_values(self) -> list:
+    def x_values(self) -> List[float]:
         return consistent_value(self.ribs, 'profile_2d.x_values')
 
     @property
@@ -279,7 +265,7 @@ class Cell(CachedObject):
     def ballooning_phi(self):
         x_values = [max(-1, min(1, x)) for x in self.rib1.profile_2d.x_values]
         balloon = [self.ballooning[i] for i in x_values]
-        return HashedList([Ballooning.arcsinc(1. / (1+bal)) if bal > 0 else 0 for bal in balloon])
+        return HashedList([BallooningBase.arcsinc(1. / (1+bal)) if bal > 0 else 0 for bal in balloon])
     
     @cached_property('ballooning', '_child_cells')
     def ballooning_tension_factors(self):
@@ -314,7 +300,7 @@ class Cell(CachedObject):
 
     @property
     def span(self) -> float:
-        return ((self.rib1.pos - self.rib2.pos) * [0, 1, 1]).length()
+        return ((self.rib1.pos - self.rib2.pos) * euklid.vector.Vector3D([0, 1, 1])).length()
 
     @property
     def area(self) -> float:

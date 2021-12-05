@@ -92,16 +92,26 @@ class ElementTable(Generic[ElementType]):
     def get_element(self, row: int, keyword: str, data: List[Any], **kwargs) -> ElementType:
         keyword_mapper = self.keywords[keyword]
 
-        if keyword_mapper.target_cls is not None:
-            if keyword_mapper.attributes:
-                init_kwargs = {
-                    name: value for name, value in zip(keyword_mapper.attributes, data)
-                }
-                return keyword_mapper.target_cls(**init_kwargs)
-            else:
-                return keyword_mapper.target_cls(*data)
+        if keyword_mapper.target_cls is None:
+            raise NotImplementedError(f"No target Class defined for keyword: {keyword}")
+        if keyword_mapper.attributes is None:
+            raise NotImplementedError(f"No attributes defined on keyword: {keyword}")
 
-        raise NotImplementedError()
+        init_kwargs = {
+            name: value for name, value in zip(keyword_mapper.attributes, data)
+        }
+
+        target_cls = keyword_mapper.target_cls
+
+        if hasattr(target_cls, "__anotations__"):
+            for key, target_type in target_cls.__annotations__.items():
+                value = init_kwargs[key]
+                if not isinstance(value, target_type):
+                    logger.warning(f"wrong type: {keyword}/{key}: {value}")
+                    init_kwargs[key] = target_type(value)
+
+        return keyword_mapper.target_cls(**init_kwargs)
+
 
     def _repr_html_(self):
         return self.table._repr_html_()

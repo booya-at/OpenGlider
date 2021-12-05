@@ -91,7 +91,7 @@ class CellAttachmentPointTable(ElementTable):
         "AHP": Keyword(["name", "cell_pos", "rib_pos", "force"]),
     }
 
-    def get_element(self, row, keyword, data, curves, **kwargs) -> UpperNode2D:
+    def get_element(self, row, keyword, data, curves={}, **kwargs) -> UpperNode2D:
         force = data[3]
 
         if isinstance(force, str):

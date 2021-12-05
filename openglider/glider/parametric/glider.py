@@ -7,6 +7,8 @@ import euklid
 import pyfoil
 
 from openglider.utils import linspace
+from openglider.airfoil import Profile2D
+from openglider.glider.ballooning.base import BallooningBase
 from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.ballooning.new import BallooningBezierNeu
 from openglider.glider.ballooning.base import BallooningBase
@@ -22,6 +24,7 @@ from openglider.glider.rib import Rib, MiniRib, SingleSkinRib
 from openglider.glider.parametric.fitglider import fit_glider_3d
 from openglider.glider.parametric.table import GliderTables
 import openglider.materials
+from openglider.utils.dataclass import dataclass, field
 from openglider.utils.distribution import Distribution
 from openglider.utils.table import Table
 from openglider.utils import ZipCmp
@@ -29,54 +32,28 @@ from openglider.utils import ZipCmp
 
 logger = logging.getLogger(__name__)
 
-class ParametricGlider(object):
+
+@dataclass
+class ParametricGlider:
     """
     A parametric (2D) Glider object used for gui input
     """
-    num_arc_positions = 60
-    num_shape = 30
-    num_interpolate_ribs = 40
-    num_cell_dist = 30
-    num_depth_integral = 100
+    shape: ParametricShape
+    arc: ArcCurve
+    aoa: euklid.spline.SymmetricBSplineCurve
+    profiles: List[Profile2D]
+    profile_merge_curve: euklid.spline.SymmetricBSplineCurve
+    balloonings: List[BallooningBase]
+    ballooning_merge_curve: euklid.spline.SymmetricBSplineCurve
+    lineset: LineSet2D
+    speed: float
+    glide: float
+    tables: GliderTables = field(default_factory=lambda: GliderTables())
+    curves: CurveTable = field(default_factory=lambda: CurveTable(Table()))
+    zrot: euklid.spline.SymmetricBSplineCurve = field(default_factory=lambda: euklid.spline.SymmetricBSplineCurve([[0,0],[1,0]]))
+
     num_interpolate = 30
     num_profile = None
-
-    shape: ParametricShape
-    tables: GliderTables
-    lineset: LineSet2D
-
-    def __init__(self, shape, arc, aoa, profiles, profile_merge_curve,
-                 balloonings, ballooning_merge_curve, lineset,
-                 speed, glide, zrot, tables: GliderTables=None, curves=None):
-        self.zrot = zrot or aoa
-        self.shape: ParametricShape = shape
-        self.arc: ArcCurve = arc
-        self.aoa = aoa
-        self.profiles = profiles or []
-        self.profile_merge_curve = profile_merge_curve
-        self.balloonings = balloonings or []
-        self.ballooning_merge_curve = ballooning_merge_curve
-        self.lineset = lineset or LineSet2D([])
-        self.speed = speed
-        self.glide = glide
-        self.tables = tables or GliderTables()
-        self.curves = curves or CurveTable(Table())
-
-    def __json__(self):
-        return {
-            "shape": self.shape,
-            "arc": self.arc,
-            "aoa": self.aoa,
-            "zrot": self.zrot,
-            "profiles": self.profiles,
-            "profile_merge_curve": self.profile_merge_curve,
-            "balloonings": self.balloonings,
-            "ballooning_merge_curve": self.ballooning_merge_curve,
-            "lineset": self.lineset,
-            "speed": self.speed,
-            "glide": self.glide,
-            "tables": self.tables
-        }
 
     @classmethod
     def import_ods(cls, path):

@@ -57,7 +57,7 @@ class TestGlider(GliderTestClass):
 
     def test_scale(self):
         ar = self.glider.aspect_ratio
-        self.glider.scale(random.random()*10)
+        self.glider.scale(1+random.random())
         self.assertAlmostEqual(ar, self.glider.aspect_ratio)
 
     def test_flatten(self):

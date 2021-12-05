@@ -7,6 +7,7 @@ import euklid
 import numpy as np
 import openglider.jsonify
 import openglider.mesh as mesh
+from openglider.utils.dataclass import dataclass
 import openglider.vector
 from openglider.airfoil import get_x_value
 from openglider.materials import Material, cloth
@@ -20,39 +21,20 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-class DiagonalRib(object):
-    hole_num = 0
-    hole_border_side = 0.15
-    hole_border_front_back = 0.1
+@dataclass
+class DiagonalRib:
+    left_front: Tuple[float, float]
+    left_back: Tuple[float, float]
+    right_front: Tuple[float, float]
+    right_back: Tuple[float, float]
 
-    def __init__(self, left_front, left_back, right_front, right_back, num_folds=1, material_code="", name="unnamed"):
-        """
-        [left_front, left_back, right_front, right_back]
-        -> Cut: (x_value, height)
-        :param left_front as x-value
-        :param left_back as x-value
-        :param right_front as x-value
-        :param right_back as x-value
-        :param material_code: color/material (optional)
-        :param name: optional name of DiagonalRib (optional)
-        """
-        # Attributes
-        self.left_front = left_front
-        self.left_back = left_back
-        self.right_front = right_front
-        self.right_back = right_back
-        self.material_code = material_code
-        self.name = name
-        self.num_folds = num_folds
+    num_folds: int=1
+    material_code: str=""
+    name: str="unnamed"
 
-    def __json__(self):
-        return {'left_front': self.left_front,
-                'left_back': self.left_back,
-                'right_front': self.right_front,
-                'right_back': self.right_back,
-                "material_code": self.material_code,
-                "name": self.name
-        }
+    hole_num: int=0
+    hole_border_side :float=0.15
+    hole_border_front_back: float=0.1
 
     @property
     def width_left(self) -> float:
@@ -61,8 +43,8 @@ class DiagonalRib(object):
     @width_left.setter
     def width_left(self, width: float):
         center = self.center_left
-        self.left_front[0] = center - width/2
-        self.left_back[0] = center + width/2
+        self.left_front = center - width/2, self.left_front[1]
+        self.left_back = center + width/2, self.left_back[1]
 
     @property
     def width_right(self) -> float:
@@ -71,8 +53,8 @@ class DiagonalRib(object):
     @width_right.setter
     def width_right(self, width: float):
         center = self.center_right
-        self.right_front[0] = center - width/2
-        self.right_back[0] = center + width/2
+        self.right_front = center - width/2, self.right_front[1]
+        self.right_back = center + width/2, self.right_back[1]
 
     @property
     def center_left(self) -> float:
@@ -94,7 +76,7 @@ class DiagonalRib(object):
         p2 = cell.rib2.point(self.center_right)
         return (p2 - p1).length()
 
-    def get_3d(self, cell) -> Tuple[euklid.vector.PolyLine3D, euklid.vector.PolyLine3D]:
+    def get_3d(self, cell: "Cell") -> Tuple[euklid.vector.PolyLine3D, euklid.vector.PolyLine3D]:
         """
         Get 3d-Points of a diagonal rib
         :return: (left_list, right_list)
@@ -119,7 +101,7 @@ class DiagonalRib(object):
 
         return left, right
 
-    def get_mesh(self, cell, insert_points=10, project_3d=False) -> mesh.Mesh:
+    def get_mesh(self, cell: "Cell", insert_points=10, project_3d=False) -> mesh.Mesh:
         """
         get a mesh from a diagonal (2 poly lines)
         """
@@ -189,7 +171,7 @@ class DiagonalRib(object):
         return drib_mesh
 
 
-    def get_holes(self, cell, points=40) -> Tuple[List[euklid.vector.PolyLine2D], List[euklid.vector.Vector2D]]:
+    def get_holes(self, cell: "Cell", points=40) -> Tuple[List[euklid.vector.PolyLine2D], List[euklid.vector.Vector2D]]:
         left, right = self.get_flattened(cell)
 
         len_left = left.get_length()
@@ -233,7 +215,7 @@ class DiagonalRib(object):
 
         return holes, centers
 
-    def get_flattened(self, cell, ribs_flattened=None) -> Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
+    def get_flattened(self, cell: "Cell", ribs_flattened=None) -> Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
         first, second = self.get_3d(cell)
         left, right = flatten_list(first, second)
         return left, right
@@ -251,9 +233,9 @@ class DoubleDiagonalRib(object):
 
 
 class TensionStrap(DiagonalRib):
-    hole_num = 0
+    hole_num: int=0
 
-    def __init__(self, left, right, width, height=-1, material_code="", name=""):
+    def __init__(self, left, right, width, height=-1, **kwargs):
         """
         Similar to a Diagonalrib but always connected to the bottom-sail.
         :param left: left center of TensionStrap as x-value
@@ -262,12 +244,13 @@ class TensionStrap(DiagonalRib):
         :param material_code: color/material-name (optional)
         :param name: name of TensionStrap (optional)
         """
-        super(TensionStrap, self).__init__((left - width / 2, height),
-                                           (left + width / 2, height),
-                                           (right - width / 2, height),
-                                           (right + width / 2, height),
-                                           material_code,
-                                           name)
+        attributes = kwargs.update({
+            "left_front": (left - width / 2, height),
+            "left_back": (left + width / 2, height),
+            "right_front": (right - width / 2, height),
+            "right_back": (right + width / 2, height)
+        })
+        super().__init__(**kwargs)
     
     def __json__(self):
         return {
@@ -322,19 +305,12 @@ class TensionLine(TensionStrap):
         return mesh.Mesh.from_indexed([p1, p2], {"tension_lines": [[0, 1]]}, boundaries=boundaries)
 
 
-class PanelRigidFoil():
-    channel_width = 0.01
-    def __init__(self, x_start: float, x_end: float, y: float=0.5):
-        self.x_start = x_start
-        self.x_end = x_end
-        self.y = y
-    
-    def __json__(self):
-        return {
-            "x_start": self.x_start,
-            "x_end": self.x_end,
-            "y": self.y
-        }
+@dataclass
+class PanelRigidFoil:
+    x_start: float
+    x_end: float
+    y: float=0.5
+    channel_width: float = 0.01
     
     def get_length(self, cell):
         line, start, end = self._get_flattened_line(cell)

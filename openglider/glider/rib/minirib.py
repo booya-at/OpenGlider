@@ -1,15 +1,24 @@
+from typing import Callable, Optional
 import euklid
 
 from openglider.airfoil import Profile3D
+from openglider.utils.dataclass import dataclass, field
 
 
-class MiniRib():
-    def __init__(self, yvalue, front_cut, back_cut=1, func=None, name="minirib"):
-        #Profile3D.__init__(self, [], name)
 
+@dataclass
+class MiniRib:
+    yvalue: float
+    front_cut: float
+    back_cut: float=1.
+    name: str="unnamed_minirib"
+
+    function: euklid.vector.Interpolation = field(default_factory=lambda: euklid.vector.Interpolation([]))
+
+    def __post_init__(self):
         p1_x = 2/3
 
-        if not func:  # Function is a bezier-function depending on front/back
+        if len(self.function.nodes) == 0:
             if front_cut > 0:
                 points = [[front_cut, 1], [front_cut + (back_cut - front_cut) * (1-p1_x), 0]]  #
             else:
@@ -19,17 +28,11 @@ class MiniRib():
                 points = points + [[front_cut + (back_cut-front_cut) * p1_x, 0], [back_cut, 1]]
             else:
                 points = points + [[1., 0.]]
-            
+
             curve = euklid.spline.BSplineCurve(points).get_sequence(100)
-            func = euklid.vector.Interpolation(curve.nodes)
+            self.function = euklid.vector.Interpolation(curve.nodes)
 
-        self.function = func
-
-        self.y_value = yvalue
-        self.front_cut = front_cut
-        self.back_cut = back_cut
-
-    def multiplier(self, x):
+    def multiplier(self, x: float):
         if self.front_cut <= abs(x) <= self.back_cut:
             return min(1, max(0, self.function.get_value(abs(x))))
         else:

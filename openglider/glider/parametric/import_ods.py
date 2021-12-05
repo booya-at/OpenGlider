@@ -237,7 +237,7 @@ def get_geometry_explicit(sheet):
     rib_pos_int = euklid.vector.Interpolation(list(zip(rib_pos, const_arr)))
     rib_distribution = [[i, rib_pos_int.get_value(i)] for i in linspace(0, rib_pos[-1], 30)]
 
-    rib_distribution = euklid.spline.BezierCurve.fit(rib_distribution, 3)
+    rib_distribution: euklid.spline.BSplineCurve = euklid.spline.BSplineCurve.fit(rib_distribution, 3)
 
     parametric_shape = ParametricShape(symmetric_fit(front), symmetric_fit(back), rib_distribution, cell_no)
     arc_curve = ArcCurve(symmetric_fit(arc))

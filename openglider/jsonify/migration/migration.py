@@ -36,25 +36,25 @@ class Migration:
         #    json.dump(jsondata, outfile, indent=2)
         for migration_version, migration in self.get_migrations():
             if self.from_version < migration_version:
-                logger.warning(f"running migration: {migration_version} / {migration.__name__}")
+                logger.info(f"running migration: {migration_version} / {migration.__name__}")
                 jsondata = migration(jsondata)
-                logger.warning(f"migration {migration.__name__} done")
+                logger.debug(f"migration {migration.__name__} done")
         
         return json.dumps(jsondata, cls=Encoder)
     
     @classmethod
-    def add(cls, version):
+    def add(cls, to_version):
         """
         add new migration. version parameter is the version to migrate to
         """
         def decorate(function):
             def function_wrapper(jsondata):
-                logger.info(f"migrating to {version}")
+                logger.info(f"migrating to {to_version}")
                 return function(cls, jsondata)
 
             function_wrapper.__doc__ = function.__doc__
             function_wrapper.__name__ = function.__name__
-            cls.migrations.append([version, function_wrapper])
+            cls.migrations.append([to_version, function_wrapper])
         
         return decorate
 

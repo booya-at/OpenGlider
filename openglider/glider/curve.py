@@ -6,7 +6,7 @@ from openglider.glider.shape import Shape
 from openglider.utils.cache import cached_property
 
 class FreeCurve:
-    def __init__(self, points, shape: Shape=None):
+    def __init__(self, points, shape: Shape):
         self.shape = shape
         self.interpolation = euklid.vector.Interpolation(points)
     

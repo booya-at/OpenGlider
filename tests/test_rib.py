@@ -26,7 +26,7 @@ import os
 import common
 import openglider
 from openglider.glider.rib.rib import Rib
-from openglider.glider.rib.elements import RibHole
+from openglider.glider.rib.crossports import RibHole
 from openglider.mesh import Mesh
 
 

@@ -2,7 +2,7 @@ import copy
 from enum import Enum
 import logging
 import math
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING, List, Tuple, Optional, Union
 
 import euklid
 import numpy as np
@@ -16,10 +16,16 @@ from openglider.utils.cache import cached_function, hash_list
 from openglider.utils.config import Config
 from openglider.vector.mapping import Mapping
 
+if TYPE_CHECKING:
+    from openglider.glider.cell.cell import Cell
+    from dataclasses import dataclass
+else:
+    from openglider.utils.dataclass import dataclass
+
 
 logger = logging.getLogger(__name__)
 
-
+@dataclass
 class PanelCut:
     class CUT_TYPES(Enum):
         folded = 1
@@ -28,19 +34,14 @@ class PanelCut:
         singleskin = 4
         parallel = 5
         round = 6
-
-    def __init__(self, x_left: float, x_right: float, cut_type: CUT_TYPES, cut_3d_amount=None, x_center: float = None, seam_allowance=None):
-        self.x_left = x_left
-        self.x_right = x_right
-        self.x_center = x_center
-        self.cut_type = cut_type
-        self.seam_allowance = seam_allowance
-
-        if cut_3d_amount is None:
-            cut_3d_amount = [0,0]
-            
-        self.cut_3d_amount = cut_3d_amount
     
+    x_left: float
+    x_right: float
+    cut_type: CUT_TYPES
+    cut_3d_amount: Tuple[float, float] = (0,0)
+    x_center: Optional[float] = None
+    seam_allowance: Optional[float] = None
+
     def __json__(self):
         return {
             "x_left": self.x_left,
@@ -93,7 +94,7 @@ class PanelCut:
         return hash_list(self.x_left, self.x_right, self.cut_type)
 
     @cached_function("self")
-    def _get_ik_values(self, cell: "openglider.glider.cell.Cell", numribs=0, exact=True):
+    def _get_ik_values(self, cell: "Cell", numribs=0, exact=True):
         x_values_left = cell.rib1.profile_2d.x_values
         x_values_right = cell.rib2.profile_2d.x_values
 
@@ -168,7 +169,7 @@ class PanelCut:
 
 
     @cached_function("self")
-    def _get_ik_interpolation(self, cell: "openglider.glider.cell.Cell", numribs=0, exact=True) -> euklid.vector.Interpolation:
+    def _get_ik_interpolation(self, cell: "Cell", numribs=0, exact=True) -> euklid.vector.Interpolation:
         ik_values = self._get_ik_values(cell, numribs=5, exact=exact)
         numpoints = len(ik_values)-1
         ik_interpolation = euklid.vector.Interpolation(
@@ -177,7 +178,7 @@ class PanelCut:
         
         return ik_interpolation
     
-    def get_curve_2d(self, cell: "openglider.glider.cell.Cell", numribs=0, exact=True) -> euklid.vector.PolyLine2D:
+    def get_curve_2d(self, cell: "Cell", numribs=0, exact=True) -> euklid.vector.PolyLine2D:
         ik_values = self._get_ik_values(cell, numribs=numribs, exact=exact)
 
         ribs = cell.get_flattened_cell(num_inner=numribs+2)["inner"]
@@ -185,7 +186,7 @@ class PanelCut:
 
         return euklid.vector.PolyLine2D(points_2d)
     
-    def get_curve_3d(self, cell: "openglider.glider.cell.Cell", numribs=0, exact=True):
+    def get_curve_3d(self, cell: "Cell", numribs=0, exact=True):
         ik_values = self._get_ik_values(cell, numribs, exact)
 
         ribs = cell.get_midribs(numribs+2)
@@ -199,15 +200,18 @@ class Panel(object):
     Glider cell-panel
     :param cut_front {'left': 0.06, 'right': 0.06, 'type': 'orthogonal'}
     """
-    material = cloth.get("porcher.skytex_32.white")
+    cut_front: PanelCut
+    cut_back: PanelCut
+    material: Material = cloth.get("porcher.skytex_32.white")
+    name: str
 
-    def __init__(self, cut_front: PanelCut, cut_back: PanelCut, material: Material=None, name="unnamed"):
-        self.cut_front = cut_front  # (left, right, style(int))
+    def __init__(self, cut_front: PanelCut, cut_back: PanelCut, material: Optional[Union[Material, str]]=None, name="unnamed"):
+        self.cut_front = cut_front
         self.cut_back = cut_back
 
-        if material is not None:
-            if isinstance(material, str):
-                material = cloth.get(material)
+        if isinstance(material, str):
+            self.material = cloth.get(material)
+        elif isinstance(material, Material):
             self.material = material
 
         self.name = name
@@ -284,7 +288,7 @@ class Panel(object):
             # todo: return polygon-data
         return ribs
 
-    def get_mesh(self, cell: "openglider.glider.cell.Cell", numribs=0, with_numpy=True, exact=False, tri=False) -> mesh.Mesh:
+    def get_mesh(self, cell: "Cell", numribs=0, with_numpy=True, exact=False, tri=False) -> mesh.Mesh:
         """
         Get Panel-mesh
         :param cell: the parent cell of the panel
@@ -419,7 +423,7 @@ class Panel(object):
         self.cut_front.x_right = p_r.find_nearest_x_value(self.cut_front.x_right)
 
     @cached_function("self")
-    def _get_ik_values(self, cell: "openglider.glider.cell.Cell", numribs=0, exact=True):
+    def _get_ik_values(self, cell: "Cell", numribs=0, exact=True):
         """
         :param cell: the parent cell of the panel
         :param numribs: number of interpolation steps between ribs
@@ -431,13 +435,13 @@ class Panel(object):
         return [(ik1, ik2) for ik1, ik2 in zip(ik_front, ik_back)]
         
     @cached_function("self")
-    def _get_ik_interpolation(self, cell: "openglider.glider.cell.Cell", numribs=0, exact=True):
+    def _get_ik_interpolation(self, cell: "Cell", numribs=0, exact=True):
         i1 = self.cut_front._get_ik_interpolation(cell, numribs, exact)
         i2 = self.cut_back._get_ik_interpolation(cell, numribs, exact)
 
         return i1, i2
 
-    def integrate_3d_shaping(self, cell: "openglider.glider.cell.Cell", sigma, inner_2d, midribs=None) -> Tuple[List[float], List[float]]:
+    def integrate_3d_shaping(self, cell: "Cell", sigma, inner_2d, midribs=None) -> Tuple[List[float], List[float]]:
         """
         :param cell: the parent cell of the panel
         :param sigma: std-deviation parameter of gaussian distribution used to weight the length differences.

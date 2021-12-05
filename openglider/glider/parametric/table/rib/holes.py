@@ -1,6 +1,6 @@
 from openglider.glider.parametric.table.elements import ElementTable, Keyword
 
-from openglider.glider.rib.elements import RibHole, RibSquareHole, MultiSquareHole
+from openglider.glider.rib.crossports import RibHole, RibSquareHole, MultiSquareHole
 
 import logging
 

@@ -320,7 +320,6 @@ class PanelPlot(object):
                     positions.append(attachment_point.rib_pos - (i+1)*attachment_point.protoloop_distance)
             
             for rib_pos_no, rib_pos in enumerate(positions):
-                logger.warning(f"rib_pos: {rib_pos}")
 
                 if cut_f <= attachment_point.rib_pos <= cut_b:
                     left, right = self.get_point(rib_pos)

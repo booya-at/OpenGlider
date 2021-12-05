@@ -1,41 +1,31 @@
-from typing import List
 import math
+from typing import List
 
 import euklid
-
-from openglider.utils import linspace
 from openglider.glider.shape import Shape
+from openglider.utils import linspace
+from openglider.utils.dataclass import dataclass
 from openglider.utils.table import Table
 
 
-class ParametricShape(object):
+@dataclass
+class ParametricShape:
+    front_curve: euklid.spline.SymmetricBSplineCurve
+    back_curve: euklid.spline.SymmetricBSplineCurve
+    rib_distribution: euklid.spline.SymmetricBSplineCurve
+    cell_num: int
+    stabi_cell: bool = False
+    stabi_cell_width: float = 0.5
+    stabi_cell_length: float = 0.8
+
+
     num_shape_interpolation = 50
     num_distribution_interpolation = 50
     num_depth_integral = 50
     baseline_pos = 0.25
 
-    stabi_cell = False
-    stabi_cell_width = 0.5
-    stabi_cell_length = 0.8
-
-
-    def __init__(self, front_curve, back_curve, rib_distribution, cell_num, stabi_cell=False):
-        self.front_curve = front_curve
-        self.back_curve = back_curve
-        self.rib_distribution = rib_distribution
-        self.cell_num = cell_num
-        self.stabi_cell = stabi_cell
-
+    def __post_init__(self):
         self.rescale_curves()
-
-    def __json__(self):
-        return {
-            "front_curve": self.front_curve,
-            "back_curve": self.back_curve,
-            "rib_distribution": self.rib_distribution,
-            "cell_num": self.cell_num,
-            "stabi_cell": self.stabi_cell
-        }
 
     def __repr__(self):
         return "{}\n\tcells: {}\n\tarea: {:.2f}\n\taspect_ratio: {:.2f}".format(
@@ -68,7 +58,7 @@ class ParametricShape(object):
 
     @property
     def has_center_cell(self) -> bool:
-        return self.cell_num % 2
+        return self.cell_num % 2 > 0
 
     @property
     def half_cell_num(self) -> int:
@@ -228,10 +218,10 @@ class ParametricShape(object):
         x_values_normalized = [x/self.span for x in x_values]
         return zip(x_values_normalized, y_values)
 
-    def set_const_cell_dist(self):
+    def set_const_cell_dist(self) -> None:
         const_dist = list(self.depth_integrated)
         num_pts = len(self.rib_distribution.controlpoints)
-        self.rib_distribution.fit(const_dist, numpoints=num_pts)
+        self.rib_distribution = self.rib_distribution.fit(const_dist, numpoints=num_pts)
 
     ############################################################################
     # scaling stuff
