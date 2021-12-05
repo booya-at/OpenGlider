@@ -4,11 +4,11 @@ import logging
 from pyfoil import Airfoil
 
 from openglider.utils.table import Table
-from openglider.glider.parametric.table.elements import ElementTable, Keyword
+from openglider.glider.parametric.table.elements import RibTable, Keyword
 
 logger = logging.getLogger(__name__)
 
-class ProfileTable(ElementTable):
+class ProfileTable(RibTable):
     keywords = {
         "ProfileFactor": Keyword(attributes=["thickness_factor"]),
         "ProfileMerge": Keyword(attributes=["merge_factor"]),

@@ -1,8 +1,5 @@
-from __future__ import division
-
-import numpy as np
 import euklid
-
+import numpy as np
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.lines import LineSet2D
 from openglider.glider.parametric.shape import ParametricShape

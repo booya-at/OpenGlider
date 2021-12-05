@@ -1,8 +1,8 @@
 from openglider.glider.rib import MiniRib
 
-from openglider.glider.parametric.table.elements import ElementTable, Keyword
+from openglider.glider.parametric.table.elements import CellTable, Keyword
 
-class MiniRibTable(ElementTable):
+class MiniRibTable(CellTable):
     keywords = {
         "MINIRIB": Keyword(["yvalue", "front_cut"])
     }

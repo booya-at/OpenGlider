@@ -1,34 +1,30 @@
-from typing import List, Tuple
-import math
 import copy
 import logging
+import math
+from typing import List, Tuple
 
 import euklid
+import openglider.materials
 import pyfoil
-
-from openglider.utils import linspace
 from openglider.airfoil import Profile2D
 from openglider.glider.ballooning.base import BallooningBase
-from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.ballooning.new import BallooningBezierNeu
-from openglider.glider.ballooning.base import BallooningBase
-from openglider.glider.glider import Glider
-from openglider.glider.cell import Panel, PanelCut, DiagonalRib, TensionStrap, TensionLine, Cell
+from openglider.glider.cell import Cell, DiagonalRib, Panel, PanelCut, TensionLine, TensionStrap
 from openglider.glider.cell.elements import PanelRigidFoil
+from openglider.glider.glider import Glider
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.export_ods import export_ods_2d
+from openglider.glider.parametric.fitglider import fit_glider_3d
 from openglider.glider.parametric.import_ods import import_ods_2d
 from openglider.glider.parametric.lines import LineSet2D, UpperNode2D
-from openglider.glider.parametric.table.curve import CurveTable
-from openglider.glider.rib import Rib, MiniRib, SingleSkinRib
-from openglider.glider.parametric.fitglider import fit_glider_3d
+from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.parametric.table import GliderTables
-import openglider.materials
+from openglider.glider.parametric.table.curve import CurveTable
+from openglider.glider.rib import MiniRib, Rib, SingleSkinRib
+from openglider.utils import ZipCmp, linspace
 from openglider.utils.dataclass import dataclass, field
 from openglider.utils.distribution import Distribution
 from openglider.utils.table import Table
-from openglider.utils import ZipCmp
-
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +40,7 @@ class ParametricGlider:
     profiles: List[Profile2D]
     profile_merge_curve: euklid.spline.SymmetricBSplineCurve
     balloonings: List[BallooningBase]
-    ballooning_merge_curve: euklid.spline.SymmetricBSplineCurve
+    ballooning_merge_curve: euklid.spline.BSplineCurve
     lineset: LineSet2D
     speed: float
     glide: float
@@ -54,6 +50,9 @@ class ParametricGlider:
 
     num_interpolate = 30
     num_profile = None
+
+    def test(self) -> int:
+        return len(self.ballooning_merge_curve.controlpoints.nodes)
 
     @classmethod
     def import_ods(cls, path):

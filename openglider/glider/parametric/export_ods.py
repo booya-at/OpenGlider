@@ -1,6 +1,6 @@
-from typing import TYPE_CHECKING
 import copy
 import math
+from typing import TYPE_CHECKING
 
 import euklid
 import ezodf
@@ -149,9 +149,8 @@ def get_ballooning_sheet(glider_2d):
     ods_sheet.name = "Balloonings"
     return ods_sheet
 
-
-def get_parametric_sheet(glider : "openglider.glider.parametric.glider.ParametricGlider"):
-    line_no = 1 + max([len(curve.controlpoints) for curve in [
+def get_parametric_sheet(glider : "ParametricGlider") -> ezodf.Sheet:
+    line_no = 1 + max([len(curve.controlpoints) for curve in [ # type: ignore
         glider.shape.front_curve,
         glider.shape.back_curve,
         glider.shape.rib_distribution,

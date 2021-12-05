@@ -1,5 +1,6 @@
 from typing import List, Tuple, Any, Optional, TypeVar, Generic, Dict
 import logging
+import enum
 
 from openglider.utils.table import Table
 
@@ -7,6 +8,12 @@ logger = logging.getLogger(__name__)
 
 
 ElementType = TypeVar("ElementType")
+
+class TableType(enum.Enum):
+    rib = "Rib Table"
+    cell = "Cell Table"
+    general = "General Table"
+
 
 class Keyword:
     def __init__(self, attributes=None, attribute_length=None, description="", target_cls=None):
@@ -36,6 +43,7 @@ class Keyword:
 
 
 class ElementTable(Generic[ElementType]):
+    table_type: TableType = TableType.general
     keywords: Dict[str, Keyword] = {}
 
     def __init__(self, table: Table=None):
@@ -115,3 +123,10 @@ class ElementTable(Generic[ElementType]):
 
     def _repr_html_(self):
         return self.table._repr_html_()
+
+
+class CellTable(ElementTable):
+    table_type = TableType.cell
+
+class RibTable(ElementTable):
+    table_type = TableType.rib

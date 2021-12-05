@@ -1,6 +1,55 @@
 # glider tables
 
-## cuts
+## Rib Table
+
+### holes
+
+- HOLE
+  * length: 2
+  * attributes: ['pos', 'size'] 
+- QUERLOCH
+  * length: 2
+  * attributes: ['pos', 'size'] 
+- HOLE5
+  * length: 5
+  * attributes: ['pos', 'size', 'width', 'vertical_shift', 'rotation'] 
+- HOLESQ
+  * length: 3
+  * attributes: ['x', 'width', 'height'] 
+- HOLESQMULTI
+  * length: 5
+  * attributes: ['start', 'end', 'height', 'num_holes', 'border_width'] 
+
+
+### rib_modifiers
+
+- SkinRib
+  * length: 2
+  * attributes: ['continued_min_end', 'xrot'] 
+- SkinRib7
+  * length: 12
+  * attributes: ['att_dist', 'height', 'continued_min', 'continued_min_angle', 'continued_min_delta_y', 'continued_min_end', 'continued_min_x', 'double_first', 'le_gap', 'straight_te', 'te_gap', 'num_points'] 
+- XRot
+  * length: 1
+  * attributes: ['angle'] 
+
+
+### profiles
+
+- ProfileFactor
+  * length: 1
+  * attributes: ['thickness_factor'] 
+- ProfileMerge
+  * length: 1
+  * attributes: ['merge_factor'] 
+- Flap
+  * length: 2
+  * attributes: ['begin', 'amount'] 
+
+
+## Cell Table
+
+### cuts
 
 - CUT_ROUND
   * length: 4
@@ -34,7 +83,7 @@
   * attributes: ['left', 'right'] 
 
 
-## ballooning_factors
+### ballooning_factors
 
 - BallooningFactor
   * length: 1
@@ -44,47 +93,14 @@
   * attributes: ['merge_factor'] 
 
 
-## holes
-
-- HOLE
-  * length: 2
-  * attributes: ['pos', 'size'] 
-- QUERLOCH
-  * length: 2
-  * attributes: ['pos', 'size'] 
-- HOLE5
-  * length: 5
-  * attributes: ['pos', 'width', 'height', 'vertical_shift', 'rotation'] 
-- HOLESQ
-  * length: 3
-  * attributes: ['x', 'width', 'height'] 
-- HOLESQMULTI
-  * length: 5
-  * attributes: ['start', 'end', 'height', 'num_holes', 'border_width'] 
-
-
-## diagonals
+### diagonals
 
 - QR
   * length: 6
   * attributes: ['left', 'right', 'width_left', 'width_right', 'height_left', 'height_right'] 
 
 
-## rigidfoils_rib
-
-- RIGIDFOIL
-  * length: 3
-  * attributes: ['start', 'end', 'distance'] 
-
-
-## rigidfoils_cell
-
-- RIGIDFOIL
-  * length: 3
-  * attributes: ['x_start', 'x_end', 'y'] 
-
-
-## straps
+### straps
 
 - STRAP
   * length: 3
@@ -94,51 +110,44 @@
   * attributes: ['left', 'right'] 
 
 
-## material_cells
-
-- MATERIAL
-  * length: 1
-  * attributes: ['Name'] 
-
-
-## material_ribs
-
-- MATERIAL
-  * length: 1
-  * attributes: ['Name'] 
-
-
-## miniribs
+### miniribs
 
 - MINIRIB
   * length: 2
   * attributes: ['yvalue', 'front_cut'] 
 
 
-## singleskin_ribs
+## General Table
 
-- SkinRib
-  * length: 2
-  * attributes: ['continued_min_end', 'xrot'] 
-- SkinRib7
-  * length: 12
-  * attributes: ['att_dist', 'height', 'continued_min', 'continued_min_angle', 'continued_min_delta_y', 'continued_min_end', 'continued_min_x', 'double_first', 'le_gap', 'straight_te', 'te_gap', 'num_points'] 
+### rigidfoils_rib
+
+- RIGIDFOIL
+  * length: 3
+  * attributes: ['start', 'end', 'distance'] 
 
 
-## profiles
+### rigidfoils_cell
 
-- ProfileFactor
+- RIGIDFOIL
+  * length: 3
+  * attributes: ['x_start', 'x_end', 'y'] 
+
+
+### material_cells
+
+- MATERIAL
   * length: 1
-  * attributes: ['thickness_factor'] 
-- ProfileMerge
+  * attributes: ['Name'] 
+
+
+### material_ribs
+
+- MATERIAL
   * length: 1
-  * attributes: ['merge_factor'] 
-- Flap
-  * length: 2
-  * attributes: ['begin', 'amount'] 
+  * attributes: ['Name'] 
 
 
-## attachment_points_rib
+### attachment_points_rib
 
 - ATP
   * length: 3
@@ -151,11 +160,14 @@
   * attributes: ['name', 'pos', 'force', 'proto_distance'] 
 
 
-## attachment_points_cell
+### attachment_points_cell
 
 - ATP
   * length: 4
   * attributes: ['name', 'cell_pos', 'rib_pos', 'force'] 
+- ATPDIFF
+  * length: 5
+  * attributes: ['name', 'cell_pos', 'rib_pos', 'force', 'offset'] 
 - AHP
   * length: 4
   * attributes: ['name', 'cell_pos', 'rib_pos', 'force'] 

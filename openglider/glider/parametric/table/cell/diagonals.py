@@ -1,12 +1,12 @@
 from openglider.utils.table import Table
-from openglider.glider.parametric.table.elements import ElementTable, Keyword
+from openglider.glider.parametric.table.elements import CellTable, Keyword
 from openglider.glider.cell.elements import DiagonalRib, TensionLine, TensionStrap
 
 import logging
 
 logger = logging.getLogger(__name__)
 
-class DiagonalTable(ElementTable):
+class DiagonalTable(CellTable):
 
     def __init__(self, table: Table=None, file_version: int=None):
         if file_version == 1:
@@ -48,7 +48,7 @@ class DiagonalTable(ElementTable):
         raise ValueError()
 
 
-class StrapTable(ElementTable):
+class StrapTable(CellTable):
     keywords = {
         "STRAP": Keyword(["left", "right", "width"], target_cls=TensionStrap),  # left, right, width
         "VEKTLAENGE": Keyword(["left", "right"], target_cls=TensionLine)

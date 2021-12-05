@@ -1,6 +1,6 @@
 from typing import Tuple, List
 from openglider.utils.table import Table
-from openglider.glider.parametric.table.elements import ElementTable, Keyword
+from openglider.glider.parametric.table.elements import CellTable, Keyword
 from openglider.glider.cell.panel import PanelCut
 
 import logging
@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 cut_kw = Keyword(["left", "right"])
 
-class CutTable(ElementTable):    
+class CutTable(CellTable):
     keywords = {
         "CUT_ROUND": Keyword(["left", "right", "center", "amount"]),
         "EKV": cut_kw,

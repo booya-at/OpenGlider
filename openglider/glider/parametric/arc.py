@@ -1,10 +1,9 @@
-from typing import List
 import copy
 import math
+from typing import List
 
-import numpy as np
 import euklid
-
+import numpy as np
 from openglider.vector.polygon import CirclePart
 
 

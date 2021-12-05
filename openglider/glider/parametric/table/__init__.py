@@ -1,17 +1,19 @@
-from openglider.glider.parametric.table.material import ClothTable
+import io
+import logging
+
+from openglider.glider.parametric.table.attachment_points import AttachmentPointTable, CellAttachmentPointTable
 from openglider.glider.parametric.table.cell.ballooning import BallooningTable
 from openglider.glider.parametric.table.cell.cuts import CutTable
 from openglider.glider.parametric.table.cell.diagonals import DiagonalTable, StrapTable
 from openglider.glider.parametric.table.cell.miniribs import MiniRibTable
 from openglider.glider.parametric.table.curve import CurveTable
+from openglider.glider.parametric.table.material import ClothTable
 from openglider.glider.parametric.table.rib.holes import HolesTable
-from openglider.glider.parametric.table.rib.rib import SingleSkinTable
-from openglider.glider.parametric.table.rigidfoil import RibRigidTable, CellRigidTable
-from openglider.glider.parametric.table.attachment_points import CellAttachmentPointTable, AttachmentPointTable
 from openglider.glider.parametric.table.rib.profile import ProfileTable
+from openglider.glider.parametric.table.rib.rib import SingleSkinTable
+from openglider.glider.parametric.table.rigidfoil import CellRigidTable, RibRigidTable
+from openglider.glider.parametric.table.elements import TableType
 from openglider.utils.table import Table
-import logging
-import io
 
 logger = logging.getLogger(__name__)
 
@@ -58,14 +60,18 @@ class GliderTables:
     @classmethod
     def describe(cls):
         text = "# glider tables\n\n"
-        for name, _cls in cls.__annotations__.items():
-            text += f"## {name}\n\n"
+        for table_type in TableType:
+            text += f"## {table_type.value}\n\n"
 
-            for keyword_name, keyword in _cls.keywords.items():
-                text += f"- {keyword_name}\n"
-                text += f"{keyword.describe()}\n"
-            
-            text += "\n\n"
+            for name, _cls in cls.__annotations__.items():
+                if _cls.table_type == table_type:
+                    text += f"### {name}\n\n"
+
+                    for keyword_name, keyword in _cls.keywords.items():
+                        text += f"- {keyword_name}\n"
+                        text += f"{keyword.describe()}\n"
+                    
+                    text += "\n\n"
 
         return text
     

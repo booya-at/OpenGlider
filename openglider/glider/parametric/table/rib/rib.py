@@ -1,7 +1,7 @@
 from typing import Dict, Optional
 
 from openglider.utils.table import Table
-from openglider.glider.parametric.table.elements import ElementTable, Keyword
+from openglider.glider.parametric.table.elements import RibTable, Keyword
 
 import logging
 
@@ -22,7 +22,7 @@ SkinRib7 = Keyword([
     "num_points",
 ], target_cls=dict)
 
-class SingleSkinTable(ElementTable):
+class SingleSkinTable(RibTable):
     keywords = {
         "SkinRib": Keyword(["continued_min_end", "xrot"], target_cls=dict),
         "SkinRib7": SkinRib7,

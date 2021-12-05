@@ -1,4 +1,4 @@
-from openglider.glider.parametric.table.elements import ElementTable, Keyword
+from openglider.glider.parametric.table.elements import RibTable, Keyword
 
 from openglider.glider.rib.crossports import RibHole, RibSquareHole, MultiSquareHole
 
@@ -6,7 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class HolesTable(ElementTable):
+class HolesTable(RibTable):
     keywords = {
         "HOLE": Keyword(["pos", "size"], target_cls=RibHole),
         "QUERLOCH": Keyword(["pos", "size"], target_cls=RibHole),

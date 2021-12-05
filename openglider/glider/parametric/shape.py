@@ -12,7 +12,7 @@ from openglider.utils.table import Table
 class ParametricShape:
     front_curve: euklid.spline.SymmetricBSplineCurve
     back_curve: euklid.spline.SymmetricBSplineCurve
-    rib_distribution: euklid.spline.SymmetricBSplineCurve
+    rib_distribution: euklid.spline.BSplineCurve
     cell_num: int
     stabi_cell: bool = False
     stabi_cell_width: float = 0.5
