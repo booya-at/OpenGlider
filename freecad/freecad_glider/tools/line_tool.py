@@ -189,8 +189,8 @@ class LineTool(BaseTool):
 
         for spinbox in [
                 self.attach_x_val, self.attach_y_val, self.attach_z_val]:
-            spinbox.setMaximum(10.)
-            spinbox.setMinimum(-10.)
+            spinbox.setMaximum(100.)
+            spinbox.setMinimum(-100.)
             spinbox.valueChanged.connect(self.update_lw_att_pos)
         self.attach_name.textChanged.connect(self.update_lw_att_name)
 
