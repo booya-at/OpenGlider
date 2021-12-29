@@ -12,6 +12,7 @@ from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.lines import LineSet2D, LowerNode2D
 from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.parametric.table import GliderTables
+from openglider.glider.parametric.table.data_table import DataTable
 from openglider.glider.parametric.table.material import CellClothTable, RibClothTable
 from openglider.glider.parametric.table.cell.ballooning import BallooningTable
 from openglider.glider.parametric.table.cell.cuts import CutTable
@@ -91,13 +92,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False) -> 
             else:
                 raise ValueError("No ballooning type specified")
 
-
-    data_dct = {}
-    datasheet = tables[7]
-    for row in range(datasheet.num_rows):
-        name = datasheet[row, 0]
-        if name:
-            data_dct[name] = datasheet[row, 1]
+    data_dct = DataTable(tables[7]).get_dct()
 
     # set stabi cell
     if data_dct.pop("STABICELL", None):
@@ -143,6 +138,9 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False) -> 
     lineset_table = tables[6]
     lineset = LineSet2D.read_input_table(lineset_table, attachment_points_lower, attachment_points)
     lineset.set_default_nodes2d_pos(geometry["shape"])
+    lineset.trim_corrections = {
+        name: value for name, value in data_dct.pop("trim_correction", [])
+    }
 
     ballooning_factors = BallooningTable(cell_sheet)
     skin_ribs = SingleSkinTable(rib_sheet)

@@ -15,7 +15,7 @@ class Encoder(json.JSONEncoder):
         if obj.__class__.__module__ == 'numpy':
             return obj.tolist()
         elif isinstance(obj, datetime.datetime):
-            return obj.strftime(datetime_format)
+            return str(obj)
         elif hasattr(obj, "__json__"):
             result = obj.__json__()
 

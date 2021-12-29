@@ -24,7 +24,7 @@ import logging
 
 import numpy as np
 
-__path__: List[str] = __import__('pkgutil').extend_path(__path__, __name__)
+__path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
 from openglider.config import config
 import openglider.jsonify

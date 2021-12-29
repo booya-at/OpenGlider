@@ -154,7 +154,7 @@ class Layout(object):
         return row_dwg
 
     @classmethod
-    def stack_grid(cls, parts: List[List[PlotPart]], distance_x: float, distance_y: float, draw_grid=True) -> "Layout":
+    def stack_grid(cls, parts: List[List[Union[PlotPart, "Layout"]]], distance_x: float, distance_y: float, draw_grid=True) -> "Layout":
         all_parts = cls()
         rows = len(parts)
         columns = len(parts[0])

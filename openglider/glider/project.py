@@ -147,6 +147,11 @@ class GliderProject(object):
                 "filename": self.filename,
                 "modified": self.modified
                 }
+    
+    @classmethod
+    def __from_json__(cls, **dct):
+        dct["modified"] = datetime.datetime.fromisoformat(dct["modified"])
+        return cls(**dct)
 
     def get_data(self):
         area = self.glider_3d.area

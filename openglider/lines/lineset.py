@@ -1,20 +1,44 @@
-from typing import List, Dict, Tuple, Optional, Union
-import re
-import os
-import csv
 import copy
+import csv
+import dataclasses
 import logging
+import os
+import re
+from typing import Dict, List, Optional, Tuple, Union
 
 import euklid
-
+from openglider.lines.elements import Line, Node, SagMatrix
 from openglider.lines.functions import proj_force
-from openglider.lines.elements import Node, SagMatrix, Line
-from openglider.lines.line_types.linetype import LineType
 from openglider.lines.knots import KnotCorrections
+from openglider.lines.line_types.linetype import LineType
 from openglider.mesh import Mesh
 from openglider.utils.table import Table
 
 logger = logging.getLogger(__name__)
+
+@dataclasses.dataclass
+class LineLength:
+    length: float
+    
+    seam_correction: float
+    loop_correction: float
+    knot_correction: float
+    manual_correction: float
+
+    def get_checklength(self):
+        length = self.length
+        length += self.loop_correction
+        length += self.manual_correction
+
+        return length
+
+    def get_length(self):
+        length = self.get_checklength()
+        length += self.seam_correction
+        length += self.knot_correction
+
+        return length
+
 
 class LineSet(object):
     """
@@ -23,6 +47,7 @@ class LineSet(object):
     calculate_sag = True
     knot_corrections = KnotCorrections.read_csv(os.path.join(os.path.dirname(__file__), "knots.csv"))
     mat: SagMatrix
+    trim_corrections: Dict[str, float]
 
     def __init__(self, lines: List[Line], v_inf=None):
         if v_inf is None:
@@ -31,6 +56,7 @@ class LineSet(object):
         
         self.lines = lines or []
         self.v_inf = v_inf
+        self.trim_corrections = {}
 
 
         self.mat = SagMatrix(len(self.lines))
@@ -402,7 +428,7 @@ class LineSet(object):
         for i in range(steps):
             for l in self.lines:
                 if l.target_length is not None:
-                    diff = self.get_line_length(l) - l.target_length
+                    diff = self.get_line_length(l).get_length() - l.target_length
                     #diff = l.get_stretched_length(pre_load) - l.target_length
                     l.init_length -= diff
                     #l.init_length = l.target_length * l.init_length / l.get_stretched_length(pre_load)
@@ -422,7 +448,7 @@ class LineSet(object):
     def get_consumption(self) -> Dict[LineType, float]:
         consumption: Dict[LineType, float] = {}
         for line in self.lines:
-            length = self.get_line_length(line)
+            length = self.get_line_length(line).get_length()
             linetype = line.type
             consumption.setdefault(linetype, 0)
             consumption[linetype] += length
@@ -492,7 +518,7 @@ class LineSet(object):
 
         return [(line, self.create_tree(line.upper_node)) for line in self.sort_lines(lines)]
 
-    def _get_lines_table(self, callback, start_node=None):
+    def _get_lines_table(self, callback, start_node=None, insert_node_names=True):
         line_tree = self.create_tree(start_node=start_node)
         table = Table()
 
@@ -509,12 +535,13 @@ class LineSet(object):
             if upper:
                 for line, line_upper in upper:
                     row = insert_block(line, line_upper, row, column-columns_per_line)
-            else:  # Insert a top node
-                name = line.upper_node.name
-                if not name:
-                    name = "XXX"
-                table.set_value(column_0-1, row, name)
-                #table.set_value(column+2+floors, row, name)
+            else:
+                if insert_node_names:  # Insert a top node
+                    name = line.upper_node.name
+                    if not name:
+                        name = "XXX"
+                    table.set_value(column_0-1, row, name)
+                    #table.set_value(column+2+floors, row, name)
                 row += 1
             return row
 
@@ -587,10 +614,7 @@ class LineSet(object):
                 group_sorted = self.sort_lines(group, x_factor=0.1)
 
                 for i, line in enumerate(group_sorted):
-                    if floor > 0:
-                        line.name = f"{floor}_{name}{i+1}"
-                    else:
-                        line.name = f"{name}{i+1}"
+                    line.name = f"{floor+1}_{name}{i+1}"
             
             lines_new = set()
             for line in lines:
@@ -602,47 +626,49 @@ class LineSet(object):
         return self
     
     def get_line_length(self, line):
-        length = line.get_stretched_length()
-
-        # apply seam correction
-        length += line.type.seam_correction
-
+        loop_correction = 0
         # reduce by canopy-loop length / brake offset
         if len(self.get_upper_connected_lines(line.upper_node)) == 0:
             diff = line.upper_node.offset
-            length += diff
+            loop_correction += diff
 
-        return length
-
-        # apply loop correction
+        # get knot correction
+        knot_correction = 0
         lower_lines = self.get_lower_connected_lines(line.lower_node)
-        if len(lower_lines) == 0:
-            return length
-        
-        lower_line = lower_lines[0] # Todo: Reinforce
-        upper_lines = self.sort_lines(self.get_upper_connected_lines(line.lower_node), names=True)
 
-        line_no = upper_lines.index(line)
-        total_lines = len(upper_lines)
+        if len(lower_lines) > 0:
+            lower_line = lower_lines[0] # Todo: Reinforce
+            upper_lines = self.sort_lines(self.get_upper_connected_lines(line.lower_node), names=True)
 
-        correction = self.knot_corrections.get(lower_line.type, line.type, total_lines)[line_no]
+            line_no = upper_lines.index(line)
+            total_lines = len(upper_lines)
 
-        return length + correction
+            knot_correction = self.knot_corrections.get(lower_line.type, line.type, total_lines)[line_no]
+
+
+        return LineLength(
+            line.get_stretched_length(),
+            line.type.seam_correction,
+            loop_correction,
+            knot_correction,
+            self.trim_corrections.get(line.name, 0)
+        )
 
     def get_table(self):
-        length_table = self._get_lines_table(lambda line: [round(self.get_line_length(line)*1000)])
+        length_table = self._get_lines_table(lambda line: [round(self.get_line_length(line).get_length()*1000)])
         #length_table = self._get_lines_table(lambda line: [round(line.get_stretched_length()*1000)])
         
         length_table.name = "lines"
-        names_table = self._get_lines_table(lambda line: [line.name, line.type.name, line.color])
+
+        line_name_table = self._get_lines_table(lambda line: [line.name], insert_node_names=False)
+        line_type_table = self._get_lines_table(lambda line: [line.type.name], insert_node_names=False)
+        line_color_table = self._get_lines_table(lambda line: [line.color], insert_node_names=False)
 
         def get_checklength(line, upper_lines):
-            line_length = line.get_stretched_length()
+            line_length = self.get_line_length(line).get_checklength()
+            
             if not len(upper_lines):
-                diff = line.upper_node.offset
-                return [
-                    line_length + diff
-                ]
+                return [line_length]
             else:
                 lengths = []
                 for upper in upper_lines:
@@ -661,7 +687,10 @@ class LineSet(object):
             checklength_table[index+1, 0] = round(1000*length)
 
         length_table.append_right(checklength_table)
-        length_table.append_right(names_table)
+        
+        length_table.append_right(line_name_table)
+        length_table.append_right(line_type_table)
+        length_table.append_right(line_color_table)
 
         return length_table
 

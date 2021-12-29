@@ -116,7 +116,10 @@ class BatchNode2D(object):
 
 
 class LineSet2D(object):
+    trim_corrections: Dict[str, float]
+
     regex_node = re.compile(r"([a-zA-Z]*)([0-9]*)")
+
     def __init__(self, line_list):
         self.lines = line_list
 
@@ -200,7 +203,10 @@ class LineSet2D(object):
                             line_type=line.line_type, name=line.name)
                 lines.append(line)
 
-        return LineSet(lines, v_inf)
+        lineset = LineSet(lines, v_inf)
+        lineset.trim_corrections = self.trim_corrections.copy()
+
+        return lineset
 
     def scale(self, factor, scale_lower_floor=True, scale_y=False):
         lower_nodes = []
