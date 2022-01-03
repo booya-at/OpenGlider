@@ -148,12 +148,16 @@ class Table:
         return self.dct.get(key, None)
 
     def append_right(self, table, space=0):
-        col = self.num_columns
-        for row_no in range(table.num_rows):
-            for column_no in range(table.num_columns):
+        old_column_no = self.num_columns
+        
+        columns_to_add = table.num_columns
+        rows_to_add = table.num_rows
+
+        for row_no in range(rows_to_add):
+            for column_no in range(columns_to_add):
                 value = table.get(column_no, row_no)
                 if value is not None:
-                    self.set_value(col+column_no+space, row_no, value)
+                    self.set_value(old_column_no+column_no+space, row_no, value)
 
     def append_bottom(self, table, space=0):
         total_rows = self.num_rows

@@ -79,7 +79,7 @@ class UpperNode2D(object):
             node = CellAttachmentPoint(cell, self.name, self.cell_pos, self.rib_pos, force, self.offset)
 
         else: # attachment point on the rib
-            rib = glider.ribs[self.cell_no + self.cell_pos]
+            rib = glider.ribs[int(self.cell_no + self.cell_pos)]
             if isinstance(self.force, (list, tuple, np.ndarray)):
                 force = euklid.vector.Vector3D(list(self.force))
             else:
@@ -120,8 +120,9 @@ class LineSet2D(object):
 
     regex_node = re.compile(r"([a-zA-Z]*)([0-9]*)")
 
-    def __init__(self, line_list):
+    def __init__(self, line_list, trim_corrections=None):
         self.lines = line_list
+        self.trim_corrections = trim_corrections or []
 
     def __json__(self):
         lines = [copy.copy(line) for line in self.lines]

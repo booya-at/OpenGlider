@@ -1,6 +1,6 @@
 from openglider.glider.parametric.table.elements import RibTable, Keyword
 
-from openglider.glider.rib.crossports import RibHole, RibSquareHole, MultiSquareHole
+from openglider.glider.rib.crossports import RibHole, RibSquareHole, MultiSquareHole, AttachmentPointHole
 
 import logging
 
@@ -13,4 +13,14 @@ class HolesTable(RibTable):
         "HOLE5": Keyword(["pos", "size", "width", "vertical_shift", "rotation"], target_cls=RibHole),
         "HOLESQ": Keyword(["x", "width", "height"], target_cls=RibSquareHole),
         "HOLESQMULTI": Keyword(["start", "end", "height", "num_holes", "border_width"], target_cls=MultiSquareHole),
+        "HOLEATP": Keyword(["start", "end", "height", "num_holes"], target_cls=AttachmentPointHole),
+        "HOLEATP6": Keyword(["start", "end", "height", "num_holes", "border", "side_border"], target_cls=AttachmentPointHole)
     }
+
+
+    def get_element(self, row, keyword, data, curves):
+        for i, value in enumerate(data):
+            if isinstance(value, str):
+                data[i] = curves[value].get(row)
+
+        return super().get_element(row, keyword, data)

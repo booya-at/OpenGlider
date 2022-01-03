@@ -1,5 +1,42 @@
+from openglider.utils.dataclass import dataclass
 import euklid
 
+@dataclass
+class Color:
+    r: int
+    g: int
+    b: int
+    name: str="unnamed color"
+
+    def __iter__(self):
+        for x in (self.r, self.g, self.b):
+            yield x
+
+    def hex(self):
+        return f"{self.r:02x}{self.g:02x}{self.b:02x}"
+
+    @classmethod
+    def parse_hex(cls, hex: str):
+        if hex.startswith("#"):
+            hex = hex[1:]
+        
+        factor = 1
+        if len(hex) == 3:
+            rgb = hex
+            factor = 17
+        elif len(hex) == 6:
+            rgb = [
+                hex[:2],
+                hex[2:4],
+                hex[4:]
+            ]
+        else:
+            raise ValueError(f"{hex} is not a valid color")
+        
+        r,g,b = [int(x, base=16)*factor for x in rgb]
+
+        return cls(r, g, b)
+    
 
 def colorwheel(num):
     # r = 0

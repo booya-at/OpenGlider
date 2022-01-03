@@ -55,7 +55,7 @@ def object_hook(dct):
         except TypeError as e:
             print(f"in element: {obj} {dct['_module']}")
 
-            raise TypeError(f"error in elem: {obj}")
+            raise TypeError(f"error in elem: {obj}: {e}")
 
     else:
         return dct

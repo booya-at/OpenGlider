@@ -161,6 +161,9 @@ class RibPlot(object):
             for l in hole.get_flattened(self.rib):
                 self.plotpart.layers["cuts"].append(l)
                 holes.append(l)
+            
+            for p in hole.get_centers(self.rib):
+                self.plotpart.layers["cuts"].append([p*self.rib.chord])
         
         return holes
 

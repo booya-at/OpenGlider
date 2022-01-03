@@ -289,6 +289,7 @@ class ParametricGlider:
 
         logger.info("apply curves")
         self.rescale_curves()
+        curves = self.get_curves()
 
         x_values = self.shape.rib_x_values
         shape_ribs = self.shape.ribs[self.shape.has_center_cell:]
@@ -337,7 +338,7 @@ class ParametricGlider:
                 logger.warning(f"add flap: {flap}")
                 profile = profile.add_flap(*flap)
 
-            this_rib_holes = self.tables.holes.get(rib_no)
+            this_rib_holes = self.tables.holes.get(rib_no, curves=curves)
             this_rigid_foils = self.tables.rigidfoils_rib.get(rib_no)
 
             rib = Rib(

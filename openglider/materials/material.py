@@ -1,4 +1,5 @@
 import re
+from openglider.utils.colors import Color
 
 class Material:
     weight: float = 0 # g / sqm
@@ -29,18 +30,8 @@ class Material:
             setattr(self, arg, value)
         
     def get_color_rgb(self):
-        factor = 1
-        if len(self.color_code) == 3:
-            r,g,b = self.color_code
-            factor = 17
-        elif len(self.color_code) == 6:
-            r = self.color_code[:2]
-            g = self.color_code[2:4]
-            b = self.color_code[4:]
-        else:
-            raise ValueError(f"{self.color_code} is not a valid color")
-        
-        return [int(x, base=16)*factor for x in (r,g,b)]
+        color = Color.parse_hex(self.color_code)
+        return list(color)
 
     def _set_color_code(self, color_code):
         color_code_int = int(color_code, base=16)
