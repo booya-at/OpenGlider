@@ -14,9 +14,9 @@ def get_rib_length_table(glider: Glider) -> Table:
     num = 0
 
     for rib_no, rib in enumerate(glider.ribs):
-        num = max(num, len(rib.rigidfoils))
+        num = max(num, len(rib.get_rigidfoils()))
         table[rib_no+1, 0] = f"Rib_{rib_no}"
-        for rigid_no, rigidfoil in enumerate(rib.rigidfoils):
+        for rigid_no, rigidfoil in enumerate(rib.get_rigidfoils()):
             table[rib_no+1, 2*rigid_no+1] = f"{rigidfoil.start}/{rigidfoil.end}"
             table[rib_no+1, 2*rigid_no+2] = round(1000*rigidfoil.get_length(rib), 1)
 

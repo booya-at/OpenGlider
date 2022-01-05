@@ -97,6 +97,17 @@ class ElementTable(Generic[ElementType]):
         
         return elements
     
+    def get_one(self, row_no: int, keywords=None, **kwargs):
+        elements = self.get(row_no, keywords=keywords, **kwargs)
+
+        if len(elements) > 1:
+            logger.error(f"too many elements in row {row_no}! {elements}")
+
+        if len(elements) > 0:
+            return elements[0]
+        
+        return None
+    
     def get_element(self, row: int, keyword: str, data: List[Any], **kwargs) -> ElementType:
         keyword_mapper = self.keywords[keyword]
 

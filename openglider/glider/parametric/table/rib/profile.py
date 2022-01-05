@@ -4,6 +4,7 @@ import logging
 from pyfoil import Airfoil
 
 from openglider.utils.table import Table
+from openglider.glider.rib.sharknose import Sharknose
 from openglider.glider.parametric.table.elements import RibTable, Keyword
 
 logger = logging.getLogger(__name__)
@@ -12,11 +13,9 @@ class ProfileTable(RibTable):
     keywords = {
         "ProfileFactor": Keyword(attributes=["thickness_factor"]),
         "ProfileMerge": Keyword(attributes=["merge_factor"]),
-        "Flap": Keyword(attributes=["begin", "amount"])
+        "Flap": Keyword(attributes=["begin", "amount"]),
+        "Sharknose": Keyword(attributes=["position", "amount", "start", "end"], target_cls=Sharknose)
     }
-
-    def get_element(self, row, keyword, data):
-        return data
 
     def get_merge_factors(self, merge_factor_list: List[float]) -> List[Tuple[float, float]]:
 
@@ -40,6 +39,10 @@ class ProfileTable(RibTable):
                     multipliers[i] = value
         
         return list(zip(merge_factors, multipliers))
+    
+    def get_sharknose(self, row_no: int) -> Optional[Sharknose]:
+        return self.get_one(row_no, keywords=["Sharknose"])
+
     
     def get_flap(self, row_no: int) -> Optional[Tuple[float, float]]:
         flaps = self.get(row_no, keywords=["Flap"])

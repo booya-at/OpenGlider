@@ -254,6 +254,7 @@ class AttachmentPointHole(RibHoleBase):
     num_holes: int
     border: float=0.1
     side_border: float=0.1
+    corner_size: float = 1.
 
     @cached_function('self')
     def _get_holes(self, rib: "Rib"):
@@ -278,8 +279,6 @@ class AttachmentPointHole(RibHoleBase):
 
         holes = []
 
-        squarehole = RibSquareHole(self.start, self.end-self.start, 1.)
-
         for hole_no in range(self.num_holes):
             left = self.start + (self.side_border + hole_no*self.border)/rib.chord + hole_no*hole_width
             right = left + hole_width
@@ -292,7 +291,7 @@ class AttachmentPointHole(RibHoleBase):
             p4 = euklid.vector.Vector2D([left, upper.get_value(left)])
             p3 = euklid.vector.Vector2D([right, upper.get_value(right)])
 
-            holes.append(PolygonHole(points=[p1, p2, p3, p4]))
+            holes.append(PolygonHole(points=[p1, p2, p3, p4], corner_size=self.corner_size))
         
         return holes
 

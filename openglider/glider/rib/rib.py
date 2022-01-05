@@ -1,4 +1,4 @@
-from typing import List, Any, TYPE_CHECKING
+from typing import List, Any, Optional, TYPE_CHECKING
 import copy
 import math
 import numpy as np
@@ -11,6 +11,7 @@ from openglider.airfoil import Profile3D
 from openglider.utils.cache import CachedObject, cached_property
 from openglider.mesh import Mesh, triangulate
 from openglider.glider.rib.elements import FoilCurve
+from openglider.glider.rib.sharknose import Sharknose
 from openglider.materials import cloth
 
 
@@ -26,6 +27,9 @@ class Rib(CachedObject):
         glide-wide rotation and glider ratio.
         optional: name, absolute aoa (bool), startposition
     """
+    sharknose: Optional[Sharknose]
+
+
     hole_naming_scheme = "{rib.name}h{}"
     rigid_naming_scheme = "{rib.name}rigid{}"
 
@@ -35,7 +39,7 @@ class Rib(CachedObject):
                  chord=1., arcang=0, aoa_absolute=0, zrot=0, xrot = 0, glide=1,
                  name="unnamed rib", startpos=0.,
                  rigidfoils=None,
-                 holes=None, material=None):
+                 holes=None, material=None, sharknose=None):
         self.startpos = startpos
         # TODO: Startpos > Set Rotation Axis in Percent
         self.name = name
@@ -49,6 +53,7 @@ class Rib(CachedObject):
         self.chord = chord
         self.holes = holes or []
         self.rigidfoils = rigidfoils or []
+        self.sharknose = sharknose
 
         if material is not None:
             if isinstance(material, str):
@@ -72,7 +77,8 @@ class Rib(CachedObject):
                 "rigidfoils": self.rigidfoils,
                 "holes": self.holes,
                 "material": str(self.material),
-                "name": self.name
+                "name": self.name,
+                "sharknose": self.sharknose
                 }
 
     def align_all(self, data, scale=True) -> euklid.vector.PolyLine3D:
@@ -153,6 +159,9 @@ class Rib(CachedObject):
     def get_hull(self, glider=None) -> pyfoil.Airfoil:
         """returns the outer contour of the normalized mesh in form
            of a Polyline"""
+        if self.sharknose is not None:
+            return self.sharknose.get_modified_airfoil(self)
+
         return self.profile_2d
 
     @property
@@ -221,23 +230,14 @@ class Rib(CachedObject):
             boundaries = {self.name: list(range(len(mesh.points)))}
 
             return Mesh.from_indexed(vertices, polygons={"ribs": mesh.elements} , boundaries=boundaries)
+        
+    def get_rigidfoils(self):
+        if self.sharknose is not None:
+            return self.sharknose.update_rigidfoils(self)
+        
+        return self.rigidfoils
 
 
-
-# def rib_rotation(aoa, arc, zrot):
-#     """
-#     Rotation Matrix for Ribs, aoa, arcwide-angle and glidewise angle in radians
-#     return -> np.array
-#     """
-#     # Rotate Arcangle, rotate from lying to standing (x-z)
-#     rot = rotation_3d(-arc + math.pi / 2, [-1, 0, 0])
-#     axis = rot.dot([0, 0, 1])
-#     rot = rotation_3d(aoa, axis).dot(rot)
-#     axis = rot.dot([0, 1, 0])
-#     rot = rotation_3d(zrot, axis).dot(rot)
-#     # rot = rotation_3d(-math.pi/2, [0, 0, 1]).dot(rot)
-
-#     return rot
 
 def rib_rotation(aoa, arc, zrot, xrot=0):
     rot0 = euklid.vector.Transformation.rotation(np.pi / 2 - xrot, [1, 0, 0])

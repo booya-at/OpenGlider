@@ -78,7 +78,7 @@ class RibPlot(object):
             self.insert_mark(cut, self.config.marks_panel_cut)
 
         # rigidfoils
-        for rigid in self.rib.rigidfoils:
+        for rigid in self.rib.get_rigidfoils():
             self.plotpart.layers["marks"].append(rigid.get_flattened(self.rib))
 
         for curve in self.rib.curves:
