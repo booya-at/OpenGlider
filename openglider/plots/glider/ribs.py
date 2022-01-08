@@ -20,6 +20,14 @@ class RibPlot(object):
     inner: euklid.vector.PolyLine2D
     outer: euklid.vector.PolyLine2D
 
+    layer_name_outline = "cuts"
+    layer_name_sewing = "sewing"
+    layer_name_rigidfoils = "marks"
+    layer_name_text = "text"
+    layer_name_marks = "marks"
+    layer_name_laser_dots = "L0"
+    layer_name_crossports = "cuts"
+
     class DefaultConfig(PatternConfig):
         marks_diagonal_front = marks.Inside(marks.Arrow(left=True, name="diagonal_front"))
         marks_diagonal_back = marks.Inside(marks.Arrow(left=False, name="diagonal_back"))
@@ -79,16 +87,16 @@ class RibPlot(object):
 
         # rigidfoils
         for rigid in self.rib.get_rigidfoils():
-            self.plotpart.layers["marks"].append(rigid.get_flattened(self.rib))
+            self.plotpart.layers[self.layer_name_rigidfoils].append(rigid.get_flattened(self.rib))
 
         for curve in self.rib.curves:
-            self.plotpart.layers["marks"].append(curve.get_flattened(self.rib))
+            self.plotpart.layers[self.layer_name_rigidfoils].append(curve.get_flattened(self.rib))
 
         self._insert_text(self.rib.name)
         self.insert_controlpoints()
 
         # insert cut
-        envelope = self.draw_rib(glider)
+        envelope = self.draw_outline(glider)
 
         area = envelope.get_area()
         for hole in holes:
@@ -96,7 +104,7 @@ class RibPlot(object):
 
         self.weight = MaterialUsage().consume(self.rib.material, area)
 
-        self.plotpart.layers["stitches"].append(self.inner)
+        self.plotpart.layers[self.layer_name_sewing].append(self.inner)
 
         return self.plotpart
 
@@ -110,7 +118,7 @@ class RibPlot(object):
         # outer = self.outer[ik]
         return inner, outer
 
-    def insert_mark(self, position, mark_function, layer="marks"):
+    def insert_mark(self, position, mark_function, laser=False):
         if hasattr(mark_function, "__func__"):
             mark_function = mark_function.__func__
 
@@ -119,12 +127,17 @@ class RibPlot(object):
 
         inner, outer = self._get_inner_outer(position)
 
+        if laser:
+            layer = self.layer_name_laser_dots
+        else:
+            layer = self.layer_name_marks
+
         self.plotpart.layers[layer] += mark_function(inner, outer)
 
     def insert_controlpoints(self):
         for x in self.config.distribution_controlpoints:
-            self.insert_mark(x, self.config.marks_controlpoint, layer="marks")
-            self.insert_mark(x, self.config.marks_laser_controlpoint, layer="L0")
+            self.insert_mark(x, self.config.marks_controlpoint)
+            self.insert_mark(x, self.config.marks_laser_controlpoint, laser=True)
 
     def get_point(self, x, y=-1):
         assert x >= 0
@@ -143,31 +156,28 @@ class RibPlot(object):
         if p1[1] == p2[1] == -1:
             self.insert_mark(p1[0], self.config.marks_diagonal_front)
             self.insert_mark(p2[0], self.config.marks_diagonal_back)
-            self.insert_mark(p1[0], self.config.marks_laser_diagonal, "L0")
-            self.insert_mark(p2[0], self.config.marks_laser_diagonal, "L0")
+            self.insert_mark(p1[0], self.config.marks_laser_diagonal, laser=True)
+            self.insert_mark(p2[0], self.config.marks_laser_diagonal, laser=True)
         elif p1[1] == p2[1] == 1:
             self.insert_mark(-p1[0], self.config.marks_diagonal_back)
             self.insert_mark(-p2[0], self.config.marks_diagonal_front)
-            self.insert_mark(-p1[0], self.config.marks_laser_diagonal, "L0")
-            self.insert_mark(-p2[0], self.config.marks_laser_diagonal, "L0")
+            self.insert_mark(-p1[0], self.config.marks_laser_diagonal, laser=True)
+            self.insert_mark(-p2[0], self.config.marks_laser_diagonal, laser=True)
         else:
             p1 = self.get_point(*p1)
             p2 = self.get_point(*p2)
-            self.plotpart.layers["marks"].append(euklid.vector.PolyLine2D([p1, p2], name=drib.name))
+            self.plotpart.layers[self.layer_name_marks].append(euklid.vector.PolyLine2D([p1, p2], name=drib.name))
 
     def insert_holes(self):
         holes = []
         for hole in self.rib.holes:
             for l in hole.get_flattened(self.rib):
-                self.plotpart.layers["cuts"].append(l)
+                self.plotpart.layers[self.layer_name_crossports].append(l)
                 holes.append(l)
-            
-            for p in hole.get_centers(self.rib):
-                self.plotpart.layers["cuts"].append([p*self.rib.chord])
         
         return holes
 
-    def draw_rib(self, glider):
+    def draw_outline(self, glider):
         """
         Cut trailing edge of outer rib
         """
@@ -195,7 +205,7 @@ class RibPlot(object):
             outer_rib.get(start, stop).nodes + buerzl
         )
 
-        self.plotpart.layers["cuts"] += [contour]
+        self.plotpart.layers[self.layer_name_outline] += [contour]
         return contour
 
     def _insert_attachment_points(self, glider: "Glider"):
@@ -226,7 +236,7 @@ class RibPlot(object):
 
         _text = Text(text, p1, p2, size=(outer-inner).length()*0.5, valign=0)
         #_text = Text(text, p1, p2, size=0.05)
-        self.plotpart.layers["text"] += _text.get_vectors()
+        self.plotpart.layers[self.layer_name_text] += _text.get_vectors()
 
 
 class SingleSkinRibPlot(RibPlot):
@@ -271,7 +281,7 @@ class SingleSkinRibPlot(RibPlot):
         self._get_singleskin_cut(glider)
         return super().flatten(glider)
 
-    def draw_rib(self, glider):
+    def draw_outline(self, glider):
         """
         Cut trailing edge of outer rib
         """
@@ -312,7 +322,5 @@ class SingleSkinRibPlot(RibPlot):
 
             contour += euklid.vector.PolyLine2D(outer_rib.get(start, stop))
             contour += buerzl
-
-        self.plotpart.layers["cuts"] += [contour]
         
         return contour

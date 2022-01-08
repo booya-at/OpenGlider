@@ -62,7 +62,7 @@ class Layers(object):
         lines = ["Layers:"] + ["{} ({})".format(layer_name, len(layer)) for layer_name, layer in self.layers.items()]
         return "\n  - ".join(lines)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item) -> Layer:
         item = str(item)
         if item in ("name", "material_code"):
             raise KeyError()
@@ -103,6 +103,9 @@ class Layers(object):
 
         self.layers[name] = layer
         return layer
+    
+    def pop(self, name):
+        return self.layers.pop(name)
 
 
 class PlotPart(object):
