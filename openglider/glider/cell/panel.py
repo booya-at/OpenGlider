@@ -124,9 +124,6 @@ class PanelCut:
             x = i / (numribs+1)
             y = curve.get_value(x)
 
-            if self.x_center:
-                print(numribs, x, y)
-
             _ik_left = get_x_value(x_values_left, y)
             _ik_right = get_x_value(x_values_right, y)
             ik_values.append(_ik_left + (_ik_right-_ik_left) * x)
@@ -134,8 +131,6 @@ class PanelCut:
         ik_values.append(ik_right)
 
         if not exact:
-            if self.x_center:
-                print(ik_values)
             return ik_values
 
         ik_values_new = []

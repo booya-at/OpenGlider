@@ -2,45 +2,64 @@ import os
 import re
 import datetime
 import logging
+from typing import List, Tuple
 
 import euklid
 
 from openglider.glider.glider import Glider
 from openglider.glider.parametric import ParametricGlider
 from openglider.glider.parametric.import_freecad import import_freecad
+from openglider.utils.dataclass import dataclass, field
 import openglider.utils.table
 
 logger = logging.getLogger(__name__)
 
+
+@dataclass
 class GliderProject(object):
     glider: ParametricGlider
-    glider_3d: Glider
+    glider_3d: Glider=None
+    filename: str=""
+    name: str=None
+    changelog: List[Tuple[datetime.datetime, str, str]]=field(default_factory=lambda: [])
 
     _regex_revision_no = re.compile(r"(.*)_rev([0-9]*)$")
-
-    def __init__(self,
-                 glider: ParametricGlider,
-                 glider_3d: Glider = None,
-                 filename: str = None,
-                 name: str = None,
-                 modified: datetime.datetime = None
-                 ):
-        self.glider = glider
-        if glider_3d is None:
-            logger.info(f"get glider 3d:  {name}")
-            glider_3d = glider.get_glider_3d()
-
-        self.glider_3d = glider_3d
-        self.filename = filename
-        self.modified = modified or datetime.datetime.now()
-
-        if name is None:
+    
+    def __post_init__(self):
+        if self.name is None:
             if self.filename is not None:
-                name = os.path.split(self.filename)[1]
+                self.name = os.path.split(self.filename)[1]
             else:
-                name = "unnamed_project"
+                self.name = "unnamed_project"
+
+        if self.glider_3d is None:
+            logger.info(f"get glider 3d:  {self.name}")
+            self.glider_3d = self.glider.get_glider_3d()
+
+        if len(self.changelog) < 1:
+            self.changelog.append([
+                datetime.datetime.now(), "loaded", "no changelog data available"
+            ])
+    
+    @classmethod
+    def __from_json__(cls, **kwargs):
+        changelog = kwargs["changelog"]
+        changelog_new = []
+        for dt_str, value1, value2 in changelog:
+            dt = datetime.datetime.fromisoformat(dt_str)
+
+            changelog_new.append((dt, value1, value2))
+
+        kwargs["changelog"] = changelog_new
+
+        return cls(**kwargs)
+            
         
-        self.name = name
+
+    
+    @property
+    def modified(self):
+        return self.changelog[-1][0]
 
     def increase_revision_nr(self):
         match = self._regex_revision_no.match(self.name)
@@ -55,7 +74,6 @@ class GliderProject(object):
         revision_nr += 1
 
         self.name = f"{name}_rev{revision_nr:03d}"
-        self.modified = datetime.datetime.now()
 
         return self.name
 
@@ -63,7 +81,7 @@ class GliderProject(object):
         table = openglider.utils.table.Table()
         table["A1"] = "Name"
         table["B1"] = f"{self.name}"
-        table["A2"] = "Date"
+        table["A2"] = "Modified"
         table["B2"] = self.modified.strftime("%d.%m.%Y")
         table["A3"] = "Time"
         table["B3"] = self.modified.strftime("%H:%M")
@@ -139,19 +157,6 @@ class GliderProject(object):
     def update_all(self):
         self.glider.get_glider_3d(self.glider_3d)
         self.glider_3d.lineset.recalc()
-
-    def __json__(self):
-        return {"glider": self.glider,
-                "glider_3d": self.glider_3d,
-                "name": self.name,
-                "filename": self.filename,
-                "modified": self.modified
-                }
-    
-    @classmethod
-    def __from_json__(cls, **dct):
-        dct["modified"] = datetime.datetime.fromisoformat(dct["modified"])
-        return cls(**dct)
 
     def get_data(self):
         area = self.glider_3d.area

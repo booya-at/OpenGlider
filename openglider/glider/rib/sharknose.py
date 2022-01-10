@@ -3,7 +3,7 @@ import euklid
 
 import openglider.airfoil
 from openglider.utils.dataclass import dataclass
-from openglider.glider.rib.elements import RigidFoil, RigidFoilCurved
+from openglider.glider.rib.rigidfoils import RigidFoil, RigidFoilCurved
 
 if typing.TYPE_CHECKING:
     from openglider.glider.rib.rib import Rib
@@ -16,6 +16,10 @@ class Sharknose:
     
     start: float
     end: float
+
+
+    rigidfoil_circle_radius: float = 0.05
+    rigidfoil_circle_amount: float = 0.4
 
     def get_modified_airfoil(self, rib: "Rib"):
         data = []
@@ -100,8 +104,8 @@ class Sharknose:
                 radius, amount =  rigidfoil.get_cap_radius(start=True)
                 rigid_1.circle_radius_start = radius
                 rigid_1.circle_amount_start = amount
-                rigid_1.circle_radius_end = 0.05
-                rigid_1.circle_amount_end = 0.4
+                rigid_1.circle_radius_end = self.rigidfoil_circle_radius
+                rigid_1.circle_amount_end = self.rigidfoil_circle_amount
 
                 rigid_2 = RigidFoilCurved(
                     start=position,
@@ -111,8 +115,8 @@ class Sharknose:
                 radius, amount =  rigidfoil.get_cap_radius(start=False)
                 rigid_2.circle_radius_end = radius
                 rigid_2.circle_amount_end = amount
-                rigid_2.circle_radius_start = 0.05
-                rigid_2.circle_amount_start = 0.4
+                rigid_2.circle_radius_start = self.rigidfoil_circle_radius
+                rigid_2.circle_amount_start = self.rigidfoil_circle_amount
 
                 result += [rigid_1, rigid_2]
             else:

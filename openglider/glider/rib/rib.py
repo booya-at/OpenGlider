@@ -8,9 +8,8 @@ import euklid
 import pyfoil
 
 from openglider.airfoil import Profile3D
-from openglider.utils.cache import CachedObject, cached_property
+from openglider.utils.cache import CachedObject, cached_function, cached_property
 from openglider.mesh import Mesh, triangulate
-from openglider.glider.rib.elements import FoilCurve
 from openglider.glider.rib.sharknose import Sharknose
 from openglider.materials import cloth
 
@@ -230,6 +229,18 @@ class Rib(CachedObject):
             boundaries = {self.name: list(range(len(mesh.points)))}
 
             return Mesh.from_indexed(vertices, polygons={"ribs": mesh.elements} , boundaries=boundaries)
+
+    @cached_function("self")
+    def get_margin_outline(self, margin: float) -> pyfoil.Airfoil:
+        logger.info(f"calculate envelope: {self.name}: {margin}")
+        
+        if margin == 0.:
+            return self.profile_2d
+        else:
+            envelope = self.profile_2d.curve.offset(-margin/self.chord)
+            
+            return pyfoil.Airfoil(envelope)
+
         
     def get_rigidfoils(self):
         if self.sharknose is not None:

@@ -1,11 +1,15 @@
 import math
 from typing import List
+import logging
 
 import euklid
 from openglider.glider.shape import Shape
 from openglider.utils import linspace
 from openglider.utils.dataclass import dataclass
 from openglider.utils.table import Table
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -279,6 +283,11 @@ class ParametricShape:
         dy = ((tip_f + tip_b) * 0.5)[1] - center_f[1]
 
         return dy / (center_f + center_b)[1]
+    
+    def _clean(self):
+        p0 = self.front_curve.get(0) * [0, -1]
+        self.front_curve.controlpoints = self.front_curve.controlpoints.move(p0)
+        self.back_curve.controlpoints = self.back_curve.controlpoints.move(p0)
     
     def set_sweep(self, sweep):
         current_sweep = self.get_sweep()

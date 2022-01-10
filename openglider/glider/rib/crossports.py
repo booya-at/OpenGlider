@@ -21,15 +21,8 @@ logger = logging.getLogger(__name__)
 class RibHoleBase:
     margin: float= field(default=0.04, kw_only=True)
 
-    @cached_function("margin")
     def get_envelope_airfoil(self, rib: "Rib") -> openglider.airfoil.Profile2D:
-        outline = rib.profile_2d
-        if self.margin == 0.:
-            return rib.profile_2d
-        else:
-            envelope = rib.profile_2d.curve.offset(-self.margin/rib.chord)
-            
-            return openglider.airfoil.Profile2D(envelope)
+        return rib.get_margin_outline(self.margin)
     
     @cached_function("margin")
     def get_envelope_boundaries(self, rib: "Rib"):
@@ -227,7 +220,7 @@ class MultiSquareHole(RibHoleBase):
         hole_width = self.hole_width
         holes = []
         for center in self.hole_x_values:
-            holes.append(RibSquareHole(center, hole_width, self.height))
+            holes.append(RibSquareHole(center, hole_width, self.height, margin=self.margin))
 
         return holes
     
