@@ -237,7 +237,8 @@ class Rib(CachedObject):
         if margin == 0.:
             return self.profile_2d
         else:
-            envelope = self.profile_2d.curve.offset(-margin/self.chord)
+            envelope = self.profile_2d.curve.offset(-margin/self.chord, simple=False)
+            envelope.fix_errors()
             
             return pyfoil.Airfoil(envelope)
 

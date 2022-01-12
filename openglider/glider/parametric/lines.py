@@ -122,7 +122,7 @@ class LineSet2D(object):
 
     def __init__(self, line_list, trim_corrections=None):
         self.lines = line_list
-        self.trim_corrections = trim_corrections or []
+        self.trim_corrections = trim_corrections or {}
 
     def __json__(self):
         lines = [copy.copy(line) for line in self.lines]

@@ -57,7 +57,7 @@ class RibPlot(object):
         self.x_values = prof2d.x_values
         self.inner = prof2d.curve.scale(self.rib.chord)
         self.inner_normals = self.inner.normvectors()
-        self.outer = self.inner.offset(self.config.allowance_general)
+        self.outer = self.inner.offset(self.config.allowance_general, simple=False)
 
         self._insert_attachment_points(glider)
         holes = self.insert_holes()
@@ -181,7 +181,7 @@ class RibPlot(object):
         """
         Cut trailing edge of outer rib
         """
-        outer_rib = self.outer
+        outer_rib = self.outer.fix_errors()
         inner_rib = self.inner
         t_e_allowance = self.config.allowance_trailing_edge
         p1 = inner_rib.nodes[0] + [0, 1]

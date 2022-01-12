@@ -9,7 +9,7 @@ class PatternConfig(Config):
     patterns_scale = 1000
     complete_glider = True
     debug = False
-    profile_numpoints = 250
+    profile_numpoints = 400
 
     cut_entry: object = cuts.FoldedCut
     cut_trailing_edge: object = cuts.ParallelCut

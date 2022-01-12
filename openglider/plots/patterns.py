@@ -4,6 +4,7 @@ import subprocess
 import logging
 from typing import List, Dict
 
+import pyfoil
 import openglider.glider
 import openglider.plots.spreadsheets
 from openglider.plots.spreadsheets import get_glider_data
@@ -25,9 +26,14 @@ class PatternsNew(object):
     DefaultConf = PlotMaker.DefaultConfig
 
     def __init__(self, project: GliderProject, config=None):
-        self.project = project
-        self.glider_2d = project.glider
+        self.project = project.copy()
         self.config = self.DefaultConf(config)
+
+        if self.config.profile_numpoints is not None:
+            self.project.glider.num_profile = self.config.profile_numpoints
+            self.project.glider_3d = self.project.glider.get_glider_3d()
+
+        self.glider_2d = self.project.glider
         self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
         self.weight: Dict[str, MaterialUsage] = {}
 

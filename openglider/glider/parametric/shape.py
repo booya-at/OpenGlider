@@ -5,8 +5,9 @@ import logging
 import euklid
 from openglider.glider.shape import Shape
 from openglider.utils import linspace
-from openglider.utils.dataclass import dataclass
+from openglider.utils.dataclass import BaseModel, dataclass
 from openglider.utils.table import Table
+from openglider.utils.types import CurveType, SymmetricCurveType
 
 
 logger = logging.getLogger(__name__)
@@ -14,9 +15,9 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ParametricShape:
-    front_curve: euklid.spline.SymmetricBSplineCurve
-    back_curve: euklid.spline.SymmetricBSplineCurve
-    rib_distribution: euklid.spline.BSplineCurve
+    front_curve: SymmetricCurveType
+    back_curve: SymmetricCurveType
+    rib_distribution: CurveType
     cell_num: int
     stabi_cell: bool = False
     stabi_cell_width: float = 0.5
@@ -27,6 +28,10 @@ class ParametricShape:
     num_distribution_interpolation = 50
     num_depth_integral = 50
     baseline_pos = 0.25
+
+    class Config:
+        arbitrary_types_allowed = True
+
 
     def __post_init__(self):
         self.rescale_curves()

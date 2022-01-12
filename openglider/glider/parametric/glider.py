@@ -22,9 +22,10 @@ from openglider.glider.parametric.table import GliderTables
 from openglider.glider.parametric.table.curve import CurveTable
 from openglider.glider.rib import MiniRib, Rib, SingleSkinRib
 from openglider.utils import ZipCmp, linspace
-from openglider.utils.dataclass import dataclass, field
+from openglider.utils.dataclass import BaseModel, dataclass, field
 from openglider.utils.distribution import Distribution
 from openglider.utils.table import Table
+from openglider.utils.types import CurveType
 
 logger = logging.getLogger(__name__)
 
@@ -37,10 +38,10 @@ class ParametricGlider:
     shape: ParametricShape
     arc: ArcCurve
     aoa: euklid.spline.SymmetricBSplineCurve
-    profiles: List[Profile2D]
-    profile_merge_curve: euklid.spline.SymmetricBSplineCurve
+    profiles: List[pyfoil.Airfoil]
+    profile_merge_curve: CurveType
     balloonings: List[BallooningBase]
-    ballooning_merge_curve: euklid.spline.BSplineCurve
+    ballooning_merge_curve: CurveType
     lineset: LineSet2D
     speed: float
     glide: float
@@ -48,8 +49,8 @@ class ParametricGlider:
     curves: CurveTable = field(default_factory=lambda: CurveTable(Table()))
     zrot: euklid.spline.SymmetricBSplineCurve = field(default_factory=lambda: euklid.spline.SymmetricBSplineCurve([[0,0],[1,0]]))
 
-    num_interpolate = 30
-    num_profile = None
+    num_interpolate: int=30
+    num_profile: int=None
 
     def test(self) -> int:
         return len(self.ballooning_merge_curve.controlpoints.nodes)

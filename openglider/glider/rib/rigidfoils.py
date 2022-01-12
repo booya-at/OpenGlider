@@ -133,8 +133,9 @@ class RigidFoilCurved(_RigidFoilCurved):
 
 
 @dataclass
-class RigidFoil2(RigidFoil):
-    circle_amount: float=0.7
+class RigidFoil2(_RigidFoilCurved):
+    circle_radius: float=0.05
+    circle_amount: float=0.5
 
     def get_cap_radius(self, start: bool):
         return self.circle_radius, self.circle_amount

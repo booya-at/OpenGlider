@@ -1,6 +1,6 @@
 import logging
 import math
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Tuple
 
 import euklid
 import numpy as np
@@ -8,7 +8,7 @@ import openglider
 from openglider.glider.shape import Shape
 from openglider.lines import Node
 from openglider.utils.cache import cached_function
-from openglider.utils.dataclass import dataclass, field
+from openglider.utils.dataclass import BaseModel, dataclass, field
 from openglider.vector.polygon import Circle, Ellipse
 
 if TYPE_CHECKING:
@@ -17,9 +17,10 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class RibHoleBase:
-    margin: float= field(default=0.04, kw_only=True)
+    margin: float=field(default=0.04, kw_only=True)
 
     def get_envelope_airfoil(self, rib: "Rib") -> openglider.airfoil.Profile2D:
         return rib.get_margin_outline(self.margin)
@@ -54,7 +55,7 @@ class RibHoleBase:
 
 
 @dataclass
-class RibHole(RibHoleBase):
+class RibHole:
     """
     Round holes.
     height is relative to profile height, rotation is from lower point
@@ -105,10 +106,14 @@ class RibHole(RibHoleBase):
         
         return [lower + diff * (0.5 + self.vertical_shift/2)]
 
+
 @dataclass
 class PolygonHole(RibHoleBase):
     points: List[euklid.vector.Vector2D]
     corner_size: float=1
+
+    class Config:
+        arbitrary_types_allowed = True
 
     def get_centers(self, rib: "Rib", scale=False) -> List[euklid.vector.Vector2D]:
         return [sum(self.points, start=euklid.vector.Vector2D())/len(self.points)]
