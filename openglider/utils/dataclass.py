@@ -12,7 +12,9 @@ def dataclass(_cls):
     old_json = getattr(_cls_new, "__json__", None)
     if old_json is None or getattr(old_json, "is_auto", False):
         def __json__(instance):
-            return instance.json()
+            return {
+                key: getattr(instance, key) for key in _cls_new.__dataclass_fields__
+            }
         
         __json__.is_auto = True
 

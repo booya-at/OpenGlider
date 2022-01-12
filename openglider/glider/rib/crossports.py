@@ -55,7 +55,7 @@ class RibHoleBase:
 
 
 @dataclass
-class RibHole:
+class RibHole(RibHoleBase):
     """
     Round holes.
     height is relative to profile height, rotation is from lower point

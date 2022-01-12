@@ -17,6 +17,9 @@ class Sharknose:
     start: float
     end: float
 
+    angle_front: float=1.
+    angle_back: float=0.8
+
 
     rigidfoil_circle_radius: float = 0.05
     rigidfoil_circle_amount: float = 0.4
@@ -36,7 +39,7 @@ class Sharknose:
         point_position[1] = point_position[1] + (point_start[1]-point_position[1])*self.amount
 
         tangents = euklid.vector.PolyLine2D(rib.profile_2d.curve.get_tangents())
-        def get_tangent(ik, from_point, to_point):
+        def get_tangent(ik, from_point, to_point, amount):
             #ik -= 0.5
             #ik = max(ik, 0)
             #ik = min(ik, len(tangents)-1)
@@ -49,22 +52,17 @@ class Sharknose:
             if abs(tangent[0]) > 0:
                 scale = min(scale, abs((from_point[0]-to_point[0])/tangent[0]))
 
-            return tangent * scale
+            return tangent * scale * amount
 
-        print([
-            point_start,
-            point_start + get_tangent(ik_start, point_start, point_position),
-            point_position
-        ])
         curve_1 = euklid.spline.BSplineCurve([
             point_start,
-            point_start + get_tangent(ik_start, point_start, point_position),
+            point_start + get_tangent(ik_start, point_start, point_position, self.angle_front),
             point_position
         ]).get_sequence(50)
 
         curve_2 = euklid.spline.BSplineCurve([
             point_position,
-            point_end - get_tangent(ik_end, point_end, point_position),
+            point_end - get_tangent(ik_end, point_end, point_position, self.angle_back),
             point_end
         ]).get_sequence(50)
 
@@ -73,7 +71,6 @@ class Sharknose:
         
 
         for i, point in enumerate(rib.profile_2d.curve):
-            point: euklid.vector.Vector2D
             x = point[0]
             y = point[1]
             

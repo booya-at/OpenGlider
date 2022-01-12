@@ -14,7 +14,8 @@ class ProfileTable(RibTable):
         "ProfileFactor": Keyword(attributes=["thickness_factor"]),
         "ProfileMerge": Keyword(attributes=["merge_factor"]),
         "Flap": Keyword(attributes=["begin", "amount"]),
-        "Sharknose": Keyword(attributes=["position", "amount", "start", "end"], target_cls=Sharknose)
+        "Sharknose": Keyword(attributes=["position", "amount", "start", "end"], target_cls=Sharknose),
+        "Sharknose8": Keyword(attributes=["position", "amount", "start", "end", "angle_front", "angle_back", "rigidfoil_circle_radius", "rigidfoil_circle_amount"], target_cls=Sharknose)
     }
 
     def get_merge_factors(self, merge_factor_list: List[float]) -> List[Tuple[float, float]]:
@@ -41,7 +42,7 @@ class ProfileTable(RibTable):
         return list(zip(merge_factors, multipliers))
     
     def get_sharknose(self, row_no: int) -> Optional[Sharknose]:
-        return self.get_one(row_no, keywords=["Sharknose"])
+        return self.get_one(row_no, keywords=["Sharknose", "Sharknose8"])
 
     
     def get_flap(self, row_no: int) -> Optional[Tuple[float, float]]:
