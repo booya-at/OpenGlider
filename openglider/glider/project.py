@@ -1,3 +1,4 @@
+import imp
 import os
 import re
 import datetime
@@ -9,6 +10,7 @@ import euklid
 from openglider.glider.glider import Glider
 from openglider.glider.parametric import ParametricGlider
 from openglider.glider.parametric.import_freecad import import_freecad
+from openglider.glider.parametric.export_ods import export_ods_project
 from openglider.utils.dataclass import dataclass, field
 import openglider.utils.table
 
@@ -124,7 +126,7 @@ class GliderProject(object):
 
     def save(self, filename):
         if filename.endswith(".ods"):
-            self.glider.export_ods(filename)
+            export_ods_project(self, filename)
         elif filename.endswith(".json"):
             openglider.save(self, filename)
         else:

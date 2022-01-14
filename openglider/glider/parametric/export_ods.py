@@ -1,4 +1,5 @@
 import copy
+from datetime import datetime
 import math
 from typing import TYPE_CHECKING
 
@@ -11,11 +12,31 @@ from openglider.utils.table import Table
 
 if TYPE_CHECKING:
     from openglider.glider.parametric import ParametricGlider
+    from openglider.glider.project import GliderProject
 
 file_version = "V3"
 
-def export_ods_2d(glider: "ParametricGlider", filename):
-    doc = ezodf.newdoc(doctype="ods", filename=filename)
+def export_ods_project(glider: "GliderProject", filename):
+    doc = get_glider_tables(glider.glider)
+
+    changelog_table = Table(name="Changelog")
+    changelog_table["A1"] = "Date/Time"
+    changelog_table["B1"] = "Modification"
+    changelog_table["C1"] = "Description"
+
+    for i, change in glider.changelog:
+        dt, name, description = change
+        
+        changelog_table[i+1, 0] = dt.isoformat()
+        changelog_table[i+1, 1] = name
+        changelog_table[i+1, 2] = description
+
+    doc.sheets.append(changelog_table.get_ods_sheet())
+    
+    doc.saveas(filename)
+
+def get_glider_tables(glider: "ParametricGlider"):
+    doc = ezodf.newdoc(doctype="ods")
     assert isinstance(glider, openglider.glider.parametric.glider.ParametricGlider)
 
     doc.sheets.append(get_geom_sheet(glider))
@@ -42,10 +63,12 @@ def export_ods_2d(glider: "ParametricGlider", filename):
 
     doc.sheets.append(glider.curves.table.get_ods_sheet("Curves"))
 
+    return doc
+
+
+def export_ods_2d(glider: "ParametricGlider", filename):
     # airfoil sheet
-
-
-
+    doc = get_glider_tables(glider)
     doc.saveas(filename)
 
 
