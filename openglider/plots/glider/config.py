@@ -67,6 +67,7 @@ class OtherPatternConfig(PatternConfig):
     cut_trailing_edge = cuts.SimpleCut
     cut_design = cuts.SimpleCut
     cut_diagonal_fold = cuts.SimpleCut
+    #cut_diagonal_fold: object = cuts.FoldedCut
     layout_seperate_panels = True
     #draw_rib = None
 

@@ -15,12 +15,10 @@ from openglider.materials import Material, cloth
 from openglider.utils.cache import cached_function, hash_list
 from openglider.utils.config import Config
 from openglider.vector.mapping import Mapping
+from openglider.utils.dataclass import dataclass, field
 
 if TYPE_CHECKING:
     from openglider.glider.cell.cell import Cell
-    from dataclasses import dataclass
-else:
-    from openglider.utils.dataclass import dataclass
 
 
 logger = logging.getLogger(__name__)
@@ -38,7 +36,7 @@ class PanelCut:
     x_left: float
     x_right: float
     cut_type: CUT_TYPES
-    cut_3d_amount: Tuple[float, float] = (0,0)
+    cut_3d_amount: List[float]=field(default_factory=lambda: [0, 0])
     x_center: Optional[float] = None
     seam_allowance: Optional[float] = None
 
@@ -258,7 +256,7 @@ class Panel(object):
             return None
 
     def is_lower(self) -> bool:
-        return self.mean_x() > 0
+        return self.cut_front.x_left + self.cut_front.x_right > 0
 
     def get_3d(self, cell, numribs=0, midribs=None, with_numpy=False):
         """

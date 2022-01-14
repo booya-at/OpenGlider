@@ -1,6 +1,11 @@
 import math
-
+from typing import List, Tuple
+import logging
 import euklid
+
+
+logger = logging.getLogger(__name__)
+
 
 class CutResult():
     def __init__(self, curve, index_left, index_right, inner_indices):
@@ -10,6 +15,7 @@ class CutResult():
         self.inner_indices = inner_indices
 
 
+InnerLists = List[Tuple[euklid.vector.PolyLine2D, float]]
 ###############CUTS####################
 # Check doc/drawings 7-9 for sketches
 # DESIGN-CUT Style
@@ -25,7 +31,7 @@ class DesignCut(object):
     def __from_json__(cls, **kwargs):
         return cls
 
-    def get_p1_p2(self, inner_lists, amount_3d):
+    def get_p1_p2(self, inner_lists: InnerLists, amount_3d):
         l1, ik1 = inner_lists[0]
         l2, ik2 = inner_lists[-1]
 
@@ -38,7 +44,7 @@ class DesignCut(object):
         return l1.get(ik1), l2.get(ik2)
 
 
-    def _get_indices(self, inner_lists, amount_3d):
+    def _get_indices(self, inner_lists: InnerLists, amount_3d) -> List[float]:
         indices = []
         for i, lst in enumerate(inner_lists):
             line, ik = lst
@@ -49,7 +55,7 @@ class DesignCut(object):
 
         return indices
 
-    def apply(self, inner_lists, outer_left: euklid.vector.PolyLine2D, outer_right: euklid.vector.PolyLine2D, amount_3d=None) -> CutResult:
+    def apply(self, inner_lists: InnerLists, outer_left: euklid.vector.PolyLine2D, outer_right: euklid.vector.PolyLine2D, amount_3d=None) -> CutResult:
         #p1 = inner_lists[0][0][inner_lists[0][1]]  # [[list1,pos1],[list2,pos2],...]
         #p2 = inner_lists[-1][0][inner_lists[-1][1]]
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
@@ -84,7 +90,7 @@ class DesignCut(object):
 
 
 class SimpleCut(DesignCut):
-    def apply(self, inner_lists, outer_left: euklid.vector.PolyLine2D, outer_right: euklid.vector.PolyLine2D, amount_3d=None) -> CutResult:
+    def apply(self, inner_lists: InnerLists, outer_left: euklid.vector.PolyLine2D, outer_right: euklid.vector.PolyLine2D, amount_3d=None) -> CutResult:
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
         indices = self._get_indices(inner_lists, amount_3d)
 
@@ -95,12 +101,14 @@ class SimpleCut(DesignCut):
             leftcut_index = outer_left.cut(p1, p2, inner_lists[0][1])
             index_left = leftcut_index[0]
         except RuntimeError:
+            logger.error(f"no cut found")
             index_left = inner_lists[0][1]
 
         try:
             rightcut_index = outer_right.cut(p1, p2, inner_lists[-1][1])
             index_right = rightcut_index[0]
         except RuntimeError:
+            logger.error(f"no cut found")
             index_right = inner_lists[-1][1]
 
 
@@ -120,9 +128,8 @@ class SimpleCut(DesignCut):
 
 
 class Cut3D(DesignCut):
-    def apply(self, inner_lists, outer_left: euklid.vector.PolyLine2D, outer_right: euklid.vector.PolyLine2D, amount_3d=None) -> CutResult:
+    def apply(self, inner_lists: InnerLists, outer_left: euklid.vector.PolyLine2D, outer_right: euklid.vector.PolyLine2D, amount_3d=None) -> CutResult:
         """
-
         :param inner_lists:
         :param outer_left:
         :param outer_right:
@@ -174,7 +181,7 @@ class Cut3D(DesignCut):
         return CutResult(curve, leftcut_index, rightcut_index, inner_ik)
 
 class Cut3D_2(DesignCut):
-    def apply(self, inner_lists, outer_left, outer_right, amount_3d=None):
+    def apply(self, inner_lists: InnerLists, outer_left, outer_right, amount_3d=None):
         """
 
         :param inner_lists:
@@ -183,7 +190,6 @@ class Cut3D_2(DesignCut):
         :param amount_3d: list of 3d-shaping amounts
         :return:
         """
-
         inner_new = []
         point_list = []
 
@@ -224,7 +230,7 @@ class FoldedCut(DesignCut):
         self.num_folds = num_folds
         super(FoldedCut, self).__init__(amount)
 
-    def apply(self, inner_lists, outer_left, outer_right, amount_3d=None):
+    def apply(self, inner_lists: InnerLists, outer_left: euklid.vector.PolyLine2D, outer_right: euklid.vector.PolyLine2D, amount_3d=None):
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
         indices = self._get_indices(inner_lists, amount_3d)
 
@@ -233,10 +239,10 @@ class FoldedCut(DesignCut):
         left_start_index = outer_left.cut(p1, p2, inner_lists[0][1])[0]
         right_start_index = outer_right.cut(p1, p2, inner_lists[-1][1])[0]
 
-        pp1 = p1 - normvector * self.amount
-        pp2 = p2 - normvector * self.amount
-        left_end_index = outer_left.cut(pp1, pp2, inner_lists[0][1])[0]
-        right_end_index = outer_right.cut(pp1, pp2, inner_lists[-1][1])[0]
+        p1_with_offset = p1 - normvector * self.amount
+        p2_with_offset = p2 - normvector * self.amount
+        left_end_index = outer_left.cut(p1_with_offset, p2_with_offset, inner_lists[0][1])[0]
+        right_end_index = outer_right.cut(p1_with_offset, p2_with_offset, inner_lists[-1][1])[0]
 
         left_start = outer_left.get(left_start_index)
         left_end = outer_left.get(left_end_index)
@@ -245,8 +251,8 @@ class FoldedCut(DesignCut):
 
         left_piece = outer_left.get(left_end_index, left_start_index)
         right_piece = outer_right.get(right_end_index, right_start_index)
-        left_piece_mirrored = left_piece.mirror(p1, p2)
-        right_piece_mirrored = right_piece.mirror(p1, p2)
+        left_piece_mirrored = left_piece.mirror(p1, p2).reverse()
+        right_piece_mirrored = right_piece.mirror(p1, p2).reverse()
 
         # mirror to (p1-p2) -> p'=p-2*(p.normvector)
         last_left, last_right = left_start, right_start

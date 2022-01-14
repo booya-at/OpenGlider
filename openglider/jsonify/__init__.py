@@ -2,6 +2,7 @@ import json
 import re
 import time
 import datetime
+from tkinter.messagebox import NO
 
 import openglider.config
 from openglider.jsonify.encoder import Encoder
@@ -50,6 +51,8 @@ def object_hook(dct):
             # use the __from_json__ function if present. __init__ otherwise
             deserializer = getattr(obj, '__from_json__', None)
             if deserializer is None:
+                if obj is None:
+                    return None
                 deserializer = obj
             return deserializer(**dct['data'])
         except TypeError as e:

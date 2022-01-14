@@ -27,7 +27,7 @@ from openglider.utils.cache import (
 from openglider.utils.dataclass import dataclass, field
 
 
-logging.getLogger(__file__)
+logger = logging.getLogger(__file__)
 
 @dataclass
 class Cell:

@@ -30,10 +30,13 @@ class Glider(object):
     def __json__(self):
         new = self.copy()
         ribs = new.ribs[:]
+        cells = []
         # de-reference Ribs not to store too much data
         for cell in new.cells:
-            cell.rib1 = ribs.index(cell.rib1)
-            cell.rib2 = ribs.index(cell.rib2)
+            cell_dct = cell.__json__()
+            cell_dct["rib1"] = ribs.index(cell.rib1)
+            cell_dct["rib2"] = ribs.index(cell.rib2)
+            cells.append(cell_dct)
 
         for att_point in new.lineset.attachment_points:
             if hasattr(att_point, "rib"):
@@ -41,27 +44,30 @@ class Glider(object):
             if hasattr(att_point, "cell"):
                 att_point.cell = new.cells.index(att_point.cell)
 
-        return {"cells": new.cells,
+        return {"cells": cells,
                 "ribs": ribs,
                 "lineset": new.lineset
                 }
 
     @classmethod
-    def __from_json__(cls, cells, ribs, lineset):
+    def __from_json__(cls, cells: List[Dict[str, any]], ribs, lineset):
+        cells_new = []
         for cell in cells:
-            if isinstance(cell.rib1, int):
-                cell.rib1 = ribs[cell.rib1]
-            if isinstance(cell.rib2, int):
-                cell.rib2 = ribs[cell.rib2]
+            cell.update({
+                "rib1": ribs[cell["rib1"]],
+                "rib2": ribs[cell["rib2"]]
+            })
+
+            cells_new.append(Cell(**cell))
 
         for att in lineset.attachment_points:
             if hasattr(att, "rib") and isinstance(att.rib, int):
                 att.rib = ribs[att.rib]
             if hasattr(att, "cell") and isinstance(att.cell, int):
-                att.cell = cells[att.cell]
+                att.cell = cells_new[att.cell]
             
             att.get_position()
-        return cls(cells, lineset=lineset)
+        return cls(cells_new, lineset=lineset)
 
     def __repr__(self):
         return """
