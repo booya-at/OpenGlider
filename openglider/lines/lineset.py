@@ -60,13 +60,14 @@ class LineSet(object):
 
     def scale(self, factor):
         for p in self.lower_attachment_points:
-            p.vec = np.array(p.vec) * factor
+            p.vec = np.array([p.vec[0] * factor, p.vec[1], p.vec[2] * factor])
         for line in self.lines:
-            if line.target_length:
-                line.target_length *= factor
-            if line.init_length:
-                line.init_length *= factor
-            line.force = None
+            if "riser" not in line.name:
+                if line.target_length:
+                    line.target_length *= factor
+                if line.init_length:
+                    line.init_length *= factor
+                line.force = None
         for node in self.nodes:
             if node.type == 2: # upper att-node
                 node.force *= factor ** 2
