@@ -35,7 +35,7 @@ class GliderProject(object):
             else:
                 self.name = "unnamed_project"
 
-        if self.glider_3d is None:
+        if self.glider_3d is None or len(self.glider_3d.ribs) == 0:
             logger.info(f"get glider 3d:  {self.name}")
             self.glider_3d = self.glider.get_glider_3d()
 
