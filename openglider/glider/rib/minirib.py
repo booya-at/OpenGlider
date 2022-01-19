@@ -5,15 +5,14 @@ from openglider.airfoil import Profile3D
 from openglider.utils.dataclass import BaseModel, dataclass, field
 
 
-
-class MiniRib(BaseModel):
+@dataclass
+class MiniRib:
     yvalue: float
     front_cut: float
     back_cut: float=1.
     name: str="unnamed_minirib"
 
-    function: euklid.vector.Interpolation = None
-    #field(default_factory=lambda: euklid.vector.Interpolation([]))
+    function: euklid.vector.Interpolation = field(default_factory=lambda: euklid.vector.Interpolation([]))
 
     class Config:
         arbitrary_types_allowed = True
@@ -21,7 +20,7 @@ class MiniRib(BaseModel):
     def __post_init__(self):
         p1_x = 2/3
 
-        if len(self.function.nodes) == 0:
+        if self.function is None or len(self.function.nodes) == 0:
             if self.front_cut > 0:
                 points = [[self.front_cut, 1], [self.front_cut + (self.back_cut - self.front_cut) * (1-p1_x), 0]]  #
             else:

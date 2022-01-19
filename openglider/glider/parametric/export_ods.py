@@ -24,7 +24,7 @@ def export_ods_project(glider: "GliderProject", filename):
     changelog_table["B1"] = "Modification"
     changelog_table["C1"] = "Description"
 
-    for i, change in glider.changelog:
+    for i, change in enumerate(glider.changelog):
         dt, name, description = change
         
         changelog_table[i+1, 0] = dt.isoformat()

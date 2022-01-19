@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Dict
 import ezodf
 
@@ -16,7 +17,7 @@ def get_glider_data(project: GliderProject, consumption: Dict[str, MaterialUsage
     #specsheet = get_specs(glider)
     glider.lineset.recalc(iterations=30)
     linesheet = glider.lineset.get_table()
-    linesheet2 = Table()
+    linesheet2 = Table(name="lines_table")
 
     linesheet2[0, 0] = "Name"
     linesheet2[0, 1] = "Linetype"
@@ -44,7 +45,10 @@ def get_glider_data(project: GliderProject, consumption: Dict[str, MaterialUsage
     straps = get_straps(glider)
     material_sheets = get_material_sheets(glider)
 
-    consumption_table = Table()
+    consumption_table = Table(name="Material Consumption")
+    consumption_table["B1"] = "Consumption"
+    consumption_table["C1"] = "Weight"
+
     if consumption:
         for name, usage in consumption.items():
             header = Table()
@@ -67,14 +71,31 @@ def get_glider_data(project: GliderProject, consumption: Dict[str, MaterialUsage
     consumption_table.append_bottom(line_consumption_table, space=1)
 
     out_ods = ezodf.newdoc(doctype="ods")
-    out_ods.sheets.append(specsheet.get_ods_sheet(name="data"))
-    out_ods.sheets.append(linesheet.get_ods_sheet(name="lines"))
-    out_ods.sheets.append(linesheet2.get_ods_sheet(name="lines_table"))
-    out_ods.sheets.append(rigidfoils.get_ods_sheet(name="rigidfoils"))
-    out_ods.sheets.append(straps)
-    out_ods.sheets.append(consumption_table.get_ods_sheet(name="material consumption"))
+    def append_sheet(table: Table) -> None:
+        now = datetime.now()
+        header = Table(name=table.name)
+        header["A1"] = table.name or "-"
+        header["B1"] = "Plotfiles date"
+        header["C1"] = now.strftime("%d.%m.%Y")
+        header["D1"] = now.strftime("%H:%M")
+        header["A2"] = project.name or "-"
+        header["B2"] = "Modification date"
+        header["C2"] = project.modified.strftime("%d.%m.%Y")
+        header["D2"] = project.modified.strftime("%H:%M")
+#
+        header.append_bottom(table, space=1)
+        out_ods.sheets.append(header.get_ods_sheet())
 
-    for sheet in material_sheets:
-        out_ods.sheets.append(sheet)
+    sheets = (
+        specsheet,
+        linesheet,
+        linesheet2,
+        rigidfoils,
+        straps,
+        consumption_table
+    ) + material_sheets
+    
+    for sheet in sheets:
+        append_sheet(sheet)
 
     return out_ods

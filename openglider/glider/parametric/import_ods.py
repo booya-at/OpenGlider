@@ -1,11 +1,10 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 import logging
 import math
 import numbers
 import re
 
 import euklid
-import ezodf
 import pyfoil
 from openglider.glider.ballooning import BallooningBezier, BallooningBezierNeu
 from openglider.glider.parametric.arc import ArcCurve
@@ -32,12 +31,14 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False) -> "ParametricGlider":
+def import_ods_2d(Glider2D, filename) -> "ParametricGlider":
     logger.info(f"Import file: {filename}")
-    ods = ezodf.opendoc(filename)
-    sheets = ods.sheets
     tables = Table.load(filename)
 
+    return import_ods_glider(tables)
+    
+def import_ods_glider(tables: List[Table]) -> "ParametricGlider":
+    from openglider.glider.parametric import ParametricGlider
     cell_sheet = tables[1]
     rib_sheet = tables[2]
 
@@ -51,19 +52,19 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False) -> 
     # ------------
 
     # profiles = [BezierProfile2D(profile) for profile in transpose_columns(sheets[3])]
-    profiles = [pyfoil.Airfoil(profile, name).normalized() for name, profile in transpose_columns(sheets[3])]
+    profiles = [pyfoil.Airfoil(profile, name).normalized() for name, profile in transpose_columns(tables[3])]
 
     if file_version > 2:
         has_center_cell = not tables[0]["C2"] == 0
         cell_no = (tables[0].num_rows - 2) * 2 + has_center_cell
         geometry = get_geometry_parametric(tables[5], cell_no)
     else:
-        geometry = get_geometry_explicit(sheets[0])
+        geometry = get_geometry_explicit(tables[0])
         has_center_cell = geometry["shape"].has_center_cell
 
     balloonings = []
-    for i, (name, baloon) in enumerate(transpose_columns(sheets[4])):
-        ballooning_type = str(sheets[4][0,2*i+1].value).upper()
+    for i, (name, baloon) in enumerate(transpose_columns(tables[4])):
+        ballooning_type = (tables[4][0, 2*i+1] or "").upper()
         if baloon:
             if ballooning_type == "V1":
                 i = 0
@@ -146,24 +147,23 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False) -> 
     ballooning_factors = BallooningTable(cell_sheet)
     skin_ribs = SingleSkinTable(rib_sheet)
 
-    tables = GliderTables()
-    tables.cuts = cuts
-    tables.ballooning_factors = ballooning_factors
-    tables.holes = rib_holes
-    tables.diagonals = diagonals
-    tables.rigidfoils_rib = rigidfoils
-    tables.rigidfoils_cell = cell_rigidfoils
-    tables.straps = straps
-    tables.material_cells = CellClothTable(cell_sheet)
-    tables.material_ribs = RibClothTable(rib_sheet)
-    tables.miniribs = miniribs
-    tables.rib_modifiers = skin_ribs
-    tables.profiles = ProfileTable(rib_sheet)
-    tables.attachment_points_rib = AttachmentPointTable(rib_sheet)
-    tables.attachment_points_cell = CellAttachmentPointTable(cell_sheet)
+    glider_tables = GliderTables()
+    glider_tables.cuts = cuts
+    glider_tables.ballooning_factors = ballooning_factors
+    glider_tables.holes = rib_holes
+    glider_tables.diagonals = diagonals
+    glider_tables.rigidfoils_rib = rigidfoils
+    glider_tables.rigidfoils_cell = cell_rigidfoils
+    glider_tables.straps = straps
+    glider_tables.material_cells = CellClothTable(cell_sheet)
+    glider_tables.material_ribs = RibClothTable(rib_sheet)
+    glider_tables.miniribs = miniribs
+    glider_tables.rib_modifiers = skin_ribs
+    glider_tables.profiles = ProfileTable(rib_sheet)
+    glider_tables.attachment_points_rib = AttachmentPointTable(rib_sheet)
+    glider_tables.attachment_points_cell = CellAttachmentPointTable(cell_sheet)
     
-
-    glider_2d = Glider2D(tables=tables,
+    glider_2d = ParametricGlider(tables=glider_tables,
                          curves=curves,
                          profiles=profiles,
                          balloonings=balloonings,
@@ -179,7 +179,7 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False) -> 
     return glider_2d
 
 
-def get_geometry_explicit(sheet):
+def get_geometry_explicit(sheet: Table):
     # All Lists
     front = []
     back = []
@@ -191,8 +191,8 @@ def get_geometry_explicit(sheet):
     zrot = []
 
     y = z = span_last = alpha = 0.
-    for i in range(1, sheet.nrows()):
-        line = [sheet.get_cell([i, j]).value for j in range(sheet.ncols())]
+    for i in range(1, sheet.num_rows):
+        line = [sheet[i, j] for j in range(sheet.num_columns)]
         if not line[0]:
             break  # skip empty line
         if not all(isinstance(c, numbers.Number) for c in line[:10]):
@@ -219,13 +219,14 @@ def get_geometry_explicit(sheet):
 
         span_last = span
 
-    def symmetric_fit(data, bspline=True):
+    def symmetric_fit(data: List[List[float]], bspline=True):
+        line = euklid.vector.PolyLine2D(data)
         #not_from_center = int(data[0][0] == 0)
         #mirrored = [[-p[0], p[1]] for p in data[not_from_center:]][::-1] + data
         if bspline:
-            return euklid.spline.SymmetricBSplineCurve.fit(data, 3)
+            return euklid.spline.SymmetricBSplineCurve.fit(line, 3)
         else:
-            return euklid.spline.SymmetricBezierCurve.fit(data, 3)
+            return euklid.spline.SymmetricBezierCurve.fit(line, 3)
 
     has_center_cell = not front[0][0] == 0
     cell_no = (len(front) - 1) * 2 + has_center_cell
@@ -235,11 +236,11 @@ def get_geometry_explicit(sheet):
     const_arr = [0.] + linspace(start, 1, len(front) - (not has_center_cell))
     rib_pos = [0.] + [p[0] for p in front[not has_center_cell:]]
     rib_pos_int = euklid.vector.Interpolation(list(zip(rib_pos, const_arr)))
-    rib_distribution = [[i, rib_pos_int.get_value(i)] for i in linspace(0, rib_pos[-1], 30)]
+    rib_distribution = euklid.vector.PolyLine2D([[i, rib_pos_int.get_value(i)] for i in linspace(0, rib_pos[-1], 30)])
 
-    rib_distribution: euklid.spline.BSplineCurve = euklid.spline.BSplineCurve.fit(rib_distribution, 3)
+    rib_distribution_curve: euklid.spline.BSplineCurve = euklid.spline.BSplineCurve.fit(rib_distribution, 3)
 
-    parametric_shape = ParametricShape(symmetric_fit(front), symmetric_fit(back), rib_distribution, cell_no)
+    parametric_shape = ParametricShape(symmetric_fit(front), symmetric_fit(back), rib_distribution_curve, cell_no)
     arc_curve = ArcCurve(symmetric_fit(arc))
 
     return {
@@ -322,8 +323,8 @@ def get_lower_aufhaengepunkte(data):
             for name, position in aufhaengepunkte.items()}
 
 
-def transpose_columns(sheet, columnswidth=2):
-    num_columns = sheet.ncols()
+def transpose_columns(sheet: Table, columnswidth=2):
+    num_columns = sheet.num_columns
     num_elems = num_columns // columnswidth
     # if num % columnswidth > 0:
     #    raise ValueError("irregular columnswidth")
@@ -332,7 +333,7 @@ def transpose_columns(sheet, columnswidth=2):
         first_column = col * columnswidth
         last_column = (col + 1) * columnswidth
         columns = range(first_column, last_column)
-        name = sheet[0, first_column].value
+        name = sheet[0, first_column]
         if not isinstance(name, numbers.Number):  # py2/3: str!=unicode
             start = 1
         else:
@@ -341,8 +342,8 @@ def transpose_columns(sheet, columnswidth=2):
 
         element = []
 
-        for i in range(start, sheet.nrows()):
-            row = [sheet[i, j].value for j in columns]
+        for i in range(start, sheet.num_rows):
+            row = [sheet[i, j] for j in columns]
             if all([j is None for j in row]):  # Break at empty line
                 break
             if not all([isinstance(j, numbers.Number) for j in row]):

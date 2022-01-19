@@ -141,7 +141,7 @@ class PatternsNew(object):
         self.logger.info("create spreadsheets")
         self.project.glider_3d.lineset.rename_lines()
         excel = PatternsNew.spreadsheet(self.project, consumption=self.weight)
-        excel.saveas(os.path.join(outdir, "data.ods"))
+        excel.saveas(os.path.join(outdir, f"{self.project.name}.ods"))
 
         openglider.save(self.project, os.path.join(outdir, "project.json"))
 

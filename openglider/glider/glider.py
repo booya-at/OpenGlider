@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Any
 import copy
 import math
 from typing import List
@@ -50,7 +50,7 @@ class Glider(object):
                 }
 
     @classmethod
-    def __from_json__(cls, cells: List[Dict[str, any]], ribs, lineset):
+    def __from_json__(cls, cells: List[Dict[str, Any]], ribs, lineset):
         cells_new = []
         for cell in cells:
             cell.update({

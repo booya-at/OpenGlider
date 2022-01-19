@@ -42,11 +42,11 @@ class Table:
             x = int((x-1)/base)
         return out[::-1]
 
-    def __init__(self, rows=0, columns=0):
+    def __init__(self, rows=0, columns=0, name=None):
         self.dct = {}
         self.num_rows = rows
         self.num_columns = columns
-        self.name=None
+        self.name=name
     
     def __json__(self):
         return {

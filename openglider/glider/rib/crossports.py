@@ -263,9 +263,6 @@ class AttachmentPointHole(RibHoleBase):
         p3 = envelope.align([self.end, -1])
 
         upper = euklid.vector.Interpolation([p1, p2, p3])
-
-        lower_start = envelope.curve.cut([self.start, -1], [self.start, 1])[1]
-        lower_end = envelope.curve.cut([self.end, -1], [self.end, 1])[1]
         lower = euklid.vector.Interpolation([p1, p3])
 
         total_border = (2*self.side_border + (self.num_holes-1)*self.border) / rib.chord

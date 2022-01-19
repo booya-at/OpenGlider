@@ -22,7 +22,7 @@ class Color:
         
         factor = 1
         if len(hex) == 3:
-            rgb = hex
+            rgb = list(hex)
             factor = 17
         elif len(hex) == 6:
             rgb = [

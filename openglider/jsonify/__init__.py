@@ -4,6 +4,7 @@ import time
 import datetime
 from tkinter.messagebox import NO
 
+import pydantic
 import openglider.config
 from openglider.jsonify.encoder import Encoder
 from openglider.jsonify.migration import Migration
@@ -54,7 +55,11 @@ def object_hook(dct):
                 if obj is None:
                     return None
                 deserializer = obj
-            return deserializer(**dct['data'])
+            try:
+                return deserializer(**dct['data'])
+            except pydantic.error_wrappers.ValidationError as e:
+                raise ValueError(f"invalid data: {dct['data']}") from e
+
         except TypeError as e:
             print(f"in element: {obj} {dct['_module']}")
 

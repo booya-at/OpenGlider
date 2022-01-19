@@ -9,6 +9,7 @@ import euklid
 
 from openglider.glider.glider import Glider
 from openglider.glider.parametric import ParametricGlider
+from openglider.glider.parametric.import_ods import import_ods_glider
 from openglider.glider.parametric.import_freecad import import_freecad
 from openglider.glider.parametric.export_ods import export_ods_project
 from openglider.utils.dataclass import dataclass, field
@@ -20,15 +21,15 @@ logger = logging.getLogger(__name__)
 @dataclass
 class GliderProject(object):
     glider: ParametricGlider
-    glider_3d: Glider=None
+    glider_3d: Glider=field(default_factory=lambda: Glider())
     filename: str=""
-    name: str=None
+    name: str=""
     changelog: List[Tuple[datetime.datetime, str, str]]=field(default_factory=lambda: [])
 
     _regex_revision_no = re.compile(r"(.*)_rev([0-9]*)$")
     
     def __post_init__(self):
-        if self.name is None:
+        if not self.name:
             if self.filename is not None:
                 self.name = os.path.split(self.filename)[1]
             else:
@@ -80,7 +81,7 @@ class GliderProject(object):
         return self.name
 
     def get_data_table(self):
-        table = openglider.utils.table.Table()
+        table = openglider.utils.table.Table(name="glider specs")
         table["A1"] = "Name"
         table["B1"] = f"{self.name}"
         table["A2"] = "Modified"
@@ -144,10 +145,25 @@ class GliderProject(object):
 
     @classmethod
     def import_ods(cls, path):
-        glider_2d = ParametricGlider.import_ods(path)
+        tables = openglider.utils.table.Table.load(path)
+        changelog = []
+        
+        if len(tables) > 9:
+            changelog_table = tables[9]
+
+            for row in range(1, changelog_table.num_rows):
+                if changelog_table[row, 0]:
+                    dt = datetime.datetime.fromisoformat(changelog_table[row, 0])
+
+                    changelog.append((
+                        dt, changelog_table[row, 1], changelog_table[row, 2]
+                    ))
+
+        glider_2d = import_ods_glider(tables)
+
         filename = os.path.split(path)[-1]
         name, ext = os.path.splitext(filename)
-        return cls(glider_2d, name=name)
+        return cls(glider_2d, name=name, changelog=changelog)
     
     @classmethod
     def import_freecad(cls, path):

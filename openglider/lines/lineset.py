@@ -518,7 +518,7 @@ class LineSet(object):
 
         return [(line, self.create_tree(line.upper_node)) for line in self.sort_lines(lines)]
 
-    def _get_lines_table(self, callback, start_node=None, insert_node_names=True):
+    def _get_lines_table(self, callback, start_node=None, insert_node_names=True) -> Table:
         line_tree = self.create_tree(start_node=start_node)
         table = Table()
 
@@ -654,7 +654,7 @@ class LineSet(object):
             self.trim_corrections.get(line.name, 0)
         )
 
-    def get_table(self):
+    def get_table(self) -> Table:
         length_table = self._get_lines_table(lambda line: [round(self.get_line_length(line).get_length()*1000)])
         #length_table = self._get_lines_table(lambda line: [round(line.get_stretched_length()*1000)])
         

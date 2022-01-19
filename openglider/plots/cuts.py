@@ -196,7 +196,7 @@ class Cut3D_2(DesignCut):
         for offset, lst in zip(amount_3d, inner_lists):
             curve, ik = lst
             ik_new = curve.walk(ik, offset)
-            inner_new.append([curve, ik_new])
+            inner_new.append((curve, ik_new))
 
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
         normvector = euklid.vector.Rotation2D(-math.pi/2).apply(p1-p2).normalized()

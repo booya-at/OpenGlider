@@ -84,7 +84,7 @@ class Sharknose:
         
         return openglider.airfoil.Profile2D(data)
 
-    def update_rigidfoils(self, rib: "Rib") -> typing.List[RigidFoil]:
+    def update_rigidfoils(self, rib: "Rib") -> typing.List[RigidFoilCurved]:
         result = []
 
         nearest_position = round(rib.profile_2d.get_ik(self.position))

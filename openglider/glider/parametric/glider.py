@@ -1,7 +1,7 @@
 import copy
 import logging
 import math
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 import euklid
 import openglider.materials
@@ -50,7 +50,7 @@ class ParametricGlider:
     zrot: euklid.spline.SymmetricBSplineCurve = field(default_factory=lambda: euklid.spline.SymmetricBSplineCurve([[0,0],[1,0]]))
 
     num_interpolate: int=30
-    num_profile: int=None
+    num_profile: Optional[int]=None
 
     def test(self) -> int:
         return len(self.ballooning_merge_curve.controlpoints.nodes)
