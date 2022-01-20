@@ -5,7 +5,7 @@ import euklid
 import openglider.glider
 from openglider.airfoil import get_x_value
 from openglider.plots import marks
-from openglider.plots.glider.config import PatternConfig
+from openglider.plots.config import PatternConfig
 from openglider.plots.usage_stats import MaterialUsage
 from openglider.vector.drawing import PlotPart
 from openglider.vector.text import Text
@@ -31,7 +31,7 @@ class RibPlot(object):
     class DefaultConfig(PatternConfig):
         marks_diagonal_front = marks.Inside(marks.Arrow(left=True, name="diagonal_front"))
         marks_diagonal_back = marks.Inside(marks.Arrow(left=False, name="diagonal_back"))
-        marks_laser_diagonal = marks.Dot(0.8)
+        marks_laser_diagonal = marks.Dot(0.2, 0.8)
         marks_laser_attachment_point = marks.Dot(0.2, 0.8)
 
         marks_strap = marks.Inside(marks.Line(name="strap"))
@@ -149,20 +149,20 @@ class RibPlot(object):
         if right:
             p1 = drib.right_front
             p2 = drib.right_back
+            center = drib.center_right
         else:
             p1 = drib.left_front
             p2 = drib.left_back
+            center = drib.center_left
 
         if p1[1] == p2[1] == -1:
             self.insert_mark(p1[0], self.config.marks_diagonal_front)
             self.insert_mark(p2[0], self.config.marks_diagonal_back)
-            self.insert_mark(p1[0], self.config.marks_laser_diagonal, laser=True)
-            self.insert_mark(p2[0], self.config.marks_laser_diagonal, laser=True)
+            self.insert_mark(center, self.config.marks_laser_diagonal, laser=True)
         elif p1[1] == p2[1] == 1:
             self.insert_mark(-p1[0], self.config.marks_diagonal_back)
             self.insert_mark(-p2[0], self.config.marks_diagonal_front)
-            self.insert_mark(-p1[0], self.config.marks_laser_diagonal, laser=True)
-            self.insert_mark(-p2[0], self.config.marks_laser_diagonal, laser=True)
+            self.insert_mark(-center, self.config.marks_laser_diagonal, laser=True)
         else:
             p1 = self.get_point(*p1)
             p2 = self.get_point(*p2)

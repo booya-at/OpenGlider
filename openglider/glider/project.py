@@ -5,8 +5,6 @@ import datetime
 import logging
 from typing import List, Tuple
 
-import euklid
-
 from openglider.glider.glider import Glider
 from openglider.glider.parametric import ParametricGlider
 from openglider.glider.parametric.import_ods import import_ods_glider
@@ -135,7 +133,7 @@ class GliderProject(object):
         
         self.filename = filename
 
-    def copy(self):
+    def copy(self) -> "GliderProject":
         new_glider = self.glider.copy()
         new_glider_3d = self.glider_3d.copy()
         new = GliderProject(new_glider, new_glider_3d)
@@ -144,7 +142,7 @@ class GliderProject(object):
         return new
 
     @classmethod
-    def import_ods(cls, path):
+    def import_ods(cls, path) -> "GliderProject":
         tables = openglider.utils.table.Table.load(path)
         changelog = []
         

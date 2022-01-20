@@ -256,7 +256,7 @@ class Panel(object):
             return None
 
     def is_lower(self) -> bool:
-        return self.cut_front.x_left + self.cut_front.x_right > 0
+        return self.cut_front.x_left + self.cut_front.x_right >= -1e-3
 
     def get_3d(self, cell, numribs=0, midribs=None, with_numpy=False):
         """

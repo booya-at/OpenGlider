@@ -26,13 +26,18 @@ class DiagonalTable(CellTable):
     def get_element(self, row, keyword, data, curves):
         left = data[0]
         right = data[1]
+        name = None
 
         if isinstance(left, str):
+            name = left
             left = curves[left].get(row)
 
         if isinstance(right, str):
+            name = right
             right = curves[right].get(row+1)
 
+        if name is not None:
+            name = f"D{row}{name}"
 
         if keyword == "QR":
             height1 = data[4]
@@ -43,7 +48,7 @@ class DiagonalTable(CellTable):
             right_front = (right - data[3] / 2, height2)
             right_back = (right + data[3] / 2, height2)
 
-            return DiagonalRib(left_front, left_back, right_front, right_back)
+            return DiagonalRib(left_front, left_back, right_front, right_back, name=name)            
 
         raise ValueError()
 
@@ -57,13 +62,19 @@ class StrapTable(CellTable):
     def get_element(self, row, keyword, data, curves):
         left = data[0]
         right = data[1]
+        name = None
 
         if isinstance(left, str):
+            name = left
             left = curves[left].get(row)
             data[0] = left
 
         if isinstance(right, str):
+            name = right
             right = curves[right].get(row+1)
             data[1] = right
 
-        return super().get_element(row, keyword, data)
+        if name is not None:
+            name = f"T{row}-{name}"
+
+        return super().get_element(row, keyword, data, name=name)

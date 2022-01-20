@@ -5,7 +5,7 @@ from typing import Dict
 from openglider.vector.drawing import Layout
 from openglider.plots.glider.cell import CellPlotMaker
 from openglider.plots.glider.ribs import RibPlot, SingleSkinRibPlot
-from openglider.plots.glider.config import PatternConfig, OtherPatternConfig
+from openglider.plots.config import PatternConfig, OtherPatternConfig
 from openglider.plots.usage_stats import MaterialUsage
 
 logger = logging.getLogger(__name__)

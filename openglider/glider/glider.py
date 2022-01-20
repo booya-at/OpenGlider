@@ -2,7 +2,7 @@ from typing import List, Dict, Any
 import copy
 import math
 from typing import List
-
+import re
 import numpy as np
 import euklid
 
@@ -18,7 +18,7 @@ from openglider.lines.lineset import LineSet
 
 class Glider(object):
     cell_naming_scheme = "c{cell_no}"
-    rib_naming_scheme = "r{rib_no}"
+    rib_naming_scheme = "p{rib_no}"
 
     cells: List[Cell]
     lineset: LineSet
@@ -104,7 +104,7 @@ class Glider(object):
 
         for cell_no, cell in enumerate(self.cells):
             cell.name = self.cell_naming_scheme.format(cell=cell, cell_no=cell_no+1)
-            cell.rename_parts()
+            cell.rename_parts(cell_no=cell_no)
 
     def get_panel_groups(self) -> Dict[str, List["openglider.glider.cell.panel.Panel"]]:
         panels: Dict[str, List["openglider.glider.cell.panel.Panel"]] = {}
@@ -424,6 +424,28 @@ class Glider(object):
             return euklid.vector.PolyLine3D([rib.pos for rib in self.ribs])  # This is much faster
         else:
             return euklid.vector.PolyLine3D([rib.align([x, 0, 0]) for rib in self.ribs])
+
+
+    def get_attachment_point_layers(self) -> Dict[str, euklid.vector.Interpolation]:
+        regex = re.compile(r"([a-zA-Z]+)([0-9]+)")
+        attachment_point_per_group = {}
+
+        for point in self.lineset.attachment_points:
+            if match := regex.match(point.name):
+                if hasattr(point, "rib_pos") and hasattr(point, "rib"):
+                    layer = match.group(1)
+                    attachment_point_per_group.setdefault(layer, [])
+                    rib_no = self.ribs.index(point.rib)
+                    attachment_point_per_group[layer].append((rib_no, point.rib_pos))
+        
+        curves = {}
+        for name, group in attachment_point_per_group.items():
+            group.sort(key=lambda p: p[0])
+            group.insert(0, (0, group[0][1]))
+            curves[name] = euklid.vector.Interpolation(group)
+
+
+        return curves
 
     @property
     def centroid(self):

@@ -1,37 +1,39 @@
 import datetime
-import os
-import subprocess
 import logging
-from typing import List, Dict
+import os
+import string
+import subprocess
+from asyncio.log import logger
+from typing import Dict, List
 
-import pyfoil
 import openglider.glider
-import openglider.plots.spreadsheets
-from openglider.plots.spreadsheets import get_glider_data
 import openglider.plots.cuts
 import openglider.plots.marks
+import openglider.plots.spreadsheets
+from openglider.glider.glider import Glider
+from openglider.glider.project import GliderProject
+from openglider.plots.config import PatternConfig
+from openglider.plots.glider import PlotMaker
+from openglider.plots.spreadsheets import get_glider_data
 from openglider.plots.usage_stats import MaterialUsage
-
 from openglider.vector.drawing import Layout
 from openglider.vector.text import Text
-from openglider.plots.glider import PlotMaker
-from openglider.glider.project import GliderProject
+
 #import openglider.plots.sketches
 
+logger = logging.getLogger(__name__)
 
-class PatternsNew(object):
+class PatternsNew:
     spreadsheet = get_glider_data
     plotmaker = PlotMaker
+    config: PatternConfig
 
     DefaultConf = PlotMaker.DefaultConfig
 
     def __init__(self, project: GliderProject, config=None):
-        self.project = project.copy()
+        self.project = self.prepare_glider_project(project)
         self.config = self.DefaultConf(config)
 
-        if self.config.profile_numpoints is not None:
-            self.project.glider.num_profile = self.config.profile_numpoints
-            self.project.glider_3d = self.project.glider.get_glider_3d()
 
         self.glider_2d = self.project.glider
         self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
@@ -42,6 +44,10 @@ class PatternsNew(object):
             "project": self.project,
             "config": self.config
         }
+    
+    def prepare_glider_project(self, project: GliderProject) -> GliderProject:
+        project = project.copy()
+        return project
 
     def _get_sketches(self) -> List[Layout]:
         import openglider.plots.sketches as sketch
@@ -99,6 +105,12 @@ class PatternsNew(object):
         return all_patterns
 
     def unwrap(self, outdir):
+        if self.config.profile_numpoints is not None:
+            self.project.glider.num_profile = self.config.profile_numpoints
+            self.project.glider_3d = self.project.glider.get_glider_3d()
+            self.project = self.prepare_glider_project(self.project)
+
+
         def fn(filename):
             return os.path.join(outdir, filename)
 
@@ -113,21 +125,7 @@ class PatternsNew(object):
         all_patterns.append_left(designs, distance=self.config.patterns_align_dist_x*2)
 
         all_patterns.scale(1000)
-
-        #all_patterns.export_svg(fn("plots_all.svg"))
         all_patterns.export_dxf(fn("plots_all.dxf"))
-        #all_patterns.export_dxf(fn("plots_all_dxf2007.dxf"), "AC1021")
-        #all_patterns.export_ntv(fn("plots_all.ntv"))
-
-
-
-        # ribs = packer.pack_parts(parts["ribs"].parts, sheet_size=sheet_size)
-        # panels = packer.pack_parts(parts["panels"].parts, sheet_size=sheet_size)
-
-        # for sheet_no, sheet in enumerate(ribs):
-        #     openglider.plots.create_svg(sheet, fn("ribs_{}".format(sheet_no)))
-        # for sheet_no, sheet in enumerate(panels):
-        #     openglider.plots.create_svg(sheet, fn("panels_{}".format(sheet_no)))
 
         sketches = openglider.plots.sketches.get_all_plots(self.project)
 
@@ -147,9 +145,82 @@ class PatternsNew(object):
 
 
 class Patterns(PatternsNew):
-    def __init__(self, glider2d, config=None):
-        project = openglider.glider.GliderProject(glider2d, None)
-        super().__init__(project, config)
+    """
+    Patterns suitable for manual cutting
+    """
+    
+    def prepare_glider_project(self, project: GliderProject) -> GliderProject:
+        logger.warn("jooooo")
+        new_project: GliderProject = project.copy()
+
+        self.set_names_straps(new_project.glider_3d)
+        self.set_names_panels(new_project.glider_3d)
+
+        logger.info(f"{[s.name for s in new_project.glider_3d.cells[0].straps]}")
+
+        return new_project
+
+    @staticmethod
+    def set_names_panels(glider: Glider):
+        for cell_no, cell in enumerate(glider.cells):
+            upper = [panel for panel in cell.panels if not panel.is_lower()]
+            lower = [panel for panel in cell.panels if panel.is_lower()]
+
+            sort_func = lambda panel: abs(panel.mean_x())
+            upper.sort(key=sort_func)
+            lower.sort(key=sort_func)
+
+            def panel_char(index: int):
+                return string.ascii_uppercase[index]
+
+            for panel_no, panel in enumerate(upper):
+                panel.name = f"T-{cell_no+1}{panel_char(panel_no)}R"
+            for panel_no, panel in enumerate(lower):
+                panel.name = f"B-{cell_no+1}{panel_char(panel_no)}L"
+
+    @staticmethod
+    def set_names_straps(glider: Glider):
+        logger.warn(f"rename")
+        curves = glider.get_attachment_point_layers()
+
+        for cell_no, cell in enumerate(glider.cells):
+            cell_layers = []
+            for curve_name, curve in curves.items():
+                if curve.nodes[-1][0] > cell_no:
+                    cell_layers.append((curve_name, curve.get_value(cell_no)))
+
+
+            cell_layers.sort(key=lambda el: el[1])
+            
+            layers_between = {}
+            
+            def get_name(position: float):
+                name = "-"
+                
+                for layer_name, pct in cell_layers:
+                    if pct == position:
+                        return layer_name
+                        
+                    if pct < position:
+                        name = layer_name
+                    
+                layers_between.setdefault(name, 0)
+                layers_between[name] += 1
+
+                return f"{name}{layers_between[name]}"
+                
+            straps = cell.straps[:]
+            straps.sort(key=lambda strap: strap.get_average_x())
+            for strap in straps:
+                strap.name = f"{cell_no+1}{get_name(abs(strap.center_left))}"
+
+            layers_between = {}
+            diagonals = cell.diagonals[:]
+            diagonals.sort(key=lambda diagonal: diagonal.get_average_x())
+            for diagonal in diagonals:
+                diagonal.name = f"D{cell_no+1}{get_name(abs(diagonal.center_left))}"
+
+
 
     def unwrap(self, outdir, glider_3d):
         self.project.glider_3d = glider_3d

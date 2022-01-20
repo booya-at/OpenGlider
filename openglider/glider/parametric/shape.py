@@ -20,8 +20,9 @@ class ParametricShape:
     rib_distribution: CurveType
     cell_num: int
     stabi_cell: bool = False
+    stabi_cell_position: float = 0.7
     stabi_cell_width: float = 0.5
-    stabi_cell_length: float = 0.8
+    stabi_cell_length: float = 0.6
 
 
     num_shape_interpolation = 50
@@ -152,8 +153,8 @@ class ParametricShape:
             y2 = back[-2][1]
             delta = (y2 - y1) * (1-self.stabi_cell_length)
 
-            front[-1][1] = y1 + delta
-            back[-1][1] = y2 - delta
+            front[-1][1] = y1 + delta * self.stabi_cell_position
+            back[-1][1] = y2 - delta * (1-self.stabi_cell_position)
         
         if self.has_center_cell:
             p1 = front[0][:]

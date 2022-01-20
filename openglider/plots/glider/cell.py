@@ -6,7 +6,7 @@ import euklid
 import numpy as np
 from openglider.airfoil import get_x_value
 from openglider.glider.cell import DiagonalRib, Panel, PanelCut
-from openglider.plots.glider.config import PatternConfig
+from openglider.plots.config import PatternConfig
 from openglider.plots.glider.diagonal import DribPlot, StrapPlot
 from openglider.plots.usage_stats import Material, MaterialUsage
 from openglider.vector.drawing import Layout, PlotPart
@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 class PanelPlot(object):
     DefaultConf = PatternConfig
     plotpart: PlotPart
+    config: PatternConfig
 
     def __init__(self, panel: Panel, cell, flattended_cell, config=None):
         self.panel = panel
@@ -71,11 +72,13 @@ class PanelPlot(object):
             allowance_back = cut_allowances[self.panel.cut_back.cut_type]
 
         # cuts -> cut-line, index left, index right
-        cut_front = cut_types[self.panel.cut_front.cut_type](allowance_front)
-        cut_back = cut_types[self.panel.cut_back.cut_type](allowance_back)
+        self.cut_front = cut_types[self.panel.cut_front.cut_type](allowance_front)
+        self.cut_back = cut_types[self.panel.cut_back.cut_type](allowance_back)
 
         inner_front = [(line, ik[0]) for line, ik in zip(self.inner, ik_values)]
+        self.front_curve = euklid.vector.PolyLine2D([line.get(ik) for line, ik in inner_front])
         inner_back = [(line, ik[1]) for line, ik in zip(self.inner, ik_values)]
+        self.back_curve = euklid.vector.PolyLine2D([line.get(ik) for line, ik in inner_back])
 
         shape_3d_amount_front = [-x for x in self.panel.cut_front.cut_3d_amount]
         shape_3d_amount_back = self.panel.cut_back.cut_3d_amount
@@ -94,8 +97,8 @@ class PanelPlot(object):
         outer_left = left.offset(-self.config.allowance_general)
         outer_right = right.offset(self.config.allowance_general)
 
-        cut_front_result = cut_front.apply(inner_front, outer_left, outer_right, shape_3d_amount_front)
-        cut_back_result = cut_back.apply(inner_back, outer_left, outer_right, shape_3d_amount_back)
+        cut_front_result = self.cut_front.apply(inner_front, outer_left, outer_right, shape_3d_amount_front)
+        cut_back_result = self.cut_back.apply(inner_back, outer_left, outer_right, shape_3d_amount_back)
 
         panel_left = outer_left.get(cut_front_result.index_left, cut_back_result.index_left).fix_errors()
         panel_back = cut_back_result.curve.copy()
@@ -257,6 +260,27 @@ class PanelPlot(object):
                 if getattr(self.panel.cut_front, f"x_{side}") <= x <= getattr(self.panel.cut_back, f"x_{side}"):
                     p1, p2 = self.get_p1_p2(x, side)
                     plotpart.layers["L0"] += self.config.marks_laser_controlpoint(p1, p2)
+        
+        x_dots = 2
+
+        front = (
+            self.front_curve,
+            self.front_curve.offset(-self.cut_front.amount)
+        )
+
+        back = (
+            self.back_curve,
+            self.back_curve.offset(-self.cut_back.amount)
+        )
+
+        for i in range(x_dots):
+            x = (i+1)/(x_dots+1)
+
+            for inner, outer in (front, back):
+                p1 = inner.get(inner.walk(0, inner.get_length() * x))
+                p2 = outer.get(outer.walk(0, outer.get_length() * x))
+                plotpart.layers["L0"] += self.config.marks_controlpoint(p1, p2)
+
 
     def _insert_diagonals(self, plotpart):
         def insert_diagonal(x, height, side, front):

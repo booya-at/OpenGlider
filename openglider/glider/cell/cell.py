@@ -3,7 +3,7 @@ import copy
 import logging
 import math
 from typing import Callable, List, Dict
-
+import string
 import numpy as np
 import euklid
 import pyfoil
@@ -54,10 +54,10 @@ class Cell:
     def __hash__(self) -> int:
         return hash_list(self.rib1, self.rib2, *self.miniribs, *self.diagonals)
 
-    def rename_panels(self, seperate_upper_lower=False):
+    def rename_panels(self, cell_no: int, seperate_upper_lower=True):
         if seperate_upper_lower:
-            upper = [panel for panel in self.panels if panel.mean_x < 0]
-            lower = [panel for panel in self.panels if panel.mean_x >= 0]
+            upper = [panel for panel in self.panels if not panel.is_lower()]
+            lower = [panel for panel in self.panels if panel.is_lower()]
             sort_func = lambda panel: abs(panel.mean_x())
             upper.sort(key=sort_func)
             lower.sort(key=sort_func)
@@ -72,7 +72,7 @@ class Cell:
             for panel_no, panel in enumerate(self.panels):
                 panel.name = self.panel_naming_scheme.format(cell=self, panel=panel, panel_no=panel_no+1)
     
-    def rename_diagonals(self, diagonals, naming_scheme):
+    def rename_diagonals(self, diagonals, cell_no: int, naming_scheme):
         upper = []
         lower = []
 
@@ -86,21 +86,21 @@ class Cell:
         upper.sort(key=lambda d: -d.get_average_x())
 
         for i, d in enumerate(lower):
-            d.name = naming_scheme.format(cell=self, diagonal=d, diagonal_no=i+1, side="l")
+            d.name = naming_scheme.format(cell=self, cell_no=cell_no, diagonal=d, diagonal_no=i+1, side="l")
 
         for i, d in enumerate(upper):
-            d.name = naming_scheme.format(cell=self, diagonal=d, diagonal_no=i+1, side="u")
+            d.name = naming_scheme.format(cell=self, cell_no=cell_no, diagonal=d, diagonal_no=i+1, side="u")
 
 
 
-    def rename_parts(self, seperate_upper_lower=False):
-        self.rename_diagonals(self.diagonals, self.diagonal_naming_scheme)
-        self.rename_diagonals(self.straps, self.strap_naming_scheme)
+    def rename_parts(self, cell_no, seperate_upper_lower=False):
+        self.rename_diagonals(self.diagonals, cell_no, self.diagonal_naming_scheme)
+        self.rename_diagonals(self.straps, cell_no, self.strap_naming_scheme)
 
         for minirib_no, minirib in enumerate(self.miniribs):
             minirib.name = self.minirib_naming_scheme.format(cell=self, minirib=minirib, minirib_no=minirib_no+1)
 
-        self.rename_panels(seperate_upper_lower=seperate_upper_lower)
+        self.rename_panels(cell_no, seperate_upper_lower=seperate_upper_lower)
 
     @cached_property('rib1.profile_3d', 'rib2.profile_3d', 'ballooning_phi')
     def basic_cell(self) -> BasicCell:
