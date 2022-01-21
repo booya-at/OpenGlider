@@ -67,7 +67,7 @@ class LineSet(object):
                     line.target_length *= factor
                 if line.init_length:
                     line.init_length *= factor
-                line.force = None
+            line.force = None
         for node in self.nodes:
             if node.type == 2: # upper att-node
                 node.force *= factor ** 2
