@@ -150,13 +150,10 @@ class Patterns(PatternsNew):
     """
     
     def prepare_glider_project(self, project: GliderProject) -> GliderProject:
-        logger.warn("jooooo")
         new_project: GliderProject = project.copy()
 
         self.set_names_straps(new_project.glider_3d)
         self.set_names_panels(new_project.glider_3d)
-
-        logger.info(f"{[s.name for s in new_project.glider_3d.cells[0].straps]}")
 
         return new_project
 
@@ -219,9 +216,3 @@ class Patterns(PatternsNew):
             diagonals.sort(key=lambda diagonal: diagonal.get_average_x())
             for diagonal in diagonals:
                 diagonal.name = f"D{cell_no+1}{get_name(abs(diagonal.center_left))}"
-
-
-
-    def unwrap(self, outdir, glider_3d):
-        self.project.glider_3d = glider_3d
-        super().unwrap(outdir)

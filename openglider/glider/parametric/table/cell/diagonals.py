@@ -38,6 +38,8 @@ class DiagonalTable(CellTable):
 
         if name is not None:
             name = f"D{row}{name}"
+        else:
+            name = f"D{row}-"
 
         if keyword == "QR":
             height1 = data[4]

@@ -1,4 +1,5 @@
 import math
+from typing import List
 
 import euklid
 
@@ -9,6 +10,28 @@ default_scale = 0.8
 class Mark(object):
     def __repr__(self):
         return self.__class__.__name__
+    
+    def __call__(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) ->  List[euklid.vector.PolyLine2D]:
+        raise NotImplemented()
+
+class Empty(Mark):
+    def __call__(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> List[euklid.vector.PolyLine2D]:
+        return []
+
+class Combine(Mark):
+    def __init__(self, *marks) -> None:
+        self.marks = marks
+    
+    def __json__(self):
+        return {"marks": self.marks}
+
+    def __call__(self, p1, p2) -> List[euklid.vector.PolyLine2D]:
+        result = []
+        for mark in self.marks:
+            result += mark(p1, p2)
+        
+        return result
+            
 
 class Polygon(Mark):
     def __init__(self, edges=3, scale=default_scale, name=None):

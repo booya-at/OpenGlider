@@ -1,13 +1,16 @@
 from typing import TYPE_CHECKING
 import pydantic
 #from pydantic import Field as field
-from dataclasses import asdict, replace, field
+from dataclasses import dataclass as dc, asdict, replace, field
 
 class Config:
     arbitrary_types_allowed = True
 
 def dataclass(_cls):
-    _cls_new = pydantic.dataclasses.dataclass(config=Config)(_cls)
+    if TYPE_CHECKING:
+        _cls_new = dc(_cls)
+    else:
+        _cls_new = pydantic.dataclasses.dataclass(config=Config)(_cls)
 
     old_json = getattr(_cls_new, "__json__", None)
     if old_json is None or getattr(old_json, "is_auto", False):

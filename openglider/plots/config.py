@@ -30,6 +30,7 @@ class PatternConfig(Config):
     allowance_trailing_edge = 0.01
     allowance_entry_open = 0.015
 
+    insert_design_cuts = False
 
     marks_diagonal_front = marks.Inside(marks.Arrow(left=True, name="diagonal_front"))
     marks_diagonal_back = marks.Inside(marks.Arrow(left=False, name="diagonal_back"))
@@ -44,7 +45,7 @@ class PatternConfig(Config):
     marks_laser_controlpoint = marks.Dot(0.2)
     marks_controlpoint = marks.Dot(0.2)
 
-    marks_panel_cut = marks.Line(name="panel_cut")
+    marks_panel_cut = marks.Combine(marks.Line(name="panel_cut"), marks.Dot(0.2, 0.8))
     rib_text_in_seam = True
     rib_text_pos = -0.005
 
