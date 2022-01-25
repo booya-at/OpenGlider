@@ -11,6 +11,7 @@ import ezodf
 class Table:
     rex = re.compile(r"([A-Z]*)([0-9]*)")
     format_float_digits = 4
+    name: str=""
 
     @classmethod
     def str_decrypt(cls, str):
@@ -223,7 +224,7 @@ class Table:
         
         return table
 
-    def get_markdown_table(self):
+    def get_markdown_table(self) -> str:
         table = self.copy()
         column_widths = []
         num_columns = table.num_columns

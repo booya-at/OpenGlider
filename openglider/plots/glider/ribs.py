@@ -1,11 +1,16 @@
 import math
 from typing import List, TYPE_CHECKING, Set
+from black import out
 
 import euklid
+from matplotlib.pyplot import plot
+from openglider import logging
 import openglider.glider
 from openglider.airfoil import get_x_value
 from openglider.glider.cell.panel import PanelCut
-from openglider.plots import marks
+from openglider.glider.rib.elements import AttachmentPoint
+from openglider.glider.rib.rigidfoils import RigidFoilBase
+from openglider.plots import cuts, marks
 from openglider.plots.config import PatternConfig
 from openglider.plots.usage_stats import MaterialUsage
 from openglider.utils.config import Config
@@ -15,6 +20,8 @@ from openglider.vector.text import Text
 if TYPE_CHECKING:
     from openglider.glider import Glider
 
+
+logger = logging.getLogger(__name__)
 
 class RibPlot(object):
     plotpart: PlotPart
@@ -78,13 +85,6 @@ class RibPlot(object):
             if cut not in (-1, 1):
                 self.insert_mark(cut, self.config.marks_panel_cut)
 
-        # rigidfoils
-        for rigid in self.rib.get_rigidfoils():
-            self.plotpart.layers[self.layer_name_rigidfoils].append(rigid.get_flattened(self.rib))
-
-        for curve in self.rib.curves:
-            self.plotpart.layers[self.layer_name_rigidfoils].append(curve.get_flattened(self.rib))
-
         self._insert_text(self.rib.name)
         self.insert_controlpoints()
 
@@ -99,6 +99,11 @@ class RibPlot(object):
 
         self.plotpart.layers[self.layer_name_sewing].append(self.inner)
 
+
+        rigidfoils = self.draw_rigidfoils(glider)
+        rigidfoils.move([-(rigidfoils.max_x-self.plotpart.min_x+0.2), 0])
+        self.plotpart += rigidfoils
+
         return self.plotpart
 
     def _get_inner_outer(self, x_value):
@@ -111,7 +116,7 @@ class RibPlot(object):
         # outer = self.outer[ik]
         return inner, outer
 
-    def insert_mark(self, position, mark_function, laser=False):
+    def insert_mark(self, position, mark_function, laser=False, insert=True):
         if hasattr(mark_function, "__func__"):
             mark_function = mark_function.__func__
 
@@ -125,12 +130,16 @@ class RibPlot(object):
         else:
             layer = self.layer_name_marks
 
-        self.plotpart.layers[layer] += mark_function(inner, outer)
+        mark = mark_function(inner, outer)
+        if insert:
+            self.plotpart.layers[layer] += mark
+        return mark
 
     def insert_controlpoints(self):
+        marks = []
         for x in self.config.distribution_controlpoints:
-            self.insert_mark(x, self.config.marks_controlpoint)
-            self.insert_mark(x, self.config.marks_laser_controlpoint, laser=True)
+            marks.append(self.insert_mark(x, self.config.marks_controlpoint, laser=True))       
+        
 
     def get_point(self, x, y=-1):
         assert x >= 0
@@ -200,6 +209,14 @@ class RibPlot(object):
 
         self.plotpart.layers[self.layer_name_outline] += [contour]
         return contour
+    
+    def walk(self, x, amount) -> float:
+        ik = get_x_value(self.x_values, x)
+
+        ik_new = self.inner.walk(ik, amount)
+
+        return self.inner.get(ik_new)[0]/self.rib.chord
+        
 
     def _insert_attachment_points(self, glider: "Glider"):
         for attachment_point in glider.lineset.attachment_points:
@@ -209,27 +226,111 @@ class RibPlot(object):
                 rib = glider.ribs[1]
 
             if hasattr(attachment_point, "rib") and attachment_point.rib == rib:
+                attachment_point: AttachmentPoint
                 positions = [attachment_point.rib_pos]
 
                 if attachment_point.protoloops:
                     for i in range(attachment_point.protoloops):
-                        positions.append(attachment_point.rib_pos + (i+1)*attachment_point.protoloop_distance)
-                        positions.append(attachment_point.rib_pos - (i+1)*attachment_point.protoloop_distance)
+                        if attachment_point.protoloop_distance_absolute:
+                            x_new = lambda x: self.walk(attachment_point.rib_pos, x)
+                        else:
+                            x_new = lambda x: attachment_point.rib_pos + x
+                        
+                        positions.append(x_new((i+1)*attachment_point.protoloop_distance))
+                        positions.append(x_new(-(i+1)*attachment_point.protoloop_distance))
 
                 for position in positions:
                     self.insert_mark(position, self.config.marks_attachment_point)
                     self.insert_mark(position, self.config.marks_laser_attachment_point, "L0")
 
     def _insert_text(self, text):
-        inner, outer = self._get_inner_outer(self.config.rib_text_pos)
-        diff = outer - inner
+        if self.config.rib_text_in_seam:
+            inner, outer = self._get_inner_outer(self.config.rib_text_pos)
+            diff = outer - inner
 
-        p1 = inner + diff * 0.5
-        p2 = p1 + euklid.vector.Rotation2D(-math.pi/2).apply(diff)
+            p1 = inner + diff * 0.5
+            p2 = p1 + euklid.vector.Rotation2D(-math.pi/2).apply(diff)
 
-        _text = Text(text, p1, p2, size=(outer-inner).length()*0.5, valign=0)
-        #_text = Text(text, p1, p2, size=0.05)
+            _text = Text(text, p1, p2, size=(outer-inner).length()*0.5, valign=0)
+            #_text = Text(text, p1, p2, size=0.05)
+        else:
+            p1 = self.get_point(0.05, -1)
+            p2 = self.get_point(0.05, 1)
+
+            _text = Text(text, p1, p2, size=0.01, align="center")
+
+
         self.plotpart.layers[self.layer_name_text] += _text.get_vectors()
+    
+    def draw_rigidfoils(self, glider: "Glider"):
+        plotpart = PlotPart()
+
+        controlpoints = []
+        for x in self.config.distribution_controlpoints:
+            controlpoints.append(self.insert_mark(x, self.config.marks_controlpoint, laser=True, insert=False))
+
+        def draw_rigid(rigidfoil: RigidFoilBase, name: str):
+            curve = rigidfoil.get_flattened(self.rib, glider)
+
+            inner = curve.offset(-0.01)
+            outer = curve.offset(0.01)
+
+            plotpart.layers[self.layer_name_marks].append(curve)
+
+            # back cap
+            p1 = inner.nodes[-1]
+            p2 = outer.nodes[-1]
+
+            plotpart.layers[self.layer_name_marks].append(euklid.vector.PolyLine2D([p1, p2]))
+            diff = euklid.vector.Rotation2D(-math.pi/2).apply(p1-p2).normalized() * 0.02
+            back_cap = euklid.vector.PolyLine2D([
+                p1 + diff,
+                p2 + diff
+            ])
+
+            plotpart.layers[self.layer_name_text] += Text(
+                name, p2, p2+diff, align="center", valign=0.6
+            ).get_vectors()
+
+
+            # front cap -> close to start
+            p1 = inner.nodes[0]
+            p2 = outer.nodes[0]
+
+            plotpart.layers[self.layer_name_marks].append(euklid.vector.PolyLine2D([p1, p2]))
+            diff = euklid.vector.Rotation2D(math.pi/2).apply(p1-p2).normalized() * 0.02
+            front_cap = euklid.vector.PolyLine2D([
+                p2 + diff,
+                p1 + diff,
+                p1
+            ])
+
+
+
+
+            # back cap
+
+            outline = inner + back_cap + outer.reverse() + front_cap
+
+            for controlpoint in controlpoints:
+                p = controlpoint[0].nodes[0]
+
+                if outline.contains(p):
+                    plotpart.layers[self.layer_name_laser_dots] += controlpoint
+                    
+            plotpart.layers[self.layer_name_outline].append(outline)
+
+            
+
+
+        # rigidfoils
+        for i, rigid in enumerate(self.rib.get_rigidfoils()):
+            draw_rigid(rigid, f"{self.rib.name}r{i+1}")
+
+        for i, curve in enumerate(self.rib.curves):
+            draw_rigid(curve, f"{self.rib.name}r{i+1}")
+
+        return plotpart
 
 
 class SingleSkinRibPlot(RibPlot):
@@ -270,7 +371,7 @@ class SingleSkinRibPlot(RibPlot):
 
         return self.skin_cut
 
-    def flatten(self, glider):
+    def flatten(self, glider: "Glider"):
         self._get_singleskin_cut(glider)
         return super().flatten(glider)
 

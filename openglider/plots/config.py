@@ -34,7 +34,7 @@ class PatternConfig(Config):
 
     marks_diagonal_front = marks.Inside(marks.Arrow(left=True, name="diagonal_front"))
     marks_diagonal_back = marks.Inside(marks.Arrow(left=False, name="diagonal_back"))
-    marks_laser_diagonal = marks.Dot(0.8)
+    marks_laser_diagonal = marks.Dot(0.2, 0.8)
 
     marks_laser_attachment_point = marks.Dot(0.2, 0.8)
     marks_attachment_point = marks.OnLine(marks.Rotate(marks.Cross(name="attachment_point"), math.pi / 4))
@@ -42,11 +42,10 @@ class PatternConfig(Config):
     marks_strap = marks.Inside(marks.Line(name="strap"))
 
     distribution_controlpoints = Distribution.from_linear(20, -1, 1)
-    marks_laser_controlpoint = marks.Dot(0.2)
     marks_controlpoint = marks.Dot(0.2)
 
     marks_panel_cut = marks.Combine(marks.Line(name="panel_cut"), marks.Dot(0.2, 0.8))
-    rib_text_in_seam = True
+    rib_text_in_seam = False
     rib_text_pos = -0.005
 
     allowance_design = 0.012  # trailing_edge

@@ -155,7 +155,7 @@ class Rib(CachedObject):
     def is_closed(self):
         return self.profile_2d.thickness < 0.01
 
-    def get_hull(self, glider=None) -> pyfoil.Airfoil:
+    def get_hull(self, glider: "Glider"=None) -> pyfoil.Airfoil:
         """returns the outer contour of the normalized mesh in form
            of a Polyline"""
         if self.sharknose is not None:

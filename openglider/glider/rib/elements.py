@@ -123,6 +123,7 @@ class AttachmentPoint(Node):
 
         self.protoloops = 0
         self.protoloop_distance = 0.02
+        self.protoloop_distance_absolute = True
 
     def __repr__(self):
         return "<Attachment point '{}' ({})>".format(self.name, self.rib_pos)

@@ -1,3 +1,4 @@
+import typing
 import numpy as np
 from numpy.linalg import norm
 import euklid
@@ -6,13 +7,15 @@ import pyfoil
 from openglider.glider.rib.rib import Rib
 from openglider.utils import linspace
 
+if typing.TYPE_CHECKING:
+    from openglider.glider.glider import Glider
 
 class SingleSkinRib(Rib):
     def __init__(self, profile_2d=None, startpoint=None,
                  chord=1., arcang=0, aoa_absolute=0, zrot=0, xrot=0., glide=1,
                  name="unnamed rib", startpos=0.,
                  rigidfoils=None, holes=None, material=None,
-                 single_skin_par=None):
+                 single_skin_par=None, sharknose=None):
         super(SingleSkinRib, self).__init__(profile_2d=profile_2d, 
                                             startpoint=startpoint,
                                             chord=chord,
@@ -25,7 +28,8 @@ class SingleSkinRib(Rib):
                                             startpos=startpos,
                                             rigidfoils=rigidfoils,
                                             holes=holes,
-                                            material=material)
+                                            material=material,
+                                            sharknose=sharknose)
         self.single_skin_par = {
             "att_dist": 0.02,
             "height": 0.8,
@@ -82,7 +86,7 @@ class SingleSkinRib(Rib):
         json_dict["single_skin_par"] = self.single_skin_par
         return json_dict
 
-    def get_hull(self, glider=None) -> pyfoil.Airfoil:
+    def get_hull(self, glider: "Glider"=None) -> pyfoil.Airfoil:
         '''
         returns a modified profile2d
         '''

@@ -9,11 +9,16 @@ from openglider.glider.parametric.table.elements import RibTable, Keyword
 
 logger = logging.getLogger(__name__)
 
+def float_dct(**kwargs):
+    return {
+        name: float(value) for name, value in kwargs.items()
+    }
+
 class ProfileTable(RibTable):
     keywords = {
-        "ProfileFactor": Keyword(attributes=["thickness_factor"]),
-        "ProfileMerge": Keyword(attributes=["merge_factor"]),
-        "Flap": Keyword(attributes=["begin", "amount"]),
+        "ProfileFactor": Keyword(attributes=["thickness_factor"], target_cls=float_dct),
+        "ProfileMerge": Keyword(attributes=["merge_factor"], target_cls=float_dct),
+        "Flap": Keyword(attributes=["begin", "amount"], target_cls=float_dct),
         "Sharknose": Keyword(attributes=["position", "amount", "start", "end"], target_cls=Sharknose),
         "Sharknose8": Keyword(attributes=["position", "amount", "start", "end", "angle_front", "angle_back", "rigidfoil_circle_radius", "rigidfoil_circle_amount"], target_cls=Sharknose)
     }

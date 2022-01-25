@@ -8,6 +8,7 @@ from openglider.utils.dataclass import dataclass
 
 if TYPE_CHECKING:
     from openglider.glider.rib.rib import Rib
+    from openglider.glider.glider import Glider
 
 logger = logging.getLogger(__name__)
 
@@ -24,10 +25,10 @@ class RigidFoilBase:
     def get_length(self, rib: "Rib"):
         return self.get_flattened(rib).get_length()
 
-    def get_flattened(self, rib: "Rib"):
-        return self._get_flattened(rib).fix_errors()
+    def get_flattened(self, rib: "Rib", glider: "Glider"=None) -> euklid.vector.PolyLine2D:
+        return self._get_flattened(rib, glider).fix_errors()
     
-    def _get_flattened(self, rib: "Rib"):
+    def _get_flattened(self, rib: "Rib", glider: "Glider"=None):
         raise NotImplementedError()
 
 
@@ -50,9 +51,9 @@ class RigidFoil(RigidFoilBase):
     def get_cap_radius(self, start: bool):
         return self.circle_radius, 1
 
-    def _get_flattened(self, rib: "Rib"):
+    def _get_flattened(self, rib: "Rib", glider: "Glider"=None):
         max_segment = 0.005  # 5mm
-        profile = rib.get_hull()
+        profile = rib.get_hull(glider)
         profile_normvectors = profile.normvectors
 
         start = profile.get_ik(self.start)
@@ -89,8 +90,8 @@ class _RigidFoilCurved(RigidFoilBase):
     def get_cap_radius(self, start: bool):
         raise NotImplementedError
 
-    def _get_flattened(self, rib: "Rib"):
-        profile = rib.get_hull()
+    def _get_flattened(self, rib: "Rib", glider: "Glider"=None):
+        profile = rib.get_hull(glider)
 
         start = profile.get_ik(self.start)
         end = profile.get_ik(self.end)

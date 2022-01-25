@@ -217,6 +217,19 @@ class PanelPlot(object):
 
         return p1, p2
 
+    def insert_mark(self, mark, x, layer, is_right):
+        if is_right:
+            side = "right"
+        else:
+            side = "left"
+
+        if getattr(self.panel.cut_front, f"x_{side}") <= x <= getattr(self.panel.cut_back, f"x_{side}"):
+            ik = get_x_value(self.x_values, x)
+            p1 = self.ballooned[is_right].get(ik)
+            p2 = self.outer_orig[is_right].get(ik)
+
+            layer += mark(p1, p2)
+
     def _align_upright(self, plotpart):
         def get_p1_p2(side):
             p1 = self.get_p1_p2(getattr(self.panel.cut_front, f"x_{side}"), side)[0]
@@ -255,12 +268,13 @@ class PanelPlot(object):
         plotpart.layers["text"] += part_text.get_vectors()
 
     def _insert_controlpoints(self, plotpart):
+        # insert chord-wise controlpoints
+        layer = plotpart.layers["L0"]
+
         for x in self.config.distribution_controlpoints:
-            for side in ("left", "right"):
-                if getattr(self.panel.cut_front, f"x_{side}") <= x <= getattr(self.panel.cut_back, f"x_{side}"):
-                    p1, p2 = self.get_p1_p2(x, side)
-                    plotpart.layers["L0"] += self.config.marks_laser_controlpoint(p1, p2)
+            self.insert_mark(self.config.marks_controlpoint, x, layer, True)
         
+        # insert horizontal (spanwise) controlpoints
         x_dots = 2
 
         front = (
@@ -283,6 +297,7 @@ class PanelPlot(object):
 
 
     def _insert_diagonals(self, plotpart):
+        layer = plotpart.layers["L0"]
         def insert_diagonal(x, height, side, front):
             if height == 1:
                 xval = -x
@@ -293,17 +308,31 @@ class PanelPlot(object):
 
             if getattr(self.panel.cut_front, f"x_{side}") <= xval <= getattr(self.panel.cut_back, f"x_{side}"):
                 p1, p2 = self.get_p1_p2(xval, side)
-                plotpart.layers["L0"] += self.config.marks_laser_diagonal(p1, p2)
                 if (front and height == -1) or (not front and height == 1):
                     plotpart.layers["marks"] += self.config.marks_diagonal_front(p1, p2)
                 else:
                     plotpart.layers["marks"] += self.config.marks_diagonal_back(p1, p2)
 
         for strap in self.cell.straps + self.cell.diagonals:
+            strap: DiagonalRib
+
             insert_diagonal(*strap.left_front, side="left", front=False)
             insert_diagonal(*strap.left_back, side="left", front=True)
             insert_diagonal(*strap.right_front, side="right", front=True)
             insert_diagonal(*strap.right_back, side="right", front=False)
+
+            tuple_left = (strap.left_back[1], strap.left_front[1])
+            tuple_right = (strap.right_back[1], strap.right_front[1])
+            if tuple_left == (1,1):
+                # upper
+                self.insert_mark(self.config.marks_laser_diagonal, -strap.center_left, layer, False)
+            elif tuple_left == (-1, -1):
+                self.insert_mark(self.config.marks_laser_diagonal, strap.center_left, layer, False)
+            
+            if tuple_right == (1,1):
+                self.insert_mark(self.config.marks_laser_diagonal, -strap.center_right, layer, True)
+            elif tuple_right == (-1, -1):
+                self.insert_mark(self.config.marks_laser_diagonal, strap.center_right, layer, True)
 
     def _insert_attachment_points(self, plotpart, attachment_points):
         for attachment_point in attachment_points:
@@ -336,11 +365,6 @@ class PanelPlot(object):
             cut_b = cut_b_l + cell_pos * (cut_b_r - cut_b_l)
 
             positions = [attachment_point.rib_pos]
-            
-            if getattr(attachment_point, "protoloops", False):
-                for i in range(attachment_point.protoloops):
-                    positions.append(attachment_point.rib_pos + (i+1)*attachment_point.protoloop_distance)
-                    positions.append(attachment_point.rib_pos - (i+1)*attachment_point.protoloop_distance)
             
             for rib_pos_no, rib_pos in enumerate(positions):
 
@@ -479,7 +503,7 @@ class CellPlotMaker:
         diagonals = self.cell.diagonals[:]
         diagonals.sort(key=lambda d: d.name)
         dribs = []
-        for drib in self.cell.diagonals[::-1]:
+        for drib in diagonals[::-1]:
             drib_plot = self.DribPlot(drib, self.cell, self.config)
             dribs.append(drib_plot.flatten(self.attachment_points))
             self.consumption += drib_plot.get_material_usage()
@@ -490,7 +514,7 @@ class CellPlotMaker:
         straps = self.cell.straps[:]
         straps.sort(key=lambda d: d.name)
         result = []
-        for strap in straps[::-1]:
+        for strap in straps:
             plot = self.StrapPlot(strap, self.cell, self.config)
             result.append(plot.flatten(self.attachment_points))
             self.consumption += plot.get_material_usage()

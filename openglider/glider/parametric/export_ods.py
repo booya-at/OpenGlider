@@ -1,7 +1,7 @@
 import copy
 from datetime import datetime
 import math
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 import euklid
 import ezodf
@@ -17,29 +17,59 @@ if TYPE_CHECKING:
 file_version = "V3"
 
 def export_ods_project(glider: "GliderProject", filename):
-    doc = get_glider_tables(glider.glider)
+    
+    doc = ezodf.newdoc(doctype="ods")
 
+    for table in get_project_tables(glider):
+        doc.sheets.append(table.get_ods_sheet())
+
+    doc.saveas(filename)
+
+
+def get_split_tables(project: "GliderProject") -> List[Table]:
+    tables = []
+    tables.append(get_changelog_table(project))
+    tables.append(get_parametric_sheet(project.glider))
+    tables.append(get_airfoil_sheet(project.glider))
+    tables.append(get_ballooning_sheet(project.glider))
+    tables.append(get_lines_sheet(project.glider))
+    
+    tables += project.glider.tables.get_all_tables()
+
+    tables.append(get_data_sheet(project.glider))
+
+    return tables
+
+
+def get_project_tables(project: "GliderProject") -> List[Table]:
+    tables = get_glider_tables(project.glider)
+    changelog_table = get_changelog_table(project)
+
+    tables.append(changelog_table)
+
+    return tables
+
+def get_changelog_table(project: "GliderProject") -> Table:
     changelog_table = Table(name="Changelog")
     changelog_table["A1"] = "Date/Time"
     changelog_table["B1"] = "Modification"
     changelog_table["C1"] = "Description"
 
-    for i, change in enumerate(glider.changelog):
+    for i, change in enumerate(project.changelog):
         dt, name, description = change
         
         changelog_table[i+1, 0] = dt.isoformat()
         changelog_table[i+1, 1] = name
         changelog_table[i+1, 2] = description
-
-    doc.sheets.append(changelog_table.get_ods_sheet())
     
-    doc.saveas(filename)
+    return changelog_table
 
-def get_glider_tables(glider: "ParametricGlider"):
-    doc = ezodf.newdoc(doctype="ods")
-    assert isinstance(glider, openglider.glider.parametric.glider.ParametricGlider)
 
-    doc.sheets.append(get_geom_sheet(glider))
+
+def get_glider_tables(glider: "ParametricGlider") -> List[Table]:
+    tables = []
+
+    tables.append(get_geom_sheet(glider))
 
     attachment_points_rib, attachment_points_cell = glider.lineset.get_attachment_point_table()
 
@@ -53,17 +83,17 @@ def get_glider_tables(glider: "ParametricGlider"):
     cell_sheet["A1"] = file_version
     rib_sheet["A1"] = file_version
 
-    doc.sheets.append(cell_sheet.get_ods_sheet())
-    doc.sheets.append(rib_sheet.get_ods_sheet())
-    doc.sheets.append(get_airfoil_sheet(glider))
-    doc.sheets.append(get_ballooning_sheet(glider))
-    doc.sheets.append(get_parametric_sheet(glider))
-    doc.sheets.append(get_lines_sheet(glider))
-    doc.sheets.append(get_data_sheet(glider))
+    tables.append(cell_sheet)
+    tables.append(rib_sheet)
+    tables.append(get_airfoil_sheet(glider))
+    tables.append(get_ballooning_sheet(glider))
+    tables.append(get_parametric_sheet(glider))
+    tables.append(get_lines_sheet(glider))
+    tables.append(get_data_sheet(glider))
 
-    doc.sheets.append(glider.curves.table.get_ods_sheet("Curves"))
+    tables.append(glider.curves.table)
 
-    return doc
+    return tables
 
 
 def export_ods_2d(glider: "ParametricGlider", filename):
@@ -72,22 +102,21 @@ def export_ods_2d(glider: "ParametricGlider", filename):
     doc.saveas(filename)
 
 
-def get_airfoil_sheet(glider_2d):
+def get_airfoil_sheet(glider_2d) -> Table:
     profiles = glider_2d.profiles
-    max_length = max(p.numpoints for p in profiles)
-    sheet = ezodf.Sheet(name="Airfoils", size=(max_length+1, len(profiles)*2))
+    table = Table(name="Airfoils")
 
     for i, profile in enumerate(profiles):
-        sheet[0, 2*i].set_value(profile.name or "unnamed")
+        table[0, 2*i] = profile.name or "unnamed"
         for j, p in enumerate(profile.curve):
-            sheet[j+1, 2*i].set_value(p[0])
-            sheet[j+1, 2*i+1].set_value(p[1])
+            table[j+1, 2*i] = p[0]
+            table[j+1, 2*i+1] = p[1]
 
-    return sheet
+    return table
 
 
-def get_geom_sheet(glider_2d):
-    table = Table()
+def get_geom_sheet(glider_2d) -> Table:
+    table = Table(name="geometry")
     #geom_page = ezodf.Sheet(name="geometry", size=(glider_2d.shape.half_cell_num + 2, 10))
 
     # rib_nos
@@ -144,12 +173,12 @@ def get_geom_sheet(glider_2d):
     if glider_2d.shape.stabi_cell:
         table = table.get_rows(0, table.num_rows-1)
 
-    return table.get_ods_sheet(name="geometry")
+    return table
 
 
-def get_ballooning_sheet(glider_2d):
+def get_ballooning_sheet(glider_2d) -> Table:
     balloonings = glider_2d.balloonings
-    table = Table()
+    table = Table(name="Balloonings")
     #row_num = max([len(b.upper_spline.controlpoints)+len(b.lower_spline.controlpoints) for b in balloonings])+1
     #sheet = ezodf.Sheet(name="Balloonings", size=(row_num, 2*len(balloonings)))
 
@@ -168,30 +197,18 @@ def get_ballooning_sheet(glider_2d):
             table[i+1, 2*ballooning_no] = point[0]
             table[i+1, 2*ballooning_no+1] = point[1]
 
-    ods_sheet = table.get_ods_sheet()
-    ods_sheet.name = "Balloonings"
-    return ods_sheet
+    return table
 
-def get_parametric_sheet(glider : "ParametricGlider") -> ezodf.Sheet:
-    line_no = 1 + max([len(curve.controlpoints) for curve in [ # type: ignore
-        glider.shape.front_curve,
-        glider.shape.back_curve,
-        glider.shape.rib_distribution,
-        glider.arc.curve,
-        glider.zrot,
-        glider.aoa,
-        glider.ballooning_merge_curve,
-        glider.profile_merge_curve
-        ]])
-    sheet = ezodf.Sheet(name="Parametric", size=(line_no, 16))
+def get_parametric_sheet(glider : "ParametricGlider") -> Table:
+    table = Table(name="Parametric")
 
     def add_curve(name, curve, column_no):
         #sheet.append_columns(2)
-        sheet[0, column_no].set_value(name)
-        sheet[0, column_no+1].set_value(type(curve).__name__)
+        table[0, column_no] = name
+        table[0, column_no+1] = type(curve).__name__
         for i, p in enumerate(curve.controlpoints):
-            sheet[i+1, column_no].set_value(p[0])
-            sheet[i+1, column_no+1].set_value(p[1])
+            table[i+1, column_no] = p[0]
+            table[i+1, column_no+1] = p[1]
 
     add_curve("front", glider.shape.front_curve, 0)
     add_curve("back", glider.shape.back_curve, 2)
@@ -202,16 +219,17 @@ def get_parametric_sheet(glider : "ParametricGlider") -> ezodf.Sheet:
     add_curve("ballooning_merge_curve", glider.ballooning_merge_curve, 12)
     add_curve("profile_merge_curve", glider.profile_merge_curve, 14)
 
-    return sheet
+    return table
 
 
-def get_lines_sheet(glider, places=3):
+def get_lines_sheet(glider, places=3) -> Table:
     table = glider.lineset.get_input_table()
-    ods_sheet = table.get_ods_sheet("Lines")
-    return ods_sheet
+    table.name = "Lines"
+    
+    return table
 
-def get_data_sheet(glider):
-    table = Table()
+def get_data_sheet(glider) -> Table:
+    table = Table(name="Data")
     table[0,0] = "Data"
 
     current_row = 1
@@ -235,8 +253,7 @@ def get_data_sheet(glider):
     table[current_row+3, 0] = "version"
     table[current_row+3, 1] = openglider.__version__
 
-
-    return table.get_ods_sheet(name="Data")
+    return table
 
 # for i, value in enumerate(("Ribs", "Chord", "x: (m)", "y LE (m)", "kruemmung", "aoa", "Z-rotation",
 #                      "Y-Rotation-Offset", "merge", "balooning")):

@@ -112,6 +112,18 @@ class GliderTables:
             table[i, 0] = str(i)
 
         return table
+    
+    def get_all_tables(self):
+        tables = []
+
+        for name in self.__annotations__.keys():
+            table = getattr(self, name).table
+            if not table.name:
+                table.name = name
+            
+            tables.append(table)
+        
+        return tables
 
 
 if __name__ == "__main__":

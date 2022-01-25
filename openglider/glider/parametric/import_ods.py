@@ -107,7 +107,7 @@ def import_ods_glider(tables: List[Table]) -> "ParametricGlider":
     if len(tables) > 8:
         curves_table = tables[8]
     else:
-        curves_table = Table()
+        curves_table = Table(name="Curves")
     
     curves = CurveTable(curves_table)
 

@@ -25,7 +25,7 @@ from openglider.utils import ZipCmp, linspace
 from openglider.utils.dataclass import BaseModel, dataclass, field
 from openglider.utils.distribution import Distribution
 from openglider.utils.table import Table
-from openglider.utils.types import CurveType
+from openglider.utils.types import CurveType, SymmetricCurveType
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class ParametricGlider:
     """
     shape: ParametricShape
     arc: ArcCurve
-    aoa: euklid.spline.SymmetricBSplineCurve
+    aoa: SymmetricCurveType
     profiles: List[pyfoil.Airfoil]
     profile_merge_curve: CurveType
     balloonings: List[BallooningBase]
@@ -47,7 +47,7 @@ class ParametricGlider:
     glide: float
     tables: GliderTables = field(default_factory=lambda: GliderTables())
     curves: CurveTable = field(default_factory=lambda: CurveTable(Table()))
-    zrot: euklid.spline.SymmetricBSplineCurve = field(default_factory=lambda: euklid.spline.SymmetricBSplineCurve([[0,0],[1,0]]))
+    zrot: SymmetricCurveType = field(default_factory=lambda: euklid.spline.SymmetricBSplineCurve([[0,0],[1,0]]))
 
     num_interpolate: int=30
     num_profile: Optional[int]=None
@@ -337,7 +337,7 @@ class ParametricGlider:
 
             if flap := self.tables.profiles.get_flap(rib_no):
                 logger.warning(f"add flap: {flap}")
-                profile = profile.add_flap(*flap)
+                profile = profile.add_flap(**flap)
 
             sharknose = self.tables.profiles.get_sharknose(rib_no)
 

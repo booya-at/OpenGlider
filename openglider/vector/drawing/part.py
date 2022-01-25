@@ -136,6 +136,12 @@ class PlotPart(object):
         }
         new.update(self.layers)
         return new
+    
+    def __iadd__(self, other: "PlotPart"):
+        for layer_name, layer in other.layers.items():
+            self.layers[layer_name] += layer
+        
+        return self
 
     def copy(self):
         return copy.deepcopy(self)

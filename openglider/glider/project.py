@@ -9,7 +9,7 @@ from openglider.glider.glider import Glider
 from openglider.glider.parametric import ParametricGlider
 from openglider.glider.parametric.import_ods import import_ods_glider
 from openglider.glider.parametric.import_freecad import import_freecad
-from openglider.glider.parametric.export_ods import export_ods_project
+from openglider.glider.parametric.export_ods import export_ods_project, get_split_tables
 from openglider.utils.dataclass import dataclass, field
 import openglider.utils.table
 
@@ -122,6 +122,20 @@ class GliderProject(object):
         table["B12"] = f"{x_rel:.01f} %"
 
         return table
+
+    def as_markdown(self):
+        tables = get_split_tables(self)
+        data = f"# {self.name}"
+
+        for table in tables:
+            data += f"\n\n## {table.name}\n\n"
+
+            data += table.get_markdown_table()
+
+            data += "\n"
+        
+        return data
+
 
     def save(self, filename):
         if filename.endswith(".ods"):
