@@ -109,8 +109,7 @@ class CellAttachmentPoint(Node):
 
 # Node from lines
 class AttachmentPoint(Node):
-
-    def __init__(self, rib, name, rib_pos, force=None, offset=None):
+    def __init__(self, rib, name, rib_pos, force=None, offset=None, protoloops=0, protoloop_distance=0.02, protoloop_distance_absolute=True):
         super().__init__(node_type=self.NODE_TYPE.UPPER)
         self.rib = rib
         self.rib_pos = rib_pos
@@ -121,9 +120,9 @@ class AttachmentPoint(Node):
             offset = -0.01
         self.offset: float = offset
 
-        self.protoloops = 0
-        self.protoloop_distance = 0.02
-        self.protoloop_distance_absolute = True
+        self.protoloops = protoloops
+        self.protoloop_distance = protoloop_distance
+        self.protoloop_distance_absolute = protoloop_distance_absolute
 
     def __repr__(self):
         return "<Attachment point '{}' ({})>".format(self.name, self.rib_pos)
@@ -132,8 +131,32 @@ class AttachmentPoint(Node):
         return {"rib": self.rib,
                 "name": self.name,
                 "rib_pos": self.rib_pos,
-                "force": self.force
+                "force": self.force,
+                "protoloops": self.protoloops,
+                "protoloop_distance": self.protoloop_distance,
+                "protoloop_distance_absolute": self.protoloop_distance_absolute
                 }
+    
+    def get_x_values(self, rib: "Rib"):
+        positions = [self.rib_pos]
+
+        if self.protoloops:
+            hull = rib.get_hull()
+            ik_start = hull.get_ik(self.rib_pos)
+
+            for i in range(self.protoloops):
+                diff = (i+1) * self.protoloop_distance
+                if self.protoloop_distance_absolute:
+                    front_ik = hull.curve.walk(ik_start, -diff / rib.chord)
+                    back_ik = hull.curve.walk(ik_start, diff / rib.chord)
+
+                    positions.append(hull.curve.get(front_ik)[0])
+                    positions.append(hull.curve.get(back_ik)[0])
+                else:
+                    positions.append(self.rib_pos-diff)
+                    positions.append(self.rib_pos+diff)
+        
+        return positions
 
     def get_position(self) -> euklid.vector.Vector3D:
         # todo: PROFILE3D -> return euklid vector

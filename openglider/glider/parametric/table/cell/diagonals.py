@@ -1,6 +1,6 @@
 from openglider.utils.table import Table
 from openglider.glider.parametric.table.elements import CellTable, Keyword
-from openglider.glider.cell.elements import DiagonalRib, TensionLine, TensionStrap
+from openglider.glider.cell.elements import DiagonalRib, DiagonalSide, TensionLine, TensionStrap
 
 import logging
 
@@ -42,15 +42,12 @@ class DiagonalTable(CellTable):
             name = f"D{row}-"
 
         if keyword == "QR":
-            height1 = data[4]
-            height2 = data[5]
+            # left, right, width_left, width_right, height_left, height_right
 
-            left_front = (left - data[2] / 2, height1)
-            left_back = (left + data[2] / 2, height1)
-            right_front = (right - data[3] / 2, height2)
-            right_back = (right + data[3] / 2, height2)
+            left_side = DiagonalSide.create_from_center(left, data[2], data[4])
+            right_side = DiagonalSide.create_from_center(right, data[3], data[5])
 
-            return DiagonalRib(left_front, left_back, right_front, right_back, name=name)            
+            return DiagonalRib(left_side, right_side, name=name)      
 
         raise ValueError()
 
@@ -79,4 +76,5 @@ class StrapTable(CellTable):
         if name is not None:
             name = f"T{row}-{name}"
 
+        logger.warning(f"table: {data}")
         return super().get_element(row, keyword, data, name=name)

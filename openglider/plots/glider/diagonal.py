@@ -5,6 +5,7 @@ from typing import Tuple
 
 import euklid
 from pydantic import ValidationError
+from pytools import factorial
 from openglider.glider.cell import DiagonalRib
 from openglider.plots.config import PatternConfig
 from openglider.plots.usage_stats import Material, MaterialUsage
@@ -39,20 +40,14 @@ class DribPlot(object):
 
     def validate(self, x, side=0):
         if side == 0:
-            front = self.drib.left_front
-            back = self.drib.left_back
+            side_obj = self.drib.left
         else:
-            front = self.drib.right_front
-            back = self.drib.right_back
+            side_obj = self.drib.right
 
-        if (front[1], back[1]) not in ((-1, -1), (1, 1)):
-            raise ValueError(f"invalid height: {front[1]} / {back[1]}")
+        if not side_obj.is_lower and not side_obj.is_upper:
+            raise ValueError(f"invalid height: {side_obj.start_height} / {side_obj.end_height}")
 
-        #if front[1] > 0:
-        #    # swapped sides
-        #    boundary = [-front[0], -back[0]]
-        #else:
-        boundary = [front[0], back[0]]
+        boundary = [side_obj.start_x, side_obj.end_x]
         boundary.sort()
 
         if not boundary[0] <= x <= boundary[1]:
@@ -64,26 +59,24 @@ class DribPlot(object):
         self.validate(x, side=side)
 
         if side == 0:
-            front = self.drib.left_front
-            back = self.drib.left_back
+            side_obj = self.drib.left
             rib = self.cell.rib1
             inner = self.left
             outer = self.left_out
         else:
-            front = self.drib.right_front
-            back = self.drib.right_back
+            side_obj = self.drib.right
             rib = self.cell.rib2
             inner = self.right
             outer = self.right_out
         
-        if front[0] > x or back[0] < x:
-            raise ValueError(f"invalid x: {x} ({front[0]} / {back[0]}")
+        if side_obj.start_x > x or side_obj.end_x < x:
+            raise ValueError(f"invalid x: {x} ({side_obj.start_x} / {side_obj.end_x}")
 
         foil = rib.profile_2d
         # -1 -> lower, 1 -> upper
-        foil_side = 1 if front[1] == -1 else -1
+        foil_side = -1 if side_obj.is_lower else 1
 
-        x1 = front[0] * foil_side
+        x1 = side_obj.start_x * foil_side
         x2 = x * foil_side
 
         ik_1 = foil(x1)
@@ -94,19 +87,23 @@ class DribPlot(object):
         return inner.get(ik_new), outer.get(ik_new)
     
     def _insert_center_marks(self, plotpart):
-        left_x = self.drib.center_left
-        #if self.drib.left_front[1] > 0:
-        #    left_x = -left_x
-        p1, p2 = self.get_left(left_x)
-        plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
-        plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
+        # put center marks only on lower sides of diagonal ribs, always on straight ones
+        if self.drib.left.is_lower or self.drib.is_upper:
+            p1, p2 = self.get_left(self.drib.left.center)
+            plotpart.layers["marks"] += self.config.marks_diagonal_center(p1, p2)
 
-        right_x = self.drib.center_right
-        #if self.drib.right_front[1] > 0:
-        #    right_x = -right_x
-        p1, p2 = self.get_right(right_x)
-        plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
-        plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
+        if self.drib.right.is_lower or self.drib.is_upper:
+            p1, p2 = self.get_right(self.drib.right.center)
+            plotpart.layers["marks"] += self.config.marks_diagonal_center(p1, p2)
+    
+    def _insert_controlpoints(self, plotpart):
+        for x in self.config.distribution_controlpoints:
+            for side in (0, 1):
+                try:
+                    p1, p2 = self.get_p1_p2(x, side)
+                    plotpart.layers["L0"] += self.config.marks_controlpoint(p1, p2)
+                except ValueError:
+                    continue
 
     def _insert_attachment_points(self, plotpart, attachment_points=None):
         attachment_points = attachment_points or []
@@ -194,6 +191,7 @@ class DribPlot(object):
 
         self._insert_attachment_points(plotpart, attachment_points)
         self._insert_center_marks(plotpart)
+        self._insert_controlpoints(plotpart)
 
 
         if self.drib.get_average_x() > 0:

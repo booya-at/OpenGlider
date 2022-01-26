@@ -1,4 +1,5 @@
 import math
+from turtle import pos
 from typing import List, TYPE_CHECKING, Set
 from black import out
 
@@ -7,6 +8,7 @@ from matplotlib.pyplot import plot
 from openglider import logging
 import openglider.glider
 from openglider.airfoil import get_x_value
+from openglider.glider.cell.elements import DiagonalSide
 from openglider.glider.cell.panel import PanelCut
 from openglider.glider.rib.elements import AttachmentPoint
 from openglider.glider.rib.rigidfoils import RigidFoilBase
@@ -71,7 +73,7 @@ class RibPlot(object):
 
                 # diagonals
                 for diagonal in cell.diagonals + cell.straps:
-                    self.insert_drib_mark(diagonal, False)
+                    self.insert_drib_mark(diagonal.left)
 
             elif cell.rib2 == self.rib:
                 for panel in panels:
@@ -79,7 +81,7 @@ class RibPlot(object):
                     panel_cuts.add(panel.cut_back.x_right)
 
                 for diagonal in cell.diagonals + cell.straps:
-                    self.insert_drib_mark(diagonal, True)
+                    self.insert_drib_mark(diagonal.right)
 
         for cut in panel_cuts:
             if cut not in (-1, 1):
@@ -146,29 +148,20 @@ class RibPlot(object):
         p = self.rib.profile_2d.profilepoint(x, y)
         return p * self.rib.chord
 
-    def insert_drib_mark(self, drib, right=False):
-
-        if right:
-            p1 = drib.right_front
-            p2 = drib.right_back
-            center = drib.center_right
+    def insert_drib_mark(self, side: DiagonalSide, right=False):        
+        if side.is_lower:
+            return
+            self.insert_mark(side.start_x, self.config.marks_diagonal_front)
+            self.insert_mark(side.end_x, self.config.marks_diagonal_back)
+            self.insert_mark(side.center, self.config.marks_diagonal_center, laser=True)
+        elif side.is_upper:
+            self.insert_mark(-side.start_x, self.config.marks_diagonal_back)
+            self.insert_mark(-side.end_x, self.config.marks_diagonal_front)
+            #self.insert_mark(-side.center, self.config.marks_diagonal_center, laser=True)
         else:
-            p1 = drib.left_front
-            p2 = drib.left_back
-            center = drib.center_left
-
-        if p1[1] == p2[1] == -1:
-            self.insert_mark(p1[0], self.config.marks_diagonal_front)
-            self.insert_mark(p2[0], self.config.marks_diagonal_back)
-            self.insert_mark(center, self.config.marks_laser_diagonal, laser=True)
-        elif p1[1] == p2[1] == 1:
-            self.insert_mark(-p1[0], self.config.marks_diagonal_back)
-            self.insert_mark(-p2[0], self.config.marks_diagonal_front)
-            self.insert_mark(-center, self.config.marks_laser_diagonal, laser=True)
-        else:
-            p1 = self.get_point(*p1)
-            p2 = self.get_point(*p2)
-            self.plotpart.layers[self.layer_name_marks].append(euklid.vector.PolyLine2D([p1, p2], name=drib.name))
+            p1 = self.get_point(side.start_x, side.start_height)
+            p2 = self.get_point(side.end_x, side.end_height)
+            self.plotpart.layers[self.layer_name_marks].append(euklid.vector.PolyLine2D([p1, p2]))
 
     def insert_holes(self):
         holes = []
@@ -227,21 +220,14 @@ class RibPlot(object):
 
             if hasattr(attachment_point, "rib") and attachment_point.rib == rib:
                 attachment_point: AttachmentPoint
-                positions = [attachment_point.rib_pos]
 
-                if attachment_point.protoloops:
-                    for i in range(attachment_point.protoloops):
-                        if attachment_point.protoloop_distance_absolute:
-                            x_new = lambda x: self.walk(attachment_point.rib_pos, x)
-                        else:
-                            x_new = lambda x: attachment_point.rib_pos + x
-                        
-                        positions.append(x_new((i+1)*attachment_point.protoloop_distance))
-                        positions.append(x_new(-(i+1)*attachment_point.protoloop_distance))
+                positions = attachment_point.get_x_values(self.rib)
+
+                logger.info(positions)
 
                 for position in positions:
                     self.insert_mark(position, self.config.marks_attachment_point)
-                    self.insert_mark(position, self.config.marks_laser_attachment_point, "L0")
+                    self.insert_mark(position, self.config.marks_laser_attachment_point, laser=True)
 
     def _insert_text(self, text):
         if self.config.rib_text_in_seam:
@@ -271,6 +257,11 @@ class RibPlot(object):
 
         def draw_rigid(rigidfoil: RigidFoilBase, name: str):
             curve = rigidfoil.get_flattened(self.rib, glider)
+
+            # add marks into the profile
+            self.plotpart.layers[self.layer_name_marks].append(curve)
+            self.plotpart.layers[self.layer_name_laser_dots].append(euklid.vector.PolyLine2D([curve.get(0)]))
+            self.plotpart.layers[self.layer_name_laser_dots].append(euklid.vector.PolyLine2D([curve.get(len(curve)-1)]))
 
             inner = curve.offset(-0.01)
             outer = curve.offset(0.01)

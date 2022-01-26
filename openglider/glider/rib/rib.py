@@ -128,7 +128,7 @@ class Rib(CachedObject):
 
     @cached_property('self')
     def profile_3d(self):
-        return Profile3D(self.align_all(self.profile_2d.curve.nodes))
+        return Profile3D(self.align_all(self.get_hull().curve.nodes))
 
     def point(self, x_value):
         return self.align(self.profile_2d.profilepoint(x_value))

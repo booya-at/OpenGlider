@@ -18,15 +18,79 @@ from openglider.vector.projection import flatten_list
 
 if TYPE_CHECKING:
     from openglider.glider.cell import Cell
+    from openglider.glider.rib import Rib
 
 logger = logging.getLogger(__name__)
 
+
+@dataclass
+class DiagonalSide:
+    start_x: float
+    start_height: float
+
+    end_x: float
+    end_height: float
+
+    @classmethod
+    def create_from_center(cls, center: float, width: float, height: float):
+        kwargs = {
+            "start_x": center - width/2,
+            "end_x": center + width/2,
+            "start_height": height,
+            "end_height": height
+        }
+        return cls(**kwargs)
+
+    @property
+    def is_lower(self):
+        return self.start_height == -1 and self.end_height == -1
+    
+    @property
+    def is_upper(self):
+        return self.start_height == 1 and self.end_height == 1
+    
+    @property
+    def width(self):
+        return abs(self.start_x - self.end_x)
+    
+    @property
+    def center(self):
+        return (self.start_x + self.end_x)/2
+
+    @width.setter
+    def width(self, width: float):
+        center = self.center
+        self.start_x = center - width/2
+        self.end_x = center + width/2
+
+    
+    def get_curve(self, rib: "Rib") -> euklid.vector.PolyLine3D:
+            # Is it at 0 or 1?
+            if self.is_lower or self.is_upper:
+                factor = 1
+                if self.is_upper:
+                    factor = -1
+                
+                profile = rib.get_hull()
+
+                front_ik = profile.get_ik(self.start_x * factor)
+                back_ik = profile.get_ik(self.end_x * factor)
+
+                return rib.profile_3d.curve.get(front_ik, back_ik)
+                #return euklid.vector.PolyLine3D(rib.profile_3d[front:back].data.tolist())
+            else:
+                return euklid.vector.PolyLine3D([
+                    rib.align(rib.profile_2d.align(self.start_x, self.start_height)),
+                    rib.align(rib.profile_2d.align(self.end_x, self.end_height))
+                ])
+
+
+
+
 @dataclass
 class DiagonalRib:
-    left_front: Tuple[float, float]
-    left_back: Tuple[float, float]
-    right_front: Tuple[float, float]
-    right_back: Tuple[float, float]
+    left: DiagonalSide
+    right: DiagonalSide
 
     num_folds: int=1
     material_code: str=""
@@ -36,44 +100,23 @@ class DiagonalRib:
     hole_border_side :float=0.15
     hole_border_front_back: float=0.1
 
-    @property
-    def width_left(self) -> float:
-        return abs(self.left_front[0] - self.left_back[0])
-
-    @width_left.setter
-    def width_left(self, width: float):
-        center = self.center_left
-        self.left_front = center - width/2, self.left_front[1]
-        self.left_back = center + width/2, self.left_back[1]
-
-    @property
-    def width_right(self) -> float:
-        return abs(self.right_front[0] - self.right_back[0])
-
-    @width_right.setter
-    def width_right(self, width: float):
-        center = self.center_right
-        self.right_front = center - width/2, self.right_front[1]
-        self.right_back = center + width/2, self.right_back[1]
-
-    @property
-    def center_left(self) -> float:
-        return (self.left_front[0] + self.left_back[0])/2
-
-    @property
-    def center_right(self) -> float:
-        return (self.right_front[0] + self.right_back[0])/2
-
     def copy(self):
         return copy.copy(self)
 
+    @property
+    def is_upper(self):
+        return self.left.is_upper and self.right.is_upper
+    
+    @property
+    def is_lower(self):
+        return self.left.is_lower and self.right.is_lower
+
     def mirror(self) -> None:
-        self.left_front, self.right_front = self.right_front, self.left_front
-        self.left_back, self.right_back = self.right_back, self.left_back
+        self.left ,self.right = self.right, self.left
 
     def get_center_length(self, cell) -> float:
-        p1 = cell.rib1.point(self.center_left)
-        p2 = cell.rib2.point(self.center_right)
+        p1 = cell.rib1.point(self.left.center)
+        p2 = cell.rib2.point(self.right.center)
         return (p2 - p1).length()
 
     def get_3d(self, cell: "Cell") -> Tuple[euklid.vector.PolyLine3D, euklid.vector.PolyLine3D]:
@@ -81,23 +124,8 @@ class DiagonalRib:
         Get 3d-Points of a diagonal rib
         :return: (left_list, right_list)
         """
-
-        def get_list(rib, cut_front, cut_back):
-            # Is it at 0 or 1?
-            if cut_back[1] == cut_front[1] and cut_front[1] in (-1, 1):
-                side = -cut_front[1]  # -1 -> lower, 1->upper
-                front = rib.profile_2d(cut_front[0] * side)
-                back = rib.profile_2d(cut_back[0] * side)
-
-                poly2 = rib.profile_3d.curve
-
-                return poly2.get(front, back)
-                #return euklid.vector.PolyLine3D(rib.profile_3d[front:back].data.tolist())
-            else:
-                return euklid.vector.PolyLine3D([rib.align(rib.profile_2d.align(p)) for p in (cut_front, cut_back)])
-
-        left = get_list(cell.rib1, self.left_front, self.left_back)
-        right = get_list(cell.rib2, self.right_front, self.right_back)
+        left = self.left.get_curve(cell.rib1)
+        right = self.right.get_curve(cell.rib2)
 
         return left, right
 
@@ -224,8 +252,7 @@ class DiagonalRib:
         """
         return average x value for sorting
         """
-        return (self.left_front[0] + self.left_back[0] +
-                self.right_back[0] + self.right_front[0]) / 4
+        return (self.left.center + self.right.center)/2
 
 
 class DoubleDiagonalRib(object):
@@ -244,20 +271,17 @@ class TensionStrap(DiagonalRib):
         :param material_code: color/material-name (optional)
         :param name: name of TensionStrap (optional)
         """
-        attributes = kwargs.update({
-            "left_front": (left - width / 2, height),
-            "left_back": (left + width / 2, height),
-            "right_front": (right - width / 2, height),
-            "right_back": (right + width / 2, height)
-        })
-        super().__init__(**kwargs)
+        left = DiagonalSide.create_from_center(left, width, height)
+        right = DiagonalSide.create_from_center(right, width, height)
+
+        super().__init__(left, right, **kwargs)
     
     def __json__(self):
         return {
-            "left": self.center_left,
-            "right": self.center_right,
-            "width": (self.width_left + self.width_right)/2,
-            "height": self.left_front[1]
+            "left": self.left.center,
+            "right": self.right.center,
+            "width": (self.left.width + self.right.width)/2,
+            "height": self.left.start_height
         }
 
 class TensionLine(TensionStrap):

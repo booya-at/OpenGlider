@@ -278,7 +278,7 @@ class Line(CachedObject):
                 "l_12": self.length_no_sag / stretch_factor,
                 "e_module": spring,
                 "e_module_push": 0,
-                "density": max(0.0001, self.type.weight/1000)  # g/m -> kg/m, min: 0,1g/m
+                "density": max(0.0001, (self.type.weight or 0)/1000)  # g/m -> kg/m, min: 0,1g/m
             }
             line_poly = {"lines": [Polygon(line_points, attributes=attributes)]}
         else:

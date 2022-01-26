@@ -32,9 +32,9 @@ class PatternConfig(Config):
 
     insert_design_cuts = False
 
-    marks_diagonal_front = marks.Inside(marks.Arrow(left=True, name="diagonal_front"))
-    marks_diagonal_back = marks.Inside(marks.Arrow(left=False, name="diagonal_back"))
-    marks_laser_diagonal = marks.Dot(0.2, 0.8)
+    marks_diagonal_front = marks.Combine(marks.Inside(marks.Arrow(left=True, name="diagonal_front")), marks.Dot(0.2, 0.8))
+    marks_diagonal_back = marks.Combine(marks.Inside(marks.Arrow(left=False, name="diagonal_back")), marks.Dot(0.2, 0.8))
+    marks_diagonal_center = marks.Combine(marks.Rotate(marks.Arrow(), -math.pi/2), marks.Dot(0.2, 0.8))
 
     marks_laser_attachment_point = marks.Dot(0.2, 0.8)
     marks_attachment_point = marks.OnLine(marks.Rotate(marks.Cross(name="attachment_point"), math.pi / 4))
@@ -75,3 +75,13 @@ class OtherPatternConfig(PatternConfig):
     drib_allowance_folds = 0.01
     strap_num_folds = 1
     allowance_entry_open = 0.021
+
+
+
+    marks_diagonal_front = marks.Dot(0.2, 0.8)
+    marks_diagonal_back = marks.Dot(0.2, 0.8)
+    marks_diagonal_center = marks.Dot(0.2, 0.8)
+
+
+class PatternConfig(OtherPatternConfig):
+    pass

@@ -1,11 +1,13 @@
 import logging
 import math
-from typing import Tuple
+from typing import Tuple, List
 
 import euklid
 import numpy as np
 from openglider.airfoil import get_x_value
 from openglider.glider.cell import DiagonalRib, Panel, PanelCut
+from openglider.glider.cell.elements import DiagonalSide
+from openglider.glider.rib.elements import AttachmentPoint
 from openglider.plots.config import PatternConfig
 from openglider.plots.glider.diagonal import DribPlot, StrapPlot
 from openglider.plots.usage_stats import Material, MaterialUsage
@@ -208,16 +210,26 @@ class PanelPlot(object):
         ik = get_x_value(self.x_values, x)
         return [lst.get(ik) for lst in self.ballooned]
 
-    def get_p1_p2(self, x, which):
-        side = {"left": 0, "right": 1}[which]
-        ik = get_x_value(self.x_values, x)
+    def get_p1_p2(self, x, is_right):
+        if is_right:
+            front, back = self.panel.cut_front.x_right, self.panel.cut_back.x_right
+        else:
+            front, back = self.panel.cut_front.x_left, self.panel.cut_back.x_left
 
-        p1 = self.ballooned[side].get(ik)
-        p2 = self.outer_orig[side].get(ik)
+        if front <= x <= back:
+            ik = get_x_value(self.x_values, x)
 
-        return p1, p2
+            p1 = self.ballooned[is_right].get(ik)
+            p2 = self.outer_orig[is_right].get(ik)
 
-    def insert_mark(self, mark, x, layer, is_right):
+            return p1, p2
+        
+        raise ValueError(f"not in range")
+
+    def insert_mark(self, mark, x, layer: List, is_right):
+        if mark is None:
+            return
+
         if is_right:
             side = "right"
         else:
@@ -231,14 +243,13 @@ class PanelPlot(object):
             layer += mark(p1, p2)
 
     def _align_upright(self, plotpart):
-        def get_p1_p2(side):
-            p1 = self.get_p1_p2(getattr(self.panel.cut_front, f"x_{side}"), side)[0]
-            p2 = self.get_p1_p2(getattr(self.panel.cut_back, f"x_{side}"), side)[0]
+        ik_front = self.front_curve.walk(0, self.front_curve.get_length()/2)
+        ik_back = self.back_curve.walk(0, self.back_curve.get_length()/2)
 
-            return p2 - p1
-
-        vector = get_p1_p2("left")
-        vector += get_p1_p2("right")
+        p1 = self.front_curve.get(ik_front)
+        p2 = self.back_curve.get(ik_back)
+        
+        vector = p2-p1
 
         angle = vector.angle() - math.pi/2
 
@@ -272,6 +283,7 @@ class PanelPlot(object):
         layer = plotpart.layers["L0"]
 
         for x in self.config.distribution_controlpoints:
+            self.insert_mark(self.config.marks_controlpoint, x, layer, False)
             self.insert_mark(self.config.marks_controlpoint, x, layer, True)
         
         # insert horizontal (spanwise) controlpoints
@@ -298,134 +310,150 @@ class PanelPlot(object):
 
     def _insert_diagonals(self, plotpart):
         layer = plotpart.layers["L0"]
-        def insert_diagonal(x, height, side, front):
-            if height == 1:
-                xval = -x
-            elif height == -1:
-                xval = x
-            else:
-                return
 
-            if getattr(self.panel.cut_front, f"x_{side}") <= xval <= getattr(self.panel.cut_back, f"x_{side}"):
-                p1, p2 = self.get_p1_p2(xval, side)
-                if (front and height == -1) or (not front and height == 1):
-                    plotpart.layers["marks"] += self.config.marks_diagonal_front(p1, p2)
-                else:
-                    plotpart.layers["marks"] += self.config.marks_diagonal_back(p1, p2)
 
         for strap in self.cell.straps + self.cell.diagonals:
             strap: DiagonalRib
 
-            insert_diagonal(*strap.left_front, side="left", front=False)
-            insert_diagonal(*strap.left_back, side="left", front=True)
-            insert_diagonal(*strap.right_front, side="right", front=True)
-            insert_diagonal(*strap.right_back, side="right", front=False)
+            is_upper = strap.left.is_upper and strap.right.is_upper
+            is_lower = strap.left.is_lower and strap.right.is_lower
 
-            tuple_left = (strap.left_back[1], strap.left_front[1])
-            tuple_right = (strap.right_back[1], strap.right_front[1])
-            if tuple_left == (1,1):
-                # upper
-                self.insert_mark(self.config.marks_laser_diagonal, -strap.center_left, layer, False)
-            elif tuple_left == (-1, -1):
-                self.insert_mark(self.config.marks_laser_diagonal, strap.center_left, layer, False)
-            
-            if tuple_right == (1,1):
-                self.insert_mark(self.config.marks_laser_diagonal, -strap.center_right, layer, True)
-            elif tuple_right == (-1, -1):
-                self.insert_mark(self.config.marks_laser_diagonal, strap.center_right, layer, True)
+            if is_upper or is_lower:
+                factor = 1
+                if is_upper:
+                    factor = -1
+
+                self.insert_mark(self.config.marks_diagonal_center, factor * strap.left.center, layer, False)
+                self.insert_mark(self.config.marks_diagonal_center, factor * strap.right.center, layer, True)
+
+                # more than 25cm? -> add start / end marks too
+                if strap.left.get_curve(self.cell.rib1).get_length() > 0.25:
+                    self.insert_mark(self.config.marks_diagonal_front, factor * strap.left.start_x, layer, False)
+                    self.insert_mark(self.config.marks_diagonal_back, factor * strap.left.end_x, layer, False)
+
+                if strap.right.get_curve(self.cell.rib1).get_length() > 0.25:
+                    self.insert_mark(self.config.marks_diagonal_back, factor * strap.right.start_x, layer, True)
+                    self.insert_mark(self.config.marks_diagonal_front, factor * strap.right.end_x, layer, True)
+
+            else:
+                if strap.left.is_lower:
+                    self.insert_mark(self.config.marks_diagonal_center, strap.left.center, layer, False)
+                
+                if strap.right.is_lower:
+                    self.insert_mark(self.config.marks_diagonal_center, strap.right.center, layer, True)
 
     def _insert_attachment_points(self, plotpart, attachment_points):
         for attachment_point in attachment_points:
-            if hasattr(attachment_point, "cell"):
+            if hasattr(attachment_point, "rib"):
+                attachment_point: AttachmentPoint
+
+                if attachment_point.rib == self.cell.rib1:
+                    is_right = False
+                elif attachment_point.rib == self.cell.rib2:
+                    is_right = True
+                else:
+                    continue
+
+                positions = attachment_point.get_x_values(attachment_point.rib)
+
+                try:
+                    p1, p2 = self.get_p1_p2(positions[0], is_right)
+                    diff = p1 - p2
+                    if is_right:
+                        start = p1 + diff
+                        end = start + diff
+                    else:
+                        end = p1 + diff
+                        start = end + diff                   
+
+
+                    text_align = "left" if is_right else "right"
+                    plotpart.layers["text"] += Text(attachment_point.name, start, end,
+                                                                size=0.01,  # 1cm
+                                                                align=text_align, valign=0, height=0.8).get_vectors()
+                except  ValueError:
+                    pass
+
+                for position in positions:
+                    self.insert_mark(self.config.marks_attachment_point, position, plotpart.layers["marks"], is_right)
+                    self.insert_mark(self.config.marks_laser_attachment_point, position, plotpart.layers["L0"], is_right)
+
+            elif hasattr(attachment_point, "cell"):
                 if attachment_point.cell != self.cell:
                     continue
 
                 cell_pos = attachment_point.cell_pos
 
-            elif hasattr(attachment_point, "rib"):
+                cut_f_l = self.panel.cut_front.x_left
+                cut_f_r = self.panel.cut_front.x_right
+                cut_b_l = self.panel.cut_back.x_left
+                cut_b_r = self.panel.cut_back.x_right
+                cut_f = cut_f_l + cell_pos * (cut_f_r - cut_f_l)
+                cut_b = cut_b_l + cell_pos * (cut_b_r - cut_b_l)
 
-                if attachment_point.rib not in self.cell.ribs:
-                    continue
+                positions = [attachment_point.rib_pos]
+                
+                for rib_pos_no, rib_pos in enumerate(positions):
 
+                    if cut_f <= attachment_point.rib_pos <= cut_b:
+                        left, right = self.get_point(rib_pos)
 
-                if attachment_point.rib == self.cell.rib1:
-                    cell_pos = 0
-                elif attachment_point.rib == self.cell.rib2:
-                    cell_pos = 1
-                else:
-                    raise AttributeError
-            else:
-                raise AttributeError
-
-            cut_f_l = self.panel.cut_front.x_left
-            cut_f_r = self.panel.cut_front.x_right
-            cut_b_l = self.panel.cut_back.x_left
-            cut_b_r = self.panel.cut_back.x_right
-            cut_f = cut_f_l + cell_pos * (cut_f_r - cut_f_l)
-            cut_b = cut_b_l + cell_pos * (cut_b_r - cut_b_l)
-
-            positions = [attachment_point.rib_pos]
-            
-            for rib_pos_no, rib_pos in enumerate(positions):
-
-                if cut_f <= attachment_point.rib_pos <= cut_b:
-                    left, right = self.get_point(rib_pos)
-
-                    p1 = left + (right - left) * cell_pos
-                    d = (right - left).normalized() * 0.008 # 8mm
-                    if cell_pos == 1:
-                        p2 = p1 + d
-                    else:
-                        p2 = p1 - d
+                        p1 = left + (right - left) * cell_pos
+                        d = (right - left).normalized() * 0.008 # 8mm
+                        if cell_pos == 1:
+                            p2 = p1 + d
+                        else:
+                            p2 = p1 - d
+                            
+                        if cell_pos in (1, 0):
+                            x1, x2 = self.get_p1_p2(rib_pos, cell_pos)
+                            plotpart.layers["marks"] += self.config.marks_attachment_point(x1, x2)
+                            plotpart.layers["L0"] += self.config.marks_laser_attachment_point(x1, x2)
+                        else:
+                            plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
+                            plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
                         
-                    if cell_pos in (1, 0):
-                        which = ["left", "right"][cell_pos]
-                        x1, x2 = self.get_p1_p2(rib_pos, which)
-                        plotpart.layers["marks"] += self.config.marks_attachment_point(x1, x2)
-                        plotpart.layers["L0"] += self.config.marks_laser_attachment_point(x1, x2)
-                    else:
-                        plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
-                        plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
-                    
-                    if self.config.insert_attachment_point_text and rib_pos_no == 0:
-                        text_align = "left" if cell_pos > 0.7 else "right"
+                        if self.config.insert_attachment_point_text and rib_pos_no == 0:
+                            text_align = "left" if cell_pos > 0.7 else "right"
 
-                        if text_align == "right":
-                            d1 = (self.get_point(cut_f_l)[0] - left).length()
-                            d2 = ((self.get_point(cut_b_l)[0] - left)).length()
-                        else:
-                            d1 = ((self.get_point(cut_f_r)[1] - right)).length()
-                            d2 = ((self.get_point(cut_b_r)[1] - right)).length()
+                            if text_align == "right":
+                                d1 = (self.get_point(cut_f_l)[0] - left).length()
+                                d2 = ((self.get_point(cut_b_l)[0] - left)).length()
+                            else:
+                                d1 = ((self.get_point(cut_f_r)[1] - right)).length()
+                                d2 = ((self.get_point(cut_b_r)[1] - right)).length()
 
-                        bl = self.ballooned[0]
-                        br = self.ballooned[1]
+                            bl = self.ballooned[0]
+                            br = self.ballooned[1]
 
-                        text_height = 0.01 * 0.8
-                        dmin = text_height + 0.001
+                            text_height = 0.01 * 0.8
+                            dmin = text_height + 0.001
 
-                        if d1 < dmin and d2 + d1 > 2*dmin:
-                            offset = dmin - d1
-                            ik = get_x_value(self.x_values, rib_pos)
-                            left = bl.get(bl.walk(ik, offset))
-                            right = br.get(br.walk(ik, offset))
-                        elif d2 < dmin and d1 + d2 > 2*dmin:
-                            offset = dmin - d2
-                            ik = get_x_value(self.x_values, rib_pos)
-                            left = bl.get(bl.walk(ik, -offset))
-                            right = br.get(br.walk(ik, -offset))
+                            if d1 < dmin and d2 + d1 > 2*dmin:
+                                offset = dmin - d1
+                                ik = get_x_value(self.x_values, rib_pos)
+                                left = bl.get(bl.walk(ik, offset))
+                                right = br.get(br.walk(ik, offset))
+                            elif d2 < dmin and d1 + d2 > 2*dmin:
+                                offset = dmin - d2
+                                ik = get_x_value(self.x_values, rib_pos)
+                                left = bl.get(bl.walk(ik, -offset))
+                                right = br.get(br.walk(ik, -offset))
 
-                        if self.config.layout_seperate_panels and self.panel.is_lower:
-                            # rotated later
-                            p2 = left
-                            p1 = right
-                            # text_align = text_align
-                        else:
-                            p1 = left
-                            p2 = right
-                            # text_align = text_align
-                        plotpart.layers["text"] += Text(" {} ".format(attachment_point.name), p1, p2,
-                                                        size=0.01,  # 1cm
-                                                        align=text_align, valign=0, height=0.8).get_vectors()
+                            if self.config.layout_seperate_panels and self.panel.is_lower:
+                                # rotated later
+                                p2 = left
+                                p1 = right
+                                # text_align = text_align
+                            else:
+                                p1 = left
+                                p2 = right
+                                # text_align = text_align
+                            plotpart.layers["text"] += Text(" {} ".format(attachment_point.name), p1, p2,
+                                                            size=0.01,  # 1cm
+                                                            align=text_align, valign=0, height=0.8).get_vectors()
+            else:
+                raise ValueError(f"invalid attachment point")
     
     def _insert_rigidfoils(self, plotpart):
         for rigidfoil in self.cell.rigidfoils:

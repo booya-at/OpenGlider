@@ -209,10 +209,10 @@ class Patterns(PatternsNew):
             straps = cell.straps[:]
             straps.sort(key=lambda strap: strap.get_average_x())
             for strap in straps:
-                strap.name = f"{cell_no+1}{get_name(abs(strap.center_left))}"
+                strap.name = f"{cell_no+1}{get_name(abs(strap.left.center))}"
 
             layers_between = {}
             diagonals = cell.diagonals[:]
             diagonals.sort(key=lambda diagonal: diagonal.get_average_x())
             for diagonal in diagonals:
-                diagonal.name = f"D{cell_no+1}{get_name(abs(diagonal.center_left))}"
+                diagonal.name = f"D{cell_no+1}{get_name(abs(diagonal.left.center))}"
