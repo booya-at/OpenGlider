@@ -493,8 +493,12 @@ class CellPlotMaker:
             outer_left = left_bal.offset(-self.config.allowance_general)
             outer_right = right_bal.offset(self.config.allowance_general)
 
-            outer_orig = [outer_left, outer_right]
-            outer = [l.fix_errors() for l in outer_orig]
+            outer_orig = [
+                left_bal.offset(-self.config.allowance_general, simple=True),
+                right_bal.offset(self.config.allowance_general, simple=True),
+            ]
+
+            outer = [l.fix_errors() for l in [outer_left, outer_right]]
 
             flattened_cell["outer"] = outer
             flattened_cell["outer_orig"] = outer_orig
