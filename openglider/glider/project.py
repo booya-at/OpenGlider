@@ -186,7 +186,6 @@ class GliderProject(object):
 
     def update_all(self):
         self.glider.get_glider_3d(self.glider_3d)
-        self.glider_3d.lineset.recalc()
 
     def get_data(self):
         area = self.glider_3d.area

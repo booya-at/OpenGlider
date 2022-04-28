@@ -1,6 +1,6 @@
 import math
 from turtle import pos
-from typing import List, TYPE_CHECKING, Set
+from typing import List, TYPE_CHECKING, Set, Union
 from black import out
 
 import euklid
@@ -8,7 +8,7 @@ from matplotlib.pyplot import plot
 from openglider import logging
 import openglider.glider
 from openglider.airfoil import get_x_value
-from openglider.glider.cell.elements import DiagonalSide
+from openglider.glider.cell.diagonals import DiagonalRib, DiagonalSide, TensionStrap
 from openglider.glider.cell.panel import PanelCut
 from openglider.glider.rib.elements import AttachmentPoint
 from openglider.glider.rib.rigidfoils import RigidFoilBase
@@ -59,7 +59,7 @@ class RibPlot(object):
         self._insert_attachment_points(glider)
         holes = self.insert_holes()
 
-        panel_cuts: Set[PanelCut] = set()
+        panel_cuts: Set[float] = set()
         for cell in glider.cells:
             if self.config.insert_design_cuts:
                 panels = cell.panels
@@ -72,7 +72,8 @@ class RibPlot(object):
                     panel_cuts.add(panel.cut_back.x_left)
 
                 # diagonals
-                for diagonal in cell.diagonals + cell.straps:
+                all_diagonals: List[Union[DiagonalRib, TensionStrap]] = cell.diagonals + cell.straps
+                for diagonal in all_diagonals:
                     self.insert_drib_mark(diagonal.left)
 
             elif cell.rib2 == self.rib:

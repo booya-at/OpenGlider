@@ -194,7 +194,7 @@ class Mesh(object):
 
     @property
     def bounding_box(self):
-        vertices = np.array(self.vertices)
+        vertices = np.array([list(p) for p in self.vertices])
         upper = np.max(vertices, 0)
         lower = np.min(vertices, 0)
         return lower, upper
@@ -572,10 +572,6 @@ class Mesh(object):
         return self
 
     def polygon_size(self):
-        size_min = float("inf")
-        size_max = float("-inf")
-
-        size_total = 0.
         polygons = self.get_all_polygons()
 
         polygon_sizes = [poly.area for poly in polygons if len(poly) in (3, 4)]

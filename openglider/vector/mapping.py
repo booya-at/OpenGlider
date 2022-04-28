@@ -21,7 +21,7 @@ class Quad:
         [1,0,1,0]  #p4: l=0, m=1
     ])
 
-    matrix_inverse: numpy.matrix = numpy.linalg.inv(matrix)
+    matrix_inverse: numpy.ndarray = numpy.linalg.inv(matrix)
 
     def __init__(self, p1, p2, p3, p4):
         self.nodes = [

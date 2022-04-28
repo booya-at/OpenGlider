@@ -33,7 +33,7 @@ class MaterialRegistry:
         if name in self.materials:
             return self.materials[name]
 
-        logger.warning(f"material not found: {name}")
+        #logger.warning(f"material not found: {name}")
 
         return self.base_type(name=name)
 

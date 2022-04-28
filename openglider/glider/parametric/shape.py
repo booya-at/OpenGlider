@@ -197,7 +197,10 @@ class ParametricShape:
         ribs = list(self.ribs)
         rib = ribs[rib_no]
 
-        return rib[0] + (rib[1] - rib[0]) * x
+        try:
+            return rib[0] + (rib[1] - rib[0]) * x
+        except TypeError:
+            return rib[0]
 
     def get_shape_point(self, x, y):
         k = x%1

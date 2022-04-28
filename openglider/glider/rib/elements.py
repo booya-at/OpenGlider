@@ -89,7 +89,7 @@ class CellAttachmentPoint(Node):
             "force": self.force
         }
 
-    def get_position(self) -> euklid.vector.Vector3D:
+    def get_position(self, glider=None) -> euklid.vector.Vector3D:
         ik = self.cell.rib1.profile_2d(self.rib_pos)
 
         if self.rib_pos in (-1, 1):
@@ -158,9 +158,9 @@ class AttachmentPoint(Node):
         
         return positions
 
-    def get_position(self) -> euklid.vector.Vector3D:
+    def get_position(self, glider=None) -> euklid.vector.Vector3D:
         # todo: PROFILE3D -> return euklid vector
-        self.vec = self.rib.profile_3d[self.rib.profile_2d(self.rib_pos)]
+        self.vec = self.rib.get_profile_3d(glider)[self.rib.profile_2d(self.rib_pos)]
         return self.vec
     
     def get_position_2d(self, shape: Shape, glider: "Glider") -> euklid.vector.Vector2D:

@@ -96,10 +96,10 @@ def get_glider_tables(glider: "ParametricGlider") -> List[Table]:
     return tables
 
 
-def export_ods_2d(glider: "ParametricGlider", filename):
+def export_ods_2d(glider: "ParametricGlider", filename: str):
     # airfoil sheet
-    doc = get_glider_tables(glider)
-    doc.saveas(filename)
+    tables = get_glider_tables(glider)
+    Table.save_tables(tables, filename)
 
 
 def get_airfoil_sheet(glider_2d) -> Table:
@@ -188,7 +188,7 @@ def get_ballooning_sheet(glider_2d) -> Table:
         table[0, 2*ballooning_no] = "ballooning_{}".format(ballooning_no)
         if type(ballooning) is BallooningBezierNeu:
             table[0, 2*ballooning_no+1] = "V3"
-            pts = ballooning.controlpoints
+            pts = list(ballooning.controlpoints)
         else:
             table[0, 2*ballooning_no+1] = "V2"
             pts = list(ballooning.upper_spline.controlpoints) + list(ballooning.lower_spline.controlpoints)

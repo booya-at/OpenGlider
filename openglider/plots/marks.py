@@ -12,7 +12,7 @@ class Mark(object):
         return self.__class__.__name__
     
     def __call__(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) ->  List[euklid.vector.PolyLine2D]:
-        raise NotImplemented()
+        raise NotImplemented
 
 class Empty(Mark):
     def __call__(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> List[euklid.vector.PolyLine2D]:

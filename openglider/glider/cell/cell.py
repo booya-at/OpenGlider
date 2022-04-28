@@ -1,4 +1,4 @@
-from __future__ import division
+from __future__ import annotations
 import copy
 import logging
 import math
@@ -13,7 +13,8 @@ import openglider.utils
 from openglider.airfoil import Profile3D
 from openglider.glider.ballooning.base import BallooningBase
 from openglider.glider.cell import BasicCell
-from openglider.glider.cell.elements import PanelRigidFoil, DiagonalRib, TensionStrap
+from openglider.glider.cell.diagonals import DiagonalRib, TensionStrap
+from openglider.glider.cell.elements import PanelRigidFoil
 from openglider.glider.cell.panel import Panel,PanelCut
 from openglider.glider.rib import Rib, MiniRib
 from openglider.mesh import Mesh, Polygon, Vertex

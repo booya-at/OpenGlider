@@ -1,10 +1,14 @@
+from __future__ import annotations
+
 import copy
 import re
+from typing import List
 
 try:
     import pyexcel_ods
 except ImportError:
     import pyexcel_ods3 as pyexcel_ods
+
 import ezodf
 
 
@@ -188,6 +192,15 @@ class Table:
     def save(self, path):
         doc = ezodf.newdoc(doctype="ods", filename=path)
         doc.sheets.append(self.get_ods_sheet())
+        doc.save()
+        return doc
+    
+    @classmethod
+    def save_tables(self, tables: List[Table], path: str):
+        doc = ezodf.newdoc(doctype="ods", filename=path)
+
+        for table in tables:
+            doc.sheets.append(table.get_ods_sheet())
         doc.save()
         return doc
 

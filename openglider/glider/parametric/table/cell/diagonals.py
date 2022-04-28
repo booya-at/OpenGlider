@@ -1,6 +1,6 @@
 from openglider.utils.table import Table
 from openglider.glider.parametric.table.elements import CellTable, Keyword
-from openglider.glider.cell.elements import DiagonalRib, DiagonalSide, TensionLine, TensionStrap
+from openglider.glider.cell.diagonals import DiagonalRib, DiagonalSide, TensionLine, TensionStrap
 
 import logging
 

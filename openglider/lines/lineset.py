@@ -108,7 +108,7 @@ class LineSet(object):
         for node in self.nodes:
             if node.type == Node.NODE_TYPE.UPPER:
                 node.force *= factor ** 2
-        self.recalc(update_attachment_points=False)
+        self.recalc()
         return self
 
     @property
@@ -208,7 +208,7 @@ class LineSet(object):
             mesh += line.get_mesh(numpoints)
         return mesh
 
-    def recalc(self, calculate_sag=True, update_attachment_points=True, iterations=5):
+    def recalc(self, calculate_sag=True, glider=None, iterations=5):
         """
         Recalculate Lineset Geometry.
         if LineSet.calculate_sag = True, drag induced sag will be calculated
@@ -224,10 +224,10 @@ class LineSet(object):
             for line in self.lines:
                 line.force = None
 
-        if update_attachment_points:
+        if glider is not None:
             logger.info("get positions")
             for point in self.attachment_points:
-                point.get_position()
+                point.get_position(glider)
 
         self.calculate_sag = calculate_sag
         

@@ -91,7 +91,7 @@ class UpperNode2D(object):
                 node.protoloops = 1
                 node.protoloop_distance = self.proto_dist
 
-        node.get_position()
+        node.get_position(glider)
         return node
 
 

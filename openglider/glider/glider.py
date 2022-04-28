@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import List, Dict, Any
 import copy
 import math
@@ -92,7 +94,7 @@ class Glider(object):
             cell.rib2 = replace_dict[cell.rib2]
         for att in self.attachment_points:
             att.rib = replace_dict[att.rib]
-            att.get_position()
+            att.get_position(self)
         
         self.lineset.recalc()
 
@@ -262,7 +264,7 @@ class Glider(object):
                 node.force *= [1, -1, 1]
         other2.lineset.lines += other.lineset.lines
         other2.lineset._set_line_indices()
-        other2.lineset.recalc()
+        other2.lineset.recalc(other2)
 
         # rename
         return other2

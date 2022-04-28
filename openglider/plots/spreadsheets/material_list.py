@@ -1,6 +1,6 @@
 from typing import Tuple, List
 
-from openglider.glider.cell.elements import DiagonalRib
+from openglider.glider.cell.diagonals import DiagonalRib
 from openglider.glider.cell.panel import Panel
 from openglider.utils.table import Table
 

@@ -15,7 +15,7 @@ def get_glider_data(project: GliderProject, consumption: Dict[str, MaterialUsage
     specsheet = project.get_data_table()
     glider = project.glider_3d
     #specsheet = get_specs(glider)
-    glider.lineset.recalc(iterations=30)
+    glider.lineset.recalc(glider=glider, iterations=30)
     linesheet = glider.lineset.get_table()
     linesheet2 = Table(name="lines_table")
 

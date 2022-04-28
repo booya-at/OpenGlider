@@ -5,8 +5,8 @@ from typing import Tuple, List
 import euklid
 import numpy as np
 from openglider.airfoil import get_x_value
-from openglider.glider.cell import DiagonalRib, Panel, PanelCut
-from openglider.glider.cell.elements import DiagonalSide
+from openglider.glider.cell.panel import Panel, PanelCut
+from openglider.glider.cell.diagonals import DiagonalSide, DiagonalRib
 from openglider.glider.rib.elements import AttachmentPoint
 from openglider.plots.config import PatternConfig
 from openglider.plots.glider.diagonal import DribPlot, StrapPlot
@@ -78,9 +78,7 @@ class PanelPlot(object):
         self.cut_back = cut_types[self.panel.cut_back.cut_type](allowance_back)
 
         inner_front = [(line, ik[0]) for line, ik in zip(self.inner, ik_values)]
-        self.front_curve = euklid.vector.PolyLine2D([line.get(ik) for line, ik in inner_front])
         inner_back = [(line, ik[1]) for line, ik in zip(self.inner, ik_values)]
-        self.back_curve = euklid.vector.PolyLine2D([line.get(ik) for line, ik in inner_back])
 
         shape_3d_amount_front = [-x for x in self.panel.cut_front.cut_3d_amount]
         shape_3d_amount_back = self.panel.cut_back.cut_3d_amount
@@ -159,14 +157,16 @@ class PanelPlot(object):
             ]
 
         # folding line
-        plotpart.layers["marks"] += [
-            euklid.vector.PolyLine2D([
+        self.front_curve = euklid.vector.PolyLine2D([
                 line.get(x) for line, x in zip(self.inner, cut_front_result.inner_indices)
-            ]),
-
-            euklid.vector.PolyLine2D([
+            ])
+        self.back_curve = euklid.vector.PolyLine2D([
                 line.get(x) for line, x in zip(self.inner, cut_back_result.inner_indices)
             ])
+
+        plotpart.layers["marks"] += [
+            self.front_curve,
+            self.back_curve
         ]
 
         # TODO

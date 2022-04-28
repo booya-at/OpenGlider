@@ -194,7 +194,7 @@ class ParametricGlider:
                 try:
                     material = materials[i]
                 except (KeyError, IndexError):
-                    logger.warning(f"No material for panel {cell_no}/{i+1}")
+                    #logger.warning(f"No material for panel {cell_no}/{i+1}")
                     material = openglider.materials.Material(name="unknown")
                 
                 i += 1
@@ -337,7 +337,7 @@ class ParametricGlider:
 
             if flap := self.tables.profiles.get_flap(rib_no):
                 logger.warning(f"add flap: {flap}")
-                profile = profile.add_flap(**flap)
+                profile = profile.add_flap(*flap)
 
             sharknose = self.tables.profiles.get_sharknose(rib_no)
 
@@ -418,7 +418,7 @@ class ParametricGlider:
 
         glider.lineset = self.lineset.return_lineset(glider, self.v_inf)
         #glider.lineset.iterate_target_length()
-        glider.lineset.recalc()
+        glider.lineset.recalc(glider=glider)
         glider.lineset.rename_lines()
 
         return glider
