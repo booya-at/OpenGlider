@@ -1,20 +1,10 @@
 from typing import List, Dict, Tuple, Optional, Union
-import re
-import os
 import csv
-import copy
 import logging
 
-import euklid
-
-from openglider.lines.functions import proj_force
-from openglider.lines.elements import Node, SagMatrix, Line
 from openglider.lines.line_types.linetype import LineType
-from openglider.mesh import Mesh
-from openglider.utils.table import Table
 
 logger = logging.getLogger(__name__)
-
 
 
 class KnotCorrections:

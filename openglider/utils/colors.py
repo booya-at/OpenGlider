@@ -35,7 +35,7 @@ class Color:
         
         r,g,b = [int(x, base=16)*factor for x in rgb]
 
-        return cls(r, g, b)
+        return cls(r, g, b, name=f"#{hex}")
     
 
 def colorwheel(num):

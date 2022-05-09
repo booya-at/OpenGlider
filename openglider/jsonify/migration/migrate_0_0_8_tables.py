@@ -74,7 +74,7 @@ def get_hole_table(holes):
 
 
 def get_diagonals_table(diagonals):
-    from openglider.glider.cell.elements import DiagonalRib
+    from openglider.glider.cell.rigidfoil import DiagonalRib
 
 
     table = Table()

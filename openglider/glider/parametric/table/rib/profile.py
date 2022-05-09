@@ -73,7 +73,7 @@ class ProfileTable(RibTable):
             merge = merge_factors[-1]
         
         if len(scale_factors):
-            scale = scale_factors[-1]
+            scale = scale_factors[-1]["thickness_factor"]
 
         return merge, scale
 

@@ -65,8 +65,8 @@ class GibusArcs:
 class CellAttachmentPoint(Node):
     ballooned=False
 
-    def __init__(self, cell, name, cell_pos, rib_pos, force=None, offset=None):
-        super().__init__(node_type=self.NODE_TYPE.UPPER)
+    def __init__(self, cell, name, cell_pos, rib_pos, force=None, offset=None, node_type=Node.NODE_TYPE.UPPER):
+        super().__init__(node_type=node_type, force=force)
         self.cell = cell
         self.cell_pos = cell_pos
         self.rib_pos = rib_pos
@@ -109,8 +109,8 @@ class CellAttachmentPoint(Node):
 
 # Node from lines
 class AttachmentPoint(Node):
-    def __init__(self, rib, name, rib_pos, force=None, offset=None, protoloops=0, protoloop_distance=0.02, protoloop_distance_absolute=True):
-        super().__init__(node_type=self.NODE_TYPE.UPPER)
+    def __init__(self, rib, name, rib_pos, force=None, offset=None, protoloops=0, protoloop_distance=0.02, protoloop_distance_absolute=True, node_type=Node.NODE_TYPE.UPPER):
+        super().__init__(node_type=node_type, force=force)
         self.rib = rib
         self.rib_pos = rib_pos
         self.name = name

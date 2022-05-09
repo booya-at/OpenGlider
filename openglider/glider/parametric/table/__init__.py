@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class GliderTables:
+    curves: CurveTable
     cuts: CutTable
     ballooning_factors: BallooningTable
     holes: HolesTable
@@ -118,8 +119,7 @@ class GliderTables:
 
         for name in self.__annotations__.keys():
             table = getattr(self, name).table
-            if not table.name:
-                table.name = name
+            table.name = name
             
             tables.append(table)
         

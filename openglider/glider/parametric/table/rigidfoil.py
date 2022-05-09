@@ -1,6 +1,6 @@
 from openglider.glider.parametric.table.elements import CellTable, RibTable, Keyword
 
-from openglider.glider.cell.elements import PanelRigidFoil
+from openglider.glider.cell.rigidfoil import PanelRigidFoil
 from openglider.glider.rib.rigidfoils import RigidFoil, RigidFoil2
 
 import logging

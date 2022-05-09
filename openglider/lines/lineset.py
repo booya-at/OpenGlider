@@ -7,7 +7,9 @@ import re
 from typing import Dict, List, Optional, Tuple, Union
 
 import euklid
-from openglider.lines.elements import Line, Node, SagMatrix
+from openglider.lines.node import Node
+from openglider.lines.line import Line
+from openglider.lines.elements import SagMatrix
 from openglider.lines.functions import proj_force
 from openglider.lines.knots import KnotCorrections
 from openglider.lines.line_types.linetype import LineType
@@ -425,14 +427,12 @@ class LineSet(object):
         iterative method to satisfy the target length
         """
         self.recalc()
-        for i in range(steps):
+        for _ in range(steps):
             for l in self.lines:
                 if l.target_length is not None:
                     diff = self.get_line_length(l).get_length() - l.target_length
-                    #diff = l.get_stretched_length(pre_load) - l.target_length
                     l.init_length -= diff
-                    #l.init_length = l.target_length * l.init_length / l.get_stretched_length(pre_load)
-            self.recalc(update_attachment_points=False)
+            self.recalc()
 
     def _set_line_indices(self):
         for i, line in enumerate(self.lines):

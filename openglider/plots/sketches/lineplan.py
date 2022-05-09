@@ -5,11 +5,11 @@ from openglider.vector.drawing import PlotPart
 
 
 class LinePlan(ShapePlot):
-    def insert_lines(self):
-        self.insert_design(lower=True)
-        self.insert_design(lower=True, left=True)
-        self.insert_attachment_points(True)
-        self.insert_attachment_points(True, left=True)
+    def draw_lines(self):
+        self.draw_design(lower=True)
+        self.draw_design(lower=True, left=True)
+        self.draw_attachment_points(True)
+        self.draw_attachment_points(True, left=True)
 
         lower = self.glider_2d.lineset.get_lower_attachment_points()
 

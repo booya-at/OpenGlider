@@ -16,6 +16,7 @@ from openglider.vector.text import Text
 
 
 class Layout(object):
+    parts: List[PlotPart]
     point_width: Optional[float] = None
     layer_config = {
         "cuts": {
@@ -303,18 +304,27 @@ class Layout(object):
 
     @property
     def min_x(self):
+        if len(self.parts) == 0:
+            return 0
         return min([part.min_x for part in self.parts])
+        
 
     @property
     def max_x(self):
+        if len(self.parts) == 0:
+            return 0
         return max([part.max_x for part in self.parts])
 
     @property
     def min_y(self):
+        if len(self.parts) == 0:
+            return 0
         return min([part.min_y for part in self.parts])
 
     @property
     def max_y(self):
+        if len(self.parts) == 0:
+            return 0
         return max([part.max_y for part in self.parts])
 
     @property

@@ -91,7 +91,7 @@ def get_glider_tables(glider: "ParametricGlider") -> List[Table]:
     tables.append(get_lines_sheet(glider))
     tables.append(get_data_sheet(glider))
 
-    tables.append(glider.curves.table)
+    tables.append(glider.tables.curves.table)
 
     return tables
 

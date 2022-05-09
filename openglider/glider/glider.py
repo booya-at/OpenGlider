@@ -17,6 +17,7 @@ from openglider.utils import consistent_value
 from openglider.utils.distribution import Distribution
 from openglider.vector.projection import flatten_list
 from openglider.lines.lineset import LineSet
+from openglider.lines.node import Node
 
 class Glider(object):
     cell_naming_scheme = "c{cell_no}"
@@ -430,7 +431,7 @@ class Glider(object):
 
     def get_attachment_point_layers(self) -> Dict[str, euklid.vector.Interpolation]:
         regex = re.compile(r"([a-zA-Z]+)([0-9]+)")
-        attachment_point_per_group = {}
+        attachment_point_per_group: Dict[str, Node] = {}
 
         for point in self.lineset.attachment_points:
             if match := regex.match(point.name):

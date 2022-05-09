@@ -1,14 +1,14 @@
-from typing import Dict
 import ast
 import logging
 import re
+from typing import Dict
 
 import euklid
 import openglider
-from openglider.utils.table import Table
-from openglider.glider.parametric.table.elements import CellTable, RibTable, Keyword
-
 from openglider.glider.parametric.lines import UpperNode2D
+from openglider.glider.parametric.table.elements import (CellTable, Keyword,
+                                                         RibTable)
+from openglider.utils.table import Table
 
 logger = logging.getLogger(__name__)
 

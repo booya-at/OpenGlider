@@ -47,7 +47,7 @@ class RibPlot(object):
 
         #self.plotpart = self.x_values = self.inner = self.outer = None
 
-    def flatten(self, glider: "Glider"):
+    def flatten(self, glider: "Glider", add_rigidfoils_to_plot=True):
         self.plotpart = PlotPart(name=self.rib.name, material_code=str(self.rib.material))
         prof2d = self.rib.get_hull(glider)
 
@@ -105,7 +105,9 @@ class RibPlot(object):
 
         rigidfoils = self.draw_rigidfoils(glider)
         rigidfoils.move([-(rigidfoils.max_x-self.plotpart.min_x+0.2), 0])
-        self.plotpart += rigidfoils
+
+        if add_rigidfoils_to_plot:
+            self.plotpart += rigidfoils
 
         return self.plotpart
 
@@ -249,7 +251,7 @@ class RibPlot(object):
 
         self.plotpart.layers[self.layer_name_text] += _text.get_vectors()
     
-    def draw_rigidfoils(self, glider: "Glider"):
+    def draw_rigidfoils(self, glider: "Glider") -> PlotPart:
         plotpart = PlotPart()
 
         controlpoints = []
@@ -260,12 +262,12 @@ class RibPlot(object):
             curve = rigidfoil.get_flattened(self.rib, glider)
 
             # add marks into the profile
-            self.plotpart.layers[self.layer_name_marks].append(curve)
+            self.plotpart.layers[self.layer_name_rigidfoils].append(curve)
             self.plotpart.layers[self.layer_name_laser_dots].append(euklid.vector.PolyLine2D([curve.get(0)]))
             self.plotpart.layers[self.layer_name_laser_dots].append(euklid.vector.PolyLine2D([curve.get(len(curve)-1)]))
 
-            inner = curve.offset(-0.01)
-            outer = curve.offset(0.01)
+            inner = curve.offset(-self.config.allowance_general)
+            outer = curve.offset(self.config.allowance_general)
 
             plotpart.layers[self.layer_name_marks].append(curve)
 

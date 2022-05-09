@@ -10,7 +10,7 @@ from openglider.airfoil import Profile2D
 from openglider.glider.ballooning.base import BallooningBase
 from openglider.glider.ballooning.new import BallooningBezierNeu
 from openglider.glider.cell import Cell, DiagonalRib, Panel, PanelCut, TensionLine, TensionStrap
-from openglider.glider.cell.elements import PanelRigidFoil
+from openglider.glider.cell.rigidfoil import PanelRigidFoil
 from openglider.glider.glider import Glider
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.export_ods import export_ods_2d
@@ -46,7 +46,6 @@ class ParametricGlider:
     speed: float
     glide: float
     tables: GliderTables = field(default_factory=lambda: GliderTables())
-    curves: CurveTable = field(default_factory=lambda: CurveTable(Table()))
     zrot: SymmetricCurveType = field(default_factory=lambda: euklid.spline.SymmetricBSplineCurve([[0,0],[1,0]]))
 
     num_interpolate: int=30
@@ -138,7 +137,7 @@ class ParametricGlider:
         return airfoil
 
     def get_curves(self):
-        return self.curves.get_curves(self.shape.get_half_shape())
+        return self.tables.curves.get_curves(self.shape.get_half_shape())
 
     def get_panels(self, glider_3d=None) -> List[List[Panel]]:
         """
@@ -332,7 +331,18 @@ class ParametricGlider:
 
             chord = abs(front[1]-back[1])
             factor = profile_merge_values[rib_no]
+
+            merge_factor, scale_factor = self.tables.profiles.get_factors(rib_no)
+
+            if merge_factor is not None:
+                factor = merge_factor
+
             profile = self.get_merge_profile(factor).set_x_values(profile_x_values)
+
+
+            if scale_factor is not None:
+                profile = profile.set_thickness(profile.thickness * scale_factor)
+
             profile.name = "Profile{}".format(rib_no)
 
             if flap := self.tables.profiles.get_flap(rib_no):

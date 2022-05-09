@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import List
 import numpy as np
 
@@ -78,14 +79,14 @@ class Distribution(HashedList):
             start_ind = self.insert_value(value, start_ind)
 
     @classmethod
-    def from_linear(cls, numpoints, start=-1, stop=1):
+    def from_linear(cls, numpoints, start=-1, stop=1) -> Distribution:
         """
         Get a linear distribution
         """
         return cls([start + (stop - start)/numpoints * i for i in range(numpoints)])
 
     @classmethod
-    def from_polynom_distribution(cls, numpoints, order=2):
+    def from_polynom_distribution(cls, numpoints, order=2) -> Distribution:
         """
         return a polynom distribution
         f(x) = +- x^p, 0 < x < 1
@@ -97,7 +98,7 @@ class Distribution(HashedList):
         return cls(first_half + second_half)
 
     @classmethod
-    def from_cos_distribution(cls, numpoints):
+    def from_cos_distribution(cls, numpoints) -> Distribution:
         """
         return cosinus distributed x-values
         low density at (-1) and (+1) but neat around 0
@@ -107,7 +108,7 @@ class Distribution(HashedList):
         return cls([xtemp(i/numpoints) for i in range(numpoints+1)])
 
     @classmethod
-    def from_cos_2_distribution(cls, numpoints, arg=None):
+    def from_cos_2_distribution(cls, numpoints, arg=None) -> Distribution:
         """
         return cosinus distributed x-values
         double-cosinus -> neat distribution at nose and trailing edge
@@ -117,7 +118,7 @@ class Distribution(HashedList):
         return cls([xtemp(i/numpoints) for i in range(numpoints+1)])
 
     @classmethod
-    def create_cos_distribution(cls, factor: float):
+    def create_cos_distribution(cls, factor: float) -> Distribution:
         def new_distribution(parent, numpoints, *arg, **kwarg):
             numpoints -= numpoints % 2
             
@@ -130,7 +131,7 @@ class Distribution(HashedList):
         return new_distribution
 
     @classmethod
-    def create_cos_distribution_2(cls, factor_front: float, factor_back):
+    def create_cos_distribution_2(cls, factor_front: float, factor_back) -> Distribution:
         def new_distribution(parent, numpoints, *arg, **kwarg):
             numpoints -= numpoints % 2
             
@@ -149,7 +150,7 @@ class Distribution(HashedList):
         return new_distribution
 
     @classmethod
-    def from_nose_cos_distribution(cls, numpoints, border=0.5):
+    def from_nose_cos_distribution(cls, numpoints, border=0.5) -> Distribution:
         """
         from cos distribution at leading edge, to a const distribution at +- 1
         """

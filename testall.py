@@ -36,12 +36,14 @@ def test():
     print("return: "+str(not test_results.wasSuccessful()))
     sys.exit(not test_results.wasSuccessful())
 
-def test_typings():
+def test_typings() -> int:
     import mypy.api
-    stdout = mypy.api.run(["--config-file", "mypy.ini", "openglider"])
-    print(stdout[0])
-    return stdout[1]
+    stdout, _, return_value = mypy.api.run(["--config-file", "mypy.ini", "openglider"])
+    print(stdout)
+    return return_value
     
 if __name__ == "__main__":
-    #test_typings()
+    if test_typings():
+        sys.exit(1)
+    
     test()

@@ -18,12 +18,14 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import division
 import logging
-import traceback
+import euklid
+from typing import Optional
+
 logger = logging.getLogger(__name__)
 
-def proj_force(force, vec):
+
+def proj_force(force: euklid.vector.Vector3D, vec: euklid.vector.Vector3D) -> Optional[float]:
     projection = vec.dot(force)
     try:
         assert projection**2 >= 0.00001
@@ -33,5 +35,5 @@ def proj_force(force, vec):
     return force.dot(force) / projection
 
 
-def proj_to_surface(vec, n_vec):
+def proj_to_surface(vec: euklid.vector.Vector3D, n_vec: euklid.vector.Vector3D):
     return vec - n_vec * n_vec.dot(vec) / n_vec.dot(n_vec)

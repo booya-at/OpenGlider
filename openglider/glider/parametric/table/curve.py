@@ -6,8 +6,8 @@ import openglider.glider.curve
 
 
 class CurveTable:
-    def __init__(self, table: Table):
-        self.table = table
+    def __init__(self, table: Table=None):
+        self.table = table or Table()
 
     def __json__(self):
         return {

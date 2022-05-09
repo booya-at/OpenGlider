@@ -1,32 +1,27 @@
 from __future__ import annotations
+
 import copy
 import logging
 import math
-from typing import Callable, List, Dict
-import string
-import numpy as np
-import euklid
-import pyfoil
+from typing import Dict, List
 
-import openglider.vector
+import euklid
+import numpy as np
 import openglider.utils
+import openglider.vector
+import pyfoil
 from openglider.airfoil import Profile3D
 from openglider.glider.ballooning.base import BallooningBase
 from openglider.glider.cell import BasicCell
 from openglider.glider.cell.diagonals import DiagonalRib, TensionStrap
-from openglider.glider.cell.elements import PanelRigidFoil
-from openglider.glider.cell.panel import Panel,PanelCut
-from openglider.glider.rib import Rib, MiniRib
+from openglider.glider.cell.rigidfoil import PanelRigidFoil
+from openglider.glider.cell.panel import Panel, PanelCut
+from openglider.glider.rib import MiniRib, Rib
 from openglider.mesh import Mesh, Polygon, Vertex
 from openglider.utils import consistent_value, linspace
-from openglider.utils.cache import (
-    CachedObject,
-    HashedList,
-    cached_function,
-    cached_property, hash_list,
-)
+from openglider.utils.cache import (HashedList, cached_function,
+                                    cached_property, hash_list)
 from openglider.utils.dataclass import dataclass, field
-
 
 logger = logging.getLogger(__file__)
 
@@ -107,7 +102,7 @@ class Cell:
     def basic_cell(self) -> BasicCell:
         return BasicCell(self.rib1.profile_3d, self.rib2.profile_3d, self.ballooning_phi)
 
-    def get_normvector(self):
+    def get_normvector(self) -> euklid.vector.Vector3D:
         p1 = self.rib1.point(-1)
         p2 = self.rib2.point(0)
 
@@ -482,8 +477,8 @@ class Cell:
             l_0 = get_length(i, i)
 
             if False:
-                pl_2 = get_point(p1, p2, l_0, d_l, get_length(i+1, i))
                 pr_2 = get_point(p2, pl_2, get_length(i+1, i), d_r, get_length(i+1, i+1), left=False)
+                pl_2 = get_point(p1, p2, l_0, d_l, get_length(i+1, i))
             else:
                 pr_2 = get_point(p2, p1, l_0, d_r, get_length(i, i+1), left=False)
                 pl_2 = get_point(p1, pr_2, get_length(i, i+1), d_l, get_length(i+1, i+1))

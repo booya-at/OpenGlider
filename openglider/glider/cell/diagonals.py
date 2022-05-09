@@ -17,6 +17,9 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class DiagonalSide:
+    """
+    Connection between a diagonal and a rib
+    """
     start_x: float
     start_height: float
 
@@ -55,8 +58,6 @@ class DiagonalSide:
     def center(self):
         return (self.start_x + self.end_x)/2
 
-
-    
     def get_curve(self, rib: "Rib") -> euklid.vector.PolyLine3D:
             # Is it at 0 or 1?
             if self.is_lower or self.is_upper:
@@ -76,8 +77,6 @@ class DiagonalSide:
                     rib.align(rib.profile_2d.align([self.start_x, self.start_height])),
                     rib.align(rib.profile_2d.align([self.end_x, self.end_height]))
                 ])
-
-
 
 
 @dataclass
@@ -246,10 +245,6 @@ class DiagonalRib:
         return average x value for sorting
         """
         return (self.left.center + self.right.center)/2
-
-
-class DoubleDiagonalRib(object):
-    pass  # TODO
 
 
 class TensionStrap(DiagonalRib):

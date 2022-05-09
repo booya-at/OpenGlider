@@ -52,24 +52,24 @@ class PatternsNew:
     def _get_sketches(self) -> List[Layout]:
         import openglider.plots.sketches as sketch
         shapeplot = sketch.ShapePlot(self.project)
-        design_upper = shapeplot.copy().insert_design(lower=True)
-        design_upper.insert_cell_names()
-        design_lower = shapeplot.copy().insert_design(lower=False)
+        design_upper = shapeplot.copy().draw_design(lower=True)
+        design_upper.draw_cell_names()
+        design_lower = shapeplot.copy().draw_design(lower=False)
 
         lineplan = shapeplot.copy()
-        lineplan.insert_design(lower=True)
-        lineplan.insert_attachment_points()
-        lineplan.insert_rib_numbers()
+        lineplan.draw_design(lower=True)
+        lineplan.draw_attachment_points()
+        lineplan.draw_rib_numbers()
 
         diagonals = sketch.ShapePlot(self.project)
-        diagonals.insert_cells()
-        diagonals.insert_attachment_points(add_text=False)
-        diagonals.insert_diagonals()
+        diagonals.draw_cells()
+        diagonals.draw_attachment_points(add_text=False)
+        diagonals.draw_diagonals()
 
         straps = sketch.ShapePlot(self.project)
-        straps.insert_cells()
-        straps.insert_attachment_points(add_text=False)
-        straps.insert_straps()
+        straps.draw_cells()
+        straps.draw_attachment_points(add_text=False)
+        straps.draw_straps()
 
         drawings: List[Layout] = [design_upper.drawing, design_lower.drawing, lineplan.drawing, diagonals.drawing, straps.drawing]
 

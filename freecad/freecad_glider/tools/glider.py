@@ -8,7 +8,7 @@ import FreeCAD as App
 import openglider
 from openglider import jsonify, mesh
 from openglider.glider import ParametricGlider
-from openglider.glider.cell.elements import TensionLine
+from openglider.glider.cell.rigidfoil import TensionLine
 from openglider.airfoil.profile_2d import Profile2D
 
 from pivy import graphics

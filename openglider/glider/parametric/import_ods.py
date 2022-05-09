@@ -125,18 +125,6 @@ def import_ods_glider(tables: List[Table]) -> "ParametricGlider":
 
     attachment_points_lower = get_lower_aufhaengepunkte(data_dct)
 
-    # RIB HOLES
-    rib_holes = HolesTable(rib_sheet)
-    rigidfoils = RibRigidTable(rib_sheet)
-    cell_rigidfoils = CellRigidTable(cell_sheet)
-    cuts = CutTable(cell_sheet)
-
-    # Diagonals: center_left, center_right, width_l, width_r, height_l, height_r
-    diagonals = DiagonalTable(cell_sheet, file_version)
-    straps = StrapTable(cell_sheet)
-
-    miniribs = MiniRibTable(cell_sheet)
-
     lineset_table = tables[6]
     lineset = LineSet2D.read_input_table(lineset_table, attachment_points_lower, attachment_points)
     lineset.set_default_nodes2d_pos(geometry["shape"])
@@ -144,27 +132,24 @@ def import_ods_glider(tables: List[Table]) -> "ParametricGlider":
         name: value for name, value in data_dct.pop("trim_correction", [])
     }
 
-    ballooning_factors = BallooningTable(cell_sheet)
-    skin_ribs = SingleSkinTable(rib_sheet)
-
     glider_tables = GliderTables()
-    glider_tables.cuts = cuts
-    glider_tables.ballooning_factors = ballooning_factors
-    glider_tables.holes = rib_holes
-    glider_tables.diagonals = diagonals
-    glider_tables.rigidfoils_rib = rigidfoils
-    glider_tables.rigidfoils_cell = cell_rigidfoils
-    glider_tables.straps = straps
+    glider_tables.curves = curves
+    glider_tables.cuts = CutTable(cell_sheet)
+    glider_tables.ballooning_factors = BallooningTable(cell_sheet)
+    glider_tables.holes = HolesTable(rib_sheet)
+    glider_tables.diagonals = DiagonalTable(cell_sheet, file_version)
+    glider_tables.rigidfoils_rib = RibRigidTable(rib_sheet)
+    glider_tables.rigidfoils_cell = CellRigidTable(cell_sheet)
+    glider_tables.straps = StrapTable(cell_sheet)
     glider_tables.material_cells = CellClothTable(cell_sheet)
     glider_tables.material_ribs = RibClothTable(rib_sheet)
-    glider_tables.miniribs = miniribs
-    glider_tables.rib_modifiers = skin_ribs
+    glider_tables.miniribs = MiniRibTable(cell_sheet)
+    glider_tables.rib_modifiers = SingleSkinTable(rib_sheet)
     glider_tables.profiles = ProfileTable(rib_sheet)
     glider_tables.attachment_points_rib = AttachmentPointTable(rib_sheet)
     glider_tables.attachment_points_cell = CellAttachmentPointTable(cell_sheet)
     
     glider_2d = ParametricGlider(tables=glider_tables,
-                         curves=curves,
                          profiles=profiles,
                          balloonings=balloonings,
                          lineset=lineset,

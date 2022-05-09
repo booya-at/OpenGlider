@@ -5,16 +5,10 @@ import math
 from typing import TYPE_CHECKING, List, Tuple, Optional, Union
 
 import euklid
-import numpy as np
-import openglider
-import openglider.jsonify
 import openglider.mesh as mesh
-import openglider.vector
 from openglider.airfoil import get_x_value
 from openglider.materials import Material, cloth
 from openglider.utils.cache import cached_function, hash_list
-from openglider.utils.config import Config
-from openglider.vector.mapping import Mapping
 from openglider.utils.dataclass import dataclass, field
 
 if TYPE_CHECKING:
@@ -22,6 +16,7 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class PanelCut:

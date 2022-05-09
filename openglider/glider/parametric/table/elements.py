@@ -91,7 +91,7 @@ class ElementTable(Generic[ElementType]):
                     try:
                         element = self.get_element(row_no-1, keyword, data, **kwargs)
                     except Exception as e:
-                        raise ValueError(f"failed to get element ({keyword}: {row_no-1}, ({data}) {e}")
+                        raise ValueError(f"failed to get element ({keyword}: {row_no-1}, ({data}) {e}") from e
                         
                     elements.append(element)
         

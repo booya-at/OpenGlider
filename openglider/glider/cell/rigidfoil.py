@@ -79,8 +79,3 @@ class PanelRigidFoil:
             cuts=[contour],
             marks=marks
         )
-
-
-
-
-    
