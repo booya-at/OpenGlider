@@ -653,6 +653,20 @@ class LineSet(object):
             knot_correction,
             self.trim_corrections.get(line.name, 0)
         )
+    
+    def get_checklength(self, node: Node, with_sag=True) -> float:
+        length = 0
+        last_node = node
+        while lines := self.get_lower_connected_lines(last_node):
+            if len(lines) != 1:
+                raise ValueError(f"more than one line connected!")
+            line_length = self.get_line_length(lines[0])
+
+            length += line_length.get_checklength()
+            
+            last_node = lines[0].lower_node
+        
+        return length
 
     def get_table(self) -> Table:
         length_table = self._get_lines_table(lambda line: [round(self.get_line_length(line).get_length()*1000)])

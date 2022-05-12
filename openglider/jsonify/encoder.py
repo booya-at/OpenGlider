@@ -34,4 +34,7 @@ class Encoder(json.JSONEncoder):
             else:
                 return result
         else:
-            return super(Encoder, self).default(obj)
+            try:
+                return super(Encoder, self).default(obj)
+            except TypeError as e:
+                raise TypeError(f"can not convert {obj}") from e

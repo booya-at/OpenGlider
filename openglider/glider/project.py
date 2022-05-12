@@ -44,7 +44,7 @@ class GliderProject(object):
     
     @classmethod
     def __from_json__(cls, **kwargs):
-        changelog = kwargs["changelog"]
+        changelog = kwargs.get("changelog", [])
         changelog_new = []
         for dt_str, value1, value2 in changelog:
             dt = datetime.datetime.fromisoformat(dt_str)
@@ -120,6 +120,9 @@ class GliderProject(object):
 
         table["A12"] = "Att. x (relative to chord)"
         table["B12"] = f"{x_rel:.01f} %"
+
+        table["A13"] = "Trailing edge Length"
+        table["B13"] = f"{self.glider_3d.trailing_edge_length:.03f}"
 
         return table
 

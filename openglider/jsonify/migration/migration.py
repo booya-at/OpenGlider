@@ -78,6 +78,13 @@ class Migration:
         return migrations
     
     @classmethod
+    def refactor(cls, jsondata, target_module, name=r".*", module=r".*"):
+        for node in cls.find_nodes(jsondata, name, module):
+            node["_module"] = target_module
+        
+        return jsondata
+    
+    @classmethod
     def find_nodes(cls, jsondata, name=r".*", module=r".*"):
         """
         Find nodes recursive

@@ -473,7 +473,7 @@ class Glider(object):
             points += self.lineset.get_upper_influence_nodes(line)
         return points
 
-    def get_main_attachment_point(self):
+    def get_main_attachment_point(self) -> Node:
         """
         convention: "main" in main-attachment-point-name
         """

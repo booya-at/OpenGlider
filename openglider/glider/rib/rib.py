@@ -256,6 +256,14 @@ class Rib(CachedObject):
             
             return pyfoil.Airfoil(envelope)
 
+    def get_projection(self, point: euklid.vector.Vector3D):
+        p1 = self.align([0,0])
+        p2 = self.align([1,0])
+
+        d1 = point - p1
+        d2 = p2 - p1
+        return d1.dot(d2) / d2.dot(d2)
+
         
     def get_rigidfoils(self):
         if self.sharknose is not None:

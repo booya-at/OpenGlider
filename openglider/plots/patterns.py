@@ -59,7 +59,7 @@ class PatternsNew:
         lineplan = shapeplot.copy()
         lineplan.draw_design(lower=True)
         lineplan.draw_attachment_points()
-        lineplan.draw_rib_numbers()
+        lineplan.draw_rib_names()
 
         diagonals = sketch.ShapePlot(self.project)
         diagonals.draw_cells()
