@@ -70,7 +70,11 @@ class Glider(object):
                 att.cell = cells_new[att.cell]
             
             att.get_position()
-        return cls(cells_new, lineset=lineset)
+
+        glider = cls(cells_new, lineset=lineset)
+        #glider.lineset.recalc(calculate_sag= True, glider=glider)
+
+        return glider
 
     def __repr__(self):
         return """
