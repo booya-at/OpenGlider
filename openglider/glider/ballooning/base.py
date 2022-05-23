@@ -37,6 +37,31 @@ class ArcSinc:
 class BallooningBase():
     arcsinc = ArcSinc()
 
+    def draw(self) -> euklid.vector.PolyLine2D:
+        points = []
+        last_point = None
+
+        upper = euklid.vector.Vector2D([-1, 1])
+        lower = euklid.vector.Vector2D([1, -1])
+
+        for p in self:
+            if p[0] < 0:
+                points.append(p * upper)
+            else:
+                if last_point and last_point[0] < 0:
+                    amount_at_zero = self[0]
+                    points.append(euklid.vector.Vector2D([0, amount_at_zero]))
+                    points.append(euklid.vector.Vector2D([0, -amount_at_zero]))
+                
+                points.append(p * lower)
+            
+            last_point = p
+        
+        return euklid.vector.PolyLine2D(points)
+
+    def __iter__(self):
+        raise NotImplementedError(f"no iter method defined on {self.__class__}")
+
     def __call__(self, xval: float):
         return self.get_phi(xval)
 

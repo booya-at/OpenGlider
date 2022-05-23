@@ -68,6 +68,7 @@ class Layout(object):
 
     def __init__(self, parts=None):
         self.parts = parts or []
+        self.layer_config = self.layer_config.copy()
 
     def __iter__(self):
         return iter(self.parts)

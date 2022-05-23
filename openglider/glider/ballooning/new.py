@@ -24,6 +24,8 @@ class BallooningNew(BallooningBase):
 
         return cls(_interpolation, name)
 
+    def __iter__(self):
+        return self.interpolation.__iter__()
 
     def __getitem__(self, xval):
         """Get Ballooning Value (%) for a certain XValue"""

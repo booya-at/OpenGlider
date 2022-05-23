@@ -54,8 +54,9 @@ class GliderProject(object):
         kwargs["changelog"] = changelog_new
 
         return cls(**kwargs)
-            
-        
+    
+    def __hash__(self) -> int:
+        return hash(self.modified.timestamp)       
 
     
     @property

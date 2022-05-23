@@ -10,6 +10,7 @@ import euklid
 
 import openglider
 
+from openglider.glider.rib.rib import Rib
 from openglider.glider.cell.cell import Cell
 from openglider.glider.shape import Shape
 from openglider.mesh import Mesh
@@ -322,7 +323,7 @@ class Glider(object):
         return [rib.pos[1:] for rib in self.ribs]
 
     @property
-    def ribs(self):
+    def ribs(self) -> List[Rib]:
         ribs = []
         for cell in self.cells:
             for rib in cell.ribs:
