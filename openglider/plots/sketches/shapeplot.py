@@ -77,7 +77,6 @@ class ShapePlot(object):
             self.shape_l = self.shape_r.copy().scale(x=-1)
             self.shapes = [self.shape_r, self.shape_l]
         if config != self.config or force:
-            logger.info("needs redraw")
             self.drawing = Layout()
 
             for layer_name, show_layer in config.view_layers().items():

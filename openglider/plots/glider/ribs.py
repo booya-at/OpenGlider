@@ -226,8 +226,6 @@ class RibPlot(object):
 
                 positions = attachment_point.get_x_values(self.rib)
 
-                logger.info(positions)
-
                 for position in positions:
                     self.insert_mark(position, self.config.marks_attachment_point)
                     self.insert_mark(position, self.config.marks_laser_attachment_point, laser=True)

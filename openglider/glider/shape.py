@@ -88,7 +88,6 @@ class Shape(object):
         self.scale(factor, factor)
 
     def scale(self, x: float=1, y: float =1.) -> "Shape":
-        logger.warning(f"deprecation: Shape scale!")
         self.front = self.front.scale(euklid.vector.Vector2D([x, y]))
         self.back = self.back.scale(euklid.vector.Vector2D([x, y]))
 

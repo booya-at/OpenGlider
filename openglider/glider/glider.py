@@ -1,4 +1,5 @@
 from __future__ import annotations
+import logging
 
 from typing import List, Dict, Any
 import copy
@@ -19,6 +20,10 @@ from openglider.utils.distribution import Distribution
 from openglider.vector.projection import flatten_list
 from openglider.lines.lineset import LineSet
 from openglider.lines.node import Node
+
+
+logger = logging.getLogger(__name__)
+
 
 class Glider(object):
     cell_naming_scheme = "c{cell_no}"
@@ -482,11 +487,8 @@ class Glider(object):
         """
         convention: "main" in main-attachment-point-name
         """
-        for att in self.lineset.lower_attachment_points:
-            if "main" in att.name:
-                return att
-        else:
-            raise AttributeError("no 'main' attachment-point found.")
+        logger.warning(f"deprecated -> use lineset.get_main_attachment_point")
+        return self.lineset.get_main_attachment_point()
 
     @property
     def has_center_cell(self):

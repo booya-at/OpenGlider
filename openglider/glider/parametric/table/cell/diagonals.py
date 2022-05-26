@@ -76,5 +76,4 @@ class StrapTable(CellTable):
         if name is not None:
             name = f"T{row}-{name}"
 
-        logger.warning(f"table: {data}")
         return super().get_element(row, keyword, data, name=name)

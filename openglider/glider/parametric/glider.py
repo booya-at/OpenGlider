@@ -392,7 +392,6 @@ class ParametricGlider:
         for cell_no, (rib1, rib2) in enumerate(zip(ribs[:-1], ribs[1:])):
 
             ballooning_factor = ballooning_factors[cell_no]
-            logger.info(f"ballooning factor: {ballooning_factor}")
             ballooning = self.merge_ballooning(*ballooning_factor)
             
             cell = Cell(rib1, rib2, ballooning, name="c{}".format(cell_no+1))

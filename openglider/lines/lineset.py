@@ -134,7 +134,10 @@ class LineSet(object):
                     main_attachment_point = ap
             
             if main_attachment_point is None:
-                raise RuntimeError("No 'main' attachment point")
+                logger.error("No 'main' attachment point")
+                if len(self.lower_attachment_points) < 1:
+                    raise ValueError("no attachment points available")
+                main_attachment_point = self.lower_attachment_points[0]
 
         return main_attachment_point
 

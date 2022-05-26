@@ -20,9 +20,7 @@ class Config:
         for key, value in items:
             if key in annotations:
                 try:
-                    logger.warning(annotations[key])
                     value = annotations[key](value)
-                    logger.warning(value)
                 except Exception:
                     pass
             if not key.startswith('_') and key != "get":
