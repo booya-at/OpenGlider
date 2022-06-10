@@ -1,5 +1,6 @@
 from . import cousin
 from . import liros
+from . import edelrid
 
 from .linetype import LineType
 

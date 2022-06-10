@@ -191,7 +191,10 @@ class Line(CachedObject):
              self.sag_par_1 + self.sag_par_2)
         return float(u)
 
-    def get_mesh(self, numpoints):
+    def get_mesh(self, numpoints=2, segment_length=None):
+        if segment_length is not None:
+            numpoints = max(round(self.length_no_sag / segment_length), 2)
+
         line_points = [Vertex(*point) for point in self.get_line_points(numpoints=numpoints)]
         boundary: Dict[str, List[Vertex]] = {"lines": []}
         if self.lower_node.type == Node.NODE_TYPE.LOWER:
@@ -203,19 +206,22 @@ class Line(CachedObject):
         else:
             boundary["lines"].append(line_points[-1])
         
-        if numpoints == 2:
-            spring = self.type.get_spring_constant()
-            stretch_factor = 1 + self.force / spring
-            attributes = {
-                "name": self.name,
-                "l_12": self.length_no_sag / stretch_factor,
-                "e_module": spring,
-                "e_module_push": 0,
-                "density": max(0.0001, (self.type.weight or 0)/1000)  # g/m -> kg/m, min: 0,1g/m
-            }
-            line_poly = {"lines": [Polygon(line_points, attributes=attributes)]}
-        else:
-            line_poly = {"lines": [Polygon(line_points[i:i + 2]) for i in range(len(line_points) - 1)]}
+        spring = self.type.get_spring_constant()
+        stretch_factor = 1 + self.force / spring
+        attributes = {
+            "name": self.name,
+            "l_12": self.length_no_sag / stretch_factor / (numpoints-1),
+            "e_module": spring,
+            "e_module_push": 0,
+            "density": max(0.0001, (self.type.weight or 0)/1000)  # g/m -> kg/m, min: 0,1g/m
+        }
+
+
+        line_poly = {
+            "lines": [
+                Polygon(line_points[i:i + 2], attributes=attributes)
+                for i in range(len(line_points) - 1)
+                ]}
 
         return Mesh(line_poly, boundary)
 

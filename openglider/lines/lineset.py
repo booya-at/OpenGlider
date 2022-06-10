@@ -196,12 +196,12 @@ class LineSet(object):
             strength_list.append(strength)
         return strength_list
 
-    def get_mesh(self, numpoints=10, main_lines_only=False) -> Mesh:
+    def get_mesh(self, numpoints=10, main_lines_only=False, line_segment_length=None) -> Mesh:
         if main_lines_only:
             lines = self.get_upper_lines(self.get_main_attachment_point())
         else:
             lines = self.lines
-        return sum([line.get_mesh(numpoints) for line in lines], Mesh())
+        return sum([line.get_mesh(numpoints, segment_length=line_segment_length) for line in lines], Mesh())
 
     def get_upper_line_mesh(self, numpoints=1, breaks=False) -> Mesh:
         mesh = Mesh()
