@@ -250,7 +250,7 @@ class DiagonalRib:
 class TensionStrap(DiagonalRib):
     hole_num: int=0
 
-    def __init__(self, left, right, width, height=-1, **kwargs):
+    def __init__(self, left: float, right: float, width: float, height=-1, **kwargs):
         """
         Similar to a Diagonalrib but always connected to the bottom-sail.
         :param left: left center of TensionStrap as x-value
@@ -273,7 +273,7 @@ class TensionStrap(DiagonalRib):
         }
 
 class TensionLine(TensionStrap):
-    def __init__(self, left, right, material_code="", name=""):
+    def __init__(self, left: float, right: float, material_code="", name=""):
         """
         Similar to a TensionStrap but with fixed width (0.01)
         :param left: left center of TensionStrap as x-value

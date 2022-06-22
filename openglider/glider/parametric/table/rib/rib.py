@@ -8,25 +8,25 @@ import logging
 logger = logging.getLogger(__name__)
 
 SkinRib7 = Keyword([
-    "att_dist",
-    "height",
-    "continued_min",
-    "continued_min_angle",
-    "continued_min_delta_y",
-    "continued_min_end",
-    "continued_min_x",
-    "double_first",
-    "le_gap",
-    "straight_te",
-    "te_gap",
-    "num_points",
-], target_cls=dict)
+    ("att_dist", float),
+    ("height", float),
+    ("continued_min", bool),
+    ("continued_min_angle", float),
+    ("continued_min_delta_y", float),
+    ("continued_min_end", float),
+    ("continued_min_x", float),
+    ("double_first", bool),
+    ("le_gap", bool),
+    ("straight_te", bool),
+    ("te_gap", bool),
+    ("num_points", int)
+    ], target_cls=dict)
 
 class SingleSkinTable(RibTable):
     keywords = {
-        "SkinRib": Keyword(["continued_min_end", "xrot"], target_cls=dict),
+        "SkinRib": Keyword([("continued_min_end", float), ("xrot", float)], target_cls=dict),
         "SkinRib7": SkinRib7,
-        "XRot": Keyword(["angle"], target_cls=dict)
+        "XRot": Keyword([("angle", float)], target_cls=dict)
     }
 
     def get_singleskin_ribs(self, rib_no: int):

@@ -14,7 +14,7 @@ registry: Dict[str, LineType] = {}
 class LineType:
     name: str
     thickness: float
-    stretch_curve: Union[List[Tuple[float, float]], float]
+    stretch_curve: Union[List[Tuple[float, float]], List[List[float]], float]
     min_break_load: float = None
     weight: float = 0
     sheated: bool = False

@@ -9,7 +9,6 @@ import openglider.vector
 
 if TYPE_CHECKING:
     from openglider.glider.cell import Cell
-    from openglider.glider.rib import Rib
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +18,7 @@ logger = logging.getLogger(__name__)
 class PanelRigidFoil:
     x_start: float
     x_end: float
-    y: float=0.5
+    y: float = 0.5
     channel_width: float = 0.01
     
     def get_length(self, cell: Cell) -> float:

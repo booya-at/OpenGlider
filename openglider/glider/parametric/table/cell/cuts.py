@@ -1,26 +1,32 @@
-from typing import Tuple, List
+from typing import Tuple, List, Optional
+
 from openglider.utils.table import Table
-from openglider.glider.parametric.table.elements import CellTable, Keyword
+from openglider.glider.parametric.table.elements import CellTable, Keyword, KeywordsType
 from openglider.glider.cell.panel import PanelCut
 
 import logging
 
 logger = logging.getLogger(__name__)
 
-cut_kw = Keyword(["left", "right"])
+def cut_kw(extra_keywords: Optional[KeywordsType]=None):
+    keywords: KeywordsType = [("x_left", float), ("x_right", float)]
+    
+    keywords += extra_keywords or []
+
+    return Keyword(keywords)
 
 class CutTable(CellTable):
     keywords = {
-        "CUT_ROUND": Keyword(["left", "right", "center", "amount"]),
-        "EKV": cut_kw,
-        "EKH": cut_kw,
-        "folded": cut_kw,
-        "DESIGNM": cut_kw,
-        "DESIGNO": cut_kw,
-        "orthogonal": cut_kw,
-        "CUT3D": cut_kw,
-        "cut_3d": cut_kw,
-        "singleskin": cut_kw,
+        "CUT_ROUND": cut_kw([("center", float), ("amount", float)]),
+        "EKV": cut_kw(),
+        "EKH": cut_kw(),
+        "folded": cut_kw(),
+        "DESIGNM": cut_kw(),
+        "DESIGNO": cut_kw(),
+        "orthogonal": cut_kw(),
+        "CUT3D": cut_kw(),
+        "cut_3d": cut_kw(),
+        "singleskin": cut_kw(),
     }
 
     def get_element(self, row, keyword, data, curves=None):

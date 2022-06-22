@@ -1,4 +1,5 @@
 from typing import Dict, Any
+from openglider.glider.parametric.table.elements import TableType
 
 from openglider.utils.table import Table
 from openglider.glider.shape import Shape
@@ -6,6 +7,8 @@ import openglider.glider.curve
 
 
 class CurveTable:
+    table_type = TableType.general
+
     def __init__(self, table: Table=None):
         self.table = table or Table()
 

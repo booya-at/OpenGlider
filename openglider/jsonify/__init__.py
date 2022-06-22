@@ -1,5 +1,6 @@
 import json
 import re
+import sys
 import time
 import datetime
 from tkinter.messagebox import NO
@@ -61,9 +62,9 @@ def object_hook(dct):
                 raise ValueError(f"invalid data: {dct['data']}") from e
 
         except TypeError as e:
-            print(f"in element: {obj} {dct['_module']}")
 
-            raise TypeError(f"error in elem: {obj}: {e}")
+            _, value, traceback = sys.exc_info()
+            raise TypeError(f"error in elem: {obj} {e}").with_traceback(traceback)
 
     else:
         return dct

@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class CellClothTable(ElementTable):
     table_type = TableType.cell
     keywords = {
-        "MATERIAL": Keyword(["Name"])
+        "MATERIAL": Keyword([("Name", str)])
     }
 
     def get_element(self, row, keyword, data, **kwargs) -> Optional[Material]:
@@ -27,7 +27,7 @@ class CellClothTable(ElementTable):
 class RibClothTable(ElementTable):
     table_type = TableType.rib
     keywords = {
-        "MATERIAL": Keyword(["Name"])
+        "MATERIAL": Keyword([("Name", str)])
     }
 
     def get_element(self, row, keyword, data, **kwargs) -> Optional[Material]:

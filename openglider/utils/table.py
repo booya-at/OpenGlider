@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 import re
-from typing import List
+from typing import List, Optional
 
 try:
     import pyexcel_ods
@@ -85,7 +85,9 @@ class Table:
             item = self.str_encrypt(column_no, row_no)
         return self.dct.get(item, None)
 
-    def get_columns(self, from_i, to_j):
+    def get_columns(self, from_i: int, to_j: Optional[int]):
+        if to_j is None:
+            to_j = self.num_columns
         new_table = self.__class__(self.num_rows, to_j-from_i)
         for i in range(from_i, to_j):
             for row in range(self.num_rows):
@@ -95,7 +97,9 @@ class Table:
         
         return new_table
     
-    def get_rows(self, from_row, to_row):
+    def get_rows(self, from_row: int, to_row: Optional[int]):
+        if to_row is None:
+            to_row = self.num_rows
         row_count = to_row - from_row
         new_table = Table(row_count, self.num_columns)
 

@@ -1,6 +1,7 @@
 from typing import Optional
 
 import euklid
+import enum
 
 from openglider.glider.shape import Shape
 from openglider.utils.cache import cached_property
@@ -220,3 +221,12 @@ class ShapeBSplineCurve(ShapeCurve):
         return euklid.spline.BSplineCurve([
             euklid.vector.Vector2D(self.shape.get_point(*p)) for p in self.controlpoints
         ]).get_sequence(100)
+
+
+GliderCurveType = FreeCurve | Curve | ShapeCurve | ShapeBSplineCurve
+
+class CurveEnum(enum.Enum):
+    FreeCurve = FreeCurve
+    Curve = Curve
+    ShapeCurve = ShapeCurve
+    ShapeBSplineCurve = ShapeBSplineCurve

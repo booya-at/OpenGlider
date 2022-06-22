@@ -1,7 +1,7 @@
 import ast
 import logging
 import re
-from typing import Dict
+from typing import Dict, Union
 
 import euklid
 import openglider
@@ -16,9 +16,9 @@ class AttachmentPointTable(RibTable):
     regex_node_layer = re.compile(r"([a-zA-Z]*)([0-9]*)")
 
     keywords = {
-        "ATP": Keyword(["name", "pos", "force"]), 
-        "AHP": Keyword(["name", "pos", "force"]),
-        "ATPPROTO": Keyword(["name", "pos", "force", "proto_distance"])
+        "ATP": Keyword([("name", str), ("pos", float), ("force", Union[float, str])]), 
+        "AHP": Keyword([("name", str), ("pos", float), ("force", Union[float, str])]),
+        "ATPPROTO": Keyword([("name", str), ("pos", float), ("force", Union[float, str]), ("proto_distance", float)])
     }
 
     def get_element(self, row, keyword, data, curves={}, **kwargs) -> UpperNode2D:
@@ -86,9 +86,9 @@ class AttachmentPointTable(RibTable):
 
 class CellAttachmentPointTable(CellTable):
     keywords = {
-        "ATP": Keyword(["name", "cell_pos", "rib_pos", "force"]), 
-        "ATPDIFF": Keyword(["name", "cell_pos", "rib_pos", "force", "offset"]), 
-        "AHP": Keyword(["name", "cell_pos", "rib_pos", "force"]),
+        "ATP": Keyword([("name", str), ("cell_pos", float), ("rib_pos", float), ("force", Union[float, str])]),
+        "AHP": Keyword([("name", str), ("cell_pos", float), ("rib_pos", float), ("force", Union[float, str])]),
+        "ATPDIFF": Keyword([("name", str), ("cell_pos", float), ("rib_pos", float), ("force", Union[float, str]), ("offset", float)])
     }
 
     def get_element(self, row, keyword, data, curves={}, **kwargs) -> UpperNode2D:
