@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from openglider.glider.parametric import ParametricGlider
     from openglider.glider.project import GliderProject
 
-file_version = "V3"
+file_version = "V4"
 
 def export_ods_project(glider: "GliderProject", filename):
     

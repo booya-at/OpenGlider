@@ -274,8 +274,13 @@ class Rib(CachedObject):
 
 
 def rib_rotation(aoa, arc, zrot, xrot=0):
+    # align upright -> profile is in x/z layer
     rot0 = euklid.vector.Transformation.rotation(np.pi / 2 - xrot, [1, 0, 0])
+
+    # rotate aoa -> y (rot0.apply([0,0,1]))
     rot1 = euklid.vector.Transformation.rotation(aoa, [0, 1, 0])
+
+    # rotate arc
     rot2 = euklid.vector.Transformation.rotation(-arc, [1,0,0])
     axis = (rot1 * rot2).apply([0,0,1])
     rot3 = euklid.vector.Transformation.rotation(-zrot, axis)

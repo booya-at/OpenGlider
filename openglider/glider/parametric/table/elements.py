@@ -105,7 +105,7 @@ class ElementTable(Generic[ElementType]):
         if _table is not None:
             for keyword in self.keywords:
                 data_length = self.keywords[keyword].attribute_length
-                for column in self.get_columns(table, keyword, data_length):
+                for column in self.get_columns(_table, keyword, data_length):
                     self.table.append_right(column)
     
     def __json__(self):
