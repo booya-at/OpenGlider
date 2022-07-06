@@ -92,11 +92,6 @@ class ParametricGlider:
 
         return table
 
-
-    @property
-    def arc_positions(self):
-        return self.arc.get_arc_positions(self.shape.rib_x_values)
-
     def get_arc_angles(self) -> List[float]:
         """
         Get rib rotations
@@ -231,7 +226,7 @@ class ParametricGlider:
     def get_aoa(self, interpolation_num=None) -> List[float]:
         aoa_interpolation = euklid.vector.Interpolation(self.aoa.get_sequence(interpolation_num or self.num_interpolate).nodes)
 
-        return [aoa_interpolation.get_value(x) for x in self.shape.rib_x_values]
+        return [aoa_interpolation.get_value(abs(x)) for x in self.shape.rib_x_values]
 
     def apply_aoa(self, glider: Glider) -> None:
         aoa_values = self.get_aoa()
@@ -260,17 +255,13 @@ class ParametricGlider:
         return [(max(0, x), y) for x,y in all_factors]
 
     def apply_shape_and_arc(self, glider: Glider) -> None:
-        x_values = self.shape.rib_x_values
+        x_values = [abs(x) for x in self.shape.rib_x_values]
         shape_ribs = self.shape.ribs
 
         arc_pos = list(self.arc.get_arc_positions(x_values))
         rib_angles = self.arc.get_rib_angles(x_values)
 
         offset_x = shape_ribs[0][0][1]
-
-        if self.shape.has_center_cell:
-            arc_pos.insert(0, arc_pos[0] * [-1, 1])
-            rib_angles.insert(0, -rib_angles[0])
 
         for rib_no, x in enumerate(x_values):
             front, back = shape_ribs[rib_no]
@@ -292,35 +283,37 @@ class ParametricGlider:
         curves = self.get_curves()
 
         x_values = self.shape.rib_x_values
-        shape_ribs = self.shape.ribs[self.shape.has_center_cell:]
+        shape_ribs = self.shape.ribs
 
         aoa_int = euklid.vector.Interpolation(self.aoa.get_sequence(num).nodes)
         zrot_int = euklid.vector.Interpolation(self.zrot.get_sequence(num).nodes)
 
-        arc_pos = list(self.arc.get_arc_positions(x_values))
+        arc_pos = self.arc.get_arc_positions(x_values).tolist()
         rib_angles = self.arc.get_rib_angles(x_values)
 
         if self.num_profile is not None:
             num_profile = self.num_profile
 
         if num_profile is not None:
-            profile_x_values = Distribution.from_cos_distribution(num_profile)
+            airfoil_distribution = Distribution.from_cos_distribution(num_profile)
         else:
-            profile_x_values = self.profiles[0].x_values
+            airfoil_distribution = self.profiles[0].x_values
 
 
         logger.info("apply elements")
-
-        cell_centers = [(p1+p2)/2 for p1, p2 in zip(x_values[:-1], x_values[1:])]
         offset_x = shape_ribs[0][0][1]
 
 
         logger.info("create ribs")
         profile_merge_values = self.get_profile_merge()
 
-        for rib_no, pos in enumerate(x_values):
+        if self.shape.has_center_cell:
+            rib_angles.insert(0, -rib_angles[0])
+
+        for rib_no, x_value in enumerate(x_values):
             front, back = shape_ribs[rib_no]
             arc = arc_pos[rib_no]
+
             startpoint = euklid.vector.Vector3D([-front[1] + offset_x, arc[0], arc[1]])
 
             try:
@@ -337,7 +330,7 @@ class ParametricGlider:
             if merge_factor is not None:
                 factor = merge_factor
 
-            profile = self.get_merge_profile(factor).set_x_values(profile_x_values)
+            profile = self.get_merge_profile(factor).set_x_values(airfoil_distribution)
 
 
             if scale_factor is not None:
@@ -354,6 +347,7 @@ class ParametricGlider:
             this_rib_holes = self.tables.holes.get(rib_no, curves=curves)
             this_rigid_foils = self.tables.rigidfoils_rib.get(rib_no)
 
+            logger.warning(f"holes for rib:  {rib_no} {this_rib_holes}")
             rib = Rib(
                 profile_2d=profile,
                 startpoint=startpoint,
@@ -361,29 +355,21 @@ class ParametricGlider:
                 arcang=rib_angles[rib_no],
                 xrot=self.tables.rib_modifiers.get_xrot(rib_no),
                 glide=self.glide,
-                aoa_absolute=aoa_int.get_value(pos),
-                zrot=zrot_int.get_value(pos),
+                aoa_absolute=aoa_int.get_value(abs(x_value)),
+                zrot=zrot_int.get_value(abs(x_value)),
                 holes=this_rib_holes,
                 rigidfoils=this_rigid_foils,
                 name="rib{}".format(rib_no),
                 material=material,
                 sharknose=sharknose
             )
-            rib.aoa_relative = aoa_int.get_value(pos)
+            rib.aoa_relative = aoa_int.get_value(abs(x_value))
 
             singleskin_data = self.tables.rib_modifiers.get(rib_no)
             if singleskin_data:
                 rib = SingleSkinRib.from_rib(rib, singleskin_data[0])
 
             ribs.append(rib)
-
-        if self.shape.has_center_cell:
-            new_rib = ribs[0].copy()
-            new_rib.name = "rib0"
-            new_rib.mirror()
-            new_rib.mirrored_rib = ribs[0]
-            ribs.insert(0, new_rib)
-            cell_centers.insert(0, 0.)
 
         logger.info("create cells")
 

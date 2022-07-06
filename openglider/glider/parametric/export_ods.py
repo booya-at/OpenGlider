@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 from datetime import datetime
 import math
@@ -66,7 +68,7 @@ def get_changelog_table(project: "GliderProject") -> Table:
 
 
 
-def get_glider_tables(glider: "ParametricGlider") -> List[Table]:
+def get_glider_tables(glider: ParametricGlider) -> List[Table]:
     tables = []
 
     tables.append(get_geom_sheet(glider))
@@ -96,7 +98,7 @@ def get_glider_tables(glider: "ParametricGlider") -> List[Table]:
     return tables
 
 
-def export_ods_2d(glider: "ParametricGlider", filename: str):
+def export_ods_2d(glider: ParametricGlider, filename: str):
     # airfoil sheet
     tables = get_glider_tables(glider)
     Table.save_tables(tables, filename)
@@ -115,7 +117,7 @@ def get_airfoil_sheet(glider_2d) -> Table:
     return table
 
 
-def get_geom_sheet(glider_2d) -> Table:
+def get_geom_sheet(glider_2d: ParametricGlider) -> Table:
     table = Table(name="geometry")
     #geom_page = ezodf.Sheet(name="geometry", size=(glider_2d.shape.half_cell_num + 2, 10))
 
@@ -135,7 +137,7 @@ def get_geom_sheet(glider_2d) -> Table:
         table[i+1, 2] = p[0]
         table[i+1, 3] = -p[1]
 
-    for i, p in enumerate(glider_2d.shape.rib_x_values):
+    for i, p in enumerate(glider_2d.shape.rib_x_values[center_cell:]):
         table[i+1, 3] = p
     # set arc values
     table[0, 4] = "Arc"
@@ -162,7 +164,7 @@ def get_geom_sheet(glider_2d) -> Table:
     profile_int = interpolation(glider_2d.profile_merge_curve)
     ballooning_int = interpolation(glider_2d.ballooning_merge_curve)
 
-    for rib_no, x in enumerate(glider_2d.shape.rib_x_values):
+    for rib_no, x in enumerate(glider_2d.shape.rib_x_values[center_cell:]):
         table[rib_no+1, 0] = rib_no+1
         table[rib_no+1, 5] = aoa_int.get_value(x)*180/math.pi
         table[rib_no+1, 6] = 0
@@ -199,7 +201,7 @@ def get_ballooning_sheet(glider_2d) -> Table:
 
     return table
 
-def get_parametric_sheet(glider : "ParametricGlider") -> Table:
+def get_parametric_sheet(glider : ParametricGlider) -> Table:
     table = Table(name="Parametric")
 
     def add_curve(name, curve, column_no):

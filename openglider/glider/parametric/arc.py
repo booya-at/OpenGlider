@@ -34,15 +34,24 @@ class ArcCurve(object):
         :return: [p0, p1,...]
         """
         # Symmetric-Bezier-> start from 0.5
+        positions = []
+
+        x_values = [abs(x) for x in x_values]
+
         arc_curve = self.curve.get_sequence(self.num_interpolation_points)
         arc_curve_length = arc_curve.get_length()
         scale_factor = arc_curve_length / x_values[-1]
         _positions = [arc_curve.walk(0, x * scale_factor) for x in x_values]
-        positions = euklid.vector.PolyLine2D([arc_curve.get(p) for p in _positions])
+        positions = [arc_curve.get(p) for p in _positions]
+
         if not self.has_center_cell(x_values):
-            positions.nodes[0][0] = 0
-        # rescale
-        return positions
+            scale_center = euklid.vector.Vector2D([0, 1])
+        else:
+            scale_center = euklid.vector.Vector2D([-1, 1])
+        
+        positions[0] = positions[0] * scale_center
+        
+        return euklid.vector.PolyLine2D(positions)
 
     def get_cell_angles(self, x_values, rad=True) -> List[float]:
         """
@@ -54,9 +63,6 @@ class ArcCurve(object):
         arc_positions_lst = list(arc_positions)
         cell_angles = []
 
-        if self.has_center_cell(x_values):
-            # center cell is always straight
-            cell_angles.append(0.)
 
         for l, r in zip(arc_positions_lst[:-1], arc_positions_lst[1:]):
             d = r - l
@@ -65,6 +71,10 @@ class ArcCurve(object):
                 cell_angles.append(angle)
             else:
                 cell_angles.append(angle * 180 / np.pi)
+
+        if self.has_center_cell(x_values):
+            # center cell is always straight
+            cell_angles[0] = 0.
 
         return cell_angles
 
@@ -100,16 +110,18 @@ class ArcCurve(object):
         cell_angles = self.get_cell_angles(x_values)
         rib_angles = []
 
-        if not self.has_center_cell(x_values):
-            # center rib -> straight
-            rib_angles.append(0.)
-
         for cell_left, cell_right in zip(cell_angles[:-1], cell_angles[1:]):
             # rotation of the rib is the median of the left and right cell's rotation
             rib_angles.append((cell_left + cell_right)/2)
 
         # stabi rib -> same rotation as the last cell
         rib_angles.append(cell_angles[-1])
+
+        if not self.has_center_cell(x_values):
+            # center rib -> straight
+            rib_angles.insert(0, 0.)
+        else:
+            rib_angles.insert(0, -rib_angles[0])
 
         return rib_angles
 

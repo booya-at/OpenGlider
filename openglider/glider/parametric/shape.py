@@ -119,6 +119,9 @@ class ParametricShape:
             width = 0.4 * (xvalues[-1] - xvalues[-2])
             xvalues.append(xvalues[-1] + width)
         
+        if self.has_center_cell:
+            xvalues.insert(0, -xvalues[0])
+
         return xvalues
 
 
@@ -143,7 +146,10 @@ class ParametricShape:
         num = self.num_shape_interpolation
         front_int = euklid.vector.Interpolation(self.front_curve.get_sequence(num).nodes)
         back_int = euklid.vector.Interpolation(self.back_curve.get_sequence(num).nodes)
+        
         distribution = self.rib_x_values
+        if self.has_center_cell:
+            distribution = distribution[1:]
 
         front = [[x, front_int.get_value(x)] for x in distribution]
         back = [[x, back_int.get_value(x)] for x in distribution]
