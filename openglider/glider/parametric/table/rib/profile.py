@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict
 import logging
 
 from pyfoil import Airfoil
@@ -50,7 +50,7 @@ class ProfileTable(RibTable):
         return self.get_one(row_no, keywords=["Sharknose", "Sharknose8"])
 
     
-    def get_flap(self, row_no: int) -> Optional[Tuple[float, float]]:
+    def get_flap(self, row_no: int) -> Optional[Dict[str, float]]:
         flaps = self.get(row_no, keywords=["Flap"])
         flap = None
 

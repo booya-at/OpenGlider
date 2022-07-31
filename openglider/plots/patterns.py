@@ -12,7 +12,7 @@ import openglider.plots.marks
 import openglider.plots.spreadsheets
 from openglider.glider.glider import Glider
 from openglider.glider.project import GliderProject
-from openglider.plots.config import PatternConfig
+from openglider.plots.config import PatternConfig, PatternConfigOld
 from openglider.plots.glider import PlotMaker
 from openglider.plots.spreadsheets import get_glider_data
 from openglider.plots.usage_stats import MaterialUsage
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class PatternsNew:
     spreadsheet = get_glider_data
     plotmaker = PlotMaker
-    config: PatternConfig
+    config: PatternConfigOld
 
     DefaultConf = PlotMaker.DefaultConfig
 
@@ -189,7 +189,7 @@ class Patterns(PatternsNew):
 
             cell_layers.sort(key=lambda el: el[1])
             
-            layers_between = {}
+            layers_between: Dict[str, int] = {}
             
             def get_name(position: float):
                 name = "-"

@@ -24,7 +24,7 @@ class BasicCell(CachedObject):
         ##round ballooning
         return self.midrib(y).get(ik)
 
-    def midrib(self, y_value, ballooning=True, arc_argument=True, with_numpy=False, close_trailing_edge=False) -> Profile3D:
+    def midrib(self, y_value, ballooning=True, arc_argument=True, close_trailing_edge=False) -> Profile3D:
         if y_value <= 0:              # left side
             return self.prof1
         elif y_value >= 1:            # right side

@@ -3,12 +3,12 @@ import numpy as np
 import euklid
 
 from openglider.airfoil import Profile2D
-
+from openglider.utils.types import CurveType
 # TODO: FIX!
 
 class BezierProfile2D(Profile2D):
-    upper_spline = None
-    lower_spline = None
+    upper_spline: CurveType | None = None
+    lower_spline: CurveType | None = None
 
     # TODO make new fit bezier method to set the second x value of the
     # controllpoints to zero.

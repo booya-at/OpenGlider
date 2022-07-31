@@ -15,7 +15,7 @@ def plugin(version: str) -> 'Type[Plugin]':
 
 class OpengliderPlugin(Plugin):
     dataclass_fullname: str = "openglider.utils.dataclass.dataclass"
-    def get_class_decorator_hook(self, fullname: str) -> Optional[Callable[[ClassDefContext], None]]:
+    def get_class_decorator_hook_2(self, fullname: str) -> Optional[Callable[[ClassDefContext], bool]]:
         if fullname == self.dataclass_fullname:
             return dataclasses.dataclass_class_maker_callback
         return None

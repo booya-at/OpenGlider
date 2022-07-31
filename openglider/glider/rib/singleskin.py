@@ -4,8 +4,11 @@ from numpy.linalg import norm
 import euklid
 import pyfoil
 
+from openglider.airfoil.profile_3d import Profile3D
+
 from openglider.glider.rib.rib import Rib
 from openglider.utils import linspace
+from openglider.utils.cache import cached_property
 
 if typing.TYPE_CHECKING:
     from openglider.glider.glider import Glider
@@ -44,6 +47,8 @@ class SingleSkinRib(Rib):
             "te_gap": False,
             "num_points": 30
         }
+
+        self._hull = None
 
         if single_skin_par:
             self.single_skin_par.update(single_skin_par)
@@ -90,6 +95,9 @@ class SingleSkinRib(Rib):
         '''
         returns a modified profile2d
         '''
+        if glider is None:
+            return self._hull
+
         profile = self.profile_2d
         attach_pts = self.get_attachment_points(glider)
         fixed_positions = list(set([att.rib_pos for att in attach_pts] + [1]))
@@ -168,6 +176,7 @@ class SingleSkinRib(Rib):
 
                 profile = pyfoil.Airfoil(new_data)
 
+        self._hull = profile
         return profile
 
     @staticmethod

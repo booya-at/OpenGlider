@@ -21,7 +21,7 @@ class BallooningTable(CellTable):
         if len(columns):
             for i in range(len(merge_factors)):
                 for column in columns:
-                    value = column[i+1, 0]
+                    value = column[i+2, 0]
                     if value is not None:
                         merge_factors[i] = value
 
@@ -30,7 +30,7 @@ class BallooningTable(CellTable):
 
         for i in range(len(merge_factors)):
             for column in columns:
-                value = column[i+1, 0]
+                value = column[i+2, 0]
                 if value is not None:
                     multipliers[i] = value
         

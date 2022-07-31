@@ -128,21 +128,16 @@ class Rib(CachedObject):
 
     @cached_property('self')
     def profile_3d(self):
-        try:
-            return self.get_profile_3d()
-        except AttributeError:
-            if self.hull is not None:
-                return self.hull
-        
-        raise ValueError(f"no hull {self.name}")
+        return self.get_profile_3d()
     
     @cached_function("self")
-    def get_profile_3d(self, glider=None):
-        hull = Profile3D(self.align_all(self.get_hull(glider).curve.nodes))
-        if glider is not None:
-            self.hull = hull
-        
-        return hull
+    def get_profile_3d(self, glider=None, x_values=None):
+        hull = self.get_hull(glider)
+
+        if x_values is not None:
+            hull = hull.set_x_values(self.profile_2d.x_values)
+
+        return Profile3D(self.align_all(hull.curve.nodes))
 
     def point(self, x_value):
         return self.align(self.profile_2d.profilepoint(x_value))

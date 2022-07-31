@@ -5,7 +5,7 @@ import os
 import openglider
 import openglider.plots
 import openglider.plots.glider
-from common import TestCase
+from .common import TestCase
 
 
 TEMPDIR =  tempfile.gettempdir()

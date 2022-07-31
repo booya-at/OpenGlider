@@ -131,7 +131,7 @@ class ParametricGlider:
             airfoil = first.copy()
         return airfoil
 
-    def get_curves(self):
+    def get_curves(self) -> dict:
         return self.tables.curves.get_curves(self.shape.get_half_shape())
 
     def get_panels(self, glider_3d=None) -> List[List[Panel]]:
@@ -271,7 +271,7 @@ class ParametricGlider:
 
             rib.pos = startpoint
             rib.chord = abs(front[1]-back[1])
-            rib.arc_angle = rib_angles[rib_no]
+            rib.arcang = rib_angles[rib_no]
 
     def get_glider_3d(self, glider: Glider=None, num=50, num_profile=None) -> Glider:
         """returns a new glider from parametric values"""
@@ -295,7 +295,7 @@ class ParametricGlider:
             num_profile = self.num_profile
 
         if num_profile is not None:
-            airfoil_distribution = Distribution.from_cos_distribution(num_profile)
+            airfoil_distribution = list(Distribution.from_cos_distribution(num_profile))
         else:
             airfoil_distribution = self.profiles[0].x_values
 
@@ -340,7 +340,7 @@ class ParametricGlider:
 
             if flap := self.tables.profiles.get_flap(rib_no):
                 logger.warning(f"add flap: {flap}")
-                profile = profile.add_flap(*flap)
+                profile = profile.add_flap(**flap)
 
             sharknose = self.tables.profiles.get_sharknose(rib_no)
 

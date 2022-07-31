@@ -259,10 +259,10 @@ class TensionStrap(DiagonalRib):
         :param material_code: color/material-name (optional)
         :param name: name of TensionStrap (optional)
         """
-        left = DiagonalSide.create_from_center(left, width, height)
-        right = DiagonalSide.create_from_center(right, width, height)
+        left_side = DiagonalSide.create_from_center(left, width, height)
+        right_side = DiagonalSide.create_from_center(right, width, height)
 
-        super().__init__(left, right, **kwargs)
+        super().__init__(left_side, right_side, **kwargs)
     
     def __json__(self):
         return {
@@ -282,8 +282,6 @@ class TensionLine(TensionStrap):
         :param name: optional argument names
         """
         super().__init__(left, right, 0.01, material_code=material_code, name=name)
-        self.left = left
-        self.right = right
 
     def __json__(self):
         return {"left": self.left,

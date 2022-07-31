@@ -66,13 +66,13 @@ LineType("liros.tsl500", 2.37, [[100, 0.16],
 
 # DFL: Brake line
 
-LineType("liros.dfl115", 1.4, [[1000, 0]], 1150, 1.18)
+LineType("liros.dfl115", 1.4, [[1000, 0.]], 1150, 1.18)
 
-LineType("liros.dfl200", 2., [[1000, 0]], 2000, 3.1)
+LineType("liros.dfl200", 2., [[1000, 0.]], 2000, 3.1)
 
-LineType("liros.dfl232", 1.9, [[1000, 0]], 2000, 2.58)
+LineType("liros.dfl232", 1.9, [[1000, 0.]], 2000, 2.58)
 
-LineType("liros.dfl350", 2.7, [[1000, 0]], 3500, 4.98)
+LineType("liros.dfl350", 2.7, [[1000, 0.]], 3500, 4.98)
 
 
 LineType("liros.dsl25", 0.8, [[340, 3.7]], 250, 0.53)

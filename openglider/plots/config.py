@@ -4,7 +4,7 @@ from openglider.utils.config import Config
 from openglider.utils.distribution import Distribution
 from openglider.plots import marks, cuts
 
-class PatternConfig(Config):
+class PatternConfigOld(Config):
     patterns_scale = 1000 # mm
     complete_glider = True
     debug = False
@@ -32,9 +32,9 @@ class PatternConfig(Config):
 
     insert_design_cuts = False
 
-    marks_diagonal_front = marks.Combine(marks.Inside(marks.Arrow(left=True, name="diagonal_front")), marks.Dot(0.2, 0.8))
-    marks_diagonal_back = marks.Combine(marks.Inside(marks.Arrow(left=False, name="diagonal_back")), marks.Dot(0.2, 0.8))
-    marks_diagonal_center = marks.Combine(marks.Rotate(marks.Arrow(), -math.pi/2), marks.Dot(0.2, 0.8))
+    marks_diagonal_front: marks.Mark = marks.Combine(marks.Inside(marks.Arrow(left=True, name="diagonal_front")), marks.Dot(0.2, 0.8))
+    marks_diagonal_back: marks.Mark = marks.Combine(marks.Inside(marks.Arrow(left=False, name="diagonal_back")), marks.Dot(0.2, 0.8))
+    marks_diagonal_center: marks.Mark = marks.Combine(marks.Rotate(marks.Arrow(), -math.pi/2), marks.Dot(0.2, 0.8))
 
     marks_laser_attachment_point = marks.Dot(0.2, 0.8)
     marks_attachment_point = marks.OnLine(marks.Rotate(marks.Cross(name="attachment_point"), math.pi / 4))
@@ -61,7 +61,7 @@ class PatternConfig(Config):
     layout_seperate_panels = True
 
 
-class OtherPatternConfig(PatternConfig):
+class OtherPatternConfig(PatternConfigOld):
     complete_glider = False
     cut_entry = cuts.SimpleCut
     cut_trailing_edge = cuts.SimpleCut

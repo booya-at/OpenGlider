@@ -137,11 +137,11 @@ def get_geom_sheet(glider_2d: ParametricGlider) -> Table:
         table[i+1, 2] = p[0]
         table[i+1, 3] = -p[1]
 
-    for i, p in enumerate(glider_2d.shape.rib_x_values[center_cell:]):
-        table[i+1, 3] = p
+    for i, x in enumerate(glider_2d.shape.rib_x_values[center_cell:]):
+        table[i+1, 3] = x
     # set arc values
     table[0, 4] = "Arc"
-    last_angle = 0
+    last_angle = 0.
     cell_angles = glider_2d.arc.get_cell_angles(glider_2d.shape.rib_x_values)
     if glider_2d.shape.has_center_cell:
         cell_angles = cell_angles[1:]

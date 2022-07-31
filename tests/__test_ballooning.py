@@ -20,7 +20,7 @@
 import unittest
 import random
 
-from common import openglider
+from .common import openglider
 from openglider.glider import ballooning
 
 

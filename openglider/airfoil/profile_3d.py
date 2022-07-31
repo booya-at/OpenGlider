@@ -29,6 +29,9 @@ class Profile3D:
 
         return self.curve.get(ik)
     
+    def __len__(self) -> int:
+        return len(self.curve)
+    
     def get_positions(self, start, stop):
         return self.curve.get_positions(start, stop)
 

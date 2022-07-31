@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List
+from typing import Callable, List
 import numpy as np
 
 from openglider.utils.cache import HashedList
@@ -118,7 +118,7 @@ class Distribution(HashedList):
         return cls([xtemp(i/numpoints) for i in range(numpoints+1)])
 
     @classmethod
-    def create_cos_distribution(cls, factor: float) -> Distribution:
+    def create_cos_distribution(cls, factor: float) -> Callable:
         def new_distribution(parent, numpoints, *arg, **kwarg):
             numpoints -= numpoints % 2
             
@@ -131,7 +131,7 @@ class Distribution(HashedList):
         return new_distribution
 
     @classmethod
-    def create_cos_distribution_2(cls, factor_front: float, factor_back) -> Distribution:
+    def create_cos_distribution_2(cls, factor_front: float, factor_back) -> Callable:
         def new_distribution(parent, numpoints, *arg, **kwarg):
             numpoints -= numpoints % 2
             

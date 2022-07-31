@@ -15,7 +15,7 @@ class LineType:
     name: str
     thickness: float
     stretch_curve: Union[List[Tuple[float, float]], List[List[float]], float]
-    min_break_load: float = None
+    min_break_load: float | None = None
     weight: float = 0
     sheated: bool = False
     seam_correction: float = 0

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import math
 from typing import Iterator, List, Optional
@@ -50,7 +52,7 @@ class ShapePlotConfig:
 
 class ShapePlot(object):
     project: GliderProject
-    config: ShapePlotConfig
+    config: ShapePlotConfig | None
     attachment_point_mark = marks.Cross(name="attachment_point", rotation=np.pi/4)
 
     def __init__(self, project: GliderProject, drawing=None):
@@ -70,7 +72,7 @@ class ShapePlot(object):
 
         self.config = None
     
-    def redraw(self, config: ShapePlotConfig, force=False):
+    def redraw(self, config: ShapePlotConfig, force=False) -> Layout:
         if force:
             self.shape_r = self.glider_2d.shape.get_half_shape()
 
@@ -94,12 +96,12 @@ class ShapePlot(object):
         
         return self.drawing
 
-    def copy(self):
+    def copy(self) -> ShapePlot:
         drawing = self.drawing.copy()
 
         return ShapePlot(self.project, drawing)
 
-    def _rib_range(self, left):
+    def _rib_range(self, left) -> range:
         start = 0
         end = self.project.glider.shape.half_cell_num
         if self.glider_2d.shape.has_center_cell and left:
@@ -108,7 +110,7 @@ class ShapePlot(object):
         return range(start, end+1)
 
     
-    def _cell_range(self, left):
+    def _cell_range(self, left) -> range:
         start = 0
         end = self.project.glider.shape.half_cell_num
         if self.glider_2d.shape.has_center_cell and left:

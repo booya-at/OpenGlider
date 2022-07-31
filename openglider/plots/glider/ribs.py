@@ -1,21 +1,17 @@
+from __future__ import annotations
+
 import math
-from turtle import pos
-from typing import List, TYPE_CHECKING, Set, Union
-from black import out
+from typing import TYPE_CHECKING, List, Set, Union
 
 import euklid
-from matplotlib.pyplot import plot
-from openglider import logging
 import openglider.glider
+from openglider import logging
 from openglider.airfoil import get_x_value
-from openglider.glider.cell.diagonals import DiagonalRib, DiagonalSide, TensionStrap
-from openglider.glider.cell.panel import PanelCut
-from openglider.glider.rib.elements import AttachmentPoint
+from openglider.glider.cell.diagonals import (DiagonalRib, DiagonalSide,
+                                              TensionStrap)
 from openglider.glider.rib.rigidfoils import RigidFoilBase
-from openglider.plots import cuts, marks
 from openglider.plots.config import PatternConfig
 from openglider.plots.usage_stats import MaterialUsage
-from openglider.utils.config import Config
 from openglider.vector.drawing import PlotPart
 from openglider.vector.text import Text
 
@@ -72,7 +68,7 @@ class RibPlot(object):
                     panel_cuts.add(panel.cut_back.x_left)
 
                 # diagonals
-                all_diagonals: List[Union[DiagonalRib, TensionStrap]] = cell.diagonals + cell.straps
+                all_diagonals: List[Union[DiagonalRib, TensionStrap]] = cell.diagonals + cell.straps  # type: ignore
                 for diagonal in all_diagonals:
                     self.insert_drib_mark(diagonal.left)
 
@@ -81,7 +77,7 @@ class RibPlot(object):
                     panel_cuts.add(panel.cut_front.x_right)
                     panel_cuts.add(panel.cut_back.x_right)
 
-                for diagonal in cell.diagonals + cell.straps:
+                for diagonal in cell.diagonals + cell.straps:  # type: ignore
                     self.insert_drib_mark(diagonal.right)
 
         for cut in panel_cuts:
@@ -100,6 +96,7 @@ class RibPlot(object):
 
         self.weight = MaterialUsage().consume(self.rib.material, area)
 
+        self.plotpart.layers[self.layer_name_outline] += [envelope]
         self.plotpart.layers[self.layer_name_sewing].append(self.inner)
 
 
@@ -203,7 +200,6 @@ class RibPlot(object):
             outer_rib.get(start, stop).nodes + buerzl
         )
 
-        self.plotpart.layers[self.layer_name_outline] += [contour]
         return contour
     
     def walk(self, x, amount) -> float:
@@ -222,7 +218,6 @@ class RibPlot(object):
                 rib = glider.ribs[1]
 
             if hasattr(attachment_point, "rib") and attachment_point.rib == rib:
-                attachment_point: AttachmentPoint
 
                 positions = attachment_point.get_x_values(self.rib)
 
@@ -326,9 +321,9 @@ class RibPlot(object):
 
 
 class SingleSkinRibPlot(RibPlot):
-    skin_cut = None
+    skin_cut: float | None = None
 
-    def _get_inner_outer(self, x_value):
+    def _get_inner_outer(self, x_value: float):
         # TODO: shift when after the endpoint
         inner, outer = super()._get_inner_outer(x_value)
 
@@ -337,7 +332,7 @@ class SingleSkinRibPlot(RibPlot):
         else:
             return inner, inner + (inner - outer)
 
-    def _get_singleskin_cut(self, glider):
+    def _get_singleskin_cut(self, glider: Glider):
         if self.skin_cut is None:
             singleskin_cut = None
 
@@ -363,9 +358,9 @@ class SingleSkinRibPlot(RibPlot):
 
         return self.skin_cut
 
-    def flatten(self, glider: "Glider"):
+    def flatten(self, glider: Glider, add_rigidfoils_to_plot=True):
         self._get_singleskin_cut(glider)
-        return super().flatten(glider)
+        return super().flatten(glider, add_rigidfoils_to_plot=add_rigidfoils_to_plot)
 
     def draw_outline(self, glider):
         """
@@ -396,7 +391,7 @@ class SingleSkinRibPlot(RibPlot):
                 outer_rib.get(start)
                 ])
             contour += outer_rib.get(start, single_skin_cut)
-            contour += inner_rib.get(single_skin_cut, stop)
+            contour += inner_rib.get(single_skin_cut, len(inner_rib)-1)
             contour += buerzl
 
         else:

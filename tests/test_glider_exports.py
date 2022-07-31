@@ -20,10 +20,9 @@
 import tempfile
 import json
 
-from common import *
+from .common import *
 from openglider.plots import PlotMaker
 from openglider import jsonify
-from test_glider import GliderTestClass
 
 
 class TestGlider(TestCase):

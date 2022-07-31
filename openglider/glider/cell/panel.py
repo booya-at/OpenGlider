@@ -253,7 +253,7 @@ class Panel(object):
     def is_lower(self) -> bool:
         return self.cut_front.x_left + self.cut_front.x_right >= -1e-3
 
-    def get_3d(self, cell, numribs=0, midribs=None, with_numpy=False):
+    def get_3d(self, cell, numribs=0, midribs=None):
         """
         Get 3d-Panel
         :param glider: glider class
@@ -266,7 +266,7 @@ class Panel(object):
             y = i / numribs
 
             if midribs is None:
-                midrib = cell.midrib(y, with_numpy)
+                midrib = cell.midrib(y)
             else:
                 midrib = midribs[i]
 
@@ -281,12 +281,11 @@ class Panel(object):
             # todo: return polygon-data
         return ribs
 
-    def get_mesh(self, cell: "Cell", numribs=0, with_numpy=True, exact=False, tri=False) -> mesh.Mesh:
+    def get_mesh(self, cell: "Cell", numribs=0, exact=False, tri=False) -> mesh.Mesh:
         """
         Get Panel-mesh
         :param cell: the parent cell of the panel
         :param numribs: number of interpolation steps between ribs
-        :param with_numpy: compute midribs with numpy (faster if available)
         :return: mesh objects consisting of triangles and quadrangles
         """
         # TODO: doesn't work for numribs=0?
@@ -305,7 +304,7 @@ class Panel(object):
 
             front, back = ik_values[rib_no]
 
-            midrib = cell.midrib(y, with_numpy=with_numpy)
+            midrib = cell.midrib(y)
 
             rib_iks.append(midrib.get_positions(front, back))
 

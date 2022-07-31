@@ -240,7 +240,7 @@ class ParametricShape:
     def set_const_cell_dist(self) -> None:
         const_dist = euklid.vector.PolyLine2D(list(self.depth_integrated))
         num_pts = len(self.rib_distribution.controlpoints)
-        self.rib_distribution = self.rib_distribution.fit(const_dist, numpoints=num_pts)
+        self.rib_distribution = self.rib_distribution.fit(const_dist, numpoints=num_pts)  # type: ignore
 
     ############################################################################
     # scaling stuff

@@ -98,9 +98,23 @@ class Cell:
 
         self.rename_panels(cell_no, seperate_upper_lower=seperate_upper_lower)
 
-    @cached_property('rib1.profile_3d', 'rib2.profile_3d', 'ballooning_phi')
+    @cached_property('rib1', 'rib2', 'ballooning_phi')
     def basic_cell(self) -> BasicCell:
-        return BasicCell(self.rib1.profile_3d, self.rib2.profile_3d, self.ballooning_phi)
+        profile1 = self.rib1.profile_3d
+        profile2 = self.rib2.profile_3d
+
+        profile_numpoints = self.rib1.profile_2d.numpoints
+        profile_x_values = self.rib1.profile_2d.x_values
+
+        if self.rib2.profile_2d.numpoints != profile_numpoints:
+            raise ValueError(f"numpoints not matching {self.name}: {profile_numpoints}, {self.rib2.profile_2d.numpoints}")
+
+        if len(profile1) != profile_numpoints:
+            profile1 = self.rib1.get_profile_3d(x_values=profile_x_values)
+        if len(profile2) != profile_numpoints:
+            profile2 = self.rib2.get_profile_3d(x_values=profile_x_values)
+        
+        return BasicCell(profile1, profile2, self.ballooning_phi)
 
     def get_normvector(self) -> euklid.vector.Vector3D:
         p1 = self.rib1.point(-1)
@@ -234,11 +248,10 @@ class Cell:
         return self.midrib(y).point(i, k)
 
     @cached_function("self")
-    def midrib(self, y, ballooning=True, arc_argument=True, with_numpy=True, close_trailing_edge=False):
+    def midrib(self, y, ballooning=True, arc_argument=True, close_trailing_edge=False):
         kwargs = {
             "ballooning": ballooning,
             "arc_argument": arc_argument,
-            "with_numpy": with_numpy,
             "close_trailing_edge": close_trailing_edge
         }
         if len(self._child_cells) == 1:
@@ -257,7 +270,7 @@ class Cell:
         y_values = linspace(0, 1, numribs)
         return [self.midrib(y) for y in y_values]
 
-    @cached_property('ballooning', 'rib1.profile_2d.numpoints', 'rib2.profile_2d.numpoints')
+    @cached_property('ballooning', 'rib1.profile_2d.x_values', 'rib2.profile_2d.x_values')
     def ballooning_phi(self):
         x_values = [max(-1, min(1, x)) for x in self.rib1.profile_2d.x_values]
         balloon = [self.ballooning[i] for i in x_values]
@@ -374,7 +387,7 @@ class Cell:
             mean_rib += self.midrib(y).flatten().normalized()
         return mean_rib * (1. / num_midribs)
 
-    def get_mesh_grid(self, numribs=0, with_numpy=False, half_cell=False):
+    def get_mesh_grid(self, numribs=0, half_cell=False):
         """
         Get Cell-grid
         :param numribs: number of miniribs to calculate
@@ -388,20 +401,18 @@ class Cell:
             rib_indices = rib_indices[(numribs) // 2:]
         for rib_no in rib_indices:
             y = rib_no / max(numribs, 1)
-            rib = self.midrib(y, with_numpy=with_numpy).curve.nodes
+            rib = self.midrib(y).curve.nodes
             grid.append(Vertex.from_vertices_list(rib[:-1]))
         return grid
 
-    def get_mesh(self, numribs=0, with_numpy=False, half_cell=False):
+    def get_mesh(self, numribs=0, half_cell=False):
         """
         Get Cell-mesh
         :param numribs: number of miniribs to calculate
         :return: mesh
         """
 
-        grid = self.get_mesh_grid(numribs=numribs,
-                                  with_numpy=with_numpy,
-                                  half_cell=half_cell)
+        grid = self.get_mesh_grid(numribs=numribs, half_cell=half_cell)
 
         trailing_edge = []
 

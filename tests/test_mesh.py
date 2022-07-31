@@ -1,7 +1,7 @@
 import unittest
 
 
-from common import *
+from .common import *
 
 from openglider.mesh import Mesh, Vertex, Polygon
 import openglider

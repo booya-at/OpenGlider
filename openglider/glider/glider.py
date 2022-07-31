@@ -1,7 +1,7 @@
 from __future__ import annotations
 import logging
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 import copy
 import math
 from typing import List
@@ -294,7 +294,7 @@ class Glider(object):
         last_pos = euklid.vector.Vector2D([0,0])  # y,z
         front = []
         back = []
-        x = 0
+        x = 0.
         for rib in self.ribs:
             p1 = euklid.vector.Vector2D([rib.pos[1], rib.pos[2]])
 
@@ -441,7 +441,7 @@ class Glider(object):
 
     def get_attachment_point_layers(self) -> Dict[str, euklid.vector.Interpolation]:
         regex = re.compile(r"([a-zA-Z]+)([0-9]+)")
-        attachment_point_per_group: Dict[str, Node] = {}
+        attachment_point_per_group: Dict[str, List[Tuple[int, float]]] = {}
 
         for point in self.lineset.attachment_points:
             if match := regex.match(point.name):

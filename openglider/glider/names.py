@@ -1,3 +1,5 @@
+from typing import Dict
+
 from openglider.glider.glider import Glider
 
 
@@ -19,8 +21,7 @@ def set_strap_names(glider: Glider):
 
         cell_layers.sort(key=lambda el: el[1])
         
-        result = []
-        layers_between = {}
+        layers_between: Dict[str, int] = {}
         
         def get_name(position: float):
             name = "-"
@@ -41,7 +42,4 @@ def set_strap_names(glider: Glider):
         straps = cell.straps[:]
         straps.sort(key=lambda strap: strap.get_average_x())
         for strap in cell.straps:
-            strap.name = get_name(strap.center_left)
-            
-        
-        return result
+            strap.name = get_name(strap.left.center)

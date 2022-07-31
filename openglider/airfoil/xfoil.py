@@ -11,7 +11,7 @@ import openglider.airfoil
 class XFoilCalc:
     alpha = list(range(0, 15))
     re_number = 2e6
-    result = None
+    result: pandas.DataFrame | None = None
 
     file_result = "results.dat"
     ncrit = 8
@@ -61,7 +61,7 @@ class XFoilCalc:
 
         return command_file
 
-    def _read_result(self, filename):
+    def _read_result(self, filename) -> pandas.DataFrame:
         rex_number = r"([+-]?\d+\.\d+)"
         rex_line_str = "\s+" + "\s+".join([rex_number]*9)
         rex_line = re.compile(rex_line_str)

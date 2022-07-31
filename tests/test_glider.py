@@ -20,7 +20,7 @@
 import random
 import unittest
 
-from common import *
+from .common import *
 import openglider.glider
 
 

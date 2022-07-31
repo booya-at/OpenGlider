@@ -1,5 +1,5 @@
 import unittest
-from common import TestCase
+from .common import TestCase
 
 
 class GliderTestCase2D(TestCase):

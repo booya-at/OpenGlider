@@ -32,7 +32,7 @@ class TriMesh:
 class Triangulation(object):
     meshpy_keep_boundary = True
     meshpy_planar_straight_line_graph = True
-    meshpy_max_area = None
+    meshpy_max_area: float | None = None
     meshpy_incremental_algorithm = True
     meshpy_quality_mesh = True
 
