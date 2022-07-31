@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, List, Tuple
 
 import euklid
 import openglider.mesh as mesh
-from openglider.utils.dataclass import dataclass
+from openglider.utils.dataclass import dataclass, BaseModel
 from openglider.vector.mapping import Mapping, Mapping3D
 from openglider.vector.projection import flatten_list
 
@@ -15,8 +15,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class DiagonalSide:
+class DiagonalSide(BaseModel):
     """
     Connection between a diagonal and a rib
     """

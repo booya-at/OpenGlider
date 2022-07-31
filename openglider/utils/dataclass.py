@@ -1,43 +1,57 @@
-from typing import TYPE_CHECKING
+from __future__ import annotations
+from typing import TYPE_CHECKING, Dict, Any, Type, TypeVar
+
 import pydantic
+from pydantic.main import __dataclass_transform__
 #from pydantic import Field as field
-from dataclasses import dataclass as dc, asdict, replace, field
+from dataclasses import dataclass as dc, asdict, replace, field, Field
 
 from openglider.utils.cache import hash_attributes, hash_list
+
+if TYPE_CHECKING:
+    from pydantic.dataclasses import Dataclass
+
+    OGDataclassT = TypeVar("OGDataclassT", bound="OGDataclass")
+    class OGDataclass(Dataclass):
+        def __json__(self: OGDataclassT) -> Dict[str, Any]:
+            pass
+
+        def copy(self: OGDataclassT) -> OGDataclassT:
+            pass
+
+        def __hash__(self: OGDataclassT) -> int:
+            pass
+
 
 class Config:
     arbitrary_types_allowed = True
 
-def dataclass(_cls):
-    if TYPE_CHECKING:
-        _cls_new = dc(_cls)
-    else:
-        _cls_new = pydantic.dataclasses.dataclass(config=Config)(_cls)
-
-    old_json = getattr(_cls_new, "__json__", None)
+@__dataclass_transform__(kw_only_default=True)
+def dataclass(_cls) -> Type[OGDataclassT]:
+    old_json = getattr(_cls, "__json__", None)
     if old_json is None or getattr(old_json, "is_auto", False):
         def __json__(instance):
             return {
                 key: getattr(instance, key) for key in _cls_new.__dataclass_fields__
             }
         
-        __json__.is_auto = True
+        setattr(__json__, "is_auto", True)
 
-        _cls_new.__json__ = __json__
+        _cls.__json__ = __json__
 
-    old_copy = getattr(_cls_new, "copy", None)
+    old_copy = getattr(_cls, "copy", None)
     if old_copy is None or getattr(old_copy, "is_auto", False):
         def copy(instance):
             return  replace(instance)
         
-        copy.is_auto = True
+        setattr(copy, "is_auto", True)
 
-        _cls_new.copy = copy
+        _cls.copy = copy
     
-    old_hash = getattr(_cls_new, "__hash__", None)
+    old_hash = getattr(_cls, "__hash__", None)
     if old_hash is None or getattr(old_hash, "is_auto", False):
         # don't shadow hash (internal python name)
-        def _hash(instance):
+        def _hash(instance) -> int:
             try:
                 lst = [getattr(instance, key) for key in _cls_new.__dataclass_fields__]
                 return hash_list(lst)
@@ -45,10 +59,15 @@ def dataclass(_cls):
                 raise ValueError(f"invalid elem: {instance}") from e
 
         
-        _hash.is_auto = True
+        setattr(_hash, "is_auto", True)
 
-        _cls_new.__hash__ = _hash
+        _cls.__hash__ = _hash
 
+    if TYPE_CHECKING:
+        _cls_new = dc(_cls)
+    else:
+        _cls_new = pydantic.dataclasses.dataclass(config=Config)(_cls)
+        
     return _cls_new
 
 class BaseModel(pydantic.BaseModel):
