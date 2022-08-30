@@ -11,6 +11,7 @@ class CurveTable:
 
     def __init__(self, table: Table=None):
         self.table = table or Table()
+        self.table.name = "Curves"
 
     def __json__(self):
         return {

@@ -81,7 +81,7 @@ class Keyword:
 
         for (name, target_type), value in zip(self.attributes, data):
             if target_type != self.NoneType and not isinstance(value, target_type):
-                logger.warning(f"wrong type: {keyword}/{name}: {value}")
+                logger.warning(f"wrong type: {keyword}/{name}: {value} converting to {target_type}")
                 value = target_type(value)
             
             init_kwargs[name] = value

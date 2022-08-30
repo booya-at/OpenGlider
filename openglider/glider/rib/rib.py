@@ -241,7 +241,7 @@ class Rib(CachedObject):
 
     @cached_function("self")
     def get_margin_outline(self, margin: float) -> pyfoil.Airfoil:
-        logger.info(f"calculate envelope: {self.name}: {margin}")
+        logger.debug(f"calculate envelope: {self.name}: {margin}")
         
         if margin == 0.:
             return self.profile_2d

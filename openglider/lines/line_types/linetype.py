@@ -52,6 +52,9 @@ class LineType:
     
     def __repr__(self):
         return str(self)
+    
+    def __hash__(self) -> int:
+        return hash(self.name)
 
     def get_similar_lines(self):
         lines = list(self.types.values())

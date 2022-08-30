@@ -339,7 +339,7 @@ class ParametricGlider:
             profile.name = "Profile{}".format(rib_no)
 
             if flap := self.tables.profiles.get_flap(rib_no):
-                logger.warning(f"add flap: {flap}")
+                logger.debug(f"add flap: {flap}")
                 profile = profile.add_flap(**flap)
 
             sharknose = self.tables.profiles.get_sharknose(rib_no)
@@ -347,7 +347,7 @@ class ParametricGlider:
             this_rib_holes = self.tables.holes.get(rib_no, curves=curves)
             this_rigid_foils = self.tables.rigidfoils_rib.get(rib_no)
 
-            logger.warning(f"holes for rib:  {rib_no} {this_rib_holes}")
+            logger.debug(f"holes for rib:  {rib_no} {this_rib_holes}")
             rib = Rib(
                 profile_2d=profile,
                 startpoint=startpoint,
