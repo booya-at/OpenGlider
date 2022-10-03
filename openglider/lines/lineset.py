@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import copy
-import csv
 import dataclasses
 import logging
 import os
 import re
-from typing import Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List
 
 import euklid
 from openglider.lines.node import Node
@@ -15,6 +16,9 @@ from openglider.lines.knots import KnotCorrections
 from openglider.lines.line_types.linetype import LineType
 from openglider.mesh import Mesh
 from openglider.utils.table import Table
+
+if TYPE_CHECKING:
+    from openglider.glider.glider import Glider
 
 logger = logging.getLogger(__name__)
 
@@ -213,7 +217,7 @@ class LineSet(object):
             mesh += line.get_mesh(numpoints)
         return mesh
 
-    def recalc(self, calculate_sag=True, glider=None, iterations=5):
+    def recalc(self, calculate_sag=True, glider: Glider | None=None, iterations=5):
         """
         Recalculate Lineset Geometry.
         if LineSet.calculate_sag = True, drag induced sag will be calculated
@@ -231,8 +235,12 @@ class LineSet(object):
 
         if glider is not None:
             logger.info("get positions")
-            for point in self.attachment_points:
-                point.get_position(glider)
+            for cell in glider.cells:
+                for p_cell in cell.attachment_points:
+                    p_cell.get_position(cell)
+            for rib in glider.ribs:
+                for p in rib.attachment_points:
+                    p.get_position(rib)
 
         self.calculate_sag = calculate_sag
         

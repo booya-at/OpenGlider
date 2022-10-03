@@ -10,6 +10,7 @@ import ezodf
 import openglider.glider
 import openglider.glider.parametric.glider
 from openglider.glider.ballooning import BallooningBezierNeu
+from openglider.glider.rib import attachment_point
 from openglider.utils.table import Table
 
 if TYPE_CHECKING:
@@ -73,14 +74,8 @@ def get_glider_tables(glider: ParametricGlider) -> List[Table]:
 
     tables.append(get_geom_sheet(glider))
 
-    attachment_points_rib, attachment_points_cell = glider.lineset.get_attachment_point_table()
-
     cell_sheet = glider.tables.get_cell_sheet()
-    if glider.tables.attachment_points_cell.table.num_columns < 1:
-        cell_sheet.append_right(attachment_points_cell)
     rib_sheet = glider.tables.get_rib_sheet()
-    if glider.tables.attachment_points_rib.table.num_columns < 1:
-        rib_sheet.append_right(attachment_points_rib)
 
     cell_sheet["A1"] = file_version
     rib_sheet["A1"] = file_version

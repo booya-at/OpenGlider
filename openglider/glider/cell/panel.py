@@ -9,7 +9,7 @@ import openglider.mesh as mesh
 from openglider.airfoil import get_x_value
 from openglider.materials import Material, cloth
 from openglider.utils.cache import cached_function, hash_list
-from openglider.utils.dataclass import dataclass, field
+from openglider.utils.dataclass import dataclass, Field
 
 if TYPE_CHECKING:
     from openglider.glider.cell.cell import Cell
@@ -31,7 +31,7 @@ class PanelCut:
     x_left: float
     x_right: float
     cut_type: CUT_TYPES
-    cut_3d_amount: List[float]=field(default_factory=lambda: [0, 0])
+    cut_3d_amount: List[float] = Field(default_factory=lambda: [0, 0])
     x_center: Optional[float] = None
     seam_allowance: Optional[float] = None
 

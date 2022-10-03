@@ -95,20 +95,6 @@ class Glider(object):
                    self.aspect_ratio,
                    len(self.cells))
 
-    def replace_ribs(self, new_ribs) -> None:
-        replace_dict = {}
-        assert(len(new_ribs) == len(self.ribs))
-        for i, rib in enumerate(self.ribs):
-            replace_dict[rib] = new_ribs[i]
-        for cell in self.cells:
-            cell.rib1 = replace_dict[cell.rib1]
-            cell.rib2 = replace_dict[cell.rib2]
-        for att in self.attachment_points:
-            att.rib = replace_dict[att.rib]
-            att.get_position(self)
-        
-        self.lineset.recalc()
-
     def rename_parts(self) -> None:
         for rib_no, rib in enumerate(self.ribs):
             k = not self.has_center_cell
@@ -479,9 +465,14 @@ class Glider(object):
     @property
     def attachment_points(self):
         points = []
-        for line in self.lineset.lowest_lines:
-            points += self.lineset.get_upper_influence_nodes(line)
-        return points
+        for rib in self.ribs:
+            points += rib.attachment_points
+        for cell in self.cells:
+            points += cell.attachment_points
+        
+        return {
+            p.name: p for p in points
+        }
 
     def get_main_attachment_point(self) -> Node:
         """

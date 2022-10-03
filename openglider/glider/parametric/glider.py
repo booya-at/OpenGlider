@@ -22,7 +22,7 @@ from openglider.glider.parametric.table import GliderTables
 from openglider.glider.parametric.table.curve import CurveTable
 from openglider.glider.rib import MiniRib, Rib, SingleSkinRib
 from openglider.utils import ZipCmp, linspace
-from openglider.utils.dataclass import BaseModel, dataclass, field
+from openglider.utils.dataclass import BaseModel, dataclass, Field
 from openglider.utils.distribution import Distribution
 from openglider.utils.table import Table
 from openglider.utils.types import CurveType, SymmetricCurveType
@@ -45,8 +45,8 @@ class ParametricGlider:
     lineset: LineSet2D
     speed: float
     glide: float
-    tables: GliderTables = field(default_factory=lambda: GliderTables())
-    zrot: SymmetricCurveType = field(default_factory=lambda: euklid.spline.SymmetricBSplineCurve([[0,0],[1,0]]))
+    tables: GliderTables = Field(default_factory=lambda: GliderTables())
+    zrot: SymmetricCurveType = Field(default_factory=lambda: euklid.spline.SymmetricBSplineCurve([[0,0],[1,0]]))
 
     num_interpolate: int=30
     num_profile: Optional[int]=None
@@ -346,11 +346,12 @@ class ParametricGlider:
 
             this_rib_holes = self.tables.holes.get(rib_no, curves=curves)
             this_rigid_foils = self.tables.rigidfoils_rib.get(rib_no)
+            attachment_points = self.tables.attachment_points_rib.get(rib_no, curves=curves)
 
             logger.debug(f"holes for rib:  {rib_no} {this_rib_holes}")
             rib = Rib(
                 profile_2d=profile,
-                startpoint=startpoint,
+                pos=startpoint,
                 chord=chord,
                 arcang=rib_angles[rib_no],
                 xrot=self.tables.rib_modifiers.get_xrot(rib_no),
@@ -361,13 +362,17 @@ class ParametricGlider:
                 rigidfoils=this_rigid_foils,
                 name="rib{}".format(rib_no),
                 material=material,
-                sharknose=sharknose
+                sharknose=sharknose,
+                attachment_points=attachment_points
             )
             rib.aoa_relative = aoa_int.get_value(abs(x_value))
 
             singleskin_data = self.tables.rib_modifiers.get(rib_no)
             if singleskin_data:
                 rib = SingleSkinRib.from_rib(rib, singleskin_data[0])
+            
+            for p in rib.attachment_points:
+                p.get_position(rib)
 
             ribs.append(rib)
 
@@ -379,11 +384,15 @@ class ParametricGlider:
 
             ballooning_factor = ballooning_factors[cell_no]
             ballooning = self.merge_ballooning(*ballooning_factor)
+            attachment_points = self.tables.attachment_points_cell.get(cell_no, curves=curves)
             
-            cell = Cell(rib1, rib2, ballooning, name="c{}".format(cell_no+1))
+            cell = Cell(rib1, rib2, ballooning, name="c{}".format(cell_no+1), attachment_points=attachment_points)
 
             cell.rigidfoils = self.tables.rigidfoils_cell.get(cell_no)
-
+            
+            for p_cell in cell.attachment_points:
+                p_cell.get_position(cell)
+            
             glider.cells.append(cell)
 
 

@@ -195,11 +195,19 @@ class ShapePlot(object):
         shape = self.shapes[left]
 
         part = PlotPart()
-        for attachment_point in self.glider_2d.lineset.get_upper_nodes():
-            rib_no = attachment_point.cell_pos + attachment_point.cell_no
 
-            # glider2d does not contain the mirrored rib:
-            p1 = shape.get_point(rib_no, attachment_point.rib_pos)
+        points = []
+
+        for rib_no, rib in enumerate(self.glider_3d.ribs):
+            for attachment_point in rib.attachment_points:
+                points.append([rib_no, attachment_point.rib_pos, attachment_point.name])
+        
+        for cell_no, cell in enumerate(self.glider_3d.cells):
+            for attachment_point in cell.attachment_points:
+                points.append([cell_no + attachment_point.cell_pos, attachment_point.rib_pos, attachment_point.name])
+
+        for x, y, name in points:
+            p1 = shape.get_point(x, y)
             p2 = p1 + [0.2, 0]
 
 
@@ -210,10 +218,10 @@ class ShapePlot(object):
             cross = self.attachment_point_mark(cross_left, cross_right)
             part.layers["marks"] += cross
 
-            if add_text and attachment_point.name:
+            if add_text and name:
                 p1 = p1 + [0, 0.02]
                 p2 = p2 + [0, 0.02]
-                text = Text(" {} ".format(attachment_point.name), p1, p2)
+                text = Text(" {} ".format(name), p1, p2)
                 vectors = text.get_vectors()
                 part.layers["text"] += vectors
 

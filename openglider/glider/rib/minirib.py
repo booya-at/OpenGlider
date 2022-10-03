@@ -2,7 +2,7 @@ from typing import Callable, Optional
 import euklid
 
 from openglider.airfoil import Profile3D
-from openglider.utils.dataclass import BaseModel, dataclass, field
+from openglider.utils.dataclass import BaseModel, dataclass, Field
 
 
 @dataclass
@@ -12,7 +12,7 @@ class MiniRib:
     back_cut: float=1.
     name: str="unnamed_minirib"
 
-    function: euklid.vector.Interpolation = field(default_factory=lambda: euklid.vector.Interpolation([]))
+    function: euklid.vector.Interpolation = Field(default_factory=lambda: euklid.vector.Interpolation([]))
 
     class Config:
         arbitrary_types_allowed = True

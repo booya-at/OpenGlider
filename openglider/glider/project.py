@@ -10,30 +10,30 @@ from openglider.glider.parametric import ParametricGlider
 from openglider.glider.parametric.import_ods import import_ods_glider
 from openglider.glider.parametric.import_freecad import import_freecad
 from openglider.glider.parametric.export_ods import export_ods_project, get_split_tables
-from openglider.utils.dataclass import dataclass, field
+from openglider.utils.dataclass import dataclass, Field
 import openglider.utils.table
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
-class GliderProject(object):
+class GliderProject:
     glider: ParametricGlider
-    glider_3d: Glider=field(default_factory=lambda: Glider())
+    glider_3d: Glider = Field(default=None)
     filename: str=""
     name: str=""
-    changelog: List[Tuple[datetime.datetime, str, str]]=field(default_factory=lambda: [])
+    changelog: List[Tuple[datetime.datetime, str, str]] = Field(default_factory=lambda: [])
 
     _regex_revision_no = re.compile(r"(.*)_rev([0-9]*)$")
-    
-    def __post_init__(self):
+
+    def __post_init_post_parse__(self):
         if not self.name:
             if self.filename is not None:
                 self.name = os.path.split(self.filename)[1]
             else:
                 self.name = "unnamed_project"
 
-        if self.glider_3d is None or len(self.glider_3d.ribs) == 0:
+        if self.glider_3d is None:
             logger.info(f"get glider 3d:  {self.name}")
             self.glider_3d = self.glider.get_glider_3d()
 

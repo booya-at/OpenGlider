@@ -29,93 +29,102 @@ class CachedObject(object):
 
 
 
+class CachedProperty(object):
+    hashlist: List[str]
+
+    def __init__(self, fget, hashlist):
+        super().__init__()
+        self.function = fget
+        self.__doc__ = fget.__doc__
+        self.__module__ = fget.__module__
+
+        self.hashlist = hashlist
+
+        global cache_instances
+        cache_instances.append(self)
+
+    def __get__(self, parentclass, type=None):
+        if not openglider.config["caching"]:
+            return self.function(parentclass)
+        else:
+            if not hasattr(parentclass, "_cache"):
+                parentclass._cache = {}
+
+            cache = parentclass._cache
+            dahash = hash_attributes(parentclass, self.hashlist)
+            # Return cached or recalc if hashes differ
+            if self not in cache or cache[self]['hash'] != dahash:
+                res = self.function(parentclass)
+                cache[self] = {
+                    "hash": dahash,
+                    "value": res
+                }
+
+            return cache[self]["value"]
 
 def cached_property(*hashlist):
-    #@functools.wraps
-    class CachedProperty(object):
-        def __init__(self, fget=None, doc=None):
-            super().__init__()
-            self.function = fget
-            self.__doc__ = doc or fget.__doc__
-            self.__module__ = fget.__module__
+    def property_decorator(fget):
+        return CachedProperty(fget, hashlist)
+    
+    return property_decorator
 
-            self.hashlist = hashlist
 
-            global cache_instances
-            cache_instances.append(self)
+class CachedFunction():
+    hashlist: List[str]
+    def __init__(self, f_get, hashlist):
+        self.function = f_get
+        self.hashlist = hashlist
+        self.__doc__ = f_get.__doc__
+        self.__name__ = f_get.__name__
+        self.__module__ = f_get.__module__
+    
+    def __get__(self, instance, parentclass):
+        if not hasattr(instance, "cached_functions"):
+            setattr(instance, "cached_functions", {})
+        
+        if self not in instance.cached_functions:
+            hashlist = self.hashlist
+            class BoundCache():
+                def __init__(self, parent, function):
+                    self.parent = parent
+                    self.function = function
+                    self.cache = {}
+                    self.hash = None
+                    self.hashlist = hashlist
+                
+                def __repr__(self):
+                    return f"<cached: {self.function}>"
+                
+                def __call__(self, *args, **kwargs):
+                    if not openglider.config["caching"]:
+                        return self.function(self.parent, *args, **kwargs)
+                        
+                    the_hash = hash_attributes(self.parent, self.hashlist)
+                    #logging.info(f"{self.parent} {the_hash} {self.hash} {args} {kwargs}")
 
-        def __get__(self, parentclass, type=None):
-            if not openglider.config["caching"]:
-                return self.function(parentclass)
-            else:
-                if not hasattr(parentclass, "_cache"):
-                    parentclass._cache = {}
+                    if the_hash != self.hash:
+                        self.cache.clear()
+                        self.hash = the_hash
+                    
+                    argument_hash = hash_list(*args, *kwargs.values())
+                    logging.debug(f"{argument_hash}, {str(args)}, {str(kwargs)}")
 
-                cache = parentclass._cache
-                dahash = hash_attributes(parentclass, self.hashlist)
-                # Return cached or recalc if hashes differ
-                if self not in cache or cache[self]['hash'] != dahash:
-                    res = self.function(parentclass)
-                    cache[self] = {
-                        "hash": dahash,
-                        "value": res
-                    }
+                    if argument_hash not in self.cache:
+                        logging.debug(f"recalc, {self.function} {self.parent}")
+                        self.cache[argument_hash] = self.function(self.parent, *args, **kwargs)
 
-                return cache[self]["value"]
+                    return self.cache[argument_hash]
+            
+            instance.cached_functions[self] = BoundCache(instance, self.function)
+        
+        return instance.cached_functions[self]
 
-    return CachedProperty
 
 def cached_function(*hashlist):
-    class CachedFunction():
-        def __init__(self, f_get, doc=None):
-            self.function = f_get
-            self.__doc__ = doc or f_get.__doc__
-            self.__name__ = f_get.__name__
-            self.__module__ = f_get.__module__
-        
-        def __get__(self, instance, parentclass):
-            if not hasattr(instance, "cached_functions"):
-                setattr(instance, "cached_functions", {})
-            
-            if self not in instance.cached_functions:
-                class BoundCache():
-                    def __init__(self, parent, function):
-                        self.parent = parent
-                        self.function = function
-                        self.cache = {}
-                        self.hash = None
-                        self.hashlist = hashlist
-                    
-                    def __repr__(self):
-                        return f"<cached: {self.function}>"
-                    
-                    def __call__(self, *args, **kwargs):
-                        if not openglider.config["caching"]:
-                            return self.function(self.parent, *args, **kwargs)
-                            
-                        the_hash = hash_attributes(self.parent, self.hashlist)
-                        #logging.info(f"{self.parent} {the_hash} {self.hash} {args} {kwargs}")
-
-                        if the_hash != self.hash:
-                            self.cache.clear()
-                            self.hash = the_hash
-                        
-                        argument_hash = hash_list(*args, *kwargs.values())
-                        logging.debug(f"{argument_hash}, {str(args)}, {str(kwargs)}")
-
-                        if argument_hash not in self.cache:
-                            logging.debug(f"recalc, {self.function} {self.parent}")
-                            self.cache[argument_hash] = self.function(self.parent, *args, **kwargs)
-
-                        return self.cache[argument_hash]
-                
-                instance.cached_functions[self] = BoundCache(instance, self.function)
-            
-            return instance.cached_functions[self]
-
-
-
-    return CachedFunction
+    def cache_decorator(func):
+        return CachedFunction(func, hashlist)
+    
+    return cache_decorator
 
 
 def clear_cache():

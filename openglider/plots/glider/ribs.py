@@ -16,6 +16,7 @@ from openglider.vector.drawing import PlotPart
 from openglider.vector.text import Text
 
 if TYPE_CHECKING:
+    from openglider.glider.rib import Rib
     from openglider.glider import Glider
 
 
@@ -28,6 +29,8 @@ class RibPlot(object):
     outer: euklid.vector.PolyLine2D
 
     DefaultConf = PatternConfig
+
+    rib: Rib
 
     layer_name_outline = "cuts"
     layer_name_sewing = "sewing"
@@ -45,7 +48,7 @@ class RibPlot(object):
 
     def flatten(self, glider: "Glider", add_rigidfoils_to_plot=True):
         self.plotpart = PlotPart(name=self.rib.name, material_code=str(self.rib.material))
-        prof2d = self.rib.get_hull(glider)
+        prof2d = self.rib.get_hull()
 
         self.x_values = prof2d.x_values
         self.inner = prof2d.curve.scale(self.rib.chord)
@@ -211,19 +214,12 @@ class RibPlot(object):
         
 
     def _insert_attachment_points(self, glider: "Glider"):
-        for attachment_point in glider.lineset.attachment_points:
+        for attachment_point in self.rib.attachment_points:
+            positions = attachment_point.get_x_values(self.rib)
 
-            rib = self.rib
-            if glider.has_center_cell and glider.ribs.index(self.rib) == 0:
-                rib = glider.ribs[1]
-
-            if hasattr(attachment_point, "rib") and attachment_point.rib == rib:
-
-                positions = attachment_point.get_x_values(self.rib)
-
-                for position in positions:
-                    self.insert_mark(position, self.config.marks_attachment_point)
-                    self.insert_mark(position, self.config.marks_laser_attachment_point, laser=True)
+            for position in positions:
+                self.insert_mark(position, self.config.marks_attachment_point)
+                self.insert_mark(position, self.config.marks_laser_attachment_point, laser=True)
 
     def _insert_text(self, text):
         if self.config.rib_text_in_seam:
@@ -313,9 +309,6 @@ class RibPlot(object):
         # rigidfoils
         for i, rigid in enumerate(self.rib.get_rigidfoils()):
             draw_rigid(rigid, f"{self.rib.name}r{i+1}")
-
-        for i, curve in enumerate(self.rib.curves):
-            draw_rigid(curve, f"{self.rib.name}r{i+1}")
 
         return plotpart
 

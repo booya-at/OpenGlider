@@ -1,10 +1,11 @@
+from abc import ABC
 import logging
 import math
-from typing import List, TYPE_CHECKING
+from typing import TypeVar, List, TYPE_CHECKING
 
 import euklid
 import numpy as np
-from openglider.utils.dataclass import dataclass
+from openglider.utils.dataclass import BaseModel, dataclass
 
 if TYPE_CHECKING:
     from openglider.glider.rib.rib import Rib
@@ -13,8 +14,8 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class RigidFoilBase:
+class RigidFoilBase(ABC, BaseModel):
+    name: str = "unnamed"
     start: float = -0.1
     end: float = 0.1
     distance: float = 0.005
@@ -31,8 +32,11 @@ class RigidFoilBase:
     def _get_flattened(self, rib: "Rib", glider: "Glider"=None):
         raise NotImplementedError()
 
+    def get_cap_radius(self, start: bool):
+        raise NotImplementedError
 
-@dataclass
+
+
 class RigidFoil(RigidFoilBase):
     circle_radius: float = 0.03
 
@@ -53,7 +57,7 @@ class RigidFoil(RigidFoilBase):
 
     def _get_flattened(self, rib: "Rib", glider: "Glider"=None):
         max_segment = 0.005  # 5mm
-        profile = rib.get_hull(glider)
+        profile = rib.get_hull()
         profile_normvectors = profile.normvectors
 
         start = profile.get_ik(self.start)
@@ -87,11 +91,8 @@ class RigidFoil(RigidFoilBase):
 
 
 class _RigidFoilCurved(RigidFoilBase):
-    def get_cap_radius(self, start: bool):
-        raise NotImplementedError
-
     def _get_flattened(self, rib: "Rib", glider: "Glider"=None):
-        profile = rib.get_hull(glider)
+        profile = rib.get_hull()
 
         start = profile.get_ik(self.start)
         end = profile.get_ik(self.end)
@@ -118,7 +119,7 @@ class _RigidFoilCurved(RigidFoilBase):
 
         return euklid.vector.PolyLine2D(ending_1.nodes + rigidfoil_curve.nodes + ending_2.nodes)
 
-@dataclass
+
 class RigidFoilCurved(_RigidFoilCurved):
     circle_radius_start: float = 0.03
     circle_amount_start: float = 0.7
@@ -133,7 +134,6 @@ class RigidFoilCurved(_RigidFoilCurved):
             return self.circle_radius_end, self.circle_amount_end
 
 
-@dataclass
 class RigidFoil2(_RigidFoilCurved):
     circle_radius: float=0.05
     circle_amount: float=0.5

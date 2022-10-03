@@ -7,6 +7,7 @@ from typing import Dict, List
 
 import euklid
 import numpy as np
+from openglider.glider.cell.attachment_point import CellAttachmentPoint
 import openglider.utils
 import openglider.vector
 import pyfoil
@@ -21,7 +22,7 @@ from openglider.mesh import Mesh, Polygon, Vertex
 from openglider.utils import consistent_value, linspace
 from openglider.utils.cache import (HashedList, cached_function,
                                     cached_property, hash_list)
-from openglider.utils.dataclass import dataclass, field
+from openglider.utils.dataclass import dataclass, Field
 
 logger = logging.getLogger(__file__)
 
@@ -30,11 +31,12 @@ class Cell:
     rib1: Rib
     rib2: Rib
     ballooning: BallooningBase
-    miniribs: List[MiniRib] = field(default_factory=list)
-    panels: List[Panel] = field(default_factory=list)
-    diagonals: List[DiagonalRib] = field(default_factory=list)
-    straps: List[TensionStrap] = field(default_factory=list)
-    rigidfoils: List[PanelRigidFoil] = field(default_factory=list)
+    attachment_points: List[CellAttachmentPoint] = Field(default_factory=list)
+    miniribs: List[MiniRib] = Field(default_factory=list)
+    panels: List[Panel] = Field(default_factory=list)
+    diagonals: List[DiagonalRib] = Field(default_factory=list)
+    straps: List[TensionStrap] = Field(default_factory=list)
+    rigidfoils: List[PanelRigidFoil] = Field(default_factory=list)
     name: str = "unnamed"
 
 

@@ -9,7 +9,7 @@ import openglider
 from openglider.glider.shape import Shape
 from openglider.lines import Node
 from openglider.utils.cache import cached_function
-from openglider.utils.dataclass import BaseModel, dataclass, field
+from openglider.utils.dataclass import BaseModel, Field
 from openglider.vector.polygon import Circle, Ellipse
 
 if TYPE_CHECKING:
@@ -19,12 +19,12 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class RibHoleBase:
-    margin: float=field(default=0.04, kw_only=True)
+class RibHoleBase(BaseModel):
+    name: str = "unnamed"
+    margin: float=Field(default=0.04, kw_only=True)
 
     def get_envelope_airfoil(self, rib: "Rib") -> openglider.airfoil.Profile2D:
-        return rib.get_margin_outline(self.margin)
+        return rib.get_offset_outline(self.margin)
     
     @cached_function("margin")
     def get_envelope_boundaries(self, rib: "Rib"):
@@ -55,7 +55,6 @@ class RibHoleBase:
         return points
 
 
-@dataclass
 class RibHole(RibHoleBase):
     """
     Round holes.
@@ -69,17 +68,11 @@ class RibHole(RibHoleBase):
     rotation: float=0
 
     def __init__(self, pos, size=0.5, width=1, vertical_shift=0., rotation=0., **kwargs):
-        self.pos = pos
         if isinstance(size, (list, tuple, np.ndarray, euklid.vector.Vector2D)):
             # TODO: modernize
             width = size[0]/size[1]
-            self.size = size[1]
-        else:
-            self.size = size
-        self.vertical_shift = vertical_shift
-        self.rotation = rotation  # rotation around lower point
-        self.width = width
-        super().__init__(**kwargs)
+            size = size[1]
+        super().__init__(pos=pos, width=width, size=size, vertical_shift=vertical_shift, rotation=rotation, **kwargs)
 
     def get_curves(self, rib: "Rib", num=80) -> List[euklid.vector.PolyLine2D]:
         lower = rib.profile_2d.get(self.pos)
@@ -108,7 +101,6 @@ class RibHole(RibHoleBase):
         return [lower + diff * (0.5 + self.vertical_shift/2)]
 
 
-@dataclass
 class PolygonHole(RibHoleBase):
     points: List[euklid.vector.Vector2D]
     corner_size: float=1
@@ -154,7 +146,7 @@ class PolygonHole(RibHoleBase):
 
         return [euklid.vector.PolyLine2D(sequence).resample(num)]
 
-@dataclass
+
 class RibSquareHole(RibHoleBase):
     x: float
     width: float
@@ -193,7 +185,6 @@ class RibSquareHole(RibHoleBase):
         return PolygonHole(points=[p1, p2, p3, p4]).get_curves(rib, num)
 
 
-@dataclass
 class MultiSquareHole(RibHoleBase):
     start: float
     end: float
@@ -226,7 +217,7 @@ class MultiSquareHole(RibHoleBase):
         hole_width = self.hole_width
         holes = []
         for center in self.hole_x_values:
-            holes.append(RibSquareHole(center, hole_width, self.height, margin=self.margin))
+            holes.append(RibSquareHole(x=center, width=hole_width, height=self.height, margin=self.margin))
 
         return holes
     
@@ -244,7 +235,7 @@ class MultiSquareHole(RibHoleBase):
         
         return curves
 
-@dataclass
+
 class AttachmentPointHole(RibHoleBase):
     start: float
     end: float
@@ -278,8 +269,6 @@ class AttachmentPointHole(RibHoleBase):
         for hole_no in range(self.num_holes):
             left = self.start + (self.side_border + hole_no*self.border)/rib.chord + hole_no*hole_width
             right = left + hole_width
-
-            print(left, right)
 
             p1 = euklid.vector.Vector2D([left, lower.get_value(left)])
             p2 = euklid.vector.Vector2D([right, lower.get_value(right)])

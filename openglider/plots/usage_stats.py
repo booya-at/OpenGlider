@@ -14,7 +14,7 @@ class MaterialUsage:
 
         return result
     
-    def consume(self, material: Material, amount: float):
+    def consume(self, material: Material | None, amount: float):
         self.usage.setdefault(material, 0)
         self.usage[material] += amount
     

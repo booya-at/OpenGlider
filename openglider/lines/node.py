@@ -75,9 +75,6 @@ class Node(object):
 
         return direction.normalized() * force
 
-    def get_position(self):
-        pass
-
     def calc_proj_vec(self, v_inf) -> None:
         self.vec_proj = self.vec - v_inf * (v_inf.dot(self.vec) / v_inf.dot(v_inf))
 

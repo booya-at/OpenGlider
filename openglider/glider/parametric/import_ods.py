@@ -113,20 +113,10 @@ def import_ods_glider(tables: List[Table]) -> "ParametricGlider":
 
     add_rib = geometry["shape"].has_center_cell and data_dct.get("version", "0.0.1") >= "0.1.0"
 
-    attachment_points = LineSet2D.read_attachment_point_table(
-        cell_table=cell_sheet,
-        rib_table=rib_sheet,
-        cell_no=geometry["shape"].cell_num,
-        curves=curves.get_curves(geometry["shape"].get_half_shape()),
-        add_center_rib=add_rib
-    )
-
-    attachment_points = {n.name: n for n in attachment_points}
-
     attachment_points_lower = get_lower_aufhaengepunkte(data_dct)
 
     lineset_table = tables[6]
-    lineset = LineSet2D.read_input_table(lineset_table, attachment_points_lower, attachment_points)
+    lineset = LineSet2D.read_input_table(lineset_table, attachment_points_lower)
     lineset.set_default_nodes2d_pos(geometry["shape"])
     lineset.trim_corrections = {
         name: value for name, value in data_dct.pop("trim_correction", [])

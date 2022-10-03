@@ -1,14 +1,18 @@
+from __future__ import annotations
+from typing import Dict, Union, TYPE_CHECKING
+
 import ast
 import logging
 import re
-from typing import Dict, Union
 
 import euklid
-import openglider
-from openglider.glider.parametric.lines import UpperNode2D
-from openglider.glider.parametric.table.elements import (CellTable, Keyword,
-                                                         RibTable)
+from openglider.glider.cell.attachment_point import CellAttachmentPoint
+from openglider.glider.parametric.table.elements import CellTable, Keyword, RibTable
+from openglider.glider.rib.attachment_point import AttachmentPoint
 from openglider.utils.table import Table
+
+if TYPE_CHECKING:
+    from openglider.glider.glider import Glider
 
 logger = logging.getLogger(__name__)
 
@@ -21,21 +25,26 @@ class AttachmentPointTable(RibTable):
         "ATPPROTO": Keyword([("name", str), ("pos", float), ("force", Union[float, str]), ("proto_distance", float)])
     }
 
-    def get_element(self, row, keyword, data, curves={}, **kwargs) -> UpperNode2D:
+    def get_element(self, row, keyword, data, curves={}, **kwargs) -> AttachmentPoint:
         # rib_no, rib_pos, cell_pos, force, name, is_cell
         force = data[2]
 
         if isinstance(force, str):
             force = ast.literal_eval(force)
+            try:
+                force = euklid.vector.Vector3D(force)
+            except Exception:
+                pass
 
         rib_pos = data[1]
         if isinstance(rib_pos, str):
             rib_pos = curves[rib_pos].get(row)
-            
-        node = UpperNode2D(row, rib_pos, 0, force, name=data[0], is_cell=False)
+        
+        node = AttachmentPoint(name=data[0], rib_pos=rib_pos, force=force)
 
         if keyword == "ATPPROTO":
-            node.proto_dist = data[3]
+            node.protoloop_distance_absolute = data[3]
+            node.protoloops = 1
         
         return node
     
@@ -58,7 +67,8 @@ class AttachmentPointTable(RibTable):
         self.table = new_table
     
     @classmethod
-    def from_glider(cls, glider: "openglider.glider.Glider"):
+    def from_glider(cls, glider: Glider):
+        raise NotImplementedError()
         table = Table()
 
         layer_columns: Dict[str, int] = {}
@@ -79,9 +89,7 @@ class AttachmentPointTable(RibTable):
                     table[cell_no+1, column_no] = att_point.name
                     table[cell_no+1, column_no+1] = att_point.pos
         
-        return cls(table)
-
-                    
+        return cls(table)                  
                     
 
 class CellAttachmentPointTable(CellTable):
@@ -91,13 +99,13 @@ class CellAttachmentPointTable(CellTable):
         "ATPDIFF": Keyword([("name", str), ("cell_pos", float), ("rib_pos", float), ("force", Union[float, str]), ("offset", float)])
     }
 
-    def get_element(self, row, keyword, data, curves={}, **kwargs) -> UpperNode2D:
+    def get_element(self, row, keyword, data, curves={}, **kwargs) -> CellAttachmentPoint:
         force = data[3]
 
         if isinstance(force, str):
             force = ast.literal_eval(force)
 
-        node = UpperNode2D(row, data[2], data[1], force, name=data[0], is_cell=True)
+        node = CellAttachmentPoint(name=data[0], cell_pos=data[1], rib_pos=data[2], force=force)
 
         if len(data) > 4:
             offset = data[4]
@@ -108,3 +116,5 @@ class CellAttachmentPointTable(CellTable):
 
         return node
 
+    def from_glider(self, glider: Glider):
+        raise NotImplementedError()

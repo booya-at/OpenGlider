@@ -8,7 +8,7 @@ from openglider.airfoil.profile_3d import Profile3D
 
 from openglider.glider.rib.rib import Rib
 from openglider.utils import linspace
-from openglider.utils.cache import cached_property
+from openglider.utils.cache import cached_function, cached_property
 
 if typing.TYPE_CHECKING:
     from openglider.glider.glider import Glider
@@ -16,8 +16,9 @@ if typing.TYPE_CHECKING:
 class SingleSkinRib(Rib):
     def __init__(self, profile_2d=None, startpoint=None,
                  chord=1., arcang=0, aoa_absolute=0, zrot=0, xrot=0., glide=1,
-                 name="unnamed rib", startpos=0.,
+                 name="unnamed rib", pos=0.,
                  rigidfoils=None, holes=None, material=None,
+                 startpos=0., attachment_points=None,
                  single_skin_par=None, sharknose=None):
         super(SingleSkinRib, self).__init__(profile_2d=profile_2d, 
                                             startpoint=startpoint,
@@ -28,9 +29,11 @@ class SingleSkinRib(Rib):
                                             xrot=xrot,
                                             glide=glide,
                                             name=name,
+                                            pos=pos,
                                             startpos=startpos,
                                             rigidfoils=rigidfoils,
                                             holes=holes,
+                                            attachment_points=attachment_points,
                                             material=material,
                                             sharknose=sharknose)
         self.single_skin_par = {
@@ -47,8 +50,6 @@ class SingleSkinRib(Rib):
             "te_gap": False,
             "num_points": 30
         }
-
-        self._hull = None
 
         if single_skin_par:
             self.single_skin_par.update(single_skin_par)
@@ -91,15 +92,10 @@ class SingleSkinRib(Rib):
         json_dict["single_skin_par"] = self.single_skin_par
         return json_dict
 
-    def get_hull(self, glider: "Glider"=None) -> pyfoil.Airfoil:
-        '''
-        returns a modified profile2d
-        '''
-        if glider is None:
-            return self._hull
-
+    @cached_function("self")
+    def get_hull(self) -> pyfoil.Airfoil:
         profile = self.profile_2d
-        attach_pts = self.get_attachment_points(glider)
+        attach_pts = self.attachment_points
         fixed_positions = list(set([att.rib_pos for att in attach_pts] + [1]))
 
         if len(fixed_positions) > 1:
@@ -176,7 +172,6 @@ class SingleSkinRib(Rib):
 
                 profile = pyfoil.Airfoil(new_data)
 
-        self._hull = profile
         return profile
 
     @staticmethod

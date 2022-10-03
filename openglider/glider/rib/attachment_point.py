@@ -1,14 +1,12 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 import logging
-import math
-from typing import List, TYPE_CHECKING
 
 import euklid
-import numpy as np
-import openglider
 from openglider.glider.shape import Shape
 from openglider.lines import Node
 from openglider.utils.dataclass import dataclass
-from openglider.vector.polygon import Circle, Ellipse
+from openglider.vector.polygon import Circle
 
 if TYPE_CHECKING:
     from openglider.glider.rib.rib import Rib
@@ -62,56 +60,10 @@ class GibusArcs:
         return circle.get(cut1[0], cut2[0]) + profile.curve.get(cut2[1], cut1[1])
 
 
-class CellAttachmentPoint(Node):
-    ballooned=False
-
-    def __init__(self, cell, name, cell_pos, rib_pos, force=None, offset=None, node_type=Node.NODE_TYPE.UPPER):
-        super().__init__(node_type=Node.NODE_TYPE.UPPER, force=force)
-        self.cell = cell
-        self.cell_pos = cell_pos
-        self.rib_pos = rib_pos
-        self.name = name
-        self.force = force
-
-        if offset is None:
-            offset = 0
-        self.offset: float = offset
-
-    def __repr__(self):
-        return "<Attachment point '{}' ({})>".format(self.name, self.rib_pos)
-
-    def __json__(self):
-        return {
-            "cell": self.cell,
-            "cell_pos": self.cell_pos,
-            "rib_pos": self.rib_pos,
-            "name": self.name,
-            "force": self.force
-        }
-
-    def get_position(self, glider=None) -> euklid.vector.Vector3D:
-        ik = self.cell.rib1.profile_2d(self.rib_pos)
-
-        if self.rib_pos in (-1, 1):
-            p1 = self.cell.rib1.profile_3d.get(ik)
-            p2 = self.cell.rib2.profile_3d.get(ik)
-            self.vec = p1 + (p2 - p1)*self.cell_pos
-        else:
-            self.vec = self.cell.midrib(self.cell_pos, ballooning=self.ballooned)[ik]
-            
-        return self.vec
-    
-    def get_position_2d(self, shape: Shape, glider: "Glider") -> euklid.vector.Vector2D:
-        cell_no = glider.cells.index(self.cell) + shape.has_center_cell
-
-        return shape.get_point(cell_no+self.cell_pos, self.rib_pos)
-
-
 # Node from lines
 class AttachmentPoint(Node):
-    def __init__(self, rib, name, rib_pos, force=None, offset=None, protoloops=0, protoloop_distance=0.02, protoloop_distance_absolute=True, node_type=Node.NODE_TYPE.UPPER):
+    def __init__(self, name, rib_pos, force=None, offset=None, protoloops=0, protoloop_distance=0.02, protoloop_distance_absolute=True, node_type=Node.NODE_TYPE.UPPER):
         super().__init__(node_type=Node.NODE_TYPE.UPPER, force=force)
-        self.rib = rib
         self.rib_pos = rib_pos
         self.name = name
         self.force = force
@@ -128,14 +80,14 @@ class AttachmentPoint(Node):
         return "<Attachment point '{}' ({})>".format(self.name, self.rib_pos)
 
     def __json__(self):
-        return {"rib": self.rib,
-                "name": self.name,
-                "rib_pos": self.rib_pos,
-                "force": self.force,
-                "protoloops": self.protoloops,
-                "protoloop_distance": self.protoloop_distance,
-                "protoloop_distance_absolute": self.protoloop_distance_absolute
-                }
+        return {
+            "name": self.name,
+            "rib_pos": self.rib_pos,
+            "force": self.force,
+            "protoloops": self.protoloops,
+            "protoloop_distance": self.protoloop_distance,
+            "protoloop_distance_absolute": self.protoloop_distance_absolute
+        }
     
     def get_x_values(self, rib: "Rib"):
         positions = [self.rib_pos]
@@ -158,13 +110,19 @@ class AttachmentPoint(Node):
         
         return positions
 
-    def get_position(self, glider=None) -> euklid.vector.Vector3D:
+    def get_position(self, rib: Rib) -> euklid.vector.Vector3D:
         # todo: PROFILE3D -> return euklid vector
-        self.vec = self.rib.get_profile_3d(glider)[self.rib.profile_2d(self.rib_pos)]
+        self.vec = rib.get_profile_3d()[rib.get_hull()(self.rib_pos)]
+        if not isinstance(self.force, euklid.vector.Vector3D):
+            self.force = rib.rotation_matrix.apply([0, self.force, 0])
+
         return self.vec
     
     def get_position_2d(self, shape: Shape, glider: "Glider") -> euklid.vector.Vector2D:
-        rib_no = glider.ribs.index(self.rib)
+
+        rib_no = None
+        for i, rib in enumerate(glider.ribs):
+            if self in rib.attachment_points:
+                rib_no = i
 
         return shape.get_point(rib_no, self.rib_pos)
-

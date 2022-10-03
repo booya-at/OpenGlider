@@ -6,12 +6,18 @@ import logging
 
 import euklid
 import pyfoil
+from openglider import airfoil
 
 from openglider.airfoil import Profile3D
-from openglider.utils.cache import CachedObject, cached_function, cached_property
+from openglider.glider.rib.attachment_point import AttachmentPoint
+from openglider.glider.rib.crossports import RibHoleBase
+from openglider.glider.rib.rigidfoils import RigidFoilBase
+from openglider.materials.material import Material
+from openglider.utils.cache import cached_function, cached_property
 from openglider.mesh import Mesh, triangulate
 from openglider.glider.rib.sharknose import Sharknose
 from openglider.materials import cloth
+from openglider.utils.dataclass import BaseModel, dataclass, Field
 
 
 if TYPE_CHECKING:
@@ -20,65 +26,33 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-class Rib(CachedObject):
+@dataclass
+class Rib:
     """
     Openglider Rib Class: contains a airfoil, needs a startpoint, angle (arcwide), angle of attack,
         glide-wide rotation and glider ratio.
         optional: name, absolute aoa (bool), startposition
     """
-    sharknose: Optional[Sharknose]
+    material: Material | None
+    profile_2d: pyfoil.Airfoil
+    pos: euklid.vector.Vector3D
+    chord: float
 
+    glide: float
+    aoa_absolute: float
+    name: str = "unnamed rib"
+    startpos: float = 0.
+    arcang: float = 0.
+    zrot: float = 0.
+    xrot: float = 0.
+
+    holes: List[RibHoleBase] = Field(default_factory=list)
+    rigidfoils: List[RigidFoilBase] = Field(default_factory=list)
+    attachment_points: List[AttachmentPoint] = Field(default_factory=list)
+    sharknose: Sharknose | None = None
 
     hole_naming_scheme = "{rib.name}h{}"
     rigid_naming_scheme = "{rib.name}rigid{}"
-
-    hashlist = ['aoa_absolute', 'glide', 'arcang', 'zrot', 'chord', 'pos', 'profile_2d']  # pos
-
-    def __init__(self, profile_2d: pyfoil.Airfoil, startpoint=None,
-                 chord=1., arcang=0, aoa_absolute=0, zrot=0, xrot = 0, glide=1,
-                 name="unnamed rib", startpos=0.,
-                 rigidfoils=None,
-                 holes=None, material=None, sharknose=None):
-        self.startpos = startpos
-        # TODO: Startpos > Set Rotation Axis in Percent
-        self.name = name
-        self.profile_2d = profile_2d
-        self.glide = glide
-        self.aoa_absolute = aoa_absolute
-        self.arcang = arcang
-        self.zrot = zrot
-        self.xrot = xrot
-        self.pos = euklid.vector.Vector3D(startpoint)  # or HashedList([0, 0, 0])
-        self.chord = chord
-        self.holes = holes or []
-        self.rigidfoils = rigidfoils or []
-        self.sharknose = sharknose
-
-        if material is not None:
-            if isinstance(material, str):
-                material = cloth.get(material)
-            self.material = material
-            
-        # self.curves = [FoilCurve()]
-        # TODO: add in paramteric way
-        self.curves: List[Any] = []
-
-    def __json__(self):
-        return {"profile_2d": self.profile_2d,
-                "startpoint": self.pos,
-                "chord": self.chord,
-                "arcang": self.arcang,
-                "aoa_absolute": self.aoa_absolute,
-                "zrot": self.zrot,
-                "xrot": self.xrot,
-                "glide": self.glide,
-                "name": self.name,
-                "rigidfoils": self.rigidfoils,
-                "holes": self.holes,
-                "material": str(self.material),
-                "name": self.name,
-                "sharknose": self.sharknose
-                }
 
     def align_all(self, data, scale=True) -> euklid.vector.PolyLine3D:
         """align 2d coordinates to the 3d pos of the rib"""
@@ -131,8 +105,8 @@ class Rib(CachedObject):
         return self.get_profile_3d()
     
     @cached_function("self")
-    def get_profile_3d(self, glider=None, x_values=None):
-        hull = self.get_hull(glider)
+    def get_profile_3d(self, x_values=None):
+        hull = self.get_hull()
 
         if x_values is not None:
             hull = hull.set_x_values(self.profile_2d.x_values)
@@ -164,7 +138,7 @@ class Rib(CachedObject):
     def is_closed(self):
         return self.profile_2d.thickness < 0.01
 
-    def get_hull(self, glider: "Glider"=None) -> pyfoil.Airfoil:
+    def get_hull(self) -> pyfoil.Airfoil:
         """returns the outer contour of the normalized mesh in form
            of a Polyline"""
         if self.sharknose is not None:
@@ -190,7 +164,10 @@ class Rib(CachedObject):
         return attach_pts
 
     def get_lines(self, glider, brake=False):
-        att = self.get_attachment_points(glider, brake=brake)
+        att = self.attachment_points
+        if not brake:
+            att = [p for p in att if p.pos < 1]
+        
         connected_lines = set()
         for line in glider.lineset.lines:
             if line.upper_node in att:
@@ -203,7 +180,7 @@ class Rib(CachedObject):
             # TODO: return line
             return Mesh.from_indexed([], {}, {})
 
-        vertices = list(self.get_hull(glider).curve)[:-1]
+        vertices = list(self.get_hull().curve)[:-1]
         boundary = [list(range(len(vertices))) + [0]]
         hole_centers = []
 
@@ -240,7 +217,7 @@ class Rib(CachedObject):
             return Mesh.from_indexed(vertices, polygons={"ribs": mesh.elements} , boundaries=boundaries)
 
     @cached_function("self")
-    def get_margin_outline(self, margin: float) -> pyfoil.Airfoil:
+    def get_offset_outline(self, margin: float) -> pyfoil.Airfoil:
         logger.debug(f"calculate envelope: {self.name}: {margin}")
         
         if margin == 0.:

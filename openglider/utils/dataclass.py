@@ -1,12 +1,15 @@
 from __future__ import annotations
+import inspect
 from typing import TYPE_CHECKING, Dict, Any, Type, TypeVar
 
 import pydantic
-from pydantic.main import __dataclass_transform__
 #from pydantic import Field as field
-from dataclasses import dataclass as dc, asdict, replace, field, Field
+from pydantic import Field
 
-from openglider.utils.cache import hash_attributes, hash_list
+from typing_extensions import dataclass_transform
+from dataclasses import KW_ONLY, dataclass as dc, asdict, replace
+
+from openglider.utils.cache import CachedFunction, CachedProperty, hash_attributes, hash_list
 
 if TYPE_CHECKING:
     from pydantic.dataclasses import Dataclass
@@ -25,8 +28,9 @@ if TYPE_CHECKING:
 
 class Config:
     arbitrary_types_allowed = True
+    #post_init_call = 'after_validation'
 
-@__dataclass_transform__(kw_only_default=True)
+@dataclass_transform(kw_only_default=False)
 def dataclass(_cls) -> Type[OGDataclassT]:
     old_json = getattr(_cls, "__json__", None)
     if old_json is None or getattr(old_json, "is_auto", False):
@@ -71,5 +75,10 @@ def dataclass(_cls) -> Type[OGDataclassT]:
     return _cls_new
 
 class BaseModel(pydantic.BaseModel):
+    class Config:
+        arbitrary_types_allowed = True
+        keep_untouched = (CachedProperty, CachedFunction)
+        extra = "allow"
+
     def __json__(self):
         return self.json()

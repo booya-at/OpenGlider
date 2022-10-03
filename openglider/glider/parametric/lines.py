@@ -1,18 +1,22 @@
-from typing import Tuple, List, Dict
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Tuple, List, Dict
 import copy
 import re
-import ast
 import logging
 import math
 
 import numpy as np
 import euklid
 
-from openglider.glider.rib.elements import AttachmentPoint, CellAttachmentPoint
 from openglider.lines import Node, Line, LineSet
-from openglider.utils import recursive_getattr, sign
+from openglider.utils import sign
+from openglider.utils.dataclass import dataclass
 from openglider.lines import line_types
 from openglider.utils.table import Table
+
+if TYPE_CHECKING:
+    from openglider.glider.glider import Glider
 
 logger = logging.getLogger(__name__)
 
@@ -40,58 +44,22 @@ class LowerNode2D(object):
         return Node(node_type=Node.NODE_TYPE.LOWER, position_vector=self.pos_3D, name=self.name)
 
 
-class UpperNode2D(object):
-    """stores the 2d data of an attachment point"""
-    def __init__(self, cell_no, rib_pos, cell_pos=0, force=1., name="unnamed", is_cell=False):
-        self.cell_no = cell_no
-        self.cell_pos = cell_pos
-        self.rib_pos = rib_pos  # value from 0...1
-        self.force = force
-        self.name = name
-        self.is_cell = is_cell
-        self.proto_dist = 0
-        self.offset = None
-
-    def __json__(self):
-        return {'cell_no': self.cell_no,
-                'rib_pos': self.rib_pos,
-                "cell_pos": self.cell_pos,
-                'force': self.force,
-                'name': self.name
-                }
+@dataclass
+class UpperNode2D:
+    name: str
 
     def __repr__(self):
-        return f"<UpperNode2D name:{self.name} cell_no:{self.cell_no} cell_pos: {self.cell_pos} rib_pos:{self.rib_pos}>"
+        return f"<UpperNode2D name:{self.name}>"
+    
+    def __hash__(self) -> int:
+        return hash(self.name)
 
     def get_2D(self, parametric_shape):
-        x = self.cell_no + self.cell_pos
-        
-        return parametric_shape.get_shape_point(x, self.rib_pos)
+        return parametric_shape.get_shape_point(0, 0.5)
 
-    def get_node(self, glider):
-        if self.is_cell: # attachment point between two ribs
-            cell = glider.cells[self.cell_no]
-            if isinstance(self.force, (list, tuple, np.ndarray)):
-                force = euklid.vector.Vector3D(list(self.force))
-            else:
-                force = cell.get_normvector() * self.force
-            
-            node = CellAttachmentPoint(cell, self.name, self.cell_pos, self.rib_pos, force, self.offset)
+    def get_node(self, glider: Glider):
+        node = glider.attachment_points[self.name]
 
-        else: # attachment point on the rib
-            rib = glider.ribs[int(self.cell_no + self.cell_pos)]
-            if isinstance(self.force, (list, tuple, np.ndarray)):
-                force = euklid.vector.Vector3D(list(self.force))
-            else:
-                force = rib.rotation_matrix.apply([0, self.force, 0])
-
-            node = AttachmentPoint(rib, self.name, self.rib_pos, force, self.offset)
-            
-            if self.proto_dist:
-                node.protoloops = 1
-                node.protoloop_distance = self.proto_dist
-
-        node.get_position(glider)
         return node
 
 
@@ -162,8 +130,7 @@ class LineSet2D(object):
         for line in self.lines:
             node = line.upper_node
             if isinstance(node, UpperNode2D):
-                if rib_no is None or node.cell_no == rib_no + 1:
-                    nodes.add(line.upper_node)
+                nodes.add(line.upper_node)
 
         return list(nodes)
 
@@ -367,7 +334,7 @@ class LineSet2D(object):
         return table
 
     @classmethod
-    def read_input_table(cls, sheet, attachment_points_lower, attachment_points_upper):
+    def read_input_table(cls, sheet, attachment_points_lower):
 
         # upper -> dct {name: node}
         num_rows = sheet.num_rows
@@ -401,8 +368,7 @@ class LineSet2D(object):
 
                     # gallery
                     if column + 2 >= num_cols - 1 or sheet[row, column + 2] is None:
-
-                        upper = attachment_points_upper[value]
+                        upper = UpperNode2D(value)
                         line_length = None
                         row += 1
                         column = 0
@@ -430,114 +396,13 @@ class LineSet2D(object):
 
         return cls(linelist)
 
-    def get_attachment_point_table(self) -> Tuple[Table, Table]:
-        nodes = self.get_upper_nodes()
-        node_groups: Dict[str, List[UpperNode2D]] = {}
-        num_cells = 0
-        tables_cell = []
-        tables_rib = []
-
-        # sort by layer
-        for node in nodes:
-            match = self.regex_node.match(node.name)
-            if match:
-                layer_name = match.group(1)
-            else:
-                layer_name = "none"
-
-            node_groups.setdefault(layer_name, [])
-            node_groups[layer_name].append(node)
-            num_cells = max(num_cells, node.cell_no)+1  # WHAT?
-
-        # layer_groups
-        groups = list(node_groups.keys())
-
-        # per layer table
-        def sorted(x):
-            res = 0
-            for i, character in enumerate(x[::-1]):
-                res += (26**i)*(ord(character)-64)
-
-            return res
-
-        groups.sort(key=sorted)
-
-        # for all layers layers
-        for key in groups:
-            table = Table()
-            group_nodes = node_groups[key]
-            is_rib_attachment_point = all(n.cell_pos in (0, 1) for n in group_nodes)
-
-            if is_rib_attachment_point:
-                for rib_no in range(num_cells+1):
-                    rib_nodes = filter(lambda n: n.cell_no+n.cell_pos == rib_no, group_nodes)
-
-                    for i, node in enumerate(rib_nodes):
-                        # name, rib_pos, force
-                        table[0, 3*i] = "ATP"
-                        table[rib_no+1, 3*i] = node.name
-                        table[rib_no+1, 3*i+1] = node.rib_pos
-                        table[rib_no+1, 3*i+2] = node.force
-                
-                tables_rib.append(table)
-
-            else:
-                for cell_no in range(num_cells):
-                    cell_nodes = filter(lambda n: n.cell_no == cell_no, group_nodes)
-                    for i, node in enumerate(cell_nodes):
-                        # name, cell_pos, rib_pos, force
-                        table[0, 4*i] = "ATP"
-                        table[cell_no+1, 4*i] = node.name
-                        table[cell_no+1, 4*i+1] = node.cell_pos
-                        table[cell_no+1, 4*i+2] = node.rib_pos
-                        table[cell_no+1, 4*i+3] = node.force
-
-                tables_cell.append(table)
-
-        total_table = Table()
-        for table in tables_cell:
-            total_table.append_right(table)
-
-        total_table_ribs = Table()
-        for table in tables_rib:
-            total_table_ribs.append_right(table)
-        return total_table_ribs, total_table
-    
-    @staticmethod
-    def read_attachment_point_table(cell_table: Table, rib_table:Table, cell_no=None, curves=None, add_center_rib=False):
-        from openglider.glider.parametric.table.attachment_points import CellAttachmentPointTable, AttachmentPointTable
-
-        half_cell_no = cell_no // 2 + cell_no % 2
-
-        cell_table_reader = CellAttachmentPointTable(cell_table)
-        rib_table_reader = AttachmentPointTable(rib_table)
-
-        if add_center_rib:
-            table = rib_table_reader.table.get_rows(0, 1)
-            table.num_rows += 1
-            table.append_bottom(rib_table_reader.table.get_rows(1, rib_table_reader.table.num_rows))
-
-        attachment_points = []
-
-        for i in range(half_cell_no):
-            attachment_points += cell_table_reader.get(i, curves=curves)
-            attachment_points += rib_table_reader.get(i, curves=curves)
-        
-        attachment_points += rib_table_reader.get(half_cell_no, curves=curves)
-
-        for attachment_point in attachment_points:
-            if attachment_point.cell_no >= half_cell_no:
-                attachment_point.cell_no -= 1
-                attachment_point.cell_pos = 1
-        
-        return attachment_points
-
-    def delete_not_connected(self, glider):
+    def delete_not_connected(self, glider: Glider):
         temp = []
         temp_new = []
+        attachment_points = glider.attachment_points
         for line in self.lines:
             if isinstance(line.upper_node, UpperNode2D):
-                if line.upper_node.cell_no >= len(glider.ribs):
+                if line.upper_node.name not in attachment_points:
                     temp.append(line)
                     self.nodes.remove(line.upper_node)
 

@@ -1,3 +1,4 @@
+import sys
 import typing
 from typing import Optional, TypeVar, Generic, Union
 import logging
@@ -149,8 +150,9 @@ class ElementTable(Generic[ElementType]):
                     data = [column[row_no, i] for i in range(data_length)]
                     try:
                         element = self.get_element(row_no-2, keyword, data, **kwargs)
-                    except Exception as e:
-                        raise ValueError(f"failed to get element ({keyword}: {row_no-2}, ({data}) {e}") from e
+                    except Exception:
+                        _, value, traceback = sys.exc_info()
+                        raise ValueError(f"failed to get element ({keyword}: {row_no-2}, ({data}) {value}").with_traceback(traceback)
                         
                     elements.append(element)
         

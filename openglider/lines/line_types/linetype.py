@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from openglider.utils.dataclass import dataclass, field
+from openglider.utils.dataclass import dataclass, Field, BaseModel
 from typing import Dict, List, Tuple, Union, Optional
 import logging
 
@@ -19,9 +19,12 @@ class LineType:
     weight: float = 0
     sheated: bool = False
     seam_correction: float = 0
-    colors: List[str] = field(default_factory=lambda: [])
+    colors: List[str] = Field(default_factory=lambda: [])
     color: Optional[str] = None
     cw: float = 1.1
+
+    class Config:
+        kw_only = False
     
     def __post_init__(self):
 
