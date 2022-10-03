@@ -305,7 +305,7 @@ class RibPlot(object):
                 if outline.contains(p):
                     plotpart.layers[self.layer_name_laser_dots] += controlpoint
                     
-            plotpart.layers[self.layer_name_outline].append(outline)
+            plotpart.layers[self.layer_name_outline].append(outline.fix_errors())
 
             
 
