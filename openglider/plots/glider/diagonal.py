@@ -20,17 +20,29 @@ class DribPlot(object):
     DefaultConf = PatternConfig
 
     def __init__(self, drib: DiagonalRib, cell, config):
+        # We are unwrapping the right side of the wing (flying direction).
+        # rib1 -> left side / inside
+        # rib2 -> right side / outside
+        # seen from the bottom => mirror
         self.drib: DiagonalRib = drib
         self.cell = cell
         self.config = self.DefaultConf(config)
 
-        self.left, self.right = self.drib.get_flattened(self.cell)
+        left, right = self.drib.get_flattened(self.cell)
+        p1, p2 = left.nodes[0], right.nodes[0]
+        left = left.mirror(p1, p2)
+        right = right.mirror(p1, p2)
 
-        self.left_out = self.left.offset(-self.config.allowance_general)
-        self.right_out = self.right.offset(self.config.allowance_general)
+        center_left = left.get(left.walk(0, left.get_length()/2))
+        center_right = right.get(right.walk(0, right.get_length()/2))
+        angle = (center_right - center_left).angle()
 
-        #print("l", len(self.left), len(self.left_out))
-        #print("r", len(self.right), len(self.right_out))
+        self.left = left.rotate(-angle, euklid.vector.Vector2D([0,0]))
+        self.right = right.rotate(-angle, euklid.vector.Vector2D([0,0]))
+
+        # left and right are going top to bottom -> offset reversed
+        self.left_out = self.left.offset(self.config.allowance_general)
+        self.right_out = self.right.offset(-self.config.allowance_general)
 
     def get_left(self, x):
         return self.get_p1_p2(x, side=0)
@@ -74,7 +86,7 @@ class DribPlot(object):
 
         foil = rib.profile_2d
         # -1 -> lower, 1 -> upper
-        foil_side = -1 if side_obj.is_lower else 1
+        foil_side = 1 if side_obj.is_lower else -1
 
         x1 = side_obj.start_x * foil_side
         x2 = x * foil_side
@@ -87,14 +99,18 @@ class DribPlot(object):
         return inner.get(ik_new), outer.get(ik_new)
     
     def _insert_center_marks(self, plotpart):
-        # put center marks only on lower sides of diagonal ribs, always on straight ones
-        if self.drib.left.is_lower or self.drib.is_upper:
-            p1, p2 = self.get_left(self.drib.left.center)
+        def insert_center_mark(inner: euklid.vector.PolyLine2D, outer: euklid.vector.PolyLine2D):
+            ik = inner.walk(0, inner.get_length()/2)
+            p1 = inner.get(ik)
+            p2 = outer.get(ik)
             plotpart.layers["marks"] += self.config.marks_diagonal_center(p1, p2)
 
+        # put center marks only on lower sides of diagonal ribs, always on straight ones
+        if self.drib.left.is_lower or self.drib.is_upper:
+            insert_center_mark(self.left, self.left_out)
+
         if self.drib.right.is_lower or self.drib.is_upper:
-            p1, p2 = self.get_right(self.drib.right.center)
-            plotpart.layers["marks"] += self.config.marks_diagonal_center(p1, p2)
+            insert_center_mark(self.right, self.right_out)
     
     def _insert_controlpoints(self, plotpart):
         for x in self.config.distribution_controlpoints:
@@ -149,8 +165,8 @@ class DribPlot(object):
 
         if num_folds > 0:
             alw2 = self.config.drib_allowance_folds
-            cut_front = self.config.cut_diagonal_fold(-alw2, num_folds=num_folds)
-            cut_back = self.config.cut_diagonal_fold(alw2, num_folds=num_folds)
+            cut_front = self.config.cut_diagonal_fold(alw2, num_folds=num_folds)
+            cut_back = self.config.cut_diagonal_fold(-alw2, num_folds=num_folds)
             
             cut_front_result = cut_front.apply([[self.left, 0], [self.right, 0]], self.left_out, self.right_out)
             cut_back_result = cut_back.apply([[self.left, len(self.left) - 1], [self.right, len(self.right) - 1]], self.left_out, self.right_out)
@@ -193,14 +209,11 @@ class DribPlot(object):
         self._insert_center_marks(plotpart)
         self._insert_controlpoints(plotpart)
 
-
-        if self.drib.get_average_x() > 0:
-            p1 = euklid.vector.Vector2D([0, 0])
-            p2 = euklid.vector.Vector2D([1, 0])
-            plotpart = plotpart.mirror(p1, p2)
-            self._insert_text(plotpart)
-        else:
-            self._insert_text(plotpart, reverse=True)
+        # mirror -> watch from above
+        #p1 = euklid.vector.Vector2D([0, 0])
+        #p2 = euklid.vector.Vector2D([1, 0])
+        #plotpart = plotpart.mirror(p1, p2)
+        self._insert_text(plotpart)
         
         self.plotpart = plotpart
         return plotpart

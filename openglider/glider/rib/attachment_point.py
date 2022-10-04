@@ -62,6 +62,7 @@ class GibusArcs:
 
 # Node from lines
 class AttachmentPoint(Node):
+    rib_pos: float
     def __init__(self, name, rib_pos, force=None, offset=None, protoloops=0, protoloop_distance=0.02, protoloop_distance_absolute=True, node_type=Node.NODE_TYPE.UPPER):
         super().__init__(node_type=Node.NODE_TYPE.UPPER, force=force)
         self.rib_pos = rib_pos

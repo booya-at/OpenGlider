@@ -429,12 +429,11 @@ class Glider(object):
         regex = re.compile(r"([a-zA-Z]+)([0-9]+)")
         attachment_point_per_group: Dict[str, List[Tuple[int, float]]] = {}
 
-        for point in self.lineset.attachment_points:
-            if match := regex.match(point.name):
-                if hasattr(point, "rib_pos") and hasattr(point, "rib"):
+        for rib_no, rib in enumerate(self.ribs):
+            for point in rib.attachment_points:
+                if match := regex.match(point.name):
                     layer = match.group(1)
                     attachment_point_per_group.setdefault(layer, [])
-                    rib_no = self.ribs.index(point.rib)
                     attachment_point_per_group[layer].append((rib_no, point.rib_pos))
         
         curves = {}
