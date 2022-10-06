@@ -1,7 +1,8 @@
+from __future__ import annotations
 import os
 import io
 import math
-from typing import List, Union, Optional
+from typing import Dict, List, Sequence, Union, Optional
 
 import euklid
 import svgwrite
@@ -106,7 +107,7 @@ class Layout(object):
 
 
     @classmethod
-    def stack_column(cls, parts: List[Union[PlotPart,"Layout"]], distance: float, center_x: bool=True) -> "Layout":
+    def stack_column(cls, parts: Sequence[PlotPart | Layout], distance: float, center_x: bool=True) -> "Layout":
         column_dwg = cls()
         direction = (distance >= 0) - (distance < 0)
         y = 0.
@@ -129,7 +130,7 @@ class Layout(object):
         return column_dwg
 
     @classmethod
-    def stack_row(cls, parts: List[Union[PlotPart,"Layout"]], distance: float, center_y: bool=True) -> "Layout":
+    def stack_row(cls, parts: Sequence[PlotPart | Layout], distance: float, center_y: bool=True) -> "Layout":
         row_dwg = cls()
         direction = (distance >= 0) - (distance < 0)
         x = 0.
@@ -156,7 +157,7 @@ class Layout(object):
         return row_dwg
 
     @classmethod
-    def stack_grid(cls, parts: List[List[Union[PlotPart, "Layout"]]], distance_x: float, distance_y: float, draw_grid=True) -> "Layout":
+    def stack_grid(cls, parts: List[Sequence[PlotPart | Layout]], distance_x: float, distance_y: float, draw_grid=True) -> "Layout":
         all_parts = cls()
         rows = len(parts)
         columns = len(parts[0])
@@ -209,7 +210,7 @@ class Layout(object):
 
         return all_parts
     
-    def delete_duplicate_points(self):
+    def delete_duplicate_points(self) -> None:
         all_nodes = []
         for part in self.parts:
             for layer in part.layers:
@@ -217,7 +218,7 @@ class Layout(object):
 
             
 
-    def add_text(self, text, distance=0.1):
+    def add_text(self, text: str, distance: float=0.1) -> PlotPart:
         """
         Add text to bottom-left corner
         :param text:
@@ -237,7 +238,7 @@ class Layout(object):
 
         return pp
 
-    def draw_border(self, border=0.1, append=True):
+    def draw_border(self, border: float=0.1, append: bool=True) -> PlotPart:
         if not self.parts:
             return PlotPart()
         bbox = self.bbox[:]
@@ -653,7 +654,7 @@ class Layout(object):
         self.scale(factor)
         return self
 
-    def group_materials(self):
+    def group_materials(self) -> Dict[str, Layout]:
         dct = {}
         for part in self.parts:
             code = part.material_code

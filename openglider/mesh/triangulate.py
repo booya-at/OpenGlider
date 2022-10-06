@@ -1,5 +1,6 @@
 from __future__ import division
 from __future__ import absolute_import
+from typing import List, Optional, Tuple
 from meshpy.triangle import MeshInfo
 
 try:
@@ -14,7 +15,7 @@ except ImportError:
 class Triangle(list):
     attributes: dict
 
-    def __init__(self, lst, name=""):
+    def __init__(self, lst: list[int], name: str=""):
         super().__init__(lst)
         self.attributes = {
             "name": name
@@ -22,12 +23,14 @@ class Triangle(list):
 
 
 class TriMesh:
-    def __init__(self, mesh_info: MeshInfo, name=""):
+    def __init__(self, mesh_info: MeshInfo, name: str=""):
         self.points = list(mesh_info.points)
 
         self.elements = [
             Triangle(v, name) for v in mesh_info.elements
         ]
+
+VectorList = List[Tuple[float, float]]
 
 class Triangulation(object):
     meshpy_keep_boundary = True
@@ -38,20 +41,20 @@ class Triangulation(object):
 
     name: str = ""
 
-    def __init__(self, vertices, boundary=None, holes=None):
+    def __init__(self, vertices: VectorList, boundary: List[List[int]]=None, holes: Optional[VectorList]=None):
         self.vertices = vertices
         self.boundary = boundary
         self.holes = holes
 
     @staticmethod
-    def get_segments(polyline):
+    def get_segments(polyline: List[int]) -> List[Tuple[int, int]]:
         segments = []
         for i in range(len(polyline)-1):
-            segments.append([polyline[i], polyline[i+1]])
+            segments.append((polyline[i], polyline[i+1]))
 
         return segments
 
-    def _get_triangle_options(self):
+    def _get_triangle_options(self) -> str:
         opts = "Qz"  # quiet and start numbering from zero
 
         if self.meshpy_keep_boundary:
@@ -72,7 +75,7 @@ class Triangulation(object):
 
         return opts
 
-    def triangulate(self, options=None):
+    def triangulate(self, options: Optional[str]=None) -> TriMesh:
         if options is None:
             options = self._get_triangle_options()
         mesh_info = MeshInfo()

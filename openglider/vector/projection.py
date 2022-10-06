@@ -3,8 +3,10 @@ from typing import Tuple
 import numpy as np
 import euklid
 
+V3 = euklid.vector.Vector3D
+V2 = euklid.vector.Vector2D
 
-def point2d(p1_3d, p1_2d, p2_3d, p2_2d, point_3d):
+def point2d(p1_3d: V3, p1_2d: V2, p2_3d: V3, p2_2d: V2, point_3d: V3):
     """Returns a third points position relative to two known points (3D+2D)"""
     # diffwise
     diff_3d = (p2_3d - p1_3d).normalized()
@@ -22,7 +24,11 @@ def point2d(p1_3d, p1_2d, p2_3d, p2_2d, point_3d):
     return point_2d + diff_2d * diff_3d.dot(diff_point)
 
 
-def flatten_list(list1, list2) -> Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
+def flatten_list(
+    list1: euklid.vector.PolyLine3D,
+    list2: euklid.vector.PolyLine3D
+    ) -> Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
+    
     if not isinstance(list1, euklid.vector.PolyLine3D):
         list1 = euklid.vector.PolyLine2D(list1.data.tolist())
     if not isinstance(list2, euklid.vector.PolyLine3D):

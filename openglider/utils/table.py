@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 import re
-from typing import List, Optional
+from typing import Any, Dict, List, Optional, Tuple, TypeAlias, Union
 
 try:
     import pyexcel_ods
@@ -11,14 +11,17 @@ except ImportError:
 
 import ezodf
 
+CellIndex = Union[Tuple[int, int], str]
 
 class Table:
     rex = re.compile(r"([A-Z]*)([0-9]*)")
     format_float_digits = 4
     name: str=""
 
+    dct: Dict[str, Any]
+
     @classmethod
-    def str_decrypt(cls, str):
+    def str_decrypt(cls, str: str) -> Tuple[int, int]:
         result = cls.rex.match(str.upper())
         if result:
             column, row = result.groups()
@@ -33,12 +36,12 @@ class Table:
         raise ValueError
 
     @classmethod
-    def str_encrypt(cls, column, row):
+    def str_encrypt(cls, column: int, row: int) -> str:
 
         return cls.column_to_char(column + 1) + str(row + 1)
 
     @classmethod
-    def column_to_char(cls, x):
+    def column_to_char(cls, x: int) -> str:
         base = 26
         out = ""
         #x -= 1
@@ -47,19 +50,19 @@ class Table:
             x = int((x-1)/base)
         return out[::-1]
 
-    def __init__(self, rows=0, columns=0, name=None):
+    def __init__(self, rows: int=0, columns: int=0, name: str="unnamed"):
         self.dct = {}
         self.num_rows = rows
         self.num_columns = columns
         self.name=name
     
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {
             "dct": self.dct
         }
     
     @classmethod
-    def __from_json__(cls, dct):
+    def __from_json__(cls, dct: Dict[str, Any]) -> Table:
         table = cls()
         table.dct = dct
 
@@ -72,20 +75,20 @@ class Table:
         return table
 
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: CellIndex , value: Any) -> None:
         if isinstance(key, tuple):
             row_no, column_no = key
         else:
             column_no, row_no = self.str_decrypt(key)
         self.set_value(column_no, row_no, value)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: CellIndex) -> Any:
         if isinstance(item, tuple):
             row_no, column_no = item
             item = self.str_encrypt(column_no, row_no)
         return self.dct.get(item, None)
 
-    def get_columns(self, from_i: int, to_j: Optional[int]):
+    def get_columns(self, from_i: int, to_j: Optional[int]) -> Table:
         if to_j is None:
             to_j = self.num_columns
         new_table = self.__class__(self.num_rows, to_j-from_i)
@@ -97,7 +100,7 @@ class Table:
         
         return new_table
     
-    def get_rows(self, from_row: int, to_row: Optional[int]):
+    def get_rows(self, from_row: int, to_row: Optional[int]) -> Table:
         if to_row is None:
             to_row = self.num_rows
         row_count = to_row - from_row
@@ -111,7 +114,7 @@ class Table:
         
         return new_table
 
-    def __isub__(self, other):
+    def __isub__(self, other: Table) -> Table:
         import numbers
         for key in other.dct:
             zwei = other[key]
@@ -131,32 +134,32 @@ class Table:
 
         return self
 
-    def __sub__(self, other):
+    def __sub__(self, other: Table) -> Table:
         cpy = copy.deepcopy(self)
         cpy -= other
 
         return cpy
 
-    def copy(self):
+    def copy(self) -> Table:
         return copy.deepcopy(self)
 
-    def set_value(self, column_no, row_no, value):
+    def set_value(self, column_no: int, row_no: int, value: Any) -> None:
         self.num_columns = max(column_no+1, self.num_columns)
         self.num_rows = max(row_no+1, self.num_rows)
         key = self.str_encrypt(column_no, row_no)
         self.dct[key] = value
 
-    def insert_row(self, row, row_no=None):
+    def insert_row(self, row: List[Any], row_no: int | None=None) -> None:
         if row_no is None:
             row_no = self.num_rows
         for i, el in enumerate(row):
             self.set_value(i, row_no, el)
 
-    def get(self, column_no, row_no):
+    def get(self, column_no: int, row_no: int) -> Any:
         key = self.str_encrypt(column_no, row_no)
         return self.dct.get(key, None)
 
-    def append_right(self, table, space=0):
+    def append_right(self, table: Table, space: int=0) -> None:
         old_column_no = self.num_columns
         
         columns_to_add = table.num_columns
@@ -168,7 +171,7 @@ class Table:
                 if value is not None:
                     self.set_value(old_column_no+column_no+space, row_no, value)
 
-    def append_bottom(self, table, space=0):
+    def append_bottom(self, table: Table, space: int=0) -> None:
         total_rows = self.num_rows
         for row_no in range(table.num_rows):
             for column_no in range(table.num_columns):
@@ -176,7 +179,7 @@ class Table:
                 if value is not None:
                     self.set_value(column_no, total_rows+row_no+space, value)
 
-    def get_ods_sheet(self, name=None):
+    def get_ods_sheet(self, name: str=None) -> ezodf.Table:
         rows = max(1, self.num_rows)
         columns = max(1, self.num_columns)
         ods_sheet = ezodf.Table(size=(rows, columns))
@@ -193,14 +196,14 @@ class Table:
 
         return ods_sheet
 
-    def save(self, path):
+    def save(self, path: str) -> ezodf.document.PackagedDocument:
         doc = ezodf.newdoc(doctype="ods", filename=path)
         doc.sheets.append(self.get_ods_sheet())
         doc.save()
         return doc
     
     @classmethod
-    def save_tables(self, tables: List[Table], path: str):
+    def save_tables(self, tables: List[Table], path: str) -> ezodf.document.PackagedDocument:
         doc = ezodf.newdoc(doctype="ods", filename=path)
 
         for table in tables:
@@ -209,7 +212,7 @@ class Table:
         return doc
 
     @classmethod
-    def load(cls, path):
+    def load(cls, path: str) -> List[Table]:
         data = pyexcel_ods.get_data(path)
 
         sheets = [cls.from_list(sheet) for sheet in data.values()]
@@ -217,7 +220,7 @@ class Table:
         return sheets
 
     @classmethod
-    def from_ods_sheet(cls, sheet):
+    def from_ods_sheet(cls, sheet: ezodf.Sheet) -> Table:
         num_rows = sheet.nrows()
         num_cols = sheet.ncols()
         table = cls()
@@ -231,7 +234,7 @@ class Table:
         return table
 
     @classmethod
-    def from_list(cls, lst):
+    def from_list(cls, lst: List[List[Any]]) -> Table:
         table = cls()
 
         for row_no, row in enumerate(lst):
@@ -281,7 +284,7 @@ class Table:
 
         return text
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         html = "<table><thead><td></td>"
         for column_no in range(self.num_columns):
             html += "<td>{}</td>".format(self.column_to_char(column_no + 1))

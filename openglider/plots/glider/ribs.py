@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING, List, Set, Union
+from typing import TYPE_CHECKING, Callable, List, Set, Tuple, Union
 
 import euklid
 import openglider.glider
@@ -23,7 +23,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 class RibPlot(object):
-    plotpart: PlotPart
     x_values: List[float]
     inner: euklid.vector.PolyLine2D
     outer: euklid.vector.PolyLine2D
@@ -46,7 +45,7 @@ class RibPlot(object):
 
         #self.plotpart = self.x_values = self.inner = self.outer = None
 
-    def flatten(self, glider: "Glider", add_rigidfoils_to_plot=True):
+    def flatten(self, glider: Glider, add_rigidfoils_to_plot: bool=True) -> PlotPart:
         self.plotpart = PlotPart(name=self.rib.name, material_code=str(self.rib.material))
         prof2d = self.rib.get_hull()
 
@@ -111,7 +110,7 @@ class RibPlot(object):
 
         return self.plotpart
 
-    def _get_inner_outer(self, x_value):
+    def _get_inner_outer(self, x_value: float) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
         ik = get_x_value(self.x_values, x_value)
 
         #ik = get_x_value(self.x_values, position)
@@ -121,7 +120,14 @@ class RibPlot(object):
         # outer = self.outer[ik]
         return inner, outer
 
-    def insert_mark(self, position, mark_function, laser=False, insert=True):
+    def insert_mark(
+        self,
+        position: float,
+        mark_function: Callable[[euklid.vector.Vector2D, euklid.vector.Vector2D], List[euklid.vector.PolyLine2D]],
+        laser=False,
+        insert=True
+        ) -> List[euklid.vector.PolyLine2D]:
+
         if hasattr(mark_function, "__func__"):
             mark_function = mark_function.__func__
 
@@ -140,20 +146,19 @@ class RibPlot(object):
             self.plotpart.layers[layer] += mark
         return mark
 
-    def insert_controlpoints(self):
+    def insert_controlpoints(self) -> None:
         marks = []
         for x in self.config.distribution_controlpoints:
             marks.append(self.insert_mark(x, self.config.marks_controlpoint, laser=True))       
         
 
-    def get_point(self, x, y=-1):
+    def get_point(self, x, y=-1) -> euklid.vector.Vector2D:
         assert x >= 0
         p = self.rib.profile_2d.profilepoint(x, y)
         return p * self.rib.chord
 
-    def insert_drib_mark(self, side: DiagonalSide, right=False):        
-        if side.is_lower:
-            return
+    def insert_drib_mark(self, side: DiagonalSide) -> None:        
+        if side.is_lower and False:  # disabled
             self.insert_mark(side.start_x, self.config.marks_diagonal_front)
             self.insert_mark(side.end_x, self.config.marks_diagonal_back)
             self.insert_mark(side.center, self.config.marks_diagonal_center, laser=True)

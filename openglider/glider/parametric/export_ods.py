@@ -219,7 +219,7 @@ def get_parametric_sheet(glider : ParametricGlider) -> Table:
     return table
 
 
-def get_lines_sheet(glider, places=3) -> Table:
+def get_lines_sheet(glider: ParametricGlider, places=3) -> Table:
     table = glider.lineset.get_input_table()
     table.name = "Lines"
     

@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from openglider.utils.table import Table
 from openglider.glider.parametric.table.elements import RibTable, Keyword
@@ -7,7 +7,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-SkinRib7 = Keyword([
+SkinRib7: Keyword[Dict[str, Any]] = Keyword([
     ("att_dist", float),
     ("height", float),
     ("continued_min", bool),
@@ -29,7 +29,7 @@ class SingleSkinTable(RibTable):
         "XRot": Keyword([("angle", float)], target_cls=dict)
     }
 
-    def get_singleskin_ribs(self, rib_no: int):
+    def get_singleskin_ribs(self, rib_no: int) -> List[Dict[str, Any]]:
         return self.get(rib_no, keywords=["SkinRib", "SkinRib7"])
     
     def get_xrot(self, rib_no: int) -> float:

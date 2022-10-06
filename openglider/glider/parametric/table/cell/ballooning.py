@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 from openglider.utils.table import Table
 from openglider.glider.parametric.table.elements import CellTable, Keyword
@@ -8,12 +8,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 class BallooningTable(CellTable):
-    keywords = {
+    keywords: Dict[str, Keyword] = {
         "BallooningFactor": Keyword(attributes=["amount_factor"]),
         "BallooningMerge": Keyword(attributes=["merge_factor"]),
     }
 
-    def get_merge_factors(self, factor_list) -> List[Tuple[float, float]]:
+    def get_merge_factors(self, factor_list: List[float]) -> List[Tuple[float, float]]:
 
         merge_factors = factor_list[:]
 

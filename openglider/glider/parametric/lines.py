@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Tuple, List, Dict
+from typing import TYPE_CHECKING, Any, Tuple, List, Dict
 import copy
 import re
 import logging
@@ -293,14 +293,25 @@ class LineSet2D(object):
             if not get_influence_nodes(line):
                 return line
 
-        def sort_key(line):
+        def sort_key(line) -> Any:
             nodes = get_influence_nodes(line)
             if not nodes:
                 pass
                 #return -1
-            val = sum([100*(node.cell_no+node.cell_pos)+100*node.rib_pos for node in nodes])/len(nodes)
             
-            return val
+            layers = set()
+            min_index = 99999
+
+            for node in nodes:
+                match = re.match(r"([a-zA-Z]+)([0-9]+)", node.name)
+                if not match:
+                    raise ValueError(f"invalid node name: {node.name}")
+                
+                layer, index = match.groups()
+                layers.add(layer)
+                min_index = min(int(index), min_index)
+            
+            return "".join(layers) + f"{min_index:09d}"
 
         lines.sort(key=sort_key)
 

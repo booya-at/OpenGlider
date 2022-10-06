@@ -1,20 +1,24 @@
+from __future__ import annotations
+from typing import List, Optional
 import copy
 
+import euklid
 import numpy as np
 
+VectorList = List[euklid.vector.PolyLine2D]
 
 class Layer(object):
     stroke = "black"
     stroke_width = 1
     visible = True
 
-    def __init__(self, polylines=None, stroke=None, stroke_width=1, visible=True):
+    def __init__(self, polylines: Optional[VectorList]=None, stroke: str=None, stroke_width: float=1., visible: bool=True):
         self.polylines = polylines or []
         self.stroke = stroke
         self.stroke_width = stroke_width
         self.visible = visible
 
-    def __add__(self, other):
+    def __add__(self, other: Layer | List[euklid.vector.PolyLine2D]):
         self.polylines += other
         return self
 

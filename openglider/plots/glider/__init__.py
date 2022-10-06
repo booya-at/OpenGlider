@@ -1,34 +1,50 @@
+from __future__ import annotations
 import collections
 import logging
-from typing import Dict
+from typing import Any, Dict, List, Optional, TypeAlias
+from openglider.glider.cell.cell import Cell
+from openglider.glider.glider import Glider
+from openglider.utils.config import Config
+from openglider.utils.dataclass import BaseModel, Field
 
 from openglider.vector.drawing import Layout
 from openglider.plots.glider.cell import CellPlotMaker
 from openglider.plots.glider.ribs import RibPlot, SingleSkinRibPlot
-from openglider.plots.config import PatternConfig, OtherPatternConfig
+from openglider.plots.config import PatternConfig, OtherPatternConfig, PatternConfigOld
 from openglider.plots.usage_stats import MaterialUsage
+from openglider.vector.drawing.part import PlotPart
 
 logger = logging.getLogger(__name__)
 
-class PlotMaker(object):
-    CellPlotMaker = CellPlotMaker
+PlotPartDict = collections.OrderedDict[Cell, List[PlotPart]]
+
+class PlotMaker:
+    glider_3d: Glider
+    config: PatternConfig
+    panels: Layout
+    ribs: List[PlotPart]
+    dribs: PlotPartDict
+    straps: PlotPartDict
+    rigidfoils: PlotPartDict
+
+    DefaultConfig: TypeAlias = PatternConfig
+    CellPlotMaker: TypeAlias = CellPlotMaker
     RibPlot = RibPlot
-    DefaultConfig = OtherPatternConfig
 
-    def __init__(self, glider_3d, config=None):
+    def __init__(self, glider_3d: Glider, config: Optional[Config]=None):
         self.glider_3d = glider_3d.copy()
-        self.config = self.DefaultConfig(config)           
-
+        self.config = self.DefaultConfig(config)
         self.panels = Layout()
+        self.ribs = []
+
         self.dribs = collections.OrderedDict()
         self.straps = collections.OrderedDict()
         self.rigidfoils = collections.OrderedDict()
-        self.ribs = []
-        self._cellplotmakers = dict()
+        self._cellplotmakers: Dict[Cell, CellPlotMaker] = dict()
 
         self.weight: Dict[str, MaterialUsage] = {}
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {
             "glider3d": self.glider_3d,
             "config": self.config,
@@ -38,7 +54,7 @@ class PlotMaker(object):
         }
 
     @classmethod
-    def __from_json__(cls, dct):
+    def __from_json__(cls, dct: Dict[str, Any]) -> PlotMaker:
         ding = cls(dct["glider3d"], dct["config"])
         ding.panels = dct["panels"]
         ding.ribs = dct["ribs"]
@@ -46,7 +62,7 @@ class PlotMaker(object):
 
         return ding
 
-    def _get_cellplotmaker(self, cell):
+    def _get_cellplotmaker(self, cell: Cell) -> CellPlotMaker:
         if cell not in self._cellplotmakers:
             self._cellplotmakers[cell] = self.CellPlotMaker(cell,
                                                             self.glider_3d.attachment_points,
@@ -54,10 +70,10 @@ class PlotMaker(object):
 
         return self._cellplotmakers[cell]
 
-    def get_panels(self):
+    def get_panels(self) -> Layout:
         self.panels.clear()
-        panels_upper = []
-        panels_lower = []
+        panels_upper: List[Layout | PlotPart] = []
+        panels_lower: List[Layout | PlotPart] = []
 
         weight = MaterialUsage()
 
@@ -89,12 +105,13 @@ class PlotMaker(object):
 
         return self.panels
 
-    def get_ribs(self, rotate=False):
+    def get_ribs(self, rotate: bool=False) -> None:
         from openglider.glider.rib.singleskin import SingleSkinRib
 
         weight = MaterialUsage()
         self.ribs = []
         for rib_no, rib in enumerate(self.glider_3d.ribs):
+            rib_plot: SingleSkinRibPlot | RibPlot
             if isinstance(rib, SingleSkinRib):
                 rib_plot = SingleSkinRibPlot(rib)
             else:
@@ -117,7 +134,7 @@ class PlotMaker(object):
         
         self.weight["ribs"] = weight
 
-    def get_dribs(self):
+    def get_dribs(self) -> PlotPartDict:
         self.dribs.clear()
         for cell in self.glider_3d.cells:
             # missing attachmentpoints []
@@ -126,7 +143,7 @@ class PlotMaker(object):
 
         return self.dribs
 
-    def get_straps(self):
+    def get_straps(self) -> PlotPartDict:
         self.straps.clear()
         for cell in self.glider_3d.cells:
             # missing attachmentpoints []
@@ -135,7 +152,7 @@ class PlotMaker(object):
 
         return self.straps
 
-    def get_rigidfoils(self):
+    def get_rigidfoils(self) -> PlotPartDict:
         # TODO: rib rigids
         self.rigidfoils.clear()
 
@@ -153,7 +170,7 @@ class PlotMaker(object):
         panels = self.panels
         ribs = Layout.stack_row(self.ribs, self.config.patterns_align_dist_x)
 
-        def stack_grid(dct):
+        def stack_grid(dct: PlotPartDict) -> Layout:
             layout_lst = [
                 Layout.stack_column(p, self.config.patterns_align_dist_y) 
                 for p in dct.values()
@@ -164,7 +181,7 @@ class PlotMaker(object):
         straps = stack_grid(self.straps)
         rigidfoils = stack_grid(self.rigidfoils)
 
-        def group(layout, prefix):
+        def group(layout: Layout, prefix: str) -> List[Layout]:
             grouped = layout.group_materials()
             border = layout.draw_border(append=False)
 
@@ -173,7 +190,7 @@ class PlotMaker(object):
                 material_layout.add_text(f"{prefix}_{material_name}")
                 #material_layout.draw_border(append=True, border=0.1)
             
-            return grouped.values()
+            return list(grouped.values())
 
         panels_grouped = group(panels.copy(), "panels")
         ribs_grouped = group(ribs, "ribs")
@@ -196,26 +213,10 @@ class PlotMaker(object):
 
         return Layout.stack_column(all_layouts, 0.1, center_x=False)
 
-    def unwrap(self):
+    def unwrap(self) -> PlotMaker:
         self.get_panels()
         self.get_ribs()
         self.get_dribs()
         self.get_straps()
         self.get_rigidfoils()
         return self
-
-    def get_all_parts(self):
-        parts = []
-        for cell in self.panels.values():
-            parts += [p.copy() for p in cell]
-        for rib in self.ribs:
-            parts.append(rib.copy())
-        for dribs in self.dribs.values():
-            parts += [p.copy() for p in dribs]
-        for rigidfoils in self.rigidfoils.values():
-            parts += [p.copy() for p in rigidfoils]
-        return Layout(parts)
-
-    #def get_all_grouped(self):
-    #    return self.get_all_parts().group_materials()
-

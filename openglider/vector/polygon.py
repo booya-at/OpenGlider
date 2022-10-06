@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import numpy
 import euklid
 import math
 
+V2 = euklid.vector.Vector2D
 
 class CirclePart(object):
     """
@@ -15,7 +18,7 @@ class CirclePart(object):
       \   )
        \) <-- p3
     """
-    def __init__(self, p1, p2, p3):
+    def __init__(self, p1: V2, p2: V2, p3: V2):
         self.p1 = p1
         self.p2 = p2
         self.p3 = p3
@@ -36,7 +39,7 @@ class CirclePart(object):
         self.center = cut_result.point
         self.r: euklid.vector.Vector2D = p1 - self.center
 
-    def get_sequence(self, num=20) -> euklid.vector.PolyLine2D:
+    def get_sequence(self, num: int=20) -> euklid.vector.PolyLine2D:
         lst = []
 
         end = self.r.angle() - (self.p3-self.center).angle()
@@ -46,7 +49,7 @@ class CirclePart(object):
 
         return euklid.vector.PolyLine2D(lst)
 
-    def _repr_svg_(self):
+    def _repr_svg_(self) -> str:
 
         svg = "<svg>"
         def point(p, color="red"):
@@ -64,13 +67,13 @@ class CirclePart(object):
 
 
 class Ellipse(object):
-    def __init__(self, center, radius, height, rotation=0):
+    def __init__(self, center: V2, radius: float, height: float, rotation: float=0.):
         self.center = center
         self.radius = radius
         self.height = height
         self.rotation = rotation
 
-    def get_sequence(self, num=20):
+    def get_sequence(self, num: int=20) -> euklid.vector.PolyLine2D:
         points = []
 
         for i in range(num):
@@ -84,7 +87,7 @@ class Ellipse(object):
         return line.rotate(self.rotation, self.center)
 
     @classmethod
-    def from_center_p2(cls, center, p2, aspect_ratio=1):
+    def from_center_p2(cls, center: V2, p2: V2, aspect_ratio: float=1.) -> Ellipse:
         diff = p2 - center
         radius = diff.length()
         diff_0 = diff.normalized()
@@ -95,11 +98,11 @@ class Ellipse(object):
 
 
 class Circle(Ellipse):
-    def __init__(self, center, radius, rotation=0):
+    def __init__(self, center: V2, radius: float, rotation: float=0.):
         super().__init__(center, radius, radius, rotation)
     
     @classmethod
-    def from_p1_p2(cls, p1, p2):
+    def from_p1_p2(cls, p1: V2, p2: V2) -> Circle:
         center = (p1 + p2)*0.5
         radius = (p2-p1).length() * 0.5
         return cls(center, radius)

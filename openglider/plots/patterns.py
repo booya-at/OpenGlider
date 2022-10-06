@@ -4,7 +4,8 @@ import os
 import string
 import subprocess
 from asyncio.log import logger
-from typing import Dict, List
+from typing import Any, Dict, List, Optional
+from pathlib import Path
 
 import openglider.glider
 import openglider.plots.cuts
@@ -16,6 +17,7 @@ from openglider.plots.config import PatternConfig, PatternConfigOld
 from openglider.plots.glider import PlotMaker
 from openglider.plots.spreadsheets import get_glider_data
 from openglider.plots.usage_stats import MaterialUsage
+from openglider.utils.config import Config
 from openglider.vector.drawing import Layout
 from openglider.vector.text import Text
 
@@ -30,7 +32,7 @@ class PatternsNew:
 
     DefaultConf = PlotMaker.DefaultConfig
 
-    def __init__(self, project: GliderProject, config=None):
+    def __init__(self, project: GliderProject, config: Optional[Config]=None):
         self.project = self.prepare_glider_project(project)
         self.config = self.DefaultConf(config)
 
@@ -39,7 +41,7 @@ class PatternsNew:
         self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
         self.weight: Dict[str, MaterialUsage] = {}
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {
             "project": self.project,
             "config": self.config
@@ -85,7 +87,7 @@ class PatternsNew:
 
         return drawings
     
-    def _get_plotfile(self):
+    def _get_plotfile(self) -> Layout:
         glider = self.project.glider_3d
 
         if self.config.complete_glider:
@@ -104,17 +106,13 @@ class PatternsNew:
 
         return all_patterns
 
-    def unwrap(self, outdir):
+    def unwrap(self, outdir: Path) -> None:
         if self.config.profile_numpoints is not None:
             self.project.glider.num_profile = self.config.profile_numpoints
             self.project.glider_3d = self.project.glider.get_glider_3d()
             self.project = self.prepare_glider_project(self.project)
 
-
-        def fn(filename):
-            return os.path.join(outdir, filename)
-
-        subprocess.call("mkdir -p {}".format(outdir), shell=True)
+        subprocess.call(f"mkdir -p {outdir}", shell=True)
 
         self.logger.info("create sketches")
         drawings = self._get_sketches()
@@ -125,7 +123,7 @@ class PatternsNew:
         all_patterns.append_left(designs, distance=self.config.patterns_align_dist_x*2)
 
         all_patterns.scale(1000)
-        all_patterns.export_dxf(fn("plots_all.dxf"))
+        all_patterns.export_dxf(outdir / "plots_all.dxf")
 
         sketches = openglider.plots.sketches.get_all_plots(self.project)
 
@@ -134,14 +132,14 @@ class PatternsNew:
             if sketch_name in ("design_upper", "design_lower"):
                 fill=True
 
-            sketch.export_a4(fn(sketch_name+".pdf"), fill=fill)
+            sketch.export_a4(outdir / sketch_name+".pdf", fill=fill)
 
         self.logger.info("create spreadsheets")
         self.project.glider_3d.lineset.rename_lines()
         excel = PatternsNew.spreadsheet(self.project, consumption=self.weight)
-        excel.saveas(os.path.join(outdir, f"{self.project.name}.ods"))
+        excel.saveas(outdir / f"{self.project.name}.ods")
 
-        openglider.save(self.project, os.path.join(outdir, "project.json"))
+        openglider.save(self.project, outdir / "project.json")
 
 
 class Patterns(PatternsNew):
@@ -158,7 +156,7 @@ class Patterns(PatternsNew):
         return new_project
 
     @staticmethod
-    def set_names_panels(glider: Glider):
+    def set_names_panels(glider: Glider) -> None:
         for cell_no, cell in enumerate(glider.cells):
             upper = [panel for panel in cell.panels if not panel.is_lower()]
             lower = [panel for panel in cell.panels if panel.is_lower()]
@@ -167,7 +165,7 @@ class Patterns(PatternsNew):
             upper.sort(key=sort_func)
             lower.sort(key=sort_func)
 
-            def panel_char(index: int):
+            def panel_char(index: int) -> str:
                 return string.ascii_uppercase[index]
 
             for panel_no, panel in enumerate(upper):
@@ -176,7 +174,7 @@ class Patterns(PatternsNew):
                 panel.name = f"B-{cell_no+1}{panel_char(panel_no)}L"
 
     @staticmethod
-    def set_names_straps(glider: Glider):
+    def set_names_straps(glider: Glider) -> None:
         logger.warn(f"rename")
         curves = glider.get_attachment_point_layers()
 
@@ -191,7 +189,7 @@ class Patterns(PatternsNew):
             
             layers_between: Dict[str, int] = {}
             
-            def get_name(position: float):
+            def get_name(position: float) -> str:
                 name = "-"
                 
                 for layer_name, pct in cell_layers:

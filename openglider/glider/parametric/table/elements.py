@@ -1,6 +1,6 @@
 import sys
 import typing
-from typing import Optional, TypeVar, Generic, Union
+from typing import Any, Dict, List, Optional, Type, TypeAlias, TypeVar, Generic, Union
 import logging
 import enum
 
@@ -21,9 +21,10 @@ class TableType(enum.Enum):
 
 KeywordsType = list[Union[tuple[str, typing.Any], str]]
 
-class Keyword:
+class Keyword(Generic[ElementType]):
     NoneType = typing.Any
-    def __init__(self, attributes: Optional[KeywordsType]=None, description="", target_cls=None):
+    target_cls: typing.Any
+    def __init__(self, attributes: Optional[KeywordsType]=None, description: str="", target_cls: Type[Any]=None):
         if attributes is None:
             if target_cls is not None:
                 attributes = list(typing.get_type_hints(target_cls.__init__).keys())
@@ -51,7 +52,7 @@ class Keyword:
         self.target_cls = target_cls
     
     @property
-    def attribute_length(self):
+    def attribute_length(self) -> int:
         return len(self.attributes)
     
     def get_attribute_names(self) -> typing.Iterable[str]:
@@ -77,7 +78,7 @@ class Keyword:
 
         return table
 
-    def get(self, keyword: str, data: list[typing.Any]):
+    def get(self, keyword: str, data: list[typing.Any]) -> ElementType:
         init_kwargs = {}
 
         for (name, target_type), value in zip(self.attributes, data):
@@ -96,26 +97,27 @@ class ElementTable(Generic[ElementType]):
 
     def __init__(self, table: Table=None):
         self.table = Table()
-        if table and table[0, 0] is not None and table[0, 0] < "V4":
-            _table = table.get_rows(0, 1)
-            _table.append_bottom(table.get_rows(1, table.num_rows), space=1)
-            _table[0, 0] = "V4"
-        else:
-            _table = table
+        if table is not None:
+            if table[0, 0] is not None and table[0, 0] < "V4":
+                _table = table.get_rows(0, 1)
+                _table.append_bottom(table.get_rows(1, table.num_rows), space=1)
+                _table[0, 0] = "V4"
+            else:
+                _table = table
 
-        if _table is not None:
-            for keyword in self.keywords:
-                data_length = self.keywords[keyword].attribute_length
-                for column in self.get_columns(_table, keyword, data_length):
-                    self.table.append_right(column)
+            if _table is not None:
+                for keyword in self.keywords:
+                    data_length = self.keywords[keyword].attribute_length
+                    for column in self.get_columns(_table, keyword, data_length):
+                        self.table.append_right(column)
     
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {
             "table": self.table
         }
     
     @classmethod
-    def get_columns(cls, table: Table, keyword, data_length) -> list[Table]:
+    def get_columns(cls, table: Table, keyword: str, data_length: int) -> list[Table]:
         columns = []
         column = 0
         keyword_instance = cls.keywords[keyword]
@@ -134,7 +136,7 @@ class ElementTable(Generic[ElementType]):
 
         return columns
     
-    def get(self, row_no: int, keywords=None, **kwargs) -> list[ElementType]:
+    def get(self, row_no: int, keywords: List[str] | None=None, **kwargs: Any) -> list[ElementType]:
         row_no += 2  # skip header line
         elements = []
         
@@ -158,7 +160,7 @@ class ElementTable(Generic[ElementType]):
         
         return elements
     
-    def get_one(self, row_no: int, keywords=None, **kwargs):
+    def get_one(self, row_no: int, keywords: List[str] | None=None, **kwargs: Any) -> ElementType | None:
         elements = self.get(row_no, keywords=keywords, **kwargs)
 
         if len(elements) > 1:
@@ -169,12 +171,12 @@ class ElementTable(Generic[ElementType]):
         
         return None
     
-    def get_element(self, row: int, keyword: str, data: list[typing.Any], **kwargs) -> ElementType:
+    def get_element(self, row: int, keyword: str, data: list[typing.Any], **kwargs: Any) -> ElementType:
         keyword_mapper = self.keywords[keyword]
 
         return keyword_mapper.get(keyword, data)
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         return self.table._repr_html_()
 
 

@@ -18,12 +18,13 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
+from typing import List
 from openglider.airfoil.profile_2d import Profile2D
 from openglider.airfoil.profile_2d_parametric import BezierProfile2D
 from openglider.airfoil.profile_3d import Profile3D
 
 
-def get_x_value(x_value_list, x) -> float:
+def get_x_value(x_value_list: List[float], x: float) -> float:
     """
     Get position of x in a list of x_values
     zb get_x_value([1,2,3],1.5)=0.5

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import enum
+from typing import Any, Dict, Optional
 
 import euklid
 
@@ -17,18 +18,21 @@ class Node(object):
         KNOT = 1
         UPPER = 2
 
-    def __init__(self, node_type: NODE_TYPE, force=None, position_vector=None, attachment_point=None, name=None):
-        self.type = node_type  # lower, middle, top (0, 1, 2)
-        if position_vector is None:
-            position_vector = [0,0,0]
-        self._vec = euklid.vector.Vector3D(position_vector)
+    def __init__(
+            self,
+            node_type: NODE_TYPE,
+            force: Optional[euklid.vector.Vector3D] = None,
+            position_vector: Optional[euklid.vector.Vector3D] = None,
+            name: str = "unnamed_node"
+            ):
 
+        self.type = node_type  # lower, middle, top (0, 1, 2)
+        self._vec = position_vector or euklid.vector.Vector3D()
         self.vec_proj = self._vec
         self.force = force or euklid.vector.Vector3D() # top-node force
-        self.attachment_point = attachment_point
-        self.name = name or "name_not_set"
+        self.name = name
     
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return{
             'node_type': self.type.name,
             'position_vector': list(self.vec),
@@ -36,31 +40,38 @@ class Node(object):
         }
     
     @classmethod
-    def __from_json__(cls, **kwargs) -> Node:
-        if "node_type" in kwargs:
-            node_type = getattr(cls.NODE_TYPE, kwargs.pop("node_type"))
+    def __from_json__(cls, **kwargs: Any) -> Node:
+        node_type_name: str = kwargs.pop("node_type")
+        node_type: Node.NODE_TYPE = getattr(cls.NODE_TYPE, node_type_name)
+
+        _force = kwargs.pop("force", None)
+
+        if _force and isinstance(_force, (list, euklid.vector.Vector3D)):
+            force = euklid.vector.Vector3D(_force)
         else:
-            node_type = None
-        force = kwargs.pop("force", None)
+            force = euklid.vector.Vector3D()
 
-        if force and isinstance(force, list):
-            force = euklid.vector.Vector3D(force)
-
-        return cls(
+        node = cls(
             node_type=node_type,
-            force=force,
-            **kwargs
+            force=force
         )
+
+        if "name" in kwargs:
+            node.name = kwargs.pop("name")
+        if "position_vector" in kwargs:
+            node.vec = kwargs.pop("position_vector")
+        
+        return node
 
     @property
     def vec(self) -> euklid.vector.Vector3D:
         return self._vec
 
     @vec.setter
-    def vec(self, value):
+    def vec(self, value: euklid.vector.Vector3D) -> None:
         self._vec = euklid.vector.Vector3D(value)
 
-    def calc_force_infl(self, vec) -> euklid.vector.Vector3D:
+    def calc_force_infl(self, vec: euklid.vector.Vector3D) -> euklid.vector.Vector3D:
         v = euklid.vector.Vector3D(vec)
 
         direction = self.vec - v
@@ -75,7 +86,7 @@ class Node(object):
 
         return direction.normalized() * force
 
-    def calc_proj_vec(self, v_inf) -> None:
+    def calc_proj_vec(self, v_inf: euklid.vector.Vector3D) -> None:
         self.vec_proj = self.vec - v_inf * (v_inf.dot(self.vec) / v_inf.dot(v_inf))
 
     def get_diff(self) -> euklid.vector.Vector3D:
@@ -85,7 +96,7 @@ class Node(object):
         return self.type == self.NODE_TYPE.UPPER
 
     def copy(self) -> Node:
-        return self.__class__(self.type, self.vec, self.attachment_point, self.name)
+        return self.__class__(self.type, self.force, self.vec, self.name)
 
     def __repr__(self) -> str:
         return super().__repr__() + f" of type: {self.type}"

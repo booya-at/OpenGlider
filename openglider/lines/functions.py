@@ -35,5 +35,5 @@ def proj_force(force: euklid.vector.Vector3D, vec: euklid.vector.Vector3D) -> Op
     return force.dot(force) / projection
 
 
-def proj_to_surface(vec: euklid.vector.Vector3D, n_vec: euklid.vector.Vector3D):
+def proj_to_surface(vec: euklid.vector.Vector3D, n_vec: euklid.vector.Vector3D) -> euklid.vector.Vector3D:
     return vec - n_vec * n_vec.dot(vec) / n_vec.dot(n_vec)

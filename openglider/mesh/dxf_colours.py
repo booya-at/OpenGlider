@@ -1,4 +1,7 @@
-colour_codes = {
+from typing import Dict, Tuple
+
+
+colour_codes: Dict[int, Tuple[int, int, int]] = {
     0: (0, 0, 0),
     1: (255, 0, 0),
     2: (255, 255, 0),
@@ -258,8 +261,8 @@ colour_codes = {
 }
 
 
-def get_dxf_colour_code(red, green, blue):
-    closest = None
+def get_dxf_colour_code(red: int, green: int, blue: int) -> int:
+    closest = 0
     dist = float("Infinity")
 
     for colour_code, rgb in colour_codes.items():

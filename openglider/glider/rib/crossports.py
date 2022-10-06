@@ -1,19 +1,16 @@
 from __future__ import annotations
 import logging
 import math
-from typing import List, TYPE_CHECKING, Tuple
+from typing import List, TYPE_CHECKING
 
 import euklid
 import numpy as np
 import openglider
-from openglider.glider.shape import Shape
-from openglider.lines import Node
 from openglider.utils.cache import cached_function
 from openglider.utils.dataclass import BaseModel, Field
-from openglider.vector.polygon import Circle, Ellipse
+from openglider.vector.polygon import Ellipse
 
 if TYPE_CHECKING:
-    from openglider.glider.glider import Glider
     from openglider.glider.rib.rib import Rib
 
 logger = logging.getLogger(__name__)

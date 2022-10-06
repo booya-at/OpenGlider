@@ -1,14 +1,13 @@
 import logging
-import math
-from turtle import left
-from typing import Tuple
+from typing import List, Tuple
 
 import euklid
-from pydantic import ValidationError
-from pytools import factorial
 from openglider.glider.cell import DiagonalRib
+from openglider.glider.cell.cell import Cell
+from openglider.glider.rib.attachment_point import AttachmentPoint
 from openglider.plots.config import PatternConfig
 from openglider.plots.usage_stats import Material, MaterialUsage
+from openglider.utils.config import Config
 from openglider.vector.drawing import Layout, PlotPart
 from openglider.vector.text import Text
 
@@ -19,12 +18,12 @@ logger = logging.getLogger(__name__)
 class DribPlot(object):
     DefaultConf = PatternConfig
 
-    def __init__(self, drib: DiagonalRib, cell, config):
+    def __init__(self, drib: DiagonalRib, cell: Cell, config: Config):
         # We are unwrapping the right side of the wing (flying direction).
         # rib1 -> left side / inside
         # rib2 -> right side / outside
         # seen from the bottom => mirror
-        self.drib: DiagonalRib = drib
+        self.drib = drib
         self.cell = cell
         self.config = self.DefaultConf(config)
 
@@ -45,10 +44,10 @@ class DribPlot(object):
         self.right_out = self.right.offset(-self.config.allowance_general)
 
     def get_left(self, x):
-        return self.get_p1_p2(x, side=0)
+        return self.get_p1_p2(x, right_side=0)
 
     def get_right(self, x):
-        return self.get_p1_p2(x, side=1)
+        return self.get_p1_p2(x, right_side=1)
 
     def validate(self, x, side=0):
         if side == 0:
@@ -67,10 +66,10 @@ class DribPlot(object):
 
         return True
 
-    def get_p1_p2(self, x, side=0):
-        self.validate(x, side=side)
+    def get_p1_p2(self, x: float, right_side: bool=False) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
+        self.validate(x, side=right_side)
 
-        if side == 0:
+        if not right_side:
             side_obj = self.drib.left
             rib = self.cell.rib1
             inner = self.left
@@ -98,7 +97,7 @@ class DribPlot(object):
         ik_new = inner.walk(0, length)
         return inner.get(ik_new), outer.get(ik_new)
     
-    def _insert_center_marks(self, plotpart):
+    def _insert_center_marks(self, plotpart: PlotPart) -> None:
         def insert_center_mark(inner: euklid.vector.PolyLine2D, outer: euklid.vector.PolyLine2D):
             ik = inner.walk(0, inner.get_length()/2)
             p1 = inner.get(ik)
@@ -112,7 +111,7 @@ class DribPlot(object):
         if self.drib.right.is_lower or self.drib.is_upper:
             insert_center_mark(self.right, self.right_out)
     
-    def _insert_controlpoints(self, plotpart):
+    def _insert_controlpoints(self, plotpart: PlotPart) -> None:
         for x in self.config.distribution_controlpoints:
             for side in (0, 1):
                 try:
@@ -121,9 +120,7 @@ class DribPlot(object):
                 except ValueError:
                     continue
 
-    def _insert_attachment_points(self, plotpart, attachment_points=None):
-        attachment_points = attachment_points or []
-
+    def _insert_attachment_points(self, plotpart: PlotPart, attachment_points: List[AttachmentPoint]) -> None:
         for attachment_point in attachment_points:
             if not hasattr(attachment_point, "rib"):
                 continue
@@ -144,7 +141,7 @@ class DribPlot(object):
             plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
             plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
 
-    def _insert_text(self, plotpart, reverse=False):
+    def _insert_text(self, plotpart: PlotPart, reverse: bool=False) -> None:
         if reverse:
             node_index = -1
         else:
@@ -157,16 +154,16 @@ class DribPlot(object):
                                         height=0.6,
                                         valign=0.6).get_vectors()
 
-    def flatten(self, attachment_points=None):
+    def flatten(self, attachment_points: List[AttachmentPoint]) -> PlotPart:
         return self._flatten(attachment_points, self.drib.num_folds)
 
-    def _flatten(self, attachment_points, num_folds):
+    def _flatten(self, attachment_points: List[AttachmentPoint], num_folds: int) -> PlotPart:
         plotpart = PlotPart(material_code=self.drib.material_code, name=self.drib.name)
 
         if num_folds > 0:
             alw2 = self.config.drib_allowance_folds
-            cut_front = self.config.cut_diagonal_fold(alw2, num_folds=num_folds)
-            cut_back = self.config.cut_diagonal_fold(-alw2, num_folds=num_folds)
+            cut_front = self.config.cut_diagonal_fold(amount=alw2, num_folds=num_folds)
+            cut_back = self.config.cut_diagonal_fold(amount=-alw2, num_folds=num_folds)
             
             cut_front_result = cut_front.apply([[self.left, 0], [self.right, 0]], self.left_out, self.right_out)
             cut_back_result = cut_back.apply([[self.left, len(self.left) - 1], [self.right, len(self.right) - 1]], self.left_out, self.right_out)
@@ -178,10 +175,10 @@ class DribPlot(object):
             ]
 
         else:
-            p1 = self.left_out.cut(self.left.get(0), self.right.get(0), 0)[0]
-            p2 = self.left_out.cut(self.left.get(len(self.left)-1), self.right.get(len(self.right)-1), len(self.left_out))[0]
-            p3 = self.right_out.cut(self.left.get(0), self.right.get(0), 0)[0]
-            p4 = self.right_out.cut(self.left.get(len(self.left)-1), self.right.get(len(self.right)-1), len(self.right_out))[0]
+            #p1 = self.left_out.cut(self.left.get(0), self.right.get(0), 0)[0]
+            #p2 = self.left_out.cut(self.left.get(len(self.left)-1), self.right.get(len(self.right)-1), len(self.left_out))[0]
+            #p3 = self.right_out.cut(self.left.get(0), self.right.get(0), 0)[0]
+            #p4 = self.right_out.cut(self.left.get(len(self.left)-1), self.right.get(len(self.right)-1), len(self.right_out))[0]
 
             #outer = self.left_out.get(p1, p2)
             #outer += self.right_out.get(p3,p4).reverse()
@@ -237,5 +234,5 @@ class DribPlot(object):
 
 
 class StrapPlot(DribPlot):
-    def flatten(self, attachment_points=None):
+    def flatten(self, attachment_points: List[AttachmentPoint]):
         return self._flatten(attachment_points, self.config.strap_num_folds)

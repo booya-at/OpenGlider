@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from openglider.utils.table import Table
 
@@ -13,7 +13,7 @@ class DataTable:
     def __init__(self, table: Table):
         self.table = table
 
-    def get_dct(self):
+    def get_dct(self) -> Dict[str, Any]:
         dct = {}
         for row in range(1, self.table.num_rows):
             key = self.table[row, 0]
@@ -24,11 +24,11 @@ class DataTable:
                 else:
                     key = key.lower()
                     types = self.subdicts[key]
-                    row = [self.table[row, i+1] for i in range(len(types))]
+                    row_values = [self.table[row, i+1] for i in range(len(types))]
                     dct.setdefault(key, [])
 
                     dct[key].append(tuple(
-                        t(x) for t, x in zip(types, row)
+                        t(x) for t, x in zip(types, row_values)
                     ))
         
         return dct

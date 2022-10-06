@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Optional, Type
 import logging
 import math
 from typing import Tuple, List
@@ -11,8 +11,10 @@ from openglider.glider.cell.panel import Panel, PanelCut
 from openglider.glider.cell.diagonals import DiagonalSide, DiagonalRib
 from openglider.glider.rib.attachment_point import AttachmentPoint
 from openglider.plots.config import PatternConfig
+from openglider.plots.cuts import DesignCut
 from openglider.plots.glider.diagonal import DribPlot, StrapPlot
 from openglider.plots.usage_stats import Material, MaterialUsage
+from openglider.utils.config import Config
 from openglider.vector.drawing import Layout, PlotPart
 from openglider.vector.text import Text
 
@@ -30,7 +32,7 @@ class PanelPlot(object):
     panel: Panel
     cell: Cell
 
-    def __init__(self, panel: Panel, cell, flattended_cell, config=None):
+    def __init__(self, panel: Panel, cell: Cell, flattended_cell, config=None):
         self.panel = panel
         self.cell = cell
         self.config = self.DefaultConf(config)
@@ -46,7 +48,7 @@ class PanelPlot(object):
 
         self.logger = logging.getLogger(r"{self.__class__.__module__}.{self.__class__.__name__}")
 
-    def flatten(self, attachment_points):
+    def flatten(self, attachment_points: List[AttachmentPoint]) -> PlotPart:
         plotpart = PlotPart(material_code=str(self.panel.material), name=self.panel.name)
 
         _cut_types = PanelCut.CUT_TYPES
@@ -60,7 +62,7 @@ class PanelPlot(object):
             _cut_types.round: self.config.allowance_design
         }
 
-        cut_types = {
+        cut_types: Dict[PanelCut.CUT_TYPES, Type[DesignCut]] = {
             _cut_types.folded: self.config.cut_entry,
             _cut_types.parallel: self.config.cut_trailing_edge,
             _cut_types.orthogonal: self.config.cut_design,
@@ -83,8 +85,8 @@ class PanelPlot(object):
             allowance_back = cut_allowances[self.panel.cut_back.cut_type]
 
         # cuts -> cut-line, index left, index right
-        self.cut_front = cut_types[self.panel.cut_front.cut_type](allowance_front)
-        self.cut_back = cut_types[self.panel.cut_back.cut_type](allowance_back)
+        self.cut_front = cut_types[self.panel.cut_front.cut_type](amount=allowance_front)
+        self.cut_back = cut_types[self.panel.cut_back.cut_type](amount=allowance_back)
 
         inner_front = [(line, ik[0]) for line, ik in zip(self.inner, ik_values)]
         inner_back = [(line, ik[1]) for line, ik in zip(self.inner, ik_values)]
@@ -477,13 +479,12 @@ class CellPlotMaker:
     StrapPlot = StrapPlot
     PanelPlot = PanelPlot
 
-    consumption: MaterialUsage
-
-    def __init__(self, cell, attachment_points, config=None):
+    def __init__(self, cell: Cell, attachment_points: List[AttachmentPoint], config: Optional[Config]=None):
         self.cell = cell
-        self.consumption = MaterialUsage()
         self.attachment_points = attachment_points
         self.config = self.DefaultConf(config)
+        
+        self.consumption = MaterialUsage()
 
         self._flattened_cell = None
 
@@ -510,7 +511,7 @@ class CellPlotMaker:
 
         return self._flattened_cell
 
-    def get_panels(self, panels=None):
+    def get_panels(self, panels: Optional[List[Panel]]=None) -> List[PlotPart]:
         cell_panels = []
         flattened_cell = self._get_flatten_cell()
         self.cell.calculate_3d_shaping(numribs=self.config.midribs)
@@ -526,15 +527,15 @@ class CellPlotMaker:
         
         return cell_panels
 
-    def get_panels_lower(self):
+    def get_panels_lower(self) -> List[PlotPart]:
         panels = [p for p in self.cell.panels if p.is_lower()]
         return self.get_panels(panels)
 
-    def get_panels_upper(self):
+    def get_panels_upper(self) -> List[PlotPart]:
         panels = [p for p in self.cell.panels if not p.is_lower()]
         return self.get_panels(panels)
 
-    def get_dribs(self):
+    def get_dribs(self) -> list[PlotPart]:
         diagonals = self.cell.diagonals[:]
         diagonals.sort(key=lambda d: d.name)
         dribs = []
@@ -545,7 +546,7 @@ class CellPlotMaker:
         
         return dribs
 
-    def get_straps(self):
+    def get_straps(self) -> List[PlotPart]:
         straps = self.cell.straps[:]
         straps.sort(key=lambda d: d.name)
         result = []
@@ -556,7 +557,7 @@ class CellPlotMaker:
         
         return result
     
-    def get_rigidfoils(self):
+    def get_rigidfoils(self) -> List[PlotPart]:
         rigidfoils = []
         for rigidfoil in self.cell.rigidfoils:
             rigidfoils.append(rigidfoil.get_flattened(self.cell))

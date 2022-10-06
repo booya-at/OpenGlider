@@ -1,6 +1,7 @@
 import json
 import re
 import datetime
+from typing import Any, Dict
 
 
 # Main json-export routine.
@@ -11,7 +12,7 @@ datetime_format = "%d.%m.%Y %H:%M"
 datetime_format_regex = re.compile(r'^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}$')
 
 class Encoder(json.JSONEncoder):
-    def default(self, obj):
+    def default(self, obj: Any) -> Dict[str, Any] | str | list[Any]:
         if obj.__class__.__module__ == 'numpy':
             return obj.tolist()
         elif isinstance(obj, datetime.datetime):
