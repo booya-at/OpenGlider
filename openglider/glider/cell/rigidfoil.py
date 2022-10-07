@@ -28,7 +28,7 @@ class PanelRigidFoil:
     
     def _get_flattened_line(self, cell: Cell) -> Tuple[euklid.vector.PolyLine2D, float, float]:
         flattened_cell = cell.get_flattened_cell()
-        left, right = flattened_cell["ballooned"]
+        left, right = flattened_cell.ballooned
         line = left.mix(right, self.y)
 
         ik_front = (cell.rib1.profile_2d(self.x_start) + cell.rib2.profile_2d(self.x_start))/2

@@ -158,7 +158,7 @@ class DiagonalRib:
             envelope_2d += hole_vertices
             boundary.append([start_index + i for i in hole_indices])
 
-        hole_centers_lst = [list(p) for p in hole_centers]
+        hole_centers_lst = [(p[0], p[1]) for p in hole_centers]
 
         tri = mesh.triangulate.Triangulation(envelope_2d, boundary, hole_centers_lst)
         tri_mesh = tri.triangulate()

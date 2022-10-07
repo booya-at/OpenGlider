@@ -20,7 +20,7 @@ class DiagonalTable(CellTable):
 
 
     keywords = {
-        "QR": Keyword(["left", "right", "width_left", "width_right", "height_left", "height_right"])
+        "QR": Keyword(["left", "right", "width_left", "width_right", "height_left", "height_right"], target_cls=DiagonalRib)
     }
     
     def get_element(self, row, keyword, data, curves):

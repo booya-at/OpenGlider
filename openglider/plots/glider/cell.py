@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Dict, Optional, Type
+from typing import TYPE_CHECKING, Callable, Dict, Optional, Type
 import logging
 import math
 from typing import Tuple, List
@@ -7,24 +7,24 @@ from typing import Tuple, List
 import euklid
 import numpy as np
 from openglider.airfoil import get_x_value
+from openglider.glider.cell.cell import FlattenedCell
 from openglider.glider.cell.panel import Panel, PanelCut
-from openglider.glider.cell.diagonals import DiagonalSide, DiagonalRib
-from openglider.glider.rib.attachment_point import AttachmentPoint
+from openglider.glider.cell.diagonals import DiagonalRib
 from openglider.plots.config import PatternConfig
-from openglider.plots.cuts import DesignCut
+from openglider.plots.cuts import Cut
 from openglider.plots.glider.diagonal import DribPlot, StrapPlot
-from openglider.plots.usage_stats import Material, MaterialUsage
+from openglider.plots.usage_stats import MaterialUsage
+from openglider.utils.cache import cached_property
 from openglider.utils.config import Config
-from openglider.vector.drawing import Layout, PlotPart
+from openglider.vector.drawing import PlotPart
 from openglider.vector.text import Text
 
 if TYPE_CHECKING:
-    from openglider.glider.rib import Rib
     from openglider.glider.cell import Cell
 
 logger = logging.getLogger(__name__)
 
-class PanelPlot(object):
+class PanelPlot:
     DefaultConf = PatternConfig
     plotpart: PlotPart
     config: PatternConfig
@@ -32,23 +32,23 @@ class PanelPlot(object):
     panel: Panel
     cell: Cell
 
-    def __init__(self, panel: Panel, cell: Cell, flattended_cell, config=None):
+    def __init__(self, panel: Panel, cell: Cell, flattended_cell: FlattenedCellWithAllowance, config: Optional[Config]=None):
         self.panel = panel
         self.cell = cell
         self.config = self.DefaultConf(config)
 
         self._flattened_cell = flattended_cell
 
-        self.inner = flattended_cell["inner"]
-        self.ballooned = flattended_cell["ballooned"]
-        self.outer = flattended_cell["outer"]
-        self.outer_orig = flattended_cell["outer_orig"]
+        self.inner = flattended_cell.inner
+        self.ballooned = flattended_cell.ballooned
+        self.outer = flattended_cell
+        self.outer_orig = flattended_cell.outer_orig
 
         self.x_values = self.cell.rib1.profile_2d.x_values
 
         self.logger = logging.getLogger(r"{self.__class__.__module__}.{self.__class__.__name__}")
 
-    def flatten(self, attachment_points: List[AttachmentPoint]) -> PlotPart:
+    def flatten(self) -> PlotPart:
         plotpart = PlotPart(material_code=str(self.panel.material), name=self.panel.name)
 
         _cut_types = PanelCut.CUT_TYPES
@@ -62,7 +62,7 @@ class PanelPlot(object):
             _cut_types.round: self.config.allowance_design
         }
 
-        cut_types: Dict[PanelCut.CUT_TYPES, Type[DesignCut]] = {
+        cut_types: Dict[PanelCut.CUT_TYPES, Type[Cut]] = {
             _cut_types.folded: self.config.cut_entry,
             _cut_types.parallel: self.config.cut_trailing_edge,
             _cut_types.orthogonal: self.config.cut_design,
@@ -198,7 +198,7 @@ class PanelPlot(object):
 
         self._insert_text(plotpart)
         self._insert_controlpoints(plotpart)
-        self._insert_attachment_points(plotpart, attachment_points=attachment_points)
+        self._insert_attachment_points(plotpart)
         self._insert_diagonals(plotpart)
         self._insert_rigidfoils(plotpart)
         #self._insert_center_rods(plotpart)
@@ -209,19 +209,23 @@ class PanelPlot(object):
         self.plotpart = plotpart
         return plotpart
 
-    def get_material_usage(self):
-        part = self.flatten([])
+    def get_material_usage(self) -> MaterialUsage:
+        part = self.flatten()
         envelope = part.layers["envelope"].polylines[0]
         area = envelope.get_area()
 
         return MaterialUsage().consume(self.panel.material, area)
 
 
-    def get_point(self, x):
+    def get_point(self, x: float) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
         ik = get_x_value(self.x_values, x)
-        return [lst.get(ik) for lst in self.ballooned]
 
-    def get_p1_p2(self, x, is_right):
+        return (
+            self.ballooned[0].get(ik),
+            self.ballooned[1].get(ik)
+        )
+
+    def get_p1_p2(self, x: float, is_right: bool) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
         if is_right:
             front, back = self.panel.cut_front.x_right, self.panel.cut_back.x_right
         else:
@@ -237,7 +241,13 @@ class PanelPlot(object):
         
         raise ValueError(f"not in range")
 
-    def insert_mark(self, mark, x, layer: List, is_right):
+    def insert_mark(
+        self,
+        mark: Callable[[euklid.vector.Vector2D, euklid.vector.Vector2D], List[euklid.vector.PolyLine2D]],
+        x: float,
+        layer: List[euklid.vector.PolyLine2D],
+        is_right: bool
+        ):
         if mark is None:
             return
 
@@ -253,7 +263,7 @@ class PanelPlot(object):
 
             layer += mark(p1, p2)
 
-    def _align_upright(self, plotpart):
+    def _align_upright(self, plotpart: PlotPart) -> PlotPart:
         ik_front = self.front_curve.walk(0, self.front_curve.get_length()/2)
         ik_back = self.back_curve.walk(0, self.back_curve.get_length()/2)
 
@@ -267,7 +277,7 @@ class PanelPlot(object):
         plotpart.rotate(-angle)
         return plotpart
 
-    def _insert_text(self, plotpart):
+    def _insert_text(self, plotpart: PlotPart) -> None:
         text = self.panel.name
         text_width = self.config.allowance_design * 0.8 * len(text)
 
@@ -289,7 +299,7 @@ class PanelPlot(object):
                          height=0.8)
         plotpart.layers["text"] += part_text.get_vectors()
 
-    def _insert_controlpoints(self, plotpart):
+    def _insert_controlpoints(self, plotpart: PlotPart) -> None:
         # insert chord-wise controlpoints
         layer = plotpart.layers["L0"]
 
@@ -319,13 +329,11 @@ class PanelPlot(object):
                 plotpart.layers["L0"] += self.config.marks_controlpoint(p1, p2)
 
 
-    def _insert_diagonals(self, plotpart):
+    def _insert_diagonals(self, plotpart: PlotPart) -> None:
         layer = plotpart.layers["L0"]
 
 
         for strap in self.cell.straps + self.cell.diagonals:
-            strap: DiagonalRib
-
             is_upper = strap.left.is_upper and strap.right.is_upper
             is_lower = strap.left.is_lower and strap.right.is_lower
 
@@ -353,7 +361,7 @@ class PanelPlot(object):
                 if strap.right.is_lower:
                     self.insert_mark(self.config.marks_diagonal_center, strap.right.center, layer, True)
 
-    def _insert_attachment_points(self, plotpart, attachment_points):
+    def _insert_attachment_points(self, plotpart: PlotPart) -> None:
         def insert_side_mark(name, positions, is_right):
             try:
                 p1, p2 = self.get_p1_p2(positions[0], is_right)
@@ -387,9 +395,9 @@ class PanelPlot(object):
             positions = attachment_point.get_x_values(self.cell.rib2)
             insert_side_mark(attachment_point.name, positions, True)
         
-        for attachment_point in self.cell.attachment_points:
+        for cell_attachment_point in self.cell.attachment_points:
 
-            cell_pos = attachment_point.cell_pos
+            cell_pos = cell_attachment_point.cell_pos
 
             cut_f_l = self.panel.cut_front.x_left
             cut_f_r = self.panel.cut_front.x_right
@@ -398,11 +406,11 @@ class PanelPlot(object):
             cut_f = cut_f_l + cell_pos * (cut_f_r - cut_f_l)
             cut_b = cut_b_l + cell_pos * (cut_b_r - cut_b_l)
 
-            positions = [attachment_point.rib_pos]
+            positions = [cell_attachment_point.rib_pos]
             
             for rib_pos_no, rib_pos in enumerate(positions):
 
-                if cut_f <= attachment_point.rib_pos <= cut_b:
+                if cut_f <= cell_attachment_point.rib_pos <= cut_b:
                     left, right = self.get_point(rib_pos)
 
                     p1 = left + (right - left) * cell_pos
@@ -460,7 +468,7 @@ class PanelPlot(object):
                                                         size=0.01,  # 1cm
                                                         align=text_align, valign=0, height=0.8).get_vectors()
     
-    def _insert_rigidfoils(self, plotpart):
+    def _insert_rigidfoils(self, plotpart: PlotPart) -> None:
         for rigidfoil in self.cell.rigidfoils:
             line = rigidfoil.draw_panel_marks(self.cell, self.panel)
             if line is not None:
@@ -471,6 +479,9 @@ class PanelPlot(object):
                 plotpart.layers["L0"].append(euklid.vector.PolyLine2D([line.get(len(line)-1)]))
 
 
+class FlattenedCellWithAllowance(FlattenedCell):
+    outer: Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]
+    outer_orig: Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]
 
 class CellPlotMaker:
     run_check = True
@@ -479,49 +490,50 @@ class CellPlotMaker:
     StrapPlot = StrapPlot
     PanelPlot = PanelPlot
 
-    def __init__(self, cell: Cell, attachment_points: List[AttachmentPoint], config: Optional[Config]=None):
+    def __init__(self, cell: Cell, config: Optional[Config]=None):
         self.cell = cell
-        self.attachment_points = attachment_points
         self.config = self.DefaultConf(config)
         
         self.consumption = MaterialUsage()
 
         self._flattened_cell = None
+    
+    @cached_property()
+    def flattened_cell(self):
+        flattened_cell = self.cell.get_flattened_cell(self.config.midribs)
 
-    def _get_flatten_cell(self):
-        if self._flattened_cell is None:
-            flattened_cell = self.cell.get_flattened_cell(self.config.midribs)
+        left_bal, right_bal = flattened_cell.ballooned
 
-            left_bal, right_bal = flattened_cell["ballooned"]
+        outer_left = left_bal.offset(-self.config.allowance_general)
+        outer_right = right_bal.offset(self.config.allowance_general)
 
-            outer_left = left_bal.offset(-self.config.allowance_general)
-            outer_right = right_bal.offset(self.config.allowance_general)
+        outer_orig = (
+            left_bal.offset(-self.config.allowance_general, simple=True),
+            right_bal.offset(self.config.allowance_general, simple=True)
+        )
 
-            outer_orig = [
-                left_bal.offset(-self.config.allowance_general, simple=True),
-                right_bal.offset(self.config.allowance_general, simple=True),
-            ]
+        outer = (
+            outer_left.fix_errors(),
+            outer_right.fix_errors()
+        )
 
-            outer = [l.fix_errors() for l in [outer_left, outer_right]]
-
-            flattened_cell["outer"] = outer
-            flattened_cell["outer_orig"] = outer_orig
-
-            self._flattened_cell = flattened_cell
-
-        return self._flattened_cell
+        return FlattenedCellWithAllowance(
+            inner=flattened_cell.inner,
+            ballooned=flattened_cell.ballooned,
+            outer=outer,
+            outer_orig=outer_orig
+        )
 
     def get_panels(self, panels: Optional[List[Panel]]=None) -> List[PlotPart]:
         cell_panels = []
-        flattened_cell = self._get_flatten_cell()
         self.cell.calculate_3d_shaping(numribs=self.config.midribs)
 
         if panels is None:
             panels = self.cell.panels
 
         for panel in panels:
-            plot = self.PanelPlot(panel, self.cell, flattened_cell, self.config)
-            dwg = plot.flatten(self.attachment_points)
+            plot = self.PanelPlot(panel, self.cell, self.flattened_cell, self.config)
+            dwg = plot.flatten()
             cell_panels.append(dwg)
             self.consumption += plot.get_material_usage()
         
@@ -541,7 +553,7 @@ class CellPlotMaker:
         dribs = []
         for drib in diagonals[::-1]:
             drib_plot = self.DribPlot(drib, self.cell, self.config)
-            dribs.append(drib_plot.flatten(self.attachment_points))
+            dribs.append(drib_plot.flatten())
             self.consumption += drib_plot.get_material_usage()
         
         return dribs
@@ -552,7 +564,7 @@ class CellPlotMaker:
         result = []
         for strap in straps:
             plot = self.StrapPlot(strap, self.cell, self.config)
-            result.append(plot.flatten(self.attachment_points))
+            result.append(plot.flatten())
             self.consumption += plot.get_material_usage()
         
         return result

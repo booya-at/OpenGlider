@@ -47,8 +47,8 @@ class CutTable(CellTable):
             cut_type = PanelCut.CUT_TYPES.singleskin
         elif keyword == "CUT_ROUND":
             cut_type = PanelCut.CUT_TYPES.round
-            return PanelCut(data[0], data[1], cut_type, x_center=data[2], seam_allowance=data[3])
+            return PanelCut(x_left=data[0], x_right=data[1], cut_type=cut_type, x_center=data[2], seam_allowance=data[3])
         else:
             raise ValueError(f"invalid keyword: {keyword}")
         
-        return PanelCut(data[0], data[1], cut_type)
+        return PanelCut(x_left=data[0], x_right=data[1], cut_type=cut_type)

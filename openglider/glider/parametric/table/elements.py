@@ -24,7 +24,7 @@ KeywordsType = list[Union[tuple[str, typing.Any], str]]
 class Keyword(Generic[ElementType]):
     NoneType = typing.Any
     target_cls: typing.Any
-    def __init__(self, attributes: Optional[KeywordsType]=None, description: str="", target_cls: Type[Any]=None):
+    def __init__(self, attributes: Optional[KeywordsType]=None, description: str="", target_cls: Type[ElementType]=None):
         if attributes is None:
             if target_cls is not None:
                 attributes = list(typing.get_type_hints(target_cls.__init__).keys())

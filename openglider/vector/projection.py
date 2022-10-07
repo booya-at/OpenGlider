@@ -30,35 +30,35 @@ def flatten_list(
     ) -> Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
     
     if not isinstance(list1, euklid.vector.PolyLine3D):
-        list1 = euklid.vector.PolyLine2D(list1.data.tolist())
+        list1 = euklid.vector.PolyLine3D(list1.data.tolist())
     if not isinstance(list2, euklid.vector.PolyLine3D):
-        list2 = euklid.vector.PolyLine2D(list2.data.tolist())
+        list2 = euklid.vector.PolyLine3D(list2.data.tolist())
 
-    list1 = list1.nodes
-    list2 = list2.nodes
+    nodes_1 = list1.nodes
+    nodes_2 = list2.nodes
     index_left = index_right = 0
     flat_left = [euklid.vector.Vector2D([0, 0])]
-    flat_right = [euklid.vector.Vector2D([(list1[0]-list2[0]).length(), 0])]
+    flat_right = [euklid.vector.Vector2D([(nodes_1[0]-nodes_2[0]).length(), 0])]
 
     # def which(i, j):
     #     diff = list1[i] - list2[j]
     #     return diff.dot(list1[i+1]-list1[i]+list2[j+1]-list2[j+1])
     while True:
         #while which(index_left, index_right) <= 0 and index_left < len(list1) - 2:  # increase left_index
-        if index_left < len(list1) - 1:
-            flat_left.append(point2d(list1[index_left], flat_left[index_left],
-                                     list2[index_right], flat_right[index_right],
-                                     list1[index_left + 1]))
+        if index_left < len(nodes_1) - 1:
+            flat_left.append(point2d(nodes_1[index_left], flat_left[index_left],
+                                     nodes_2[index_right], flat_right[index_right],
+                                     nodes_1[index_left + 1]))
             index_left += 1
 
         #while which(index_left, index_right) >= 0 and index_right < len(list2) - 2:  # increase right_index
-        if index_right < len(list2) - 1:
-            flat_right.append(point2d(list1[index_left], flat_left[index_left],
-                                      list2[index_right], flat_right[index_right],
-                                      list2[index_right + 1]))
+        if index_right < len(nodes_2) - 1:
+            flat_right.append(point2d(nodes_1[index_left], flat_left[index_left],
+                                      nodes_2[index_right], flat_right[index_right],
+                                      nodes_2[index_right + 1]))
             index_right += 1
 
-        if index_left == len(list1) - 1 and index_right == len(list2) - 1:
+        if index_left == len(nodes_1) - 1 and index_right == len(nodes_2) - 1:
             break
 
     # while index_left < len(list1) - 1:

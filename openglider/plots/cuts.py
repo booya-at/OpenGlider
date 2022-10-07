@@ -1,6 +1,6 @@
 from abc import ABC
 import math
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 import logging
 import euklid
 
@@ -9,8 +9,6 @@ from openglider.utils.dataclass import BaseModel
 
 logger = logging.getLogger(__name__)
 
-class Cut(ABC, BaseModel):
-    amount: float
 
 class CutResult(BaseModel):
     curve: euklid.vector.PolyLine2D
@@ -26,8 +24,21 @@ class CutResult(BaseModel):
             inner_indices = inner_indices
         )
 
-
 InnerLists = List[Tuple[euklid.vector.PolyLine2D, float]]
+
+class Cut(ABC, BaseModel):
+    amount: float
+
+    def apply(
+        self,
+        inner_lists: InnerLists,
+        outer_left: euklid.vector.PolyLine2D,
+        outer_right: euklid.vector.PolyLine2D,
+        amount_3d: List[float] | None=None
+        ) -> CutResult:
+
+        raise NotImplementedError()
+
 
 # Check doc/drawings 7-9 for sketches
 
@@ -42,7 +53,7 @@ class DesignCut(Cut):
     def total_amount(self) -> float:
         return self.num_folds * self.amount
 
-    def get_p1_p2(self, inner_lists: InnerLists, amount_3d: List[float]) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
+    def get_p1_p2(self, inner_lists: InnerLists, amount_3d: Optional[List[float]]) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
         l1, ik1 = inner_lists[0]
         l2, ik2 = inner_lists[-1]
 
@@ -55,7 +66,7 @@ class DesignCut(Cut):
         return l1.get(ik1), l2.get(ik2)
 
 
-    def _get_indices(self, inner_lists: InnerLists, amount_3d: List[float]) -> List[float]:
+    def _get_indices(self, inner_lists: InnerLists, amount_3d: Optional[List[float]]) -> List[float]:
         indices = []
         for i, lst in enumerate(inner_lists):
             line, ik = lst
@@ -170,6 +181,9 @@ class Cut3D(DesignCut):
         inner_ik = []
         inner_points = []
 
+        if amount_3d is None:
+            amount_3d = [0] * len(inner_lists)
+
         for offset, lst in zip(amount_3d, inner_lists):
             curve, ik = lst
             ik_new = curve.walk(ik, offset)
@@ -229,6 +243,9 @@ class Cut3D_2(DesignCut):
         """
         inner_new = []
         point_list = []
+        
+        if amount_3d is None:
+            amount_3d = [0] * len(inner_lists)
 
         for offset, lst in zip(amount_3d, inner_lists):
             curve, ik = lst

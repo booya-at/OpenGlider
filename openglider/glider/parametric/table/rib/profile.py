@@ -1,30 +1,29 @@
 from typing import List, Tuple, Optional, Dict
 import logging
 
-from pyfoil import Airfoil
-
-from openglider.utils.table import Table
 from openglider.glider.rib.sharknose import Sharknose
 from openglider.glider.parametric.table.elements import RibTable, Keyword
 
 logger = logging.getLogger(__name__)
 
-def float_dct(**kwargs):
-    return {
-        name: float(value) for name, value in kwargs.items()
-    }
+class FloatDict(dict):
+    def __init__(self, **kwargs):
+        super().__init__({
+            name: float(value) for name, value in kwargs.items()
+        })
+
 
 class ProfileTable(RibTable):
     keywords = {
-        "ProfileFactor": Keyword(attributes=["thickness_factor"], target_cls=float_dct),
-        "ProfileMerge": Keyword(attributes=["merge_factor"], target_cls=float_dct),
-        "Flap": Keyword(attributes=["begin", "amount"], target_cls=float_dct),
+        "ProfileFactor": Keyword(attributes=["thickness_factor"], target_cls=FloatDict),
+        "ProfileMerge": Keyword(attributes=["merge_factor"], target_cls=FloatDict),
+        "Flap": Keyword(attributes=["begin", "amount"], target_cls=FloatDict),
         "Sharknose": Keyword(attributes=["position", "amount", "start", "end"], target_cls=Sharknose),
         "Sharknose8": Keyword(attributes=["position", "amount", "start", "end", "angle_front", "angle_back", "rigidfoil_circle_radius", "rigidfoil_circle_amount"], target_cls=Sharknose)
     }
 
     def get_merge_factors(self, merge_factor_list: List[float]) -> List[Tuple[float, float]]:
-
+        # TODO: unused!
         merge_factors = merge_factor_list[:]
 
         columns = self.get_columns(self.table, "BallooningMerge", 1)

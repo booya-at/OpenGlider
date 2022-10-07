@@ -4,7 +4,7 @@ from openglider.glider.parametric.table.elements import CellTable, Keyword
 
 class MiniRibTable(CellTable):
     keywords = {
-        "MINIRIB": Keyword(["yvalue", "front_cut"])
+        "MINIRIB": Keyword(["yvalue", "front_cut"], target_cls=MiniRib)
     }
 
     def get_element(self, row: int, keyword, data, **kwargs) -> MiniRib:

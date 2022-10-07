@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 import logging
 import math
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import euklid
 import numpy as np
@@ -22,9 +22,15 @@ from openglider.mesh import Mesh, Polygon, Vertex
 from openglider.utils import consistent_value, linspace
 from openglider.utils.cache import (HashedList, cached_function,
                                     cached_property, hash_list)
-from openglider.utils.dataclass import dataclass, Field
+from openglider.utils.dataclass import BaseModel, dataclass, Field
 
 logger = logging.getLogger(__file__)
+
+
+class FlattenedCell(BaseModel):
+    inner: List[euklid.vector.PolyLine2D]
+    ballooned: Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]
+
 
 @dataclass
 class Cell:
@@ -437,7 +443,7 @@ class Cell:
         return mesh
 
     @cached_function("self")
-    def get_flattened_cell(self, numribs=50, num_inner=None):
+    def get_flattened_cell(self, numribs=50, num_inner=None) -> FlattenedCell:
         midribs = self.get_midribs(numribs)
         numpoints = len(midribs[0].curve.nodes)
 
@@ -500,10 +506,10 @@ class Cell:
             right_bal.append(pr_2)
             #right_bal.append(get_point(p2, p1, l_0, d_r, get_length(i, i+1), left=False))
 
-        ballooned = [
+        ballooned = (
             euklid.vector.PolyLine2D(left_bal),
             euklid.vector.PolyLine2D(right_bal)
-        ]
+        )
 
         inner = []
 
@@ -515,17 +521,16 @@ class Cell:
 
         #ballooned = [left_bal, right_bal]
 
-        return {
-            "inner": inner,
-            "ballooned": ballooned
-            }
+        return FlattenedCell(
+            inner=inner,
+            ballooned=ballooned
+        )
     
     def calculate_3d_shaping(self, panels=None, numribs=10) -> None:
         if panels is None:
             panels = self.panels
 
         flat = self.get_flattened_cell(numribs)
-        inner = flat["inner"]
 
         cuts_3d: Dict[str, List[float]] = {}
 
@@ -547,10 +552,10 @@ class Cell:
             # TODO: Investigate
             return [max(0, x) for x in data]
 
-        midribs = [p.curve for p in self.get_midribs(len(inner))]
+        midribs = [p.curve for p in self.get_midribs(len(flat.inner))]
 
         for panel in panels:
-            amount_front, amount_back = panel.integrate_3d_shaping(self, self.sigma_3d_cut, inner, midribs)
+            amount_front, amount_back = panel.integrate_3d_shaping(self, self.sigma_3d_cut, flat.inner, midribs)
 
             add_amount(panel.cut_front, amount_front)
             add_amount(panel.cut_back, amount_back)

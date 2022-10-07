@@ -128,8 +128,8 @@ class RibPlot(object):
         insert=True
         ) -> List[euklid.vector.PolyLine2D]:
 
-        if hasattr(mark_function, "__func__"):
-            mark_function = mark_function.__func__
+        if mark_function_func := getattr(mark_function, "__func__", None):
+            mark_function = mark_function_func
 
         if mark_function is None:
             return

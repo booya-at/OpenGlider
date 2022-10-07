@@ -1,8 +1,10 @@
 import copy
+import functools
 import logging
-from typing import Tuple, TypeVar, List, Any
+from typing import Callable, Tuple, TypeVar, List, Any
 
 import numpy as np
+from typing import TYPE_CHECKING
 
 import openglider
 
@@ -63,6 +65,9 @@ class CachedProperty(object):
             return cache[self]["value"]
 
 def cached_property(*hashlist):
+    if TYPE_CHECKING:
+        return property
+
     def property_decorator(fget):
         return CachedProperty(fget, hashlist)
     
@@ -121,6 +126,13 @@ class CachedFunction():
 
 
 def cached_function(*hashlist):
+    if TYPE_CHECKING:
+        @functools.wraps
+        def wrapper(f):
+            return f
+        
+        return wrapper
+
     def cache_decorator(func):
         return CachedFunction(func, hashlist)
     

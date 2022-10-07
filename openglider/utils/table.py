@@ -128,7 +128,7 @@ class Table:
                     eins = ""
 
             if isinstance(eins, numbers.Number) and isinstance(zwei, numbers.Number):
-                self[key] = eins - zwei
+                self[key] = eins - zwei  # type: ignore
             else:
                 self[key] = str(eins) + " - " + str(zwei)
 

@@ -8,7 +8,7 @@ from openglider.utils.config import Config
 from openglider.utils.dataclass import BaseModel, Field
 
 from openglider.vector.drawing import Layout
-from openglider.plots.glider.cell import CellPlotMaker
+from openglider.plots.glider.cell import CellPlotMaker as DefaultCellPlotMaker
 from openglider.plots.glider.ribs import RibPlot, SingleSkinRibPlot
 from openglider.plots.config import PatternConfig, OtherPatternConfig, PatternConfigOld
 from openglider.plots.usage_stats import MaterialUsage
@@ -28,7 +28,7 @@ class PlotMaker:
     rigidfoils: PlotPartDict
 
     DefaultConfig: TypeAlias = PatternConfig
-    CellPlotMaker: TypeAlias = CellPlotMaker
+    CellPlotMaker: TypeAlias = DefaultCellPlotMaker
     RibPlot = RibPlot
 
     def __init__(self, glider_3d: Glider, config: Optional[Config]=None):
@@ -40,7 +40,7 @@ class PlotMaker:
         self.dribs = collections.OrderedDict()
         self.straps = collections.OrderedDict()
         self.rigidfoils = collections.OrderedDict()
-        self._cellplotmakers: Dict[Cell, CellPlotMaker] = dict()
+        self._cellplotmakers: Dict[Cell, DefaultCellPlotMaker] = dict()
 
         self.weight: Dict[str, MaterialUsage] = {}
 
@@ -64,9 +64,7 @@ class PlotMaker:
 
     def _get_cellplotmaker(self, cell: Cell) -> CellPlotMaker:
         if cell not in self._cellplotmakers:
-            self._cellplotmakers[cell] = self.CellPlotMaker(cell,
-                                                            self.glider_3d.attachment_points,
-                                                            self.config)
+            self._cellplotmakers[cell] = self.CellPlotMaker(cell, self.config)
 
         return self._cellplotmakers[cell]
 

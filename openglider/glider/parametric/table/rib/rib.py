@@ -7,7 +7,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-SkinRib7: Keyword[Dict[str, Any]] = Keyword([
+SkinRib7 = Keyword([
     ("att_dist", float),
     ("height", float),
     ("continued_min", bool),
@@ -20,7 +20,7 @@ SkinRib7: Keyword[Dict[str, Any]] = Keyword([
     ("straight_te", bool),
     ("te_gap", bool),
     ("num_points", int)
-    ], target_cls=dict)
+    ], target_cls=Dict[str, Any])
 
 class SingleSkinTable(RibTable):
     keywords = {

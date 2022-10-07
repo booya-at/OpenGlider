@@ -20,9 +20,9 @@ class AttachmentPointTable(RibTable):
     regex_node_layer = re.compile(r"([a-zA-Z]*)([0-9]*)")
 
     keywords = {
-        "ATP": Keyword([("name", str), ("pos", float), ("force", Union[float, str])]), 
-        "AHP": Keyword([("name", str), ("pos", float), ("force", Union[float, str])]),
-        "ATPPROTO": Keyword([("name", str), ("pos", float), ("force", Union[float, str]), ("proto_distance", float)])
+        "ATP": Keyword([("name", str), ("pos", float), ("force", Union[float, str])], target_cls=AttachmentPoint), 
+        "AHP": Keyword([("name", str), ("pos", float), ("force", Union[float, str])], target_cls=AttachmentPoint),
+        "ATPPROTO": Keyword([("name", str), ("pos", float), ("force", Union[float, str]), ("proto_distance", float)], target_cls=AttachmentPoint)
     }
 
     def get_element(self, row, keyword, data, curves={}, **kwargs) -> AttachmentPoint:
@@ -94,9 +94,9 @@ class AttachmentPointTable(RibTable):
 
 class CellAttachmentPointTable(CellTable):
     keywords = {
-        "ATP": Keyword([("name", str), ("cell_pos", float), ("rib_pos", float), ("force", Union[float, str])]),
-        "AHP": Keyword([("name", str), ("cell_pos", float), ("rib_pos", float), ("force", Union[float, str])]),
-        "ATPDIFF": Keyword([("name", str), ("cell_pos", float), ("rib_pos", float), ("force", Union[float, str]), ("offset", float)])
+        "ATP": Keyword([("name", str), ("cell_pos", float), ("rib_pos", float), ("force", Union[float, str])], target_cls=CellAttachmentPoint),
+        "AHP": Keyword([("name", str), ("cell_pos", float), ("rib_pos", float), ("force", Union[float, str])], target_cls=CellAttachmentPoint),
+        "ATPDIFF": Keyword([("name", str), ("cell_pos", float), ("rib_pos", float), ("force", Union[float, str]), ("offset", float)], target_cls=CellAttachmentPoint)
     }
 
     def get_element(self, row, keyword, data, curves={}, **kwargs) -> CellAttachmentPoint:

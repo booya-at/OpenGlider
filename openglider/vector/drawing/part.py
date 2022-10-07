@@ -8,8 +8,8 @@ import numpy as np
 VectorList = List[euklid.vector.PolyLine2D]
 
 class Layer(object):
-    stroke = "black"
-    stroke_width = 1
+    stroke: Optional[str] = "black"
+    stroke_width = 1.
     visible = True
 
     def __init__(self, polylines: Optional[VectorList]=None, stroke: str=None, stroke_width: float=1., visible: bool=True):

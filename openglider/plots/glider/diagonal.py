@@ -43,14 +43,14 @@ class DribPlot(object):
         self.left_out = self.left.offset(self.config.allowance_general)
         self.right_out = self.right.offset(-self.config.allowance_general)
 
-    def get_left(self, x):
-        return self.get_p1_p2(x, right_side=0)
+    def get_left(self, x: float) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
+        return self.get_p1_p2(x, right_side=False)
 
-    def get_right(self, x):
-        return self.get_p1_p2(x, right_side=1)
+    def get_right(self, x: float) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
+        return self.get_p1_p2(x, right_side=True)
 
-    def validate(self, x, side=0):
-        if side == 0:
+    def validate(self, x: float, right_side: bool=False) -> bool:
+        if not right_side:
             side_obj = self.drib.left
         else:
             side_obj = self.drib.right
@@ -67,7 +67,7 @@ class DribPlot(object):
         return True
 
     def get_p1_p2(self, x: float, right_side: bool=False) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
-        self.validate(x, side=right_side)
+        self.validate(x, right_side=right_side)
 
         if not right_side:
             side_obj = self.drib.left
@@ -112,34 +112,33 @@ class DribPlot(object):
             insert_center_mark(self.right, self.right_out)
     
     def _insert_controlpoints(self, plotpart: PlotPart) -> None:
+        x: float
         for x in self.config.distribution_controlpoints:
-            for side in (0, 1):
+            for side in (False, True):
                 try:
                     p1, p2 = self.get_p1_p2(x, side)
                     plotpart.layers["L0"] += self.config.marks_controlpoint(p1, p2)
                 except ValueError:
                     continue
 
-    def _insert_attachment_points(self, plotpart: PlotPart, attachment_points: List[AttachmentPoint]) -> None:
-        for attachment_point in attachment_points:
-            if not hasattr(attachment_point, "rib"):
-                continue
-            x = attachment_point.rib_pos
-            if attachment_point.rib is self.cell.rib1:
-                try:
-                    p1, p2 = self.get_left(attachment_point.rib_pos)
-                except ValueError:
-                    continue
-            elif attachment_point.rib is self.cell.rib2:
-                try:
-                    p1, p2 = self.get_right(attachment_point.rib_pos)
-                except ValueError:
-                    continue
-            else:
-                continue
-
+    def _insert_attachment_points(self, plotpart: PlotPart) -> None:
+        def _add_mark(p1, p2):
             plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
             plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
+
+        for attachment_point in self.cell.rib1.attachment_points:
+            try:
+                p1, p2 = self.get_left(attachment_point.rib_pos)
+            except ValueError:
+                continue
+            _add_mark(p1, p2)
+
+        for attachment_point in self.cell.rib2.attachment_points:
+            try:
+                p1, p2 = self.get_right(attachment_point.rib_pos)
+            except ValueError:
+                continue
+            _add_mark(p1, p2)
 
     def _insert_text(self, plotpart: PlotPart, reverse: bool=False) -> None:
         if reverse:
@@ -154,10 +153,10 @@ class DribPlot(object):
                                         height=0.6,
                                         valign=0.6).get_vectors()
 
-    def flatten(self, attachment_points: List[AttachmentPoint]) -> PlotPart:
-        return self._flatten(attachment_points, self.drib.num_folds)
+    def flatten(self) -> PlotPart:
+        return self._flatten(self.drib.num_folds)
 
-    def _flatten(self, attachment_points: List[AttachmentPoint], num_folds: int) -> PlotPart:
+    def _flatten(self, num_folds: int) -> PlotPart:
         plotpart = PlotPart(material_code=self.drib.material_code, name=self.drib.name)
 
         if num_folds > 0:
@@ -165,8 +164,8 @@ class DribPlot(object):
             cut_front = self.config.cut_diagonal_fold(amount=alw2, num_folds=num_folds)
             cut_back = self.config.cut_diagonal_fold(amount=-alw2, num_folds=num_folds)
             
-            cut_front_result = cut_front.apply([[self.left, 0], [self.right, 0]], self.left_out, self.right_out)
-            cut_back_result = cut_back.apply([[self.left, len(self.left) - 1], [self.right, len(self.right) - 1]], self.left_out, self.right_out)
+            cut_front_result = cut_front.apply([(self.left, 0), (self.right, 0)], self.left_out, self.right_out)
+            cut_back_result = cut_back.apply([(self.left, len(self.left) - 1), (self.right, len(self.right) - 1)], self.left_out, self.right_out)
             
             plotpart.layers["cuts"] += [self.left_out.get(cut_front_result.index_left, cut_back_result.index_left) +
                                         cut_back_result.curve +
@@ -202,7 +201,7 @@ class DribPlot(object):
 
         plotpart.layers["stitches"] += [self.left, self.right]
 
-        self._insert_attachment_points(plotpart, attachment_points)
+        self._insert_attachment_points(plotpart)
         self._insert_center_marks(plotpart)
         self._insert_controlpoints(plotpart)
 
@@ -234,5 +233,5 @@ class DribPlot(object):
 
 
 class StrapPlot(DribPlot):
-    def flatten(self, attachment_points: List[AttachmentPoint]):
-        return self._flatten(attachment_points, self.config.strap_num_folds)
+    def flatten(self):
+        return self._flatten(self.config.strap_num_folds)

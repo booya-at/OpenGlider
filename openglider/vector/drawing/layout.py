@@ -211,12 +211,7 @@ class Layout(object):
         return all_parts
     
     def delete_duplicate_points(self) -> None:
-        all_nodes = []
-        for part in self.parts:
-            for layer in part.layers:
-                pass
-
-            
+        raise NotImplementedError()            
 
     def add_text(self, text: str, distance: float=0.1) -> PlotPart:
         """
@@ -256,10 +251,10 @@ class Layout(object):
 
         data = [euklid.vector.PolyLine2D(bbox)]
 
-        border = PlotPart(drawing_boundary=data)
+        border_part = PlotPart(drawing_boundary=data)
         if append:
-            self.parts.append(border)
-        return border
+            self.parts.append(border_part)
+        return border_part
 
     @classmethod
     def create_raster(cls, parts, distance_x=0.2, distance_y=0.1):
@@ -655,10 +650,11 @@ class Layout(object):
         return self
 
     def group_materials(self) -> Dict[str, Layout]:
-        dct = {}
+        dct: Dict[str, Layout] = {}
         for part in self.parts:
             code = part.material_code
 
+            # TODO: change this
             if part.material_code == "grid":
                 for key in dct:
                     dct[key].parts.append(part.copy())

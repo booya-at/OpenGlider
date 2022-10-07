@@ -1,4 +1,3 @@
-import copy
 from enum import Enum
 import logging
 import math
@@ -9,7 +8,7 @@ import openglider.mesh as mesh
 from openglider.airfoil import get_x_value
 from openglider.materials import Material, cloth
 from openglider.utils.cache import cached_function, hash_list
-from openglider.utils.dataclass import dataclass, Field
+from openglider.utils.dataclass import BaseModel, dataclass, Field
 
 if TYPE_CHECKING:
     from openglider.glider.cell.cell import Cell
@@ -127,7 +126,7 @@ class PanelCut:
             return ik_values
 
         ik_values_new = []
-        inner = cell.get_flattened_cell(num_inner=numribs+2)["inner"]
+        inner = cell.get_flattened_cell(num_inner=numribs+2).inner
 
         points_2d = [
             inner[0].get(ik_left),
@@ -171,10 +170,10 @@ class PanelCut:
         
         return ik_interpolation
     
-    def get_curve_2d(self, cell: "Cell", numribs=0, exact=True) -> euklid.vector.PolyLine2D:
+    def get_curve_2d(self, cell: "Cell", numribs: int=0, exact: bool=True) -> euklid.vector.PolyLine2D:
         ik_values = self._get_ik_values(cell, numribs=numribs, exact=exact)
 
-        ribs = cell.get_flattened_cell(num_inner=numribs+2)["inner"]
+        ribs = cell.get_flattened_cell(num_inner=numribs+2).inner
         points_2d = [rib.get(ik) for rib, ik in zip(ribs, ik_values)]
 
         return euklid.vector.PolyLine2D(points_2d)
@@ -219,8 +218,8 @@ class Panel(object):
     @classmethod
     def dummy(cls):
         return cls(
-            PanelCut(-1, -1, PanelCut.CUT_TYPES.parallel),
-            PanelCut(1, 1, PanelCut.CUT_TYPES.parallel)
+            PanelCut(x_left=-1, x_right=-1,cut_type=PanelCut.CUT_TYPES.parallel),
+            PanelCut(x_left=1, x_right=1,cut_type=PanelCut.CUT_TYPES.parallel)
         )
     
     def __hash__(self) -> int:
