@@ -247,7 +247,7 @@ class PanelPlot:
         x: float,
         layer: List[euklid.vector.PolyLine2D],
         is_right: bool
-        ):
+        ) -> None:
         if mark is None:
             return
 
@@ -362,7 +362,7 @@ class PanelPlot:
                     self.insert_mark(self.config.marks_diagonal_center, strap.right.center, layer, True)
 
     def _insert_attachment_points(self, plotpart: PlotPart) -> None:
-        def insert_side_mark(name, positions, is_right):
+        def insert_side_mark(name: str, positions: List[float], is_right: bool) -> None:
             try:
                 p1, p2 = self.get_p1_p2(positions[0], is_right)
                 diff = p1 - p2
@@ -375,7 +375,7 @@ class PanelPlot:
 
 
                 text_align = "left" if is_right else "right"
-                plotpart.layers["text"] += Text(attachment_point.name, start, end,
+                plotpart.layers["text"] += Text(name, start, end,
                                                             size=0.01,  # 1cm
                                                             align=text_align, valign=0, height=0.8).get_vectors()
             except  ValueError:
@@ -421,7 +421,7 @@ class PanelPlot:
                         p2 = p1 - d
                         
                     if cell_pos in (1, 0):
-                        x1, x2 = self.get_p1_p2(rib_pos, cell_pos)
+                        x1, x2 = self.get_p1_p2(rib_pos, bool(cell_pos))
                         plotpart.layers["marks"] += self.config.marks_attachment_point(x1, x2)
                         plotpart.layers["L0"] += self.config.marks_laser_attachment_point(x1, x2)
                     else:
@@ -499,7 +499,7 @@ class CellPlotMaker:
         self._flattened_cell = None
     
     @cached_property()
-    def flattened_cell(self):
+    def flattened_cell(self) -> FlattenedCellWithAllowance:
         flattened_cell = self.cell.get_flattened_cell(self.config.midribs)
 
         left_bal, right_bal = flattened_cell.ballooned

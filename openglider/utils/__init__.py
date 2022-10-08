@@ -21,6 +21,7 @@
 import inspect
 import json
 import html
+from typing import Any
 
 from openglider.utils.cache import recursive_getattr
 #from openglider.utils.table import Table
@@ -31,7 +32,7 @@ def sign(val):
     return (val > 0) - (val < 0)
 
 
-def consistent_value(elements, attribute) -> list:
+def consistent_value(elements, attribute) -> Any:
     vals = [recursive_getattr(element, attribute) for element in elements]
     if vals[1:] == vals[:-1]:
         return vals[0]

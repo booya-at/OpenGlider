@@ -1,10 +1,10 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, List, Dict, Optional
 import logging
 
 import euklid
 from openglider.glider.shape import Shape
-from openglider.lines import Node
+from openglider.lines.node import Node, NODE_TYPE
 from openglider.utils.dataclass import dataclass
 from openglider.vector.polygon import Circle
 
@@ -63,8 +63,16 @@ class GibusArcs:
 # Node from lines
 class AttachmentPoint(Node):
     rib_pos: float
-    def __init__(self, name, rib_pos, force=None, offset=None, protoloops=0, protoloop_distance=0.02, protoloop_distance_absolute=True, node_type=Node.NODE_TYPE.UPPER):
-        super().__init__(node_type=Node.NODE_TYPE.UPPER, force=force)
+
+    node_type = Node.NODE_TYPE.UPPER
+    offset: float = -0.01
+    protoloops: int = False
+    protoloop_distance: float = 0.02
+    protoloop_distance_absolute: bool = True
+    
+    def __init__(self, name, rib_pos, force: euklid.vector.Vector3D, offset=None, protoloops=0, protoloop_distance=0.02, protoloop_distance_absolute=True, node_type=Node.NODE_TYPE.UPPER):            
+        super().__init__(node_type=Node.NODE_TYPE.UPPER, rib_pos=rib_pos, name=name, force=force)
+
         self.rib_pos = rib_pos
         self.name = name
         self.force = force
@@ -80,7 +88,7 @@ class AttachmentPoint(Node):
     def __repr__(self):
         return "<Attachment point '{}' ({})>".format(self.name, self.rib_pos)
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {
             "name": self.name,
             "rib_pos": self.rib_pos,
@@ -90,7 +98,7 @@ class AttachmentPoint(Node):
             "protoloop_distance_absolute": self.protoloop_distance_absolute
         }
     
-    def get_x_values(self, rib: "Rib"):
+    def get_x_values(self, rib: Rib) -> List[float]:
         positions = [self.rib_pos]
 
         if self.protoloops:
@@ -110,16 +118,22 @@ class AttachmentPoint(Node):
                     positions.append(self.rib_pos+diff)
         
         return positions
+    
+    @classmethod
+    def calculate_force_rib_aligned(self, rib: Rib, force: Optional[float]=None) -> euklid.vector.Vector3D:
+        if force is None:
+            force = self.force.length()
+        return rib.rotation_matrix.apply([0, force, 0])
 
     def get_position(self, rib: Rib) -> euklid.vector.Vector3D:
-        # todo: PROFILE3D -> return euklid vector
-        self.vec = rib.get_profile_3d()[rib.get_hull()(self.rib_pos)]
-        if not isinstance(self.force, euklid.vector.Vector3D):
-            self.force = rib.rotation_matrix.apply([0, self.force, 0])
+        hull = rib.get_hull()
+        profile_3d = rib.get_profile_3d()
 
-        return self.vec
+        self.position = profile_3d.get(hull(self.rib_pos))
+
+        return self.position
     
-    def get_position_2d(self, shape: Shape, glider: "Glider") -> euklid.vector.Vector2D:
+    def get_position_2d(self, shape: Shape, glider: Glider) -> euklid.vector.Vector2D:
 
         rib_no = None
         for i, rib in enumerate(glider.ribs):

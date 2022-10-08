@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING, Callable, List, Set, Tuple, Union
+from typing import TYPE_CHECKING, Callable, List, Optional, Set, Tuple, Union
 
 import euklid
 import openglider.glider
@@ -12,6 +12,7 @@ from openglider.glider.cell.diagonals import (DiagonalRib, DiagonalSide,
 from openglider.glider.rib.rigidfoils import RigidFoilBase
 from openglider.plots.config import PatternConfig
 from openglider.plots.usage_stats import MaterialUsage
+from openglider.utils.config import Config
 from openglider.vector.drawing import PlotPart
 from openglider.vector.text import Text
 
@@ -39,7 +40,7 @@ class RibPlot(object):
     layer_name_laser_dots = "L0"
     layer_name_crossports = "cuts"
 
-    def __init__(self, rib, config=None):
+    def __init__(self, rib: Rib, config: Optional[Config]=None):
         self.rib = rib
         self.config = self.DefaultConf(config)
 
@@ -124,8 +125,8 @@ class RibPlot(object):
         self,
         position: float,
         mark_function: Callable[[euklid.vector.Vector2D, euklid.vector.Vector2D], List[euklid.vector.PolyLine2D]],
-        laser=False,
-        insert=True
+        laser: bool=False,
+        insert: bool=True
         ) -> List[euklid.vector.PolyLine2D]:
 
         if mark_function_func := getattr(mark_function, "__func__", None):
@@ -152,7 +153,7 @@ class RibPlot(object):
             marks.append(self.insert_mark(x, self.config.marks_controlpoint, laser=True))       
         
 
-    def get_point(self, x, y=-1) -> euklid.vector.Vector2D:
+    def get_point(self, x: float, y: float=-1.) -> euklid.vector.Vector2D:
         assert x >= 0
         p = self.rib.profile_2d.profilepoint(x, y)
         return p * self.rib.chord
@@ -171,7 +172,7 @@ class RibPlot(object):
             p2 = self.get_point(side.end_x, side.end_height)
             self.plotpart.layers[self.layer_name_marks].append(euklid.vector.PolyLine2D([p1, p2]))
 
-    def insert_holes(self):
+    def insert_holes(self) -> List[euklid.vector.PolyLine2D]:
         holes = []
         for hole in self.rib.holes:
             for l in hole.get_flattened(self.rib):
@@ -180,15 +181,15 @@ class RibPlot(object):
         
         return holes
 
-    def draw_outline(self, glider):
+    def draw_outline(self, glider: Glider) -> euklid.vector.PolyLine2D:
         """
         Cut trailing edge of outer rib
         """
         outer_rib = self.outer.fix_errors()
         inner_rib = self.inner
         t_e_allowance = self.config.allowance_trailing_edge
-        p1 = inner_rib.nodes[0] + [0, 1]
-        p2 = inner_rib.nodes[0] + [0, -1]
+        p1 = inner_rib.nodes[0] + euklid.vector.Vector2D([0, 1])
+        p2 = inner_rib.nodes[0] + euklid.vector.Vector2D([0, -1])
         cuts = outer_rib.cut(p1, p2)
 
         if len(cuts) != 2:
@@ -199,8 +200,8 @@ class RibPlot(object):
 
         buerzl = [
             outer_rib.get(stop),
-            outer_rib.get(stop) + [t_e_allowance, 0],
-            outer_rib.get(start) + [t_e_allowance, 0],
+            outer_rib.get(stop) + euklid.vector.Vector2D([t_e_allowance, 0]),
+            outer_rib.get(start) + euklid.vector.Vector2D([t_e_allowance, 0]),
             outer_rib.get(start)
             ]
 
@@ -210,7 +211,7 @@ class RibPlot(object):
 
         return contour
     
-    def walk(self, x, amount) -> float:
+    def walk(self, x: float, amount: float) -> float:
         ik = get_x_value(self.x_values, x)
 
         ik_new = self.inner.walk(ik, amount)
@@ -218,7 +219,7 @@ class RibPlot(object):
         return self.inner.get(ik_new)[0]/self.rib.chord
         
 
-    def _insert_attachment_points(self, glider: "Glider"):
+    def _insert_attachment_points(self, glider: Glider) -> None:
         for attachment_point in self.rib.attachment_points:
             positions = attachment_point.get_x_values(self.rib)
 
@@ -226,7 +227,7 @@ class RibPlot(object):
                 self.insert_mark(position, self.config.marks_attachment_point)
                 self.insert_mark(position, self.config.marks_laser_attachment_point, laser=True)
 
-    def _insert_text(self, text):
+    def _insert_text(self, text: str) -> None:
         if self.config.rib_text_in_seam:
             inner, outer = self._get_inner_outer(self.config.rib_text_pos)
             diff = outer - inner
@@ -245,14 +246,14 @@ class RibPlot(object):
 
         self.plotpart.layers[self.layer_name_text] += _text.get_vectors()
     
-    def draw_rigidfoils(self, glider: "Glider") -> PlotPart:
+    def draw_rigidfoils(self, glider: Glider) -> PlotPart:
         plotpart = PlotPart()
 
         controlpoints = []
         for x in self.config.distribution_controlpoints:
             controlpoints.append(self.insert_mark(x, self.config.marks_controlpoint, laser=True, insert=False))
 
-        def draw_rigid(rigidfoil: RigidFoilBase, name: str):
+        def draw_rigid(rigidfoil: RigidFoilBase, name: str) -> None:
             curve = rigidfoil.get_flattened(self.rib, glider)
 
             # add marks into the profile
@@ -321,7 +322,7 @@ class RibPlot(object):
 class SingleSkinRibPlot(RibPlot):
     skin_cut: float | None = None
 
-    def _get_inner_outer(self, x_value: float):
+    def _get_inner_outer(self, x_value: float) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
         # TODO: shift when after the endpoint
         inner, outer = super()._get_inner_outer(x_value)
 
@@ -330,7 +331,7 @@ class SingleSkinRibPlot(RibPlot):
         else:
             return inner, inner + (inner - outer)
 
-    def _get_singleskin_cut(self, glider: Glider):
+    def _get_singleskin_cut(self, glider: Glider) -> float:
         if self.skin_cut is None:
             singleskin_cut = None
 
@@ -356,19 +357,19 @@ class SingleSkinRibPlot(RibPlot):
 
         return self.skin_cut
 
-    def flatten(self, glider: Glider, add_rigidfoils_to_plot=True):
+    def flatten(self, glider: Glider, add_rigidfoils_to_plot: bool=True) -> PlotPart:
         self._get_singleskin_cut(glider)
         return super().flatten(glider, add_rigidfoils_to_plot=add_rigidfoils_to_plot)
 
-    def draw_outline(self, glider):
+    def draw_outline(self, glider: Glider) -> euklid.vector.PolyLine2D:
         """
         Cut trailing edge of outer rib
         """
         outer_rib = self.outer
         inner_rib = self.inner
         t_e_allowance = self.config.allowance_trailing_edge
-        p1 = inner_rib.get(0) + [0, 1]
-        p2 = inner_rib.get(0) + [0, -1]
+        p1 = inner_rib.get(0) + euklid.vector.Vector2D([0, 1])
+        p2 = inner_rib.get(0) + euklid.vector.Vector2D([0, -1])
         cuts = outer_rib.cut(p1, p2)
 
         start = cuts[0][0]
@@ -384,8 +385,8 @@ class SingleSkinRibPlot(RibPlot):
 
             buerzl = euklid.vector.PolyLine2D([
                 inner_rib.get(0),
-                inner_rib.get(0) + [t_e_allowance, 0],
-                outer_rib.get(start) + [t_e_allowance, 0],
+                inner_rib.get(0) + euklid.vector.Vector2D([t_e_allowance, 0]),
+                outer_rib.get(start) + euklid.vector.Vector2D([t_e_allowance, 0]),
                 outer_rib.get(start)
                 ])
             contour += outer_rib.get(start, single_skin_cut)
@@ -395,8 +396,8 @@ class SingleSkinRibPlot(RibPlot):
         else:
 
             buerzl = euklid.vector.PolyLine2D([outer_rib.get(stop),
-                                 outer_rib.get(stop) + [t_e_allowance, 0],
-                                 outer_rib.get(start) + [t_e_allowance, 0],
+                                 outer_rib.get(stop) + euklid.vector.Vector2D([t_e_allowance, 0]),
+                                 outer_rib.get(start) + euklid.vector.Vector2D([t_e_allowance, 0]),
                                  outer_rib.get(start)])
 
             contour += euklid.vector.PolyLine2D(outer_rib.get(start, stop))

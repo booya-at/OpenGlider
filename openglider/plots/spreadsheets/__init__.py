@@ -27,7 +27,7 @@ def get_glider_data(project: GliderProject, consumption: Dict[str, MaterialUsage
     linesheet2[0, 5] = "Knot Correction"
     linesheet2[0, 6] = "Manual Correction"
 
-    lines = glider.lineset.sort_lines(names=True)
+    lines = glider.lineset.sort_lines(by_names=True)
     for i, line in enumerate(lines):
         line_length = glider.lineset.get_line_length(line)
 

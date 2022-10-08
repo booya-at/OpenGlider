@@ -32,8 +32,7 @@ class FlattenedCell(BaseModel):
     ballooned: Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]
 
 
-@dataclass
-class Cell:
+class Cell(BaseModel):
     rib1: Rib
     rib2: Rib
     ballooning: BallooningBase
@@ -352,9 +351,6 @@ class Cell:
     @property
     def aspect_ratio(self) -> float:
         return self.span ** 2 / self.area
-
-    def copy(self) -> "Cell":
-        return copy.deepcopy(self)
 
     def mirror(self, mirror_ribs=True) -> None:
         self.rib2, self.rib1 = self.rib1, self.rib2

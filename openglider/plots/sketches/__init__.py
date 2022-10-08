@@ -1,11 +1,10 @@
+from typing import Dict, Any
+from openglider.glider.project import GliderProject
 from openglider.plots.sketches.shapeplot import ShapePlot
 from openglider.plots.sketches.lineplan import LinePlan
 
 
-def get_all_plots(project):
-    glider_2d = project.glider
-    glider_3d = project.glider_3d
-
+def get_all_plots(project: GliderProject) -> Dict[str, ShapePlot]:
     design_upper = ShapePlot(project)
     design_upper.draw_design(lower=False)
     design_upper.draw_design(lower=False, left=True)

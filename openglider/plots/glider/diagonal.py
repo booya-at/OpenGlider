@@ -98,7 +98,7 @@ class DribPlot(object):
         return inner.get(ik_new), outer.get(ik_new)
     
     def _insert_center_marks(self, plotpart: PlotPart) -> None:
-        def insert_center_mark(inner: euklid.vector.PolyLine2D, outer: euklid.vector.PolyLine2D):
+        def insert_center_mark(inner: euklid.vector.PolyLine2D, outer: euklid.vector.PolyLine2D) -> None:
             ik = inner.walk(0, inner.get_length()/2)
             p1 = inner.get(ik)
             p2 = outer.get(ik)
@@ -122,7 +122,7 @@ class DribPlot(object):
                     continue
 
     def _insert_attachment_points(self, plotpart: PlotPart) -> None:
-        def _add_mark(p1, p2):
+        def _add_mark(p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> None:
             plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
             plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
 
@@ -233,5 +233,5 @@ class DribPlot(object):
 
 
 class StrapPlot(DribPlot):
-    def flatten(self):
+    def flatten(self) -> PlotPart:
         return self._flatten(self.config.strap_num_folds)

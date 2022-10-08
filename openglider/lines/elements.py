@@ -1,6 +1,9 @@
 import logging
+from typing import List
 
 import numpy as np
+
+from openglider.lines.line import Line
 
 
 logger = logging.getLogger(__name__)
@@ -12,17 +15,17 @@ class SagMatrix():
         self.rhs = np.zeros(size)
         self.solution = np.zeros(size)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.matrix) + "\n" + str(self.rhs)
 
-    def insert_type_0_lower(self, line):
+    def insert_type_0_lower(self, line: Line) -> None:
         """
         fixed lower node
         """
         i = line.number
         self.matrix[2 * i + 1, 2 * i + 1] = 1.
 
-    def insert_type_1_lower(self, line, lower_line):
+    def insert_type_1_lower(self, line: Line, lower_line: Line) -> None:
         """
         free lower node
         """
@@ -34,7 +37,7 @@ class SagMatrix():
         self.rhs[2 * i + 1] = -lower_line.ortho_pressure * \
             lower_line.length_projected ** 2 / lower_line.force_projected / 2
 
-    def insert_type_1_upper(self, line, upper_lines):
+    def insert_type_1_upper(self, line: Line, upper_lines: List[Line]) -> None:
         """
         free upper node
         """
@@ -43,7 +46,7 @@ class SagMatrix():
         infl_list = []
         vec = line.diff_vector_projected
         for u in upper_lines:
-            infl = u.force_projected * np.dot(vec, u.diff_vector_projected)
+            infl = u.force_projected * vec.dot(u.diff_vector_projected)
             infl_list.append(infl)
         sum_infl = sum(infl_list)
         for k in range(len(upper_lines)):
@@ -52,7 +55,7 @@ class SagMatrix():
         self.rhs[2 * i] = line.ortho_pressure * \
             line.length_projected / line.force_projected
 
-    def insert_type_2_upper(self, line):
+    def insert_type_2_upper(self, line: Line) -> None:
         """
         Fixed upper node
         """
@@ -65,7 +68,7 @@ class SagMatrix():
     def solve_system(self):
         self.solution = np.linalg.solve(self.matrix, self.rhs)
 
-    def get_sag_parameters(self, line_nr):
+    def get_sag_parameters(self, line_nr: int):
         return [
             self.solution[line_nr * 2],
             self.solution[line_nr * 2 + 1]]

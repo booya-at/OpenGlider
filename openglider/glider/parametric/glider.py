@@ -346,7 +346,6 @@ class ParametricGlider:
 
             this_rib_holes = self.tables.holes.get(rib_no, curves=curves)
             this_rigid_foils = self.tables.rigidfoils_rib.get(rib_no)
-            attachment_points = self.tables.attachment_points_rib.get(rib_no, curves=curves)
 
             logger.debug(f"holes for rib:  {rib_no} {this_rib_holes}")
             rib = Rib(
@@ -363,7 +362,7 @@ class ParametricGlider:
                 name="rib{}".format(rib_no),
                 material=material,
                 sharknose=sharknose,
-                attachment_points=attachment_points
+                attachment_points=[]
             )
             rib.aoa_relative = aoa_int.get_value(abs(x_value))
 
@@ -371,8 +370,10 @@ class ParametricGlider:
             if singleskin_data:
                 rib = SingleSkinRib.from_rib(rib, singleskin_data[0])
             
+            attachment_points = self.tables.attachment_points_rib.get(rib_no, rib=rib, curves=curves)
             for p in rib.attachment_points:
                 p.get_position(rib)
+            rib.attachment_points = attachment_points
 
             ribs.append(rib)
 
@@ -384,9 +385,11 @@ class ParametricGlider:
 
             ballooning_factor = ballooning_factors[cell_no]
             ballooning = self.merge_ballooning(*ballooning_factor)
-            attachment_points = self.tables.attachment_points_cell.get(cell_no, curves=curves)
             
-            cell = Cell(rib1, rib2, ballooning, name="c{}".format(cell_no+1), attachment_points=attachment_points)
+            cell = Cell(rib1=rib1, rib2=rib2, ballooning=ballooning, name="c{}".format(cell_no+1), attachment_points=[])
+
+            attachment_points = self.tables.attachment_points_cell.get(cell_no, curves=curves, cell=cell)
+            cell.attachment_points = attachment_points
 
             cell.rigidfoils = self.tables.rigidfoils_cell.get(cell_no)
             
@@ -414,13 +417,16 @@ class ParametricGlider:
 
             glider.ribs[-2].profile_2d *= 0.7
         
-        glider.close_rib()
+        glider.ribs[-1].profile_2d *= 0.
         glider.rename_parts()
 
 
         logger.info("create lineset")
 
         glider.lineset = self.lineset.return_lineset(glider, self.v_inf)
+        for rib in glider.ribs:
+            for p in rib.attachment_points:
+                pass#p.calculate_force_rib_aligned(rib)
         #glider.lineset.iterate_target_length()
         glider.lineset.recalc(glider=glider)
         glider.lineset.rename_lines()

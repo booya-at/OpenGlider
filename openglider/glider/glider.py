@@ -1,7 +1,7 @@
 from __future__ import annotations
 import logging
 
-from typing import List, Dict, Any, Tuple
+from typing import TYPE_CHECKING, List, Dict, Any, Optional, Tuple
 import copy
 import math
 from typing import List
@@ -10,6 +10,9 @@ import numpy as np
 import euklid
 
 import openglider
+from openglider.glider.cell.attachment_point import CellAttachmentPoint
+from openglider.glider.rib import minirib
+from openglider.glider.rib.attachment_point import AttachmentPoint
 
 from openglider.glider.rib.rib import Rib
 from openglider.glider.cell.cell import Cell
@@ -21,6 +24,8 @@ from openglider.vector.projection import flatten_list
 from openglider.lines.lineset import LineSet
 from openglider.lines.node import Node
 
+if TYPE_CHECKING:
+    from openglider.glider.cell.panel import Panel
 
 logger = logging.getLogger(__name__)
 
@@ -32,11 +37,11 @@ class Glider(object):
     cells: List[Cell]
     lineset: LineSet
 
-    def __init__(self, cells=None, lineset: LineSet=None):
+    def __init__(self, cells: Optional[List[Cell]]=None, lineset: LineSet=None):
         self.cells: List[Cell] = cells or []
         self.lineset = lineset or LineSet([])
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         new = self.copy()
         ribs = new.ribs[:]
         cells = []
@@ -47,19 +52,15 @@ class Glider(object):
             cell_dct["rib2"] = ribs.index(cell.rib2)
             cells.append(cell_dct)
 
-        for att_point in new.lineset.attachment_points:
-            if hasattr(att_point, "rib"):
-                att_point.rib = ribs.index(att_point.rib)
-            if hasattr(att_point, "cell"):
-                att_point.cell = new.cells.index(att_point.cell)
+        lineset_json = self.lineset.__json__()
 
         return {"cells": cells,
                 "ribs": ribs,
-                "lineset": new.lineset
+                "lineset": lineset_json
                 }
 
     @classmethod
-    def __from_json__(cls, cells: List[Dict[str, Any]], ribs, lineset):
+    def __from_json__(cls, cells: List[Dict[str, Any]], ribs: List[Rib], lineset: LineSet):
         cells_new = []
         for cell in cells:
             cell.update({
@@ -69,20 +70,12 @@ class Glider(object):
 
             cells_new.append(Cell(**cell))
 
-        for att in lineset.attachment_points:
-            if hasattr(att, "rib") and isinstance(att.rib, int):
-                att.rib = ribs[att.rib]
-            if hasattr(att, "cell") and isinstance(att.cell, int):
-                att.cell = cells_new[att.cell]
-            
-            att.get_position()
-
         glider = cls(cells_new, lineset=lineset)
         #glider.lineset.recalc(calculate_sag= True, glider=glider)
 
         return glider
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return """
         {}
         Area: {}
@@ -105,7 +98,7 @@ class Glider(object):
             cell.name = self.cell_naming_scheme.format(cell=cell, cell_no=cell_no+1)
             cell.rename_parts(cell_no=cell_no)
 
-    def get_panel_groups(self) -> Dict[str, List["openglider.glider.cell.panel.Panel"]]:
+    def get_panel_groups(self) -> Dict[str, List[Panel]]:
         panels: Dict[str, List["openglider.glider.cell.panel.Panel"]] = {}
         for cell in self.cells:
             for panel in cell.panels:
@@ -115,7 +108,7 @@ class Glider(object):
 
         return panels
 
-    def get_mesh(self, midribs=0) -> Mesh:
+    def get_mesh(self, midribs: int=0) -> Mesh:
         mesh = Mesh()
         for rib in self.ribs:
             if rib.profile_2d.thickness > 1e-5:
@@ -131,7 +124,7 @@ class Glider(object):
 
         return mesh
 
-    def get_mesh_panels(self, num_midribs=0) -> Mesh:
+    def get_mesh_panels(self, num_midribs: int=0) -> Mesh:
         mesh = Mesh(name="panels")
         for cell in self.cells:
             for panel in cell.panels:
@@ -139,8 +132,8 @@ class Glider(object):
 
         return mesh
 
-    def get_mesh_hull(self, num_midribs=0, ballooning=True) -> Mesh:
-        ribs = self.return_ribs(num=num_midribs, ballooning=ballooning)
+    def get_mesh_hull(self, num_midribs: int=0, ballooning: bool=True) -> Mesh:
+        ribs = self.return_ribs(num_midribs=num_midribs, ballooning=ballooning)
 
         num = len(ribs)
         numpoints = len(ribs[0])  # points per rib
@@ -166,31 +159,31 @@ class Glider(object):
 
         return Mesh.from_indexed(np.concatenate(ribs), {"hull": polygons}, boundary)
 
-    def return_ribs(self, num=0, ballooning=True):
+    def return_ribs(self, num_midribs: int=0, ballooning: bool=True):
         """
         Get a list of rib-curves
         :param num: number of midribs per cell
         :param ballooning: calculate ballooned cells
         :return: nested list of ribs [[[x,y,z],p2,p3...],rib2,rib3,..]
         """
-        num += 1
+        num_midribs += 1
         if not self.cells:
             return []
         #will hold all the points
         ribs = []
         for cell in self.cells:
-            for y in range(num):
-                ribs.append(cell.midrib(y * 1. / num, ballooning=ballooning).curve.nodes)
+            for y in range(num_midribs):
+                ribs.append(cell.midrib(y * 1. / num_midribs, ballooning=ballooning).curve.nodes)
         ribs.append(self.cells[-1].midrib(1.).curve.nodes)
         return ribs
 
-    def apply_mean_ribs(self, num_mean=8) -> None:
+    def apply_mean_ribs(self, num_midribs: int=8) -> None:
         """
         Calculate Mean ribs
         :param num_mean:
         :return:
         """
-        ribs = [cell.mean_airfoil(num_mean) for cell in self.cells]
+        ribs = [cell.mean_airfoil(num_midribs) for cell in self.cells]
         if self.has_center_cell:
             ribs.insert(0, ribs[1])
         else:
@@ -199,10 +192,7 @@ class Glider(object):
         for i in range(len(self.ribs))[:-1]:
             self.ribs[i].profile_2d = (ribs[i] + ribs[i+1]) * 0.5
 
-    def close_rib(self, rib=-1) -> None:
-        self.ribs[rib].profile_2d *= 0.
-
-    def get_midrib(self, y=0) -> openglider.airfoil.Profile3D:
+    def get_midrib(self, y: float=0.) -> openglider.airfoil.Profile3D:
         k = y % 1
         i = int(y - k)
         if i == len(self.cells) and k == 0:  # Stabi-rib
@@ -210,7 +200,7 @@ class Glider(object):
             k = 1
         return self.cells[i].midrib(k)
 
-    def get_point(self, y=0, x=-1) -> euklid.vector.Vector3D:
+    def get_point(self, y: float=0, x: float=-1) -> euklid.vector.Vector3D:
         """
         Get a point on the glider
         :param y: span-wise argument (0, cell_no)
@@ -231,7 +221,7 @@ class Glider(object):
         ik = ik_l + dy * (ik_r - ik_l)
         return rib[ik]
 
-    def mirror(self, cutmidrib=True) -> None:
+    def mirror(self, cutmidrib: bool=True) -> None:
         if self.has_center_cell and cutmidrib:  # Cut midrib
             self.cells = self.cells[1:]
         for rib in self.ribs:
@@ -240,10 +230,10 @@ class Glider(object):
             cell.mirror(mirror_ribs=False)
         self.cells = self.cells[::-1]
 
-    def copy(self):
+    def copy(self) -> Glider:
         return copy.deepcopy(self)
 
-    def copy_complete(self):
+    def copy_complete(self) -> Glider:
         """Returns a mirrored and combined copy of the glider, ready for export/view"""
         other = self.copy()
         other2 = self.copy()
@@ -252,25 +242,33 @@ class Glider(object):
         other2.cells = other2.cells + other.cells
 
         # lineset
-        for p in other2.lineset.attachment_points:
-            p.get_position()
+        for rib in other2.ribs:
+            for p in rib.attachment_points:
+                p.get_position(rib)
+        
+        for cell in other2.cells:
+            for p_cell in cell.attachment_points:
+                p_cell.get_position(cell)
+        
         for node in [node for node in other2.lineset.nodes]:
-            if node.type != node.NODE_TYPE.UPPER:
-                node.vec *= [1, -1, 1]
+            if node.node_type != node.NODE_TYPE.UPPER:
+                mirror = euklid.vector.Vector3D([1,-1,1])
+                node.position *= mirror
             if all(node.force):
-                node.force *= [1, -1, 1]
+                node.force *= mirror
+
         other2.lineset.lines += other.lineset.lines
         other2.lineset._set_line_indices()
-        other2.lineset.recalc(other2)
+        other2.lineset.recalc()
 
         # rename
         return other2
 
-    def scale(self, faktor) -> None:
+    def scale(self, factor: float) -> None:
         for rib in self.ribs:
-            rib.pos *= faktor
-            rib.chord *= faktor
-        self.lineset.scale(faktor)
+            rib.pos *= factor
+            rib.chord *= factor
+        self.lineset.scale(factor)
 
     @property
     def shape_simple(self) -> Shape:
@@ -308,11 +306,6 @@ class Glider(object):
 
         return Shape(front.rotate(-math.pi/2, zero), back.rotate(-math.pi/2, zero))
 
-    # delete ?
-    @property
-    def arc(self):
-        return [rib.pos[1:] for rib in self.ribs]
-
     @property
     def ribs(self) -> List[Rib]:
         ribs = []
@@ -323,12 +316,12 @@ class Glider(object):
         return ribs
 
     @property
-    def profile_numpoints(self):
+    def profile_numpoints(self) -> int:
         return consistent_value(self.ribs, 'profile_2d.numpoints')
 
     @profile_numpoints.setter
-    def profile_numpoints(self, numpoints):
-        self.profile_x_values = Distribution.from_nose_cos_distribution(numpoints, 0.3)
+    def profile_numpoints(self, numpoints: int) -> None:
+        self.profile_x_values = list(Distribution.from_nose_cos_distribution(numpoints, 0.3))
 
     @property
     def profile_x_values(self) -> List[float]:
@@ -336,7 +329,7 @@ class Glider(object):
         # return consistent_value(self.ribs, 'profile_2d.x_values')
 
     @profile_x_values.setter
-    def profile_x_values(self, xvalues):
+    def profile_x_values(self, xvalues: List[float]):
         for rib in self.ribs:
             rib.profile_2d = rib.profile_2d.set_x_values(xvalues)
 
@@ -350,7 +343,7 @@ class Glider(object):
             return 2 * span
 
     @span.setter
-    def span(self, span):
+    def span(self, span: float) -> None:
         faktor = span / self.span
         self.scale(faktor)
 
@@ -371,7 +364,7 @@ class Glider(object):
         return d
 
     @property
-    def area(self):
+    def area(self) -> float:
         area = 0.
         if len(self.ribs) == 0:
             return 0
@@ -387,12 +380,12 @@ class Glider(object):
         return area
 
     @area.setter
-    def area(self, area):
+    def area(self, area: float) -> None:
         faktor = area / self.area
         self.scale(math.sqrt(faktor))
 
     @property
-    def projected_area(self):
+    def projected_area(self) -> float:
         projected_area = 0.
         for i, cell in enumerate(self.cells):
             cell_area = cell.projected_area
@@ -404,18 +397,18 @@ class Glider(object):
         return projected_area
 
     @property
-    def aspect_ratio(self):
+    def aspect_ratio(self) -> float:
         return self.span ** 2 / self.area
 
     @aspect_ratio.setter
-    def aspect_ratio(self, aspect_ratio):
+    def aspect_ratio(self, aspect_ratio: float) -> None:
         area_backup = self.area
         factor = self.aspect_ratio / aspect_ratio
         for rib in self.ribs:
             rib.chord *= factor
         self.area = area_backup
 
-    def get_spanwise(self, x=None):
+    def get_spanwise(self, x: Optional[float]=None) -> euklid.vector.PolyLine3D:
         """
         Return a list of points for a x_value
         """
@@ -446,7 +439,8 @@ class Glider(object):
         return curves
 
     @property
-    def centroid(self):
+    def centroid(self) -> float:
+        """Return x-value of the centroid of the glider"""
         area = 0.
         p = 0.
 
@@ -462,8 +456,8 @@ class Glider(object):
         return p / area
 
     @property
-    def attachment_points(self):
-        points = []
+    def attachment_points(self) -> Dict[str, AttachmentPoint | CellAttachmentPoint]:
+        points: List[AttachmentPoint | CellAttachmentPoint] = []
         for rib in self.ribs:
             points += rib.attachment_points
         for cell in self.cells:
@@ -481,15 +475,15 @@ class Glider(object):
         return self.lineset.get_main_attachment_point()
 
     @property
-    def has_center_cell(self):
+    def has_center_cell(self) -> bool:
         return abs(self.ribs[0].pos[1]) > 1.e-5
 
     @property
-    def glide(self):
+    def glide(self) -> float:
         return consistent_value(self.ribs, 'glide')
 
     @glide.setter
-    def glide(self, glide):
+    def glide(self, glide: float) -> None:
         for rib in self.ribs:
             rib.glide = glide
 

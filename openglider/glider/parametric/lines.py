@@ -41,7 +41,7 @@ class LowerNode2D(object):
         return self.pos_2D
 
     def get_node(self, glider):
-        return Node(node_type=Node.NODE_TYPE.LOWER, position_vector=self.pos_3D, name=self.name)
+        return Node(node_type=Node.NODE_TYPE.LOWER, position=self.pos_3D, name=self.name)
 
 
 @dataclass
@@ -167,7 +167,7 @@ class LineSet2D(object):
             upper = nodes_3d[line.upper_node]
             if lower and upper:
                 line = Line(number=line_no, lower_node=lower, upper_node=upper,
-                            v_inf=None, target_length=line.target_length,
+                            v_inf=v_inf, target_length=line.target_length,
                             line_type=line.line_type, name=line.name)
                 lines.append(line)
 
@@ -260,7 +260,7 @@ class LineSet2D(object):
                     line.is_sorted = True
                     self.sort_lines(line.upper_node)
 
-    def get_upper_connected_lines(self, node):
+    def get_upper_connected_lines(self, node: Node) -> List[Line]:
         return [line for line in self.lines if line.lower_node is node]
 
     def get_lower_connected_lines(self, node):

@@ -150,19 +150,6 @@ class Rib:
     def normalized_normale(self):
         return self.rotation_matrix.apply([0., 0., 1.])
 
-    def get_attachment_points(self, glider: "Glider", brake=True):
-        attach_pts = []
-
-        if glider.has_center_cell and glider.ribs.index(self) == 0:
-            return glider.ribs[1].get_attachment_points(glider)
-
-        for att in glider.attachment_points:
-            if hasattr(att, "rib"):
-                if att.rib == self:
-                    if brake or att.rib_pos != 1.:
-                        attach_pts.append(att)
-        return attach_pts
-
     def get_lines(self, glider, brake=False):
         att = self.attachment_points
         if not brake:

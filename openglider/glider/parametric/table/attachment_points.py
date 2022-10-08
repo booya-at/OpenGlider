@@ -25,16 +25,14 @@ class AttachmentPointTable(RibTable):
         "ATPPROTO": Keyword([("name", str), ("pos", float), ("force", Union[float, str]), ("proto_distance", float)], target_cls=AttachmentPoint)
     }
 
-    def get_element(self, row, keyword, data, curves={}, **kwargs) -> AttachmentPoint:
+    def get_element(self, row, keyword, data, curves={}, rib=None, **kwargs) -> AttachmentPoint:
         # rib_no, rib_pos, cell_pos, force, name, is_cell
         force = data[2]
 
         if isinstance(force, str):
-            force = ast.literal_eval(force)
-            try:
-                force = euklid.vector.Vector3D(force)
-            except Exception:
-                pass
+            force = euklid.vector.Vector3D(ast.literal_eval(force))
+        else:
+            force = AttachmentPoint.calculate_force_rib_aligned(rib, force)
 
         rib_pos = data[1]
         if isinstance(rib_pos, str):
@@ -99,11 +97,14 @@ class CellAttachmentPointTable(CellTable):
         "ATPDIFF": Keyword([("name", str), ("cell_pos", float), ("rib_pos", float), ("force", Union[float, str]), ("offset", float)], target_cls=CellAttachmentPoint)
     }
 
-    def get_element(self, row, keyword, data, curves={}, **kwargs) -> CellAttachmentPoint:
+    def get_element(self, row, keyword, data, curves={}, cell=None, **kwargs) -> CellAttachmentPoint:
         force = data[3]
 
         if isinstance(force, str):
-            force = ast.literal_eval(force)
+            force = euklid.vector.Vector3D(ast.literal_eval(force))
+        else:
+            force = CellAttachmentPoint.calculate_force_cell_aligned(cell, force)
+
 
         node = CellAttachmentPoint(name=data[0], cell_pos=data[1], rib_pos=data[2], force=force)
 

@@ -11,6 +11,7 @@ import openglider.glider
 import openglider.plots.cuts
 import openglider.plots.marks
 import openglider.plots.spreadsheets
+import openglider.plots.sketches
 from openglider.glider.glider import Glider
 from openglider.glider.project import GliderProject
 from openglider.plots.config import PatternConfig, PatternConfigOld
@@ -132,7 +133,7 @@ class PatternsNew:
             if sketch_name in ("design_upper", "design_lower"):
                 fill=True
 
-            sketch.export_a4(outdir / sketch_name+".pdf", fill=fill)
+            sketch.export_a4(outdir / f"{sketch_name}.pdf", fill=fill)
 
         self.logger.info("create spreadsheets")
         self.project.glider_3d.lineset.rename_lines()

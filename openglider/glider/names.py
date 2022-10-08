@@ -3,13 +3,13 @@ from typing import Dict
 from openglider.glider.glider import Glider
 
 
-def rename_parts(glider: Glider):
+def rename_parts(glider: Glider) -> Glider:
     set_strap_names(glider)
 
     return glider
 
 
-def set_strap_names(glider: Glider):
+def set_strap_names(glider: Glider) -> None:
     curves = glider.get_attachment_point_layers()
 
     for cell_no, cell in enumerate(glider.cells):
@@ -23,7 +23,7 @@ def set_strap_names(glider: Glider):
         
         layers_between: Dict[str, int] = {}
         
-        def get_name(position: float):
+        def get_name(position: float) -> str:
             name = "-"
             
             for layer_name, pct in cell_layers:

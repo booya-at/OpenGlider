@@ -1,4 +1,6 @@
-from typing import List, Dict
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, List, Dict, Optional
 import logging
 
 import euklid
@@ -7,12 +9,26 @@ from openglider.lines.node import Node
 from openglider.lines import line_types
 from openglider.utils.cache import cached_property, CachedObject
 from openglider.mesh import Mesh, Vertex, Polygon
+from openglider.utils.dataclass import BaseModel
 
+if TYPE_CHECKING:
+    from openglider.glider.glider import Glider
+    from openglider.glider.rib.rib import Rib
 logger = logging.getLogger(__name__)
 
 
 class Line(CachedObject):
     rho_air = 1.2
+
+    lower_node: Node
+    upper_node: Node
+
+    target_length: float
+    init_length: float
+
+    line_type: line_types.LineType
+    force: float | None
+    name: str
 
 
     def __init__(self, lower_node, upper_node, v_inf,
@@ -62,61 +78,61 @@ class Line(CachedObject):
                    name)
 
     @property
-    def color(self):
+    def color(self) -> str:
         return self._color or "default"
 
     @color.setter
-    def color(self, color):
+    def color(self, color: str) -> None:
         if color in self.type.colors:
             self._color = color
 
     @property
-    def has_geo(self):
+    def has_geo(self) -> bool:
         """
         true if upper and lower nodes of the line were already computed
         """
         #the node vectors can be None or numpy.arrays. So we have to check for both types
         try:
-            return all(list(self.lower_node.vec) + 
-                       list(self.upper_node.vec))
+            return all(list(self.lower_node.position) + 
+                       list(self.upper_node.position))
         except TypeError:
             # one of the nodes vec is None
             return False
 
     @property
-    def v_inf_0(self):
+    def v_inf_0(self) -> euklid.vector.Vector3D:
         return self.v_inf.normalized()
 
-    #@cached_property('lower_node.vec', 'upper_node.vec')
+    #@cached_property('lower_node.position', 'upper_node.position')
     @property
-    def diff_vector(self):
+    def diff_vector(self) -> euklid.vector.Vector3D:
         """
         Line Direction vector (normalized)
         :return:
         """
-        return (self.upper_node.vec - self.lower_node.vec).normalized()
+        return (self.upper_node.position - self.lower_node.position).normalized()
 
-    #@cached_property('lower_node.vec', 'upper_node.vec')
+    #@cached_property('lower_node.position', 'upper_node.position')
     @property
-    def diff_vector_projected(self):
+    def diff_vector_projected(self) -> euklid.vector.Vector3D:
         return (self.upper_node.vec_proj - self.lower_node.vec_proj).normalized()
 
-    @cached_property('lower_node.vec', 'upper_node.vec', 'v_inf')
-    def length_projected(self):
+    @cached_property('lower_node.position', 'upper_node.position', 'v_inf')
+    def length_projected(self) -> float:
         return (self.lower_node.vec_proj - self.upper_node.vec_proj).length()
 
     @property
-    def length_no_sag(self):
-        return (self.upper_node.vec - self.lower_node.vec).length()
+    def length_no_sag(self) -> float:
+        return (self.upper_node.position - self.lower_node.position).length()
 
-    @cached_property('lower_node.vec', 'upper_node.vec', 'v_inf', 'sag_par_1', 'sag_par_2')
-    def length_with_sag(self):
+    @cached_property('lower_node.position', 'upper_node.position', 'v_inf', 'sag_par_1', 'sag_par_2')
+    def length_with_sag(self) -> float:
         if self.sag_par_1 is None or self.sag_par_2 is None:
             raise ValueError('Sag not yet calculated!')
 
         return euklid.vector.PolyLine3D(self.get_line_points(numpoints=100)).get_length()
 
-    def get_stretched_length(self, pre_load=50, sag=True):
+    def get_stretched_length(self, pre_load=50, sag=True) -> float:
         """
         Get the total line-length for production using a given stretch
         length = len_0 * (1 + stretch*force)
@@ -130,16 +146,16 @@ class Line(CachedObject):
 
     #@cached_property('v_inf', 'type.cw', 'type.thickness')
     @property
-    def ortho_pressure(self):
+    def ortho_pressure(self) -> float:
         """
         drag per meter (projected)
         :return: 1/2 * cw * d * v^2
         """
         return 1 / 2 * self.type.cw * self.type.thickness * self.rho_air * self.v_inf.dot(self.v_inf)
 
-    #@cached_property('lower_node.vec', 'upper_node.vec', 'v_inf')
+    #@cached_property('lower_node.position', 'upper_node.position', 'v_inf')
     @property
-    def drag_total(self):
+    def drag_total(self) -> float:
         """
         Get total drag of line
         :return: 1/2 * cw * A * v^2
@@ -147,7 +163,7 @@ class Line(CachedObject):
         drag = self.ortho_pressure * self.length_projected
         return drag
 
-    def get_weight(self):
+    def get_weight(self) -> float:
         if self.type.weight is None:
             logger.warning("predicting weight of linetype {self.type.name} by line-thickness.")
             logger.warning("Please enter line_weight in openglider/lines/line_types")
@@ -160,14 +176,14 @@ class Line(CachedObject):
             # computing weight without sag
             return weight * self.length_no_sag
 
-    @cached_property('force', 'lower_node.vec', 'upper_node.vec')
-    def force_projected(self):
+    @cached_property('force', 'lower_node.position', 'upper_node.position')
+    def force_projected(self) -> float:
         try:
             return self.force * self.length_projected / self.length_no_sag
         except:
             raise Exception(f"invalid force: {self.name}, {self.force}")
 
-    def get_line_points(self, sag=True, numpoints=10):
+    def get_line_points(self, sag: bool=True, numpoints: int=10) -> List[euklid.vector.Vector3D]:
         """
         Return points of the line
         """
@@ -175,15 +191,15 @@ class Line(CachedObject):
             sag=False
         return [self.get_line_point(i / (numpoints - 1), sag=sag) for i in range(numpoints)]
 
-    def get_line_point(self, x, sag=True):
+    def get_line_point(self, x: float, sag: bool=True) -> euklid.vector.Vector3D:
         """pos(x) [x,y,z], x: [0,1]"""
-        point = self.lower_node.vec * (1. - x) + self.upper_node.vec * x
+        point = self.lower_node.position * (1. - x) + self.upper_node.position * x
         if sag:
             return point + self.v_inf_0 * self.get_sag(x)
 
         return point
 
-    def get_sag(self, x):
+    def get_sag(self, x: float) -> float:
         """sag u(x) [m], x: [0,1]"""
         xi = x * self.length_projected
         u = (- xi ** 2 / 2 * self.ortho_pressure /
@@ -191,17 +207,17 @@ class Line(CachedObject):
              self.sag_par_1 + self.sag_par_2)
         return float(u)
 
-    def get_mesh(self, numpoints=2, segment_length=None):
+    def get_mesh(self, numpoints: int=2, segment_length: Optional[float]=None):
         if segment_length is not None:
             numpoints = max(round(self.length_no_sag / segment_length), 2)
 
         line_points = [Vertex(*point) for point in self.get_line_points(numpoints=numpoints)]
         boundary: Dict[str, List[Vertex]] = {"lines": []}
-        if self.lower_node.type == Node.NODE_TYPE.LOWER:
+        if self.lower_node.node_type == Node.NODE_TYPE.LOWER:
             boundary["lower_attachment_points"] = [line_points[0]]
         else:
             boundary["lines"].append(line_points[0])
-        if self.upper_node.type == Node.NODE_TYPE.UPPER:
+        if self.upper_node.node_type == Node.NODE_TYPE.UPPER:
             boundary["attachment_points"] = [line_points[-1]]
         else:
             boundary["lines"].append(line_points[-1])
@@ -231,15 +247,19 @@ class Line(CachedObject):
         c2_n = self.upper_node.get_diff().dot(self.v_inf_0)
         return [c1_n + self.sag_par_1, c2_n / self.length_projected + self.sag_par_2]
 
-    def get_connected_ribs(self, glider):
+    def get_connected_ribs(self, glider: Glider) -> List[Rib]:
         '''
         return the connected ribs
         '''
-        lineset = glider.lineset
-        att_pnts = lineset.get_upper_influence_nodes(self)
-        return set([att_pnt.rib for att_pnt in att_pnts])
+        ribs = []
+        att_pnts = glider.lineset.get_upper_influence_nodes(self)
+        for rib in glider.ribs:
+            if any((p in rib.attachment_points for p in att_pnts)):
+                ribs.append(rib)
+        
+        return ribs
 
-    def get_rib_normal(self, glider):
+    def get_rib_normal(self, glider: Glider) -> euklid.vector.Vector3D:
         '''
         return the rib normal of the connected rib(s)
         '''
@@ -251,7 +271,7 @@ class Line(CachedObject):
 
         return result.normalized()
 
-    def rib_line_norm(self, glider):
+    def rib_line_norm(self, glider: Glider) -> float:
         '''
         returns the squared norm of the cross-product of
         the line direction and the normal-direction of
@@ -259,12 +279,14 @@ class Line(CachedObject):
         '''
         return self.diff_vector.dot(self.get_rib_normal(glider))
 
-    def get_correction_influence(self, residual_force):
+    def get_correction_influence(self, residual_force: euklid.vector.Vector3D) -> float:
         '''
         returns an influence factor [force / length] which is a proposal for
         the correction of a residual force if the line is moved in the direction
         of the residual force
         '''
+        if self.force is None:
+            raise ValueError()
         diff = self.diff_vector
         l = diff.length()
         r = residual_force.length()

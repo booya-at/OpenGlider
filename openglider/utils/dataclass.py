@@ -82,3 +82,6 @@ class BaseModel(pydantic.BaseModel):
 
     def __json__(self):
         return self.json()
+    
+    def __hash__(self):
+        return hash_list(tuple(self.__dict__.values()))

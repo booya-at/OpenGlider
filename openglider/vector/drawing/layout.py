@@ -2,8 +2,11 @@ from __future__ import annotations
 import os
 import io
 import math
-from typing import Dict, List, Sequence, Union, Optional
+from pathlib import Path
+from typing import Any, Dict, List, Sequence, Union, Optional
 
+import ezdxf
+import ezdxf.document
 import euklid
 import svgwrite
 import svgwrite.container
@@ -19,7 +22,7 @@ from openglider.vector.text import Text
 class Layout(object):
     parts: List[PlotPart]
     point_width: Optional[float] = None
-    layer_config = {
+    layer_config: Dict[str, Dict[str, str | bool]] = {
         "cuts": {
             "id": 'outer',
             "stroke-width": "0.25",
@@ -120,7 +123,7 @@ class Layout(object):
                 drawing = cls([part])
 
             x = (max_width - width)/2
-            drawing.move_to([x,y])
+            drawing.move_to(euklid.vector.Vector2D([x,y]))
 
             y += direction * drawing.height
             y += distance
@@ -147,7 +150,7 @@ class Layout(object):
 
             if drawing.width > 0 or drawing.height > 0:
                 y = (max_height - height)/2
-                drawing.move_to([x,y])
+                drawing.move_to(euklid.vector.Vector2D([x,y]))
 
                 x += direction * drawing.width
                 x += distance
@@ -178,7 +181,7 @@ class Layout(object):
                     drawing = part
                 else:
                     drawing = cls([part])
-                drawing.move_to([x, y])
+                drawing.move_to(euklid.vector.Vector2D([x, y]))
                 all_parts += drawing
                 x += widths[column_no]
                 x += distance_x
@@ -300,83 +303,83 @@ class Layout(object):
 
 
     @property
-    def min_x(self):
+    def min_x(self) -> float:
         if len(self.parts) == 0:
             return 0
         return min([part.min_x for part in self.parts])
         
 
     @property
-    def max_x(self):
+    def max_x(self) -> float:
         if len(self.parts) == 0:
             return 0
         return max([part.max_x for part in self.parts])
 
     @property
-    def min_y(self):
+    def min_y(self) -> float:
         if len(self.parts) == 0:
             return 0
         return min([part.min_y for part in self.parts])
 
     @property
-    def max_y(self):
+    def max_y(self) -> float:
         if len(self.parts) == 0:
             return 0
         return max([part.max_y for part in self.parts])
 
     @property
-    def bbox(self):
-        return [[self.min_x, self.min_y], [self.max_x, self.min_y],
-                [self.max_x, self.max_y], [self.min_x, self.max_y]]
+    def bbox(self) -> List[euklid.vector.Vector2D]:
+        return [euklid.vector.Vector2D([self.min_x, self.min_y]), euklid.vector.Vector2D([self.max_x, self.min_y]),
+                euklid.vector.Vector2D([self.max_x, self.max_y]), euklid.vector.Vector2D([self.min_x, self.max_y])]
 
     @property
-    def width(self):
+    def width(self) -> float:
         try:
             return abs(self.max_x - self.min_x)
         except ValueError:
-            return 0
+            return 0.
 
     @property
     def height(self):
         try:
             return abs(self.max_y - self.min_y)
         except ValueError:
-            return 0
+            return 0.
 
     def move(self, vector):
         for part in self.parts:
             part.move(vector)
 
-    def move_to(self, vector):
-        if not len(self.parts) > 0:
-            return
+    def move_to(self, vector: euklid.vector.Vector2D):
         diff = (euklid.vector.Vector2D(self.bbox[0]) - vector) * -1
         self.move(diff)
 
-    def append_top(self, other: "Layout", distance):
+    def append_top(self, other: Layout, distance: float=0.) -> Layout:
         if self.parts:
             y0 = self.max_y + distance
         else:
-            y0 = 0
+            y0 = 0.
 
-        other.move_to([0, y0])
+        other.move_to(euklid.vector.Vector2D([0., y0]))
         self.parts += other.parts
 
-    def append_left(self, other: "Layout", distance=0):
+        return self
+
+    def append_left(self, other: Layout, distance: float=0) -> Layout:
         if other.parts:
             x0 = other.width + distance
-            other.move_to([-x0, 0])
+            other.move_to(euklid.vector.Vector2D([-x0, 0.]))
 
         self.parts += other.parts
 
         return self
 
-    def join(self, other):
-        assert isinstance(other, Layout)
+    def join(self, other: Layout) -> Layout:
         self.parts += other.parts
+        return self
 
     @classmethod
-    def import_dxf(cls, dxfile):
+    def import_dxf(cls, dxfile: str | Path) -> Layout:
         """
         Imports groups and blocks from a dxf file
         :param dxfile: filename
@@ -424,11 +427,10 @@ class Layout(object):
         #return blocks
         return dwg
 
-    def get_svg_group(self, config=None, fill=False):
-        _config = self.layer_config.copy()
+    def get_svg_group(self, config: Dict[str, Any]=None, fill: bool=False) -> svgwrite.container.Group:
+        _config: Dict[str, Dict[str, Any]] = self.layer_config.copy()
         if config is not None:
             _config.update(config)
-        config = _config
 
         group = svgwrite.container.Group()
         group.scale(1, -1)  # svg coordinate system is x->right y->down
@@ -439,8 +441,8 @@ class Layout(object):
 
             for layer_name in part.layers:
                 # todo: simplify
-                if layer_name in config:
-                    layer_config = config[layer_name].copy()
+                if layer_name in _config:
+                    layer_config = _config[layer_name].copy()
                     for key in ("stroke-color", "visible"):
                         if key in layer_config:
                             layer_config.pop(key)
@@ -479,7 +481,7 @@ class Layout(object):
 
         return group
 
-    def get_svg_drawing(self, unit="mm", border=0.02, fill=False) -> svgwrite.Drawing:
+    def get_svg_drawing(self, unit: str="mm", border: float=0.02, fill: bool=False) -> svgwrite.Drawing:
         border_w, border_h = [2*border*x for x in (self.width, self.height)]
         width, height = self.width+border_w, self.height+border_h
 
@@ -491,7 +493,7 @@ class Layout(object):
         return drawing
 
     @staticmethod
-    def add_svg_styles(drawing):
+    def add_svg_styles(drawing: svgwrite.Drawing) -> svgwrite.Drawing:
         style = svgwrite.container.Style()
         styles = {}
 
@@ -526,7 +528,7 @@ class Layout(object):
 
         return drawing
 
-    def _repr_svg_(self):
+    def _repr_svg_(self) -> str:
         width = 800
         height = int(width * self.height/self.width)+1
         drawing = self.get_svg_drawing()
@@ -538,7 +540,7 @@ class Layout(object):
 
         return drawing.tostring()
 
-    def export_svg(self, path, add_styles=False, fill=False):
+    def export_svg(self, path: os.PathLike, add_styles: bool=False, fill: bool=False) -> None:
         drawing = self.get_svg_drawing(fill=fill)
 
         if add_styles:
@@ -547,8 +549,7 @@ class Layout(object):
         with open(path, "w") as outfile:
             drawing.write(outfile)
 
-    def export_dxf(self, path, dxfversion="AC1015"):
-        import ezdxf
+    def export_dxf(self, path: str | Path, dxfversion="AC1015") -> ezdxf.document.Drawing:
         drawing = ezdxf.new(dxfversion=dxfversion)
 
         drawing.header["$EXTMAX"] = (self.max_x, self.max_y, 0)
@@ -557,6 +558,7 @@ class Layout(object):
 
         for part in self.parts:
             group = drawing.groups.new()
+            part_group: Any
             with group.edit_data() as part_group:
                 for layer_name, layer in part.layers.items():
                     if layer_name not in drawing.layers:
@@ -570,10 +572,14 @@ class Layout(object):
                         if len(elem) == 1:
                             for node in elem:
                                 if self.point_width is None:
-                                    dxf_obj = ms.add_point(node, dxfattribs=dxfattribs)
+                                    part_group.append(
+                                        ms.add_point(node, dxfattribs=dxfattribs)
+                                    )
                                 else:
                                     x, y = node
-                                    dxf_obj = ms.add_lwpolyline([[x-self.point_width/2, y], [x+self.point_width/2, y]])
+                                    part_group.append(
+                                        ms.add_lwpolyline([[x-self.point_width/2, y], [x+self.point_width/2, y]])
+                                    )
                         else:
                             if hasattr(elem, "tolist"):
                                 lst = elem.tolist()
@@ -593,7 +599,7 @@ class Layout(object):
         "R": ["stitches"]
     }
 
-    def export_ntv(self, path):
+    def export_ntv(self, path: os.PathLike) -> None:
         filename = os.path.split(path)[-1]
 
         def format_line(line):
@@ -634,13 +640,13 @@ class Layout(object):
             # end
             outfile.write("\n0")
             
-    def export_pdf(self, path, fill=False):
+    def export_pdf(self, path: os.PathLike, fill: bool=False) -> None:
         dwg = self.get_svg_drawing(fill=fill).tostring().encode("utf-8")
         with io.BytesIO(dwg) as fp:
             report = svglib.svglib.svg2rlg(fp)
             renderPDF.drawToFile(report, path)
 
-    def scale_a4(self):
+    def scale_a4(self) -> Layout:
         width = max(self.width, self.height)
         height = min(self.width, self.height)
         width_a4, height_a4 = 297, 210
@@ -665,7 +671,7 @@ class Layout(object):
 
         return dct
 
-    def scale(self, factor):
+    def scale(self, factor: float) -> Layout:
         for part in self.parts:
             part.scale(factor)
 

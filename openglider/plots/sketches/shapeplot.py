@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import logging
 import math
-from typing import Iterator, List, Optional
+from os import PathLike
+from typing import Dict, Iterator, List, Optional
 
 import euklid
 import numpy as np
+from openglider.lines.line import Line
+from openglider.lines.node import Node
 import openglider.plots.marks as marks
 from attr import attr
 from openglider.glider import GliderProject
@@ -34,7 +37,7 @@ class ShapePlotConfig:
     scale_area: Optional[float] = None
     scale_span: Optional[float] = None
 
-    def view_layers(self):
+    def view_layers(self) -> Dict[str, bool]:
         layers = {}
         for attribute in self.__annotations__:
             if not attribute.startswith("scale"):
@@ -42,7 +45,7 @@ class ShapePlotConfig:
             
         return layers
     
-    def copy(self):
+    def copy(self) -> ShapePlotConfig:
         new = ShapePlotConfig()
         for attribute in self.__annotations__:
             setattr(new, attribute, getattr(self, attribute))
@@ -55,7 +58,7 @@ class ShapePlot(object):
     config: ShapePlotConfig | None
     attachment_point_mark = marks.Cross(name="attachment_point", rotation=np.pi/4)
 
-    def __init__(self, project: GliderProject, drawing=None):
+    def __init__(self, project: GliderProject, drawing: Optional[Layout]=None):
         super(ShapePlot, self).__init__()
         self.project = project
         self.glider_2d = project.glider
@@ -72,7 +75,7 @@ class ShapePlot(object):
 
         self.config = None
     
-    def redraw(self, config: ShapePlotConfig, force=False) -> Layout:
+    def redraw(self, config: ShapePlotConfig, force: bool=False) -> Layout:
         if force:
             self.shape_r = self.glider_2d.shape.get_half_shape()
 
@@ -101,38 +104,38 @@ class ShapePlot(object):
 
         return ShapePlot(self.project, drawing)
 
-    def _rib_range(self, left) -> range:
+    def _get_rib_range(self, left_side: bool) -> range:
         start = 0
         end = self.project.glider.shape.half_cell_num
-        if self.glider_2d.shape.has_center_cell and left:
+        if self.glider_2d.shape.has_center_cell and left_side:
             start = 1
 
         return range(start, end+1)
 
     
-    def _cell_range(self, left) -> range:
+    def _get_cell_range(self, left_side: bool) -> range:
         start = 0
         end = self.project.glider.shape.half_cell_num
-        if self.glider_2d.shape.has_center_cell and left:
+        if self.glider_2d.shape.has_center_cell and left_side:
             start = 1
 
         return range(start, end)
     
-    def draw_design_lower(self, left=False):
+    def draw_design_lower(self, left: bool=False) -> ShapePlot:
         return self.draw_design(True, left)
     
-    def draw_design_upper(self, left=False):
+    def draw_design_upper(self, left: bool=False) -> ShapePlot:
         return self.draw_design(False, left)
 
-    def draw_design(self, lower=True, left=False) -> "ShapePlot":
+    def draw_design(self, lower: bool=True, left: bool=False) -> ShapePlot:
         shape = self.shapes[left]
 
         panels = self.glider_2d.get_panels()
 
-        for cell_no in self._cell_range(left):
+        for cell_no in self._get_cell_range(left):
             cell_panels = panels[cell_no]
 
-            def match(panel):
+            def match(panel: Panel) -> bool:
                 if lower:
                     # -> either on the left or on the right it should go further than 0
                     return panel.cut_back.x_left > 0 or panel.cut_back.x_right > 0
@@ -143,13 +146,13 @@ class ShapePlot(object):
             cell_side_panels: Iterator[Panel] = filter(match, cell_panels)
 
             for panel in cell_side_panels:
-                def normalize_x(val):
+                def normalize_x(val: float) -> float:
                     if lower:
-                        return max(val, 0)
+                        return max(val, 0.)
                     else:
-                        return max(-val, 0)
+                        return max(-val, 0.)
 
-                def get_cut_line(cut: PanelCut):
+                def get_cut_line(cut: PanelCut) -> euklid.vector.PolyLine2D:
                     left = shape.get_point(cell_no, normalize_x(cut.x_left))
                     right = shape.get_point(cell_no+1, normalize_x(cut.x_right))
 
@@ -169,7 +172,7 @@ class ShapePlot(object):
 
         return self
 
-    def draw_baseline(self, pct=None, left=False):
+    def draw_baseline(self, pct: Optional[float]=None, left: bool=False) -> None:
         shape = self.shapes[left]
 
         if pct is None:
@@ -177,13 +180,12 @@ class ShapePlot(object):
 
         part = PlotPart()
         
-        line = euklid.vector.PolyLine2D([shape.get_point(rib, pct) for rib in self._rib_range(left)])
+        line = euklid.vector.PolyLine2D([shape.get_point(rib, pct) for rib in self._get_rib_range(left)])
         part.layers["marks"].append(line)
         self.drawing.parts.append(part)
 
-    def draw_grid(self, num=11, left=False):
+    def draw_grid(self, num: int=11, left: bool=False) -> ShapePlot:
         import numpy as np
-        part = PlotPart()
 
         for x in np.linspace(0, 1, num):
             self.draw_baseline(x, left=left)
@@ -191,7 +193,7 @@ class ShapePlot(object):
         self.draw_cells(left=left)
         return self
 
-    def draw_attachment_points(self, add_text=True, left=False):
+    def draw_attachment_points(self, add_text: bool=True, left: bool=False) -> None:
         shape = self.shapes[left]
 
         part = PlotPart()
@@ -203,12 +205,12 @@ class ShapePlot(object):
                 points.append([rib_no, attachment_point.rib_pos, attachment_point.name])
         
         for cell_no, cell in enumerate(self.glider_3d.cells):
-            for attachment_point in cell.attachment_points:
-                points.append([cell_no + attachment_point.cell_pos, attachment_point.rib_pos, attachment_point.name])
+            for cell_attachment_point in cell.attachment_points:
+                points.append([cell_no + cell_attachment_point.cell_pos, cell_attachment_point.rib_pos, cell_attachment_point.name])
 
         for x, y, name in points:
             p1 = shape.get_point(x, y)
-            p2 = p1 + [0.2, 0]
+            p2 = p1 + euklid.vector.Vector2D([0.2, 0])
 
 
             diff = (p2-p1)*0.2
@@ -219,20 +221,20 @@ class ShapePlot(object):
             part.layers["marks"] += cross
 
             if add_text and name:
-                p1 = p1 + [0, 0.02]
-                p2 = p2 + [0, 0.02]
+                p1 = p1 + euklid.vector.Vector2D([0, 0.02])
+                p2 = p2 + euklid.vector.Vector2D([0, 0.02])
                 text = Text(" {} ".format(name), p1, p2)
                 vectors = text.get_vectors()
                 part.layers["text"] += vectors
 
         self.drawing.parts.append(part)
 
-    def draw_cells(self, left=False):
+    def draw_cells(self, left: bool=False) -> None:
         shape = self.shapes[left]
 
         cells = []
 
-        for cell_no in self._cell_range(left):
+        for cell_no in self._get_cell_range(left):
             p1 = shape.get_point(cell_no, 0)
             p2 = shape.get_point(cell_no+1, 0)
             p3 = shape.get_point(cell_no+1, 1)
@@ -244,11 +246,11 @@ class ShapePlot(object):
             material_code="cell_numbers")
         )
 
-    def draw_cell_names(self, left=False):
+    def draw_cell_names(self, left: bool=False) -> None:
         shape = self.shapes[left]
         names = []
         
-        for cell_no in self._cell_range(left):
+        for cell_no in self._get_cell_range(left):
             cell = self.glider_3d.cells[cell_no]
             p1 = shape.get_point(cell_no+0.5, 0)
             p2 = shape.get_point(cell_no+0.5, 1)
@@ -262,12 +264,11 @@ class ShapePlot(object):
             material_code="cell_numbers")
         )
 
-    def draw_rib_names(self, left=False):
+    def draw_rib_names(self, left: bool=False) -> ShapePlot:
         shape = self.shapes[left]
-        midrib = self.glider_2d.shape.has_center_cell
         names = []
 
-        for rib_no in self._rib_range(left):
+        for rib_no in self._get_rib_range(left):
             rib = self.glider_3d.ribs[rib_no]
             rib_no = max(0, rib_no)
             p1 = shape.get_point(rib_no, -0.05)
@@ -279,12 +280,6 @@ class ShapePlot(object):
             p2[0] = p1[0]
             p2[1] = p1[1] + diff
 
-            # notwendig?
-            # if rib_no == 0 and midrib:
-            #     p1[0] = -p1[0]
-            #     p2[0] = -p2[0]
-            #     continue
-
             text = Text(rib.name, p1, p2, valign=0)
             names += text.get_vectors()
 
@@ -292,50 +287,50 @@ class ShapePlot(object):
             text=names,
             material_code="rib_numbers")
         )
+        return self
 
-    def draw_straps(self, left=False):
+    def draw_straps(self, left: bool=False) -> ShapePlot:
         shape = self.shapes[left]
 
-        for cell_no in self._cell_range(left):
+        for cell_no in self._get_cell_range(left):
             cell = self.glider_3d.cells[cell_no]
             for diagonal in cell.straps:
-                left = [abs(x) for x in (diagonal.left.start_x, diagonal.left.end_x)]
-                right = [abs(x) for x in (diagonal.right.start_x, diagonal.right.end_x)]
+                left_x_values = [abs(x) for x in (diagonal.left.start_x, diagonal.left.end_x)]
+                right_x_values = [abs(x) for x in (diagonal.right.start_x, diagonal.right.end_x)]
 
-                points_left = [shape.get_point(cell_no, p) for p in left]
-                points_right = [shape.get_point(cell_no+1, p) for p in right]
+                points_left = [shape.get_point(cell_no, p) for p in left_x_values]
+                points_right = [shape.get_point(cell_no+1, p) for p in right_x_values]
 
                 self.drawing.parts.append(PlotPart(marks=[euklid.vector.PolyLine2D(points_left + points_right[::-1] + points_left[:1])]))
 
         return self
 
-    def draw_diagonals(self, left=False):
+    def draw_diagonals(self, left: bool=False) -> ShapePlot:
         shape = self.shapes[left]
 
-        for cell_no in self._cell_range(left):
+        for cell_no in self._get_cell_range(left):
             cell = self.glider_3d.cells[cell_no]
             for diagonal in cell.diagonals:
-                left = [abs(x) for x in (diagonal.left.start_x, diagonal.left.end_x)]
-                right = [abs(x) for x in (diagonal.right.start_x, diagonal.right.end_x)]
+                left_x_values = [abs(x) for x in (diagonal.left.start_x, diagonal.left.end_x)]
+                right_x_values = [abs(x) for x in (diagonal.right.start_x, diagonal.right.end_x)]
 
-                points_left = [shape.get_point(cell_no, p) for p in left]
-                points_right = [shape.get_point(cell_no+1, p) for p in right]
+                points_left = [shape.get_point(cell_no, p) for p in left_x_values]
+                points_right = [shape.get_point(cell_no+1, p) for p in right_x_values]
 
                 self.drawing.parts.append(PlotPart(marks=[euklid.vector.PolyLine2D(points_left + points_right[::-1] + points_left[:1])]))
 
         return self
 
-    def draw_lines(self, left=False):
+    def draw_lines(self) -> ShapePlot:
         #self.draw_design(lower=True)
         #self.draw_design(lower=True, left=True)
         #self.draw_attachment_points(True)
         #self.draw_attachment_points(True, left=True)
+        lower = self.glider_3d.lineset.attachment_points
 
-        lower = self.glider_2d.lineset.get_lower_attachment_points()
-
-        def all_upper_lines(node):
-            lines = []
-            for line in self.glider_2d.lineset.get_upper_connected_lines(node):
+        def all_upper_lines(node: Node) -> List[Line]:
+            lines: List[Line] = []
+            for line in self.glider_3d.lineset.get_upper_connected_lines(node):
                 lines.append(line)
                 lines += all_upper_lines(line.upper_node)
             
@@ -344,15 +339,17 @@ class ShapePlot(object):
         for i, node in enumerate(lower):
             left = i % 2
 
-            for line in all_upper_lines(node):
+            for glider_line in all_upper_lines(node):
                 pp = PlotPart()
                 layer = pp.layers[f"line_{i}"]
                 line = euklid.vector.PolyLine2D([
-                        line.lower_node.get_2D(self.glider_2d.shape),
-                        line.upper_node.get_2D(self.glider_2d.shape)
-                    ])
+                    # TODO: fix!
+                    glider_line.lower_node.get_2D(self.glider_2d.shape),
+                    glider_line.upper_node.get_2D(self.glider_2d.shape)
+                ])
+
                 if left:
-                    line = line.scale([-1, 1])
+                    line = line.scale(euklid.vector.Vector2D([-1, 1]))
 
                 layer += [line]
                 self.drawing.parts.append(pp)
@@ -360,13 +357,14 @@ class ShapePlot(object):
         return self
 
 
-    def export_a4(self, path, fill=False):
+
+    def export_a4(self, path: PathLike, fill: bool=False) -> None:
         new = self.drawing.copy()
         new.scale_a4()
         
         new.export_pdf(path, fill=fill)
 
-    def _repr_svg_(self):
+    def _repr_svg_(self) -> str:
         new = self.drawing.copy()
         new.scale_a4()
         return new._repr_svg_()
