@@ -1,4 +1,6 @@
-from typing import TYPE_CHECKING
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, List
 import zipfile
 import lxml
 import json
@@ -7,27 +9,28 @@ import array
 import logging
 
 import openglider.jsonify
-from openglider.glider.parametric.table import GliderTables, SingleSkinTable
+from openglider.glider.parametric.table import SingleSkinTable
 from openglider.utils.table import Table
 
 if TYPE_CHECKING:
+    from openglider.glider.parametric.glider import ParametricGlider
     import openglider.glider.parametric
 
 
 logger = logging.getLogger(__name__)
 
 
-def import_freecad(path):
+def import_freecad(path: str) -> ParametricGlider:
     fc = FreeCADFile(path)
     
     return fc.get_project()
 
 class FreeCADFile:
-    def __init__(self, path):
+    def __init__(self, path: str):
         self.path = path
         self.load()
     
-    def load(self):
+    def load(self) -> None:
         self.infile = zipfile.ZipFile(self.path)
         
         xml_tree = lxml.etree.ElementTree(file=self.infile.open("Document.xml"))
@@ -42,7 +45,7 @@ class FreeCADFile:
             for o in objects.getchildren()
         }
     
-    def get_project(self) -> "openglider.glider.project.ParametricGlider":
+    def get_project(self) -> ParametricGlider:
         parametric = self._get_parametric_glider()
         for obj_name, obj in self.objects.items():
             self._process(obj_name, parametric)
@@ -50,7 +53,7 @@ class FreeCADFile:
         return parametric
         
     
-    def _get_parametric_glider(self) -> "openglider.glider.parametric.ParametricGlider":
+    def _get_parametric_glider(self) -> ParametricGlider:
         proxy = self.objects["Glider"]["Proxy"]
         data=proxy.find("Python")
         base64_data=data.get("value")
@@ -62,7 +65,7 @@ class FreeCADFile:
         
         return parametric_glider
     
-    def get_property(self, object_name, name):
+    def get_property(self, object_name: str, name: str) -> Any:
         prop = self.objects[object_name][name]
         x = prop.getchildren()[0]
         
@@ -94,16 +97,16 @@ class FreeCADFile:
         
         raise Exception()
     
-    def get_ribs_property(self, parametric_glider, obj_name, property_name="ribs"):
+    def get_ribs_property(self, parametric_glider: ParametricGlider, obj_name: str, property_name: str="ribs") -> List[int]:
         ribs = self.get_property(obj_name, property_name)
 
         if parametric_glider.shape.has_center_cell:
-            ribs = [r-1 for r in ribs if r>0]
+            ribs_lst = [r-1 for r in ribs if r>0]
         
-        return ribs
+        return ribs_lst
 
         
-    def _read_floatlist(self, node):
+    def _read_floatlist(self, node: Any) -> List[float]:
         filename = node.get("file")
         bytestring = self.infile.open(filename).read()
         offset=4
@@ -112,12 +115,12 @@ class FreeCADFile:
         
         return float_array.tolist()
     
-    def _read_integerlist(self, node):
+    def _read_integerlist(self, node: Any) -> List[int]:
         return [
             int(x.get("v")) for x in node.getchildren()
         ]
     
-    def _process(self, obj_name, parametric_glider):
+    def _process(self, obj_name: str, parametric_glider: ParametricGlider) -> None:
         obj = self.objects[obj_name]
         if "Proxy" in obj:
             classname = self.get_property(obj_name, "Proxy")
@@ -139,7 +142,7 @@ class FreeCADFile:
                 keyword = SingleSkinTable.keywords[keyword_name]
 
                 attributes = [
-                    self.get_property(obj_name, name) for name in keyword.attributes
+                    self.get_property(obj_name, name) for name, _annotation in keyword.attributes
                 ]
 
                 table = Table()
@@ -193,6 +196,7 @@ class FreeCADFile:
                 table = Table()
                 count = 0
                 for rib_no in ribs:
+                    raise NotImplementedError()
                     attachment_points = parametric_glider.lineset.get_upper_nodes(rib_no)
                     count_this = 0
                     for attachment_point in attachment_points:

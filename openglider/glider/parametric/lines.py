@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Tuple, List, Dict
+from typing import TYPE_CHECKING, Any, Sequence, Tuple, List, Dict
 import copy
 import re
 import logging
@@ -8,6 +8,8 @@ import math
 
 import numpy as np
 import euklid
+from openglider.glider.cell.attachment_point import CellAttachmentPoint
+from openglider.glider.rib.attachment_point import AttachmentPoint
 
 from openglider.lines import Node, Line, LineSet
 from openglider.utils import sign
@@ -17,30 +19,31 @@ from openglider.utils.table import Table
 
 if TYPE_CHECKING:
     from openglider.glider.glider import Glider
+    from openglider.glider.parametric.shape import ParametricShape
 
 logger = logging.getLogger(__name__)
 
 class LowerNode2D(object):
     """lower attachment point"""
-    def __init__(self, pos_2D, pos_3D, name="unnamed"):
+    def __init__(self, pos_2D: euklid.vector.Vector2D, pos_3D: euklid.vector.Vector3D, name: str="unnamed"):
         self.pos_2D = pos_2D
         self.pos_3D = pos_3D
         self.name = name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<LowerNode2D {}>".format(self.name)
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return{
             "pos_2D": self.pos_2D,
             "pos_3D": self.pos_3D,
             "name": self.name
         }
 
-    def get_2D(self, *args):
+    def get_2D(self, *args: Any) -> euklid.vector.Vector2D:
         return self.pos_2D
 
-    def get_node(self, glider):
+    def get_node(self, glider: Glider) -> Node:
         return Node(node_type=Node.NODE_TYPE.LOWER, position=self.pos_3D, name=self.name)
 
 
@@ -48,38 +51,38 @@ class LowerNode2D(object):
 class UpperNode2D:
     name: str
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<UpperNode2D name:{self.name}>"
     
     def __hash__(self) -> int:
         return hash(self.name)
 
-    def get_2D(self, parametric_shape):
+    def get_2D(self, parametric_shape: ParametricShape) -> euklid.vector.Vector2D:
         return parametric_shape.get_shape_point(0, 0.5)
 
-    def get_node(self, glider: Glider):
+    def get_node(self, glider: Glider) -> AttachmentPoint | CellAttachmentPoint:
         node = glider.attachment_points[self.name]
 
         return node
 
 
 class BatchNode2D(object):
-    def __init__(self, pos_2D, name=None, layer=None):
+    def __init__(self, pos_2D: euklid.vector.Vector2D, name: str="", layer: str=""):
         self.pos_2D = pos_2D  # pos => 2d coordinates
         self.name = name
-        self.layer = layer or ""
+        self.layer = layer
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return{
             "pos_2D": self.pos_2D,
             "name": self.name,
             "layer": self.layer
         }
 
-    def get_node(self, glider):
+    def get_node(self, glider: Glider) -> Node:
         return Node(node_type=Node.NODE_TYPE.KNOT)
 
-    def get_2D(self, *args):
+    def get_2D(self, *args: Any) -> euklid.vector.Vector2D:
         return self.pos_2D
 
 
@@ -88,21 +91,24 @@ class LineSet2D(object):
 
     regex_node = re.compile(r"([a-zA-Z]*)([0-9]*)")
 
-    def __init__(self, line_list, trim_corrections=None):
+    def __init__(self, line_list: List[Line2D], trim_corrections: Dict[str, float]=None):
         self.lines = line_list
         self.trim_corrections = trim_corrections or {}
 
-    def __json__(self):
-        lines = [copy.copy(line) for line in self.lines]
+    def __json__(self) -> Dict[str, Any]:
         nodes = self.nodes
-        for line in lines:
-            line.upper_node = nodes.index(line.upper_node)
-            line.lower_node = nodes.index(line.lower_node)
+        lines = []
+        for line in self.lines:
+            line_data = line.__json__()
+            line_data["upper_node"] = nodes.index(line.upper_node)
+            line_data["lower_node"] = nodes.index(line.lower_node)
+            lines.append(line_data)
+
         return {"lines": lines,
                 "nodes": nodes}
 
     @classmethod
-    def __from_json__(cls, lines, nodes):
+    def __from_json__(cls, lines: List[Line2D], nodes: List[Any]) -> LineSet2D:
         lineset = cls(lines)
         for line in lineset.lines:
             if isinstance(line.upper_node, int):
@@ -112,8 +118,8 @@ class LineSet2D(object):
         return lineset
 
     @property
-    def nodes(self):
-        nodes = set()
+    def nodes(self) -> List[UpperNode2D | LowerNode2D | BatchNode2D]:
+        nodes: set[UpperNode2D | LowerNode2D | BatchNode2D] = set()
         for line in self.lines:
             nodes.add(line.upper_node)
             nodes.add(line.lower_node)
@@ -125,24 +131,28 @@ class LineSet2D(object):
 
         return list(nodes)
 
-    def get_upper_nodes(self, rib_no=None) -> List[UpperNode2D]:
-        nodes = set()
+    def get_upper_nodes(self) -> List[UpperNode2D]:
+        nodes: set[UpperNode2D] = set()
+
         for line in self.lines:
             node = line.upper_node
+
             if isinstance(node, UpperNode2D):
-                nodes.add(line.upper_node)
+                nodes.add(node)
 
         return list(nodes)
 
-    def get_upper_node(self, name):
+    def get_upper_node(self, name: str) -> UpperNode2D | None:
         for node in self.get_upper_nodes():
             if node.name == name:
                 return node
+        
+        return None
 
-    def get_lower_attachment_points(self):
+    def get_lower_attachment_points(self) -> List[LowerNode2D]:
         return [node for node in self.nodes if isinstance(node, LowerNode2D)]
 
-    def return_lineset(self, glider, v_inf):
+    def return_lineset(self, glider: Glider, v_inf: euklid.vector.Vector3D) -> LineSet:
         """
         Get Lineset_3d
         :param glider: Glider3D
@@ -150,7 +160,7 @@ class LineSet2D(object):
         :return: LineSet (3d)
         """
         #v_inf = v_inf or glider.v_inf
-        lines = []
+        lines: List[Line] = []
         # now get the connected lines
         # get the other point (change the nodes if necessary)
         for node in self.get_lower_attachment_points():
@@ -166,17 +176,17 @@ class LineSet2D(object):
             lower = nodes_3d[line.lower_node]
             upper = nodes_3d[line.upper_node]
             if lower and upper:
-                line = Line(number=line_no, lower_node=lower, upper_node=upper,
+                line_3d = Line(number=line_no, lower_node=lower, upper_node=upper,
                             v_inf=v_inf, target_length=line.target_length,
                             line_type=line.line_type, name=line.name)
-                lines.append(line)
+                lines.append(line_3d)
 
         lineset = LineSet(lines, v_inf)
         lineset.trim_corrections = self.trim_corrections.copy()
 
         return lineset
 
-    def scale(self, factor, scale_lower_floor=True, scale_y=False):
+    def scale(self, factor: float, scale_lower_floor: bool=True, scale_y: bool=False) -> None:
         lower_nodes = []
 
         if not scale_lower_floor:
@@ -186,12 +196,12 @@ class LineSet2D(object):
                 if len(lower_nodes) < 1:
                     raise ValueError("There are no lower floor nodes")
             
-        lower_nodes_offset = 0
+        lower_nodes_offset = 0.
         lower_lines_count = 0
 
         for line in self.lines:
             target_length = getattr(line, "target_length", None)
-            if target_length is not None:
+            if line.target_length is not None:
                 if scale_lower_floor or line.lower_node not in lower_nodes:
                     line.target_length *= factor
                 else:
@@ -199,7 +209,7 @@ class LineSet2D(object):
                     lower_lines_count += 1
         
         if lower_lines_count != 0:
-            lower_nodes_offset /= lower_lines_count
+            lower_nodes_offset /= float(lower_lines_count)
 
         for node in self.get_lower_attachment_points():
             node.pos_3D[0] = node.pos_3D[0] * factor
@@ -208,8 +218,8 @@ class LineSet2D(object):
             node.pos_3D[2] = node.pos_3D[2] * factor + sign(node.pos_3D[2]) * lower_nodes_offset
             #node.pos_2D = node.pos_2D * (factor + lower_nodes_offset / node.pos_2D.length())
 
-    def set_default_nodes2d_pos(self, parametricshape):
-        def get_node_pos(node) -> euklid.vector.Vector2D:
+    def set_default_nodes2d_pos(self, parametricshape: ParametricShape) -> None:
+        def get_node_pos(node: UpperNode2D | BatchNode2D | LowerNode2D) -> euklid.vector.Vector2D:
             if isinstance(node, UpperNode2D):
                 return node.get_2D(parametricshape)
             
@@ -248,43 +258,39 @@ class LineSet2D(object):
         for node in self.get_lower_attachment_points():
             get_node_pos(node)
 
-    def sort_lines(self, lower_att):
+    def sort_lines(self, lower_att: LowerNode2D | BatchNode2D) -> None:
         """
         Recursive sorting of lines (check direction)
         """
         for line in self.lines:
             if not line.is_sorted:
-                if lower_att == line.upper_node:
-                    line.lower_node, line.upper_node = line.upper_node, line.lower_node
+                if lower_att == line.upper_node:  # type: ignore
+                    line.lower_node, line.upper_node = line.upper_node, line.lower_node  # type: ignore
                 if lower_att == line.lower_node:
                     line.is_sorted = True
-                    self.sort_lines(line.upper_node)
+                    self.sort_lines(line.upper_node)  # type: ignore
 
-    def get_upper_connected_lines(self, node: Node) -> List[Line]:
+    def get_upper_connected_lines(self, node: LowerNode2D | BatchNode2D) -> List[Line2D]:
         return [line for line in self.lines if line.lower_node is node]
 
-    def get_lower_connected_lines(self, node):
+    def get_lower_connected_lines(self, node: Node) -> List[Line2D]:
         return [line for line in self.lines if line.upper_node is node]
 
-    def get_influence_nodes(self, line):
+    def get_influence_nodes(self, line: Line2D) -> List[UpperNode2D]:
         if isinstance(line.upper_node, UpperNode2D):
             return [line.upper_node]
         return sum([self.get_influence_nodes(l) for l in self.get_upper_connected_lines(line.upper_node)], [])
 
-    def create_tree(self, start_node=None):
-        """
-        Create a tree of lines
-        :return: [(line, [(upper_line1, []),...]),(...)]
-        """
+    def create_tree(self, start_node: LowerNode2D | BatchNode2D | None=None) -> Any:
         if start_node is None:
-            start_node = self.get_lower_attachment_points()
-            lines = []
-            for node in start_node:
+            start_nodes = self.get_lower_attachment_points()
+            lines: List[Line2D] = []
+            for node in start_nodes:
                 lines += self.get_upper_connected_lines(node)
         else:
             lines = self.get_upper_connected_lines(start_node)
 
-        def get_influence_nodes(line):
+        def get_influence_nodes(line: Line2D) -> List[UpperNode2D]:
             if isinstance(line.upper_node, UpperNode2D):
                 return [line.upper_node]
             return sum([get_influence_nodes(l) for l in self.get_upper_connected_lines(line.upper_node)], [])
@@ -293,7 +299,7 @@ class LineSet2D(object):
             if not get_influence_nodes(line):
                 return line
 
-        def sort_key(line) -> Any:
+        def sort_key(line: Line2D) -> Any:
             nodes = get_influence_nodes(line)
             if not nodes:
                 pass
@@ -315,22 +321,32 @@ class LineSet2D(object):
 
         lines.sort(key=sort_key)
 
-        return [(line, self.create_tree(line.upper_node)) for line in lines]
+        upper_trees = []
 
-    def get_input_table(self):
+        for line in lines:
+            if not isinstance(line.upper_node, UpperNode2D):
+                upper_tree = self.create_tree(line.upper_node)
+            else:
+                upper_tree = []
+            
+            upper_trees.append((line, upper_tree))
+        
+        return upper_trees
+
+    def get_input_table(self) -> Table:
         table = Table()
 
-        def insert_block(line, upper, row, column):
+        def insert_block(line: Line2D, upper: List[Tuple[Line2D, List[Any]]], row: int, column: int) -> int:
             table[row, column+1] = line.line_type.name
             if upper:
-                table[row, column] = round(line.target_length, 3)
+                target_length = line.target_length or 0.
+                table[row, column] = round(target_length, 3)
                 for line, line_upper in upper:
                     row = insert_block(line, line_upper, row, column+2)
             else:  # Insert a top node
                 name = line.upper_node.name
                 if not name:
-                    name = "Rib_{}/{}".format(line.upper_node.rib_no,
-                                              line.upper_node.rib_pos)
+                    name = "unnamed"
                 table[row, column] = name
                 row += 1
             return row
@@ -345,14 +361,14 @@ class LineSet2D(object):
         return table
 
     @classmethod
-    def read_input_table(cls, sheet, attachment_points_lower):
+    def read_input_table(cls, sheet: Table, attachment_points_lower: Dict[str, LowerNode2D]) -> LineSet2D:
 
         # upper -> dct {name: node}
         num_rows = sheet.num_rows
         num_cols = sheet.num_columns
 
         linelist = []
-        current_nodes = [None for row in range(num_cols)]
+        current_nodes: List[LowerNode2D | BatchNode2D | None] = [None for row in range(num_cols)]
         row = 0
         column = 0
 
@@ -365,9 +381,9 @@ class LineSet2D(object):
                     if not type(lower_node_name) == str:
                         lower_node_name = str(int(lower_node_name))
                     
-                    lower_node = attachment_points_lower[lower_node_name]
+                    attachment_point = attachment_points_lower[lower_node_name]
                     current_nodes.clear()
-                    current_nodes.append(lower_node)
+                    current_nodes.append(attachment_point)
                     current_nodes +=  [None for __ in range(num_cols)]
                     column += 1
 
@@ -375,7 +391,11 @@ class LineSet2D(object):
                     # We have a line
                     line_type_name = sheet[row, column + 1]
 
+                    if current_nodes[column//2] is None:
+                        raise ValueError()
                     lower_node = current_nodes[column // 2]
+
+                    upper: UpperNode2D | BatchNode2D
 
                     # gallery
                     if column + 2 >= num_cols - 1 or sheet[row, column + 2] is None:
@@ -385,13 +405,13 @@ class LineSet2D(object):
                         column = 0
                     # other line
                     else:
-                        upper = BatchNode2D([0, 0])
+                        upper = BatchNode2D(euklid.vector.Vector2D([0., 0.]))
                         current_nodes[column // 2 + 1] = upper
                         line_length = sheet[row, column]
                         column += 2
                     
                     if lower_node is None:
-                        logger.error(f"no lower_node: {row}/{column}")
+                        raise ValueError(f"no lower node: {row} / {column}")
 
                     linelist.append(
                         Line2D(lower_node, upper, target_length=line_length, line_type=line_type_name))
@@ -407,7 +427,7 @@ class LineSet2D(object):
 
         return cls(linelist)
 
-    def delete_not_connected(self, glider: Glider):
+    def delete_not_connected(self, glider: Glider) -> None:
         temp = []
         temp_new = []
         attachment_points = glider.attachment_points
@@ -430,18 +450,19 @@ class LineSet2D(object):
 
 
 class Line2D(object):
-    def __init__(self, lower_node, upper_node, 
-                 target_length=None, line_type='default', layer=None, name=None):
+    target_length: float | None
+    def __init__(self, lower_node: BatchNode2D | LowerNode2D, upper_node: BatchNode2D | UpperNode2D, 
+                 target_length: float=None, line_type: str='default', layer: str="", name: str=None):
         self.lower_node = lower_node
         self.upper_node = upper_node
         self.target_length = target_length
         self.is_sorted = False
         self.line_type = line_types.LineType.get(line_type)
-        self.layer = layer or ""
+        self.layer = layer
         self.name = name
 
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return{
             "lower_node": self.lower_node,
             "upper_node": self.upper_node,

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Any
 
 import euklid
 from openglider.glider.shape import Shape
@@ -23,10 +23,10 @@ class CellAttachmentPoint(Node):
     ballooned=False
     offset: float = 0.
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<Attachment point '{}' ({})>".format(self.name, self.rib_pos)
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {
             "cell_pos": self.cell_pos,
             "rib_pos": self.rib_pos,

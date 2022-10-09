@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 import logging
 import math
-from typing import Dict, List, Tuple
+from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Tuple
 
 import euklid
 import numpy as np
@@ -23,6 +23,10 @@ from openglider.utils import consistent_value, linspace
 from openglider.utils.cache import (HashedList, cached_function,
                                     cached_property, hash_list)
 from openglider.utils.dataclass import BaseModel, dataclass, Field
+
+if TYPE_CHECKING:
+    from openglider.glider import Glider
+
 
 logger = logging.getLogger(__file__)
 
@@ -57,7 +61,7 @@ class Cell(BaseModel):
     def __hash__(self) -> int:
         return hash_list(self.rib1, self.rib2, *self.miniribs, *self.diagonals)
 
-    def rename_panels(self, cell_no: int, seperate_upper_lower=True):
+    def rename_panels(self, cell_no: int, seperate_upper_lower: bool=True) -> None:
         if seperate_upper_lower:
             upper = [panel for panel in self.panels if not panel.is_lower()]
             lower = [panel for panel in self.panels if panel.is_lower()]
@@ -75,7 +79,7 @@ class Cell(BaseModel):
             for panel_no, panel in enumerate(self.panels):
                 panel.name = self.panel_naming_scheme.format(cell=self, panel=panel, panel_no=panel_no+1)
     
-    def rename_diagonals(self, diagonals, cell_no: int, naming_scheme):
+    def rename_diagonals(self, diagonals: Sequence[DiagonalRib | TensionStrap], cell_no: int, naming_scheme: str) -> None:
         upper = []
         lower = []
 
@@ -96,7 +100,7 @@ class Cell(BaseModel):
 
 
 
-    def rename_parts(self, cell_no, seperate_upper_lower=False):
+    def rename_parts(self, cell_no: int, seperate_upper_lower: bool=False) -> None:
         self.rename_diagonals(self.diagonals, cell_no, self.diagonal_naming_scheme)
         self.rename_diagonals(self.straps, cell_no, self.strap_naming_scheme)
 
@@ -143,7 +147,7 @@ class Cell(BaseModel):
 
         return profiles
 
-    def get_connected_panels(self, skip=None) -> List[Panel]:
+    def get_connected_panels(self, skip: Optional[PanelCut.CUT_TYPES]=None) -> List[Panel]:
         panels = []
         self.panels.sort(key=lambda panel: panel.mean_x())
 
@@ -158,11 +162,11 @@ class Cell(BaseModel):
         panels.append(p0)
         return panels
 
-    def _make_profile3d_from_minirib(self, minirib):
+    def _make_profile3d_from_minirib(self, minirib: MiniRib) -> Profile3D:
         # self.basic_cell.prof1 = self.prof1
         # self.basic_cell.prof2 = self.prof2
-        shape_with_ballooning = self.basic_cell.midrib(minirib.y_value, ballooning=True, arc_argument=False).curve.nodes
-        shape_without_ballooning = self.basic_cell.midrib(minirib.y_value, ballooning=False).curve.nodes
+        shape_with_ballooning = self.basic_cell.midrib(minirib.yvalue, ballooning=True, arc_argument=False).curve.nodes
+        shape_without_ballooning = self.basic_cell.midrib(minirib.yvalue, ballooning=False).curve.nodes
         points = []
         for xval, with_bal, without_bal in zip(
                 self.x_values, shape_with_ballooning, shape_without_ballooning):
@@ -172,13 +176,13 @@ class Cell(BaseModel):
         return Profile3D(points)
 
     @cached_property('rib_profiles_3d')
-    def _child_cells(self):
+    def _child_cells(self) -> List[BasicCell]:
         """
         get all the sub-cells within the current cell,
         (separated by miniribs)
         """
         # TODO: test / fix
-        cells = []
+        cells: List[BasicCell] = []
         for cell_no in range(len(self.rib_profiles_3d)-1):
             leftrib = self.rib_profiles_3d[cell_no]
             rightrib = self.rib_profiles_3d[cell_no+1]
@@ -192,7 +196,7 @@ class Cell(BaseModel):
         for index in range(len(self.x_values)):
             phi_values = [0]
             for mrib in self.miniribs:
-                phi = cell_phi[index] + math.asin((2 * mrib.y_value - 1) * math.sin(cell_phi[index]))
+                phi = cell_phi[index] + math.asin((2 * mrib.yvalue - 1) * math.sin(cell_phi[index]))
                 phi_values.append(phi)
             phi_values.append(2*cell_phi[index])
 
@@ -251,11 +255,11 @@ class Cell(BaseModel):
     def prof2(self) -> openglider.airfoil.Profile3D:
         return self.rib2.profile_3d
 
-    def point(self, y=0, i=0, k=0) -> euklid.vector.Vector3D:
+    def point(self, y: float=0, i: int=0, k: float=0.) -> euklid.vector.Vector3D:
         return self.midrib(y).point(i, k)
 
     @cached_function("self")
-    def midrib(self, y, ballooning=True, arc_argument=True, close_trailing_edge=False):
+    def midrib(self, y: float, ballooning: bool=True, arc_argument: bool=True, close_trailing_edge: bool=False) -> Profile3D:
         kwargs = {
             "ballooning": ballooning,
             "arc_argument": arc_argument,
@@ -273,30 +277,30 @@ class Cell(BaseModel):
         else:
             return self.basic_cell.midrib(y, ballooning=False)
 
-    def get_midribs(self, numribs) -> List[openglider.airfoil.Profile3D]:
+    def get_midribs(self, numribs: int) -> List[Profile3D]:
         y_values = linspace(0, 1, numribs)
         return [self.midrib(y) for y in y_values]
 
     @cached_property('ballooning', 'rib1.profile_2d.x_values', 'rib2.profile_2d.x_values')
-    def ballooning_phi(self):
+    def ballooning_phi(self) -> HashedList:
         x_values = [max(-1, min(1, x)) for x in self.rib1.profile_2d.x_values]
         balloon = [self.ballooning[i] for i in x_values]
         return HashedList([BallooningBase.arcsinc(1. / (1+bal)) if bal > 0 else 0 for bal in balloon])
     
     @cached_property('ballooning', '_child_cells')
-    def ballooning_tension_factors(self):
+    def ballooning_tension_factors(self) -> List[float]:
         if len(self._child_cells) <= 1:
             return self.basic_cell.ballooning_tension_factors
         
         child_factors = [cell.ballooning_tension_factors for cell in self._child_cells]
 
-        factors = []
+        factors: List[float] = []
 
         prof1 = self.prof1.curve
         prof2 = self.prof2.curve
 
         for i in range(len(prof1.nodes)):
-            tension = 0
+            tension = 0.
             diff = (prof1.nodes[i] - prof2.nodes[i]).normalized()
 
             for cell, cell_factors in zip(self._child_cells, child_factors):
@@ -352,7 +356,7 @@ class Cell(BaseModel):
     def aspect_ratio(self) -> float:
         return self.span ** 2 / self.area
 
-    def mirror(self, mirror_ribs=True) -> None:
+    def mirror(self, mirror_ribs: bool=True) -> None:
         self.rib2, self.rib1 = self.rib1, self.rib2
 
         if mirror_ribs:
@@ -374,16 +378,8 @@ class Cell(BaseModel):
         
         for cut in cuts:
             cut.mirror()
-        
-    def get_attachment_points(self, glider):
-        attach_pts = []
-        for att in glider.attachment_points:
-            if hasattr(att, "cell"):
-                if att.cell == self:
-                    attach_pts.append(att)
-        return attach_pts
 
-    def mean_airfoil(self, num_midribs=8) -> pyfoil.Airfoil:
+    def mean_airfoil(self, num_midribs: int=8) -> pyfoil.Airfoil:
         mean_rib = self.midrib(0).flatten().normalized()
 
         for i in range(1, num_midribs):
@@ -391,7 +387,7 @@ class Cell(BaseModel):
             mean_rib += self.midrib(y).flatten().normalized()
         return mean_rib * (1. / num_midribs)
 
-    def get_mesh_grid(self, numribs=0, half_cell=False):
+    def get_mesh_grid(self, numribs: int=0, half_cell: bool=False) -> List[List[Vertex]]:
         """
         Get Cell-grid
         :param numribs: number of miniribs to calculate
@@ -399,7 +395,7 @@ class Cell(BaseModel):
         """
         numribs += 1
 
-        grid = []
+        grid: List[List[Vertex]] = []
         rib_indices = range(numribs + 1)
         if half_cell:
             rib_indices = rib_indices[(numribs) // 2:]
@@ -409,7 +405,7 @@ class Cell(BaseModel):
             grid.append(Vertex.from_vertices_list(rib[:-1]))
         return grid
 
-    def get_mesh(self, numribs=0, half_cell=False):
+    def get_mesh(self, numribs: int=0, half_cell: bool=False) -> Mesh:
         """
         Get Cell-mesh
         :param numribs: number of miniribs to calculate
@@ -439,12 +435,12 @@ class Cell(BaseModel):
         return mesh
 
     @cached_function("self")
-    def get_flattened_cell(self, numribs=50, num_inner=None) -> FlattenedCell:
+    def get_flattened_cell(self, numribs: int=50, num_inner: Optional[int]=None) -> FlattenedCell:
         midribs = self.get_midribs(numribs)
         numpoints = len(midribs[0].curve.nodes)
 
         len_dct = {}
-        def get_length(ik1, ik2):
+        def get_length(ik1: float, ik2: float) -> float:
             index_str = f"{ik1}:{ik2}"
             if index_str not in len_dct:
                 points = []
@@ -466,7 +462,7 @@ class Cell(BaseModel):
         rotate_left = euklid.vector.Rotation2D(-math.pi/2)
         rotate_right = euklid.vector.Rotation2D(math.pi/2)
 
-        def get_point(p1, p2, l_0, l_l, l_r, left=True):
+        def get_point(p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D, l_0: float, l_l: float, l_r: float, left: bool=True) -> euklid.vector.Vector2D:
             lx = (l_0**2 + l_l**2 - l_r**2) / (2*l_0)
             ly_sq = l_l**2 - lx**2
             if ly_sq > 0:
@@ -522,15 +518,15 @@ class Cell(BaseModel):
             ballooned=ballooned
         )
     
-    def calculate_3d_shaping(self, panels=None, numribs=10) -> None:
+    def calculate_3d_shaping(self, panels: Optional[List[Panel]]=None, numribs: int=10) -> None:
         if panels is None:
             panels = self.panels
 
         flat = self.get_flattened_cell(numribs)
 
-        cuts_3d: Dict[str, List[float]] = {}
+        cuts_3d: Dict[int, List[float]] = {}
 
-        def add_amount(cut, amount):
+        def add_amount(cut: PanelCut, amount: List[float]) -> None:
             cut_key = cut.__hash__()
 
             for key in cuts_3d:
@@ -542,7 +538,7 @@ class Cell(BaseModel):
 
             cuts_3d[cut_key] = amount
 
-        def get_amount(cut):
+        def get_amount(cut: PanelCut) -> List[float]:
             cut_key = cut.__hash__()
             data = cuts_3d[cut_key]
             # TODO: Investigate

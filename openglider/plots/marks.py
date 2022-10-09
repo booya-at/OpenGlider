@@ -1,5 +1,6 @@
+from abc import ABC
 import math
-from typing import List
+from typing import Any, Dict, List, Sequence
 
 import euklid
 
@@ -7,8 +8,8 @@ import openglider.vector.polygon as polygons
 
 default_scale = 0.8
 
-class Mark(object):
-    def __repr__(self):
+class Mark(ABC):
+    def __repr__(self) -> str:
         return self.__class__.__name__
     
     def __call__(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) ->  List[euklid.vector.PolyLine2D]:
@@ -19,14 +20,15 @@ class Empty(Mark):
         return []
 
 class Combine(Mark):
-    def __init__(self, *marks) -> None:
+    marks: Sequence[Mark]
+    def __init__(self, *marks: Mark) -> None:
         self.marks = marks
     
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {"marks": self.marks}
 
-    def __call__(self, p1, p2) -> List[euklid.vector.PolyLine2D]:
-        result = []
+    def __call__(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> List[euklid.vector.PolyLine2D]:
+        result: List[euklid.vector.PolyLine2D] = []
         for mark in self.marks:
             result += mark(p1, p2)
         
@@ -34,41 +36,41 @@ class Combine(Mark):
             
 
 class Polygon(Mark):
-    def __init__(self, edges=3, scale=default_scale, name=None):
+    def __init__(self, edges: int=3, scale: float=default_scale, name: str=""):
         self.scale = scale
         self.num_edges = edges
         self.name = name
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {"scale": self.scale, "edges": self.num_edges}
 
-    def __call__(self, p1, p2):
+    def __call__(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> List[euklid.vector.PolyLine2D]:
         circle = polygons.Circle.from_p1_p2(p1, p2)
 
         return [circle.get_sequence(self.num_edges-1)]
 
 
 class Triangle(Polygon):
-    def __init__(self, scale=default_scale):
+    def __init__(self, scale: float=default_scale):
         super(Triangle, self).__init__(3, scale)
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {"scale": self.scale}
 
 
 class Arrow(Mark):
-    def __init__(self, left=True, scale=default_scale, name=None):
+    def __init__(self, left: bool=True, scale: float=default_scale, name: str=""):
         self.left = left
         self.scale = scale
         self.name = name
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {
             "left": self.left,
             "scale": self.scale
         }
 
-    def __call__(self, p1, p2):
+    def __call__(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> List[euklid.vector.PolyLine2D]:
         d = (p2 - p1)*self.scale
         dr = euklid.vector.Vector2D([-d[1], d[0]])*(1/math.sqrt(2))
         if not self.left:
@@ -83,19 +85,19 @@ class Arrow(Mark):
 
 
 class Line(Mark):
-    def __init__(self, rotation=0., offset=0., name=None):
+    def __init__(self, rotation: float=0., offset: float=0., name: str=""):
         self.rotation = rotation
         self.offset = offset
         self.name = name
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {
             "rotation": self.rotation,
             "offset": self.offset,
             "name": self.name
         }
 
-    def __call__(self, p1, p2):
+    def __call__(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> List[euklid.vector.PolyLine2D]:
         if self.rotation:
             center = (p1+p2)*0.5
             rotation = euklid.vector.Rotation2D(self.rotation)
@@ -108,20 +110,21 @@ class Line(Mark):
 
 
 class Cross(Line):
-    def __call__(self, p1, p2):
+    def __call__(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> List[euklid.vector.PolyLine2D]:
         l1 = Line(rotation=self.rotation)
         l2 = Line(rotation=self.rotation+math.pi*0.5)
         return l1(p1, p2) + l2(p1, p2)
 
 
 class Dot(Mark):
-    def __init__(self, *positions):
+    position: List[float]
+    def __init__(self, *positions: float):
         self.positions = positions
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {"pos": self.positions}
 
-    def __call__(self, p1, p2):
+    def __call__(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> List[euklid.vector.PolyLine2D]:
         dots = []
         for x in self.positions:
             p = p1 + (p2 - p1) * x
@@ -130,39 +133,39 @@ class Dot(Mark):
 
 
 class _Modify(Mark):
-    def __init__(self, func):
+    def __init__(self, func: Mark):
         self.func = func
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {"func": self.func}
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "{}->{}".format(self.__class__.__name__, repr(self.func))
 
-    def __call__(self, p1, p2, *args, **kwargs):
-        return self.func(p1, p2, *args, **kwargs)
+    def __call__(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> List[euklid.vector.PolyLine2D]:
+        return self.func(p1, p2)
 
 
 class Rotate(_Modify):
-    def __init__(self, func, rotation, center=True):
+    def __init__(self, func: Mark, rotation: float, center: bool=True):
         self.angle = rotation
         self.rotation = euklid.vector.Rotation2D(rotation)
         super(Rotate, self).__init__(func)
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {"func": self.func,
                 "rotation": self.angle}
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Rotate({})->{}".format(self.angle, self.func)
 
-    def __call__(self, p1, p2):
+    def __call__(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> List[euklid.vector.PolyLine2D]:
         diff = (p2 - p1) * 0.5
         center = (p1 + p2) * 0.5
         diff_new = self.rotation.apply(diff)
 
         p1_new, p2_new = center + diff_new, center - diff_new
-        return super(Rotate, self).__call__(p1_new, p2_new)
+        return super().__call__(p1_new, p2_new)
 
 
 class OnLine(_Modify):
@@ -173,10 +176,10 @@ class OnLine(_Modify):
     | x  <- new
     | |
     """
-    def __call__(self, p1, p2, *args, **kwargs):
+    def __call__(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> List[euklid.vector.PolyLine2D]:
         p1_2 = (p1+p2) * 0.5
         p2_2 = p1 * 1.5 - p2 * 0.5
-        return super(OnLine, self).__call__(p1_2, p2_2, *args, **kwargs)
+        return super(OnLine, self).__call__(p1_2, p2_2)
 
 
 class Inside(_Modify):
@@ -188,7 +191,7 @@ class Inside(_Modify):
     l1|
       | l2
     """
-    def __call__(self, p1, p2, *args, **kwargs):
+    def __call__(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> List[euklid.vector.PolyLine2D]:
         p1_2 = p1*2-p2
         p2_2 = p1
-        return super(Inside, self).__call__(p1_2, p2_2, *args, **kwargs)
+        return super(Inside, self).__call__(p1_2, p2_2)

@@ -1,10 +1,13 @@
-from typing import TYPE_CHECKING, List
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Dict, List, Type
 import logging
 import math
 import numbers
 import re
 
 import euklid
+from openglider.utils.types import CurveType, SymmetricCurveType
 import pyfoil
 from openglider.glider.ballooning import BallooningBezier, BallooningBezierNeu
 from openglider.glider.parametric.arc import ArcCurve
@@ -31,14 +34,13 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-def import_ods_2d(Glider2D, filename) -> "ParametricGlider":
+def import_ods_2d(cls: Type[ParametricGlider], filename: str) -> ParametricGlider:
     logger.info(f"Import file: {filename}")
     tables = Table.load(filename)
 
-    return import_ods_glider(tables)
+    return import_ods_glider(cls, tables)
     
-def import_ods_glider(tables: List[Table]) -> "ParametricGlider":
-    from openglider.glider.parametric import ParametricGlider
+def import_ods_glider(cls: Type[ParametricGlider], tables: List[Table]) -> ParametricGlider:
     cell_sheet = tables[1]
     rib_sheet = tables[2]
 
@@ -139,7 +141,7 @@ def import_ods_glider(tables: List[Table]) -> "ParametricGlider":
     glider_tables.attachment_points_rib = AttachmentPointTable(rib_sheet)
     glider_tables.attachment_points_cell = CellAttachmentPointTable(cell_sheet)
     
-    glider_2d = ParametricGlider(tables=glider_tables,
+    glider_2d = cls(tables=glider_tables,
                          profiles=profiles,
                          balloonings=balloonings,
                          lineset=lineset,
@@ -154,7 +156,7 @@ def import_ods_glider(tables: List[Table]) -> "ParametricGlider":
     return glider_2d
 
 
-def get_geometry_explicit(sheet: Table):
+def get_geometry_explicit(sheet: Table) -> Dict[str, Any]:
     # All Lists
     front = []
     back = []
@@ -194,7 +196,7 @@ def get_geometry_explicit(sheet: Table):
 
         span_last = span
 
-    def symmetric_fit(data: List[List[float]], bspline=True):
+    def symmetric_fit(data: List[List[float]], bspline: bool=True) -> SymmetricCurveType:
         line = euklid.vector.PolyLine2D(data)
         #not_from_center = int(data[0][0] == 0)
         #mirrored = [[-p[0], p[1]] for p in data[not_from_center:]][::-1] + data
@@ -228,7 +230,7 @@ def get_geometry_explicit(sheet: Table):
     }
 
 
-def get_geometry_parametric(table: Table, cell_num):
+def get_geometry_parametric(table: Table, cell_num: int) -> Dict[str, Any]:
     data = {}
     curve_types = {
         "front": euklid.spline.SymmetricBSplineCurve,
@@ -273,8 +275,8 @@ def get_geometry_parametric(table: Table, cell_num):
         "ballooning_merge_curve": data["ballooning_merge_curve"]
     }
 
-def get_lower_aufhaengepunkte(data):
-    aufhaengepunkte = {}
+def get_lower_aufhaengepunkte(data: Dict[str, Any]) -> Dict[str, LowerNode2D]:
+    aufhaengepunkte: Dict[str, List[float]] = {}
 
     axis_to_index = {"X": 0, "Y": 1, "Z": 2}
     regex = re.compile("AHP([XYZ])(.*)")
@@ -294,11 +296,11 @@ def get_lower_aufhaengepunkte(data):
     for key in keys_to_remove:
         data.pop(key)
 
-    return {name: LowerNode2D([0, 0], euklid.vector.Vector3D(position), name)
+    return {name: LowerNode2D(euklid.vector.Vector2D([0, 0]), euklid.vector.Vector3D(position), name)
             for name, position in aufhaengepunkte.items()}
 
 
-def transpose_columns(sheet: Table, columnswidth=2):
+def transpose_columns(sheet: Table, columnswidth: int=2) -> List[Any]:
     num_columns = sheet.num_columns
     num_elems = num_columns // columnswidth
     # if num % columnswidth > 0:

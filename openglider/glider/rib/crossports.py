@@ -20,31 +20,31 @@ class RibHoleBase(BaseModel):
     name: str = "unnamed"
     margin: float=Field(default=0.04, kw_only=True)
 
-    def get_envelope_airfoil(self, rib: "Rib") -> openglider.airfoil.Profile2D:
+    def get_envelope_airfoil(self, rib: Rib) -> openglider.airfoil.Profile2D:
         return rib.get_offset_outline(self.margin)
     
     @cached_function("margin")
-    def get_envelope_boundaries(self, rib: "Rib"):
+    def get_envelope_boundaries(self, rib: Rib):
         envelope = self.get_envelope_airfoil(rib)
         x1 = envelope.get(0)[0]
         x2 = min([p[0] for p in envelope.curve.fix_errors()])
 
         return x1, x2
     
-    def align_contolpoints(self, controlpoints, rib: "Rib"):
+    def align_contolpoints(self, controlpoints, rib: Rib):
         return [self.get_envelope_airfoil(rib).align(cp) for cp in controlpoints]
 
-    def get_curves(self, rib: "Rib", num: int) -> List[euklid.vector.PolyLine2D]:
+    def get_curves(self, rib: Rib, num: int) -> List[euklid.vector.PolyLine2D]:
         raise NotImplementedError()
 
-    def get_centers(self, rib: "Rib", scale=False) -> List[euklid.vector.Vector2D]:
+    def get_centers(self, rib: Rib, scale=False) -> List[euklid.vector.Vector2D]:
         raise NotImplementedError()
     
-    def get_3d(self, rib: "Rib", num: int=20):
+    def get_3d(self, rib: Rib, num: int=20):
         hole = self.get_curves(rib, num=num)
         return [rib.align_all(c) for c in hole]
 
-    def get_flattened(self, rib: "Rib", num: int=80, scale=True):
+    def get_flattened(self, rib: Rib, num: int=80, scale=True):
         points = self.get_curves(rib, num)
         if scale:
             points = [l.scale(rib.chord) for l in points]
@@ -71,7 +71,7 @@ class RibHole(RibHoleBase):
             size = size[1]
         super().__init__(pos=pos, width=width, size=size, vertical_shift=vertical_shift, rotation=rotation, **kwargs)
 
-    def get_curves(self, rib: "Rib", num=80) -> List[euklid.vector.PolyLine2D]:
+    def get_curves(self, rib: Rib, num=80) -> List[euklid.vector.PolyLine2D]:
         lower = rib.profile_2d.get(self.pos)
         upper = rib.profile_2d.get(-self.pos)
 
@@ -86,7 +86,7 @@ class RibHole(RibHoleBase):
 
         return [circle.get_sequence(num)]
     
-    def get_centers(self, rib: "Rib", scale=False) -> List[euklid.vector.Vector2D]:
+    def get_centers(self, rib: Rib, scale=False) -> List[euklid.vector.Vector2D]:
         # TODO: remove and use a polygon.centerpoint
         lower = rib.profile_2d.get(self.pos)
         upper = rib.profile_2d.get(-self.pos)
@@ -105,10 +105,10 @@ class PolygonHole(RibHoleBase):
     class Config:
         arbitrary_types_allowed = True
 
-    def get_centers(self, rib: "Rib", scale=False) -> List[euklid.vector.Vector2D]:
+    def get_centers(self, rib: Rib, scale=False) -> List[euklid.vector.Vector2D]:
         return [sum(self.points, start=euklid.vector.Vector2D())/len(self.points)]
 
-    def get_curves(self, rib: "Rib", num=80) -> List[euklid.vector.PolyLine2D]:
+    def get_curves(self, rib: Rib, num=80) -> List[euklid.vector.PolyLine2D]:
 
         segments = []
 
@@ -150,7 +150,7 @@ class RibSquareHole(RibHoleBase):
     height: float
     corner_size: float = 1
 
-    def get_centers(self, rib: "Rib", scale=False) -> List[euklid.vector.Vector2D]:
+    def get_centers(self, rib: Rib, scale=False) -> List[euklid.vector.Vector2D]:
         x1 = self.x - self.width/2
         x2 = self.x + self.width/2
 
@@ -218,14 +218,14 @@ class MultiSquareHole(RibHoleBase):
 
         return holes
     
-    def get_centers(self, rib: "Rib", scale: bool=False) -> List[euklid.vector.Vector2D]:
+    def get_centers(self, rib: Rib, scale: bool=False) -> List[euklid.vector.Vector2D]:
         holes = []
         for hole in self._get_holes():
             holes += hole.get_centers(rib, scale=scale)
         
         return holes
     
-    def get_curves(self, rib: "Rib", num: int=80) -> List[euklid.vector.PolyLine2D]:
+    def get_curves(self, rib: Rib, num: int=80) -> List[euklid.vector.PolyLine2D]:
         curves = []
         for hole in self._get_holes():
             curves += hole.get_curves(rib, num)
@@ -244,7 +244,7 @@ class AttachmentPointHole(RibHoleBase):
     corner_size: float = 1.
 
     @cached_function('self')
-    def _get_holes(self, rib: "Rib"):
+    def _get_holes(self, rib: Rib):
         envelope = self.get_envelope_airfoil(rib)
 
         p1 = envelope.align([self.start, -1])
@@ -277,14 +277,14 @@ class AttachmentPointHole(RibHoleBase):
         
         return holes
 
-    def get_curves(self, rib: "Rib", num: int=80) -> List[euklid.vector.PolyLine2D]:
+    def get_curves(self, rib: Rib, num: int=80) -> List[euklid.vector.PolyLine2D]:
         curves = []
         for hole in self._get_holes(rib):
             curves += hole.get_curves(rib, num)
         
         return curves
 
-    def get_centers(self, rib: "Rib", scale=False) -> List[euklid.vector.Vector2D]:
+    def get_centers(self, rib: Rib, scale=False) -> List[euklid.vector.Vector2D]:
         holes = []
         for hole in self._get_holes(rib):
             holes += hole.get_centers(rib)

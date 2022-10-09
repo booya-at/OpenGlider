@@ -1,5 +1,6 @@
 import logging
 import json
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Tuple, Type
 from openglider.glider.parametric.table.curve import CurveTable
 from openglider.glider.parametric.table.rigidfoil import CellRigidTable, RibRigidTable
 from openglider.glider.parametric.table.material import CellClothTable, RibClothTable, Material
@@ -10,10 +11,13 @@ from openglider.jsonify.migration.migration import Migration
 from openglider.glider.parametric.table.cell.cuts import CutTable
 from openglider.utils.table import Table
 
+if TYPE_CHECKING:
+    from openglider.jsonify.migration.migration import Migration
+
 logger = logging.getLogger(__name__)
 
 @Migration.add("0.0.9")
-def migrate_diagonals(cls, jsondata):
+def migrate_diagonals(cls: Type[Migration], jsondata: Any) -> Any:
     nodes = cls.find_nodes(jsondata, name=r"ParametricGlider")
     if not nodes:
         return jsondata
@@ -72,7 +76,7 @@ def migrate_diagonals(cls, jsondata):
         
     return jsondata
 
-def get_cell_rigidfoil_table(rigidfoils):
+def get_cell_rigidfoil_table(rigidfoils: List[Dict[str, Any]]) -> CellRigidTable:
     table = Table()
     rigidfoils.sort(key=lambda r: r["x_start"])
     for rigidfoil in rigidfoils:
@@ -89,7 +93,7 @@ def get_cell_rigidfoil_table(rigidfoils):
     return CellRigidTable(table)
 
 
-def get_rib_rigidfoil_table(rigidfoils):
+def get_rib_rigidfoil_table(rigidfoils: List[Dict[str, Any]]) -> RibRigidTable:
     table = Table()
 
     rigidfoils.sort(key=lambda r: r["start"])
@@ -107,7 +111,7 @@ def get_rib_rigidfoil_table(rigidfoils):
     return RibRigidTable(table)
 
 
-def get_materials_table(materials, _cls):
+def get_materials_table(materials: List[List[Dict[str, Any]]], _cls: Any) -> Any:
     # Material
     material_table = Table()
     for cell_no, cell in enumerate(materials):
@@ -123,9 +127,9 @@ def get_materials_table(materials, _cls):
     
     return _cls(material_table)
 
-def get_cuts_table(cuts):
+def get_cuts_table(cuts: List[Dict[str, Any]]) -> CutTable:
     cuts_table = Table()
-    cuts_per_cell = []
+    cuts_per_cell: List[List[Tuple[float, float, str]]] = []
 
     cell_num = 0
     for cut in cuts:
@@ -133,7 +137,7 @@ def get_cuts_table(cuts):
 
 
     for cell_no in range(cell_num):
-        cuts_this = []
+        cuts_this: List[Tuple[float, float, str]] = []
         for cut in cuts:
             if cell_no in cut["cells"]:
                 cuts_this.append((cut["left"], cut["right"], cut["type"]))
@@ -141,14 +145,16 @@ def get_cuts_table(cuts):
         cuts_this.sort(key=lambda x: sum(x[:2]))
         cuts_per_cell.append(cuts_this)
 
-    def find_next(cut, cell_no):
+    def find_next(cut: Tuple[float, float, str], cell_no: int) -> Tuple[float, float, str] | None:
         cuts_this = cuts_per_cell[cell_no]
         for new_cut in cuts_this:
             if cut[1] == new_cut[0] and new_cut[2] == cut[2]:
                 cuts_this.remove(new_cut)
                 return new_cut
+        
+        return None
 
-    def add_column(cell_no):
+    def add_column(cell_no: int) -> Table | Literal[False]:
         cuts_this = cuts_per_cell[cell_no]
         if not cuts_this:
             return False
@@ -156,7 +162,7 @@ def get_cuts_table(cuts):
         cut = cuts_this[0]
         column = Table()
         column[0, 0] = cut[2]
-        column.insert_row(cut[:2], cell_no+1)
+        column.insert_row(list(cut[:2]), cell_no+1)
         cuts_this.remove(cut)
 
 
@@ -164,7 +170,7 @@ def get_cuts_table(cuts):
             cut_next = find_next(cut, cell_no_temp)
             if not cut_next:
                 continue
-            column.insert_row(cut_next[:2], cell_no_temp+1)
+            column.insert_row(list(cut_next[:2]), cell_no_temp+1)
             cut = cut_next
 
         cuts_table.append_right(column)

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Dict, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
 
 import ast
 import logging
@@ -7,12 +7,16 @@ import re
 
 import euklid
 from openglider.glider.cell.attachment_point import CellAttachmentPoint
+from openglider.glider.cell.cell import Cell
+from openglider.glider.curve import GliderCurveType
 from openglider.glider.parametric.table.elements import CellTable, Keyword, RibTable
 from openglider.glider.rib.attachment_point import AttachmentPoint
+from openglider.glider.rib.rib import Rib
 from openglider.utils.table import Table
 
 if TYPE_CHECKING:
     from openglider.glider.glider import Glider
+    from openglider.glider.parametric.glider import ParametricGlider
 
 logger = logging.getLogger(__name__)
 
@@ -25,13 +29,13 @@ class AttachmentPointTable(RibTable):
         "ATPPROTO": Keyword([("name", str), ("pos", float), ("force", Union[float, str]), ("proto_distance", float)], target_cls=AttachmentPoint)
     }
 
-    def get_element(self, row, keyword, data, curves={}, rib=None, **kwargs) -> AttachmentPoint:
+    def get_element(self, row: int, keyword: str, data: List[Any], curves: Dict[str, GliderCurveType]={}, rib: Rib=None, **kwargs: Any) -> AttachmentPoint:
         # rib_no, rib_pos, cell_pos, force, name, is_cell
         force = data[2]
 
         if isinstance(force, str):
             force = euklid.vector.Vector3D(ast.literal_eval(force))
-        else:
+        elif rib is not None:
             force = AttachmentPoint.calculate_force_rib_aligned(rib, force)
 
         rib_pos = data[1]
@@ -46,7 +50,7 @@ class AttachmentPointTable(RibTable):
         
         return node
     
-    def apply_forces(self, forces: Dict[str, euklid.vector.Vector3D]):
+    def apply_forces(self, forces: Dict[str, euklid.vector.Vector3D]) -> None:
         new_table = Table()
 
         for keyword_name, keyword in self.keywords.items():
@@ -65,7 +69,7 @@ class AttachmentPointTable(RibTable):
         self.table = new_table
     
     @classmethod
-    def from_glider(cls, glider: Glider):
+    def from_glider(cls, glider: Glider) -> ParametricGlider:
         raise NotImplementedError()
         table = Table()
 
@@ -97,12 +101,12 @@ class CellAttachmentPointTable(CellTable):
         "ATPDIFF": Keyword([("name", str), ("cell_pos", float), ("rib_pos", float), ("force", Union[float, str]), ("offset", float)], target_cls=CellAttachmentPoint)
     }
 
-    def get_element(self, row, keyword, data, curves={}, cell=None, **kwargs) -> CellAttachmentPoint:
+    def get_element(self, row: int, keyword: str, data: List[Any], curves: Dict[str, GliderCurveType]={}, cell: Cell=None, **kwargs: Any) -> CellAttachmentPoint:
         force = data[3]
 
         if isinstance(force, str):
             force = euklid.vector.Vector3D(ast.literal_eval(force))
-        else:
+        elif cell is not None:
             force = CellAttachmentPoint.calculate_force_cell_aligned(cell, force)
 
 
@@ -117,5 +121,5 @@ class CellAttachmentPointTable(CellTable):
 
         return node
 
-    def from_glider(self, glider: Glider):
+    def from_glider(self, glider: Glider) -> CellAttachmentPointTable:
         raise NotImplementedError()

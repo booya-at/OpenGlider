@@ -1,5 +1,6 @@
 import io
 import logging
+from typing import Any, Dict, List
 
 from openglider.glider.parametric.table.attachment_points import AttachmentPointTable, CellAttachmentPointTable
 from openglider.glider.parametric.table.cell.ballooning import BallooningTable
@@ -36,7 +37,7 @@ class GliderTables:
     attachment_points_rib: AttachmentPointTable
     attachment_points_cell: CellAttachmentPointTable
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         used_names = []
 
         for name, _cls in self.__annotations__.items():
@@ -53,7 +54,7 @@ class GliderTables:
                 logger.warning(f"unused table/element kwarg: {name}")
         
     
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         dct = {}
         for name in self.__annotations__:
             dct[name] = getattr(self, name)
@@ -61,7 +62,7 @@ class GliderTables:
         return dct
     
     @classmethod
-    def describe(cls):
+    def describe(cls) -> str:
         text = "# glider tables\n\n"
         for table_type in TableType:
             text += f"## {table_type.value}\n\n"
@@ -114,7 +115,7 @@ class GliderTables:
 
         return table
     
-    def get_all_tables(self):
+    def get_all_tables(self) -> List[Table]:
         tables = []
 
         for name in self.__annotations__.keys():

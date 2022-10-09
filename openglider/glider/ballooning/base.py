@@ -1,4 +1,6 @@
-import copy
+from __future__ import annotations
+
+from abc import ABC
 import math
 
 import numpy as np
@@ -34,7 +36,7 @@ class ArcSinc:
         self.interpolate(numpoints)
 
 
-class BallooningBase():
+class BallooningBase(ABC):
     arcsinc = ArcSinc()
 
     def draw(self) -> euklid.vector.PolyLine2D:
@@ -66,6 +68,12 @@ class BallooningBase():
         return self.get_phi(xval)
 
     def __getitem__(self, xval: float):
+        raise NotImplementedError()
+    
+    def __add__(self, other: BallooningBase):
+        raise NotImplementedError()
+    
+    def __mul__(self, factor: float):
         raise NotImplementedError()
 
     def get_phi(self, xval: float) -> float:

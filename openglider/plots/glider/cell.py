@@ -464,7 +464,7 @@ class PanelPlot:
                             p1 = left
                             p2 = right
                             # text_align = text_align
-                        plotpart.layers["text"] += Text(" {} ".format(attachment_point.name), p1, p2,
+                        plotpart.layers["text"] += Text(" {} ".format(cell_attachment_point.name), p1, p2,
                                                         size=0.01,  # 1cm
                                                         align=text_align, valign=0, height=0.8).get_vectors()
     

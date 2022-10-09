@@ -75,13 +75,18 @@ def dataclass(_cls) -> Type[OGDataclassT]:
     return _cls_new
 
 class BaseModel(pydantic.BaseModel):
+    _cache: Dict[str, Any] = {}
+
     class Config:
         arbitrary_types_allowed = True
         keep_untouched = (CachedProperty, CachedFunction)
         extra = "allow"
+        
+    def __eq__(self, other: Any) -> bool:
+        return other.__class__ == self.__class__ and self.__dict__ == other.__dict__
 
     def __json__(self):
-        return self.json()
+        return self.dict()
     
     def __hash__(self):
-        return hash_list(tuple(self.__dict__.values()))
+        return hash_list(self.dict().values())

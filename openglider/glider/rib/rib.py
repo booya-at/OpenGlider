@@ -6,7 +6,6 @@ import logging
 
 import euklid
 import pyfoil
-from openglider import airfoil
 
 from openglider.airfoil import Profile3D
 from openglider.glider.rib.attachment_point import AttachmentPoint

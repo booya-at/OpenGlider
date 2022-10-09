@@ -60,7 +60,7 @@ class Glider(object):
                 }
 
     @classmethod
-    def __from_json__(cls, cells: List[Dict[str, Any]], ribs: List[Rib], lineset: LineSet):
+    def __from_json__(cls, cells: List[Dict[str, Any]], ribs: List[Rib], lineset: LineSet) -> Glider:
         cells_new = []
         for cell in cells:
             cell.update({
@@ -156,10 +156,12 @@ class Glider(object):
                     (i + 1) * numpoints + kplus,
                     (i + 1) * numpoints + k
                 ])
+        
+        ribs_flat = [p for rib in ribs for p in rib]
 
-        return Mesh.from_indexed(np.concatenate(ribs), {"hull": polygons}, boundary)
+        return Mesh.from_indexed(ribs_flat, {"hull": polygons}, boundary)
 
-    def return_ribs(self, num_midribs: int=0, ballooning: bool=True):
+    def return_ribs(self, num_midribs: int=0, ballooning: bool=True) -> List[List[euklid.vector.Vector3D]]:
         """
         Get a list of rib-curves
         :param num: number of midribs per cell
@@ -329,7 +331,7 @@ class Glider(object):
         # return consistent_value(self.ribs, 'profile_2d.x_values')
 
     @profile_x_values.setter
-    def profile_x_values(self, xvalues: List[float]):
+    def profile_x_values(self, xvalues: List[float]) -> None:
         for rib in self.ribs:
             rib.profile_2d = rib.profile_2d.set_x_values(xvalues)
 

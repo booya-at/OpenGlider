@@ -1,9 +1,10 @@
-import imp
+from __future__ import annotations
+
 import os
 import re
 import datetime
 import logging
-from typing import List, Tuple
+from typing import Any, List, Tuple, Dict
 
 from openglider.glider.glider import Glider
 from openglider.glider.parametric import ParametricGlider
@@ -26,7 +27,7 @@ class GliderProject:
 
     _regex_revision_no = re.compile(r"(.*)_rev([0-9]*)$")
 
-    def __post_init_post_parse__(self):
+    def __post_init_post_parse__(self) -> None:
         if not self.name:
             if self.filename is not None:
                 self.name = os.path.split(self.filename)[1]
@@ -38,12 +39,12 @@ class GliderProject:
             self.glider_3d = self.glider.get_glider_3d()
 
         if len(self.changelog) < 1:
-            self.changelog.append([
+            self.changelog.append((
                 datetime.datetime.now(), "loaded", "no changelog data available"
-            ])
+            ))
     
     @classmethod
-    def __from_json__(cls, **kwargs):
+    def __from_json__(cls, **kwargs: Any) -> GliderProject:
         changelog = kwargs.get("changelog", [])
         changelog_new = []
         for dt_str, value1, value2 in changelog:
@@ -60,10 +61,10 @@ class GliderProject:
 
     
     @property
-    def modified(self):
+    def modified(self) -> datetime.datetime:
         return self.changelog[-1][0]
 
-    def increase_revision_nr(self):
+    def increase_revision_nr(self) -> str:
         match = self._regex_revision_no.match(self.name)
 
         if match:
@@ -79,7 +80,7 @@ class GliderProject:
 
         return self.name
 
-    def get_data_table(self):
+    def get_data_table(self) -> openglider.utils.table.Table:
         table = openglider.utils.table.Table(name="glider specs")
         table["A1"] = "Name"
         table["B1"] = f"{self.name}"
@@ -127,7 +128,7 @@ class GliderProject:
 
         return table
 
-    def as_markdown(self):
+    def as_markdown(self) -> str:
         tables = get_split_tables(self)
         data = f"# {self.name}"
 
@@ -141,7 +142,7 @@ class GliderProject:
         return data
 
 
-    def save(self, filename):
+    def save(self, filename: str) -> None:
         if filename.endswith(".ods"):
             export_ods_project(self, filename)
         elif filename.endswith(".json"):
@@ -151,7 +152,7 @@ class GliderProject:
         
         self.filename = filename
 
-    def copy(self) -> "GliderProject":
+    def copy(self) -> GliderProject:
         new_glider = self.glider.copy()
         new_glider_3d = self.glider_3d.copy()
         new = GliderProject(new_glider, new_glider_3d)
@@ -160,7 +161,7 @@ class GliderProject:
         return new
 
     @classmethod
-    def import_ods(cls, path) -> "GliderProject":
+    def import_ods(cls, path: str) -> GliderProject:
         tables = openglider.utils.table.Table.load(path)
         changelog = []
         
@@ -175,23 +176,23 @@ class GliderProject:
                         dt, changelog_table[row, 1], changelog_table[row, 2]
                     ))
 
-        glider_2d = import_ods_glider(tables)
+        glider_2d = import_ods_glider(ParametricGlider, tables)
 
         filename = os.path.split(path)[-1]
         name, ext = os.path.splitext(filename)
         return cls(glider_2d, name=name, changelog=changelog)
     
     @classmethod
-    def import_freecad(cls, path):
+    def import_freecad(cls, path: str) -> GliderProject:
         glider_2d = import_freecad(path)
         filename = os.path.split(path)[-1]
         name, ext = os.path.splitext(filename)
         return cls(glider_2d, name=name)
 
-    def update_all(self):
+    def update_all(self) -> None:
         self.glider.get_glider_3d(self.glider_3d)
 
-    def get_data(self):
+    def get_data(self) -> Dict[str, float]:
         area = self.glider_3d.area
         area_projected = self.glider_3d.projected_area
         return {

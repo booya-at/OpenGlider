@@ -1,16 +1,16 @@
+from __future__ import annotations
+
 import copy
 import logging
 import math
-from typing import List, Tuple, Optional
+from typing import TYPE_CHECKING, Dict, List, Tuple, Optional
 
 import euklid
 import openglider.materials
 import pyfoil
-from openglider.airfoil import Profile2D
 from openglider.glider.ballooning.base import BallooningBase
 from openglider.glider.ballooning.new import BallooningBezierNeu
-from openglider.glider.cell import Cell, DiagonalRib, Panel, PanelCut, TensionLine, TensionStrap
-from openglider.glider.cell.rigidfoil import PanelRigidFoil
+from openglider.glider.cell import Cell, Panel, PanelCut
 from openglider.glider.glider import Glider
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.export_ods import export_ods_2d
@@ -19,13 +19,15 @@ from openglider.glider.parametric.import_ods import import_ods_2d
 from openglider.glider.parametric.lines import LineSet2D, UpperNode2D
 from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.parametric.table import GliderTables
-from openglider.glider.parametric.table.curve import CurveTable
-from openglider.glider.rib import MiniRib, Rib, SingleSkinRib
+from openglider.glider.rib import Rib, SingleSkinRib
 from openglider.utils import ZipCmp, linspace
-from openglider.utils.dataclass import BaseModel, dataclass, Field
+from openglider.utils.dataclass import dataclass, Field, BaseModel
 from openglider.utils.distribution import Distribution
 from openglider.utils.table import Table
 from openglider.utils.types import CurveType, SymmetricCurveType
+
+if TYPE_CHECKING:
+    from openglider.glider.curve import GliderCurveType
 
 logger = logging.getLogger(__name__)
 
@@ -51,16 +53,13 @@ class ParametricGlider:
     num_interpolate: int=30
     num_profile: Optional[int]=None
 
-    def test(self) -> int:
-        return len(self.ballooning_merge_curve.controlpoints.nodes)
-
     @classmethod
-    def import_ods(cls, path):
+    def import_ods(cls, path: str) -> ParametricGlider:
         return import_ods_2d(cls, path)
 
     export_ods = export_ods_2d
 
-    def copy(self):
+    def copy(self) -> ParametricGlider:
         return copy.deepcopy(self)
 
     def get_geomentry_table(self) -> Table:
@@ -98,14 +97,7 @@ class ParametricGlider:
         """
         return self.arc.get_rib_angles(self.shape.rib_x_values)
 
-    @property
-    def attachment_points(self) -> List[UpperNode2D]:
-        """coordinates of the attachment_points"""
-        return [a_p.get_2D(self.shape)
-                for a_p in self.lineset.nodes
-                if isinstance(a_p, UpperNode2D)]
-
-    def merge_ballooning(self, factor, multiplier) -> BallooningBase:
+    def merge_ballooning(self, factor: float, multiplier: float) -> BallooningBase:
         factor = max(0, min(len(self.balloonings)-1, factor))
         k = factor % 1
         i = int(factor // 1)
@@ -118,7 +110,7 @@ class ParametricGlider:
         
         return result * multiplier
 
-    def get_merge_profile(self, factor) -> pyfoil.Airfoil:
+    def get_merge_profile(self, factor: float) -> pyfoil.Airfoil:
         factor = max(0, min(len(self.profiles)-1, factor))
         k = factor % 1
         i = int(factor // 1)
@@ -131,20 +123,16 @@ class ParametricGlider:
             airfoil = first.copy()
         return airfoil
 
-    def get_curves(self) -> dict:
+    def get_curves(self) -> Dict[str, GliderCurveType]:
         return self.tables.curves.get_curves(self.shape.get_half_shape())
 
-    def get_panels(self, glider_3d=None) -> List[List[Panel]]:
+    def get_panels(self, glider_3d: Optional[Glider]=None) -> List[List[Panel]]:
         """
         Create Panels Objects and apply on gliders cells if provided, otherwise create a list of panels
         :param glider_3d: (optional)
         :return: list of "cells"
         """
         curves = self.get_curves()
-        def is_greater(cut_1, cut_2):
-            if cut_1["left"] >= cut_2["left"] and cut_1["right"] >= cut_2["left"]:
-                return True
-            return False
 
         cells: List[List[Panel]]
 
@@ -220,10 +208,10 @@ class ParametricGlider:
                 strap.name = "c{}{}{}".format(cell_no+1, "s", strap_no)
 
     @classmethod
-    def fit_glider_3d(cls, glider: Glider, numpoints=3) -> "ParametricGlider":
+    def fit_glider_3d(cls, glider: Glider, numpoints: int=3) -> ParametricGlider:
         return fit_glider_3d(cls, glider, numpoints)
 
-    def get_aoa(self, interpolation_num=None) -> List[float]:
+    def get_aoa(self, interpolation_num: Optional[int]=None) -> List[float]:
         aoa_interpolation = euklid.vector.Interpolation(self.aoa.get_sequence(interpolation_num or self.num_interpolate).nodes)
 
         return [aoa_interpolation.get_value(abs(x)) for x in self.shape.rib_x_values]
@@ -273,7 +261,7 @@ class ParametricGlider:
             rib.chord = abs(front[1]-back[1])
             rib.arcang = rib_angles[rib_no]
 
-    def get_glider_3d(self, glider: Glider=None, num=50, num_profile=None) -> Glider:
+    def get_glider_3d(self, glider: Glider=None, num: int=50, num_profile: Optional[int]=None) -> Glider:
         """returns a new glider from parametric values"""
         glider = glider or Glider()
         ribs = []
@@ -451,13 +439,13 @@ class ParametricGlider:
 
         return euklid.vector.Vector3D([math.cos(angle), 0, math.sin(angle)]) * self.speed
 
-    def set_area(self, area) -> None:
+    def set_area(self, area: float) -> None:
         factor = math.sqrt(area/self.shape.area)
         self.shape.scale(factor)
         self.lineset.scale(factor, scale_lower_floor=False)
         self.rescale_curves()
 
-    def set_aspect_ratio(self, aspect_ratio, remain_area=True) -> float:
+    def set_aspect_ratio(self, aspect_ratio: float, remain_area: bool=True) -> float:
         ar0 = self.shape.aspect_ratio
         area0 = self.shape.area
 
@@ -475,10 +463,10 @@ class ParametricGlider:
     def rescale_curves(self) -> None:
         span = self.shape.span
 
-        def rescale(curve):
+        def rescale(curve: CurveType) -> None:
             span_orig = curve.controlpoints.nodes[-1][0]
             factor = span/span_orig
-            curve.controlpoints = curve.controlpoints.scale([factor, 1])
+            curve.controlpoints = curve.controlpoints.scale(euklid.vector.Vector2D([factor, 1.]))
 
         rescale(self.ballooning_merge_curve)
         rescale(self.profile_merge_curve)
@@ -486,12 +474,12 @@ class ParametricGlider:
         rescale(self.zrot)
         self.arc.rescale(self.shape.rib_x_values)
 
-    def get_line_bbox(self):
-        points = []
+    def get_line_bbox(self) -> Tuple[Tuple[float, float], Tuple[float, float]]:
+        points: List[euklid.vector.Vector2D] = []
         for point in self.lineset.nodes:
             points.append(point.get_2D(self.shape))
 
-        return [
-            [min([p[0] for p in points]), min([p[1] for p in points])],
-            [max([p[0] for p in points]), max([p[1] for p in points])],
-        ]
+        return (
+            (min([p[0] for p in points]), min([p[1] for p in points])),
+            (max([p[0] for p in points]), max([p[1] for p in points])),
+        )

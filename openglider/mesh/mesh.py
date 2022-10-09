@@ -254,7 +254,7 @@ class Mesh(object):
         return vertices, polys, boundaries
 
     @classmethod
-    def from_indexed(cls, vertices, polygons, boundaries=None, name=None, node_attributes=None):
+    def from_indexed(cls, vertices: List[euklid.vector.Vector3D], polygons: Dict[str, List[List[int]]], boundaries=None, name=None, node_attributes=None):
         vertices = [Vertex(*node) for node in vertices]
 
         if node_attributes is not None:

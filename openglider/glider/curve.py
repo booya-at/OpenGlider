@@ -1,3 +1,4 @@
+from abc import ABC
 from typing import Optional
 
 import euklid

@@ -1,42 +1,24 @@
+from __future__ import annotations
+
+import math
 import typing
 import numpy as np
-from numpy.linalg import norm
 import euklid
 import pyfoil
 
-from openglider.airfoil.profile_3d import Profile3D
-
 from openglider.glider.rib.rib import Rib
 from openglider.utils import linspace
-from openglider.utils.cache import cached_function, cached_property
+from openglider.utils.dataclass import Field
+from openglider.utils.cache import cached_function
 
 if typing.TYPE_CHECKING:
     from openglider.glider.glider import Glider
 
 class SingleSkinRib(Rib):
-    def __init__(self, profile_2d=None, startpoint=None,
-                 chord=1., arcang=0, aoa_absolute=0, zrot=0, xrot=0., glide=1,
-                 name="unnamed rib", pos=0.,
-                 rigidfoils=None, holes=None, material=None,
-                 startpos=0., attachment_points=None,
-                 single_skin_par=None, sharknose=None):
-        super(SingleSkinRib, self).__init__(profile_2d=profile_2d, 
-                                            startpoint=startpoint,
-                                            chord=chord,
-                                            arcang=arcang,
-                                            aoa_absolute=aoa_absolute,
-                                            zrot=zrot,
-                                            xrot=xrot,
-                                            glide=glide,
-                                            name=name,
-                                            pos=pos,
-                                            startpos=startpos,
-                                            rigidfoils=rigidfoils,
-                                            holes=holes,
-                                            attachment_points=attachment_points,
-                                            material=material,
-                                            sharknose=sharknose)
-        self.single_skin_par = {
+    single_skin_par: typing.Dict[str, typing.Any] = Field(default_factory=dict)
+    
+    def __init__(self, **kwargs: typing.Any):
+        single_skin_par = {
             "att_dist": 0.02,
             "height": 0.8,
             "continued_min": True,
@@ -51,10 +33,11 @@ class SingleSkinRib(Rib):
             "num_points": 30
         }
 
-        if single_skin_par:
-            self.single_skin_par.update(single_skin_par)
-            self.single_skin_par["num_points"] = 30
-            #print(self.single_skin_par)
+        single_skin_par_2 = kwargs.pop("single_skin_par", {})
+        single_skin_par.update(single_skin_par_2)
+        
+        kwargs["single_skin_par"] = single_skin_par
+        super().__init__(**kwargs)
 
         # we have to apply this function once for the profile2d
         # this will change the position of the attachmentpoints!
@@ -62,7 +45,7 @@ class SingleSkinRib(Rib):
         if self.single_skin_par['continued_min']: 
             self.apply_continued_min()
 
-    def apply_continued_min(self):
+    def apply_continued_min(self) -> None:
         self.profile_2d = self.profile_2d.move_nearest_point(self.single_skin_par['continued_min_end'])
         data = np.array(self.profile_2d.curve.tolist())
         x, y = data.T
@@ -79,7 +62,7 @@ class SingleSkinRib(Rib):
         self.profile_2d = pyfoil.Airfoil(data)
 
     @classmethod
-    def from_rib(cls, rib, single_skin_par):
+    def from_rib(cls, rib: Rib, single_skin_par: typing.Dict[str, typing.Any]) -> SingleSkinRib:
         json_dict = rib.__json__()
         if "xrot" in single_skin_par:
             json_dict["xrot"] = single_skin_par.pop("xrot")
@@ -87,7 +70,7 @@ class SingleSkinRib(Rib):
         single_skin_rib = cls(**json_dict)
         return single_skin_rib
 
-    def __json__(self):
+    def __json__(self) -> typing.Dict[str, typing.Any]:
         json_dict = super().__json__()
         json_dict["single_skin_par"] = self.single_skin_par
         return json_dict
@@ -147,27 +130,29 @@ class SingleSkinRib(Rib):
                 # parabola from 3 points
                 if self.single_skin_par["double_first"] and i == 0:
                     continue
-                x0 = np.array(profile.profilepoint(span[0]))
-                x1 = np.array(profile.profilepoint(span[1]))
-                x_mid = (x0 + x1)[0] / 2
-                height = abs(profile.profilepoint(-x_mid)[1] - 
-                             profile.profilepoint(x_mid)[1])
+
+                x_start = profile.profilepoint(span[0])
+                x_end = profile.profilepoint(span[1])
+
+                x_mid = (x_start + x_end)[0] / 2
+
+                height = (profile.profilepoint(-x_mid) - profile.profilepoint(x_mid)).length()
                 height *= self.single_skin_par["height"] # anything bewtween 0..1
-                y_mid = profile.profilepoint(x_mid)[1] + height
-                x_max = np.array([norm(x1 - x0) / 2, height])
+                
+                y_vec = euklid.vector.Rotation2D(math.pi/2).apply(x_end - x_start).normalized() * height
 
-                def foo(x, upper):
-                    if not upper and x[0] > x0[0] and x[0] < x1[0]:
-                        if self.single_skin_par["straight_te"] and i == len(span_list) - 1:
-                            return self.straight_line(x, x0, x1)
-                        else:
-                            return self.parabola(x, x0, x1, x_max)
-                    else:
+                def convert_point(x: euklid.vector.Vector2D, upper: bool) -> euklid.vector.Vector2D:
+                    if upper or x[0] < x_start[0] or x[0] > x_end[0]:
                         return x
-
+                    else:
+                        if self.single_skin_par["straight_te"] and i == len(span_list) - 1:
+                            # last span part (->trailing edge)
+                            return self.straight_line(x, x_start, x_end)
+                        else:
+                            return self.parabola(x, x_start, x_end, y_vec)
 
                 new_data = [
-                    foo(p, upper=index < profile.noseindex) for index, p in enumerate(profile.curve)
+                    convert_point(p, upper=index < profile.noseindex) for index, p in enumerate(profile.curve)
                 ]
 
                 profile = pyfoil.Airfoil(new_data)
@@ -175,21 +160,16 @@ class SingleSkinRib(Rib):
         return profile
 
     @staticmethod
-    def straight_line(x, x0, x1):
-        x_proj = (x - x0).dot(x1 - x0) / norm(x1 - x0)**2
-        return euklid.vector.Vector2D(list(x0 + (x1 - x0) * x_proj))
+    def straight_line(x: euklid.vector.Vector2D, x0: euklid.vector.Vector2D, x1: euklid.vector.Vector2D) -> euklid.vector.Vector2D:
+        x_proj = (x - x0).dot(x1 - x0) / (x1 - x0).length()**2
+        return x0 + (x1 - x0) * x_proj
 
     @staticmethod
-    def parabola(x, x0, x1, x_max):
-        """parabola used for singleskin ribs
-        x, x0, x1, x_max ... numpy 2d arrays
-        xmax = np.sqrt((x1 - x0)**2 + (y1 - y0)**2)"""
-        x_proj = (x - x0).dot(x1 - x0) / norm(x1 - x0)**2
-        x_proj = (x_proj - 0.5) * 2
-        y_proj = -x_proj **2
-        x = np.array([x_proj, y_proj]) * x_max
-        c = (x1 - x0)[0] / norm(x1 - x0)
-        s = (x1 - x0)[1] / norm(x1 - x0)
-        rot = np.array([[c, -s], [s, c]])
-        null = - x_max
-        return euklid.vector.Vector2D(list(rot.dot(x - null) + x0))
+    def parabola(x: euklid.vector.Vector2D, p_start: euklid.vector.Vector2D, p_end: euklid.vector.Vector2D, y_vector: euklid.vector.Vector2D) -> euklid.vector.Vector2D:
+        diff = p_end - p_start
+        x_proj = (x - p_start).dot(diff) / diff.dot(diff)  # [0,1]
+
+        x_proj_2 = (x_proj - 0.5) * 2  # [-1 -> 0 -> 1]
+        y_proj = (-x_proj_2) **2  # [1 -> 0 -> 1]
+
+        return p_start + diff * x_proj + y_vector * (1-y_proj)

@@ -4,6 +4,7 @@ from typing import List
 
 import euklid
 import numpy as np
+from openglider.utils.types import SymmetricCurveType
 from openglider.vector.polygon import CirclePart
 
 
@@ -13,7 +14,7 @@ class ArcCurve(object):
     """
     num_interpolation_points = 100
 
-    def __init__(self, curve: euklid.spline.SymmetricBSplineCurve):
+    def __init__(self, curve: SymmetricCurveType):
         self.curve = curve
 
     def __json__(self):
