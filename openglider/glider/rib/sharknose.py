@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import typing
 import euklid
 
@@ -24,7 +26,7 @@ class Sharknose:
     rigidfoil_circle_radius: float = 0.05
     rigidfoil_circle_amount: float = 0.4
 
-    def get_modified_airfoil(self, rib: "Rib"):
+    def get_modified_airfoil(self, rib: Rib) -> openglider.airfoil.Profile2D:
         data = []
 
         ik_start = rib.profile_2d.get_ik(self.start)
@@ -39,7 +41,7 @@ class Sharknose:
         point_position[1] = point_position[1] + (point_start[1]-point_position[1])*self.amount
 
         tangents = euklid.vector.PolyLine2D(rib.profile_2d.curve.get_tangents())
-        def get_tangent(ik, from_point, to_point, amount):
+        def get_tangent(ik: float, from_point: euklid.vector.Vector2D, to_point: euklid.vector.Vector2D, amount: float) -> euklid.vector.Vector2D:
             #ik -= 0.5
             #ik = max(ik, 0)
             #ik = min(ik, len(tangents)-1)

@@ -8,7 +8,7 @@ import euklid
 import numpy as np
 from openglider.airfoil import get_x_value
 from openglider.glider.cell.cell import FlattenedCell
-from openglider.glider.cell.panel import Panel, PanelCut
+from openglider.glider.cell.panel import Panel, PANELCUT_TYPES
 from openglider.glider.cell.diagonals import DiagonalRib
 from openglider.plots.config import PatternConfig
 from openglider.plots.cuts import Cut
@@ -51,7 +51,7 @@ class PanelPlot:
     def flatten(self) -> PlotPart:
         plotpart = PlotPart(material_code=str(self.panel.material), name=self.panel.name)
 
-        _cut_types = PanelCut.CUT_TYPES
+        _cut_types = PANELCUT_TYPES
 
         cut_allowances = {
             _cut_types.folded: self.config.allowance_entry_open,
@@ -62,7 +62,7 @@ class PanelPlot:
             _cut_types.round: self.config.allowance_design
         }
 
-        cut_types: Dict[PanelCut.CUT_TYPES, Type[Cut]] = {
+        cut_types: Dict[PANELCUT_TYPES, Type[Cut]] = {
             _cut_types.folded: self.config.cut_entry,
             _cut_types.parallel: self.config.cut_trailing_edge,
             _cut_types.orthogonal: self.config.cut_design,

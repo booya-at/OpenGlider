@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 
@@ -9,7 +9,7 @@ from openglider.lines.line import Line
 logger = logging.getLogger(__name__)
 
 class SagMatrix():
-    def __init__(self, number_of_lines):
+    def __init__(self, number_of_lines: int):
         size = number_of_lines * 2
         self.matrix = np.zeros([size, size])
         self.rhs = np.zeros(size)
@@ -65,11 +65,12 @@ class SagMatrix():
         self.rhs[2 * i] = line.ortho_pressure * \
             line.length_projected ** 2 / line.force_projected / 2
 
-    def solve_system(self):
+    def solve_system(self) -> None:
         self.solution = np.linalg.solve(self.matrix, self.rhs)
 
-    def get_sag_parameters(self, line_nr: int):
-        return [
+    def get_sag_parameters(self, line_nr: int) -> Tuple[float, float]:
+        return (
             self.solution[line_nr * 2],
-            self.solution[line_nr * 2 + 1]]
+            self.solution[line_nr * 2 + 1]
+            )
 

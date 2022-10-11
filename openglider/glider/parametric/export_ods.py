@@ -8,10 +8,12 @@ from typing import TYPE_CHECKING, List
 import euklid
 import ezodf
 import openglider.glider
+from openglider.glider.ballooning.old import Ballooning, BallooningBezier
 import openglider.glider.parametric.glider
 from openglider.glider.ballooning import BallooningBezierNeu
 from openglider.glider.rib import attachment_point
 from openglider.utils.table import Table
+from openglider.utils.types import CurveType
 
 if TYPE_CHECKING:
     from openglider.glider.parametric import ParametricGlider
@@ -19,7 +21,7 @@ if TYPE_CHECKING:
 
 file_version = "V4"
 
-def export_ods_project(glider: "GliderProject", filename):
+def export_ods_project(glider: GliderProject, filename: str) -> None:
     
     doc = ezodf.newdoc(doctype="ods")
 
@@ -29,7 +31,7 @@ def export_ods_project(glider: "GliderProject", filename):
     doc.saveas(filename)
 
 
-def get_split_tables(project: "GliderProject") -> List[Table]:
+def get_split_tables(project: GliderProject) -> List[Table]:
     tables = []
     tables.append(get_changelog_table(project))
     tables.append(get_parametric_sheet(project.glider))
@@ -44,7 +46,7 @@ def get_split_tables(project: "GliderProject") -> List[Table]:
     return tables
 
 
-def get_project_tables(project: "GliderProject") -> List[Table]:
+def get_project_tables(project: GliderProject) -> List[Table]:
     tables = get_glider_tables(project.glider)
     changelog_table = get_changelog_table(project)
 
@@ -52,7 +54,7 @@ def get_project_tables(project: "GliderProject") -> List[Table]:
 
     return tables
 
-def get_changelog_table(project: "GliderProject") -> Table:
+def get_changelog_table(project: GliderProject) -> Table:
     changelog_table = Table(name="Changelog")
     changelog_table["A1"] = "Date/Time"
     changelog_table["B1"] = "Modification"
@@ -93,13 +95,13 @@ def get_glider_tables(glider: ParametricGlider) -> List[Table]:
     return tables
 
 
-def export_ods_2d(glider: ParametricGlider, filename: str):
+def export_ods_2d(glider: ParametricGlider, filename: str) -> None:
     # airfoil sheet
     tables = get_glider_tables(glider)
     Table.save_tables(tables, filename)
 
 
-def get_airfoil_sheet(glider_2d) -> Table:
+def get_airfoil_sheet(glider_2d: ParametricGlider) -> Table:
     profiles = glider_2d.profiles
     table = Table(name="Airfoils")
 
@@ -152,7 +154,7 @@ def get_geom_sheet(glider_2d: ParametricGlider) -> Table:
     table[0, 8] = "profile-merge"
     table[0, 9] = "ballooning-merge"
 
-    def interpolation(curve):
+    def interpolation(curve: CurveType) -> euklid.vector.Interpolation:
         return euklid.vector.Interpolation(curve.get_sequence(100).nodes)
 
     aoa_int = interpolation(glider_2d.aoa)
@@ -173,7 +175,7 @@ def get_geom_sheet(glider_2d: ParametricGlider) -> Table:
     return table
 
 
-def get_ballooning_sheet(glider_2d) -> Table:
+def get_ballooning_sheet(glider_2d: ParametricGlider) -> Table:
     balloonings = glider_2d.balloonings
     table = Table(name="Balloonings")
     #row_num = max([len(b.upper_spline.controlpoints)+len(b.lower_spline.controlpoints) for b in balloonings])+1
@@ -183,12 +185,14 @@ def get_ballooning_sheet(glider_2d) -> Table:
         
         #sheet.append_columns(2)
         table[0, 2*ballooning_no] = "ballooning_{}".format(ballooning_no)
-        if type(ballooning) is BallooningBezierNeu:
+        if isinstance(ballooning, BallooningBezierNeu):
             table[0, 2*ballooning_no+1] = "V3"
             pts = list(ballooning.controlpoints)
-        else:
+        elif isinstance(ballooning, BallooningBezier):
             table[0, 2*ballooning_no+1] = "V2"
             pts = list(ballooning.upper_spline.controlpoints) + list(ballooning.lower_spline.controlpoints)
+        else:
+            raise ValueError("Wrong ballooning type")
 
         for i, point in enumerate(pts):
             table[i+1, 2*ballooning_no] = point[0]
@@ -199,7 +203,7 @@ def get_ballooning_sheet(glider_2d) -> Table:
 def get_parametric_sheet(glider : ParametricGlider) -> Table:
     table = Table(name="Parametric")
 
-    def add_curve(name, curve, column_no):
+    def add_curve(name: str, curve: CurveType, column_no: int) -> None:
         #sheet.append_columns(2)
         table[0, column_no] = name
         table[0, column_no+1] = type(curve).__name__
@@ -219,13 +223,13 @@ def get_parametric_sheet(glider : ParametricGlider) -> Table:
     return table
 
 
-def get_lines_sheet(glider: ParametricGlider, places=3) -> Table:
+def get_lines_sheet(glider: ParametricGlider, places: int=3) -> Table:
     table = glider.lineset.get_input_table()
     table.name = "Lines"
     
     return table
 
-def get_data_sheet(glider) -> Table:
+def get_data_sheet(glider: ParametricGlider) -> Table:
     table = Table(name="Data")
     table[0,0] = "Data"
 

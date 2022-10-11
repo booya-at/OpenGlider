@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import absolute_import
-from typing import List, Optional, Tuple
+import euklid
+from typing import Iterator, List, Optional, Tuple
 from meshpy.triangle import MeshInfo
 
 try:
@@ -12,19 +13,23 @@ except ImportError:
     # new API (pybind11)
 
 
-class Triangle(list):
+class Triangle():
     attributes: dict
+    nodes: Tuple[int, int, int]
 
-    def __init__(self, lst: list[int], name: str=""):
-        super().__init__(lst)
+    def __init__(self, lst: Tuple[int, int, int], name: str=""):
+        self.nodes = lst
         self.attributes = {
             "name": name
         }
+    
+    def __iter__(self) -> Iterator[int]:
+        return self.nodes.__iter__()
 
 
 class TriMesh:
     def __init__(self, mesh_info: MeshInfo, name: str=""):
-        self.points = list(mesh_info.points)
+        self.points = [euklid.vector.Vector2D(p) for p in mesh_info.points]
 
         self.elements = [
             Triangle(v, name) for v in mesh_info.elements

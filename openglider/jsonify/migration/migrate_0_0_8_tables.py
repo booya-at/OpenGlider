@@ -1,6 +1,7 @@
 import logging
 import json
 import copy
+from typing import Any, Dict, List, Literal
 
 from openglider.jsonify.encoder import Encoder
 from openglider.jsonify.migration.migration import Migration
@@ -12,7 +13,7 @@ from openglider.utils.table import Table
 logger = logging.getLogger(__name__)
 
 @Migration.add("0.0.8")
-def migrate_diagonals(cls, jsondata):
+def migrate_diagonals(cls: Migration, jsondata: Any) -> Any:
     nodes = cls.find_nodes(jsondata, name=r"ParametricGlider")
     if not nodes:
         return jsondata
@@ -54,7 +55,7 @@ def migrate_diagonals(cls, jsondata):
 
 
 
-def get_hole_table(holes):
+def get_hole_table(holes: List[Any]) -> HolesTable:
     table = Table()
 
     for hole in holes:
@@ -73,8 +74,8 @@ def get_hole_table(holes):
 
 
 
-def get_diagonals_table(diagonals):
-    from openglider.glider.cell.rigidfoil import DiagonalRib
+def get_diagonals_table(diagonals: List[Any]) -> DiagonalTable:
+    from openglider.glider.cell.diagonals import DiagonalRib
 
 
     table = Table()
@@ -104,21 +105,21 @@ def get_diagonals_table(diagonals):
             for cell_no in cells:
                 # center_left, center_right, width_left, width_right, height_left, height_right
 
-                diagonal_table[cell_no+1, 0] = _diagonal.center_left
-                diagonal_table[cell_no+1, 1] = _diagonal.center_right
-                diagonal_table[cell_no+1, 2] = _diagonal.width_left
-                diagonal_table[cell_no+1, 3] = _diagonal.width_right
-                diagonal_table[cell_no+1, 4] = _diagonal.left_front[1]
-                diagonal_table[cell_no+1, 5] = _diagonal.right_front[1]
+                diagonal_table[cell_no+1, 0] = _diagonal.left.center
+                diagonal_table[cell_no+1, 1] = _diagonal.right.center
+                diagonal_table[cell_no+1, 2] = _diagonal.left.width
+                diagonal_table[cell_no+1, 3] = _diagonal.right.width
+                diagonal_table[cell_no+1, 4] = _diagonal.left.start_height
+                diagonal_table[cell_no+1, 5] = _diagonal.right.start_height
 
         table.append_right(diagonal_table)
 
     return DiagonalTable(table)
 
-def get_straps_table(straps, simple=False):
+def get_straps_table(straps: List[Any], simple: bool=False) -> StrapTable:
     table = Table()
     cell_num = max([max(strap["cells"]) for strap in straps], default=0)
-    straps_per_cell = []
+    straps_per_cell: List[List[List[float]]] = []
 
     for _i in range(cell_num+1):
         straps_per_cell.append([])
@@ -136,14 +137,14 @@ def get_straps_table(straps, simple=False):
     for cell_straps in straps_per_cell:
         cell_straps.sort(key=lambda x: sum(x[:2]))
         
-    def find_next_strap(strap, cell_no):
+    def find_next_strap(strap: Any, cell_no: int) -> Any:
         straps_this = straps_per_cell[cell_no]
         for new_strap in straps_this:
             if strap[1] == new_strap[0]:
                 straps_this.remove(new_strap)
                 return new_strap
 
-    def add_column(cell_no):
+    def add_column(cell_no: int) -> Table | Literal[False]:
         straps_this = straps_per_cell[cell_no]
 
         #print("jo", cell_no, straps_this)

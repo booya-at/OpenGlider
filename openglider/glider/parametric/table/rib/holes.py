@@ -1,3 +1,6 @@
+from typing import Any, Dict, List
+from openglider.glider import curve
+from openglider.glider.curve import GliderCurveType
 from openglider.glider.parametric.table.elements import RibTable, Keyword
 
 from openglider.glider.rib.crossports import RibHole, RibSquareHole, MultiSquareHole, AttachmentPointHole
@@ -20,7 +23,10 @@ class HolesTable(RibTable):
     }
 
 
-    def get_element(self, row, keyword, data, curves):
+    def get_element(self, row: int, keyword: str, data: List[Any], curves: Dict[str, GliderCurveType]=None, **kwargs: Any) -> Any:
+        if curves is None:
+            raise ValueError("No curves specified")
+
         for i, value in enumerate(data):
             if isinstance(value, str):
                 data[i] = curves[value].get(row)

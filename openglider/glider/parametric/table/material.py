@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, List, Optional
 
 from openglider.glider.parametric.table.elements import ElementTable, Keyword, TableType
 from openglider.materials import cloth, Material
@@ -15,7 +15,7 @@ class CellClothTable(ElementTable):
         "MATERIAL": Keyword([("Name", str)], target_cls=Material)
     }
 
-    def get_element(self, row, keyword, data, **kwargs) -> Optional[Material]:
+    def get_element(self, row: int, keyword: str, data: List[Any], **kwargs: Any) -> Optional[Material]:
         name = data[0]
 
         if name == "empty":

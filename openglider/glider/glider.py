@@ -138,7 +138,7 @@ class Glider(object):
         num = len(ribs)
         numpoints = len(ribs[0])  # points per rib
 
-        polygons = []
+        polygons: List[Tuple[int, int, int, int]] = []
         boundary: Mesh.boundary_nodes_type = {
             "ribs": [],
             "trailing_edge": []
@@ -150,12 +150,12 @@ class Glider(object):
 
             for k in range(numpoints - 1):  # same reason as above
                 kplus = (k+1) % (numpoints-1)
-                polygons.append([
+                polygons.append((
                     i * numpoints + k,
                     i * numpoints + kplus,
                     (i + 1) * numpoints + kplus,
                     (i + 1) * numpoints + k
-                ])
+                ))
         
         ribs_flat = [p for rib in ribs for p in rib]
 
@@ -410,15 +410,11 @@ class Glider(object):
             rib.chord *= factor
         self.area = area_backup
 
-    def get_spanwise(self, x: Optional[float]=None) -> euklid.vector.PolyLine3D:
+    def get_spanwise(self, x: float=0.) -> euklid.vector.PolyLine3D:
         """
         Return a list of points for a x_value
         """
-        if x == 0:
-            return euklid.vector.PolyLine3D([rib.pos for rib in self.ribs])  # This is much faster
-        else:
-            return euklid.vector.PolyLine3D([rib.align([x, 0, 0]) for rib in self.ribs])
-
+        return euklid.vector.PolyLine3D([rib.align_x(x) for rib in self.ribs])
 
     def get_attachment_point_layers(self) -> Dict[str, euklid.vector.Interpolation]:
         regex = re.compile(r"([a-zA-Z]+)([0-9]+)")

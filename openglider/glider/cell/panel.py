@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum
 import logging
 import math
-from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Optional, Type, TypeAlias, Union
 
 import euklid
 from openglider.airfoil.profile_3d import Profile3D
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-class CUT_TYPES(Enum):
+class PANELCUT_TYPES(Enum):
     folded = 1
     orthogonal = 2
     cut_3d = 3
@@ -29,12 +29,10 @@ class CUT_TYPES(Enum):
     round = 6
 
 @dataclass
-class PanelCut:
-    CUT_TYPES = CUT_TYPES
-    
+class PanelCut:    
     x_left: float
     x_right: float
-    cut_type: CUT_TYPES
+    cut_type: PANELCUT_TYPES
     cut_3d_amount: List[float] = Field(default_factory=lambda: [0, 0])
     x_center: Optional[float] = None
     seam_allowance: Optional[float] = None
@@ -51,7 +49,7 @@ class PanelCut:
 
     @classmethod    
     def __from_json__(cls, **dct: Any) -> PanelCut:
-        cut_type = getattr(cls.CUT_TYPES, dct["cut_type"])
+        cut_type = getattr(PANELCUT_TYPES, dct["cut_type"])
         dct.update({
             "cut_type": cut_type
         })
@@ -223,8 +221,8 @@ class Panel(object):
     @classmethod
     def dummy(cls) -> Panel:
         return cls(
-            PanelCut(x_left=-1, x_right=-1,cut_type=PanelCut.CUT_TYPES.parallel),
-            PanelCut(x_left=1, x_right=1,cut_type=PanelCut.CUT_TYPES.parallel)
+            PanelCut(x_left=-1, x_right=-1,cut_type=PANELCUT_TYPES.parallel),
+            PanelCut(x_left=1, x_right=1,cut_type=PANELCUT_TYPES.parallel)
         )
     
     def __hash__(self) -> int:
@@ -503,7 +501,7 @@ class Panel(object):
             amount_front *= ff
             amount_back *= ff
 
-            cut_3d_type = PanelCut.CUT_TYPES.cut_3d
+            cut_3d_type = PANELCUT_TYPES.cut_3d
 
             if self.cut_front.cut_type != cut_3d_type and self.cut_back.cut_type != cut_3d_type:
                 if abs(amount_front + amount_back) > abs(total):
@@ -520,4 +518,4 @@ class Panel(object):
 
         return front, back
 
-PanelCut.__pydantic_model__.update_forward_refs()
+PanelCut.__pydantic_model__.update_forward_refs()  # type: ignore

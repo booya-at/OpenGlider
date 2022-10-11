@@ -1,7 +1,9 @@
+from __future__ import annotations
 
 import inspect
 import json
 import html
+from typing import Any, Dict, Iterator, Tuple
 
 from pydantic import parse_obj_as
 from openglider.utils.cache import recursive_getattr
@@ -12,7 +14,7 @@ from openglider.utils.dataclass import BaseModel
 logger = logging.getLogger(__name__)
 
 class Config:
-    def __init__(self, dct=None):
+    def __init__(self, dct: Dict[str, Any]=None):
         self.__dict__ = {}
 
         items = inspect.getmembers(self.__class__, lambda a:not(inspect.isroutine(a)))
@@ -30,7 +32,7 @@ class Config:
 
     
     @classmethod
-    def get_annotations(cls):
+    def get_annotations(cls) -> Dict[str, Any]:
         d = {}
         for c in cls.mro():
             try:
@@ -45,7 +47,7 @@ class Config:
             "dct": self.__dict__
         }
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         repr_str = "{}\n".format(self.__class__)
         width = max([len(x) for x in self.__dict__])
         for key, value in self.__dict__.items():
@@ -53,7 +55,7 @@ class Config:
 
         return repr_str
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         html_str = """<table>\n"""
         for key, value in self.__dict__.items():
             html_str += f"""    <tr>
@@ -67,34 +69,34 @@ class Config:
         return html_str
 
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Tuple[str, Any]]:
         for key, value in self.__dict__.items():
             if key != "get":
                 yield key, value
         #return self.__dict__.__iter__()
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str) -> Any:
         return self.__getattribute__(item)
 
-    def get(self, key, default=None):
+    def get(self, key: str, default: Any=None) -> Any:
         if hasattr(self, key):
             return self.__getattribute__(key)
         else:
             return default
 
-    def update(self, dct):
+    def update(self, dct: Dict[str, Any]) -> None:
         if dct is None:
             return
 
         self.__dict__.update(dct)
 
-    def write(self, filename):
+    def write(self, filename: str) -> None:
         import openglider.jsonify
         with open(filename, "w") as jsonfile:
             openglider.jsonify.dump(self, jsonfile)
 
     @classmethod
-    def read(cls, filename):
+    def read(cls, filename: str) -> Config:
         with open(filename, "r") as jsonfile:
             data = json.load(jsonfile)
 
@@ -105,12 +107,12 @@ class ConfigNew(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {
             "dct": self.__dict__
         }
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         html_str = """<table>\n"""
         for key, value in self.__dict__.items():
             html_str += f"""    <tr>
@@ -123,13 +125,13 @@ class ConfigNew(BaseModel):
 
         return html_str
 
-    def write(self, filename):
+    def write(self, filename: str) -> None:
         import openglider.jsonify
         with open(filename, "w") as jsonfile:
             openglider.jsonify.dump(self, jsonfile)
 
     @classmethod
-    def read(cls, filename):
+    def read(cls, filename: str) -> ConfigNew:
         with open(filename, "r") as jsonfile:
             data = json.load(jsonfile)
 

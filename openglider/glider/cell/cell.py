@@ -16,13 +16,13 @@ from openglider.glider.ballooning.base import BallooningBase
 from openglider.glider.cell import BasicCell
 from openglider.glider.cell.diagonals import DiagonalRib, TensionStrap
 from openglider.glider.cell.rigidfoil import PanelRigidFoil
-from openglider.glider.cell.panel import Panel, PanelCut
+from openglider.glider.cell.panel import Panel, PanelCut, PANELCUT_TYPES
 from openglider.glider.rib import MiniRib, Rib
 from openglider.mesh import Mesh, Polygon, Vertex
 from openglider.utils import consistent_value, linspace
 from openglider.utils.cache import (HashedList, cached_function,
                                     cached_property, hash_list)
-from openglider.utils.dataclass import BaseModel, dataclass, Field
+from openglider.utils.dataclass import BaseModel, Field
 
 if TYPE_CHECKING:
     from openglider.glider import Glider
@@ -147,7 +147,7 @@ class Cell(BaseModel):
 
         return profiles
 
-    def get_connected_panels(self, skip: Optional[PanelCut.CUT_TYPES]=None) -> List[Panel]:
+    def get_connected_panels(self, skip: Optional[PANELCUT_TYPES]=None) -> List[Panel]:
         panels = []
         self.panels.sort(key=lambda panel: panel.mean_x())
 
@@ -324,10 +324,10 @@ class Cell(BaseModel):
 
     @property
     def area(self) -> float:
-        p1_1 = self.rib1.align([0, 0, 0])
-        p1_2 = self.rib1.align([1, 0, 0])
-        p2_1 = self.rib2.align([0, 0, 0])
-        p2_2 = self.rib2.align([1, 0, 0])
+        p1_1 = self.rib1.align(euklid.vector.Vector2D([0, 0]))
+        p1_2 = self.rib1.align(euklid.vector.Vector2D([1, 0]))
+        p2_1 = self.rib2.align(euklid.vector.Vector2D([0, 0]))
+        p2_2 = self.rib2.align(euklid.vector.Vector2D([1, 0]))
 
         return 0.5 * ((p1_2 - p1_1).cross(p2_1 - p1_1).length() + (p2_2-p2_1).cross(p2_2-p1_2).length())
 
@@ -335,19 +335,19 @@ class Cell(BaseModel):
     def projected_area(self) -> float:
         """ return the z component of the crossproduct
             of the cell diagonals"""
-        p1_1 = self.rib1.align([0, 0, 0])
-        p1_2 = self.rib1.align([1, 0, 0])
-        p2_1 = self.rib2.align([0, 0, 0])
-        p2_2 = self.rib2.align([1, 0, 0])
+        p1_1 = self.rib1.align(euklid.vector.Vector2D([0, 0]))
+        p1_2 = self.rib1.align(euklid.vector.Vector2D([1, 0]))
+        p2_1 = self.rib2.align(euklid.vector.Vector2D([0, 0]))
+        p2_2 = self.rib2.align(euklid.vector.Vector2D([1, 0]))
 
         return -0.5 * (p2_1-p1_2).cross(p2_2-p1_1)[2]
 
     @property
     def centroid(self) -> euklid.vector.Vector3D:
-        p1_1 = self.rib1.align([0, 0, 0])
-        p1_2 = self.rib1.align([1, 0, 0])
-        p2_1 = self.rib2.align([0, 0, 0])
-        p2_2 = self.rib2.align([1, 0, 0])
+        p1_1 = self.rib1.align(euklid.vector.Vector2D([0, 0]))
+        p1_2 = self.rib1.align(euklid.vector.Vector2D([1, 0]))
+        p2_1 = self.rib2.align(euklid.vector.Vector2D([0, 0]))
+        p2_2 = self.rib2.align(euklid.vector.Vector2D([1, 0]))
 
         centroid = (p1_1 + p1_2 + p2_1 + p2_2) / 4
         return centroid
@@ -552,7 +552,7 @@ class Cell(BaseModel):
             add_amount(panel.cut_front, amount_front)
             add_amount(panel.cut_back, amount_back)
 
-        cut_3d_types = [PanelCut.CUT_TYPES.cut_3d]
+        cut_3d_types = [PANELCUT_TYPES.cut_3d]
         for panel in panels:
             if panel.cut_front.cut_type in cut_3d_types:
                 panel.cut_front.cut_3d_amount = get_amount(panel.cut_front)

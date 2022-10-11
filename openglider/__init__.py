@@ -1,26 +1,6 @@
-#! /usr/bin/python2
-# -*- coding: utf-8; -*-
-#
-# (c) 2013 booya (http://booya.at)
-#
-# This file is part of the OpenGlider project.
-#
-# OpenGlider is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# OpenGlider is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-from typing import List
-import re
-import json
 import logging
+from pathlib import Path
+from typing import Any
 
 import numpy as np
 
@@ -33,7 +13,7 @@ from openglider.version import __version__
 
 logger = logging.getLogger(__name__)
 
-def load(filename):
+def load(filename: str) -> Any:
     """
     """
     if filename.endswith(".ods"):
@@ -51,7 +31,7 @@ def load(filename):
 
     return res
 
-def load_demokite():
+def load_demokite() -> openglider.glider.GliderProject:
     import os
     filename = os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests/common/demokite.ods")
 
@@ -60,6 +40,6 @@ def load_demokite():
 
     return load(filename)
 
-def save(data, filename, add_meta=True):
+def save(data: Any, filename: str | Path, add_meta: bool=True) -> None:
     with open(filename,"w") as outfile:
         openglider.jsonify.dump(data, outfile, add_meta=add_meta)

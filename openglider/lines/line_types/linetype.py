@@ -14,7 +14,7 @@ registry: Dict[str, LineType] = {}
 class LineType:
     name: str
     thickness: float
-    stretch_curve: Union[List[Tuple[float, float]], List[List[float]], float]
+    stretch_curve: Union[List[Tuple[float, float]], List[List[float]]]
     min_break_load: float | None = None
     weight: float = 0
     sheated: bool = False
@@ -26,18 +26,22 @@ class LineType:
     class Config:
         kw_only = False
     
-    def __post_init__(self):
-
+    def __post_init__(self) -> None:
+        stretch_curve: Union[List[Tuple[float, float]], List[List[float]]]
         if isinstance(self.stretch_curve, float):
+            if self.min_break_load is None:
+                raise ValueError()
             stretch_curve = [
                 (0, 0),
                 (self.min_break_load, self.stretch_curve)
             ]
         else:
-            stretch_curve = self.stretch_curve
+            stretch_curve = [
+                (p[0], p[1]) for p in self.stretch_curve
+            ]
         
         if abs(stretch_curve[0][0]-0) > 1e-3:
-            stretch_curve.insert(0, [0, 0])
+            stretch_curve.insert(0, (.0, 0.))
         
         self.stretch_interpolation = euklid.vector.Interpolation(stretch_curve, extrapolate=True)
 
@@ -50,41 +54,43 @@ class LineType:
 
         registry[self.name] = self
        
-    def __str__(self):
+    def __str__(self) -> str:
         return f"linetype: {self.name}"
     
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
     
     def __hash__(self) -> int:
         return hash(self.name)
 
-    def get_similar_lines(self):
-        lines = list(self.types.values())
+    def get_similar_lines(self) -> List[LineType]:
+        lines = list(registry.values())
         lines.remove(self)
         lines.sort(key=lambda line: abs(line.thickness - self.thickness))
         
         return lines
 
-    def get_spring_constant(self):
-        force, k = self.stretch_interpolation.nodes[-1]
+    def get_spring_constant(self) -> float:
+        last = self.stretch_interpolation.nodes[-1]
+        force = last[0]
+        k = last[1]
         try:
             result = force / (k / 100)
         except:
             logging.warn(f"invalid stretch for line type: {self.name}")
-            return 50000
+            return 50000.
             
         return result
 
-    def get_stretch_factor(self, force):
-        return 1 + self.stretch_interpolation.get_value(force) / 100
+    def get_stretch_factor(self, force: float) -> float:
+        return 1. + self.stretch_interpolation.get_value(force) / 100
 
-    def predict_weight(self):
+    def predict_weight(self) -> float:
         t_mm = self.thickness * 1000.
         return 0.134 * t_mm + 0.6859 * t_mm ** 2
 
     @classmethod
-    def get(cls, name):
+    def get(cls, name: str) -> LineType:
         #names = 
         try:
             return registry[name]
@@ -92,7 +98,7 @@ class LineType:
             raise KeyError("Line-type {} not found".format(name))
     
     @classmethod
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         html = """
             <table>
                 <thead>
@@ -109,7 +115,7 @@ class LineType:
                 </thead>
                 """
         
-        for line_type in self.types.values():
+        for line_type in registry.values():
             html += f"""
                 <tr>
                     <td>{line_type.name}</td>

@@ -9,6 +9,7 @@ import openglider.vector
 
 if TYPE_CHECKING:
     from openglider.glider.cell import Cell
+    from openglider.glider.cell.panel import Panel
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,7 @@ class PanelRigidFoil:
 
         return line, ik_front, ik_back
 
-    def draw_panel_marks(self, cell: Cell, panel):
+    def draw_panel_marks(self, cell: Cell, panel: Panel) -> euklid.vector.PolyLine2D | None:
         line, ik_front, ik_back = self._get_flattened_line(cell)
 
         #ik_values = panel._get_ik_values(cell, numribs=5)
@@ -47,6 +48,8 @@ class PanelRigidFoil:
 
         if start < stop:
             return line.get(start, stop)
+        
+        return None
 
     def get_flattened(self, cell: Cell) -> openglider.vector.drawing.PlotPart:
         line, ik_front, ik_back = self._get_flattened_line(cell)

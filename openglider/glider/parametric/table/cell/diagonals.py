@@ -1,6 +1,9 @@
-from openglider.utils.table import Table
-from openglider.glider.parametric.table.elements import CellTable, Keyword
+from typing import Any, Dict, List
+
 from openglider.glider.cell.diagonals import DiagonalRib, DiagonalSide, TensionLine, TensionStrap
+from openglider.glider.curve import GliderCurveType
+from openglider.glider.parametric.table.elements import CellTable, Keyword
+from openglider.utils.table import Table
 
 import logging
 
@@ -23,10 +26,13 @@ class DiagonalTable(CellTable):
         "QR": Keyword(["left", "right", "width_left", "width_right", "height_left", "height_right"], target_cls=DiagonalRib)
     }
     
-    def get_element(self, row, keyword, data, curves):
+    def get_element(self, row: int, keyword: str, data: List[Any], curves: Dict[str, GliderCurveType]=None, **kwargs: Any) -> DiagonalRib:
         left = data[0]
         right = data[1]
         name = None
+
+        if curves is None:
+            raise ValueError("No curves specified")
 
         if isinstance(left, str):
             name = left
@@ -58,11 +64,14 @@ class StrapTable(CellTable):
         "VEKTLAENGE": Keyword(["left", "right"], target_cls=TensionLine)
     }
     
-    def get_element(self, row, keyword, data, curves):
+    def get_element(self, row: int, keyword: str, data: List[Any], curves: Dict[str, GliderCurveType]=None, **kwargs: Any) -> DiagonalRib:
         left = data[0]
         right = data[1]
         name = None
 
+        if curves is None:
+            raise ValueError("No curves specified")
+            
         if isinstance(left, str):
             name = left
             left = curves[left].get(row)

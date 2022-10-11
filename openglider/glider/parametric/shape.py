@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import math
-from typing import List
+from typing import List, Literal, Tuple
 import logging
 
 import euklid
@@ -34,10 +36,10 @@ class ParametricShape:
         arbitrary_types_allowed = True
 
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.rescale_curves()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "{}\n\tcells: {}\n\tarea: {:.2f}\n\taspect_ratio: {:.2f}".format(
             super(ParametricShape, self).__repr__(),
             self.cell_num,
@@ -45,7 +47,7 @@ class ParametricShape:
             self.aspect_ratio
         )
     
-    def copy(self):
+    def copy(self) -> ParametricShape:
         return self.__class__(
             self.front_curve.copy(),
             self.back_curve.copy(),
@@ -58,7 +60,7 @@ class ParametricShape:
     def baseline(self) -> euklid.vector.PolyLine2D:
         return self.get_baseline(self.baseline_pos)
 
-    def get_baseline(self, pct) -> euklid.vector.PolyLine2D:
+    def get_baseline(self, pct: float) -> euklid.vector.PolyLine2D:
         shape = self.get_half_shape()
         line = []
         for i in range(shape.rib_no):
@@ -92,7 +94,7 @@ class ParametricShape:
         )
 
     @property
-    def rib_dist_interpolation(self):
+    def rib_dist_interpolation(self) -> List[Tuple[float, int]]:
         """
         Interpolate Cell-distribution
         """
@@ -100,7 +102,7 @@ class ParametricShape:
         interpolation = euklid.vector.Interpolation([[p[1], p[0]] for p in data])
         start = self.has_center_cell / self.cell_num
         num = self.cell_num // 2 + 1
-        return [[interpolation.get_value(i), i] for i in linspace(start, 1, num)]
+        return [(interpolation.get_value(i), i) for i in linspace(start, 1, num)]
 
     # besser mit spezieller bezier?
     @property
@@ -108,8 +110,9 @@ class ParametricShape:
         return euklid.vector.PolyLine2D(self.rib_distribution.controlpoints.nodes[1:-1])
 
     @rib_dist_controlpoints.setter
-    def rib_dist_controlpoints(self, arr):
-        self.rib_distribution.controlpoints = [[0, 0]] + arr + [[1, 1]]
+    def rib_dist_controlpoints(self, arr: List[List[float]]) -> None:
+
+        self.rib_distribution.controlpoints = euklid.vector.PolyLine2D([[0., 0.]] + arr + [[1., 1.]])
 
     @property
     def rib_x_values(self) -> List[float]:
@@ -180,7 +183,7 @@ class ParametricShape:
         """
         return self.get_half_shape().copy_complete()
 
-    def __getitem__(self, pos) -> euklid.vector.Vector2D:
+    def __getitem__(self, pos: Tuple[int, float]) -> euklid.vector.Vector2D:
         """if first argument is negative the point is returned mirrored"""
         rib_nr, rib_pos = pos
         ribs = self.ribs
@@ -196,10 +199,10 @@ class ParametricShape:
         return euklid.vector.Vector2D([sign * x, y])
 
     @property
-    def ribs(self):
+    def ribs(self) -> List[Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]]:
         return self.get_half_shape().ribs
 
-    def get_rib_point(self, rib_no, x):
+    def get_rib_point(self, rib_no: int, x: float) -> euklid.vector.Vector2D:
         ribs = list(self.ribs)
         rib = ribs[rib_no]
 
@@ -208,7 +211,7 @@ class ParametricShape:
         except TypeError:
             return rib[0]
 
-    def get_shape_point(self, x, y):
+    def get_shape_point(self, x: float, y: float) -> euklid.vector.Vector2D:
         k = x%1
         rib1 = int(x)
         p1 = self.get_rib_point(rib1, y)
@@ -220,7 +223,7 @@ class ParametricShape:
             return p1
 
     @property
-    def depth_integrated(self):
+    def depth_integrated(self) -> List[Tuple[float, float]]:
         """
         Return A(x)
         """
@@ -235,7 +238,7 @@ class ParametricShape:
         y_values = [i / integrated_depth[-1] for i in integrated_depth]
 
         x_values_normalized = [x/self.span for x in x_values]
-        return zip(x_values_normalized, y_values)
+        return list(zip(x_values_normalized, y_values))
 
     def set_const_cell_dist(self) -> None:
         const_dist = euklid.vector.PolyLine2D(list(self.depth_integrated))
@@ -244,16 +247,16 @@ class ParametricShape:
 
     ############################################################################
     # scaling stuff
-    def scale(self, x=1., y=None):
+    def scale(self, x: float=1., y: float=None) -> None:
         if y is None:
             y = x
 
         print("scale factor: ", x, y)
-        self.front_curve.controlpoints = self.front_curve.controlpoints.scale([x, y])
+        self.front_curve.controlpoints = self.front_curve.controlpoints.scale(euklid.vector.Vector2D([x, y]))
 
         # scale back to fit with front
         factor = self.front_curve.controlpoints.nodes[-1][0] / self.back_curve.controlpoints.nodes[-1][0]
-        self.back_curve.controlpoints = self.back_curve.controlpoints.scale([factor, y])
+        self.back_curve.controlpoints = self.back_curve.controlpoints.scale(euklid.vector.Vector2D([factor, y]))
 
         # scale rib_dist
         #factor = 1 / self.rib_distribution.controlpoints.nodes[-1][0]
@@ -263,7 +266,7 @@ class ParametricShape:
     def area(self) -> float:
         return self.get_shape().area
 
-    def set_area(self, area, fixed="aspect_ratio"):
+    def set_area(self, area: float, fixed: Literal["aspect_ratio"] | Literal["span"] | Literal["depth"]="aspect_ratio") -> float:
         if fixed == "aspect_ratio":
             # scale proportional
             factor = math.sqrt(area/self.area)
@@ -281,7 +284,7 @@ class ParametricShape:
 
         return self.area
 
-    def get_sweep(self):
+    def get_sweep(self) -> float:
         ribs = self.ribs
 
         center_f = ribs[0][0]
@@ -299,12 +302,12 @@ class ParametricShape:
 
         return dy / (center_f + center_b)[1]
     
-    def _clean(self):
-        p0 = self.front_curve.get(0) * [0, -1]
+    def _clean(self) -> None:
+        p0 = self.front_curve.get(0) * euklid.vector.Vector2D([0, -1])
         self.front_curve.controlpoints = self.front_curve.controlpoints.move(p0)
         self.back_curve.controlpoints = self.back_curve.controlpoints.move(p0)
     
-    def set_sweep(self, sweep):
+    def set_sweep(self, sweep: float) -> float:
         current_sweep = self.get_sweep()
         self.rescale_curves()
 
@@ -318,25 +321,25 @@ class ParametricShape:
         x0 = ribs[0][0][0]
         span = ribs[-1][0][0] - x0
 
-        front = euklid.vector.PolyLine2D([p + [0, (p[0]-x0)*diff/span] for p, _ in ribs])
-        back = euklid.vector.PolyLine2D([p + [0, (p[0]-x0)*diff/span] for _, p in ribs])
+        front = euklid.vector.PolyLine2D([p + euklid.vector.Vector2D([0, (p[0]-x0)*diff/span]) for p, _ in ribs])
+        back = euklid.vector.PolyLine2D([p + euklid.vector.Vector2D([0, (p[0]-x0)*diff/span]) for _, p in ribs])
 
-        self.front_curve = self.front_curve.fit(front, self.front_curve.numpoints)
-        self.back_curve = self.back_curve.fit(back, self.back_curve.numpoints)
+        self.front_curve = self.front_curve.fit(front, self.front_curve.numpoints)  # type: ignore
+        self.back_curve = self.back_curve.fit(back, self.back_curve.numpoints)  # type: ignore
 
         y0 = self.ribs[0][0][1]
 
-        self.front_curve.controlpoints = self.front_curve.controlpoints.move([0, -y0])
-        self.back_curve.controlpoints = self.back_curve.controlpoints.move([0, -y0])
+        self.front_curve.controlpoints = self.front_curve.controlpoints.move(euklid.vector.Vector2D([0, -y0]))
+        self.back_curve.controlpoints = self.back_curve.controlpoints.move(euklid.vector.Vector2D([0, -y0]))
         
-        return self
+        return self.get_sweep()
 
     @property
     def aspect_ratio(self) -> float:
         # todo: span -> half span, area -> full area???
         return (2*self.span) ** 2 / self.area
 
-    def set_aspect_ratio(self, ar, fixed="span") -> None:
+    def set_aspect_ratio(self, ar: float, fixed: Literal["span"] | Literal["area"]="span") -> None:
         ar0 = self.aspect_ratio
         if fixed == "span":
             self.scale(y=ar0 / ar)
@@ -349,11 +352,11 @@ class ParametricShape:
         return span
 
     @span.setter
-    def span(self, span: float):
+    def span(self, span: float) -> None:
         factor = span/self.span
         self.scale(factor, 1)
 
-    def set_span(self, span, fixed="area") -> None:
+    def set_span(self, span: float, fixed: Literal["area"] | Literal["aspect_ratio"] | None="area") -> None:
         span_0 = self.span
         if fixed == "area":
             self.scale(x=span / span_0, y=span_0 / span)

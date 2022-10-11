@@ -1,14 +1,15 @@
-from typing import Tuple, List, Optional
+from typing import Any, Dict, Tuple, List, Optional
+from openglider.glider.curve import GliderCurveType
 
 from openglider.utils.table import Table
 from openglider.glider.parametric.table.elements import CellTable, Keyword, KeywordsType
-from openglider.glider.cell.panel import PanelCut
+from openglider.glider.cell.panel import PanelCut, PANELCUT_TYPES
 
 import logging
 
 logger = logging.getLogger(__name__)
 
-def cut_kw(extra_keywords: Optional[KeywordsType]=None):
+def cut_kw(extra_keywords: Optional[KeywordsType]=None) -> Keyword:
     keywords: KeywordsType = [("x_left", float), ("x_right", float)]
     
     keywords += extra_keywords or []
@@ -29,8 +30,11 @@ class CutTable(CellTable):
         "singleskin": cut_kw(),
     }
 
-    def get_element(self, row, keyword, data, curves=None):
+    def get_element(self, row: int, keyword: str, data: List[Any], curves: Dict[str, GliderCurveType]=None, **kwargs: Any) -> PanelCut:
         left, right = data[:2]
+        if curves is None:
+            raise ValueError("No curves specified")
+            
         if isinstance(left, str):
             left = curves[left].get(row)
         if isinstance(right, str):
@@ -38,15 +42,15 @@ class CutTable(CellTable):
             
         cut_type = None
         if keyword in ("EKV", "EKH", "folded"):
-            cut_type = PanelCut.CUT_TYPES.folded
+            cut_type = PANELCUT_TYPES.folded
         elif keyword in ("DESIGNM", "DESIGNO", "orthogonal"):
-            cut_type = PanelCut.CUT_TYPES.orthogonal
+            cut_type = PANELCUT_TYPES.orthogonal
         elif keyword in ("CUT3D", "cut_3d"):
-            cut_type = PanelCut.CUT_TYPES.cut_3d
+            cut_type = PANELCUT_TYPES.cut_3d
         elif keyword == "singleskin":
-            cut_type = PanelCut.CUT_TYPES.singleskin
+            cut_type = PANELCUT_TYPES.singleskin
         elif keyword == "CUT_ROUND":
-            cut_type = PanelCut.CUT_TYPES.round
+            cut_type = PANELCUT_TYPES.round
             return PanelCut(x_left=data[0], x_right=data[1], cut_type=cut_type, x_center=data[2], seam_allowance=data[3])
         else:
             raise ValueError(f"invalid keyword: {keyword}")

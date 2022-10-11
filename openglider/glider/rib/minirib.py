@@ -1,9 +1,13 @@
-from typing import Callable, Optional
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 import euklid
 
 from openglider.airfoil import Profile3D
 from openglider.utils.dataclass import BaseModel, dataclass, Field
 
+if TYPE_CHECKING:
+    from openglider.glider.cell import Cell
 
 @dataclass
 class MiniRib:
@@ -17,7 +21,7 @@ class MiniRib:
     class Config:
         arbitrary_types_allowed = True
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         p1_x = 2/3
 
         if self.function is None or len(self.function.nodes) == 0:
@@ -27,24 +31,22 @@ class MiniRib:
                 points = [[0, 0]]
 
             if self.back_cut < 1:
-                points = points + [[self.front_cut + (self.back_cut-front_cut) * p1_x, 0], [self.back_cut, 1]]
+                points = points + [[self.front_cut + (self.back_cut-self.front_cut) * p1_x, 0], [self.back_cut, 1]]
             else:
                 points = points + [[1., 0.]]
 
             curve = euklid.spline.BSplineCurve(points).get_sequence(100)
             self.function = euklid.vector.Interpolation(curve.nodes)
 
-    def multiplier(self, x: float):
+    def multiplier(self, x: float) -> float:
         if self.front_cut <= abs(x) <= self.back_cut:
             return min(1, max(0, self.function.get_value(abs(x))))
         else:
-            return 1
+            return 1.
 
-    def get_3d(self, cell):
-        shape_with_bal = cell.basic_cell.midrib(self.y_value,
-                                                       True).data
-        shape_wo_bal = cell.basic_cell.midrib(self.y_value,
-                                                          False).data
+    def get_3d(self, cell: Cell) -> Profile3D:
+        shape_with_bal = cell.basic_cell.midrib(self.yvalue, True).data
+        shape_wo_bal = cell.basic_cell.midrib(self.yvalue, False).data
 
         points = []
         for xval, with_bal, without_bal in zip(
@@ -55,7 +57,7 @@ class MiniRib:
 
         return Profile3D(points)
 
-    def get_flattened(self, cell):
+    def get_flattened(self, cell: Cell) -> None:
         prof_3d = self.get_3d(cell)
         prof_flat = prof_3d.flatten()
         prof_normalized = prof_flat.copy().normalized()

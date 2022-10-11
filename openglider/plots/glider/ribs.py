@@ -9,6 +9,7 @@ from openglider import logging
 from openglider.airfoil import get_x_value
 from openglider.glider.cell.diagonals import (DiagonalRib, DiagonalSide,
                                               TensionStrap)
+from openglider.glider.cell.panel import PANELCUT_TYPES
 from openglider.glider.rib.rigidfoils import RigidFoilBase
 from openglider.plots.config import PatternConfig
 from openglider.plots.usage_stats import MaterialUsage
@@ -341,12 +342,12 @@ class SingleSkinRibPlot(RibPlot):
                 # maybe asserts no singleskin rib on stabilo
                 if cell.rib1 == self.rib:
                     for panel in cell.panels:
-                        if panel.cut_back.cut_type == panel.cut_back.CUT_TYPES.singleskin:
+                        if panel.cut_back.cut_type == PANELCUT_TYPES.singleskin:
                             singleskin_cut = panel.cut_back.x_left
                             break
                 if cell.rib2 == self.rib:
                     for panel in cell.panels:
-                        if panel.cut_back.cut_type == panel.cut_back.CUT_TYPES.singleskin:
+                        if panel.cut_back.cut_type == PANELCUT_TYPES.singleskin:
                             singleskin_cut = panel.cut_back.x_right
                             break
             

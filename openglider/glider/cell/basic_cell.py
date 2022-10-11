@@ -1,6 +1,7 @@
-from __future__ import division
+from __future__ import annotations
 import copy
 import math
+from typing import List
 import numpy as np
 import euklid
 
@@ -12,19 +13,19 @@ class BasicCell(CachedObject):
     """
     A very simple cell without any extras like midribs, diagonals,..
     """
-    def __init__(self, prof1=None, prof2=None, ballooning=None, name="unnamed_cell"):
-        self.prof1: Profile3D = prof1 or Profile3D([])
-        self.prof2: Profile3D = prof2 or Profile3D([])
+    def __init__(self, prof1: Profile3D=None, prof2: Profile3D=None, ballooning: List[float]=None, name: str="unnamed_cell"):
+        self.prof1 = prof1 or Profile3D([])
+        self.prof2 = prof2 or Profile3D([])
 
         if ballooning is not None:
             self.ballooning_phi = ballooning  # ballooning arcs -> property in cell
         self.name = name
 
-    def point_basic_cell(self, y=0, ik=0):
+    def point_basic_cell(self, y: int=0, ik: float=0) -> euklid.vector.Vector3D:
         ##round ballooning
         return self.midrib(y).get(ik)
 
-    def midrib(self, y_value, ballooning=True, arc_argument=True, close_trailing_edge=False) -> Profile3D:
+    def midrib(self, y_value: float, ballooning: bool=True, arc_argument: bool=True, close_trailing_edge: bool=False) -> Profile3D:
         if y_value <= 0:              # left side
             return self.prof1
         elif y_value >= 1:            # right side
@@ -75,7 +76,7 @@ class BasicCell(CachedObject):
             return Profile3D(midrib)
 
     @cached_property('prof1', 'prof2')
-    def normvectors(self, j=None):
+    def normvectors(self) -> euklid.vector.PolyLine3D:
         prof1 = self.prof1.curve
         prof2 = self.prof2.curve
         
@@ -92,15 +93,15 @@ class BasicCell(CachedObject):
         return euklid.vector.PolyLine3D(normals)
 
     @cached_property('ballooning_phi', 'prof1', 'prof2')
-    def ballooning_radius(self):
-        prof1 = self.prof1.curve
-        prof2 = self.prof2.curve
+    def ballooning_radius(self) -> List[float]:
+        prof1 = self.prof1.curve.nodes
+        prof2 = self.prof2.curve.nodes
 
-        radius = []
+        radius: List[float] = []
 
         for p1, p2, phi in zip(prof1, prof2, self.ballooning_phi):
             if phi < 1e-10:
-                radius.append(0)
+                radius.append(0.)
             else:
                 r = (p1-p2).length() / (2 * math.sin(phi) + (phi==0))
                 radius.append(r)
@@ -108,12 +109,12 @@ class BasicCell(CachedObject):
         return radius
     
     @cached_property('ballooning_phi', 'prof1', 'prof2')
-    def ballooning_tension_factors(self):
-        prof1 = self.prof1.curve
-        prof2 = self.prof2.curve
-        tension = []
+    def ballooning_tension_factors(self) -> List[float]:
+        prof1 = self.prof1.curve.nodes
+        prof2 = self.prof2.curve.nodes
+        tension: List[float] = []
         for p1, p2, phi in zip(prof1, prof2, self.ballooning_phi):
-            value =  2. * np.tan(phi)
+            value =  2. * math.tan(phi)
             if value > 1e-10:
                 value = 1/value
             
@@ -122,5 +123,5 @@ class BasicCell(CachedObject):
         return tension
             
 
-    def copy(self):
+    def copy(self) -> BasicCell:
         return copy.deepcopy(self)

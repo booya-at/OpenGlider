@@ -5,7 +5,7 @@ import dataclasses
 import logging
 import os
 import re
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 import euklid
 from openglider.lines.node import Node
@@ -31,14 +31,14 @@ class LineLength:
     knot_correction: float
     manual_correction: float
 
-    def get_checklength(self):
+    def get_checklength(self) -> float:
         length = self.length
         length += self.loop_correction
         length += self.manual_correction
 
         return length
 
-    def get_length(self):
+    def get_length(self) -> float:
         length = self.get_checklength()
         length += self.seam_correction
         length += self.knot_correction
@@ -64,7 +64,7 @@ class LineSet(object):
         self.mat = SagMatrix(len(self.lines))
         
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return """
         {}
         Lines: {}
@@ -146,7 +146,7 @@ class LineSet(object):
         """
         floors: number of line-levels
         """
-        def recursive_count_floors(node) -> int:
+        def recursive_count_floors(node: Node) -> int:
             if node.node_type == Node.NODE_TYPE.UPPER:
                 return 0
 
@@ -157,7 +157,7 @@ class LineSet(object):
 
         return {n: recursive_count_floors(n) for n in self.lower_attachment_points}
 
-    def get_lines_by_floor(self, target_floor: int=0, node: Node=None, en_style=True) -> List[Line]:
+    def get_lines_by_floor(self, target_floor: int=0, node: Node=None, en_style: bool=True) -> List[Line]:
         """
         starting from node: walk up "target_floor" floors and return all the lines.
 
@@ -255,7 +255,7 @@ class LineSet(object):
         if start is None:
             start = self.lowest_lines
         for line in start:
-            if line.upper_node.node_type == Node.NODE_TYPE.KNOT:  # no gallery line
+            if line.upper_node.node_type == Node.NODE_TYPE.KNOT and line.init_length is not None:  # no gallery line
                 lower_point = line.lower_node.position
                 tangential = self.get_tangential_comp(line, lower_point)
                 line.upper_node.position = lower_point + tangential * line.init_length
@@ -360,20 +360,20 @@ class LineSet(object):
 
         return center, drag_total
 
-    def get_weight(self):
-        weight = 0
+    def get_weight(self) -> float:
+        weight = 0.
         for line in self.lines:
             weight += line.get_weight()
 
         return weight
 
 
-    def get_normalized_drag(self):
+    def get_normalized_drag(self) -> float:
         """get the line drag normalized by the velocity ** 2 / 2"""
         return self.get_drag()[1] / self.v_inf.length()**2 * 2
 
     # -----CALCULATE GEO-----#
-    def get_tangential_comp(self, line, pos_vec):
+    def get_tangential_comp(self, line: Line, pos_vec: euklid.vector.Vector3D) -> euklid.vector.Vector3D:
         # upper_lines = self.get_upper_connected_lines(line.upper_node)
         # first we try to use already computed forces
         # and shift the upper node by residual force
@@ -408,7 +408,7 @@ class LineSet(object):
 
             return tangent.normalized()
 
-    def get_upper_influence_nodes(self, line: Optional[Line]=None, node: Optional[Node]=None):
+    def get_upper_influence_nodes(self, line: Optional[Line]=None, node: Optional[Node]=None) -> List[Node]:
         """
         get the points that have influence on the line and
         are connected to the wing
@@ -423,30 +423,31 @@ class LineSet(object):
             return [node]
         else:
             upper_lines = self.get_upper_connected_lines(node)
-            result = []
+            result: List[Node] = []
             for upper_line in upper_lines:
                 result += self.get_upper_influence_nodes(line=upper_line)
             return result
 
-    def iterate_target_length(self, steps=10, pre_load=50):
+    def iterate_target_length(self, steps: int=10, pre_load: float=50) -> None:
         """
         iterative method to satisfy the target length
         """
+        # TODO: use pre_load
         self.recalc()
         for _ in range(steps):
             for l in self.lines:
-                if l.target_length is not None:
+                if l.target_length is not None and l.init_length is not None:
                     diff = self.get_line_length(l).get_length() - l.target_length
                     l.init_length -= diff
             self.recalc()
 
-    def _set_line_indices(self):
+    def _set_line_indices(self) -> None:
         for i, line in enumerate(self.lines):
             line.number = i
 
     @property
-    def total_length(self):
-        length = 0
+    def total_length(self) -> float:
+        length = 0.
         for line in self.lines:
             length += line.get_stretched_length()
         return length
@@ -461,7 +462,7 @@ class LineSet(object):
         
         return consumption
     
-    def sort_lines(self, lines: Optional[List[Line]]=None, x_factor: float=10., by_names: bool=False):
+    def sort_lines(self, lines: Optional[List[Line]]=None, x_factor: float=10., by_names: bool=False) -> List[Line]:
         if lines is None:
             lines = self.lines
         lines_new = lines[:]
@@ -492,13 +493,14 @@ class LineSet(object):
 
         def sort_key(line: Line) -> float:
             nodes = self.get_upper_influence_nodes(line)
-            y_value = 0
-            val_rib_pos = 0
+            y_value = 0.
+            val_rib_pos = 0.
             for node in nodes:
-                if hasattr(node, "rib_pos"):
-                    val_rib_pos += node.rib_pos
+                position = getattr(node, "rib_pos", None)
+                if position is not None:
+                    val_rib_pos += position
                 else:
-                    val_rib_pos += 1000*node.position[0]
+                    val_rib_pos += 1000.*node.position[0]
 
                 y_value += node.position[1]
 
@@ -509,11 +511,12 @@ class LineSet(object):
         return lines_new
 
 
-    def create_tree(self, start_nodes: Optional[List[Node]]=None):
+    def create_tree(self, start_nodes: Optional[List[Node]]=None) -> Any:
         """
         Create a tree of lines
         :return: [(line, [(upper_line1, []),...]),(...)]
         """
+        # TODO: REMOVE
         if start_nodes is None:
             start_nodes = self.lower_attachment_points
 
@@ -523,14 +526,14 @@ class LineSet(object):
 
         return [(line, self.create_tree([line.upper_node])) for line in self.sort_lines(lines)]
 
-    def _get_lines_table(self, callback, start_nodes: Optional[List[Node]]=None, insert_node_names: bool=True) -> Table:
+    def _get_lines_table(self, callback: Callable[[Line], List[str]], start_nodes: Optional[List[Node]]=None, insert_node_names: bool=True) -> Table:
         line_tree = self.create_tree(start_nodes=start_nodes)
         table = Table()
 
         floors = max(self.floors.values())
         columns_per_line = len(callback(line_tree[0][0]))
 
-        def insert_block(line, upper, row, column):
+        def insert_block(line: Line, upper: List[Any], row: int, column: int) -> int:
             values = callback(line)
             column_0 = column-columns_per_line
 
@@ -560,7 +563,7 @@ class LineSet(object):
         line_tree = self.create_tree()
         table = Table()
 
-        def insert_block(line, upper, row, column):
+        def insert_block(line: Line, upper: Any, row: int, column: int) -> int:
             if column == 0:
                 table.set_value(0, row, line.lower_node.name)
                 column += 1
@@ -639,7 +642,7 @@ class LineSet(object):
                 loop_correction += diff
 
         # get knot correction
-        knot_correction = 0
+        knot_correction = 0.
         lower_lines = self.get_lower_connected_lines(line.lower_node)
 
         if len(lower_lines) > 0:
@@ -660,8 +663,8 @@ class LineSet(object):
             self.trim_corrections.get(line.name, 0)
         )
     
-    def get_checklength(self, node: Node, with_sag=True) -> float:
-        length = 0
+    def get_checklength(self, node: Node, with_sag: bool=True) -> float:
+        length = 0.
         last_node = node
         while lines := self.get_lower_connected_lines(last_node):
             if len(lines) != 1:
@@ -675,7 +678,7 @@ class LineSet(object):
         return length
 
     def get_table(self) -> Table:
-        length_table = self._get_lines_table(lambda line: [round(self.get_line_length(line).get_length()*1000)])
+        length_table = self._get_lines_table(lambda line: [f"{self.get_line_length(line).get_length()*1000:.0f}"])
         #length_table = self._get_lines_table(lambda line: [round(line.get_stretched_length()*1000)])
         
         length_table.name = "lines"
@@ -684,7 +687,7 @@ class LineSet(object):
         line_type_table = self._get_lines_table(lambda line: [line.type.name], insert_node_names=False)
         line_color_table = self._get_lines_table(lambda line: [line.color], insert_node_names=False)
 
-        def get_checklength(line, upper_lines):
+        def get_checklength(line: Line, upper_lines: Any) -> List[float]:
             line_length = self.get_line_length(line).get_checklength()
             
             if not len(upper_lines):
@@ -714,24 +717,24 @@ class LineSet(object):
 
         return length_table
 
-    def get_force_table(self):
-        def get_line_force(line):
+    def get_force_table(self) -> Table:
+        def get_line_force(line: Line) -> List[str]:
             percentage = ""
 
-            if line.type.min_break_load:
-                percentage = "{}%".format(round(100*line.force/line.type.min_break_load,1))
+            if line.type.min_break_load and line.force:
+                percentage = f"{100*line.force/line.type.min_break_load:.1f}"
 
-            return [line.type.name, line.force, percentage]
+            return [line.type.name, str(line.force), percentage]
 
         return self._get_lines_table(get_line_force)
 
 
-    def get_table_2(self):
-        table = self._get_lines_table(lambda line: [line.name, line.type.name, round(line.get_stretched_length()*1000)])
+    def get_table_2(self) -> Table:
+        table = self._get_lines_table(lambda line: [line.name, line.type.name, f"{line.get_stretched_length()*1000:.0f}"])
         table.name = "lines_2"
         return table
 
-    def get_table_sorted_lengths(self):
+    def get_table_sorted_lengths(self) -> Table:
         table = Table()
         table[0,0] = "Name"
         table[0,0] = "Length [mm]"
@@ -744,16 +747,17 @@ class LineSet(object):
         
         return table
 
-    def get_upper_connected_force(self, node):
+    def get_upper_connected_force(self, node: Node) -> euklid.vector.Vector3D:
         '''
         get the sum of the forces of all upper-connected lines
         '''
         force = euklid.vector.Vector3D()
         for line in self.get_upper_connected_lines(node):
-            force += line.force * line.diff_vector
+            if line.force:
+                force += line.diff_vector * line.force
         return force
 
-    def get_residual_force(self, node):
+    def get_residual_force(self, node: Node) -> euklid.vector.Vector3D:
         '''
         compute the residual force in a node to due simplified computation of lines
         '''
@@ -761,30 +765,32 @@ class LineSet(object):
         upper_lines = self.get_upper_connected_lines(node)
         lower_lines = self.get_lower_connected_lines(node)
         for line in upper_lines:
-            residual_force += line.diff_vector * line.force
+            force = line.force or 0.
+            residual_force += line.diff_vector * force
         for line in lower_lines:
-            residual_force -= line.diff_vector * line.force
+            force = line.force or 0.
+            residual_force -= line.diff_vector * force
 
         return residual_force
 
-    def copy(self):
+    def copy(self) -> LineSet:
         return copy.deepcopy(self)
 
-    def __json__(self):
-        new = self.copy()
-        nodes = list(new.nodes)
-        for line in new.lines:
-            line.upper_node = nodes.index(line.upper_node)
-            line.lower_node = nodes.index(line.lower_node)
+    def __json__(self) -> Dict[str, Any]:
+        lines = [l.__json__() for l in self.lines]
+        nodes = list(self.nodes)
+        for line in lines:
+            line["upper_node"] = nodes.index(line["upper_node"])
+            line["lower_node"] = nodes.index(line["lower_node"])
 
         return {
-            'lines': new.lines,
+            'lines': lines,
             'nodes': nodes,
             'v_inf': self.v_inf
         }
 
     @classmethod
-    def __from_json__(cls, lines, nodes, v_inf):
+    def __from_json__(cls, lines: List[Line], nodes: List[Node], v_inf: euklid.vector.Vector3D) -> LineSet:
         for line in lines:
             if isinstance(line.upper_node, int):
                 line.upper_node = nodes[line.upper_node]
@@ -793,11 +799,9 @@ class LineSet(object):
         
         v_inf = euklid.vector.Vector3D(v_inf)
         obj = cls(lines, v_inf)
-        for line in obj.lines:
-            line.lineset = obj
         return obj
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> Line:
         if isinstance(name, list):
             return [self[n] for n in name]
         for line in self.lines:

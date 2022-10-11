@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import List, Dict, Tuple, Optional, Union
 import csv
 import logging
@@ -23,7 +25,7 @@ class KnotCorrections:
         
         self.update()
     
-    def save_csv(self, filename):
+    def save_csv(self, filename: str) -> None:
         with open(filename, 'w') as f:
             writer = csv.writer(f)
             writer.writerow(["lower_type", "upper_type", "upper_num", "first_line_correction", "last_line_correction"])
@@ -31,40 +33,40 @@ class KnotCorrections:
                 writer.writerow(knot)
     
     @classmethod
-    def read_csv(cls, filename):
+    def read_csv(cls, filename: str) -> KnotCorrections:
         with open(filename) as f:
             reader = csv.reader(f)
-            lines = []
+            lines: List[Tuple[str, str, int, float, float]] = []
             
             for i, line in enumerate(reader):
                 if i > 0:
-                    lines.append([
+                    lines.append((
                         line[0],
                         line[1],
                         int(line[2]),
                         float(line[3]),
                         float(line[4])
-                    ])
+                    ))
 
             return cls(lines)
 
 
     @staticmethod
-    def _knot_key(line_type_1: Union[LineType, str], line_type_2: Union[LineType, str], upper_num: int):
+    def _knot_key(line_type_1: Union[LineType, str], line_type_2: Union[LineType, str], upper_num: int) -> str:
         if isinstance(line_type_1, LineType):
             line_type_1 = line_type_1.name
         if isinstance(line_type_2, LineType):
             line_type_2 = line_type_2.name
         return f"{line_type_1}/{line_type_2}/{upper_num}"
 
-    def update(self):
+    def update(self) -> None:
         self.knots_dict.clear()
         self.knots_table.sort(key=lambda x: self._knot_key(*x[:3]))
         for knot in self.knots_table:
             key = self._knot_key(*knot[:3])
             self.knots_dict[key] = knot[3:]
     
-    def get(self, lower_type, upper_type, upper_num):
+    def get(self, lower_type: LineType, upper_type: LineType, upper_num: int) -> List[float]:
         key = self._knot_key(lower_type, upper_type, upper_num)
 
         if key not in self.knots_dict:

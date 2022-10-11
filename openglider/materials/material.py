@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import re
+from typing import Any, Dict, Tuple
 from openglider.utils.colors import Color
 
 class Material:
@@ -11,7 +14,7 @@ class Material:
 
     _regex_color = re.compile(r".*#([A-F0-9a-f]{6})")
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         if "color_code" in kwargs:
             color_code = kwargs.pop("color_code")
             self._set_color_code(color_code)
@@ -29,11 +32,11 @@ class Material:
         
             setattr(self, arg, value)
         
-    def get_color_rgb(self):
+    def get_color_rgb(self) -> Tuple[int, int, int]:
         color = Color.parse_hex(self.color_code)
-        return list(color)
+        return (color.r, color.g, color.b)
 
-    def _set_color_code(self, color_code):
+    def _set_color_code(self, color_code: str) -> None:
         color_code_int = int(color_code, base=16)
 
         if color_code_int < 0 or color_code_int > int("FFFFFF", base=16):
@@ -41,7 +44,7 @@ class Material:
     
         self.color_code = color_code
 
-    def __str__(self):
+    def __str__(self) -> str:
         full_name = f"{self.manufacturer}.{self.name}"
         
         if self.color:
@@ -49,15 +52,15 @@ class Material:
         
         return full_name
     
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Material: {self.__str__()}>"
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {
             "name": str(self)
         }
     
     @classmethod
-    def __from_json__(cls, name):
+    def __from_json__(cls, name: str) -> Material:
         import openglider.materials
         return openglider.materials.cloth.get(name)

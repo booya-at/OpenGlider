@@ -6,6 +6,7 @@ from openglider.utils.cache import HashedList
 
 
 class Distribution(HashedList):
+    data: List[float]
     def get_index(self, x):
         i = x_last = x_this = -1
         for i, x_this in enumerate(self.data):
@@ -83,7 +84,7 @@ class Distribution(HashedList):
         """
         Get a linear distribution
         """
-        return cls([start + (stop - start)/numpoints * i for i in range(numpoints)])
+        return cls([start + (stop - start)/(numpoints-1) * i for i in range(numpoints)])
 
     @classmethod
     def from_polynom_distribution(cls, numpoints, order=2) -> Distribution:

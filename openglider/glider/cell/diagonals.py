@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import copy
 import logging
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Tuple
 
 import euklid
 import openglider.mesh as mesh
+import openglider.mesh.triangulate
 from openglider.utils.dataclass import dataclass, BaseModel
 from openglider.vector.mapping import Mapping, Mapping3D
 from openglider.vector.projection import flatten_list
@@ -26,7 +29,7 @@ class DiagonalSide(BaseModel):
     end_height: float
 
     @classmethod
-    def create_from_center(cls, center: float, width: float, height: float):
+    def create_from_center(cls, center: float, width: float, height: float) -> DiagonalSide:
         kwargs = {
             "start_x": center - width/2,
             "end_x": center + width/2,
@@ -36,28 +39,28 @@ class DiagonalSide(BaseModel):
         return cls(**kwargs)
 
     @property
-    def is_lower(self):
+    def is_lower(self) -> bool:
         return self.start_height == -1 and self.end_height == -1
     
     @property
-    def is_upper(self):
+    def is_upper(self) -> bool:
         return self.start_height == 1 and self.end_height == 1
     
     @property
-    def width(self):
+    def width(self) -> float:
         return abs(self.start_x - self.end_x)
 
     @width.setter
-    def width(self, width: float):
+    def width(self, width: float) -> None:
         center = self.center
         self.start_x = center - width/2
         self.end_x = center + width/2
     
     @property
-    def center(self):
+    def center(self) -> float:
         return (self.start_x + self.end_x)/2
 
-    def get_curve(self, rib: "Rib") -> euklid.vector.PolyLine3D:
+    def get_curve(self, rib: Rib) -> euklid.vector.PolyLine3D:
             # Is it at 0 or 1?
             if self.is_lower or self.is_upper:
                 factor = 1
@@ -91,26 +94,26 @@ class DiagonalRib:
     hole_border_side :float=0.15
     hole_border_front_back: float=0.1
 
-    def copy(self):
+    def copy(self) -> DiagonalRib:
         return copy.copy(self)
 
     @property
-    def is_upper(self):
+    def is_upper(self) -> bool:
         return self.left.is_upper and self.right.is_upper
     
     @property
-    def is_lower(self):
+    def is_lower(self) -> bool:
         return self.left.is_lower and self.right.is_lower
 
     def mirror(self) -> None:
         self.left ,self.right = self.right, self.left
 
-    def get_center_length(self, cell) -> float:
+    def get_center_length(self, cell: Cell) -> float:
         p1 = cell.rib1.point(self.left.center)
         p2 = cell.rib2.point(self.right.center)
         return (p2 - p1).length()
 
-    def get_3d(self, cell: "Cell") -> Tuple[euklid.vector.PolyLine3D, euklid.vector.PolyLine3D]:
+    def get_3d(self, cell: Cell) -> Tuple[euklid.vector.PolyLine3D, euklid.vector.PolyLine3D]:
         """
         Get 3d-Points of a diagonal rib
         :return: (left_list, right_list)
@@ -120,31 +123,36 @@ class DiagonalRib:
 
         return left, right
 
-    def get_mesh(self, cell: "Cell", insert_points=10, project_3d=False) -> mesh.Mesh:
+    def get_mesh(self, cell: Cell, insert_points: int=10, project_3d: bool=False) -> mesh.Mesh:
         """
         get a mesh from a diagonal (2 poly lines)
         """
         left, right = self.get_3d(cell)
         left_2d, right_2d = self.get_flattened(cell)
         
-        envelope_2d = left_2d.tolist()
-        envelope_3d = left.tolist()
+        envelope_2d = left_2d.nodes
+        envelope_3d = left.nodes
 
 
-        def get_list(p1, p2):
+        def get_list_3d(p1: euklid.vector.Vector3D, p2: euklid.vector.Vector3D) -> List[euklid.vector.Vector3D]:
             return [
-                list(p1 + (p2-p1) * ((i+1)/(insert_points+1)))
+                p1 + (p2-p1) * ((i+1)/(insert_points+1))
+                for i in range(insert_points)
+            ]
+        def get_list_2d(p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> List[euklid.vector.Vector2D]:
+            return [
+                p1 + (p2-p1) * ((i+1)/(insert_points+1))
                 for i in range(insert_points)
             ]
 
-        envelope_2d += get_list(left_2d.nodes[-1], right_2d.nodes[-1])
-        envelope_3d += get_list(left.nodes[-1], right.nodes[-1])
+        envelope_2d += get_list_2d(left_2d.nodes[-1], right_2d.nodes[-1])
+        envelope_3d += get_list_3d(left.nodes[-1], right.nodes[-1])
 
-        envelope_2d += right_2d.reverse().tolist()
-        envelope_3d += right.reverse().tolist()
+        envelope_2d += right_2d.reverse().nodes
+        envelope_3d += right.reverse().nodes
 
-        envelope_2d += get_list(right_2d.nodes[0], left_2d.nodes[0])
-        envelope_3d += get_list(right.nodes[0], left.nodes[0])
+        envelope_2d += get_list_2d(right_2d.nodes[0], left_2d.nodes[0])
+        envelope_3d += get_list_3d(right.nodes[0], left.nodes[0])
         
         boundary_nodes = list(range(len(envelope_2d)))
         boundary = [boundary_nodes+[0]]
@@ -159,8 +167,7 @@ class DiagonalRib:
             boundary.append([start_index + i for i in hole_indices])
 
         hole_centers_lst = [(p[0], p[1]) for p in hole_centers]
-
-        tri = mesh.triangulate.Triangulation(envelope_2d, boundary, hole_centers_lst)
+        tri = openglider.mesh.triangulate.Triangulation([(p[0], p[1]) for p in envelope_2d], boundary, hole_centers_lst)
         tri_mesh = tri.triangulate()
 
         # map 2d-points to 3d-points
@@ -178,7 +185,7 @@ class DiagonalRib:
             points_3d.append(vector_3d)
 
         for point in tri_mesh.points[len(envelope_2d):]:
-            ik = mapping_2d.get_iks(euklid.vector.Vector2D(point))
+            ik = mapping_2d.get_iks(point)
             points_3d.append(mapping_3d.get_point(*ik))
         
         drib_mesh = mesh.Mesh.from_indexed(points_3d, {"diagonals": list(tri_mesh.elements)}, boundaries={"diagonals": boundary_nodes})
@@ -190,13 +197,13 @@ class DiagonalRib:
         return drib_mesh
 
 
-    def get_holes(self, cell: "Cell", points=40) -> Tuple[List[euklid.vector.PolyLine2D], List[euklid.vector.Vector2D]]:
+    def get_holes(self, cell: Cell, points: int=40) -> Tuple[List[euklid.vector.PolyLine2D], List[euklid.vector.Vector2D]]:
         left, right = self.get_flattened(cell)
 
         len_left = left.get_length()
         len_right = right.get_length()
 
-        def get_point(x, y):
+        def get_point(x: float, y: float) -> euklid.vector.Vector2D:
             p1 = left.get(left.walk(0, len_left*x))
             p2 = right.get(right.walk(0, len_right*x))
 
@@ -234,7 +241,7 @@ class DiagonalRib:
 
         return holes, centers
 
-    def get_flattened(self, cell: "Cell", ribs_flattened=None) -> Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
+    def get_flattened(self, cell: Cell, ribs_flattened: Any=None) -> Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
         first, second = self.get_3d(cell)
         left, right = flatten_list(first, second)
         return left, right
@@ -249,7 +256,7 @@ class DiagonalRib:
 class TensionStrap(DiagonalRib):
     hole_num: int=0
 
-    def __init__(self, left: float, right: float, width: float, height=-1, **kwargs):
+    def __init__(self, left: float, right: float, width: float, height: float=-1, **kwargs: Any):
         """
         Similar to a Diagonalrib but always connected to the bottom-sail.
         :param left: left center of TensionStrap as x-value
@@ -263,7 +270,7 @@ class TensionStrap(DiagonalRib):
 
         super().__init__(left_side, right_side, **kwargs)
     
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {
             "left": self.left.center,
             "right": self.right.center,
@@ -272,7 +279,7 @@ class TensionStrap(DiagonalRib):
         }
 
 class TensionLine(TensionStrap):
-    def __init__(self, left: float, right: float, material_code="", name=""):
+    def __init__(self, left: float, right: float, material_code: str="", name: str=""):
         """
         Similar to a TensionStrap but with fixed width (0.01)
         :param left: left center of TensionStrap as x-value
@@ -282,14 +289,14 @@ class TensionLine(TensionStrap):
         """
         super().__init__(left, right, 0.01, material_code=material_code, name=name)
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {"left": self.left,
                 "right": self.right,
                 "material_code": self.material_code,
                 "name": self.name
             }
 
-    def get_length(self, cell) -> float:
+    def get_length(self, cell: Cell) -> float:
         rib1 = cell.rib1
         rib2 = cell.rib2
         left = rib1.profile_3d[rib1.profile_2d(self.left)]
@@ -297,13 +304,13 @@ class TensionLine(TensionStrap):
 
         return (left - right).length()
 
-    def get_center_length(self, cell) -> float:
+    def get_center_length(self, cell: Cell) -> float:
         return self.get_length(cell)
 
-    def mirror(self):
+    def mirror(self) -> None:
         self.left, self.right = self.right, self.left
 
-    def get_mesh(self, cell, insert_points=10, project_3d=False) -> mesh.Mesh:
+    def get_mesh(self, cell: Cell, insert_points: int=10, project_3d: bool=False) -> mesh.Mesh:
         boundaries = {}
         rib1 = cell.rib1
         rib2 = cell.rib2
@@ -311,4 +318,4 @@ class TensionLine(TensionStrap):
         p2 = rib2.profile_3d[rib2.profile_2d(self.right)]
         boundaries[rib1.name] = [0]
         boundaries[rib2.name] = [1]
-        return mesh.Mesh.from_indexed([p1, p2], {"tension_lines": [[0, 1]]}, boundaries=boundaries)
+        return mesh.Mesh.from_indexed([p1, p2], {"tension_lines": [(0, 1)]}, boundaries=boundaries)

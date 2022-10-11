@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Dict, Optional
+from typing import TYPE_CHECKING, Any, List, Dict, Optional
 import logging
 
 import euklid
@@ -23,20 +23,33 @@ class Line(CachedObject):
     lower_node: Node
     upper_node: Node
 
-    target_length: float
-    init_length: float
+    target_length: float | None
+    init_length: float | None
 
     line_type: line_types.LineType
     force: float | None
     name: str
+    number: int
+
+    sag_par_1: float | None
+    sag_par_2: float | None
 
 
-    def __init__(self, lower_node, upper_node, v_inf,
-                 line_type=line_types.LineType.get('default'), target_length=None, number=None, name=None, color=""):
+    def __init__(
+        self,
+        lower_node: Node,
+        upper_node: Node,
+        v_inf: euklid.vector.Vector3D,
+        line_type: line_types.LineType=line_types.LineType.get('default'),
+        target_length: float=None,
+        number: int=None,
+        name: str=None,
+        color: str=""
+        ):
         """
         Line Class
         """
-        self.number = number
+        self.number = number  # type: ignore
         self.type = line_type  # type of line
         self.v_inf = v_inf  # free-stream velocity
         
@@ -56,7 +69,7 @@ class Line(CachedObject):
 
         self.name = name or "unnamed_line"
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return{
             'number': self.number,
             'lower_node': self.lower_node,
@@ -68,7 +81,7 @@ class Line(CachedObject):
         }
 
     @classmethod
-    def __from_json__(cls, number, lower_node, upper_node, v_inf, line_type, target_length, name):
+    def __from_json__(cls, number: int, lower_node: Node, upper_node: Node, v_inf: euklid.vector.Vector3D, line_type: str, target_length: float, name: str) -> Line:
         return cls(lower_node,
                    upper_node,
                    v_inf,
@@ -132,7 +145,7 @@ class Line(CachedObject):
 
         return euklid.vector.PolyLine3D(self.get_line_points(numpoints=100)).get_length()
 
-    def get_stretched_length(self, pre_load=50, sag=True) -> float:
+    def get_stretched_length(self, pre_load: float=50, sag: bool=True) -> float:
         """
         Get the total line-length for production using a given stretch
         length = len_0 * (1 + stretch*force)
@@ -141,7 +154,7 @@ class Line(CachedObject):
             l_0 = self.length_with_sag
         else:
             l_0 = self.length_no_sag
-        factor = self.type.get_stretch_factor(pre_load) / self.type.get_stretch_factor(self.force)
+        factor = self.type.get_stretch_factor(pre_load) / self.type.get_stretch_factor(self.force or 0)
         return l_0 * factor
 
     #@cached_property('v_inf', 'type.cw', 'type.thickness')
@@ -207,7 +220,7 @@ class Line(CachedObject):
              self.sag_par_1 + self.sag_par_2)
         return float(u)
 
-    def get_mesh(self, numpoints: int=2, segment_length: Optional[float]=None):
+    def get_mesh(self, numpoints: int=2, segment_length: Optional[float]=None) -> Mesh:
         if segment_length is not None:
             numpoints = max(round(self.length_no_sag / segment_length), 2)
 
@@ -223,7 +236,7 @@ class Line(CachedObject):
             boundary["lines"].append(line_points[-1])
         
         spring = self.type.get_spring_constant()
-        stretch_factor = 1 + self.force / spring
+        stretch_factor = 1 + (self.force or 0) / spring
         attributes = {
             "name": self.name,
             "l_12": self.length_no_sag / stretch_factor / (numpoints-1),
@@ -242,7 +255,9 @@ class Line(CachedObject):
         return Mesh(line_poly, boundary)
 
     @property
-    def _get_projected_par(self):
+    def _get_projected_par(self) -> List[float | None]:
+        if self.sag_par_1 is None or self.sag_par_2 is None:
+            raise ValueError(f"No sag calculated: {self.name}")
         c1_n = self.lower_node.get_diff().dot(self.v_inf_0)
         c2_n = self.upper_node.get_diff().dot(self.v_inf_0)
         return [c1_n + self.sag_par_1, c2_n / self.length_projected + self.sag_par_2]

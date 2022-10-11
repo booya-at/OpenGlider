@@ -70,22 +70,30 @@ class AttachmentPoint(Node):
     protoloop_distance: float = 0.02
     protoloop_distance_absolute: bool = True
     
-    def __init__(self, name, rib_pos, force: euklid.vector.Vector3D, offset=None, protoloops=0, protoloop_distance=0.02, protoloop_distance_absolute=True, node_type=Node.NODE_TYPE.UPPER):            
+    def __init__(
+        self, name: str,
+        rib_pos: float,
+        force: euklid.vector.Vector3D,
+        offset: float=-0.01,
+        protoloops: int=0,
+        protoloop_distance: float=0.02,
+        protoloop_distance_absolute: bool=True,
+        node_type: Node.NODE_TYPE=Node.NODE_TYPE.UPPER
+        ):
+        
         super().__init__(node_type=Node.NODE_TYPE.UPPER, rib_pos=rib_pos, name=name, force=force)
 
         self.rib_pos = rib_pos
         self.name = name
         self.force = force
 
-        if offset is None:
-            offset = -0.01
-        self.offset: float = offset
+        self.offset = offset
 
         self.protoloops = protoloops
         self.protoloop_distance = protoloop_distance
         self.protoloop_distance_absolute = protoloop_distance_absolute
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<Attachment point '{}' ({})>".format(self.name, self.rib_pos)
 
     def __json__(self) -> Dict[str, Any]:

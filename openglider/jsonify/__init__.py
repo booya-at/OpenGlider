@@ -1,9 +1,11 @@
+from io import TextIOWrapper
 import json
 import re
 import sys
 import time
 import datetime
 from tkinter.messagebox import NO
+from typing import Any, Dict, Type
 
 import pydantic
 import openglider.config
@@ -20,7 +22,7 @@ __ALL__ = ['dumps', 'dump', 'loads', 'load']
 datetime_format = "%d.%m.%Y %H:%M"
 datetime_format_regex = re.compile(r'^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}$')
 
-def get_element(_module, _name):
+def get_element(_module: str, _name: str) -> Type[Any]:
     for rex in openglider.config["json_forbidden_modules"]:
         if re.match(rex, _module):
             raise Exception
@@ -33,9 +35,11 @@ def get_element(_module, _name):
             module = __import__(_module, fromlist=fromlist)
             obj = recursive_getattr(module, _name)
             return obj
+    
+    raise ValueError(f"could not find element type: {_module}.{_name}")
 
 
-def object_hook(dct):
+def object_hook(dct: Dict[str, Any]) -> Any:
     """
     Return the de-serialized object
     """
@@ -70,7 +74,7 @@ def object_hook(dct):
         return dct
 
 
-def add_metadata(data):
+def add_metadata(data: Any) -> Dict[str, Any]:
     if isinstance(data, dict) and 'MetaData' in data:
         data['MetaData']['date_modified'] = time.strftime("%d.%m.%y %H:%M")
         return data
@@ -83,25 +87,22 @@ def add_metadata(data):
                 'data': data}
 
 
-def dumps(obj, add_meta=True):
+def dumps(obj: Any, add_meta: bool=True) -> str:
     if add_meta:
         obj = add_metadata(obj)
     return json.dumps(obj, cls=Encoder)
 
 
-def dump(obj, fp, add_meta=True, pretty=True):
+def dump(obj: Any, fp: TextIOWrapper, add_meta: bool=True, pretty: bool=True) -> None:
+    indent = None
     if pretty:
-        kwargs = {
-            "indent": 4
-        }
-    else:
-        kwargs = {}
+        indent = 4
     if add_meta:
         obj = add_metadata(obj)
-    return json.dump(obj, fp, cls=Encoder, **kwargs)
+    return json.dump(obj, fp, cls=Encoder, indent=indent)
 
 
-def loads(obj):
+def loads(obj: str) -> Any:
     raw_data = json.loads(obj)
 
     miigration = Migration(raw_data)
@@ -111,7 +112,7 @@ def loads(obj):
     return json.loads(obj, object_hook=object_hook)
 
 
-def load(fp):
+def load(fp: TextIOWrapper) -> Any:
     raw_data = json.load(fp)
     miigration = Migration(raw_data)
     if miigration.required:

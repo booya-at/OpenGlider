@@ -1,7 +1,8 @@
 from openglider.glider.cell.diagonals import TensionStrap
+from openglider.glider.glider import Glider
 from openglider.utils.table import Table
 
-def get_length_table(glider) -> Table:
+def get_length_table(glider: Glider) -> Table:
     table = Table(name="straps")
     num = 0
 

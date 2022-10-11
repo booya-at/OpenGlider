@@ -42,6 +42,7 @@ class SingleSkinRib(Rib):
         # we have to apply this function once for the profile2d
         # this will change the position of the attachmentpoints!
         # therefore it shouldn't be placed int the get_hull function
+        self.single_skin_par = single_skin_par
         if self.single_skin_par['continued_min']: 
             self.apply_continued_min()
 
@@ -63,7 +64,7 @@ class SingleSkinRib(Rib):
 
     @classmethod
     def from_rib(cls, rib: Rib, single_skin_par: typing.Dict[str, typing.Any]) -> SingleSkinRib:
-        json_dict = rib.__json__()
+        json_dict = rib.__json__()  # type: ignore
         if "xrot" in single_skin_par:
             json_dict["xrot"] = single_skin_par.pop("xrot")
         json_dict["single_skin_par"] = single_skin_par
@@ -71,7 +72,7 @@ class SingleSkinRib(Rib):
         return single_skin_rib
 
     def __json__(self) -> typing.Dict[str, typing.Any]:
-        json_dict = super().__json__()
+        json_dict = super().__json__()  # type: ignore
         json_dict["single_skin_par"] = self.single_skin_par
         return json_dict
 

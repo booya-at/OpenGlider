@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from abc import ABC
 import logging
 import math
-from typing import TypeVar, List, TYPE_CHECKING
+from typing import Tuple, TypeVar, List, TYPE_CHECKING
 
 import euklid
 import numpy as np
@@ -20,19 +22,19 @@ class RigidFoilBase(ABC, BaseModel):
     end: float = 0.1
     distance: float = 0.005
 
-    def get_3d(self, rib: "Rib"):
-        return [rib.align(p, scale=False) for p in self.get_flattened(rib)]
+    def get_3d(self, rib: Rib) -> euklid.vector.PolyLine3D:
+        return euklid.vector.PolyLine3D([rib.align(p, scale=False) for p in self.get_flattened(rib)])
 
-    def get_length(self, rib: "Rib"):
+    def get_length(self, rib: Rib) -> float:
         return self.get_flattened(rib).get_length()
 
-    def get_flattened(self, rib: "Rib", glider: "Glider"=None) -> euklid.vector.PolyLine2D:
+    def get_flattened(self, rib: Rib, glider: Glider=None) -> euklid.vector.PolyLine2D:
         return self._get_flattened(rib, glider).fix_errors()
     
-    def _get_flattened(self, rib: "Rib", glider: "Glider"=None):
+    def _get_flattened(self, rib: Rib, glider: Glider=None) -> euklid.vector.PolyLine2D:
         raise NotImplementedError()
 
-    def get_cap_radius(self, start: bool):
+    def get_cap_radius(self, start: bool) -> Tuple[float, float]:
         raise NotImplementedError
 
 
@@ -40,7 +42,7 @@ class RigidFoilBase(ABC, BaseModel):
 class RigidFoil(RigidFoilBase):
     circle_radius: float = 0.03
 
-    def func(self, pos: float):
+    def func(self, pos: float) -> float:
         dsq = None
         if -0.05 <= pos - self.start < self.circle_radius:
             dsq = self.circle_radius**2 - (self.circle_radius + self.start - pos)**2
@@ -50,12 +52,12 @@ class RigidFoil(RigidFoilBase):
         if dsq is not None:
             dsq = max(dsq, 0)
             return (self.circle_radius - np.sqrt(dsq)) * 0.35
-        return 0
+        return 0.
 
-    def get_cap_radius(self, start: bool):
-        return self.circle_radius, 1
+    def get_cap_radius(self, start: bool) -> Tuple[float, float]:
+        return self.circle_radius, 1.
 
-    def _get_flattened(self, rib: "Rib", glider: "Glider"=None):
+    def _get_flattened(self, rib: Rib, glider: Glider=None) -> euklid.vector.PolyLine2D:
         max_segment = 0.005  # 5mm
         profile = rib.get_hull()
         profile_normvectors = profile.normvectors
@@ -91,7 +93,7 @@ class RigidFoil(RigidFoilBase):
 
 
 class _RigidFoilCurved(RigidFoilBase):
-    def _get_flattened(self, rib: "Rib", glider: "Glider"=None):
+    def _get_flattened(self, rib: Rib, glider: Glider=None) -> euklid.vector.PolyLine2D:
         profile = rib.get_hull()
 
         start = profile.get_ik(self.start)
@@ -127,7 +129,7 @@ class RigidFoilCurved(_RigidFoilCurved):
     circle_radius_end: float = 0.03
     circle_amount_end: float = 0.7
 
-    def get_cap_radius(self, start: bool):
+    def get_cap_radius(self, start: bool) -> Tuple[float, float]:
         if start:
             return self.circle_radius_start, self.circle_amount_start
         else:
@@ -138,7 +140,7 @@ class RigidFoil2(_RigidFoilCurved):
     circle_radius: float=0.05
     circle_amount: float=0.5
 
-    def get_cap_radius(self, start: bool):
+    def get_cap_radius(self, start: bool) -> Tuple[float, float]:
         return self.circle_radius, self.circle_amount
 
 
@@ -147,7 +149,7 @@ class FoilCurve(object):
     front: float = 0
     end: float = 0.17
 
-    def get_flattened(self, rib: "Rib", numpoints: int=30):
+    def get_flattened(self, rib: Rib, numpoints: int=30) -> euklid.vector.PolyLine2D:
         curve = [
             [self.end, 0.75],
             [self.end-0.05, 1],

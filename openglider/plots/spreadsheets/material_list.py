@@ -2,10 +2,11 @@ from typing import Tuple, List
 
 from openglider.glider.cell.diagonals import DiagonalRib
 from openglider.glider.cell.panel import Panel
+from openglider.glider.glider import Glider
 from openglider.utils.table import Table
 
 
-def get_material_sheets(glider) -> Tuple[Table, Table, Table]:
+def get_material_sheets(glider: Glider) -> Tuple[Table, Table, Table]:
     # ribs
     ribs_sheet = Table(name="material_ribs")
 

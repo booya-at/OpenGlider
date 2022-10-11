@@ -10,7 +10,8 @@ import openglider.materials
 import pyfoil
 from openglider.glider.ballooning.base import BallooningBase
 from openglider.glider.ballooning.new import BallooningBezierNeu
-from openglider.glider.cell import Cell, Panel, PanelCut
+from openglider.glider.cell import Cell
+from openglider.glider.cell.panel import Panel, PanelCut, PANELCUT_TYPES
 from openglider.glider.glider import Glider
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.export_ods import export_ods_2d
@@ -149,10 +150,10 @@ class ParametricGlider:
             all_values = [c.x_left for c in cuts] + [c.x_right for c in cuts]
 
             if -1 not in all_values:
-                cuts.append(PanelCut(-1, -1, PanelCut.CUT_TYPES.parallel))
+                cuts.append(PanelCut(-1, -1, PANELCUT_TYPES.parallel))
             
             if 1 not in all_values:
-                cuts.append(PanelCut(1, 1, PanelCut.CUT_TYPES.parallel))
+                cuts.append(PanelCut(1, 1, PANELCUT_TYPES.parallel))
 
             cuts.sort(key=lambda cut: cut.get_average_x())
 
@@ -170,7 +171,7 @@ class ParametricGlider:
                     raise ValueError(error_str)
 
                 if cut1.cut_type == cut2.cut_type:
-                    if cut1.cut_type in (PanelCut.CUT_TYPES.folded, PanelCut.CUT_TYPES.singleskin):
+                    if cut1.cut_type in (PANELCUT_TYPES.folded, PANELCUT_TYPES.singleskin):
                         continue
 
                 try:
