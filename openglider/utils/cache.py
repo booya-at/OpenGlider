@@ -14,8 +14,19 @@ from typing import TYPE_CHECKING
 import openglider
 
 
-cache_instances: List[Any] = []
 logger = logging.getLogger(__name__)
+
+cache_instances: List[CachedProperty] = []
+
+def clear():
+    for instance in cache_instances:
+        instance.cache.cache.clear()
+
+def stats():
+    return [
+        [instance.__qualname__, instance.cache.hits, instance.cache.misses] for instance in cache_instances
+    ]
+
 
 class CachedObject(object):
     """
@@ -69,14 +80,13 @@ class LruCache(Generic[Result]):
         except KeyError:
             pass
 
-        for _ in range(len(self.cache) - len(self.cache)):
+        for _ in range(len(self.cache) - self.maxsize):
             self.cache.popitem(last=False)
 
         self.cache[key] = value
-        self.cache[key] = value
             
 
-class CachedProperty(object):
+class CachedProperty:
     hashlist: List[str]
 
     def __init__(self, fget: Callable[[CLS], Result], hashlist: List[str], maxsize: int):
@@ -84,12 +94,17 @@ class CachedProperty(object):
         self.function = fget
         self.__doc__ = fget.__doc__
         self.__module__ = fget.__module__
+        self.__name__ = fget.__name__
+        self.__qualname__ = fget.__qualname__
 
         self.hashlist = hashlist
         self.cache = LruCache(maxsize)
 
         global cache_instances
         cache_instances.append(self)
+    
+    def __repr__(self) -> str:
+        return f"<CachedProperty {self.function.__qualname__}>"
 
     def __get__(self, parentclass: CLS, type: Any=None) -> Result:
         if not openglider.config["caching"]:
@@ -103,8 +118,9 @@ class CachedProperty(object):
             self.cache.set(hash_value, value)            
         
         return value
-        
-def cached_property(*hashlist: str, max_size: int=500):
+
+
+def cached_property(*hashlist: str, max_size: int=1024):
     if TYPE_CHECKING:
         return property
 
@@ -114,77 +130,40 @@ def cached_property(*hashlist: str, max_size: int=500):
     return property_decorator
 
 
-class CachedFunction():
-    hashlist: List[str]
-    def __init__(self, f_get: Callable[..., Result], hashlist: List[str], maxsize: int):
-        self.function = f_get
-        self.hashlist = hashlist
-        self.__doc__ = f_get.__doc__
-        self.__name__ = f_get.__name__
-        self.__module__ = f_get.__module__
-    
-    def __get__(self, instance, parentclass):
-        if not hasattr(instance, "cached_functions"):
-            setattr(instance, "cached_functions", {})
-        
-        if self not in instance.cached_functions:
-            hashlist = self.hashlist
-            class BoundCache():
-                def __init__(self, parent: Any, function: Callable[..., Result]):
-                    self.parent = parent
-                    self.function = function
-                    self.cache = {}
-                    self.hash = None
-                    self.hashlist = hashlist
-                
-                def __repr__(self) -> str:
-                    return f"<cached: {self.function}>"
-                
-                def __call__(self, *args, **kwargs) -> Result:
-                    if not openglider.config["caching"]:
-                        return self.function(self.parent, *args, **kwargs)
-                        
-                    the_hash = hash_attributes(self.parent, self.hashlist)
-                    #logging.info(f"{self.parent} {the_hash} {self.hash} {args} {kwargs}")
-
-                    if the_hash != self.hash:
-                        self.cache.clear()
-                        self.hash = the_hash
-                    
-                    argument_hash = hash_list(*args, *kwargs.values())
-                    logging.debug(f"{argument_hash}, {str(args)}, {str(kwargs)}")
-
-                    if argument_hash not in self.cache:
-                        logging.debug(f"recalc, {self.function} {self.parent}")
-                        self.cache[argument_hash] = self.function(self.parent, *args, **kwargs)
-
-                    return self.cache[argument_hash]
-            
-            instance.cached_functions[self] = BoundCache(instance, self.function)
-        
-        return instance.cached_functions[self]
-
 F = TypeVar("F")
 
-def cached_function(*hashlist: str, max_size=255) -> Callable[[F], F]:
-    if TYPE_CHECKING:
+def cached_function(*hashlist: str, max_size=1024) -> Callable[[F], F]:
+    if TYPE_CHECKING and False:
         @functools.wraps
         def wrapper(f):
             return f
         
         return wrapper
-
-    def cache_decorator(func):
-        return CachedFunction(func, hashlist, max_size)
     
-    return cache_decorator
+    else:
+        def wrapper(getter):
+            cache = LruCache(max_size)
 
-hash
-def clear_cache() -> None:
-    #for instance in cache_instances:
-    #   instance.cache.clear()
-    # Todo: fix!!!
-    pass
+            @functools.wraps(getter)
+            def new_function(self, *args, **kwargs):
+                cls_hash = hash_attributes(self, hashlist)
+                hashvalue = hash_list(cls_hash, *args, *kwargs.values())
+
+                value = cache.get(hashvalue)
+                if value is None:
+                    value = getter(self, *args, **kwargs)
+                    cache.set(hashvalue, value)
+                
+                return value
+            
+            new_function.cache = cache
+            global cache_instances
+            cache_instances.append(new_function)
+
+            return new_function
+                
+
+        return wrapper
 
 
 def recursive_getattr(obj: Any, attr: str) -> Any:
@@ -225,7 +204,7 @@ def hash_attributes(class_instance: Any, hashlist: List[str]) -> int:
             try:
                 thahash = hash(el)
             except TypeError:  # Lists p.e.
-                logger.debug(f"bad cache: {el} / {class_instance} / {attribute}, {type(el)}")
+                logger.debug(f"bad cache: {type(class_instance)} -> {attribute}, {type(el)} {type(el)}")
                 try:
                     thahash = hash(frozenset(el))
                 except TypeError:

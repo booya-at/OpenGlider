@@ -1,15 +1,15 @@
 from __future__ import annotations
-import inspect
+
 from typing import TYPE_CHECKING, Dict, Any, Type, TypeVar
 
 import pydantic
 #from pydantic import Field as field
-from pydantic import Field
+from pydantic import Field  # export Field
 
 from typing_extensions import dataclass_transform
-from dataclasses import KW_ONLY, dataclass as dc, asdict, replace
+from dataclasses import dataclass as dc, replace
 
-from openglider.utils.cache import CachedFunction, CachedProperty, hash_attributes, hash_list
+from openglider.utils.cache import CachedProperty, hash_list
 
 if TYPE_CHECKING:
     from pydantic.dataclasses import Dataclass
@@ -32,6 +32,12 @@ class Config:
 
 @dataclass_transform(kw_only_default=False)
 def dataclass(_cls: Type[Any]) -> Type[OGDataclassT]:
+
+    if TYPE_CHECKING:
+        _cls_new = dc(_cls)
+    else:
+        _cls_new = pydantic.dataclasses.dataclass(config=Config)(_cls)
+        
     old_json = getattr(_cls, "__json__", None)
     if old_json is None or getattr(old_json, "is_auto", False):
         def __json__(instance: Any) -> Dict[str, Any]:
@@ -67,10 +73,6 @@ def dataclass(_cls: Type[Any]) -> Type[OGDataclassT]:
 
         _cls.__hash__ = _hash
 
-    if TYPE_CHECKING:
-        _cls_new = dc(_cls)
-    else:
-        _cls_new = pydantic.dataclasses.dataclass(config=Config)(_cls)
         
     return _cls_new
 
@@ -79,7 +81,7 @@ class BaseModel(pydantic.BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
-        keep_untouched = (CachedProperty, CachedFunction)
+        keep_untouched = (CachedProperty,)
         extra = "allow"
         
     def __eq__(self, other: Any) -> bool:
