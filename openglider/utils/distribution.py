@@ -1,14 +1,18 @@
 from __future__ import annotations
-from typing import Callable, List
+import math
+
+from typing import Callable, List, TYPE_CHECKING
 import numpy as np
 
 from openglider.utils.cache import HashedList
 
+if TYPE_CHECKING:
+    from openglider.glider.glider import Glider
 
-class Distribution(HashedList):
-    data: List[float]
-    def get_index(self, x):
-        i = x_last = x_this = -1
+class Distribution(HashedList[float]):
+    def get_index(self, x: float) -> float:
+        i = -1
+        x_last = x_this = -1.
         for i, x_this in enumerate(self.data):
             if x_this >= x:
                 break
@@ -16,27 +20,28 @@ class Distribution(HashedList):
 
         dist = (x - x_last) / (x_this - x_last)
 
-        return i + dist
+        return dist + i
 
-    def find_nearest(self, x, start_ind=0):
+    def find_nearest(self, x: float, start_ind: float=0.) -> None:
         index = self.get_index(x)
         nearest = round(index)
         while nearest <= start_ind:
             nearest += 1
 
-    def insert_value(self, value, start_ind=0, to_nose=True):
+    def insert_value(self, value: float, start_ind: int=0, to_nose: bool=True) -> int:
 
+        raise NotImplementedError()
         if start_ind  >= len(self.data):
-            self.data = np.array(list(self.data[:-1]) + [value] + [self.data[-1]])
+            self.data = self.data[:-1] + [value] + [self.data[-1]]
             return start_ind + 1
 
-        nearest_ind = np.abs(self.data[start_ind:] - value).argmin() + 1 + start_ind
-        nose_ind = np.abs(self.data[start_ind:]).argmin() + start_ind
+        nearest_ind = np.abs(np.array(self.data[start_ind:]) - value).argmin() + 1 + start_ind
+        nose_ind = np.abs(np.array(self.data[start_ind:])).argmin() + start_ind
 
         if nearest_ind == len(self.data):
-            self.data = list(self.data[:-1]) + [value] + [self.data[-1]]
+            self.data = self.data[:-1] + [value] + [self.data[-1]]
             return nearest_ind
-
+        
         # addition: transform only from or to nose
         if value < 0 and to_nose is True:
             end_index = nose_ind
@@ -64,10 +69,10 @@ class Distribution(HashedList):
             l2 = [value]
         else:
             l2 = (l2 - l2[0]) * (value - l2[0]) / (l2[-1] - l2[0]) + l2[0]
-        self.data = list(l1) + list(l2) + list(l3) + list(l4)
+        self.data = l1 + l2 + l3 + l4
         return nearest_ind
 
-    def insert_values(self, values):
+    def insert_values(self, values: List[float]) -> None:
         """
         values: list of values to insert
         shift the data to match values
@@ -80,14 +85,14 @@ class Distribution(HashedList):
             start_ind = self.insert_value(value, start_ind)
 
     @classmethod
-    def from_linear(cls, numpoints, start=-1, stop=1) -> Distribution:
+    def from_linear(cls, numpoints: int, start: float=-1, stop: float=1) -> Distribution:
         """
         Get a linear distribution
         """
         return cls([start + (stop - start)/(numpoints-1) * i for i in range(numpoints)])
 
     @classmethod
-    def from_polynom_distribution(cls, numpoints, order=2) -> Distribution:
+    def from_polynom_distribution(cls, numpoints: int, order: int=2) -> Distribution:
         """
         return a polynom distribution
         f(x) = +- x^p, 0 < x < 1
@@ -99,31 +104,31 @@ class Distribution(HashedList):
         return cls(first_half + second_half)
 
     @classmethod
-    def from_cos_distribution(cls, numpoints) -> Distribution:
+    def from_cos_distribution(cls, numpoints: int) -> Distribution:
         """
         return cosinus distributed x-values
         low density at (-1) and (+1) but neat around 0
         """
         numpoints -= numpoints % 2  # brauchts?
-        xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 - np.sin(np.pi * x))
-        return cls([xtemp(i/numpoints) for i in range(numpoints+1)])
+        cos_func = lambda x: ((x > 0.5) - (x < 0.5)) * (1 - math.sin(math.pi * x))
+        return cls([cos_func(i/numpoints) for i in range(numpoints+1)])
 
     @classmethod
-    def from_cos_2_distribution(cls, numpoints, arg=None) -> Distribution:
+    def from_cos_2_distribution(cls, numpoints: int) -> Distribution:
         """
         return cosinus distributed x-values
         double-cosinus -> neat distribution at nose and trailing edge
         """
         numpoints -= numpoints % 2
-        xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 + np.cos(2 * np.pi * x)) / 2
+        xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 + math.cos(2 * math.pi * x)) / 2
         return cls([xtemp(i/numpoints) for i in range(numpoints+1)])
 
     @classmethod
-    def create_cos_distribution(cls, factor: float) -> Callable:
-        def new_distribution(parent, numpoints, *arg, **kwarg):
+    def create_cos_distribution(cls, factor: float) -> Callable[[int], Distribution]:
+        def new_distribution(numpoints: int) -> Distribution:
             numpoints -= numpoints % 2
             
-            xtemp = lambda x: ((x<=0)-(x>0))*(factor*np.cos(x*0.5*np.pi)+(1-factor)*(1-abs(x))-1)
+            xtemp = lambda x: ((x<=0)-(x>0))*(factor*math.cos(x*0.5*math.pi)+(1-factor)*(1-abs(x))-1)
             data = [xtemp(2*i/numpoints-1) for i in range(numpoints+1)]
             data[0] = -1
             data[-1] = 1
@@ -132,17 +137,17 @@ class Distribution(HashedList):
         return new_distribution
 
     @classmethod
-    def create_cos_distribution_2(cls, factor_front: float, factor_back) -> Callable:
-        def new_distribution(parent, numpoints, *arg, **kwarg):
+    def create_cos_distribution_2(cls, factor_front: float, factor_back: float) -> Callable[[int], Distribution]:
+        def new_distribution(numpoints: int) -> Distribution:
             numpoints -= numpoints % 2
             
             factor_linear = 1-factor_back-factor_front
 
             x = lambda i: 2*i/numpoints - 1
-            cos_front_def = lambda x:((x<=0)-(x>0)) * (np.cos(0.5 * np.pi * x)-1)
+            cos_front_def = lambda x:((x<=0)-(x>0)) * (math.cos(0.5 * math.pi * x)-1)
 
             #((x > 0.5) - (x < 0.5)) * (1 + np.cos(2 * np.pi * x)) / 2
-            cos_back_def = lambda x: ((x>=0)-(x<0))*0.5*(np.cos(np.pi * (x+1))+1)
+            cos_back_def = lambda x: ((x>=0)-(x<0))*0.5*(math.cos(math.pi * (x+1))+1)
             
             data = [factor_front*cos_front_def(x(i)) + factor_back*cos_back_def(x(i)) + factor_linear*x(i) for i in range(numpoints+1)]
 
@@ -151,12 +156,12 @@ class Distribution(HashedList):
         return new_distribution
 
     @classmethod
-    def from_nose_cos_distribution(cls, numpoints, border=0.5) -> Distribution:
+    def from_nose_cos_distribution(cls, numpoints: int, border: float=0.5) -> Distribution:
         """
         from cos distribution at leading edge, to a const distribution at +- 1
         """
 
-        def f(x):
+        def f(x: float) -> float:
             return x ** 2 / ((-2 + border) * border) if x < border else (2 * x - border)/(-2 + border)
 
         dist_values = np.linspace(0, 1, int(numpoints / 2) + 1)
@@ -165,13 +170,13 @@ class Distribution(HashedList):
 
         return cls(first_half + second_half)
 
-    def add_glider_fixed_nodes(self, glider):
-        insert_pts = [-abs(point.rib_pos) for point in glider.attachment_points] + [0]
+    def add_glider_fixed_nodes(self, glider: Glider) -> None:
+        insert_pts = [-abs(point.rib_pos) for point in glider.attachment_points.values()] + [0]
         self.insert_values(insert_pts)
         self.data = self.upper + [-i for i in reversed(self.upper[:-1])]
 
     @property
-    def upper(self):
+    def upper(self) -> List[float]:
         out = []
         i = 0
         while True:
@@ -181,12 +186,12 @@ class Distribution(HashedList):
                 break
         return out
 
-    def make_symmetric_from_lower(self):
+    def make_symmetric_from_lower(self) -> None:
         lower = []
         for x in self.data:
             if x > 0:
                 lower.append(x)
-        lower = np.array(lower)
-        upper = -lower
-        new_dist = sorted(set(upper.tolist() + lower.tolist() + [0]))
+        
+        upper = [-x for x in lower]
+        new_dist = sorted(set(upper + lower + [0]))
         self.data = new_dist

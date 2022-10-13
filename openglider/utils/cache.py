@@ -1,7 +1,12 @@
+
+from __future__ import annotations
+import collections
+
 import copy
 import functools
 import logging
-from typing import Callable, Tuple, TypeVar, List, Any
+from multiprocessing import RLock
+from typing import Callable, Dict, Generic, Iterator, Literal, Tuple, TypeVar, List, Any
 
 import numpy as np
 from typing import TYPE_CHECKING
@@ -20,10 +25,10 @@ class CachedObject(object):
     name: str = "unnamed"
     hashlist: List[str] = []
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash_attributes(self, self.hashlist)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         rep = super(CachedObject, self).__repr__()
         if hasattr(self, "name"):
             rep = rep[:-1] + ': "{}">'.format(self.name)
@@ -31,52 +36,87 @@ class CachedObject(object):
 
 
 
+CLS = TypeVar("CLS")
+Result = TypeVar("Result")
+
+class LruCache(Generic[Result]):
+    NotFound = object()
+    
+    def __init__(self, maxsize: int=128) -> None:
+        self.maxsize = maxsize
+        self.cache = collections.OrderedDict()
+
+        self.hits = 0
+        self.misses = 0
+    
+    @property
+    def cache_full(self):
+        return len(self.cache) > self.maxsize
+    
+    def get(self, key: int) -> Result | None:
+        try:
+            value = self.cache.pop(key)
+            self.cache[key] = value
+            self.hits += 1
+            return value
+        except KeyError:
+            self.misses += 1
+            return None
+    
+    def set(self, key: int, value: Result) -> None:
+        try:
+            self.cache.pop(key)
+        except KeyError:
+            pass
+
+        for _ in range(len(self.cache) - len(self.cache)):
+            self.cache.popitem(last=False)
+
+        self.cache[key] = value
+        self.cache[key] = value
+            
+
 class CachedProperty(object):
     hashlist: List[str]
 
-    def __init__(self, fget, hashlist):
+    def __init__(self, fget: Callable[[CLS], Result], hashlist: List[str], maxsize: int):
         super().__init__()
         self.function = fget
         self.__doc__ = fget.__doc__
         self.__module__ = fget.__module__
 
         self.hashlist = hashlist
+        self.cache = LruCache(maxsize)
 
         global cache_instances
         cache_instances.append(self)
 
-    def __get__(self, parentclass, type=None):
+    def __get__(self, parentclass: CLS, type: Any=None) -> Result:
         if not openglider.config["caching"]:
             return self.function(parentclass)
-        else:
-            if not hasattr(parentclass, "_cache"):
-                parentclass._cache = {}
+        
+        hash_value = hash_attributes(parentclass, self.hashlist)
+        value = self.cache.get(hash_value)
 
-            cache = parentclass._cache
-            dahash = hash_attributes(parentclass, self.hashlist)
-            # Return cached or recalc if hashes differ
-            if self not in cache or cache[self]['hash'] != dahash:
-                res = self.function(parentclass)
-                cache[self] = {
-                    "hash": dahash,
-                    "value": res
-                }
-
-            return cache[self]["value"]
-
-def cached_property(*hashlist):
+        if value is None:
+            value = self.function(parentclass)
+            self.cache.set(hash_value, value)            
+        
+        return value
+        
+def cached_property(*hashlist: str, max_size: int=500):
     if TYPE_CHECKING:
         return property
 
     def property_decorator(fget):
-        return CachedProperty(fget, hashlist)
+        return CachedProperty(fget, hashlist, max_size)
     
     return property_decorator
 
 
 class CachedFunction():
     hashlist: List[str]
-    def __init__(self, f_get, hashlist):
+    def __init__(self, f_get: Callable[..., Result], hashlist: List[str], maxsize: int):
         self.function = f_get
         self.hashlist = hashlist
         self.__doc__ = f_get.__doc__
@@ -90,17 +130,17 @@ class CachedFunction():
         if self not in instance.cached_functions:
             hashlist = self.hashlist
             class BoundCache():
-                def __init__(self, parent, function):
+                def __init__(self, parent: Any, function: Callable[..., Result]):
                     self.parent = parent
                     self.function = function
                     self.cache = {}
                     self.hash = None
                     self.hashlist = hashlist
                 
-                def __repr__(self):
+                def __repr__(self) -> str:
                     return f"<cached: {self.function}>"
                 
-                def __call__(self, *args, **kwargs):
+                def __call__(self, *args, **kwargs) -> Result:
                     if not openglider.config["caching"]:
                         return self.function(self.parent, *args, **kwargs)
                         
@@ -124,8 +164,9 @@ class CachedFunction():
         
         return instance.cached_functions[self]
 
+F = TypeVar("F")
 
-def cached_function(*hashlist):
+def cached_function(*hashlist: str, max_size=255) -> Callable[[F], F]:
     if TYPE_CHECKING:
         @functools.wraps
         def wrapper(f):
@@ -134,19 +175,19 @@ def cached_function(*hashlist):
         return wrapper
 
     def cache_decorator(func):
-        return CachedFunction(func, hashlist)
+        return CachedFunction(func, hashlist, max_size)
     
     return cache_decorator
 
-
-def clear_cache():
+hash
+def clear_cache() -> None:
     #for instance in cache_instances:
     #   instance.cache.clear()
     # Todo: fix!!!
     pass
 
 
-def recursive_getattr(obj, attr):
+def recursive_getattr(obj: Any, attr: str) -> Any:
     """
     Recursive Attribute-getter
     """
@@ -159,7 +200,7 @@ def recursive_getattr(obj, attr):
         return recursive_getattr(getattr(obj, l[0]), '.'.join(l[1:]))
 
 
-def c_mul(a, b):
+def c_mul(a: float, b: int) -> int:
     """
     C type multiplication
     http://stackoverflow.com/questions/6008026/how-hash-is-implemented-in-python-3-2
@@ -167,7 +208,7 @@ def c_mul(a, b):
     return eval(hex((int(a) * b) & 0xFFFFFFFF)[:-1])
 
 
-def hash_attributes(class_instance, hashlist):
+def hash_attributes(class_instance: Any, hashlist: List[str]) -> int:
     """
     http://effbot.org/zone/python-hash.htm
     """
@@ -190,12 +231,12 @@ def hash_attributes(class_instance, hashlist):
                 except TypeError:
                     thahash = hash(str(el))
         
-        value_lst += (thahash,)
+        value_lst += (id(class_instance), thahash)
 
     return hash(value_lst)
 
 
-def hash_list(*lst) -> int:
+def hash_list(*lst: Any) -> int:
     value_lst: List[int] = []
     for el in lst:
 
@@ -218,64 +259,61 @@ def hash_list(*lst) -> int:
 
 
 
-T = TypeVar('T', bound="HashedList")
+T = TypeVar('T')
 
-class HashedList(CachedObject):
+class HashedList(Generic[T]):
     """
     Hashed List to use cached properties
     """
     name = "unnamed"
-    def __init__(self, data, name=None):
-        self._data = np.array([])
+    def __init__(self, data: List[T], name: str="unnamed"):
+        self._data: List[T] = []
         self._hash = None
         self.data = data
-        self.name = name or getattr(self, 'name', None)
+        self.name = name
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         # attrs = self.__init__.func_code.co_varnames
         # return {key: getattr(self, key) for key in attrs if key != 'self'}
         return {"data": self.data.tolist(), "name": self.name}
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int) -> T:
         return self.data[item]
 
-    def __setitem__(self, key, value):
-        self.data[key] = np.array(value)
+    def __setitem__(self, key: int, value: T) -> None:
+        self.data[key] = value
         self._hash = None
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         if self._hash is None:
             self._hash = hash(str(self.data))
             #self._hash = hash("{}/{}".format(id(self), time.time()))
         return self._hash
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.data)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[T]:
         for el in self.data:
             yield el
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.data)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<class '{}' name: {}".format(self.__class__, self.name)
 
     @property
-    def data(self) -> np.ndarray:
+    def data(self) -> List[T]:
         return self._data
 
     @data.setter
-    def data(self, data):
+    def data(self, data: List[T]) -> None:
         if data is not None:
-            data = list(data)  # np.array(zip(x,y)) is shit
-            self._data = np.array(data)
-            #self._data = np.array(data)
-            #self._data = [np.array(vector) for vector in data]  # 1,5*execution time
+            self._data = data
             self._hash = None
         else:
-            self._data = np.array([])
+            self._data = []
 
-    def copy(self):
+    def copy(self) -> HashedList[T]:
         return copy.deepcopy(self)

@@ -55,7 +55,7 @@ def colorwheel(num: int) -> List[Tuple[int, int, int]]:
         rgb = [int(255*x) for x in (red, green, blue)]
         factor = 255 / max(rgb)
         rgb_normalized = [min(255, int(factor*x)) for x in rgb]
-        colors.append(rgb_normalized)
+        colors.append(tuple(rgb_normalized))
 
     return colors
 

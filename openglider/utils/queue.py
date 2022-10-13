@@ -1,6 +1,7 @@
 import asyncio
 import multiprocessing
 import logging
+from typing import Any, Callable, Coroutine, List
 
 logger = logging.getLogger(__name__)
 
@@ -8,25 +9,25 @@ logger = logging.getLogger(__name__)
 class AsyncTaskQueue:
     poll_interval = 0.1
     
-    def __init__(self, num_workers=None):
+    def __init__(self, num_workers: int=None):
         if num_workers is None:
             num_workers = multiprocessing.cpu_count()
             
-        self.tasks = []
-        self.tasks_todo = []
-        self.results = []
+        self.tasks: List[asyncio.Task] = []
+        self.tasks_todo: List[Coroutine] = []
+        self.results: List[Any] = []
         self.num_workers = num_workers
     
     @property
-    def is_full(self):
+    def is_full(self) -> bool:
         return len(self.tasks) >= self.num_workers
     
-    def start_task(self, coroutine):
-        task = asyncio.create_task(coroutine)
+    def start_task(self, coroutine: Coroutine) -> None:
+        task: asyncio.Task = asyncio.create_task(coroutine)
         self.tasks.append(task)
         task.add_done_callback(self.done_callback)
 
-    async def add(self, coroutine, wait=True):
+    async def add(self, coroutine: Coroutine, wait: bool=True) -> None:
         if wait:
             while self.is_full:
                 await asyncio.sleep(self.poll_interval)
@@ -37,7 +38,7 @@ class AsyncTaskQueue:
         
         self.start_task(coroutine)        
     
-    def done_callback(self, task):
+    def done_callback(self, task: asyncio.Task) -> None:
         logger.info(f"finished {task}")
 
         self.tasks.remove(task)
@@ -47,7 +48,7 @@ class AsyncTaskQueue:
             coroutine = self.tasks_todo.pop()
             self.start_task(coroutine)
     
-    async def finish(self):
+    async def finish(self) -> List[Any]:
         while len(self.tasks) > 0:
             await asyncio.sleep(self.num_workers)
         

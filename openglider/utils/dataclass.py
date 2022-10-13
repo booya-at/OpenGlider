@@ -31,10 +31,10 @@ class Config:
     #post_init_call = 'after_validation'
 
 @dataclass_transform(kw_only_default=False)
-def dataclass(_cls) -> Type[OGDataclassT]:
+def dataclass(_cls: Type[Any]) -> Type[OGDataclassT]:
     old_json = getattr(_cls, "__json__", None)
     if old_json is None or getattr(old_json, "is_auto", False):
-        def __json__(instance):
+        def __json__(instance: Any) -> Dict[str, Any]:
             return {
                 key: getattr(instance, key) for key in _cls_new.__dataclass_fields__
             }
@@ -45,7 +45,7 @@ def dataclass(_cls) -> Type[OGDataclassT]:
 
     old_copy = getattr(_cls, "copy", None)
     if old_copy is None or getattr(old_copy, "is_auto", False):
-        def copy(instance):
+        def copy(instance: Any) -> Any:
             return  replace(instance)
         
         setattr(copy, "is_auto", True)
@@ -55,7 +55,7 @@ def dataclass(_cls) -> Type[OGDataclassT]:
     old_hash = getattr(_cls, "__hash__", None)
     if old_hash is None or getattr(old_hash, "is_auto", False):
         # don't shadow hash (internal python name)
-        def _hash(instance) -> int:
+        def _hash(instance: Any) -> int:
             try:
                 lst = [getattr(instance, key) for key in _cls_new.__dataclass_fields__]
                 return hash_list(lst)
@@ -85,8 +85,8 @@ class BaseModel(pydantic.BaseModel):
     def __eq__(self, other: Any) -> bool:
         return other.__class__ == self.__class__ and self.__dict__ == other.__dict__
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return self.dict()
     
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash_list(self.dict().values())

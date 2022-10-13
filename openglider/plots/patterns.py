@@ -107,7 +107,9 @@ class PatternsNew:
 
         return all_patterns
 
-    def unwrap(self, outdir: Path) -> None:
+    def unwrap(self, outdir: Path | str) -> None:
+        if not isinstance(outdir, Path):
+            outdir = Path(outdir)
         if self.config.profile_numpoints is not None:
             self.project.glider.num_profile = self.config.profile_numpoints
             self.project.glider_3d = self.project.glider.get_glider_3d()

@@ -130,7 +130,7 @@ class Line(CachedObject):
     def diff_vector_projected(self) -> euklid.vector.Vector3D:
         return (self.upper_node.vec_proj - self.lower_node.vec_proj).normalized()
 
-    @cached_property('lower_node.position', 'upper_node.position', 'v_inf')
+    @cached_property('lower_node.vec_proj', 'upper_node.vec_proj')
     def length_projected(self) -> float:
         return (self.lower_node.vec_proj - self.upper_node.vec_proj).length()
 
@@ -193,8 +193,9 @@ class Line(CachedObject):
     def force_projected(self) -> float:
         try:
             return self.force * self.length_projected / self.length_no_sag
-        except:
-            raise Exception(f"invalid force: {self.name}, {self.force}")
+        except Exception as e:
+            logger.error(f"invalid force: {self.name}, {self.force} {self.length_no_sag}")
+            raise e
 
     def get_line_points(self, sag: bool=True, numpoints: int=10) -> List[euklid.vector.Vector3D]:
         """

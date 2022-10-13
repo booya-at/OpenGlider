@@ -160,7 +160,8 @@ class RibPlot(object):
         return p * self.rib.chord
 
     def insert_drib_mark(self, side: DiagonalSide) -> None:        
-        if side.is_lower and False:  # disabled
+        if side.is_lower:
+            return  # disabled
             self.insert_mark(side.start_x, self.config.marks_diagonal_front)
             self.insert_mark(side.end_x, self.config.marks_diagonal_back)
             self.insert_mark(side.center, self.config.marks_diagonal_center, laser=True)

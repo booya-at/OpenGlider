@@ -38,7 +38,7 @@ class PanelPlot:
         self.cell = cell
         self.config = self.DefaultConf(config)
 
-        self._flattened_cell = flattended_cell
+        self._flattened_cell = flattended_cell.copy()
 
         self.inner = flattended_cell.inner
         self.ballooned = flattended_cell.ballooned
@@ -481,6 +481,19 @@ class FlattenedCellWithAllowance(FlattenedCell):
     outer: Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]
     outer_orig: Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]
 
+    def copy(self):
+        def copy_tuple(t: Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]) -> Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
+            return (
+                t[0].copy(),
+                t[1].copy()
+            )
+        return FlattenedCellWithAllowance(
+            inner=self.inner.copy(),
+            ballooned=copy_tuple(self.ballooned),
+            outer=copy_tuple(self.outer),
+            outer_orig=copy_tuple(self.outer_orig)
+        )
+
 class CellPlotMaker:
     run_check = True
     DefaultConf = PatternConfig
@@ -496,7 +509,7 @@ class CellPlotMaker:
 
         self._flattened_cell = None
     
-    @cached_property()
+    @cached_property("cell", "config.allowance_general", "config.midribs")
     def flattened_cell(self) -> FlattenedCellWithAllowance:
         flattened_cell = self.cell.get_flattened_cell(self.config.midribs)
 

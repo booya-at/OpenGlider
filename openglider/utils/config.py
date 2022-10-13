@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 import json
 import html
-from typing import Any, Dict, Iterator, Tuple
+from typing import Any, Dict, Iterator, Optional, Tuple
 
 from pydantic import parse_obj_as
 from openglider.utils.cache import recursive_getattr
@@ -14,7 +14,7 @@ from openglider.utils.dataclass import BaseModel
 logger = logging.getLogger(__name__)
 
 class Config:
-    def __init__(self, dct: Dict[str, Any]=None):
+    def __init__(self, dct: Optional[Dict[str, Any] | Config]=None):
         self.__dict__ = {}
 
         items = inspect.getmembers(self.__class__, lambda a:not(inspect.isroutine(a)))
@@ -33,7 +33,7 @@ class Config:
     
     @classmethod
     def get_annotations(cls) -> Dict[str, Any]:
-        d = {}
+        d: Dict[str, Any] = {}
         for c in cls.mro():
             try:
                 d.update(**c.__annotations__)
@@ -42,7 +42,7 @@ class Config:
                 pass
         return d
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {
             "dct": self.__dict__
         }
@@ -84,7 +84,7 @@ class Config:
         else:
             return default
 
-    def update(self, dct: Dict[str, Any]) -> None:
+    def update(self, dct: Dict[str, Any] | Config | None) -> None:
         if dct is None:
             return
 
