@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import math
 import numpy
@@ -23,8 +23,8 @@ class Quad:
 
     matrix_inverse: numpy.ndarray = numpy.linalg.inv(matrix)
 
-    def __init__(self, p1, p2, p3, p4):
-        self.nodes = [
+    def __init__(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D, p3: euklid.vector.Vector2D, p4: euklid.vector.Vector2D):
+        self.nodes: List[euklid.vector.Vector2D] = [
             p1, p2, p3, p4
         ]
 
@@ -32,7 +32,7 @@ class Quad:
         self.b = list(self.matrix_inverse.dot([p[1] for p in self.nodes]).flat)
 
 
-    def to_global(self, l, m) -> euklid.vector.Vector2D:
+    def to_global(self, l: float, m: float) -> euklid.vector.Vector2D:
         #return self.nodes[0] + (self.nodes[4]-self.nodes[0]) * 
         x = self.a[0] + l*self.a[1] + m*self.a[2] + self.a[3]*l*m
         y = self.b[0] + l*self.b[1] + m*self.b[2] + self.b[3]*l*m
@@ -93,12 +93,12 @@ class Mapping:
             
             self.quads.append(quads)
     
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {
             "curves": self.curves
         }
 
-    def get_point(self, ik_x, ik_y) -> euklid.vector.Vector2D:
+    def get_point(self, ik_x: float, ik_y: float) -> euklid.vector.Vector2D:
         i_y = int(ik_y)
         k_y = ik_y-i_y
 
@@ -113,7 +113,6 @@ class Mapping:
 
     
     def get_iks(self, point: euklid.vector.Vector2D) -> Tuple[float, float]:
-        min_distance = float("inf")
         for quads_row in self.quads:
             for quad in quads_row:
                 m, l = quad.to_local(point)
@@ -136,10 +135,10 @@ class Mapping:
 
 
 class Mapping3D:
-    def __init__(self, curves):
+    def __init__(self, curves: List[euklid.vector.PolyLine3D]):
         self.curves = curves
 
-    def get_point(self, ik_x, ik_y) -> euklid.vector.Vector3D:
+    def get_point(self, ik_x: float, ik_y: float) -> euklid.vector.Vector3D:
         i_y = int(ik_y)
         if i_y >= len(self.curves)-1:
             i_y = len(self.curves)-2
@@ -151,10 +150,3 @@ class Mapping3D:
         p2 = self.curves[i_y+1].get(ik_x)
 
         return p1 + (p2-p1) * k_y
-
-
-if __name__ == "__main__":
-    with open("/tmp/data.json") as infile:  
-        mapping, node = openglider.jsonify.load(infile)["data"]
-    
-    mapping.get_iks(euklid.vector.Vector2D(node))

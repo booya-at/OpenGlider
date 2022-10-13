@@ -1,8 +1,8 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable, Dict, Optional, Type
+from typing import TYPE_CHECKING, Callable, Dict, Literal, Optional, Type
 import logging
 import math
-from typing import Tuple, List
+from typing import Tuple, List, Final
 
 import euklid
 import numpy as np
@@ -17,6 +17,7 @@ from openglider.plots.usage_stats import MaterialUsage
 from openglider.utils.cache import cached_property
 from openglider.utils.config import Config
 from openglider.vector.drawing import PlotPart
+from openglider.vector.drawing.part import Layer
 from openglider.vector.text import Text
 
 if TYPE_CHECKING:
@@ -245,7 +246,7 @@ class PanelPlot:
         self,
         mark: Callable[[euklid.vector.Vector2D, euklid.vector.Vector2D], List[euklid.vector.PolyLine2D]],
         x: float,
-        layer: List[euklid.vector.PolyLine2D],
+        layer: Layer,
         is_right: bool
         ) -> None:
         if mark is None:
@@ -291,10 +292,9 @@ class PanelPlot:
         p1 = curve.get(ik_p1)
         ik_p2 = curve.walk(ik_p1, text_width)
         p2 = curve.get(ik_p2)
-        align = "left"
 
         part_text = Text(text, p1, p2,
-                         align=align,
+                         align="left",
                          valign=-0.9,
                          height=0.8)
         plotpart.layers["text"] += part_text.get_vectors()
@@ -375,9 +375,7 @@ class PanelPlot:
 
 
                 text_align = "left" if is_right else "right"
-                plotpart.layers["text"] += Text(name, start, end,
-                                                            size=0.01,  # 1cm
-                                                            align=text_align, valign=0, height=0.8).get_vectors()
+                plotpart.layers["text"] += Text(name, start, end, size=0.01, align=text_align, valign=0, height=0.8).get_vectors()  # type: ignore
             except  ValueError:
                 pass
 

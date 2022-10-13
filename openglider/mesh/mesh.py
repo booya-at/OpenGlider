@@ -1,18 +1,16 @@
 from __future__ import annotations
-from ast import Slice
 from pathlib import Path
 
 from typing import Any, Iterator, List, Dict, Literal, Sequence, Tuple, TypeAlias, Union
 import copy
 import logging
 
-import numpy as np
 import euklid
 import ezdxf
 import ezdxf.document
 
 import openglider.mesh.dxf_colours as dxfcolours
-import openglider.vector as vector
+from openglider.mesh.triangulate import Triangle
 
 USE_POLY_TRI = False
 logger = logging.getLogger(__name__)
@@ -159,7 +157,7 @@ class Polygon(object):
         return sum(attribute_list)/len(attribute_list)
 
 
-PolygonType: TypeAlias = Union[Tuple[int, int], Tuple[int, int, int], Tuple[int, int, int, int]]
+PolygonType: TypeAlias = Union[Tuple[int, int], Tuple[int, int, int], Tuple[int, int, int, int]] | Triangle
 
 class Mesh(object):
     """

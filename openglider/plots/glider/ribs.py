@@ -105,7 +105,7 @@ class RibPlot(object):
 
 
         rigidfoils = self.draw_rigidfoils(glider)
-        rigidfoils.move([-(rigidfoils.max_x-self.plotpart.min_x+0.2), 0])
+        rigidfoils.move(euklid.vector.Vector2D([-(rigidfoils.max_x-self.plotpart.min_x+0.2), 0]))
 
         if add_rigidfoils_to_plot:
             self.plotpart += rigidfoils

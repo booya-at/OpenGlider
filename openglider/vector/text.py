@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Any, List, Dict, Literal
 
 import euklid
 
@@ -56,7 +56,17 @@ text_vectors: Dict[str, List[List[float]]] = {
 
 class Text(object):
     letters = text_vectors
-    def __init__(self, text, p1, p2, size=None, align="left", height=0.8, space=0.2, valign=0.5):
+    def __init__(
+        self,
+        text: str,
+        p1: euklid.vector.Vector2D,
+        p2: euklid.vector.Vector2D,
+        size: float=None,
+        align: Literal["left"] | Literal["right"] | Literal["center"]="left",
+        height: float=0.8,
+        space: float=0.2,
+        valign: float=0.5
+        ):
         """
         Vector Text
         :param text: Text
@@ -77,7 +87,7 @@ class Text(object):
         self.align = align
         self.valign = valign
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {
             "text": self.text,
             "p1": self.p1,
@@ -88,7 +98,7 @@ class Text(object):
             "align": self.align
         }
 
-    def get_letter(self, letter, replace_unknown=True) -> List[List[List[float]]]:
+    def get_letter(self, letter: str, replace_unknown: bool=True) -> List[List[List[float]]]:
         letter = letter.upper()
         if letter not in self.letters:
                 if replace_unknown:
@@ -100,7 +110,7 @@ class Text(object):
         
         return [letter_vec]
 
-    def get_vectors(self, replace_unknown=True) -> List[euklid.vector.PolyLine2D]:
+    def get_vectors(self, replace_unknown: bool=True) -> List[euklid.vector.PolyLine2D]:
         # todo: add valign (space)
         vectors = []
         diff = self.p2 - self.p1
@@ -142,6 +152,6 @@ class Text(object):
 
         return vectors
 
-    def get_plotpart(self, replace_unknown=True) -> PlotPart:
+    def get_plotpart(self, replace_unknown: bool=True) -> PlotPart:
         vectors = self.get_vectors(replace_unknown)
         return PlotPart(vectors)

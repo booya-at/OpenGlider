@@ -3,7 +3,7 @@ import os
 import io
 import math
 from pathlib import Path
-from typing import Any, Dict, List, Sequence, Union, Optional
+from typing import Any, Dict, Iterator, List, Sequence, Union, Optional
 
 import ezdxf
 import ezdxf.document
@@ -70,33 +70,32 @@ class Layout(object):
         }
     }
 
-    def __init__(self, parts=None):
+    def __init__(self, parts: Optional[List[PlotPart]]=None):
         self.parts = parts or []
         self.layer_config = self.layer_config.copy()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[PlotPart]:
         return iter(self.parts)
 
-    def __iadd__(self, other):
-        if isinstance(other, Layout):
-            self.parts += other.parts
+    def __iadd__(self, other: Layout) -> Layout:
+        self.parts += other.parts
 
         return self
 
-    def rotate(self, angle, radians=True):
+    def rotate(self, angle: float, radians: bool=True) -> None:
         for part in self.parts:
             part.rotate(angle, radians=radians)
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {"parts": self.parts}
 
-    def copy(self):
+    def copy(self) -> Layout:
         return self.__class__([p.copy() for p in self.parts])
 
-    def clear(self):
+    def clear(self) -> None:
         self.parts = []
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         if len(self.parts) == 0:
             return True
         
@@ -110,7 +109,7 @@ class Layout(object):
 
 
     @classmethod
-    def stack_column(cls, parts: Sequence[PlotPart | Layout], distance: float, center_x: bool=True) -> "Layout":
+    def stack_column(cls, parts: Sequence[PlotPart | Layout], distance: float, center_x: bool=True) -> Layout:
         column_dwg = cls()
         direction = (distance >= 0) - (distance < 0)
         y = 0.
@@ -133,7 +132,7 @@ class Layout(object):
         return column_dwg
 
     @classmethod
-    def stack_row(cls, parts: Sequence[PlotPart | Layout], distance: float, center_y: bool=True) -> "Layout":
+    def stack_row(cls, parts: Sequence[PlotPart | Layout], distance: float, center_y: bool=True) -> Layout:
         row_dwg = cls()
         direction = (distance >= 0) - (distance < 0)
         x = 0.
@@ -160,7 +159,7 @@ class Layout(object):
         return row_dwg
 
     @classmethod
-    def stack_grid(cls, parts: List[Sequence[PlotPart | Layout]], distance_x: float, distance_y: float, draw_grid=True) -> "Layout":
+    def stack_grid(cls, parts: List[Sequence[PlotPart | Layout]], distance_x: float, distance_y: float, draw_grid: bool=True) -> Layout:
         all_parts = cls()
         rows = len(parts)
         columns = len(parts[0])
@@ -260,7 +259,7 @@ class Layout(object):
         return border_part
 
     @classmethod
-    def create_raster(cls, parts, distance_x=0.2, distance_y=0.1):
+    def create_raster(cls, parts: List[List[PlotPart]], distance_x: float=0.2, distance_y: float=0.1) -> Layout:
         """
 
         :param parts: [[p1_1, p1_2], [p2_1, p2_2],...]
@@ -276,7 +275,7 @@ class Layout(object):
 
         return area
 
-    def rasterize(self, columns=None, distance_x=0.2, distance_y=0.1) -> None:
+    def rasterize(self, columns: Optional[int]=None, distance_x: float=0.2, distance_y: float=0.1) -> None:
         """
         create a raster with cells containing the parts
         """
@@ -294,7 +293,7 @@ class Layout(object):
         next_x = [0.]
         for col in column_lst:
             for part in col:
-                part.move([last_x - part.min_x, last_y - part.min_y])
+                part.move(euklid.vector.Vector2D([last_x - part.min_x, last_y - part.min_y]))
                 #area.parts.append(part)
                 last_y = part.max_y + distance_y
                 next_x.append(part.max_x)
@@ -340,17 +339,17 @@ class Layout(object):
             return 0.
 
     @property
-    def height(self):
+    def height(self) -> float:
         try:
             return abs(self.max_y - self.min_y)
         except ValueError:
             return 0.
 
-    def move(self, vector):
+    def move(self, vector: euklid.vector.Vector2D) -> None:
         for part in self.parts:
             part.move(vector)
 
-    def move_to(self, vector: euklid.vector.Vector2D):
+    def move_to(self, vector: euklid.vector.Vector2D) -> None:
         diff = (euklid.vector.Vector2D(self.bbox[0]) - vector) * -1
         self.move(diff)
 
@@ -395,7 +394,7 @@ class Layout(object):
             new_panel = PlotPart(name=panel_name)
             dwg.parts.append(new_panel)
 
-            for entity in panel:
+            for entity in panel:  # type: ignore
                 layer = entity.dxf.layer
                 new_panel.layers[layer].append(euklid.vector.PolyLine2D([p[:2] for p in entity]))
 
@@ -498,7 +497,7 @@ class Layout(object):
         styles = {}
 
         # recursive
-        def add_style(elem):
+        def add_style(elem: svgwrite.Drawing) -> None:
             classes = elem.attribs.get("class", "")
             normalized = normalize_class_names(classes)
 
@@ -549,7 +548,7 @@ class Layout(object):
         with open(path, "w") as outfile:
             drawing.write(outfile)
 
-    def export_dxf(self, path: str | Path, dxfversion="AC1015") -> ezdxf.document.Drawing:
+    def export_dxf(self, path: str | Path, dxfversion: str="AC1015") -> ezdxf.document.Drawing:
         drawing = ezdxf.new(dxfversion=dxfversion)
 
         drawing.header["$EXTMAX"] = (self.max_x, self.max_y, 0)
@@ -581,11 +580,7 @@ class Layout(object):
                                         ms.add_lwpolyline([[x-self.point_width/2, y], [x+self.point_width/2, y]])
                                     )
                         else:
-                            if hasattr(elem, "tolist"):
-                                lst = elem.tolist()
-                            else:
-                                lst = elem
-                            dxf_obj = ms.add_lwpolyline(lst, dxfattribs=dxfattribs)
+                            dxf_obj = ms.add_lwpolyline(elem.tolist(), dxfattribs=dxfattribs)
                             if len(elem) > 2 and all([elem.get(len(elem)-1)[i] == elem.get(0)[i] for i in range(2)]):
                                 dxf_obj.closed = True
                         part_group.append(dxf_obj)
@@ -602,9 +597,9 @@ class Layout(object):
     def export_ntv(self, path: os.PathLike) -> None:
         filename = os.path.split(path)[-1]
 
-        def format_line(line):
-            a = "\nA {} ".format(len(line))
-            b = " ".join(["({:.5f},{:.5f})".format(p[0], p[1]) for p in line])
+        def format_line(line: euklid.vector.PolyLine2D) -> str:
+            a = f"\nA {len(line)} "
+            b = " ".join([f"({p[0]:.5f},{p[1]:.5f})" for p in line])
             return a+b
 
         with open(path, "w") as outfile:

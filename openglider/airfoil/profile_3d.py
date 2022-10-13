@@ -1,4 +1,4 @@
-from typing import Union, Optional, overload
+from typing import List, Union, Optional, overload
 
 import euklid
 import pyfoil
@@ -32,7 +32,7 @@ class Profile3D:
     def __len__(self) -> int:
         return len(self.curve)
     
-    def get_positions(self, start, stop):
+    def get_positions(self, start: float, stop: float) -> List[float]:
         return self.curve.get_positions(start, stop)
 
     @overload
@@ -49,7 +49,7 @@ class Profile3D:
         return self.curve.get(start, stop)
 
     @cached_property('self')
-    def noseindex(self):
+    def noseindex(self) -> int:
         p0 = self.curve.nodes[0]
         max_dist = 0
         noseindex = 0
@@ -81,14 +81,14 @@ class Profile3D:
 
         return euklid.plane.Plane(self.curve.nodes[self.noseindex], xvect, yvect)
 
-    def flatten(self):
+    def flatten(self) -> pyfoil.Airfoil:
         """Flatten the airfoil and return a 2d-Representative"""
         layer: euklid.plane.Plane = self.projection_layer
         return pyfoil.Airfoil([layer.project(p) for p in self.curve.nodes],
                          name=self.name or 'profile' + "_flattened")
 
     @cached_property('self')
-    def normvectors(self):
+    def normvectors(self) -> List[euklid.vector.Vector3D]:
         layer = self.projection_layer
         profnorm = layer.normvector
 

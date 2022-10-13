@@ -6,7 +6,7 @@ import euklid
 V3 = euklid.vector.Vector3D
 V2 = euklid.vector.Vector2D
 
-def point2d(p1_3d: V3, p1_2d: V2, p2_3d: V3, p2_2d: V2, point_3d: V3):
+def point2d(p1_3d: V3, p1_2d: V2, p2_3d: V3, p2_2d: V2, point_3d: V3) -> V2:
     """Returns a third points position relative to two known points (3D+2D)"""
     # diffwise
     diff_3d = (p2_3d - p1_3d).normalized()

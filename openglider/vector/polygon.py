@@ -52,7 +52,7 @@ class CirclePart(object):
     def _repr_svg_(self) -> str:
 
         svg = "<svg>"
-        def point(p, color="red"):
+        def point(p: V2, color: str="red") -> str:
             return '<circle cx="{}" cy="{}" r="1" stroke="{}" fill="transparent" stroke-width="5"/>'.format(p[0], p[1], color)
 
         svg += point(self.center, "blue")

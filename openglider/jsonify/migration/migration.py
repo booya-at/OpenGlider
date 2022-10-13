@@ -1,5 +1,4 @@
-import typing
-
+from typing import Dict, Any, Callable, List, Tuple, TypeAlias
 import re
 import json
 import io
@@ -12,10 +11,12 @@ from openglider.jsonify.encoder import Encoder
 logger = logging.getLogger(__name__)
 
 
-class Migration:
-    migrations: typing.List[typing.Tuple[str, typing.Callable]] = []
+MigrationList: TypeAlias = List[Tuple[str, Callable]]
 
-    def __init__(self, jsondata):
+class Migration:
+    migrations: MigrationList = []
+
+    def __init__(self, jsondata: Dict[str, Any]):
         self.json_data = jsondata
 
         metadata = jsondata.get("MetaData", {})
@@ -31,11 +32,11 @@ class Migration:
         self.from_version = version
     
     @staticmethod
-    def to_dict(data):
+    def to_dict(data: Any) -> Dict[str, Any]:
         # TODO: improve (speed-wise)!
         return json.loads(json.dumps(data, cls=Encoder))
     
-    def migrate(self):
+    def migrate(self) -> str:
         jsondata = self.json_data
         #with open("/tmp/data.json", "w") as outfile:
         #    json.dump(jsondata, outfile, indent=2)
@@ -48,12 +49,12 @@ class Migration:
         return json.dumps(jsondata, cls=Encoder)
     
     @classmethod
-    def add(cls, to_version):
+    def add(cls, to_version: str) -> Callable[[Callable], None]:
         """
         add new migration. version parameter is the version to migrate to
         """
-        def decorate(function):
-            def function_wrapper(jsondata):
+        def decorate(function: Callable) -> None:
+            def function_wrapper(jsondata: Dict[str, Any]) -> Dict[str, Any]:
                 logger.info(f"migrating to {to_version}")
                 return function(cls, jsondata)
 
@@ -64,11 +65,11 @@ class Migration:
         return decorate
 
     @property
-    def required(self):
+    def required(self) -> bool:
         return len(self.get_migrations()) > 0
     
-    def get_migrations(self):
-        migrations = []
+    def get_migrations(self) -> MigrationList:
+        migrations: MigrationList = []
         for m in self.migrations:
             if self.from_version < m[0]:
                 migrations.append(m)
@@ -78,14 +79,14 @@ class Migration:
         return migrations
     
     @classmethod
-    def refactor(cls, jsondata, target_module, name=r".*", module=r".*"):
+    def refactor(cls, jsondata: Dict[str, Any], target_module: str, name: str=r".*", module: str=r".*") -> Dict[str, Any]:
         for node in cls.find_nodes(jsondata, name, module):
             node["_module"] = target_module
         
         return jsondata
     
     @classmethod
-    def find_nodes(cls, jsondata, name=r".*", module=r".*"):
+    def find_nodes(cls, jsondata: Dict[str, Any], name: str=r".*", module: str=r".*") -> List[Dict[str, Any]]:
         """
         Find nodes recursive
         :param name: *to find any

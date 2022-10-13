@@ -1,47 +1,58 @@
 from __future__ import annotations
-from typing import List, Optional
-import copy
 
+from typing import TYPE_CHECKING, Any, Iterable, Iterator, Dict, List, Optional, Sequence, Tuple, TypeAlias
+import copy
+import svgwrite
+import svgwrite.shapes
+import svgwrite.container
+import svgwrite.path
 import euklid
 import numpy as np
 
-VectorList = List[euklid.vector.PolyLine2D]
+if TYPE_CHECKING:
+    from openglider.vector.drawing.layout import Layout
+
+LineList = List[euklid.vector.PolyLine2D]
 
 class Layer(object):
     stroke: Optional[str] = "black"
     stroke_width = 1.
     visible = True
 
-    def __init__(self, polylines: Optional[VectorList]=None, stroke: str=None, stroke_width: float=1., visible: bool=True):
+    def __init__(self, polylines: Optional[LineList]=None, stroke: str=None, stroke_width: float=1., visible: bool=True):
         self.polylines = polylines or []
         self.stroke = stroke
         self.stroke_width = stroke_width
         self.visible = visible
 
-    def __add__(self, other: Layer | List[euklid.vector.PolyLine2D]):
-        self.polylines += other
+    def __add__(self, other: Layer | List[euklid.vector.PolyLine2D]) -> Layer:
+        if isinstance(other, Layer):
+            self.polylines += other.polylines
+        else:
+            self.polylines += other
+
         return self
 
-    def __iter__(self):
-        return iter(self.polylines)
+    def __iter__(self) -> Iterator[euklid.vector.PolyLine2D]:
+        return self.polylines.__iter__()
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.polylines)
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {
             "polylines": self.polylines,
             "stroke": self.stroke,
             "stroke_width": self.stroke_width
         }
 
-    def append(self, x):
+    def append(self, x: euklid.vector.PolyLine2D) -> None:
         self.polylines.append(x)
 
-    def copy(self):
-        return Layer([p.copy() for p in self])
+    def copy(self) -> Layer:
+        return Layer([p.copy() for p in self.polylines])
 
-    def _get_dxf_attributes(self):
+    def _get_dxf_attributes(self) -> Dict[str, Any]:
         # color mapping: red->1, green->3, blue->5, black->7
         if self.stroke == "red":
             color = 1
@@ -56,17 +67,18 @@ class Layer(object):
             "color": color,
         }
 
+LayerType: TypeAlias = Layer | List[euklid.vector.PolyLine2D]
 
 class Layers(object):
-    def __init__(self, **layers):
+    def __init__(self, **layers: Layer):
         self.layers = layers
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """pretty-print"""
         lines = ["Layers:"] + ["{} ({})".format(layer_name, len(layer)) for layer_name, layer in self.layers.items()]
         return "\n  - ".join(lines)
 
-    def __getitem__(self, item) -> Layer:
+    def __getitem__(self, item: str) -> Layer:
         item = str(item)
         if item in ("name", "material_code"):
             raise KeyError()
@@ -74,7 +86,7 @@ class Layers(object):
             self.layers[item] = Layer()
         return self.layers[item]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Any) -> None:
         if isinstance(value, list):
             self.layers[key] = Layer(value)
         elif isinstance(value, Layer):
@@ -82,75 +94,77 @@ class Layers(object):
         else:
             raise ValueError()
 
-    def __contains__(self, item):
+    def __contains__(self, item: str) -> bool:
         return item in self.layers
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         for key in self.layers:
             yield str(key)
 
-    def values(self):
-        return self.layers.values()
+    def values(self) -> Iterator[Layer]:
+        return self.layers.values()  # type: ignore
 
-    def items(self):
-        return self.layers.items()
+    def items(self) -> Iterator[Tuple[str, Layer]]:
+        return self.layers.items()  # type: ignore
 
-    def keys(self):
-        return list(self)
+    def keys(self) -> List[str]:
+        return list(self.layers)
 
-    def copy(self):
-        layer_copy = {layer_name: [line.copy() for line in layer] for layer_name, layer in self.layers.items()}
+    def copy(self) -> Layers:
+        layer_copy = {layer_name: layer.copy() for layer_name, layer in self.layers.items()}
         return Layers(**layer_copy)
 
-    def add(self, name, **kwargs):
-        layer = Layer(**kwargs)
+    def add(self, name: str, data: LayerType=None, **kwargs: Any) -> Layer:
+        if isinstance(data, Layer):
+            layer = data
+        elif isinstance(data, list):
+            layer = Layer(data, **kwargs)
+        else:
+            layer = Layer(**kwargs)
 
         self.layers[name] = layer
         return layer
     
-    def pop(self, name):
+    def pop(self, name: str) -> Layer:
         return self.layers.pop(name)
 
 
 class PlotPart(object):
-    def __init__(self, cuts=None, marks=None, text=None, stitches=None, name=None, material_code="", **layers):
+    def __init__(self, cuts: LayerType=None, marks: LayerType=None, text: LayerType=None, stitches: LayerType=None, envelope: LayerType=None, name: str=None, material_code: str="", **extra_layers: LayerType):
         self.layers = Layers()
-        self.layers.add("cuts", stroke="red")
-        self.layers.add("marks", stroke="green")
-        self.layers.add("stitches", stroke="green")
-        self.layers.add("text", stroke="blue")
-        self.layers.add("envelope", stroke="white", visible=False)
 
-        layers.update({
-            "cuts": cuts or [],
-            "marks": marks or [],
-            "text": text or [],
-            "stitches": stitches or []
-        })
-        for layer_name, layer in layers.items():
-            self.layers[layer_name] += layer
+        def add(name: str, layer: LayerType, stroke: str) -> None:
+            self.layers.add(name)
+        self.layers.add("cuts", cuts, stroke="red")
+        self.layers.add("marks", marks, stroke="green")
+        self.layers.add("stitches", stitches, stroke="green")
+        self.layers.add("text", text, stroke="blue")
+        self.layers.add("envelope", envelope, stroke="white", visible=False)
+
+        for layer_name, layer in extra_layers.items():
+            self.layers.add(layer_name, layer)
 
         self.name = name
         self.material_code = material_code
 
-    def __json__(self):
-        new = {
+    def __json__(self) -> Dict[str, Any]:
+        new: Dict[str, Any] = {
             "name": self.name,
             "material_code": self.material_code
         }
-        new.update(self.layers)
+        new.update(self.layers.layers)
         return new
     
-    def __iadd__(self, other: "PlotPart"):
+    def __iadd__(self, other: PlotPart) -> PlotPart:
         for layer_name, layer in other.layers.items():
             self.layers[layer_name] += layer
         
         return self
 
-    def copy(self):
+    def copy(self) -> PlotPart:
         return copy.deepcopy(self)
 
-    def mirror(self, p1, p2):
+    def mirror(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> PlotPart:
         layers = {}
 
         for layer_name, layer in self.layers.items():
@@ -160,7 +174,7 @@ class PlotPart(object):
         return PlotPart(**layers, material_code=self.material_code, name=self.name)
 
 
-    def max_function(self, axis, layer):
+    def max_function(self, axis: int, layer: Layer) -> float:
         start = float("-Inf")
         if layer:
             for line in layer:
@@ -169,7 +183,7 @@ class PlotPart(object):
                     start = max(start, max(values))
         return start
 
-    def min_function(self, axis, layer):
+    def min_function(self, axis: int, layer: Layer) -> float:
         start = float("Inf")
         if layer:
             for line in layer:
@@ -179,7 +193,7 @@ class PlotPart(object):
         return start
 
     @property
-    def max_x(self):
+    def max_x(self) -> float:
         value = float("-Inf")
 
         for layer_name, layer in self.layers.items():
@@ -193,51 +207,56 @@ class PlotPart(object):
 
 
     @property
-    def max_y(self):
+    def max_y(self) -> float:
         return max(self.max_function(1, l) for l in self.layers.values())
 
     @property
-    def min_x(self):
+    def min_x(self) -> float:
         return min(self.min_function(0, l) for l in self.layers.values())
 
     @property
-    def min_y(self):
+    def min_y(self) -> float:
         return min(self.min_function(1, l) for l in self.layers.values())
 
     @property
-    def width(self):
+    def width(self) -> float:
         return self.max_x - self.min_x
 
     @property
-    def height(self):
+    def height(self) -> float:
         return self.max_y - self.min_y
 
     @property
-    def bbox(self):
-        return [[self.min_x, self.min_y], [self.max_x, self.min_y],
-                [self.max_x, self.max_y], [self.min_x, self.max_y]]
+    def bbox(self) -> Tuple[
+        Tuple[float, float],
+        Tuple[float, float],
+        Tuple[float, float],
+        Tuple[float, float]
+    ]:
+        return ((self.min_x, self.min_y), (self.max_x, self.min_y),
+                (self.max_x, self.max_y), (self.min_x, self.max_y))
 
-    def rotate(self, angle, radians=True):
+    def rotate(self, angle: float, radians: bool=True) -> None:
         if not radians:
             angle = angle * np.pi / 180
+        center = euklid.vector.Vector2D([0,0])
         for layer in self.layers.values():
             layer.polylines = [
-                polyline.rotate(angle, [0, 0]) for polyline in layer
+                polyline.rotate(angle, center) for polyline in layer
             ]
 
-    def move(self, vector):
-        diff = list(vector)
+    def move(self, diff: euklid.vector.Vector2D) -> None:
         for layer_name, layer in self.layers.items():
             layer.polylines = [
                 line.move(diff) for line in layer.polylines
             ]
 
-    def move_to(self, vector):
+    def move_to(self, vector: euklid.vector.Vector2D) -> None:
         minx = self.min_x
         miny = self.min_y
-        self.move([vector[0] - minx, vector[1] - miny])
+        self.move(euklid.vector.Vector2D([vector[0] - minx, vector[1] - miny]))
 
-    def intersects(self, other):
+    def intersects(self, other: PlotPart) -> bool:
         """
         Tells whether this parts intersects with the other part
         """
@@ -252,10 +271,10 @@ class PlotPart(object):
         return True
 
     @property
-    def area(self):
+    def area(self) -> float:
         return self.width * self.height
 
-    def minimize_area(self):
+    def minimize_area(self) -> PlotPart:
         new_part = self.copy()
         area = new_part.area
         width = new_part.width
@@ -275,17 +294,13 @@ class PlotPart(object):
         self.rotate(rotation*np.pi/180)
         return self
 
-    def scale(self, factor):
+    def scale(self, factor: float) -> None:
         for layer_name, layer in self.layers.items():
             layer.polylines = [
                 line.scale(factor) for line in layer.polylines
             ]
 
-    def get_svg_group(self, non_scaling_stroke=True):
-        import svgwrite
-        import svgwrite.shapes
-        import svgwrite.container
-        import svgwrite.path
+    def get_svg_group(self, non_scaling_stroke: bool=True) -> svgwrite.container.Group:
 
         # if it has an envelope use the envelope to group elements
         if False and "envelope" in self.layers and len(self.layers["envelope"]) == 1:
@@ -326,7 +341,7 @@ class PlotPart(object):
 
         return container
 
-    def _repr_svg_(self):
+    def _repr_svg_(self) -> str:
         from openglider.vector.drawing import Layout
 
         return Layout([self])._repr_svg_()
