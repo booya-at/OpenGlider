@@ -1,4 +1,6 @@
-from typing import List, Tuple
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, List, Tuple, TypeAlias
 import logging
 import math
 
@@ -7,11 +9,16 @@ import euklid
 from openglider.vector.drawing import PlotPart, Layout
 from openglider.utils.cache import cached_property
 
+if TYPE_CHECKING:
+    from openglider.glider.cell.panel import Panel
+
+
 logger = logging.getLogger(__name__)
 
+V2: TypeAlias = euklid.vector.Vector2D
 
 class Shape(object):
-    def __init__(self, front: euklid.vector.PolyLine2D, back: euklid.vector.PolyLine2D):
+    def __init__(self, front: euklid.vector.PolyLine2D, back: euklid.vector.PolyLine2D) -> None:
         # TODO: REMOVE
         if not isinstance(front, euklid.vector.PolyLine2D):
             front = euklid.vector.PolyLine2D(list(front))
@@ -21,20 +28,20 @@ class Shape(object):
         self.back = back
 
     @property
-    def has_center_cell(self):
+    def has_center_cell(self) -> bool:
         return abs(self.front.nodes[0][0]) > 1e-5 and abs(self.back.nodes[0][0]) > 1e-5
 
-    def get_point(self, x, y) -> euklid.vector.Vector2D:
+    def get_point(self, x: float | int, y: float) -> euklid.vector.Vector2D:
         front = self.front.get(x)
         back = self.back.get(x)
 
         return front + (back-front) *  y
 
-    def get_panel(self, cell_no, panel):
-        p1 = self.get_point(cell_no, panel.cut_front["left"])
-        p2 = self.get_point(cell_no, panel.cut_back["left"])
-        p3 = self.get_point(cell_no+1, panel.cut_back["right"])
-        p4 = self.get_point(cell_no+1, panel.cut_front["right"])
+    def get_panel(self, cell_no: int, panel: Panel) -> Tuple[V2, V2, V2, V2]:
+        p1 = self.get_point(cell_no, panel.cut_front.x_left)
+        p2 = self.get_point(cell_no, panel.cut_back.x_left)
+        p3 = self.get_point(cell_no+1, panel.cut_back.x_right)
+        p4 = self.get_point(cell_no+1, panel.cut_front.x_right)
 
         return p1, p2, p3, p4
 
@@ -51,15 +58,19 @@ class Shape(object):
         return [(self.front.get(x), self.back.get(x)) for x in range(len(self.front))]
 
     @property
-    def ribs_front_back(self):
-        return [self.ribs, self.front, self.back]
+    def ribs_front_back(self) -> Tuple[
+        List[Tuple[V2, V2]],
+        euklid.vector.PolyLine2D,
+        euklid.vector.PolyLine2D    
+    ]:
+        return (self.ribs, self.front, self.back)
 
     @property
     def span(self) -> float:
         return self.front.nodes[-1][0]
     
     @span.setter
-    def span(self, span):
+    def span(self, span: float) -> None:
         span_old = self.span
         self.scale(span/span_old, 1)
 
@@ -82,21 +93,21 @@ class Shape(object):
         return area
     
     @area.setter
-    def area(self, area):
+    def area(self, area: float) -> None:
         factor = math.sqrt(area / self.area)
 
         self.scale(factor, factor)
 
-    def scale(self, x: float=1, y: float =1.) -> "Shape":
+    def scale(self, x: float=1, y: float =1.) -> Shape:
         self.front = self.front.scale(euklid.vector.Vector2D([x, y]))
         self.back = self.back.scale(euklid.vector.Vector2D([x, y]))
 
         return self
     
-    def copy(self) -> "Shape":
+    def copy(self) -> Shape:
         return Shape(self.front.copy(), self.back.copy())
 
-    def copy_complete(self):
+    def copy_complete(self) -> Shape:
         front = self.front.mirror().reverse()
         back = self.back.mirror().reverse()
 
@@ -110,7 +121,7 @@ class Shape(object):
 
         return Shape(euklid.vector.PolyLine2D(front_nodes), euklid.vector.PolyLine2D(back_nodes))
 
-    def _repr_svg_(self):
+    def _repr_svg_(self) -> str:
         da = Layout()
         for cell_no in range(self.cell_no):
             points = [
@@ -120,6 +131,6 @@ class Shape(object):
                 self.get_point(cell_no+1, 0)
             ]
             points.append(points[0])
-            da.parts.append(PlotPart(marks=[points]))
+            da.parts.append(PlotPart(marks=[euklid.vector.PolyLine2D(points)]))
 
         return da._repr_svg_()

@@ -401,7 +401,7 @@ class ParametricGlider:
                 # add stabi rib
         if self.shape.stabi_cell:
             cell = glider.cells[-1]
-            ballooning = BallooningBezierNeu([[-1,0.015],[-0.7, 0.04], [-0.2, 0.04], [0, 0.02], [0.2, 0.04], [0.7, 0.04], [1,0.015]])
+            ballooning = BallooningBezierNeu([(-1,0.015), (-0.7, 0.04), (-0.2, 0.04), (0, 0.02), (0.2, 0.04), (0.7, 0.04), (1,0.015)])
             cell.ballooning = ballooning
 
             glider.ribs[-2].profile_2d *= 0.7

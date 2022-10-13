@@ -4,9 +4,7 @@ import math
 from typing import List, TYPE_CHECKING, Tuple
 
 import euklid
-import numpy as np
-import openglider
-import openglider.airfoil
+import pyfoil
 from openglider.utils.cache import cached_function
 from openglider.utils.dataclass import BaseModel, Field
 from openglider.vector.polygon import Ellipse
@@ -21,7 +19,7 @@ class RibHoleBase(BaseModel):
     name: str = "unnamed"
     margin: float=Field(default=0.04, kw_only=True)
 
-    def get_envelope_airfoil(self, rib: Rib) -> openglider.airfoil.Profile2D:
+    def get_envelope_airfoil(self, rib: Rib) -> pyfoil.Airfoil:
         return rib.get_offset_outline(self.margin)
     
     @cached_function("margin")

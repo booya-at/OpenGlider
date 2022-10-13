@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 import euklid
 
 from openglider.airfoil import Profile3D
@@ -45,17 +45,17 @@ class MiniRib:
             return 1.
 
     def get_3d(self, cell: Cell) -> Profile3D:
-        shape_with_bal = cell.basic_cell.midrib(self.yvalue, True).data
-        shape_wo_bal = cell.basic_cell.midrib(self.yvalue, False).data
+        shape_with_bal = cell.basic_cell.midrib(self.yvalue, True).curve.nodes
+        shape_wo_bal = cell.basic_cell.midrib(self.yvalue, False).curve.nodes
 
-        points = []
+        points: List[euklid.vector.Vector3D] = []
         for xval, with_bal, without_bal in zip(
                 cell.x_values, shape_with_bal, shape_wo_bal):
             fakt = self.multiplier(xval)  # factor ballooned/unb. (0-1)
-            point = without_bal + fakt * (with_bal - without_bal)
+            point = without_bal + (with_bal - without_bal) * fakt
             points.append(point)
 
-        return Profile3D(points)
+        return Profile3D(euklid.vector.PolyLine3D(points))
 
     def get_flattened(self, cell: Cell) -> None:
         prof_3d = self.get_3d(cell)

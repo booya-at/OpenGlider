@@ -1,5 +1,6 @@
 import getpass
 import platform
+from typing import Any
 
 from openglider.utils.config import Config
 
@@ -16,6 +17,6 @@ class GlobalConfig(Config):
 config = GlobalConfig()
 
 
-def get(kw):
+def get(kw: str) -> Any:
     return config[kw]
 

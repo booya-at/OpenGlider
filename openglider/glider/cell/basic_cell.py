@@ -14,8 +14,8 @@ class BasicCell(CachedObject):
     A very simple cell without any extras like midribs, diagonals,..
     """
     def __init__(self, prof1: Profile3D=None, prof2: Profile3D=None, ballooning: List[float]=None, name: str="unnamed_cell"):
-        self.prof1 = prof1 or Profile3D([])
-        self.prof2 = prof2 or Profile3D([])
+        self.prof1 = prof1 or Profile3D(euklid.vector.PolyLine3D([]))
+        self.prof2 = prof2 or Profile3D(euklid.vector.PolyLine3D([]))
 
         if ballooning is not None:
             self.ballooning_phi = ballooning  # ballooning arcs -> property in cell

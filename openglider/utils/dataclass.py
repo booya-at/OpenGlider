@@ -71,7 +71,7 @@ def dataclass(_cls: Type[Any]) -> Type[OGDataclassT]:
         
         setattr(_hash, "is_auto", True)
 
-        _cls.__hash__ = _hash
+        _cls.__hash__ = _hash  # type: ignore
 
         
     return _cls_new

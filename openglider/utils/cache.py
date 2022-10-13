@@ -5,8 +5,7 @@ import collections
 import copy
 import functools
 import logging
-from multiprocessing import RLock
-from typing import Callable, Dict, Generic, Iterator, Literal, Tuple, TypeVar, List, Any
+from typing import Callable, Dict, Generic, Iterator, Literal, Optional, Tuple, Type, TypeVar, List, Any
 
 import numpy as np
 from typing import TYPE_CHECKING
@@ -18,13 +17,13 @@ logger = logging.getLogger(__name__)
 
 cache_instances: List[CachedProperty] = []
 
-def clear():
+def clear() -> None:
     for instance in cache_instances:
         instance.cache.cache.clear()
 
-def stats():
+def stats() -> List[Tuple[str, int, int]]:
     return [
-        [instance.__qualname__, instance.cache.hits, instance.cache.misses] for instance in cache_instances
+        (instance.__qualname__, instance.cache.hits, instance.cache.misses) for instance in cache_instances
     ]
 
 
@@ -55,13 +54,13 @@ class LruCache(Generic[Result]):
     
     def __init__(self, maxsize: int=128) -> None:
         self.maxsize = maxsize
-        self.cache = collections.OrderedDict()
+        self.cache: collections.OrderedDict[int, Result] = collections.OrderedDict()
 
         self.hits = 0
         self.misses = 0
     
     @property
-    def cache_full(self):
+    def cache_full(self) -> bool:
         return len(self.cache) > self.maxsize
     
     def get(self, key: int) -> Result | None:
@@ -86,7 +85,7 @@ class LruCache(Generic[Result]):
         self.cache[key] = value
             
 
-class CachedProperty:
+class CachedProperty(Generic[Result]):
     hashlist: List[str]
 
     def __init__(self, fget: Callable[[CLS], Result], hashlist: List[str], maxsize: int):
@@ -98,7 +97,7 @@ class CachedProperty:
         self.__qualname__ = fget.__qualname__
 
         self.hashlist = hashlist
-        self.cache = LruCache(maxsize)
+        self.cache: LruCache[Result] = LruCache(maxsize)
 
         global cache_instances
         cache_instances.append(self)
@@ -120,7 +119,7 @@ class CachedProperty:
         return value
 
 
-def cached_property(*hashlist: str, max_size: int=1024):
+def cached_property(*hashlist: str, max_size: int=1024) -> Type[property]:
     if TYPE_CHECKING:
         return property
 
@@ -131,11 +130,11 @@ def cached_property(*hashlist: str, max_size: int=1024):
 
 
 F = TypeVar("F")
-
-def cached_function(*hashlist: str, max_size=1024) -> Callable[[F], F]:
-    if TYPE_CHECKING and False:
+    
+def cached_function(*hashlist: str, max_size: int=1024) -> Callable[[F], F]:
+    if TYPE_CHECKING:
         @functools.wraps
-        def wrapper(f):
+        def wrapper(f: F) -> F:
             return f
         
         return wrapper
@@ -191,7 +190,7 @@ def hash_attributes(class_instance: Any, hashlist: List[str]) -> int:
     """
     http://effbot.org/zone/python-hash.htm
     """
-    value_lst = ()
+    value_lst: Tuple[int,...] = (id(class_instance), )
 
     for attribute in hashlist:
         el = recursive_getattr(class_instance, attribute)
@@ -210,7 +209,7 @@ def hash_attributes(class_instance: Any, hashlist: List[str]) -> int:
                 except TypeError:
                     thahash = hash(str(el))
         
-        value_lst += (id(class_instance), thahash)
+        value_lst += (thahash, )
 
     return hash(value_lst)
 
@@ -244,6 +243,7 @@ class HashedList(Generic[T]):
     """
     Hashed List to use cached properties
     """
+    _hash: int | None
     name = "unnamed"
     def __init__(self, data: List[T], name: str="unnamed"):
         self._data: List[T] = []
@@ -254,7 +254,7 @@ class HashedList(Generic[T]):
     def __json__(self) -> Dict[str, Any]:
         # attrs = self.__init__.func_code.co_varnames
         # return {key: getattr(self, key) for key in attrs if key != 'self'}
-        return {"data": self.data.tolist(), "name": self.name}
+        return {"data": self.data, "name": self.name}
 
     def __getitem__(self, item: int) -> T:
         return self.data[item]

@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import copy
 import math
-from typing import List
-
+from typing import Any, Dict, List
 import euklid
 import numpy as np
 from openglider.utils.types import SymmetricCurveType
@@ -14,20 +15,20 @@ class ArcCurve(object):
     """
     num_interpolation_points = 100
 
-    def __init__(self, curve: SymmetricCurveType):
+    def __init__(self, curve: SymmetricCurveType) -> None:
         self.curve = curve
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {"curve": self.curve}
 
-    def copy(self) -> "ArcCurve":
+    def copy(self) -> ArcCurve:
         return copy.deepcopy(self)
 
     @staticmethod
-    def has_center_cell(x_values) -> bool:
+    def has_center_cell(x_values: List[float]) -> bool:
         return x_values[0] != 0
 
-    def get_arc_positions(self, x_values) -> euklid.vector.PolyLine2D:
+    def get_arc_positions(self, x_values: List[float]) -> euklid.vector.PolyLine2D:
         """
         calculate y/z positions vor the arc-curve, given a shape's rib-x-values
 
@@ -54,7 +55,7 @@ class ArcCurve(object):
         
         return euklid.vector.PolyLine2D(positions)
 
-    def get_cell_angles(self, x_values, rad=True) -> List[float]:
+    def get_cell_angles(self, x_values: List[float], rad: bool=True) -> List[float]:
         """
         Calculate cell rotation angles given a shape's rib-x-values
         :param x_values:
@@ -80,7 +81,7 @@ class ArcCurve(object):
         return cell_angles
 
     @classmethod
-    def from_cell_angles(cls, angles: List[float], x_values: List[float], rad=True) -> "ArcCurve":
+    def from_cell_angles(cls, angles: List[float], x_values: List[float], rad: bool=True) -> ArcCurve:
         last_pos = euklid.vector.Vector2D([0,0])
         last_x = 0.
         nodes = []
@@ -102,7 +103,7 @@ class ArcCurve(object):
         
         return cls(spline)
 
-    def get_rib_angles(self, x_values) -> List[float]:
+    def get_rib_angles(self, x_values: List[float]) -> List[float]:
         """
         Calculate rib rotation angles given a shape's rib-x-values
         :param x_values:
@@ -126,18 +127,18 @@ class ArcCurve(object):
 
         return rib_angles
 
-    def get_flattening(self, x_values) -> float:
+    def get_flattening(self, x_values: List[float]) -> float:
         arc_curve = self.get_arc_positions(x_values)
         span_projected = arc_curve.nodes[-1][0]
         return span_projected / arc_curve.get_length()
 
-    def get_circle(self, n=50) -> euklid.vector.PolyLine2D:
+    def get_circle(self, n: int=50) -> euklid.vector.PolyLine2D:
         p1, p2 = self.curve.get_sequence(1)
         p3 = p1 * euklid.vector.Vector2D([-1, 1])
         return CirclePart(p1, p2, p3).get_sequence(n)
 
 
-    def rescale(self, x_values) -> None:
+    def rescale(self, x_values: List[float]) -> None:
         positions = self.get_arc_positions(x_values)
         diff = euklid.vector.Vector2D([0, -positions.nodes[0][1]])
         self.curve.controlpoints = euklid.vector.PolyLine2D([p + diff for p in self.curve.controlpoints.nodes])

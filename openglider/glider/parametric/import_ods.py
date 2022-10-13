@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Type
+from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Type
 import logging
 import math
 import numbers
 import re
 
 import euklid
+from openglider.glider.ballooning.base import BallooningBase
 from openglider.utils.types import CurveType, SymmetricCurveType
 import pyfoil
 from openglider.glider.ballooning import BallooningBezier, BallooningBezierNeu
@@ -64,7 +65,7 @@ def import_ods_glider(cls: Type[ParametricGlider], tables: List[Table]) -> Param
         geometry = get_geometry_explicit(tables[0])
         has_center_cell = geometry["shape"].has_center_cell
 
-    balloonings = []
+    balloonings: List[BallooningBase] = []
     for i, (name, baloon) in enumerate(transpose_columns(tables[4])):
         ballooning_type = (tables[4][0, 2*i+1] or "").upper()
         if baloon:
@@ -73,8 +74,8 @@ def import_ods_glider(cls: Type[ParametricGlider], tables: List[Table]) -> Param
                 while baloon[i + 1][0] > baloon[i][0]:
                     i += 1
 
-                upper = baloon[:i + 1]
-                lower = [(x, -y) for x, y in baloon[i + 1:]]
+                upper = [euklid.vector.Vector2D(p) for p in baloon[:i + 1]]
+                lower = [euklid.vector.Vector2D([x, -y]) for x, y in baloon[i + 1:]]
 
                 ballooning = BallooningBezier(upper, lower, name=name)
                 balloonings.append(BallooningBezierNeu.from_classic(ballooning))
@@ -300,7 +301,7 @@ def get_lower_aufhaengepunkte(data: Dict[str, Any]) -> Dict[str, LowerNode2D]:
             for name, position in aufhaengepunkte.items()}
 
 
-def transpose_columns(sheet: Table, columnswidth: int=2) -> List[Any]:
+def transpose_columns(sheet: Table, columnswidth: int=2) -> List[Tuple[str, Any]]:
     num_columns = sheet.num_columns
     num_elems = num_columns // columnswidth
     # if num % columnswidth > 0:

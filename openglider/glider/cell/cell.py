@@ -167,13 +167,13 @@ class Cell(BaseModel):
         # self.basic_cell.prof2 = self.prof2
         shape_with_ballooning = self.basic_cell.midrib(minirib.yvalue, ballooning=True, arc_argument=False).curve.nodes
         shape_without_ballooning = self.basic_cell.midrib(minirib.yvalue, ballooning=False).curve.nodes
-        points = []
+        points: List[euklid.vector.Vector3D] = []
         for xval, with_bal, without_bal in zip(
                 self.x_values, shape_with_ballooning, shape_without_ballooning):
             fakt = minirib.multiplier(xval)  # factor ballooned/unb. (0-1)
             point = without_bal + (with_bal - without_bal) * fakt
             points.append(point)
-        return Profile3D(points)
+        return Profile3D(euklid.vector.PolyLine3D(points))
 
     @cached_property('rib_profiles_3d')
     def _child_cells(self) -> List[BasicCell]:
@@ -256,7 +256,7 @@ class Cell(BaseModel):
         return self.rib2.profile_3d
 
     def point(self, y: float=0, i: int=0, k: float=0.) -> euklid.vector.Vector3D:
-        return self.midrib(y).point(i, k)
+        return self.midrib(y).get(i+k)
 
     @cached_function("self")
     def midrib(self, y: float, ballooning: bool=True, arc_argument: bool=True, close_trailing_edge: bool=False) -> Profile3D:
@@ -544,7 +544,7 @@ class Cell(BaseModel):
             # TODO: Investigate
             return [max(0, x) for x in data]
 
-        midribs = [p.curve for p in self.get_midribs(len(flat.inner))]
+        midribs = self.get_midribs(len(flat.inner))
 
         for panel in panels:
             amount_front, amount_back = panel.integrate_3d_shaping(self, self.sigma_3d_cut, flat.inner, midribs)

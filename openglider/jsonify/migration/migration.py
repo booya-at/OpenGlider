@@ -60,7 +60,7 @@ class Migration:
 
             function_wrapper.__doc__ = function.__doc__
             function_wrapper.__name__ = function.__name__
-            cls.migrations.append([to_version, function_wrapper])
+            cls.migrations.append((to_version, function_wrapper))
         
         return decorate
 

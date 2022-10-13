@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional, Dict
+from typing import Any, List, Tuple, Optional, Dict
 import logging
 
 from openglider.glider.rib.sharknose import Sharknose
@@ -7,7 +7,7 @@ from openglider.glider.parametric.table.elements import RibTable, Keyword
 logger = logging.getLogger(__name__)
 
 class FloatDict(dict):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         super().__init__({
             name: float(value) for name, value in kwargs.items()
         })

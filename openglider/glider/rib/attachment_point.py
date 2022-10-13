@@ -147,5 +147,8 @@ class AttachmentPoint(Node):
         for i, rib in enumerate(glider.ribs):
             if self in rib.attachment_points:
                 rib_no = i
+        
+        if rib_no is None:
+            raise ValueError(f"no rib found for node: {self}")
 
         return shape.get_point(rib_no, self.rib_pos)

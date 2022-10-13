@@ -102,12 +102,12 @@ class PanelCut:
         ik_right = get_x_value(x_values_right, self.x_right)
 
         points_2d = [
-            [0, self.x_left],
-            [1, self.x_right]
+            euklid.vector.Vector2D([0, self.x_left]),
+            euklid.vector.Vector2D([1, self.x_right])
         ]
 
         if self.x_center is not None:
-            points_2d.insert(1, [0.5, self.x_center])
+            points_2d.insert(1, euklid.vector.Vector2D([0.5, self.x_center]))
             bspline = euklid.spline.BSplineCurve(points_2d).get_sequence(50)
             curve = euklid.vector.Interpolation(bspline.nodes)
         else:
@@ -297,9 +297,9 @@ class Panel(object):
         xvalues = cell.rib1.profile_2d.x_values
         x_value_interpolation = euklid.vector.Interpolation([[i, x] for i, x in enumerate(xvalues)])
 
-        rib_iks = []
+        rib_iks: List[List[float]] = []
         nodes: List[euklid.vector.Vector3D] = []
-        rib_node_indices = []
+        rib_node_indices: List[List[int]] = []
 
         ik_values = self._get_ik_values(cell, numribs, exact=exact)
 

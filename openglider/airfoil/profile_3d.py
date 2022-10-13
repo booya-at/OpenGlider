@@ -6,7 +6,7 @@ import pyfoil
 from openglider.utils.cache import cached_property
 
 class Profile3D:
-    def __init__(self, data, name="unnamed"):
+    def __init__(self, data: euklid.vector.PolyLine3D, name: str="unnamed") -> None:
         self.curve = euklid.vector.PolyLine3D(data)
         self.name = name
 
@@ -51,7 +51,7 @@ class Profile3D:
     @cached_property('self')
     def noseindex(self) -> int:
         p0 = self.curve.nodes[0]
-        max_dist = 0
+        max_dist = 0.
         noseindex = 0
         for i, p1 in enumerate(self.curve.nodes):
             diff = (p1 - p0).length()
@@ -105,5 +105,5 @@ class Profile3D:
         return vectors
 
     @property
-    def tangents(self):
+    def tangents(self) -> List[euklid.vector.Vector3D]:
         return self.curve.get_tangents()

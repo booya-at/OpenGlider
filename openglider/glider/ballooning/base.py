@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import ABC
 import math
+from typing import Iterator
 
 import numpy as np
 import euklid
@@ -10,7 +11,7 @@ import openglider
 
 
 class ArcSinc:
-    def __init__(self):
+    def __init__(self) -> None:
         self.start = 0.
         self.end = math.pi
         self.interpolate(openglider.config['asinc_interpolation_points'])
@@ -32,7 +33,7 @@ class ArcSinc:
         return len(self.arsinc.nodes)
 
     @numpoints.setter
-    def numpoints(self, numpoints):
+    def numpoints(self, numpoints: int) -> None:
         self.interpolate(numpoints)
 
 
@@ -61,19 +62,19 @@ class BallooningBase(ABC):
         
         return euklid.vector.PolyLine2D(points)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[euklid.vector.Vector2D]:
         raise NotImplementedError(f"no iter method defined on {self.__class__}")
 
-    def __call__(self, xval: float):
+    def __call__(self, xval: float) -> float:
         return self.get_phi(xval)
 
-    def __getitem__(self, xval: float):
+    def __getitem__(self, xval: float) -> float:
         raise NotImplementedError()
     
-    def __add__(self, other: BallooningBase):
+    def __add__(self, other: BallooningBase) -> BallooningBase:
         raise NotImplementedError()
     
-    def __mul__(self, factor: float):
+    def __mul__(self, factor: float) -> BallooningBase:
         raise NotImplementedError()
 
     def get_phi(self, xval: float) -> float:

@@ -149,11 +149,11 @@ class Curve:
         
         return controlpoints
     
-    @property
-    def points_2d(self) -> List[euklid.vector.Vector2D]:
-        return [
-            euklid.vector.Vector2D(self.shape.get_point(*p)) for p in self.interpolation.nodes
-        ]
+    @cached_property('shape', 'interpolation')
+    def points_2d(self) -> euklid.vector.PolyLine2D:
+        return euklid.vector.PolyLine2D([
+            self.shape.get_point(*p) for p in self.interpolation.nodes
+        ])
     
     def get(self, rib_no: int) -> float:
         if rib_no == 0 and self.shape.has_center_cell:
@@ -187,11 +187,6 @@ class Curve:
 
 
 class ShapeCurve(Curve):
-    @cached_property('shape', 'interpolation')
-    def points_2d(self) -> euklid.vector.PolyLine2D:
-        return euklid.vector.PolyLine2D([
-            euklid.vector.Vector2D(self.shape.get_point(*p)) for p in self.interpolation.nodes
-        ])
     
     def get(self, rib_no: int) -> float:
         if rib_no == 0 and self.shape.has_center_cell:
