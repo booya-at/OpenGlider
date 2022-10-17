@@ -91,4 +91,4 @@ class BaseModel(pydantic.BaseModel):
         return self.dict()
     
     def __hash__(self) -> int:
-        return hash_list(self.dict().values())
+        return hash_list(*self.dict().values())

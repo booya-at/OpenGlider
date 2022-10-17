@@ -639,7 +639,7 @@ class Layout(object):
         dwg = self.get_svg_drawing(fill=fill).tostring().encode("utf-8")
         with io.BytesIO(dwg) as fp:
             report = svglib.svglib.svg2rlg(fp)
-            renderPDF.drawToFile(report, path)
+            renderPDF.drawToFile(report, str(path))
 
     def scale_a4(self) -> Layout:
         width = max(self.width, self.height)

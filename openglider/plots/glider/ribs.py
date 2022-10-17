@@ -263,8 +263,8 @@ class RibPlot(object):
             self.plotpart.layers[self.layer_name_laser_dots].append(euklid.vector.PolyLine2D([curve.get(0)]))
             self.plotpart.layers[self.layer_name_laser_dots].append(euklid.vector.PolyLine2D([curve.get(len(curve)-1)]))
 
-            inner = curve.offset(-self.config.allowance_general)
-            outer = curve.offset(self.config.allowance_general)
+            inner = curve.offset(-self.config.allowance_general).fix_errors()
+            outer = curve.offset(self.config.allowance_general).fix_errors()
 
             plotpart.layers[self.layer_name_marks].append(curve)
 
@@ -310,9 +310,6 @@ class RibPlot(object):
                     plotpart.layers[self.layer_name_laser_dots] += controlpoint
                     
             plotpart.layers[self.layer_name_outline].append(outline.fix_errors())
-
-            
-
 
         # rigidfoils
         for i, rigid in enumerate(self.rib.get_rigidfoils()):
