@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable, Dict, Literal, Optional, Type
+from typing import TYPE_CHECKING, Any, Callable, Dict, Literal, Optional, Type
 import logging
 import math
 from typing import Tuple, List, Final
@@ -464,7 +464,7 @@ class PanelPlot:
                             # text_align = text_align
                         plotpart.layers["text"] += Text(" {} ".format(cell_attachment_point.name), p1, p2,
                                                         size=0.01,  # 1cm
-                                                        align=text_align, valign=0, height=0.8).get_vectors()
+                                                        align=text_align, valign=0, height=0.8).get_vectors()  # type: ignore
     
     def _insert_rigidfoils(self, plotpart: PlotPart) -> None:
         for rigidfoil in self.cell.rigidfoils:
@@ -481,7 +481,7 @@ class FlattenedCellWithAllowance(FlattenedCell):
     outer: Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]
     outer_orig: Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]
 
-    def copy(self):
+    def copy(self, **kwargs: Any) -> FlattenedCellWithAllowance:
         def copy_tuple(t: Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]) -> Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
             return (
                 t[0].copy(),

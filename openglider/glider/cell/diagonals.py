@@ -188,7 +188,7 @@ class DiagonalRib:
             ik = mapping_2d.get_iks(point)
             points_3d.append(mapping_3d.get_point(*ik))
         
-        drib_mesh = mesh.Mesh.from_indexed(points_3d, {"diagonals": list(tri_mesh.elements)}, boundaries={"diagonals": boundary_nodes})
+        drib_mesh = mesh.Mesh.from_indexed(points_3d, {"diagonals": [(p, {}) for p in tri_mesh.elements]}, boundaries={"diagonals": boundary_nodes})
 
         min_size = drib_mesh.polygon_size()[0]
         if  min_size < 1e-20:
@@ -318,4 +318,4 @@ class TensionLine(TensionStrap):
         p2 = rib2.profile_3d[rib2.profile_2d(self.right)]
         boundaries[rib1.name] = [0]
         boundaries[rib2.name] = [1]
-        return mesh.Mesh.from_indexed([p1, p2], {"tension_lines": [(0, 1)]}, boundaries=boundaries)
+        return mesh.Mesh.from_indexed([p1, p2], {"tension_lines": [((0, 1), {})]}, boundaries=boundaries)

@@ -1,0 +1,131 @@
+from typing import  TypeVar, Generic, List, Dict, Optional, Iterator
+
+from openglider.utils.colors import Color, colorwheel
+from openglider.utils.dataclass import dataclass, Field
+
+ListType = TypeVar("ListType")
+
+colors = colorwheel(5)
+
+@dataclass
+class SelectionListItem(Generic[ListType]):
+    element: ListType
+    active: bool
+    color: Color
+    name: str
+
+    def __json__(self):
+        return {
+            "element": self.element,
+            "active": self.active,
+            "color": self.color.hex(),
+            "name": self.name
+        }
+    
+    @classmethod
+    def __from_json__(cls, **dct):
+        dct["color"] = Color.parse_hex(dct["color"])
+        return cls(**dct)
+
+    def __hash__(self) -> int:
+        return hash(self.element)
+
+
+@dataclass
+class SelectionList(Generic[ListType]):
+    elements: Dict[str, SelectionListItem[ListType]]=Field(default_factory=lambda: {})
+    selected_element: Optional[str] = None
+
+    def get_selected(self) -> Optional[ListType]:
+        elem = self.get_selected_wrapped()
+
+        if elem:
+            return elem.element
+        
+        return None
+        
+    def get_selected_wrapped(self) -> Optional[SelectionListItem[ListType]]:
+        if self.selected_element is not None and self.selected_element in self:
+            return self.elements[self.selected_element]
+        
+        return None
+    
+    def get_active(self) -> List[ListType]:
+        result = []
+
+        for name, element in self.elements.items():
+            if self.selected_element == name or element.active:
+                result.append(element.element)
+        
+        return result
+    
+    def filter_active(self) -> Iterator[SelectionListItem[ListType]]:
+        for name, element in self.elements.items():
+            if self.selected_element == name or element.active:
+                yield element
+    
+    def get_all(self) -> List[ListType]:
+        return [e.element for e in self.elements.values()]
+    
+    def get(self, name: str) -> ListType:
+        if name not in self:
+            raise ValueError(f"no element named {name}")
+        
+        return self.elements[name].element
+    
+    def add(self, name: str, obj: ListType, color: Color=None, select=True):
+        self.elements[name] = SelectionListItem(
+            element=obj,
+            active=False,
+            color=color or Color(*colors[len(self.elements)%len(colors)]),
+            name=name
+        )
+        if select:
+            self.selected_element = name
+
+    def get_name(self, element: ListType):
+        for name, element2 in self.elements.items():
+            if element is element2:
+                return name
+            
+        raise ValueError(f"item not in list: {element}")
+    
+    def remove(self, name: str):
+        if name not in self:
+            raise ValueError(f"{name} not in list: {self}")
+        
+        self.elements.pop(name)
+        if self.selected_element == name:
+            self.selected_element = None
+    
+    def reload(self):
+        if self.selected_element in self.elements:
+            self.selected_element = self.elements[self.selected_element].name
+        else:
+            self.selected_element = None
+            
+        self.elements = {
+            element.name: element for element in self.elements.values()
+        }
+    
+    def __iter__(self):
+        for name in self.elements:
+            yield self.elements[name].element
+    
+    def __len__(self) -> int:
+        return len(self.elements)
+    
+    def __getitem__(self, name: str) -> SelectionListItem[ListType]:
+        return self.elements[name]
+    
+    def __setitem__(self, name: str, item: ListType) -> None:
+        if name in self:
+            self.elements[name].element = item
+        else:
+            self.add(name, item)
+    
+    def __contains__(self, item: str) -> bool:
+        return item in self.elements
+    
+    def items(self):
+        return self.elements.items()

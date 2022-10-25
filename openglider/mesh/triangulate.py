@@ -1,19 +1,11 @@
 from __future__ import division
 from __future__ import absolute_import
 import euklid
-from typing import Iterator, List, Optional, Tuple
+from typing import Iterator, List, Optional, Sized, Tuple
 from meshpy.triangle import MeshInfo
+import meshpy._internals as internals
 
-try:
-    import meshpy._triangle as internals
-    # old API
-    # TODO: Remove??
-except ImportError:
-    import meshpy._internals as internals
-    # new API (pybind11)
-
-
-class Triangle():
+class Triangle(Sized):
     attributes: dict
     nodes: Tuple[int, int, int]
 
@@ -25,6 +17,9 @@ class Triangle():
     
     def __iter__(self) -> Iterator[int]:
         return self.nodes.__iter__()
+    
+    def __len__(self) -> int:
+        return 3
 
 
 class TriMesh:
@@ -37,7 +32,7 @@ class TriMesh:
 
 VectorList = List[Tuple[float, float]]
 
-class Triangulation(object):
+class Triangulation:
     meshpy_keep_boundary = True
     meshpy_planar_straight_line_graph = True
     meshpy_max_area: float | None = None

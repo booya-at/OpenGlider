@@ -112,7 +112,7 @@ class Glider(object):
         mesh = Mesh()
         for rib in self.ribs:
             if rib.profile_2d.thickness > 1e-5:
-                mesh += rib.get_mesh(filled=True, glider=self)
+                mesh += rib.get_mesh(filled=True)
 
         for cell in self.cells:
             for diagonal in cell.diagonals:
@@ -138,7 +138,7 @@ class Glider(object):
         num = len(ribs)
         numpoints = len(ribs[0])  # points per rib
 
-        polygons: List[Tuple[int, int, int, int]] = []
+        polygons: List[Tuple[Tuple[int, int, int, int], Dict[str, Any]]] = []
         boundary: Mesh.boundary_nodes_type = {
             "ribs": [],
             "trailing_edge": []
@@ -150,12 +150,12 @@ class Glider(object):
 
             for k in range(numpoints - 1):  # same reason as above
                 kplus = (k+1) % (numpoints-1)
-                polygons.append((
+                polygons.append(((
                     i * numpoints + k,
                     i * numpoints + kplus,
                     (i + 1) * numpoints + kplus,
                     (i + 1) * numpoints + k
-                ))
+                ), {}))
         
         ribs_flat = [p for rib in ribs for p in rib]
 

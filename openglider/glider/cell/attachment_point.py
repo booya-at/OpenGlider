@@ -35,6 +35,11 @@ class CellAttachmentPoint(Node):
         }
     
     @classmethod
+    def __from_json__(cls, **kwargs: Any) -> CellAttachmentPoint:
+        force = euklid.vector.Vector3D(kwargs.pop("force"))
+        return cls(**kwargs, force=force)
+
+    @classmethod
     def calculate_force_cell_aligned(cls, cell: Cell, force: float) -> euklid.vector.Vector3D:
         return cell.get_normvector() * force
 

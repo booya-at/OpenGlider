@@ -1,0 +1,1 @@
+from openglider.gui.app.app import GliderApp

@@ -50,7 +50,19 @@ class ShapePlotConfig:
         for attribute in self.__annotations__:
             setattr(new, attribute, getattr(self, attribute))
 
-        return new 
+        return new
+    
+    def __add__(self, other: ShapePlotConfig) -> ShapePlotConfig:
+        new = ShapePlotConfig()
+
+        for attribute in self.__annotations__:
+            if not attribute.startswith("scale"):
+                setattr(new, attribute, getattr(self, attribute) or getattr(other, attribute))
+            else:
+                setattr(new, attribute, getattr(self, attribute))
+
+        return new
+    
 
 
 class ShapePlot(object):
@@ -193,23 +205,27 @@ class ShapePlot(object):
         self.draw_cells(left=left)
         return self
 
-    def draw_attachment_points(self, add_text: bool=True, left: bool=False) -> None:
+    def _get_attachment_point_positions(self, left: bool=False) -> Dict[str, euklid.vector.Vector2D]:
+
+        points = {}
         shape = self.shapes[left]
-
-        part = PlotPart()
-
-        points = []
 
         for rib_no, rib in enumerate(self.glider_3d.ribs):
             for attachment_point in rib.attachment_points:
-                points.append([rib_no, attachment_point.rib_pos, attachment_point.name])
+                points[attachment_point.name] = shape.get_point(rib_no, attachment_point.rib_pos)
         
         for cell_no, cell in enumerate(self.glider_3d.cells):
             for cell_attachment_point in cell.attachment_points:
-                points.append([cell_no + cell_attachment_point.cell_pos, cell_attachment_point.rib_pos, cell_attachment_point.name])
+                points[cell_attachment_point.name] = shape.get_point(cell_no + cell_attachment_point.cell_pos, cell_attachment_point.rib_pos)
+            
+        return points
 
-        for x, y, name in points:
-            p1 = shape.get_point(x, y)
+
+    def draw_attachment_points(self, add_text: bool=True, left: bool=False) -> None:
+        part = PlotPart()
+        points = self._get_attachment_point_positions()
+
+        for name, p1 in points.items():
             p2 = p1 + euklid.vector.Vector2D([0.2, 0])
 
 
@@ -321,12 +337,53 @@ class ShapePlot(object):
 
         return self
 
-    def draw_lines(self) -> ShapePlot:
+    def draw_lines(self, left: bool=True) -> ShapePlot:
         #self.draw_design(lower=True)
         #self.draw_design(lower=True, left=True)
         #self.draw_attachment_points(True)
         #self.draw_attachment_points(True, left=True)
-        lower = self.glider_3d.lineset.attachment_points
+        lower = self.glider_3d.lineset.lower_attachment_points
+
+        attachment_point_positions = self._get_attachment_point_positions(left=False)
+        all_nodes = {}
+        for node in self.glider_3d.lineset.nodes:
+            if node.node_type == node.NODE_TYPE.UPPER:
+                all_nodes[node] = attachment_point_positions[node.name]
+
+        def get_node_position(node: Node) -> euklid.vector.Vector2D:
+            if node in all_nodes:
+                return all_nodes[node]
+
+            nodes = [line.upper_node for line in self.glider_3d.lineset.get_upper_connected_lines(node)]
+
+            if len(nodes) == 0:
+                raise ValueError(f"no upper nodes for node {node}, {type(node)}")
+            elif len(nodes) == 1:
+                position = get_node_position(nodes[0]) + euklid.vector.Vector2D([0, -0.2])
+            else:
+
+                node_positions = [get_node_position(node) for node in nodes]
+
+                position = sum(node_positions, euklid.vector.Vector2D()) * (1/len(node_positions))
+
+                direction = euklid.vector.Vector2D()
+
+                for node_pos in node_positions:
+                    diff = node_pos - position
+
+                    if diff.dot(euklid.vector.Vector2D([1, -1])) < 0:
+                        direction += diff * -1
+                    else:
+                        direction += diff
+                
+                rotation = euklid.vector.Rotation2D(-math.pi/2)
+                direction.normalized()
+            
+                position += rotation.apply(direction.normalized()*0.1)
+            
+            all_nodes[node] = position
+
+            return position
 
         def all_upper_lines(node: Node) -> List[Line]:
             lines: List[Line] = []
@@ -337,15 +394,20 @@ class ShapePlot(object):
             return lines
 
         for i, node in enumerate(lower):
-            left = i % 2
+            left = bool(i % 2)
+
+            get_node_position(node)
+
+            print(len(all_nodes), node, node in all_nodes)
+
 
             for glider_line in all_upper_lines(node):
                 pp = PlotPart()
                 layer = pp.layers[f"line_{i}"]
                 line = euklid.vector.PolyLine2D([
                     # TODO: fix!
-                    glider_line.lower_node.get_2D(self.glider_2d.shape),
-                    glider_line.upper_node.get_2D(self.glider_2d.shape)
+                    all_nodes[glider_line.lower_node],
+                    all_nodes[glider_line.upper_node]
                 ])
 
                 if left:
@@ -355,8 +417,6 @@ class ShapePlot(object):
                 self.drawing.parts.append(pp)
 
         return self
-
-
 
     def export_a4(self, path: PathLike, fill: bool=False) -> None:
         new = self.drawing.copy()

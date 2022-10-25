@@ -296,9 +296,6 @@ class ParametricGlider:
         logger.info("create ribs")
         profile_merge_values = self.get_profile_merge()
 
-        if self.shape.has_center_cell:
-            rib_angles.insert(0, -rib_angles[0])
-
         for rib_no, x_value in enumerate(x_values):
             front, back = shape_ribs[rib_no]
             arc = arc_pos[rib_no]

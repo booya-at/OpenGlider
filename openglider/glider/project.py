@@ -156,7 +156,7 @@ class GliderProject:
     def copy(self) -> GliderProject:
         new_glider = self.glider.copy()
         new_glider_3d = self.glider_3d.copy()
-        new = GliderProject(new_glider, new_glider_3d)
+        new = GliderProject(new_glider, new_glider_3d, changelog=self.changelog[:])
         new.name = self.name
 
         return new

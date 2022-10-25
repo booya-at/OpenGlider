@@ -25,10 +25,10 @@ class BallooningNew(BallooningBase):
         }
     
     @classmethod
-    def __from_json__(cls, interpolation: euklid.vector.Interpolation, name: str) -> BallooningNew:
-        _interpolation = euklid.vector.Interpolation(interpolation)
+    def __from_json__(cls, **kwargs: Any) -> BallooningNew:
+        _interpolation = euklid.vector.Interpolation(kwargs["interpolation"])
 
-        return cls(_interpolation, name)
+        return cls(_interpolation, kwargs["name"])
 
     def __iter__(self) -> Iterator[euklid.vector.Vector2D]:
         return self.interpolation.__iter__()
@@ -73,7 +73,9 @@ class BallooningNew(BallooningBase):
 VecType: TypeAlias = euklid.vector.Vector2D | Tuple[float, float]
 
 class BallooningBezierNeu(BallooningNew):
-    def __init__(self, spline: List[euklid.vector.Vector2D] | List[Tuple[float, float]], name: str="ballooning_new") -> None:
+    spline_curve: euklid.spline.BSplineCurve
+
+    def __init__(self, spline: List[euklid.vector.Vector2D] | List[Tuple[float, float]] | euklid.vector.PolyLine2D, name: str="ballooning_new") -> None:
         super().__init__(None, None)  # type: ignore
         self.spline_curve = euklid.spline.BSplineCurve(spline)
         self.name = name
@@ -84,6 +86,10 @@ class BallooningBezierNeu(BallooningNew):
             "spline": self.spline_curve.controlpoints,
             "name": self.name
             }
+
+    @classmethod
+    def __from_json__(cls, **kwargs: Any) -> BallooningNew:
+        return cls(**kwargs)
 
     def __getitem__(self, xval: float) -> float:
         """Get Ballooning Value (%) for a certain XValue"""

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from pathlib import Path
 
-from typing import Any, Iterator, List, Dict, Literal, Sequence, Tuple, TypeAlias, Union
+from typing import Any, Iterator, List, Dict, Literal, Sequence, Sized, Tuple, TypeAlias, Union
 import copy
 import logging
 
@@ -222,7 +222,7 @@ class Mesh(object):
         return self
 
 
-    def get_indexed(self) -> Tuple[List[Vertex], Dict[str, List[Polygon]], Dict[str, List[int]]]:
+    def get_indexed(self) -> Tuple[List[Vertex], Dict[str, List[Tuple[PolygonType, Dict[str, Any]]]], Dict[str, List[int]]]:
         """
         Get [vertices, polygons, boundaries] with references by index
         """
@@ -230,30 +230,34 @@ class Mesh(object):
         for i, v in enumerate(vertices):
             v.index = i
             
-        polys: Dict[str, List[Polygon]] = {}
-        for poly_name, polygons in self.polygons.items():
-            poly_group: List[Polygon] = []
-            for poly in polygons:
-                poly_indices = [node.index for node in poly]
-                new_poly = Polygon(poly_indices, attributes=poly.attributes)  # type: ignore
-                poly_group.append(new_poly)
+        polygons: Dict[str, List[Tuple[PolygonType, Dict[str, Any]]]] = {}
 
-            polys[poly_name] = poly_group
+        for poly_name, polygon_group in self.polygons.items():
+            poly_group: List[Tuple[PolygonType, Dict[str, Any]]] = []
+
+            for poly in polygon_group:
+                poly_group.append((
+                    tuple(node.index for node in poly),  # type: ignore
+                    poly.attributes
+                ))
+
+            polygons[poly_name] = poly_group
+
 
         boundaries = {}
         for boundary_name, boundary_nodes in self.boundary_nodes.items():
             boundaries[boundary_name] = [node.index for node in boundary_nodes if node in vertices]
 
-        return vertices, polys, boundaries
+        return vertices, polygons, boundaries
 
     @classmethod
     def from_indexed(
         cls,
         vertices: List[euklid.vector.Vector3D],
-        polygons: Dict[str, Sequence[PolygonType]],
+        polygons: Dict[str, Sequence[Tuple[PolygonType, Dict[str, Any]]]],
         boundaries: Dict[str, List[int]]=None,
         name: str="unnamed",
-        node_attributes: List[Dict[str, Any]]=None
+        node_attributes: List[Dict[str, Any]]=None,
         ) -> Mesh:
 
         _vertices = [Vertex(*node) for node in vertices]
@@ -266,15 +270,16 @@ class Mesh(object):
         boundaries_new = {}
         polys = {}
 
-        for poly_name, polys_items in polygons.items():
-            new_poly_group = []
-            for poly in polys_items:
-                poly_vertices = [_vertices[i] for i in poly]
-                poly_attributes = getattr(poly, "attributes", {})
-                new_poly = Polygon(poly_vertices, attributes=poly_attributes)
-                new_poly_group.append(new_poly)
+        for polygon_group_name, polygon_group in polygons.items():
+            new_polygon_group = []
+            for polygon in polygon_group:
+                poly_vertices = [_vertices[p] for p in polygon[0]]
+                poly_attributes = polygon[1]
 
-            polys[poly_name] = new_poly_group
+                new_poly = Polygon(poly_vertices, attributes=poly_attributes)
+                new_polygon_group.append(new_poly)
+
+            polys[polygon_group_name] = new_polygon_group
 
         for boundary_name, boundary_indices in boundaries.items():
             boundaries_new[boundary_name] = [_vertices[i] for i in boundary_indices]
@@ -331,7 +336,7 @@ class Mesh(object):
 
         for polygon_group_name, group_polygons in polygons.items():
             out += "o {}\n".format(polygon_group_name)
-            for obj in group_polygons:
+            for obj, _attributes in group_polygons:
                 if len(obj) == 2:
                     # line
                     code = "l"
@@ -339,7 +344,6 @@ class Mesh(object):
                     # face
                     code = "f"
                 
-                raise NotImplementedError()
                 out += " ".join([code] + [str(x+offset+1) for x in obj])
                 out += "\n"
 
@@ -384,7 +388,7 @@ class Mesh(object):
                     num_polys = len(polys["123"])
                     logger.info(f"Exporting {num_polys} faces")
                     mesh_data.vertices = [list(p) for p in vertices]  # type: ignore
-                    mesh_data.faces = [list(p) for p in polys["123"]]  # type: ignore
+                    mesh_data.faces = [list(p[0]) for p in polys["123"]]  # type: ignore
 
             lines = list(filter(lambda x: len(x) == 2, poly_group))
             if lines:
@@ -396,7 +400,7 @@ class Mesh(object):
         return dwg
 
     def export_ply(self, path: str | Path) -> None:
-        vertices, polygons, boundaries = self.get_indexed()
+        vertices, polygons, _boundaries = self.get_indexed()
 
         material_lines = []
         panels_lines = []
@@ -408,7 +412,7 @@ class Mesh(object):
 
             material_lines.append(" ".join([color_str]*3))
 
-            for obj in polygons[polygon_group_name]:
+            for obj, _attributes in polygons[polygon_group_name]:
                 if len(obj) > 2:
                     out_str = str(len(obj))
                     for x in obj:

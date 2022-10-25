@@ -25,6 +25,7 @@ class Line(CachedObject):
 
     target_length: float | None
     init_length: float | None
+    trim_correction: float = 0.
 
     line_type: line_types.LineType
     force: float | None
@@ -44,7 +45,8 @@ class Line(CachedObject):
         target_length: float=None,
         number: int=None,
         name: str=None,
-        color: str=""
+        color: str="",
+        trim_correction: float=0.
         ):
         """
         Line Class
@@ -68,6 +70,7 @@ class Line(CachedObject):
         self.sag_par_2 = None
 
         self.name = name or "unnamed_line"
+        self.trim_correction = trim_correction
 
     def __json__(self) -> Dict[str, Any]:
         return{

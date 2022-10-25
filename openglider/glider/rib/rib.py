@@ -56,6 +56,9 @@ class Rib:
     hole_naming_scheme = "{rib.name}h{}"
     rigid_naming_scheme = "{rib.name}rigid{}"
 
+    def __post_init__(self) -> None:
+        self.pos = euklid.vector.Vector3D(self.pos)
+
     def align_all(self, data: euklid.vector.PolyLine2D, scale: bool=True) -> euklid.vector.PolyLine3D:
         """align 2d coordinates to the 3d pos of the rib"""
         if scale:
@@ -163,7 +166,7 @@ class Rib:
                 connected_lines.add(line)
         return list(connected_lines)
 
-    def get_mesh(self, hole_num: int=10, glider: Glider=None, filled: bool=False, max_area: float=None) -> Mesh:
+    def get_mesh(self, hole_num: int=10, filled: bool=False, max_area: float=None) -> Mesh:
         if self.is_closed():
             # stabi
             # TODO: return line
@@ -191,7 +194,7 @@ class Rib:
             segments = []
             for lst in boundary:
                 segments += triangulate.Triangulation.get_segments(lst)
-            return Mesh.from_indexed(self.align_all(euklid.vector.PolyLine2D(vertices)).nodes, {'rib': segments}, {})
+            return Mesh.from_indexed(self.align_all(euklid.vector.PolyLine2D(vertices)).nodes, {'rib': [(l, {}) for l in segments]}, {})
         else:
             tri = triangulate.Triangulation(vertices, boundary, hole_centers)
             if max_area is not None:
@@ -203,17 +206,14 @@ class Rib:
             points = self.align_all(euklid.vector.PolyLine2D(mesh.points))
             boundaries = {self.name: list(range(len(mesh.points)))}
 
-            return Mesh.from_indexed(points.nodes, polygons={"ribs": mesh.elements} , boundaries=boundaries)
+            return Mesh.from_indexed(points.nodes, polygons={"ribs": [(tri, {}) for tri in mesh.elements]} , boundaries=boundaries)
 
     @cached_function("self")
-    def get_offset_outline(self, margin: float) -> pyfoil.Airfoil:
-        logger.debug(f"calculate envelope: {self.name}: {margin}")
-        
+    def get_offset_outline(self, margin: float) -> pyfoil.Airfoil:        
         if margin == 0.:
             return self.profile_2d
         else:
             envelope = self.profile_2d.curve.offset(-margin/self.chord, simple=False)
-            envelope.fix_errors()
             
             return pyfoil.Airfoil(envelope)
 

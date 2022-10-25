@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Sequence, Tuple, List, Dict
+from typing import TYPE_CHECKING, Any, Sequence, Tuple, List, Dict, TypeAlias
 import copy
 import re
 import logging
@@ -86,6 +86,8 @@ class BatchNode2D(object):
         return self.pos_2D
 
 
+Node2DType: TypeAlias = UpperNode2D | LowerNode2D | BatchNode2D
+
 class LineSet2D(object):
     trim_corrections: Dict[str, float]
 
@@ -104,18 +106,25 @@ class LineSet2D(object):
             line_data["lower_node"] = nodes.index(line.lower_node)
             lines.append(line_data)
 
-        return {"lines": lines,
-                "nodes": nodes}
+        return {
+            "lines": lines,
+            "nodes": nodes,
+            "trim_corrections": self.trim_corrections
+        }
 
     @classmethod
-    def __from_json__(cls, lines: List[Line2D], nodes: List[Any]) -> LineSet2D:
-        lineset = cls(lines)
-        for line in lineset.lines:
-            if isinstance(line.upper_node, int):
-                line.upper_node = nodes[line.upper_node]
-            if isinstance(line.lower_node, int):
-                line.lower_node = nodes[line.lower_node]
-        return lineset
+    def __from_json__(cls, lines: List[Dict[str, Any]], nodes: List[Node2DType], trim_corrections: Dict[str, float]) -> LineSet2D:
+        new_lines = []
+        
+        for line in lines:
+            if isinstance(line["upper_node"], int):
+                line["upper_node"] = nodes[line["upper_node"]]
+            if isinstance(line["upper_node"], int):
+                line["upper_node"] = nodes[line["upper_node"]]
+            
+            new_lines.append(Line2D(**line))
+        
+        return cls(new_lines, trim_corrections)
 
     @property
     def nodes(self) -> List[UpperNode2D | LowerNode2D | BatchNode2D]:
@@ -175,14 +184,14 @@ class LineSet2D(object):
         for line_no, line in enumerate(self.lines):
             lower = nodes_3d[line.lower_node]
             upper = nodes_3d[line.upper_node]
+            offset = self.trim_corrections.get(line.name, 0.)
             if lower and upper:
                 line_3d = Line(number=line_no, lower_node=lower, upper_node=upper,
                             v_inf=v_inf, target_length=line.target_length,
-                            line_type=line.line_type, name=line.name)
+                            line_type=line.line_type, name=line.name, trim_correction=offset)
                 lines.append(line_3d)
 
         lineset = LineSet(lines, v_inf)
-        lineset.trim_corrections = self.trim_corrections.copy()
 
         return lineset
 
@@ -452,7 +461,7 @@ class LineSet2D(object):
 class Line2D(object):
     target_length: float | None
     def __init__(self, lower_node: BatchNode2D | LowerNode2D, upper_node: BatchNode2D | UpperNode2D, 
-                 target_length: float=None, line_type: str='default', layer: str="", name: str=None):
+                 target_length: float=None, line_type: str='default', layer: str="", name: str=""):
         self.lower_node = lower_node
         self.upper_node = upper_node
         self.target_length = target_length

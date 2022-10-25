@@ -25,8 +25,8 @@ class RibHoleBase(BaseModel):
     @cached_function("margin")
     def get_envelope_boundaries(self, rib: Rib) -> Tuple[float, float]:
         envelope = self.get_envelope_airfoil(rib)
-        x1 = envelope.get(0)[0]
-        x2 = min([p[0] for p in envelope.curve.fix_errors().nodes])
+        x2 = envelope.curve.nodes[0][0]
+        x1 = min([p[0] for p in envelope.curve.nodes])
 
         return x1, x2
     
@@ -78,6 +78,14 @@ class RibHole(RibHoleBase):
         circle = Ellipse.from_center_p2(center, outer_point, self.width)
 
         return [circle.get_sequence(num)]
+    
+    def get_diameter(self, rib: Rib) -> float:
+        lower = rib.profile_2d.get(self.pos)
+        upper = rib.profile_2d.get(-self.pos)
+
+        diff = upper - lower
+        
+        return  diff.length() * self.size
     
     def get_centers(self, rib: Rib, scale: bool=False) -> List[euklid.vector.Vector2D]:
         # TODO: remove and use a polygon.centerpoint

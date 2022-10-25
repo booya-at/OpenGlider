@@ -57,7 +57,7 @@ def colorwheel(num: int) -> List[Tuple[int, int, int]]:
         rgb_normalized = [min(255, int(factor*x)) for x in rgb]
         colors.append(tuple(rgb_normalized))
 
-    return colors
+    return colors  # type: ignore
 
 class HeatMap():
     _interpolation_red = euklid.vector.Interpolation([

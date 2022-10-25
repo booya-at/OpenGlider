@@ -94,7 +94,7 @@ class ParametricShape:
         )
 
     @property
-    def rib_dist_interpolation(self) -> List[Tuple[float, int]]:
+    def rib_dist_interpolation(self) -> List[Tuple[float, float]]:
         """
         Interpolate Cell-distribution
         """

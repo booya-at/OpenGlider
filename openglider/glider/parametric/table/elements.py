@@ -5,6 +5,7 @@ import logging
 import enum
 
 from attr import attrib
+from openglider.glider.curve import GliderCurveType
 
 from openglider.utils.table import Table
 
@@ -159,6 +160,21 @@ class ElementTable(Generic[ElementType]):
                     elements.append(element)
         
         return elements
+    
+    @staticmethod
+    def get_curve_value(curves: Dict[str, GliderCurveType], curve_name: str | float, rib_no: int) -> float:
+        if curves is None:
+            raise ValueError("No curves specified")
+
+        if isinstance(curve_name, str):
+            factor = 1.
+            if curve_name.startswith("-"):
+                curve_name = curve_name[1:]
+                factor = -1
+            
+            return curves[curve_name].get(rib_no) * factor
+        
+        return curve_name
     
     def get_one(self, row_no: int, keywords: List[str] | None=None, **kwargs: Any) -> ElementType | None:
         elements = self.get(row_no, keywords=keywords, **kwargs)

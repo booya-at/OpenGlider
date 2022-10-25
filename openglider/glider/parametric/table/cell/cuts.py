@@ -30,15 +30,9 @@ class CutTable(CellTable):
         "singleskin": cut_kw(),
     }
 
-    def get_element(self, row: int, keyword: str, data: List[Any], curves: Dict[str, GliderCurveType]=None, **kwargs: Any) -> PanelCut:
-        left, right = data[:2]
-        if curves is None:
-            raise ValueError("No curves specified")
-            
-        if isinstance(left, str):
-            left = curves[left].get(row)
-        if isinstance(right, str):
-            right = curves[right].get(row+1)
+    def get_element(self, row: int, keyword: str, data: List[Any], curves: Dict[str, GliderCurveType]=None, **kwargs: Any) -> PanelCut:            
+        left = self.get_curve_value(curves, data[0], row)
+        right = self.get_curve_value(curves, data[1], row+1)
             
         cut_type = None
         if keyword in ("EKV", "EKH", "folded"):
@@ -51,8 +45,8 @@ class CutTable(CellTable):
             cut_type = PANELCUT_TYPES.singleskin
         elif keyword == "CUT_ROUND":
             cut_type = PANELCUT_TYPES.round
-            return PanelCut(x_left=data[0], x_right=data[1], cut_type=cut_type, x_center=data[2], seam_allowance=data[3])
+            return PanelCut(x_left=left, x_right=right, cut_type=cut_type, x_center=data[2], seam_allowance=data[3])
         else:
             raise ValueError(f"invalid keyword: {keyword}")
         
-        return PanelCut(x_left=data[0], x_right=data[1], cut_type=cut_type)
+        return PanelCut(x_left=left, x_right=right, cut_type=cut_type)

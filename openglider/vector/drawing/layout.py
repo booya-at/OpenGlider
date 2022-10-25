@@ -396,7 +396,7 @@ class Layout(object):
 
             for entity in panel:  # type: ignore
                 layer = entity.dxf.layer
-                new_panel.layers[layer].append(euklid.vector.PolyLine2D([p[:2] for p in entity]))
+                new_panel.layers[layer].append(euklid.vector.PolyLine2D([p[:2] for p in entity]))  # type: ignore
 
         #blocks = list(dxf.blocks)
         blockrefs = dxf.modelspace().query("INSERT")
@@ -411,7 +411,7 @@ class Layout(object):
             for entity in block:
                 layer = entity.dxf.layer
                 try:
-                    line = [v.dxf.location[:2] for v in entity]
+                    line = [v.dxf.location[:2] for v in entity]  # type: ignore
                     if entity.dxf.flags % 2:
                         line.append(line[0])
                     new_panel.layers[layer].append(euklid.vector.PolyLine2D(line))

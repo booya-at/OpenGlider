@@ -10,10 +10,11 @@ import openglider.glider.curve
 
 class CurveTable:
     table_type = TableType.general
+    table_name = "Curves"
 
     def __init__(self, table: Table=None):
         self.table = table or Table()
-        self.table.name = "Curves"
+        self.table.name = self.table_name
 
     def __json__(self) -> Dict[str, Any]:
         return {
@@ -49,7 +50,7 @@ class CurveTable:
         return curves
     
     def apply_curves(self, curves: Dict[str, openglider.glider.curve.GliderCurveType]) -> Table:
-        self.table = Table()
+        self.table = Table(name=self.table_name)
         column = 0
 
         for name, curve in curves.items():

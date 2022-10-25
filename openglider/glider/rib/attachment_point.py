@@ -85,7 +85,7 @@ class AttachmentPoint(Node):
 
         self.rib_pos = rib_pos
         self.name = name
-        self.force = force
+        self.force = euklid.vector.Vector3D(force)
 
         self.offset = offset
 
@@ -105,6 +105,13 @@ class AttachmentPoint(Node):
             "protoloop_distance": self.protoloop_distance,
             "protoloop_distance_absolute": self.protoloop_distance_absolute
         }
+    
+    @classmethod
+    def __from_json__(self, **data: Any) -> AttachmentPoint:
+        data["force"] = euklid.vector.Vector3D(data["force"])
+        return AttachmentPoint(**data)
+
+
     
     def get_x_values(self, rib: Rib) -> List[float]:
         positions = [self.rib_pos]

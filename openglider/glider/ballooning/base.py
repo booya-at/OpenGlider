@@ -97,6 +97,9 @@ class BallooningBase(ABC):
         """
         return cls.arcsinc(baloon)
     
+    def close_trailing_edge(self, x: float) -> None:
+        raise NotImplementedError()
+    
     def apply_splines(self) -> None:
         pass
 

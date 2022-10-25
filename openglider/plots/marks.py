@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC
 import math
 from typing import Any, Dict, List, Sequence
@@ -151,6 +153,9 @@ class Rotate(_Modify):
         self.angle = rotation
         self.rotation = euklid.vector.Rotation2D(rotation)
         super(Rotate, self).__init__(func)
+    
+    def __deepcopy__(self, memo) -> Rotate:
+        return Rotate(self.func, self.angle)
 
     def __json__(self) -> Dict[str, Any]:
         return {"func": self.func,

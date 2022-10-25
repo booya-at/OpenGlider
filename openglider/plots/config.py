@@ -69,7 +69,6 @@ class OtherPatternConfig(PatternConfigOld):
     cut_design = cuts.SimpleCut
     cut_diagonal_fold = cuts.SimpleCut
     
-    layout_seperate_panels = True
     rib_text_in_seam = False
     
     allowance_design = 0.01

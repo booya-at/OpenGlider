@@ -5,12 +5,11 @@ from typing import Any, Dict, List, Optional, TypeAlias
 from openglider.glider.cell.cell import Cell
 from openglider.glider.glider import Glider
 from openglider.utils.config import Config
-from openglider.utils.dataclass import BaseModel, Field
 
 from openglider.vector.drawing import Layout
 from openglider.plots.glider.cell import CellPlotMaker as DefaultCellPlotMaker
 from openglider.plots.glider.ribs import RibPlot, SingleSkinRibPlot
-from openglider.plots.config import PatternConfig, OtherPatternConfig, PatternConfigOld
+from openglider.plots.config import PatternConfig
 from openglider.plots.usage_stats import MaterialUsage
 from openglider.vector.drawing.part import PlotPart
 
@@ -21,6 +20,7 @@ PlotPartDict = collections.OrderedDict[Cell, List[PlotPart]]
 class PlotMaker:
     glider_3d: Glider
     config: PatternConfig
+    
     panels: Layout
     ribs: List[PlotPart]
     dribs: PlotPartDict

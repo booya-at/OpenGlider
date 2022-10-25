@@ -1,8 +1,12 @@
 from __future__ import annotations
+from errno import EUCLEAN
 
-from typing import TYPE_CHECKING, Dict, Any, Type, TypeVar
+import euklid
+from typing import TYPE_CHECKING, Callable, Dict, Any, List, Tuple, Type, TypeAlias, TypeVar
 
 import pydantic
+import pydantic.validators
+
 #from pydantic import Field as field
 from pydantic import Field  # export Field
 
@@ -76,6 +80,23 @@ def dataclass(_cls: Type[Any]) -> Type[OGDataclassT]:
         
     return _cls_new
 
+
+# https://github.com/pydantic/pydantic/issues/501
+def get_validator(cls: Type) -> Callable[[Any], Any]:
+    def validator(v: Any) -> Any:
+        if isinstance(v, (list, tuple)):
+            return cls(v)
+        if isinstance(v, cls):
+            return v
+        raise ValueError(f"Cannot convert value to Vector3D: {v}")
+    
+    return validator
+
+pydantic.validators._VALIDATORS += [
+    (euklid.vector.Vector3D, [get_validator(euklid.vector.Vector3D)]),
+    (euklid.vector.Vector2D, [get_validator(euklid.vector.Vector2D)])
+]
+
 class BaseModel(pydantic.BaseModel):
     _cache: Dict[str, Any] = {}
 
@@ -88,7 +109,7 @@ class BaseModel(pydantic.BaseModel):
         return other.__class__ == self.__class__ and self.__dict__ == other.__dict__
 
     def __json__(self) -> Dict[str, Any]:
-        return self.dict()
-    
+        return dict(self._iter())
+
     def __hash__(self) -> int:
         return hash_list(*self.dict().values())
