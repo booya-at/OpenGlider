@@ -12,7 +12,8 @@ from types import ModuleType
 from typing import TYPE_CHECKING
 import sys
 import importlib
-
+import pkgutil
+import pkg_resources
 from openglider.gui.qt import QtWidgets
 from qasync import QEventLoop
 import qtmodern.styles
@@ -60,6 +61,22 @@ class GliderApp(QtWidgets.QApplication):
         import openglider.gui.app.main_window
         import openglider.gui.app.state
         import openglider.utils.tasks
+
+        installed_packages = pkgutil.iter_modules()
+
+        for p in installed_packages:
+            if p.name.startswith("openglider") and p.name != "openglider":
+                print(f"using plugin: {p.name}")
+                try:
+                    module = importlib.import_module(p.name)
+                    init = getattr(module, "init", None)
+                    if init is not None:
+                        init(self)
+                    else:
+                        logger.warning(f"no init function in plugin: {p.name}")
+                except Exception as e:
+                    raise e
+                    logger.error(str(e))
 
         self.state = openglider.gui.app.state.ApplicationState.load()
         self.task_queue = openglider.utils.tasks.TaskQueue(self.execute)
