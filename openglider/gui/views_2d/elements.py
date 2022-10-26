@@ -1,8 +1,12 @@
-from typing import Optional, Tuple
+from __future__ import annotations
+
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 from matplotlib import image
+
 import pyqtgraph
+from pyqtgraph.graphicsItems.ScatterPlotItem import SpotItem, ScatterPlotItem
 import pyqtgraph.GraphicsScene.mouseEvents
 from openglider.gui.qt import QtCore, QtGui, QtWidgets
 import logging
@@ -18,7 +22,7 @@ logger = logging.getLogger(__name__)
 class Line2D(QtWidgets.QGraphicsObject):
     color: Color
 
-    def __init__(self, data, color: Tuple[int, int, int] | Color | None=None, dashed=False):
+    def __init__(self, data: List[euklid.vector.Vector2D], color: Tuple[int, int, int] | Color | None=None, dashed: bool=False) -> None:
         self.data = data or []
         if isinstance(color, Color):
             self.color = color
@@ -30,7 +34,7 @@ class Line2D(QtWidgets.QGraphicsObject):
         self.dashed = dashed
         super().__init__()
 
-    def paint(self, p, *args):
+    def paint(self, p: QtGui.QPainter, *args: Any) -> None:
         if not self.data:
             return
             
@@ -51,7 +55,7 @@ class Line2D(QtWidgets.QGraphicsObject):
             p.drawLine(p1, p2)
 
         #p.drawRect(self.boundingRect())
-    def boundingRect(self):
+    def boundingRect(self) -> QtCore.QRectF:
         if len(self.data):
             x=[p[0] for p in self.data]
             y=[p[1] for p in self.data]
@@ -65,7 +69,7 @@ class Image(pyqtgraph.ImageItem):
     is_scaling = False
     is_transforming = False
 
-    def __init__(self, image, *args, **kwargs):
+    def __init__(self, image: np.ndarray, *args: Any, **kwargs: Any) -> None:
         super().__init__(image[::-1], opacity=0.5, *args, **kwargs)
         self.setOpts(axisOrder='row-major')
         self.setZValue(-1)
@@ -78,11 +82,11 @@ class Image(pyqtgraph.ImageItem):
 
         self._update_rect()
         
-    def _update_rect(self):
+    def _update_rect(self) -> None:
         self._rect = QtCore.QRectF(self.p1, self.p2)
         self.setRect(self._rect)
 
-    def paint(self, p: QtGui.QPainter, *args):
+    def paint(self, p: QtGui.QPainter, *args: Any) -> None:
         color = QtGui.QColor(255, 0, 0, 255) # rgba
         pen = QtGui.QPen(QtGui.QBrush(color), 1)
         #pen.setCosmetic(True)
@@ -97,14 +101,13 @@ class Image(pyqtgraph.ImageItem):
         return super().paint(p, *args)
 
     
-    def _get_point_dims(self):
+    def _get_point_dims(self) -> QtCore.QPointF:
         width = self.pixelWidth()
         height = self.pixelHeight()
 
         return QtCore.QPointF(self.point_radius*width, self.point_radius*height)
 
-
-    def scale_to_viewport(self, point):
+    def scale_to_viewport(self, point: QtCore.QPointF) -> QtCore.QPointF:
         vt = self.viewTransform()
         if vt is None:
             return QtCore.QPointF(self.point_radius, self.point_radius)
@@ -116,7 +119,7 @@ class Image(pyqtgraph.ImageItem):
         return QtCore.QPointF(point.x() * v1, point.y() * v2)
 
 
-    def clickEvent(self, ev: QtWidgets.QGraphicsSceneMouseEvent):
+    def clickEvent(self, ev: QtWidgets.QGraphicsSceneMouseEvent) -> None:
         if ev.button() & QtCore.Qt.LeftButton:
             ev.accept()
 
@@ -136,7 +139,7 @@ class Image(pyqtgraph.ImageItem):
             if rect2.contains(position):
                 self.is_scaling = position
 
-    def dragEvent(self, point):
+    def dragEvent(self, point: QtCore.QPointF) -> None:
         if self.is_scaling or self.is_transforming:
             coords = self.mapToView(self.mapFromDevice(point))
 
@@ -155,7 +158,7 @@ class Image(pyqtgraph.ImageItem):
             
             self._update_rect()
 
-    def boundingRect(self):
+    def boundingRect(self) -> QtCore.QRectF:
         rect = super().boundingRect()
         dim = self._get_point_dims()
 
@@ -164,36 +167,41 @@ class Image(pyqtgraph.ImageItem):
         return rect_new
 
     @classmethod
-    def read_pdf(cls, path):
+    def read_pdf(cls, path: str) -> Image:
         pass
 
     @classmethod
-    def read_jpg(cls, path):
+    def read_jpg(cls, path: str) -> Image:
         img = image.imread(path)
         return cls(img)
 
 
 class DraggableLine(pyqtgraph.GraphItem):
-    def __init__(self, data):
+    on_node_move: List[Callable[[DraggableLine, Any], None]]
+    on_node_release: List[Callable[[DraggableLine, Any], None]]
+
+    data: Dict[str, Any]
+
+    def __init__(self, data: List[euklid.vector.Vector2D]) -> None:
         self.drag_node_index = None
         self.drag_start_position = None
         self.on_node_move = []
         self.on_node_release = []
         self.data = {
             "size": 10,
-            "pxMode": True
+            "pxMode": True,
         }
         super().__init__()
         self.scatter.sigClicked.connect(self.mouseClickEvent)
         self.set_controlpoints(data)
 
     @property
-    def controlpoints(self):
+    def controlpoints(self) -> List[List[float]]:
         return self.data["pos"].tolist()
 
-    def set_controlpoints(self, controlpoints):
+    def set_controlpoints(self, controlpoints: List[euklid.vector.Vector2D]) -> None:
         if isinstance(controlpoints, euklid.vector.PolyLine2D):
-            controlpoints = controlpoints.tolist()
+            controlpoints = controlpoints.nodes
 
         num = len(controlpoints)
         data = np.empty(num, dtype=[('index', int)])
@@ -205,36 +213,35 @@ class DraggableLine(pyqtgraph.GraphItem):
 
         self.updateGraph()
 
-    def updateGraph(self):
+    def updateGraph(self) -> None:
         super().setData(**self.data)
 
-    def mouseClickEvent(self, scatter, points, ev):
-        logger.warning("clicked")
-        keys: QtCore.Qt.KeyboardModifiers = ev.modifiers()
+    def mouseClickEvent(self, scatter: SpotItem, points: ScatterPlotItem, ev: QtGui.QMouseEvent) -> None:
+        keys = ev.modifiers()
 
-        key_ctrl = keys == QtCore.Qt.ControlModifier
-        key_shift = keys == QtCore.Qt.ShiftModifier
+        is_ctrl_key = (keys == QtCore.Qt.ControlModifier)
+        is_shift_key = (keys == QtCore.Qt.ShiftModifier)
 
-        if key_ctrl or key_shift:
+        if is_ctrl_key or is_shift_key:
             node_index = points[0].data()[0]
             controlpoints = euklid.vector.PolyLine2D(self.data["pos"].tolist())
 
-            if key_ctrl:
+            if is_ctrl_key:
                 if node_index in (0, len(controlpoints)-1):
                     return
+                
+                new_segment = controlpoints.nodes[0:node_index]
+                new_segment += controlpoints.nodes[node_index+1:]
 
-                segment_1 = controlpoints.get(0, node_index-1)
-                segment_2 = controlpoints.get(node_index+1, len(controlpoints)-1)
-
-            elif key_shift:
+            elif is_shift_key:
                 if node_index == len(controlpoints)-1:
                     return
 
-                segment_1 = controlpoints.get(0, node_index+0.5)
-                segment_2 = controlpoints.get(node_index+1, len(controlpoints)-1)
+                new_segment = controlpoints.nodes[0:node_index+1]  # include node_index
+                new_segment.append(controlpoints.get(node_index+0.5))
+                new_segment += controlpoints.nodes[node_index+1:]
 
-            new_cp = segment_1 + segment_2
-            self.set_controlpoints(new_cp)
+            self.set_controlpoints(new_segment)
             self.updateGraph()
 
             self.drag_node_index = node_index
@@ -247,7 +254,7 @@ class DraggableLine(pyqtgraph.GraphItem):
         else:
             ev.accept()
 
-    def mouseDragEvent(self, ev):
+    def mouseDragEvent(self, ev: pyqtgraph.GraphicsScene.mouseEvents.MouseDragEvent) -> None:
         if ev.button() != QtCore.Qt.LeftButton:
             ev.ignore()
             return

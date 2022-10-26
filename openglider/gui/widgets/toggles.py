@@ -1,9 +1,12 @@
+from typing import Any, Callable
 from openglider.gui.qt import QtGui, QtCore, QtWidgets
-
+from openglider.utils.config import Config
 
 
 class ToggleGroup(QtWidgets.QWidget):
-    def __init__(self, options, horizontal=True) -> None:
+    config: Config
+    
+    def __init__(self, options: Any, horizontal: bool=True) -> None:
         super().__init__()
         if horizontal:
             self.setLayout(QtWidgets.QHBoxLayout())
@@ -12,7 +15,7 @@ class ToggleGroup(QtWidgets.QWidget):
         
         self.checkboxes = {}
 
-        def get_clickhandler(prop):
+        def get_clickhandler(prop: str) -> Callable[[Any], None]:
             
             def toggle_prop(value):
                 setattr(self.config, prop, value)

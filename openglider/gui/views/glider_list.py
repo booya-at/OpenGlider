@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import logging
 import os
-import sys
-from typing import Callable, List
+from typing import Any, Callable, Iterable, List, Optional
 
 import openglider
 from openglider.glider.project import GliderProject
@@ -67,12 +68,12 @@ class GliderListWidget(QtWidgets.QWidget):
 
         self.update()
     
-    def toggle_active(self):
+    def toggle_active(self) -> None:
         self.project.active = not self.project.active
         self.update_active_icon()
         self.parent._changed()
     
-    def update_active_icon(self):
+    def update_active_icon(self) -> None:
         if self.project.active:
             self.button_active.setIcon(Icon("checked"))
             #self.button_active.setAttribute(QtCore.WA_StyledBackground, True)
@@ -81,17 +82,16 @@ class GliderListWidget(QtWidgets.QWidget):
             self.button_active.setIcon(Icon("close"))
             self.button_active.setStyleSheet('background-color: transparent;')
 
-    def mouseDoubleClickEvent(self, e):
+    def mouseDoubleClickEvent(self, e: QtGui.QMouseEvent) -> None:
         self.label_name.edit()
-        print(e.button())
 
-    def update_name(self, name):
+    def update_name(self, name: str) -> None:
         self.project.name = name
         self.project.element.filename = None
         self.project.element.name = name
         self.update()
     
-    def choose_color(self):
+    def choose_color(self) -> None:
         chooser = QtWidgets.QColorDialog()
         color = chooser.getColor().getRgb()
         self.project.color = Color(*color[:3])
@@ -100,7 +100,7 @@ class GliderListWidget(QtWidgets.QWidget):
         self.update_active_icon()
         self.changed.emit()
 
-    def update(self):
+    def update(self) -> None:
         name = self.project.element.name
         if self.project.element.filename is None:
             self.button_reload.setEnabled(False)
@@ -114,7 +114,7 @@ class GliderListWidget(QtWidgets.QWidget):
         self.button_color.setStyleSheet(f"background-color: #{self.project.color.hex()};")
         self.changed.emit()
 
-    def save(self):
+    def save(self) -> str | None:
         filters = {
             "OpenGlider ods (*.ods)": ".ods",
             "OpenGlider json (*.json)": ".json"
@@ -127,7 +127,7 @@ class GliderListWidget(QtWidgets.QWidget):
             )
 
         if not filename:
-            return
+            return None
 
         if not filename.endswith(".json") and not filename.endswith(".ods"):
             filename += filters[extension]
@@ -140,7 +140,7 @@ class GliderListWidget(QtWidgets.QWidget):
 class GliderListItem(QtWidgets.QListWidgetItem):
     project: SelectionListItem[GliderProject]
 
-    def __init__(self, parent: "GliderList", project: SelectionListItem[GliderProject]):
+    def __init__(self, parent: GliderList, project: SelectionListItem[GliderProject]):
         super().__init__(parent)
         self.parent = parent
         self.project = project
@@ -152,10 +152,10 @@ class GliderListItem(QtWidgets.QListWidgetItem):
 
         self.setSizeHint(self.widget.sizeHint())
     
-    def _changed(self):
+    def _changed(self) -> None:
         self.parent._changed()
 
-    def _remove(self):
+    def _remove(self) -> None:
         if not self.project.element.filename:
             msgBox = QtWidgets.QMessageBox()
             
@@ -174,7 +174,7 @@ class GliderListItem(QtWidgets.QListWidgetItem):
         self.parent.render()
         self.parent._changed()
         
-    def _reload(self):
+    def _reload(self) -> None:
         if self.project.element.filename:
             filename = self.project.element.filename
 
@@ -189,7 +189,7 @@ class GliderList(QtWidgets.QListWidget):
 
     _change_handler = None
 
-    def __init__(self, parent, state: ApplicationState):
+    def __init__(self, parent: QtWidgets.QWidget, state: ApplicationState):
         super().__init__(parent=parent)
         self.state = state
 
@@ -197,7 +197,7 @@ class GliderList(QtWidgets.QListWidget):
         self.on_change = []
         self.render()
     
-    def render(self):
+    def render(self) -> None:
         if self._change_handler:
             self.currentItemChanged.disconnect(self._changed)
             self._change_handler = None
@@ -220,7 +220,7 @@ class GliderList(QtWidgets.QListWidget):
         self._change_handler = self.currentItemChanged.connect(self._changed)
     
     @staticmethod
-    def import_glider(filename):
+    def import_glider(filename: str) -> GliderProject:
         if filename.endswith(".ods"):
             glider = openglider.glider.project.GliderProject.import_ods(filename)
         else:
@@ -241,19 +241,19 @@ class GliderList(QtWidgets.QListWidget):
         return project
     
     @property
-    def gliders(self):
+    def gliders(self) -> Iterable[GliderProject]:
         for i in range(self.count()):
             yield self.item(i)
 
     @property
-    def current_glider(self):
+    def current_glider(self) -> GliderProject | None:
         if not self.count():
-            return
+            return None
             
         item = self.currentItem()
         return item.glider
 
-    def _changed(self, current=None, next_value=None):
+    def _changed(self, current: Optional[GliderListItem]=None, next_value: Optional[GliderListItem]=None) -> None:
         self.state.projects.reload()
 
         if current is None:

@@ -1,4 +1,6 @@
-from typing import  TypeVar, Generic, List, Dict, Optional, Iterator
+from __future__ import annotations
+
+from typing import  Generator, ItemsView, Sequence, Tuple, TypeVar, Generic, List, Dict, Optional, Iterator, Any
 
 from openglider.utils.colors import Color, colorwheel
 from openglider.utils.dataclass import dataclass, Field
@@ -14,7 +16,7 @@ class SelectionListItem(Generic[ListType]):
     color: Color
     name: str
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {
             "element": self.element,
             "active": self.active,
@@ -23,9 +25,9 @@ class SelectionListItem(Generic[ListType]):
         }
     
     @classmethod
-    def __from_json__(cls, **dct):
-        dct["color"] = Color.parse_hex(dct["color"])
-        return cls(**dct)
+    def __from_json__(cls, **dct: Dict[str, Any]) -> SelectionListItem:
+        dct["color"] = Color.parse_hex(dct["color"])  # type: ignore
+        return cls(**dct)  # type: ignore
 
     def __hash__(self) -> int:
         return hash(self.element)
@@ -73,7 +75,7 @@ class SelectionList(Generic[ListType]):
         
         return self.elements[name].element
     
-    def add(self, name: str, obj: ListType, color: Color=None, select=True):
+    def add(self, name: str, obj: ListType, color: Color=None, select: bool=True) -> None:
         self.elements[name] = SelectionListItem(
             element=obj,
             active=False,
@@ -83,14 +85,14 @@ class SelectionList(Generic[ListType]):
         if select:
             self.selected_element = name
 
-    def get_name(self, element: ListType):
+    def get_name(self, element: ListType) -> str:
         for name, element2 in self.elements.items():
             if element is element2:
                 return name
             
         raise ValueError(f"item not in list: {element}")
     
-    def remove(self, name: str):
+    def remove(self, name: str) -> None:
         if name not in self:
             raise ValueError(f"{name} not in list: {self}")
         
@@ -98,7 +100,7 @@ class SelectionList(Generic[ListType]):
         if self.selected_element == name:
             self.selected_element = None
     
-    def reload(self):
+    def reload(self) -> None:
         if self.selected_element in self.elements:
             self.selected_element = self.elements[self.selected_element].name
         else:
@@ -108,7 +110,7 @@ class SelectionList(Generic[ListType]):
             element.name: element for element in self.elements.values()
         }
     
-    def __iter__(self):
+    def __iter__(self) -> Generator[ListType]:
         for name in self.elements:
             yield self.elements[name].element
     
@@ -127,5 +129,5 @@ class SelectionList(Generic[ListType]):
     def __contains__(self, item: str) -> bool:
         return item in self.elements
     
-    def items(self):
+    def items(self) -> ItemsView[str, SelectionListItem[ListType]]:
         return self.elements.items()

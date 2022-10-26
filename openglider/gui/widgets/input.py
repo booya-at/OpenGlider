@@ -1,7 +1,12 @@
+from typing import Callable, List, Optional
 from openglider.gui.qt import QtWidgets, QtCore
 
+
 class Input(QtWidgets.QWidget):
-    def __init__(self, parent=None, name=None, default=None, vertical=False):
+    on_change: List[Callable[[str], None]]
+    on_changed: List[Callable[[str], None]]
+
+    def __init__(self, parent: QtWidgets.QWidget=None, name: str="", default: str=None, vertical: bool=False):
         super().__init__(parent=parent)
         self.name = name
         
@@ -27,31 +32,43 @@ class Input(QtWidgets.QWidget):
         self.input.textChanged.connect(self._on_change)
         self.input.editingFinished.connect(self._on_changed)
     
-    def set_value(self, value, propagate=False):
+    def set_value(self, value: str, propagate: bool=False) -> None:
         self.value = value
         if propagate:
             self.input.setText(str(value))
 
-    def _on_change(self, text):
-        print(f"change: {text}")
+    def _on_change(self, text: str) -> None:
         self.set_value(text)
         for f in self.on_change:
             f(self.value)
 
-    def _on_changed(self):
+    def _on_changed(self) -> None:
         self.input.setText(str(self.value))
         for f in self.on_changed:
             f(self.value)
 
 
 class NumberInput(Input):
-    def __init__(self, parent=None, name=None, min_value=None, max_value=None, places=None, default=None, vertical=False):
+    on_change: List[Callable[[float], None]]  # type: ignore
+    on_changed: List[Callable[[float], None]]  # type: ignore
+
+    def __init__(
+        self,
+        parent: QtWidgets.QWidget=None,
+        name: str="",
+        min_value: Optional[float]=None,
+        max_value: Optional[float]=None,
+        places: Optional[int]=None,
+        default: Optional[float]=None,
+        vertical: bool=False
+        ):
+
         self.min_value = min_value
         self.max_value = max_value
         self.places = places
-        super().__init__(parent, name, default, vertical)
+        super().__init__(parent, name, default, vertical)  # type: ignore
 
-    def set_value(self, value, propagate=False):
+    def set_value(self, value: float, propagate: bool=False) -> None:  # type: ignore
         value = float(value)
         if self.min_value is not None:
             value = max(self.min_value, value)
@@ -62,6 +79,6 @@ class NumberInput(Input):
         if self.places is not None:
             value = round(value, self.places)
         
-        super().set_value(value, propagate)
+        super().set_value(value, propagate)  # type: ignore
 
         

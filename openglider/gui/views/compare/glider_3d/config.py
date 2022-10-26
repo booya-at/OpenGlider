@@ -1,4 +1,6 @@
-from typing import Dict, List
+from __future__ import annotations
+
+from typing import Dict, List, Optional
 import logging
 from openglider.gui.qt import QtGui, QtCore, QtWidgets
 
@@ -17,7 +19,7 @@ class GliderViewConfig(BaseModel):
     profile_numpoints: int = 20
     numribs: int = 3
 
-    def needs_recalc(self, old_config: "GliderViewConfig"=None):
+    def needs_recalc(self, old_config: Optional[GliderViewConfig]=None) -> bool:
         if old_config is None:
             return True
         
@@ -28,7 +30,7 @@ class GliderViewConfig(BaseModel):
         
         return False
     
-    def get_active_keys(self):
+    def get_active_keys(self) -> List[str]:
         keys = []
         if self.show_panels:
             keys.append("panels")
@@ -46,7 +48,7 @@ class GliderViewConfig(BaseModel):
 
 class GliderViewConfigWidget(QtWidgets.QWidget):
     changed = QtCore.Signal()
-    def __init__(self, parent, config: GliderViewConfig=None):
+    def __init__(self, parent: QtWidgets.QWidget, config: GliderViewConfig=None) -> None:
         super().__init__(parent)
         self.config = config or GliderViewConfig()
 
@@ -58,11 +60,11 @@ class GliderViewConfigWidget(QtWidgets.QWidget):
         self.add_button("diagonals")
         self.add_button("straps")
 
-    def add_button(self, name: str):
+    def add_button(self, name: str) -> None:
         checkbox = QtWidgets.QCheckBox(self)
         checkbox.setText(f"show {name}")
 
-        def toggle():
+        def toggle() -> None:
             setattr(self.config, f"show_{name}", not getattr(self.config, f"show_{name}"))
             self.changed.emit()
 

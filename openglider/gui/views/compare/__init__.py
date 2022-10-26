@@ -17,7 +17,7 @@ class GliderPreview(QtWidgets.QWidget):
     tabs_widget: QtWidgets.QTabWidget
     tabs: Dict[str, QtWidgets.QWidget]
 
-    def __init__(self, app: GliderApp):
+    def __init__(self, app: GliderApp) -> None:
         super().__init__()
         self.app = app
 
@@ -46,18 +46,18 @@ class GliderPreview(QtWidgets.QWidget):
 
         self.update()
     
-    def get_active_view_name(self):
+    def get_active_view_name(self) -> str:
         index = self.tabs_widget.currentIndex()
         name = self.tab_names[index]
         return name
 
     
-    def set_tab(self):
+    def set_tab(self) -> None:
         name = self.get_active_view_name()
         self.app.state.current_preview = name
         self.update()
 
-    def update(self):
+    def update(self) -> None:
         if not self.app.state.current_preview:
             name = self.get_active_view_name()
             if name:

@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 class EnumSelection(QtWidgets.QWidget):
     changed = QtCore.Signal()
 
-    def __init__(self, choices: type[enum.Enum], parent=None) -> None:
+    def __init__(self, choices: type[enum.Enum], parent: QtWidgets.QWidget=None) -> None:
         super().__init__(parent)
         self.setLayout(QtWidgets.QHBoxLayout())
         self.choices = choices
@@ -30,15 +30,15 @@ class EnumSelection(QtWidgets.QWidget):
     def selected(self) -> enum.Enum:
         return self.choice_list[self.selector.currentIndex()]
     
-    def select(self, value) -> None:
-        for i, x in enumerate(self.choices):
+    def select(self, value: Any) -> None:
+        for i, x in enumerate(self.choices):  # type: ignore
             if x == value or x.value == value:
                 self.selector.setCurrentIndex(i)
                 return
         
         raise ValueError(f"no such option: {value}")
     
-    def _update(self, value: int):
+    def _update(self, value: int) -> None:
         self.changed.emit()
         
     

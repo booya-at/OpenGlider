@@ -1,16 +1,21 @@
-import os
+from __future__ import annotations
+
 import logging
+from typing import TYPE_CHECKING, Any
 
 from openglider.gui.qt import QtGui, QtCore
 
 import openglider
 from pyqtconsole.console import PythonConsole
 
+if TYPE_CHECKING:
+    from openglider.gui.app.app import GliderApp
+
 logging.getLogger("openglider")
 
     
 class LoggingConsole(PythonConsole):
-    def __init__(self, app):
+    def __init__(self, app: GliderApp) -> None:
         super().__init__()
         self.app = app
         self.push_local_ns("openglider", openglider)
@@ -20,7 +25,7 @@ class LoggingConsole(PythonConsole):
 
         self.eval_queued()
 
-    def log(self, message):
+    def log(self, message: str) -> None:
         lines_no = message.count("\n")
 
         cursor = self._textCursor()
@@ -47,7 +52,7 @@ class ConsoleHandler(logging.Handler):
     emitter = QtCore.Signal(str)
     """Logging handler to emit to LoggingConsole"""
 
-    def __init__(self, console: LoggingConsole, *args, **kwargs):
+    def __init__(self, console: LoggingConsole, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
 
         self.console = console
@@ -65,11 +70,11 @@ class ConsoleHandler(logging.Handler):
         self.add_logger("openglider")
         self.add_logger("gpufem")
     
-    def add_logger(self, name):
+    def add_logger(self, name: str) -> None:
         logger = logging.getLogger(name)
         logger.addHandler(self)
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord) -> None:
         if record.levelno < 20:
             return
 

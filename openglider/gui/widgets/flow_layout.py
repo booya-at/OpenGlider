@@ -1,9 +1,12 @@
+from typing import Any, List
 from openglider.gui.qt import QtGui, QtCore, QtWidgets
 
 
 class FlowLayout(QtWidgets.QLayout):
-    def __init__(self, parent=None, margin=0, spacing=-1):
-        super(FlowLayout, self).__init__(parent)
+    itemList: List[QtWidgets.QWidget]
+    
+    def __init__(self, parent: QtWidgets.QWidget=None, margin: float=0., spacing: float=-1.):
+        super().__init__(parent)
 
         if parent is not None:
             self.setContentsMargins(margin, margin, margin, margin)
@@ -17,47 +20,47 @@ class FlowLayout(QtWidgets.QLayout):
 
         self.itemList = []
 
-    def __del__(self):
+    def __del__(self) -> None:
         item = self.takeAt(0)
         while item:
             item = self.takeAt(0)
 
-    def addItem(self, item):
+    def addItem(self, item: QtWidgets.QWidget) -> None:
         self.itemList.append(item)
 
-    def count(self):
+    def count(self) -> int:
         return len(self.itemList)
 
-    def itemAt(self, index):
+    def itemAt(self, index: int) -> QtWidgets.QWidget | None:
         if index >= 0 and index < len(self.itemList):
             return self.itemList[index]
 
         return None
 
-    def takeAt(self, index):
+    def takeAt(self, index: int) -> QtWidgets.QWidget | None:
         if index >= 0 and index < len(self.itemList):
             return self.itemList.pop(index)
 
         return None
 
-    def expandingDirections(self):
+    def expandingDirections(self) -> Any:
         return QtCore.Qt.Orientations(QtCore.Qt.Orientation(0))
 
-    def hasHeightForWidth(self):
+    def hasHeightForWidth(self) -> bool:
         return True
 
-    def heightForWidth(self, width):
+    def heightForWidth(self, width: int) -> int:
         height = self.doLayout(QtCore.QRect(0, 0, width, 0), True)
         return height
 
-    def setGeometry(self, rect):
+    def setGeometry(self, rect: QtCore.QRect) -> None:
         super(FlowLayout, self).setGeometry(rect)
         self.doLayout(rect, False)
 
-    def sizeHint(self):
+    def sizeHint(self) -> QtCore.QSize:
         return self.minimumSize()
 
-    def minimumSize(self):
+    def minimumSize(self) -> QtCore.QSize:
         size = QtCore.QSize()
 
         for item in self.itemList:
@@ -66,7 +69,7 @@ class FlowLayout(QtWidgets.QLayout):
         size += QtCore.QSize(2 * self.margin, 2 * self.margin)
         return size
 
-    def doLayout(self, rect, testOnly):
+    def doLayout(self, rect: QtCore.QRect, testOnly: bool) -> int:
         x = rect.x()
         y = rect.y()
         lineHeight = 0

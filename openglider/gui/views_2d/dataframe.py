@@ -1,5 +1,5 @@
 import re
-from typing import List, Any
+from typing import List, Any, Optional
 from openglider.gui.qt import QtCore, QtGui, QtWidgets
 from openglider.utils.colors import Color, colorwheel
 import pyqtgraph
@@ -15,22 +15,22 @@ class DataFramePlot(pyqtgraph.PlotWidget):
     log_y = False
     grid = False
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.column_plots = {}
         self.addLegend()
     
-    def plotDataFrameColumns(self, dataframe: pandas.DataFrame, config: Any, color: Color, name=None):
+    def plotDataFrameColumns(self, dataframe: pandas.DataFrame, config: Any, color: Color, name: Optional[str]=None) -> None:
         x = dataframe.index.tolist()
         for attr in config.__annotations__:
             if getattr(config, attr):
                 y = dataframe[attr].dropna().tolist()
 
                 pen = pyqtgraph.mkPen(color=f"#{color.hex()}")
-                plot = self.plot(x, y, name=name, pen=pen)
+                self.plot(x, y, name=name, pen=pen)
 
 
-    def plotDataFrame(self, dataframe: pandas.DataFrame, columns: List[str]=None, force_new=False):
+    def plotDataFrame(self, dataframe: pandas.DataFrame, columns: List[str]=None, force_new: bool=False) -> None:
         if columns is None:
             _columns: pandas.Index = dataframe.columns
             columns = _columns.tolist()

@@ -1,3 +1,4 @@
+from typing import Callable
 from openglider.gui.widgets.flow_layout import FlowLayout
 from openglider.glider.project import GliderProject
 from openglider.glider.rib.rib import Rib
@@ -27,7 +28,7 @@ class RibPlotConfig(BaseModel):
 
 class RibCompareSettings(QtWidgets.QWidget):
     changed = QtCore.Signal()
-    def __init__(self, parent=None) -> None:
+    def __init__(self, parent: QtWidgets.QWidget=None) -> None:
         super().__init__(parent)
         self.config = RibPlotConfig()
 
@@ -40,9 +41,9 @@ class RibCompareSettings(QtWidgets.QWidget):
 
         self.checkboxes = {}
 
-        def get_clickhandler(layer_name):
+        def get_clickhandler(layer_name: str) -> Callable[[bool], None]:
             
-            def toggle_layer(value):
+            def toggle_layer(value: bool):
                 setattr(self.config.layers, layer_name, value)
                 self.changed.emit()
             
@@ -57,11 +58,11 @@ class RibCompareSettings(QtWidgets.QWidget):
             self.layout().addWidget(checkbox)
             self.checkboxes[layer_name] = checkbox
         
-    def set_rib(self, rib_no):
+    def set_rib(self, rib_no: int) -> None:
         self.config.rib_no = rib_no
         self.changed.emit()
     
-    def update_reference(self, reference: GliderProject):
+    def update_reference(self, reference: GliderProject) -> None:
         self.slider.set_bounds(0, len(reference.glider_3d.ribs)-1)
 
 

@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class GliderProject:
     glider: ParametricGlider
     glider_3d: Glider = Field(default=None)
-    filename: str=""
+    filename: str | None=None
     name: str=""
     changelog: List[Tuple[datetime.datetime, str, str]] = Field(default_factory=lambda: [])
 

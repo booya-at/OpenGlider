@@ -8,12 +8,11 @@ import io
 import functools
 import logging
 import asyncio
-from types import ModuleType
-from typing import TYPE_CHECKING
+from types import TracebackType
+from typing import TYPE_CHECKING, Any, Callable, Type
 import sys
 import importlib
 import pkgutil
-import pkg_resources
 from openglider.gui.qt import QtWidgets
 from qasync import QEventLoop
 import qtmodern.styles
@@ -40,7 +39,7 @@ class GliderApp(QtWidgets.QApplication):
     exception_window = None
     state: ApplicationState
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.setApplicationName("GliderSchneider")
         qtmodern.styles.dark(self)
@@ -57,7 +56,7 @@ class GliderApp(QtWidgets.QApplication):
 
         self.setup()
     
-    def setup(self):
+    def setup(self) -> None:
         import openglider.gui.app.main_window
         import openglider.gui.app.state
         import openglider.utils.tasks
@@ -83,7 +82,7 @@ class GliderApp(QtWidgets.QApplication):
         self.task_queue.exception_hook = self.show_exception
         self.main_window = openglider.gui.app.main_window.MainWindow(self)
     
-    def reload_code(self):
+    def reload_code(self) -> None:
         self.main_window.close()
         self.state.dump()
 
@@ -100,7 +99,7 @@ class GliderApp(QtWidgets.QApplication):
         self.setup()
 
     @staticmethod
-    def _deep_reload(*names: str):
+    def _deep_reload(*names: str) -> None:
         for module in list(sys.modules.keys()):
             if any([module.startswith(folder) for folder in names]):
                 del sys.modules[module]
@@ -109,12 +108,12 @@ class GliderApp(QtWidgets.QApplication):
         for module in names:
             importlib.import_module(module)
     
-    def run(self):
+    def run(self) -> None:
         with self.loop:
             self.loop.run_forever()
 
 
-    async def execute(self, function, *args, **kwargs):
+    async def execute(self, function: Callable[[Any], Any], *args: Any, **kwargs: Any) -> Any:
         if args or kwargs:
             func = functools.partial(function, *args, **kwargs)
         else:
@@ -133,7 +132,7 @@ class GliderApp(QtWidgets.QApplication):
             self.show_exception(*sys.exc_info())
             #raise e
 
-    def show_exception(self, exception_type, exception_value, tracebackobj):
+    def show_exception(self, exception_type: Type[BaseException], exception_value: BaseException, tracebackobj: TracebackType) -> None:
         """
         Global function to catch unhandled exceptions.
 

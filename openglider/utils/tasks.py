@@ -1,6 +1,7 @@
 from __future__ import annotations
+from ast import Call
 
-from typing import Callable, List, Optional
+from typing import Any, Callable, Iterator, List, Optional, Type
 import functools
 import asyncio
 import logging
@@ -10,7 +11,7 @@ import sys
 logger = logging.getLogger(__name__)
 
 
-async def execute_sync(func, *args, **kwargs):
+async def execute_sync(func: Callable[[], Any], *args: Any, **kwargs: Any) -> Any:
     return func(*args, **kwargs)
 
 class Task:
@@ -19,21 +20,23 @@ class Task:
     failed = False
 
     parent: Optional[Task] = None
-    start_time: Optional[int] = None
-    end_time: Optional[int] = None
+    start_time: Optional[float] = None
+    end_time: Optional[float] = None
 
-    def __init__(self, name=None):
+    execute: Callable[[Callable[[], Any]], Any]
+
+    def __init__(self, name: str=None) -> None:
         self.execute = execute_sync
         self.name = name
     
-    def get_name(self):
+    def get_name(self) -> str:
         name = self.__class__.__name__
         if self.name:
             name += f" {self.name}"
         
         return name
     
-    def runtime(self):
+    def runtime(self) -> str:
         if self.start_time is None:
             return "--"
         
@@ -45,7 +48,7 @@ class Task:
         return time.strftime("%H:%M:%S", time.gmtime(duration))
     
     @property
-    def is_ready(self):
+    def is_ready(self) -> bool:
         if self.parent is not None:
             if self.parent.failed:
                 self.failed = True
@@ -56,7 +59,7 @@ class Task:
         
         return True
 
-    async def _run(self, execute=None):
+    async def _run(self, execute: Callable[[Callable[[], Any]], Any]=None) -> Any:
         if execute is not None:
             self.execute = execute
 
@@ -78,11 +81,11 @@ class Task:
         self.finished = True
         return result
     
-    async def stop(self):
+    async def stop(self) -> None:
         self.running = False
         self.failed = True
 
-    async def run(self):
+    async def run(self) -> Any:
         return
 
 
@@ -91,7 +94,7 @@ class TaskQueue:
     running = False
     exception_hook: Callable | None = None
 
-    def __init__(self, execute_function=None):
+    def __init__(self, execute_function: Callable[[Any], Any]=None):
         self.tasks = []
 
         if execute_function is None:
@@ -100,25 +103,22 @@ class TaskQueue:
         self.execute = execute_function
         asyncio.create_task(self.process())
 
-    def add(self, task):
+    def add(self, task: Task) -> None:
         self.tasks.append(task)
-
-    def get_tasks(self, task_type):
-        return self.tasks.filter(lambda el: isinstance(el, task_type))
     
-    def is_busy(self):
+    def is_busy(self) -> bool:
         for task in self.tasks:
             if task.running:
                 return True
         
         return False
     
-    async def quit(self):
+    async def quit(self) -> None:
         for task in self.tasks:
             if task.running:
                 await task.stop()
     
-    async def process(self):
+    async def process(self) -> None:
         self.running = True
 
         while self.running:

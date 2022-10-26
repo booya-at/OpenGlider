@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class CellCache(Cache[GliderProject, GliderCellPlots]):
-    def get_object(self, element: str):
+    def get_object(self, element: str) -> GliderCellPlots:
         project = self.elements[element]
         return GliderCellPlots(project.element, color=project.color)
 
@@ -20,7 +20,7 @@ class CellCache(Cache[GliderProject, GliderCellPlots]):
 class CellView(QtWidgets.QWidget):
     grid = False
 
-    def __init__(self, app: GliderApp):
+    def __init__(self, app: GliderApp) -> None:
         super().__init__()
         self.setLayout(QtWidgets.QVBoxLayout())
         self.app = app
@@ -40,7 +40,7 @@ class CellView(QtWidgets.QWidget):
 
         #self.arc_cache = ArcPlotCache(app)
 
-    def update(self):
+    def update(self) -> None:
         self.plot.clear()
 
         selected =self.app.state.projects.get_selected()

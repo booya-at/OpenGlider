@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import logging
 from openglider.gui.qt import QtWidgets, QtGui, QtCore
-from typing import List, Iterator
+from typing import Any, List, Iterator, Tuple
 import euklid
 from typing import Literal, Optional
 
@@ -33,13 +35,13 @@ class Shape2D(QtWidgets.QGraphicsObject):
     draw_panels_upper: bool = False
 
     @classmethod
-    def from_glider(cls, glider: ParametricGlider, **kwargs):
+    def from_glider(cls, glider: ParametricGlider, **kwargs: Any) -> Shape2D:
         panels = glider.get_panels()
         shape = glider.shape.copy()
         shape._clean()
         return cls(shape, panels, **kwargs)
 
-    def __init__(self, shape: ParametricShape, panels: List[List[Panel]]=None, color=None, alpha=160, config: ShapeConfig=None):
+    def __init__(self, shape: ParametricShape, panels: List[List[Panel]]=None, color: Tuple[int, int, int]=None, alpha: int=160, config: ShapeConfig=None) -> None:
         super().__init__()
         self.shape = shape
         self.shape_r = shape.get_half_shape()
@@ -54,7 +56,7 @@ class Shape2D(QtWidgets.QGraphicsObject):
         self.color = color or (255, 0, 0)
         self.alpha = alpha
 
-    def paint(self, p, *args):
+    def paint(self, p: QtGui.QPainter, *args: Any) -> None:
         color = QtGui.QColor(*self.color, self.alpha)
         pen = QtGui.QPen(QtGui.QBrush(color), 1)
 
@@ -99,7 +101,7 @@ class Shape2D(QtWidgets.QGraphicsObject):
             self.paint_design(p, False, False, *args)
             self.paint_design(p, True, False, *args)
     
-    def _cell_range(self, left: bool):
+    def _cell_range(self, left: bool) -> range:
         start = 0
         end = self.shape.half_cell_num
         if self.shape.has_center_cell and left:
@@ -107,7 +109,7 @@ class Shape2D(QtWidgets.QGraphicsObject):
 
         return range(start, end)
 
-    def paint_design(self, p, left, lower, *args):
+    def paint_design(self, p: QtGui.QPainter, left: bool, lower: bool, *args: Any) -> None:
         shape = self.shapes[left]
 
         panels = self.panels
@@ -118,7 +120,7 @@ class Shape2D(QtWidgets.QGraphicsObject):
 
             cell_panels = panels[cell_no]
 
-            def match(panel):
+            def match(panel: Panel) -> bool:
                 if lower:
                     # -> either on the left or on the right it should go further than 0
                     return panel.cut_back.x_left > 0 or panel.cut_back.x_right > 0
@@ -129,22 +131,20 @@ class Shape2D(QtWidgets.QGraphicsObject):
             cell_side_panels: Iterator[Panel] = filter(match, cell_panels)
 
             for panel in cell_side_panels:
-                panel: Panel
-
-                def normalize_x(val):
+                def normalize_x(val: float) -> float:
                     if lower:
-                        return max(val, 0)
+                        return max(val, 0.)
                     else:
-                        return max(-val, 0)
+                        return max(-val, 0.)
 
 
-                def get_cut_line(cut: PanelCut):
+                def get_cut_line(cut: PanelCut) -> List[euklid.vector.Vector2D]:
                     left = shape.get_point(cell_no, normalize_x(cut.x_left))
                     right = shape.get_point(cell_no+1, normalize_x(cut.x_right))
 
                     if cut.x_center is not None:
                         center = shape.get_point(cell_no+0.5, normalize_x(cut.x_center))
-                        return euklid.spline.BSplineCurve([left, center, right]).get_sequence(8).tolist()
+                        return euklid.spline.BSplineCurve([left, center, right]).get_sequence(8).nodes
                     
                     return [left, right]
                 
@@ -162,7 +162,7 @@ class Shape2D(QtWidgets.QGraphicsObject):
                 p.setBrush(brush)
                 p.drawPolygon(qt_nodes)
 
-    def boundingRect(self):
+    def boundingRect(self) -> QtCore.QRectF:
         span = self.shape.span
         chord = self.shape.get_rib_point(0, 1)[1]
         if self.half_wing:

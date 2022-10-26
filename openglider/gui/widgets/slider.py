@@ -1,9 +1,10 @@
 from asyncio.log import logger
+from typing import Callable, List, Optional
 from openglider.gui.qt import QtWidgets, QtCore
 
 
 class Slider(QtWidgets.QWidget):
-    def __init__(self, parent=None, name=None, min_value=0, max_value=10, default=None, vertical=False):
+    def __init__(self, parent: QtWidgets.QWidget=None, name: str=None, min_value: int=0, max_value: int=10, default: Optional[int]=None, vertical: bool=False) -> None:
         super(Slider, self).__init__(parent=parent)
         self.name = name
         self.slider_min = min_value
@@ -38,7 +39,7 @@ class Slider(QtWidgets.QWidget):
         self.slider.valueChanged.connect(self._set_label)
         self._set_label()
 
-    def set_bounds(self, min_value=0, max_value=10):
+    def set_bounds(self, min_value: int=0, max_value: int=10) -> None:
         self.slider_min = min_value
         self.slider_max = max_value
         self.slider.setMinimum(min_value)
@@ -50,39 +51,39 @@ class Slider(QtWidgets.QWidget):
             self.slider.setValue(min_value)
             self._set_label()
 
-    def _set_label(self):
+    def _set_label(self) -> None:
         self.display.setText("{}".format(self.value))
 
-    def on_change(self, f):
+    def on_change(self, f: Callable[[int], None]) -> None:
         self.slider.valueChanged.connect(f)
 
-    def on_release(self, f):
+    def on_release(self, f: Callable[[int], None]) -> None:
         self.slider.sliderReleased.connect(f)
 
     @property
-    def value(self):
+    def value(self) -> int:
         return self.get_value()
     
     @value.setter
-    def value(self, value):
+    def value(self, value: int) -> None:
         self.set_value(value)
 
-    def get_value(self):
+    def get_value(self) -> int:
         return self.slider.value()
 
-    def set_value(self, value):
+    def set_value(self, value: int) -> None:
         if self.slider_min <= value <= self.slider_max:
             self.slider.setValue(value)
             self._set_label()
         else:
             raise ValueError("{} is not in bounds ({} / {})".format(value, self.slider_min, self.slider_max))
 
-    def set_enabled(self, enable=True):
+    def set_enabled(self, enable: bool=True) -> None:
         self.slider.setEnabled(enable)  
 
 
 class FloatSlider(Slider):
-    def __init__(self, parent=None, name=None, min_value=0.0, max_value=1., steps=20, default=None):
+    def __init__(self, parent: QtWidgets.QWidget=None, name: str="", min_value: float=0.0, max_value: float=1., steps: int=20, default: float | None=None):
         self.min = min_value
         self.max = max_value
         steps = int(steps) - 1
@@ -93,24 +94,26 @@ class FloatSlider(Slider):
         if default is None:
             default = min_value
 
-        super().__init__(parent, name, 0, steps, default=default)
+        super().__init__(parent, name, 0, steps, default=default)  # type: ignore
         self.set_value(default)
 
-    def _set_label(self):
+    def _set_label(self) -> None:
         self.display.setText("{:.2}".format(self.value))
 
-    def get_value(self):
+    def get_value(self) -> float:  # type: ignore
         value = self.slider.value()
         return self.min + (self.max - self.min) * float(value) / self.steps
 
-    def set_value(self, value):
+    def set_value(self, value) -> float:  # type: ignore
         dx = (value - self.min) / (self.max - self.min)
 
         super().set_value(int(self.steps * dx))
 
 
 class ExpSlider(Slider):
-    def __init__(self, parent=None, name=None, min_value=0, max_value=3, steps=20, default=None):
+    values: List[int]
+
+    def __init__(self, parent: QtWidgets.QWidget=None, name: str="", min_value: int=0, max_value: int=3, steps: int=20, default: int| None=None):
         #assert min_value >= 0
         #assert max_value > 0
         linrange = [1]+{
@@ -127,16 +130,16 @@ class ExpSlider(Slider):
 
         super().__init__(parent, name, 0, num_values-1, default)
 
-    def get_value(self):
+    def get_value(self) -> int:
         index = self.slider.value()
         return self.values[index]
 
-    def set_value(self, value):
+    def set_value(self, value: int) -> None:
         index = self._get_value_index(value)
         self.slider.setValue(index)
         self._set_label()
     
-    def _get_value_index(self, value):
+    def _get_value_index(self, value: int) -> int:
         value_index = 0
         min_distance = float("inf")
         for i, x in enumerate(self.values):
@@ -148,5 +151,5 @@ class ExpSlider(Slider):
         return value_index
 
 
-    def _set_label(self):
+    def _set_label(self) -> None:
         self.display.setText("{:.01e}".format(self.value))

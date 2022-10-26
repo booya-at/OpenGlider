@@ -1,30 +1,39 @@
 import re
 import logging
-from typing import Any, Tuple
+from typing import Any, List, Tuple
+from openglider.mesh.mesh import Mesh
+
+import vtkmodules
+import vtkmodules.vtkCommonCore
+import vtkmodules.vtkCommonDataModel
+import vtkmodules.vtkCommonMath
+import vtkmodules.vtkCommonTransforms
+import vtkmodules.vtkCommonColor
+import vtkmodules.vtkFiltersCore
+import vtkmodules.vtkFiltersSources
+import vtkmodules.vtkRenderingCore
 
 import euklid
-import numpy
+from openglider.lines.lineset import LineSet
+from openglider.glider.cell.panel import Panel
 from openglider.glider.cell.cell import Cell
-import vtk
-
 import openglider.mesh
-import openglider.vector as vector
 from openglider.utils.colors import HeatMap
 
 logger = logging.getLogger(__name__)
-colors = vtk.vtkNamedColors()
+colors = vtkmodules.vtkCommonColor.vtkNamedColors()
 
 
-class Sphere(vtk.vtkActor):
-    color = [1., 1., .3]
+class Sphere(vtkmodules.vtkRenderingCore.vtkActor):
+    color = (1., 1., .3)
 
     def __init__(self, p: Tuple[float, float, float], color: Tuple[float, float, float] | None=None):
         super().__init__()
-        self.sphere = vtk.vtkSphereSource()
+        self.sphere = vtkmodules.vtkFiltersSources.vtkSphereSource()
         self.sphere.SetCenter(p)
         self.sphere.SetRadius(0.1)
 
-        self.mapper = vtk.vtkPolyDataMapper()
+        self.mapper = vtkmodules.vtkRenderingCore.vtkPolyDataMapper()
         self.mapper.SetInputConnection(self.sphere.GetOutputPort())
 
         self.SetMapper(self.mapper)
@@ -34,15 +43,15 @@ class Sphere(vtk.vtkActor):
         self.GetProperty().SetColor(*self.color)
 
 
-class Arrow(vtk.vtkActor):
-    color = [1., 0., 0.]
+class Arrow(vtkmodules.vtkRenderingCore.vtkActor):
+    color = (1., 0., 0.)
 
-    def __init__(self, p1, p2, shaft=0.01, tip=.2, color=None):
-        super(Arrow, self).__init__()
+    def __init__(self, p1: euklid.vector.Vector3D, p2: euklid.vector.Vector3D, shaft: float=0.01, tip: float=.2, color: Tuple[float, float, float] | None=None):
+        super().__init__()
         if color:
             self.color = color
 
-        self.arrow = vtk.vtkArrowSource()
+        self.arrow = vtkmodules.vtkFiltersSources.vtkArrowSource()
         self.arrow.SetShaftRadius(shaft)
         self.arrow.SetTipRadius(4*shaft)
         self.arrow.SetTipLength(tip)
@@ -59,7 +68,7 @@ class Arrow(vtk.vtkActor):
         v_two = euklid.vector.Vector3D([v_one[1]+v_one[2], -v_one[0], -v_one[0]]).normalized()
         v_three = v_one.cross(v_two)
 
-        matrix = vtk.vtkMatrix4x4()
+        matrix = vtkmodules.vtkCommonMath.vtkMatrix4x4()
         matrix.Identity()
         for i in range(3):
             matrix.SetElement(i, 0, v_one[i])
@@ -67,13 +76,13 @@ class Arrow(vtk.vtkActor):
             matrix.SetElement(i, 2, v_three[i])
 
         # Apply the transforms
-        self.transform = vtk.vtkTransform()
+        self.transform = vtkmodules.vtkCommonTransforms.vtkTransform()
         self.transform.Translate(start)
         self.transform.Concatenate(matrix)
         self.transform.Scale(length, length, length)
 
         #Create a mapper and actor for the arrow
-        self.mapper = vtk.vtkPolyDataMapper()
+        self.mapper = vtkmodules.vtkRenderingCore.vtkPolyDataMapper()
 
         self.mapper.SetInputConnection(self.arrow.GetOutputPort())
         self.SetUserMatrix(self.transform.GetMatrix())
@@ -81,21 +90,21 @@ class Arrow(vtk.vtkActor):
         self.GetProperty().SetColor(*self.color)
 
 
-class CellView(vtk.vtkActor):
-    def __init__(self, cell: Cell, midribs: int=2, *args: Any, **kwargs: Any):
+class CellView(vtkmodules.vtkRenderingCore.vtkActor):
+    def __init__(self, cell: Cell, midribs: int=2, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.cell = cell
-        self.polydata = vtk.vtkPolyData()
-        self.nodes = vtk.vtkPoints()
+        self.polydata = vtkmodules.vtkCommonDataModel.vtkPolyData()
+        self.nodes = vtkmodules.vtkCommonCore.vtkPoints()
 
-        self.lines = vtk.vtkCellArray()
-        self.polygons = vtk.vtkCellArray()
+        self.lines =  vtkmodules.vtkCommonDataModel.vtkCellArray()
+        self.polygons = vtkmodules.vtkCommonDataModel.vtkCellArray()
 
         self.polydata.SetPoints(self.nodes)
         #self.polydata.SetLines(self.lines)
         self.polydata.SetPolys(self.polygons)
 
-        self.mapper = vtk.vtkPolyDataMapper()
+        self.mapper = vtkmodules.vtkRenderingCore.vtkPolyDataMapper()
         self.mapper.SetInputData(self.polydata)
 
         self.SetMapper(self.mapper)
@@ -112,9 +121,9 @@ class CellView(vtk.vtkActor):
         # draw lines
         for rib in ribs:
             ribs_ids_this = []
-            line = vtk.vtkPolyLine()
+            line = vtkmodules.vtkCommonDataModel.vtkPolyLine()
             line.GetPointIds().SetNumberOfIds(len(rib))
-            for i, p in enumerate(rib):
+            for i, p in enumerate(rib.curve.nodes):
                 p_id = self.nodes.InsertNextPoint(p)
                 line.GetPointIds().SetId(i, p_id)
                 ribs_ids_this.append(p_id)
@@ -128,7 +137,7 @@ class CellView(vtk.vtkActor):
             rib1 = ribs_ids[i]
             rib2 = ribs_ids[i+1]
             for j in range(len(rib1)-1):
-                poly = vtk.vtkPolygon()
+                poly = vtkmodules.vtkCommonDataModel.vtkPolygon()
                 poly.GetPointIds().SetNumberOfIds(4)
                 poly.GetPointIds().SetId(0, rib1[j])
                 poly.GetPointIds().SetId(1, rib1[j+1])
@@ -138,7 +147,7 @@ class CellView(vtk.vtkActor):
                 self.polygons.InsertNextCell(poly)
 
             # close trailing edge
-            poly = vtk.vtkPolygon()
+            poly = vtkmodules.vtkCommonDataModel.vtkPolygon()
             poly.GetPointIds().SetNumberOfIds(4)
             poly.GetPointIds().SetId(0, rib1[0])
             poly.GetPointIds().SetId(1, rib1[-1])
@@ -147,26 +156,27 @@ class CellView(vtk.vtkActor):
             self.polygons.InsertNextCell(poly)
 
 
-class MeshView(vtk.vtkActor):
+class MeshView(vtkmodules.vtkRenderingCore.vtkActor):
     hex_regex = re.compile(r".*#([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})")
-    base_color = [150] * 3
+    base_color = (150, 150, 150)
     smooth = True
+    colors: vtkmodules.vtkCommonCore.vtkUnsignedCharArray
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.polydata = vtk.vtkPolyData()
-        self.nodes = vtk.vtkPoints()
-        self.polygons = vtk.vtkCellArray()
-        self.lines = vtk.vtkCellArray()
+        self.polydata = vtkmodules.vtkCommonDataModel.vtkPolyData()
+        self.nodes = vtkmodules.vtkCommonCore.vtkPoints()
+        self.polygons = vtkmodules.vtkCommonDataModel.vtkCellArray()
+        self.lines = vtkmodules.vtkCommonDataModel.vtkCellArray()
 
         self.polydata.SetPoints(self.nodes)
         self.polydata.SetPolys(self.polygons)
         self.polydata.SetLines(self.lines)
 
-        self.mapper = vtk.vtkPolyDataMapper()
+        self.mapper = vtkmodules.vtkRenderingCore.vtkPolyDataMapper()
         self.mapper.SetInputData(self.polydata)
 
-        self.colors = vtk.vtkUnsignedCharArray()
+        self.colors = vtkmodules.vtkCommonCore.vtkUnsignedCharArray()
         self.colors.SetNumberOfComponents(3)
         self.colors.SetName("Colors")
         self.polydata.GetCellData().SetScalars(self.colors)
@@ -188,13 +198,13 @@ class MeshView(vtk.vtkActor):
 
             color_match = self.hex_regex.match(name.upper())
             if color_match:
-                color_lst = [int(x, base=16) for x in color_match.groups()]
+                color_lst = tuple(int(x, base=16) for x in color_match.groups())
             else:
                 color_lst = self.base_color
 
             for polygon, attributes in polys:
                 if len(polygon) == 2:
-                    polyline = vtk.vtkLine()
+                    polyline = vtkmodules.vtkCommonDataModel.vtkLine()
                     #polyline.GetPointIds().SetNumberOfIds(2)
 
                     for i, node_id in enumerate(polygon):
@@ -204,7 +214,7 @@ class MeshView(vtk.vtkActor):
                     line_colors.append(color_lst)
 
                 elif len(polygon) > 2:
-                    vtk_poly = vtk.vtkPolygon()
+                    vtk_poly = vtkmodules.vtkCommonDataModel.vtkPolygon()
                     vtk_poly.GetPointIds().SetNumberOfIds(len(polygon))
                     for i, node_id in enumerate(polygon):
                         vtk_poly.GetPointIds().SetId(i, node_id)
@@ -222,7 +232,7 @@ class MeshView(vtk.vtkActor):
                 self.colors.InsertNextTuple(color_lst)
 
         if self.smooth:
-            pdnorm = vtk.vtkPolyDataNormals()
+            pdnorm = vtkmodules.vtkFiltersCore.vtkPolyDataNormals()
             pdnorm.SetInputData(self.polydata)
             pdnorm.ComputePointNormalsOn()
             pdnorm.ComputeCellNormalsOn()
@@ -238,7 +248,7 @@ class MeshView(vtk.vtkActor):
 class PanelView(MeshView):
     hex_regex = re.compile(r".*#([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})")
 
-    def __init__(self, panel, cell, midribs=2):
+    def __init__(self, panel: Panel, cell: Cell, midribs: int=2) -> None:
         self.cell = cell
         self.panel = panel
 
@@ -246,7 +256,7 @@ class PanelView(MeshView):
 
         self.draw(midribs=midribs)
 
-    def draw(self, midribs, left=True, right=True):
+    def draw(self, midribs: int, left: bool=True, right: bool=True) -> None:
         mesh = openglider.mesh.Mesh()
         panel_mesh = self.panel.get_mesh(self.cell, midribs)
 
@@ -254,30 +264,23 @@ class PanelView(MeshView):
             mesh += panel_mesh
         if right:
             mesh += panel_mesh.copy().mirror("y")
-        #mesh2 = mesh.copy()
-        #mesh2.mirror("y")
-        #mesh += mesh.copy().mirror("y")
-        #mesh.mirror("y")
+            
         self.draw_mesh(mesh)
-        #self.draw_mesh(mesh.copy().mirror("x"))
 
-        color_match = self.hex_regex.match(self.panel.material_code.upper())
-        if color_match:
-            color_lst = [int(x, base=16)/255 for x in color_match.groups()]
-            #color = colors.GetColor(self.panel.material_code, *color_lst)
-            self.GetProperty().SetColor(*color_lst)
+        color_lst = self.panel.material.get_color_rgb()
+        self.GetProperty().SetColor(*color_lst)
 
 
 class LinesetView(MeshView):
-    def __init__(self, lineset):
-        super(LinesetView, self).__init__()
+    def __init__(self, lineset: LineSet):
+        super().__init__()
         self.lineset = lineset
 
         self.GetProperty().SetColor(colors.GetColor3d("Grey"))
 
         self.draw()
 
-    def draw(self, left=True, right=True, line_num=4):
+    def draw(self, left: bool=True, right: bool=True, line_num: int=4) -> None:
         line_num += 1
 
         self.lineset.recalc(calculate_sag=True)
@@ -294,16 +297,14 @@ class LinesetView(MeshView):
 
 
 class MeshDataView(MeshView):
-    def __init__(self, mesh, data=None, default_color="Tomato"):
-        super(MeshDataView, self).__init__()
+    def __init__(self, mesh: Mesh, data: List[float]):
+        super().__init__()
         self.mesh = mesh
         self.data = data
-        self.default_color = default_color
 
         self.draw()
 
-    def get_colortable2(self):
-
+    def get_colortable2(self) -> None:
         limit = -4
         data = [max(limit, x) for x in self.data]
 
@@ -314,10 +315,9 @@ class MeshDataView(MeshView):
 
         for value in data:
             color_int = colormap(value)
-            #color_int = [int(255*x) for x in color[:3]]
             self.colors.InsertNextTuple3(*color_int)
 
-    def draw(self):
+    def draw(self) -> None:
 
         if self.data is not None:
             self.get_colortable2()

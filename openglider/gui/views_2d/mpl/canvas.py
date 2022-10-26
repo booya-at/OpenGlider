@@ -1,5 +1,6 @@
 import logging
 import math
+from typing import Any, Tuple
 
 from openglider.gui.qt import QtWidgets
 from matplotlib.backend_bases import MouseButton
@@ -14,12 +15,12 @@ class PlotCanvas(FigureCanvas):
     provides a figure, axes and zoom functionality
     """
     zoom_factor = 1.2
-    zoom = False
+    zoom: bool
     grid = False
     dark = False
     preserve_aspect_ratio = True
 
-    def __init__(self, width=None, height=None, dpi=70, zoom=None):
+    def __init__(self, width: int=None, height: int=None, dpi: int=70, zoom: bool=False) -> None:
         self.figure = Figure(dpi=dpi)
         self.axes = self.figure.add_subplot(111)
 
@@ -43,7 +44,7 @@ class PlotCanvas(FigureCanvas):
 
         self.update_settings()
 
-    def update_settings(self):
+    def update_settings(self) -> None:
         #self.axes.clear()
 
         self.axes.grid(self.grid)
@@ -58,7 +59,7 @@ class PlotCanvas(FigureCanvas):
 
         self.draw()
 
-    def bbox(self):
+    def bbox(self) -> Tuple[int, int]:
         bbox = self.axes.get_window_extent().transformed(self.figure.dpi_scale_trans.inverted())
         dpi = self.figure.dpi
         #width = bbox.width
@@ -67,7 +68,7 @@ class PlotCanvas(FigureCanvas):
 
         return width, height
 
-    def zoom_event(self, event):
+    def zoom_event(self, event: Any) -> None:
         if event.xdata is None or event.ydata is None:
             return
         # get the current x and y limits
@@ -79,7 +80,7 @@ class PlotCanvas(FigureCanvas):
             "down": self.zoom_factor
         }.get(event.button, 1)
 
-        def new_lims(old_lims, x):
+        def new_lims(old_lims: Tuple[float, float], x: float) -> Tuple[float, float]:
             dl = x - min(old_lims)
             dr = max(old_lims) - x
 
@@ -91,7 +92,7 @@ class PlotCanvas(FigureCanvas):
 
         self.figure.canvas.draw()  # force re-draw
 
-    def pan(self, event):
+    def pan(self, event: Any) -> None:
         if event.name == 'button_press_event' and event.button == MouseButton.RIGHT:  # begin pan
             self._pan_event = event
 
@@ -104,7 +105,7 @@ class PlotCanvas(FigureCanvas):
 
             # Do Pan
 
-            def _pan_update_limits(axis_id, pan_event):
+            def _pan_update_limits(axis_id: int, pan_event: Any) -> Tuple[float, float]:
                 """Compute limits with applied pan."""
                 assert axis_id in (0, 1)
                 if axis_id == 0:
@@ -125,8 +126,10 @@ class PlotCanvas(FigureCanvas):
                     try:
                         delta = math.log10(data[axis_id]) - \
                                 math.log10(last_data[axis_id])
-                        new_lim = [pow(10., (math.log10(lim[0]) - delta)),
-                                   pow(10., (math.log10(lim[1]) - delta))]
+                        new_lim = (
+                            pow(10., (math.log10(lim[0]) - delta)),
+                            pow(10., (math.log10(lim[1]) - delta))
+                        )
                     except (ValueError, OverflowError):
                         new_lim = lim  # Keep previous limits
                 else:

@@ -15,7 +15,7 @@ class Glider3DCache(Cache[GliderProject, GliderActors]):
     update_on_color_change = False
     update_on_name_change = False
     
-    def get_object(self, element: str):
+    def get_object(self, element: str) -> GliderActors:
         project = self.elements[element]
         return GliderActors(project.element)
 
@@ -36,12 +36,12 @@ class Glider3DView(QtWidgets.QWidget):
         self.view_3d.clear()
         self.layout().addWidget(self.view_3d)
     
-    def update_config(self):
+    def update_config(self) -> None:
         self.view_3d.clear()
         for actor in self.actor_cache.get_update().active:
             actor.add(self.view_3d, self.config.config)
 
-    def update(self):
+    def update(self) -> None:
         changeset = self.actor_cache.get_update()
 
         for actor in changeset.removed:
