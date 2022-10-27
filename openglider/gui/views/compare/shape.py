@@ -1,7 +1,7 @@
 import datetime
 import enum
 import logging
-from typing import Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Tuple
 from openglider.gui.app.state.cache import Cache
 
 import pyqtgraph
@@ -29,7 +29,7 @@ class ShapeConfigWidget(QtWidgets.QWidget):
 
     changed = QtCore.Signal()
 
-    def __init__(self, parent=None) -> None:
+    def __init__(self, parent: QtWidgets.QWidget=None) -> None:
         super().__init__(parent)
         self.config = ShapePlotConfig()
 
@@ -37,9 +37,9 @@ class ShapeConfigWidget(QtWidgets.QWidget):
 
         self.checkboxes = {}
 
-        def get_clickhandler(prop):
+        def get_clickhandler(prop: str) -> Callable[[bool], None]:
             
-            def toggle_prop(value):
+            def toggle_prop(value: bool) -> None:
                 setattr(self.config, prop, value)
                 self.changed.emit()
             
@@ -73,7 +73,7 @@ class ShapeConfigWidget(QtWidgets.QWidget):
 
         return upper, lower
     
-    def update_scale(self):
+    def update_scale(self) -> None:
         scale = self.selection.selected
 
         self.config.scale_area = None
@@ -86,7 +86,7 @@ class ShapeConfigWidget(QtWidgets.QWidget):
         
         self.changed.emit()
     
-    def update_reference(self, reference: GliderProject):
+    def update_reference(self, reference: GliderProject) -> None:
         self.reference_area = reference.glider.shape.area
         self.reference_span = reference.glider.shape.span
 
@@ -95,7 +95,7 @@ class ShapeConfigWidget(QtWidgets.QWidget):
 
 
 class ShapePlotCache(Cache[GliderProject, Tuple[ShapePlot, ShapePlot, str]]):
-    def get_object(self, element: str):
+    def get_object(self, element: str) -> Tuple[ShapePlot, ShapePlot, str]:
         project = self.elements[element]
         return ShapePlot(project.element), ShapePlot(project.element), element
 

@@ -18,20 +18,20 @@ logger = logging.getLogger(__name__)
 
 
 class TableCache(Cache[GliderProject, Table]):
-    def get_object(self, name):
+    def get_object(self, name: str) -> Table:
         project = self.elements[name]
         table = project.element.get_data_table()
         return table
 
 
 class GliderTable(QTable):
-    def __init__(self, app: GliderApp, parent=None):
+    def __init__(self, app: GliderApp, parent: QtWidgets.QWidget=None):
         super().__init__(parent)
         self.app = app
         self.cache = TableCache(app.state.projects)
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
     
-    def update(self):
+    def update(self) -> None:
         table = Table()
         
         for i, active_project_table in enumerate(self.cache.get_update().active):

@@ -141,7 +141,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.add_actions()
 
         self.setAcceptDrops(True)
-        self.showMaximized()
         self.current_glider_changed()
 
 

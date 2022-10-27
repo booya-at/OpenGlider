@@ -1,6 +1,6 @@
 from openglider.gui.app.state.list import SelectionList
 from openglider.utils.dataclass import dataclass
-from typing import Any, List, TypeVar, Generic, Dict
+from typing import Any, List, Tuple, TypeVar, Generic, Dict
 
 ListType = TypeVar("ListType")
 CacheListType = TypeVar("CacheListType")
@@ -29,17 +29,17 @@ class Cache(Generic[ListType, CacheListType]):
         self.cache_hashes = {}
         self.cache_last_active = []
 
-    def clear(self):
+    def clear(self) -> None:
         self.cache = {}
         self.cache_hashes = {}
 
-    def get_object(self, element: str):
+    def get_object(self, element: str) -> CacheListType:
         """
         Get the cached object
         """
         raise NotImplementedError()
     
-    def _get_object(self, element: str):
+    def _get_object(self, element: str) -> Tuple[CacheListType, bool]:
         hash_workload: List[Any] = [self.elements[element].element]
         if self.update_on_color_change:
             hash_workload += self.elements[element].color
@@ -58,7 +58,7 @@ class Cache(Generic[ListType, CacheListType]):
         return self.cache[element], is_outdated
 
     
-    def get_selected(self):
+    def get_selected(self) -> CacheListType:
         return self._get_object(self.elements.selected_element)[0]
     
     def get_update(self) -> ChangeSet[CacheListType]:

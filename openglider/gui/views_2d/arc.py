@@ -1,6 +1,7 @@
 from typing import Any, List, Tuple
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.gui.qt import QtWidgets, QtGui, QtCore
+from openglider.utils.colors import Color
 import pyqtgraph
 import euklid
 
@@ -11,10 +12,10 @@ class Arc2D(QtWidgets.QGraphicsObject):
     positions: euklid.vector.PolyLine2D
     bbox: Tuple[float, float, float, float]
 
-    def __init__(self, project: GliderProject, color: Tuple[int, int, int] | None=None, alpha: int=160) -> None:
+    def __init__(self, project: GliderProject, color: Color | None=None, alpha: int=160) -> None:
         super().__init__()
         self.project = project
-        self.color = color or (255, 0, 0)
+        self.color = color or Color(255,0,0)
         self.alpha = alpha
         
         self.update_arc()

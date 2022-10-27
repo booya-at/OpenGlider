@@ -23,7 +23,7 @@ class CellPlotConfig(BaseModel):
 class CellCompareSettings(QtWidgets.QWidget):
     changed = QtCore.Signal()
     
-    def __init__(self, parent=None) -> None:
+    def __init__(self, parent: QtWidgets.QWidget=None) -> None:
         super().__init__(parent)
         self.config = CellPlotConfig()
 
@@ -53,11 +53,11 @@ class CellCompareSettings(QtWidgets.QWidget):
             self.layout().addWidget(checkbox)
             self.checkboxes[layer_name] = checkbox
         
-    def set_cell(self, cell_no):
+    def set_cell(self, cell_no: int) -> None:
         self.config.cell_no = cell_no
         self.changed.emit()
     
-    def update_reference(self, reference: GliderProject):
+    def update_reference(self, reference: GliderProject) -> None:
         self.slider.set_bounds(0, len(reference.glider_3d.cells)-1)
 
 

@@ -1,7 +1,7 @@
-from pathlib import Path
-import re
+from __future__ import annotations
+
 import os
-from typing import TypeAlias
+from typing import TYPE_CHECKING, TypeAlias
 from openglider.gui.qt import QtWidgets, QtGui
 import logging
 
@@ -13,6 +13,8 @@ from openglider.vector.drawing import Layout
 from openglider.plots import Patterns
 from openglider.utils.tasks import Task
 
+if TYPE_CHECKING:
+    from openglider.gui.app.app import GliderApp
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +25,7 @@ class PlotWizzard(GliderWindow):
     plotmaker: PlotMaker
     patterns_class: TypeAlias = Patterns
 
-    def __init__(self, app, project: GliderProject):
+    def __init__(self, app: GliderApp, project: GliderProject):
         super().__init__(app, project)
         self.logger = logging.getLogger("{}.{}".format(self.__class__.__module__, self.__class__.__name__))
 
@@ -41,7 +43,7 @@ class PlotWizzard(GliderWindow):
         self.layout().addWidget(self.select_element, 0, 1)
         self.select_element.currentIndexChanged.connect(self.changed_element)
 
-        self._current_plotpart = None
+        self._current_plotpart: LayoutGraphics | None = None
         self.canvas = Canvas()
         self.canvas.locked_aspect_ratio = True
         self.canvas.grid = True
@@ -69,7 +71,7 @@ class PlotWizzard(GliderWindow):
 
         self.changed_type()
 
-    def changed_type(self):
+    def changed_type(self) -> None:
         type_str = self.select_type.currentText()
         self.select_element.clear()
 
@@ -78,7 +80,7 @@ class PlotWizzard(GliderWindow):
         elif type_str in ("Panels", "Diagonals"):
             self.select_element.addItems([f"Cell {i+1}" for i in range(len(self.project.glider_3d.cells))])
 
-    def changed_element(self):
+    def changed_element(self) -> None:
         config = self.plotmaker.config
         type_str = self.select_type.currentText()
         element_index = self.select_element.currentIndex()
@@ -123,7 +125,7 @@ class PlotWizzard(GliderWindow):
             self.canvas.update()
         
             
-    def select_path(self):
+    def select_path(self) -> None:
         home = os.path.expanduser("~")
 
         if self.project.filename:
@@ -133,9 +135,8 @@ class PlotWizzard(GliderWindow):
             self.directory = path
             self.label_path.setText(path)
         self.logger.info(f"directory {path}")
-        return
 
-    def run(self):
+    def run(self) -> None:
         if not self.directory:
             return
 
@@ -153,10 +154,10 @@ class PatternTask(Task):
         self.patterns = patterns
         self.directory = directory
 
-    def get_name(self):
+    def get_name(self) -> str:
         return f"Patterns: {self.patterns.project.name} ({self.directory})"
     
-    async def run(self):
+    async def run(self) -> None:
         logger.info("patterns running")
         await self.execute(self.patterns.unwrap, self.directory)
         os.system(f"xdg-open {self.directory}")

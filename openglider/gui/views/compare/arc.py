@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 class ArcPlotCache(Cache[GliderProject, Arc2D]):
-    def get_object(self, name):
+    def get_object(self, name: str) -> Arc2D:
         project = self.elements[name]
-        return Arc2D(project.element, color=list(project.color))
+        return Arc2D(project.element, color=project.color)
 
 
 class ArcView(QtWidgets.QWidget):
@@ -36,7 +36,7 @@ class ArcView(QtWidgets.QWidget):
 
         self.arc_cache = ArcPlotCache(app.state.projects)
 
-    def update(self):
+    def update(self) -> None:
         changeset = self.arc_cache.get_update()
 
         for plt in changeset.removed:

@@ -23,7 +23,7 @@ class QTaskListWidget(QtWidgets.QWidget):
     view = None
     view_class = None
 
-    def __init__(self, parent: QtWidgets.QWidget, app: GliderApp, task: Task, view: Type[QtWidgets.QWidget]):
+    def __init__(self, parent: QtWidgets.QWidget, app: GliderApp, task: Task, view: Type[QtWidgets.QWidget] | None):
         super().__init__(parent)
         self.task = task
         self.app = app
@@ -65,14 +65,15 @@ class QTaskListWidget(QtWidgets.QWidget):
         self.label_runtime.setText(self.task.runtime())
     
     def open_widget(self) -> None:
-        view = self.view_class(self.app, self.task)
+        if self.view_class is not None:
+            view = self.view_class(self.app, self.task)
         
-        self.app.show_tab(view)
+            self.app.show_tab(view)
         
 
 
 class QTaskEntry(QtWidgets.QListWidgetItem):
-    def __init__(self, parent: QtWidgets.QWidget, app: GliderApp, task: Task, view: Type[QtWidgets.QWidget]):
+    def __init__(self, parent: QtWidgets.QWidget, app: GliderApp, task: Task, view: Type[QtWidgets.QWidget] | None):
         super().__init__(parent)
         self.app = app
         self.task = task
@@ -108,7 +109,7 @@ class QTaskQueue(QtWidgets.QWidget):
 
         self.tasks = []
 
-    def append(self, task: Task, view: Optional[Type[QtWidgets.QWidget]]=None):
+    def append(self, task: Task, view: Optional[Type[QtWidgets.QWidget]]=None) -> None:
         list_entry = QTaskEntry(self.list, self.app, task, view)
 
         self.tasks.append(list_entry)

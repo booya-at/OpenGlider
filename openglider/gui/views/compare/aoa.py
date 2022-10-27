@@ -19,7 +19,7 @@ class AoAConfig(BaseModel):
 
 
 class AoAPlotCache(Cache[GliderProject, pandas.DataFrame]):
-    def get_object(self, project_name):
+    def get_object(self, project_name: str) -> pandas.DataFrame:
         project = self.elements[project_name]
         x_values_unscaled = project.element.glider.shape.rib_x_values
         span = max(x_values_unscaled)
@@ -56,7 +56,7 @@ class AoAView(QtWidgets.QWidget):
 
         self.arc_cache = AoAPlotCache(app.state.projects)
 
-    def update(self):
+    def update(self) -> None:
         logger.info(f"update")
         self.plot.clear()
 

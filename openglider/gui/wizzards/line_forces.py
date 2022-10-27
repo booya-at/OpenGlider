@@ -1,6 +1,6 @@
 from openglider.gui.qt import QtWidgets, QtGui
 
-from openglider_physics.gui.wizzards.base import Wizard
+from openglider.gui.wizzards.base import Wizard
 from openglider.gui.widgets import QTable, Slider
 
 class LineForceView(Wizard):

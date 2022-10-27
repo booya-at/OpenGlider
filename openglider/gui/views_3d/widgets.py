@@ -56,11 +56,11 @@ class View3D(QtWidgets.QWidget):
             self.show_actor(self.axes)
         self.rerender()
 
-    def show_actor(self, actor):
+    def show_actor(self, actor) -> None:
         self.renderer.AddActor(actor)
         self.VTKRenderWindow.Render()
 
-    def rerender(self):
+    def rerender(self) -> None:
         self.VTKRenderWindow.Render()
 
 

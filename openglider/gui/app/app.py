@@ -1,21 +1,22 @@
 from __future__ import annotations
 
+import asyncio
+import functools
+import importlib
+import io
+import logging
 import os
+import pkgutil
 import sys
 import time
 import traceback
-import io
-import functools
-import logging
-import asyncio
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, Callable, Type
-import sys
-import importlib
-import pkgutil
+
+import qtmodern.styles
+import qtmodern.windows
 from openglider.gui.qt import QtWidgets
 from qasync import QEventLoop
-import qtmodern.styles
 
 if TYPE_CHECKING:
     from openglider.gui.app.state import ApplicationState
@@ -81,6 +82,7 @@ class GliderApp(QtWidgets.QApplication):
         self.task_queue = openglider.utils.tasks.TaskQueue(self.execute)
         self.task_queue.exception_hook = self.show_exception
         self.main_window = openglider.gui.app.main_window.MainWindow(self)
+        self.main_window.showMaximized()
     
     def reload_code(self) -> None:
         self.main_window.close()

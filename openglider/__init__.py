@@ -2,8 +2,6 @@ import logging
 from pathlib import Path
 from typing import Any
 
-import numpy as np
-
 __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
 from openglider.config import config

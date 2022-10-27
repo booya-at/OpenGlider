@@ -23,15 +23,12 @@ class GliderActors:
         self.glider_3d = None
         self.actors = {}
         self.config = None
-    
-    def _get_glider_3d(self):
-        pass
         
-    def get_panels(self, numribs: int):
-        panel_mesh = openglider.mesh.Mesh()
-
+    def get_panels(self, numribs: int) -> MeshView:
         if self.glider_3d is None:
-            return panel_mesh
+            raise ValueError("Glider3D not set")
+
+        panel_mesh = openglider.mesh.Mesh()
 
         for i, cell in enumerate(self.glider_3d.cells):
             for panel in cell.panels:
@@ -45,8 +42,11 @@ class GliderActors:
         mesh_view.draw_mesh(panel_mesh)
         return mesh_view
     
-    def get_ribs(self):
+    def get_ribs(self) -> MeshView:
         ribs_mesh = openglider.mesh.Mesh()
+
+        if self.glider_3d is None:
+            raise ValueError("Glider3D not set")
 
         for i, rib in enumerate(self.glider_3d.ribs):
             mesh_temp = rib.get_mesh(filled=True)
@@ -61,7 +61,10 @@ class GliderActors:
         mesh_view.draw_mesh(ribs_mesh)
         return mesh_view
 
-    def get_lines(self):
+    def get_lines(self) -> MeshView:
+        if self.glider_3d is None:
+            raise ValueError("Glider3D not set")
+
         mesh_lineset = self.glider_3d.lineset.get_mesh(numpoints=3)
 
         mesh_view = MeshView()
@@ -69,7 +72,10 @@ class GliderActors:
 
         return mesh_view
     
-    def get_diagonals(self):
+    def get_diagonals(self) -> MeshView:
+        if self.glider_3d is None:
+            raise ValueError("Glider3D not set")
+
         mesh = openglider.mesh.Mesh()
         for cell_no, cell in enumerate(self.glider_3d.cells):
             for diagonal in cell.diagonals:
@@ -83,7 +89,10 @@ class GliderActors:
         mesh_view.draw_mesh(mesh)
         return mesh_view
 
-    def get_straps(self):
+    def get_straps(self) -> MeshView:
+        if self.glider_3d is None:
+            raise ValueError("Glider3D not set")
+            
         mesh = openglider.mesh.Mesh()
         for cell_no, cell in enumerate(self.glider_3d.cells):
             for diagonal in cell.straps:
@@ -128,7 +137,7 @@ class GliderActors:
         for name in self.config.get_active_keys():
             view_3d.renderer.RemoveActor(self.actors[name])
 
-    def update(self, view_3d: View3D, config: GliderViewConfig):
+    def update(self, view_3d: View3D, config: GliderViewConfig) -> None:
         self.remove(view_3d)
         self.add(view_3d, config)
 

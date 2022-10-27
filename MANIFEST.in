@@ -1,3 +1,0 @@
-recursive-include freecad/freecad_glider/icons *
-recursive-include freecad/freecad_glider/ui *
-include freecad/freecad_glider/glider2d.json

@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class RibCache(Cache[GliderProject, GliderRibPlots]):
-    def get_object(self, element: str):
+    def get_object(self, element: str) -> GliderRibPlots:
         project = self.elements[element]
         return GliderRibPlots(project.element, color=project.color)
 
@@ -40,7 +40,7 @@ class RibView(QtWidgets.QWidget):
 
         self.cache = RibCache(app.state.projects)
 
-    def update(self):
+    def update(self) -> None:
         self.plot.clear()
 
         selected = self.app.state.projects.get_selected()

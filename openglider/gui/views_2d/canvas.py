@@ -1,13 +1,13 @@
-import re
-from openglider.gui.qt import QtCore, QtGui, QtWidgets
-from numpy.linalg import norm
-import pyqtgraph
 import logging
-from typing import List, Tuple, Dict, Optional
+import re
+from typing import Any, Dict, List, Optional, Tuple
 
+import pyqtgraph
+from pyqtgraph.GraphicsScene.mouseEvents import MouseDragEvent
+from openglider.gui.qt import QtCore, QtGui, QtWidgets
+from openglider.gui.views_2d.elements import Image
 from openglider.utils.colors import Color
 from openglider.vector.drawing import Layout
-from openglider.gui.views_2d.elements import Image
 
 logger = logging.getLogger(__name__)
 
@@ -17,13 +17,13 @@ class Canvas(pyqtgraph.ViewBox):
     locked_aspect_ratio = False
     static = False
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self._grid = None
         self.update_data()
         self.setAcceptDrops(True)
 
-    def update_data(self):
+    def update_data(self) -> None:
         if self.grid and self._grid is None:
             self._grid = pyqtgraph.GridItem()
             self.addItem(self._grid)
@@ -35,7 +35,7 @@ class Canvas(pyqtgraph.ViewBox):
 
         self.update()
 
-    def mouseDragEvent(self, ev, axis=None):
+    def mouseDragEvent(self, ev: MouseDragEvent, axis: None=None) -> None:
         ev.accept()
 
         pos = ev.pos()
@@ -68,13 +68,13 @@ class Canvas(pyqtgraph.ViewBox):
                 self.translateBy(x=x, y=y)
             self.sigRangeChangedManually.emit(self.state['mouseEnabled'])
 
-    def dragEnterEvent(self, e):
+    def dragEnterEvent(self, e: QtGui.QDragEnterEvent) -> None:
         if e.mimeData().hasUrls:
             e.accept()
         else:
             e.ignore()
 
-    def dropEvent(self, e):
+    def dropEvent(self, e: QtGui.QDropEvent) -> None:
         """
         Drag and Drop glider files
         """
@@ -96,7 +96,7 @@ class Canvas(pyqtgraph.ViewBox):
         else:
             e.ignore()
 
-    def load_bg_image(self, path):
+    def load_bg_image(self, path: str) -> None:
         background_image = Image.read_jpg(path)
         self.addItem(background_image)
 
@@ -104,11 +104,11 @@ class Canvas(pyqtgraph.ViewBox):
         sc.sigMouseClicked.connect(background_image.clickEvent)
         sc.sigMouseMoved.connect(background_image.dragEvent)
 
-    def wheelEvent(self, ev, axis=None):
+    def wheelEvent(self, ev: QtGui.QWheelEvent, axis: None=None):
         if self.static is False:
             super().wheelEvent(ev, axis=axis)
 
-    def get_widget(self):
+    def get_widget(self) -> pyqtgraph.GraphicsView:
         canvas = pyqtgraph.GraphicsView()
         canvas.setCentralItem(self)
         canvas.setAcceptDrops(True)
@@ -119,7 +119,7 @@ class Canvas(pyqtgraph.ViewBox):
 
 
 class CanvasGrid(pyqtgraph.GraphicsLayoutWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent: QtWidgets.QWidget=None):
         super().__init__(parent)
 
         self.viewbox = Canvas()
@@ -134,7 +134,7 @@ class LayoutGraphics(QtWidgets.QGraphicsObject):
 
     bounding_box: QtCore.QRectF = None
 
-    def __init__(self, layout: Layout, fill=False, color: Optional[Color]=None):
+    def __init__(self, layout: Layout, fill: bool=False, color: Optional[Color]=None):
         super().__init__()
         self.layout: Layout = layout
         self.fill = fill
@@ -144,7 +144,7 @@ class LayoutGraphics(QtWidgets.QGraphicsObject):
         #pyqtgraph.GraphicsScene.registerObject(self)
         self.update()
 
-    def update(self):
+    def update(self) -> None:
         self.points = {}
         self.lines = {}
         self.polygons = {}
@@ -156,7 +156,7 @@ class LayoutGraphics(QtWidgets.QGraphicsObject):
             self.layout.height
         )
 
-        def normalize_color_code(color_code):
+        def normalize_color_code(color_code: str) -> str:
             try:
                 color=Color.parse_hex(color_code)
                 return color.hex()
@@ -204,7 +204,7 @@ class LayoutGraphics(QtWidgets.QGraphicsObject):
 
 
 
-    def paint(self, p, *args):
+    def paint(self, p: QtGui.QPainter, *args: Any) -> None:
         def setup_brush(color_code):
             if isinstance(color_code, str):
                 color = Color.parse_hex(color_code)
@@ -238,5 +238,5 @@ class LayoutGraphics(QtWidgets.QGraphicsObject):
 
 
                 
-    def boundingRect(self):
+    def boundingRect(self) -> QtCore.QRectF:
         return self.bounding_box or QtCore.QRectF(0,0,0,0)

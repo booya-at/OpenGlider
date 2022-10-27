@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import os
 import logging
 import importlib
 import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Type
 
 from openglider.gui.app.state.list import SelectionList
 
@@ -18,7 +20,7 @@ class GuiProject:
     modification_time: datetime.datetime
     color: Color
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {
             "project": self.project,
             "visible": self.visible,
@@ -27,7 +29,7 @@ class GuiProject:
         }
     
     @classmethod
-    def __from_json__(cls, **dct):
+    def __from_json__(cls, **dct: Any) -> GuiProject:
         dct["modification_time"] = datetime.datetime.fromisoformat(dct["modification_time"])
         dct["color"] = Color.parse_hex(dct["color"])
         return cls(**dct)
@@ -43,10 +45,10 @@ class ApplicationState:
     current_preview: str = ""
     debug_level: int = logging.WARNING
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {
             "projects": self.projects,
-            "opened_tabs": {tab.name: tab.__class__.__name__ for name, tab in self.opened_tabs},
+            "opened_tabs": {tab.name: tab.__class__.__name__ for tab in self.opened_tabs.values()},
             
             "current_tab": self.current_tab,
             "current_preview": self.current_preview,
@@ -61,26 +63,27 @@ class ApplicationState:
         
         return project
     
-    def get_glider_projects(self, filter_active=False) -> List[GliderProject]:
+    def get_glider_projects(self, filter_active: bool=False) -> List[GliderProject]:
         if filter_active:
             return self.projects.get_active()
         
         return self.projects.get_all()
     
-    def add_glider_project(self, project: GliderProject):
+    def add_glider_project(self, project: GliderProject) -> None:
         if project.name in self.projects:
             raise Exception(f"project with name {project.name} already in the list")
         
         self.projects.add(project.name, project)
     
-    def update_glider_project(self, project: GliderProject):
+    def update_glider_project(self, project: GliderProject) -> None:
         self.projects[project.name] = project
     
-    def remove_glider_project(self, project: GliderProject):
+    def remove_glider_project(self, project: GliderProject) -> None:
         self.projects.remove(project.name)
         
     @staticmethod
-    def get_tab_cls(name: str):
+    def get_tab_cls(name: str) -> None:
+        raise NotImplementedError()
         path_parts = name.split(".")
 
         import_path = ".".join(path_parts[:-1])
@@ -92,12 +95,12 @@ class ApplicationState:
 
     _dump_path = "/tmp/openglider_state.json"
 
-    def dump(self):
+    def dump(self) -> None:
         with open(self._dump_path, "w") as fp:
             openglider.jsonify.dump(self, fp)
         
     @classmethod
-    def load(cls):
+    def load(cls) -> ApplicationState:
         if os.path.isfile(cls._dump_path):
             with open(cls._dump_path, "r") as state_file:
                 result = openglider.jsonify.load(state_file)
@@ -105,5 +108,3 @@ class ApplicationState:
                 return result["data"]
             
         return cls()
-
-

@@ -9,12 +9,12 @@ logger = logging.getLogger(__name__)
 
 
 class WingSelector(QtWidgets.QComboBox):
-    def __init__(self, parent, state: ApplicationState):
+    def __init__(self, parent: QtWidgets.QWidget, state: ApplicationState):
         super().__init__(parent=parent)
         self.state = state
         self._setup_options()
     
-    def _setup_options(self):
+    def _setup_options(self) -> None:
         self.setCurrentIndex(0)
         self.clear()
 
@@ -58,13 +58,13 @@ class DiffView(QtWidgets.QWidget):
         self.diff_view = QtWebEngineWidgets.QWebEngineView()
         self.layout().addWidget(self.diff_view)
     
-    def update(self):
+    def update(self) -> None:
         self.chooser_left._setup_options()
         self.chooser_right._setup_options()
         self.diff()
     
 
-    def diff(self):
+    def diff(self) -> None:
         left_glider = self.chooser_left.get_selected()
         right_glider = self.chooser_right.get_selected()
 
