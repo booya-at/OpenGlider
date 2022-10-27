@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Tuple, TypeAlias
 import logging
 import math
+from typing import TYPE_CHECKING, List, Tuple, TypeAlias
 
 import euklid
-
-from openglider.vector.drawing import PlotPart, Layout
-from openglider.utils.cache import cached_property
+from openglider.vector.drawing import Layout, PlotPart
 
 if TYPE_CHECKING:
     from openglider.glider.cell.panel import Panel

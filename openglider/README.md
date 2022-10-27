@@ -1,8 +1,6 @@
 # [openglider](../README.md)
 
 the base module.
-<!-- TODO: ein paar hinweise zu programmier standarts...-->
-
 
 ## submodules
  - [glider](./glider/README.md)  

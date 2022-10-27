@@ -1,32 +1,26 @@
 from __future__ import annotations
 
-import copy
 import logging
 import math
-from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 import euklid
-import numpy as np
-from openglider.glider.cell.attachment_point import CellAttachmentPoint
 import openglider.utils
 import openglider.vector
 import pyfoil
 from openglider.airfoil import Profile3D
 from openglider.glider.ballooning.base import BallooningBase
-from openglider.glider.cell import BasicCell
+from openglider.glider.cell.attachment_point import CellAttachmentPoint
+from openglider.glider.cell.basic_cell import BasicCell
 from openglider.glider.cell.diagonals import DiagonalRib, TensionStrap
+from openglider.glider.cell.panel import PANELCUT_TYPES, Panel, PanelCut
 from openglider.glider.cell.rigidfoil import PanelRigidFoil
-from openglider.glider.cell.panel import Panel, PanelCut, PANELCUT_TYPES
 from openglider.glider.rib import MiniRib, Rib
 from openglider.mesh import Mesh, Polygon, Vertex
 from openglider.utils import consistent_value, linspace
 from openglider.utils.cache import (HashedList, cached_function,
                                     cached_property, hash_list)
 from openglider.utils.dataclass import BaseModel, Field
-
-if TYPE_CHECKING:
-    from openglider.glider import Glider
-
 
 logger = logging.getLogger(__file__)
 

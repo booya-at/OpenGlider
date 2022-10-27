@@ -6,8 +6,6 @@ from typing import TYPE_CHECKING, Dict, Any
 import euklid
 from openglider.glider.shape import Shape
 from openglider.lines import Node
-from openglider.utils.dataclass import dataclass, Field
-from openglider.vector.polygon import Circle, Ellipse
 
 if TYPE_CHECKING:
     from openglider.glider.cell.cell import Cell
