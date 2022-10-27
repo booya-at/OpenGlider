@@ -1,9 +1,11 @@
-import typing
-from openglider.gui.qt import QtWidgets, QtCore, QtGui
-import numpy
-import logging
+from __future__ import annotations
 
+import logging
+import typing
+
+import numpy
 from openglider.glider.project import GliderProject
+from openglider.gui.qt import QtCore, QtGui, QtWidgets
 
 if typing.TYPE_CHECKING:
     from openglider.gui.app.main_window import MainWindow
@@ -29,21 +31,20 @@ class Window(QtWidgets.QWidget):
         logging.info(f"active windows: {self.app.active_windows}")
 
     @classmethod
-    def get_class_name(cls):
+    def get_class_name(cls) -> str:
         if cls.widget_name:
             return cls.widget_name
 
         return cls.__name__
 
     @property
-    def name(self):
+    def name(self) -> str:
         return f"{self.get_class_name()}"
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         logger.info(f"closing {self}")
-        ret = super().closeEvent(event)
+        super().closeEvent(event)
         self.closed.emit(0)
-        return ret
 
 
 class GliderWindow(Window):
@@ -51,7 +52,7 @@ class GliderWindow(Window):
     
     copy_project = True
 
-    def __init__(self, app: "MainWindow", project: GliderProject):
+    def __init__(self, app: MainWindow, project: GliderProject):
         super().__init__(app)
 
         if self.copy_project:
@@ -60,5 +61,5 @@ class GliderWindow(Window):
             self.project = project
 
     @property
-    def name(self):
+    def name(self) -> str:
         return f"{self.get_class_name()}: {self.project.name}"

@@ -104,7 +104,7 @@ class Canvas(pyqtgraph.ViewBox):
         sc.sigMouseClicked.connect(background_image.clickEvent)
         sc.sigMouseMoved.connect(background_image.dragEvent)
 
-    def wheelEvent(self, ev: QtGui.QWheelEvent, axis: None=None):
+    def wheelEvent(self, ev: QtGui.QWheelEvent, axis: None=None) -> None:
         if self.static is False:
             super().wheelEvent(ev, axis=axis)
 
@@ -177,7 +177,7 @@ class LayoutGraphics(QtWidgets.QGraphicsObject):
                 layer_config = self.layout.layer_config.get(layer_name, default_config)
                 if not layer_config.get("visible", True):
                     continue
-                color_code = layer_config.get("stroke-color", "#FFFFFF")
+                color_code = str(layer_config.get("stroke-color", "#FFFFFF"))
 
 
                 color = normalize_color_code(color_code)
@@ -205,12 +205,13 @@ class LayoutGraphics(QtWidgets.QGraphicsObject):
 
 
     def paint(self, p: QtGui.QPainter, *args: Any) -> None:
-        def setup_brush(color_code):
+        def setup_brush(color_code: str | Color):
             if isinstance(color_code, str):
                 color = Color.parse_hex(color_code)
             else:
                 color = color_code
-            qt_color = QtGui.QColor(color.r, color.g, color.b, self.alpha)
+
+            qt_color = QtGui.QColor(*color, self.alpha)
 
             brush = QtGui.QBrush(qt_color)
             pen = QtGui.QPen(brush, 1)

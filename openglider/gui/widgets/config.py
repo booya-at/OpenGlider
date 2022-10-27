@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Callable, Type
 from openglider.gui.qt import QtWidgets, QtCore
 import enum
 
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class ConfigWidget(QtWidgets.QWidget):
     changed = QtCore.Signal()
 
-    def __init__(self, Config: Type[BaseModel], parent=None, vertical=False) -> None:
+    def __init__(self, Config: Type[BaseModel], parent: QtWidgets.QWidget=None, vertical: bool=False) -> None:
         super().__init__(parent)
 
         if vertical:
@@ -22,9 +22,9 @@ class ConfigWidget(QtWidgets.QWidget):
         self.config = Config()
         self.checkboxes = {}
 
-        def get_clickhandler(prop):
+        def get_clickhandler(prop) -> Callable[[bool], None]:
             
-            def toggle_prop(value):
+            def toggle_prop(value: bool) -> None:
                 setattr(self.config, prop, value)
                 self.changed.emit()
             

@@ -1,8 +1,8 @@
 from typing import Any
-import vtk
+from vtkmodules.vtkInteractionStyle import vtkInteractorStyleTrackballCamera
 
 
-class Interactor(vtk.vtkInteractorStyleTrackballCamera):
+class Interactor(vtkInteractorStyleTrackballCamera):
     def __init__(self) -> None:
         super(Interactor, self).__init__()
         self.AddObserver("MiddleButtonPressEvent",self.middleButtonPressEvent)

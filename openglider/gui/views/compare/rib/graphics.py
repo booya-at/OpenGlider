@@ -37,7 +37,7 @@ class GliderRibPlots:
         self.cache = {}
         self.config = RibPlotLayers()
         
-    def get(self, rib_no, config: RibPlotLayers):
+    def get(self, rib_no: int, config: RibPlotLayers) -> LayoutGraphics:
         if config != self.config:
             self.cache = {}
             self.config = config.copy()

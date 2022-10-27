@@ -79,13 +79,13 @@ class SelectionList(Generic[ListType]):
         self.elements[name] = SelectionListItem(
             element=obj,
             active=False,
-            color=color or Color(*colors[len(self.elements)%len(colors)]),
+            color=color or colors[len(self.elements)%len(colors)],
             name=name
         )
         if select:
             self.selected_element = name
 
-    def get_name(self, element: ListType) -> str:
+    def get_name(self, element: SelectionListItem[ListType]) -> str:
         for name, element2 in self.elements.items():
             if element is element2:
                 return name

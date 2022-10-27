@@ -17,7 +17,7 @@ menu_actions: Dict[str, List[Tuple[object, QtWidgets.QWidget]]] = {
 }
 
 
-def add_actions(actions: Dict[str, List[Tuple[object, QtWidgets.QWidget]]]):
+def add_actions(actions: Dict[str, List[Tuple[object, QtWidgets.QWidget]]]) -> None:
     for group_name, group_actions in actions.items():
         menu_actions.setdefault(group_name, [])
         menu_actions[group_name] += group_actions

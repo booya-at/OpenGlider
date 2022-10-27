@@ -20,7 +20,7 @@ class CellPlots:
     def __init__(self, cell: Cell) -> None:
         self.cell = cell
     
-    def plot(self, config: CellPlotLayers):
+    def plot(self, config: CellPlotLayers) -> None:
         if config.ballooning:
             self.cell.ballooning
 
@@ -37,7 +37,7 @@ class GliderCellPlots:
         self.cache = {}
         self.config = CellPlotLayers()
         
-    def get(self, cell_no, config: CellPlotLayers):
+    def get(self, cell_no: int, config: CellPlotLayers) -> LayoutGraphics:
         if config != self.config:
             self.cache = {}
             self.config = config.copy()

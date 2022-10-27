@@ -181,6 +181,7 @@ class DraggableLine(pyqtgraph.GraphItem):
     on_node_release: List[Callable[[DraggableLine, Any], None]]
 
     data: Dict[str, Any]
+    drag_node_index: int | None
 
     def __init__(self, data: List[euklid.vector.Vector2D]) -> None:
         self.drag_node_index = None
@@ -196,8 +197,8 @@ class DraggableLine(pyqtgraph.GraphItem):
         self.set_controlpoints(data)
 
     @property
-    def controlpoints(self) -> List[List[float]]:
-        return self.data["pos"].tolist()
+    def controlpoints(self) -> euklid.vector.PolyLine2D:
+        return euklid.vector.PolyLine2D(self.data["pos"].tolist())
 
     def set_controlpoints(self, controlpoints: List[euklid.vector.Vector2D]) -> None:
         if isinstance(controlpoints, euklid.vector.PolyLine2D):

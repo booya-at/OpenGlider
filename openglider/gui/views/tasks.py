@@ -89,7 +89,7 @@ class QTaskEntry(QtWidgets.QListWidgetItem):
 
 
 class QTaskQueue(QtWidgets.QWidget):
-    tasks: List[Task]
+    tasks: List[QTaskEntry]
 
     app: GliderApp
     queue: TaskQueue

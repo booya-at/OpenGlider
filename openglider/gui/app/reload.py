@@ -14,7 +14,7 @@ _readonly_attrs = {'__annotations__', '__call__', '__class__', '__closure__', '_
                '__basicsize__', '__base__'}
 
 
-def reset_module(module, inner_modules_also=True):
+def reset_module(module, inner_modules_also: bool=True) -> None:
     """
     This function is a stronger form of importlib's `reload` function. What it does, is that aside from reloading a
     module, it goes to the old instance of the module, and sets all the (not read-only) attributes, functions and classes

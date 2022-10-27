@@ -1,12 +1,13 @@
-from typing import Callable, List, Optional
+from typing import Callable, Generic, List, Optional, TypeVar
 from openglider.gui.qt import QtWidgets, QtCore
 
+T = TypeVar("T")
 
-class Input(QtWidgets.QWidget):
+class Input(QtWidgets.QWidget, Generic[T]):
     on_change: List[Callable[[str], None]]
     on_changed: List[Callable[[str], None]]
 
-    def __init__(self, parent: QtWidgets.QWidget=None, name: str="", default: str=None, vertical: bool=False):
+    def __init__(self, parent: QtWidgets.QWidget=None, name: str="", default: T=None, vertical: bool=False):
         super().__init__(parent=parent)
         self.name = name
         
@@ -32,7 +33,7 @@ class Input(QtWidgets.QWidget):
         self.input.textChanged.connect(self._on_change)
         self.input.editingFinished.connect(self._on_changed)
     
-    def set_value(self, value: str, propagate: bool=False) -> None:
+    def set_value(self, value: T, propagate: bool=False) -> None:
         self.value = value
         if propagate:
             self.input.setText(str(value))
@@ -48,7 +49,7 @@ class Input(QtWidgets.QWidget):
             f(self.value)
 
 
-class NumberInput(Input):
+class NumberInput(Input[float]):
     on_change: List[Callable[[float], None]]  # type: ignore
     on_changed: List[Callable[[float], None]]  # type: ignore
 

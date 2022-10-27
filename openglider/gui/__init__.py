@@ -7,7 +7,7 @@ os.environ["FORCE_QT_API"] = "pyside2"
 os.environ["QT_API"] = "pyside2"
 
 
-def start_main_window():
+def start_main_window() -> None:
     from openglider.gui.app import GliderApp
 
     app = GliderApp(sys.argv)

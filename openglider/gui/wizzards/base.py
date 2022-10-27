@@ -1,15 +1,21 @@
-from typing import Any, List, Tuple
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Generic, List, Tuple, TypeVar
 from datetime import datetime
 import re
+from openglider.glider.glider import Glider
 from openglider.gui.qt import QtWidgets, QtGui, QtCore
 import logging
 
 from openglider.gui.views.window import GliderWindow
 from openglider.glider.project import GliderProject
-from openglider.utils.colors import colorwheel
+from openglider.utils.colors import Color, colorwheel
+
+if TYPE_CHECKING:
+    from openglider.gui.app import GliderApp
 
 class Wizard(GliderWindow):
-    def __init__(self, app, project: GliderProject):
+    def __init__(self, app: GliderApp, project: GliderProject):
         super().__init__(app, project)
 
         self.logger = logging.getLogger("{}.{}".format(self.__class__.__module__, self.__class__.__name__))
@@ -32,8 +38,10 @@ class Wizard(GliderWindow):
         self.close()
 
 
-class SelectionItem(QtWidgets.QWidget):
-    def __init__(self, obj, name):
+T = TypeVar("T")
+
+class SelectionItem(QtWidgets.QWidget, Generic[T]):
+    def __init__(self, obj: T, name: str):
         super().__init__()
         self.obj = obj
         self.name = name
@@ -56,18 +64,18 @@ class SelectionItem(QtWidgets.QWidget):
         self.layout().addWidget(self.label)
         self.layout().addStretch()
 
-    def _on_change(self):
+    def _on_change(self) -> None:
         for f in self.on_change:
             f(self)
 
     @property
-    def is_checked(self):
+    def is_checked(self) -> bool:
         return self.checkbox.isChecked()
 
-    def set_checked(self, value: bool):
+    def set_checked(self, value: bool) -> None:
         self.checkbox.setChecked(value)
 
-    def set_color(self, color=None):
+    def set_color(self, color: Color=None) -> None:
         if color is not None:
             qcolor = QtGui.QColor(*color, 255)
             brush = QtGui.QBrush(qcolor)
@@ -80,7 +88,7 @@ class SelectionItem(QtWidgets.QWidget):
 
 class SelectionWizard(Wizard):
     project: GliderProject
-    def __init__(self, app, project: GliderProject, selection_lst: list):
+    def __init__(self, app: GliderApp, project: GliderProject, selection_lst: list[Tuple[T, str]]):
         super().__init__(app, project)
 
         self.setLayout(QtWidgets.QHBoxLayout())
@@ -122,7 +130,7 @@ class SelectionWizard(Wizard):
         self.splitter.setSizes([800, 200])
 
     @property
-    def selected_items(self) -> List[Tuple[Any, Tuple[int, int, int]]]:
+    def selected_items(self) -> List[Tuple[T, Color]]:
         # return list of gliders + colors
         lst: List[SelectionItem] = []
 
@@ -142,16 +150,16 @@ class SelectionWizard(Wizard):
 
         return return_lst
 
-    def _selection_changed(self, item=None):
+    def _selection_changed(self, item: Any=None) -> None:
         # todo: create color wheel & show
         self.selection_changed(self.selected_items)
 
-    def selection_changed(self, selected):
+    def selection_changed(self, selected: Any) -> None:
         pass
 
 
 class GliderSelectionWizard(SelectionWizard):
-    def __init__(self, app, project: GliderProject):
+    def __init__(self, app: GliderApp, project: GliderProject):
         selection_lst = [(project, project.name) for project in app.glider_projects]
         super().__init__(app, project, selection_lst)
 

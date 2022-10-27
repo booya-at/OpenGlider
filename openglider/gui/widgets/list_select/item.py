@@ -76,11 +76,11 @@ class ListItemWidget(QtWidgets.QWidget, Generic[ListItemType]):
             self.button_active.setIcon(Icon("close"))
             self.button_active.setStyleSheet('background-color: transparent;')
 
-    def mouseDoubleClickEvent(self, e) -> None:
+    def mouseDoubleClickEvent(self, e: QtGui.QMouseEvent) -> None:
         self.label_name.edit()
         print(e.button())
 
-    def update_name(self, name) -> None:
+    def update_name(self, name: str) -> None:
         self.list_item.name = name
 
         lst = self.list.selection_list
@@ -114,10 +114,10 @@ class ListItem(QtWidgets.QListWidgetItem, Generic[ListItemType]):
 
         self.setSizeHint(self.widget.sizeHint())
     
-    def _changed(self):
+    def _changed(self) -> None:
         self.parent._changed()
 
-    def _remove(self):
+    def _remove(self) -> None:
         lst = self.parent.selection_list
 
         name = lst.get_name(self.element)

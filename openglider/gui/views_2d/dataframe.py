@@ -43,7 +43,7 @@ class DataFramePlot(pyqtgraph.PlotWidget):
             if column in self.column_plots and not force_new:
                 self.column_plots[column].setData(x, y)
             else:
-                pen = pyqtgraph.mkPen(color=colors[i])
+                pen = pyqtgraph.mkPen(color=tuple(colors[i]))
                 plot = self.plot(x, y, name=column, pen=pen)
                 #plot.getViewBox().invertY(True)
                 self.column_plots[column] = plot

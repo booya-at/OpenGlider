@@ -41,7 +41,7 @@ class Color:
         return cls(r, g, b, name=f"#{hex}")
     
 
-def colorwheel(num: int) -> List[Tuple[int, int, int]]:
+def colorwheel(num: int) -> List[Color]:
     # r = 0
     # g = 1/3
     # b = 2/3

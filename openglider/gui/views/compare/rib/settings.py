@@ -1,11 +1,11 @@
-from typing import Callable
-from openglider.gui.widgets.flow_layout import FlowLayout
-from openglider.glider.project import GliderProject
-from openglider.glider.rib.rib import Rib
 import logging
-from openglider.gui.qt import QtWidgets, QtCore
-from openglider.utils.dataclass import BaseModel
+from typing import Callable
+
+from openglider.glider.project import GliderProject
+from openglider.gui.qt import QtCore, QtWidgets
+from openglider.gui.widgets.flow_layout import FlowLayout
 from openglider.gui.widgets.slider import Slider
+from openglider.utils.dataclass import BaseModel
 from pydantic import Field
 
 logger = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ class RibCompareSettings(QtWidgets.QWidget):
 
         def get_clickhandler(layer_name: str) -> Callable[[bool], None]:
             
-            def toggle_layer(value: bool):
+            def toggle_layer(value: bool) -> None:
                 setattr(self.config.layers, layer_name, value)
                 self.changed.emit()
             

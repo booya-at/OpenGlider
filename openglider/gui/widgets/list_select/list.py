@@ -18,14 +18,14 @@ class ListWidget(QtWidgets.QListWidget, Generic[ListItemType]):
     changed = QtCore.Signal()
     _change_handler = None
 
-    def __init__(self, parent, selection_list: SelectionList[ListItemType]):
+    def __init__(self, parent: QtWidgets.QWidget, selection_list: SelectionList[ListItemType]):
         super().__init__(parent=parent)
         self.selection_list = selection_list
 
         self.on_change = []
         self.render()
     
-    def render(self):
+    def render(self) -> None:
         if self._change_handler:
             self.currentItemChanged.disconnect(self._changed)
             self._change_handler = None
@@ -42,7 +42,7 @@ class ListWidget(QtWidgets.QListWidget, Generic[ListItemType]):
 
         self._change_handler = self.currentItemChanged.connect(self._changed)
 
-    def add(self, element: SelectionListItem[ListItemType], focus=True):
+    def add(self, element: SelectionListItem[ListItemType], focus: bool=True) -> None:
         list_item = ListItem(self, element)
         widget = list_item.widget
         widget.changed.connect(self._changed)
@@ -53,9 +53,9 @@ class ListWidget(QtWidgets.QListWidget, Generic[ListItemType]):
         if focus:
             self.setCurrentItem(list_item)
 
-    def _changed(self, current=None, next_value=None):
+    def _changed(self, current: QtWidgets.QListWidgetItem | None=None, next_value: QtWidgets.QListWidgetItem | None=None) -> None:
         if current is None:
-            current = self.currentItem()
+            current: QtWidgets.QListWidgetItem = self.currentItem()
         
         if current is not None:
             self.selection_list.selected_element = current.element.name
