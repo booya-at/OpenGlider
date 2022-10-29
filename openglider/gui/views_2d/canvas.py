@@ -205,7 +205,7 @@ class LayoutGraphics(QtWidgets.QGraphicsObject):
 
 
     def paint(self, p: QtGui.QPainter, *args: Any) -> None:
-        def setup_brush(color_code: str | Color):
+        def setup_brush(color_code: str | Color) -> None:
             if isinstance(color_code, str):
                 color = Color.parse_hex(color_code)
             else:

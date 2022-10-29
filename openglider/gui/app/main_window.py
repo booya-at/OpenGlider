@@ -53,6 +53,8 @@ class Action():
 class MainWindow(QtWidgets.QMainWindow):
     main_widget_class = GliderPreview
 
+    actions: Dict[str, Action]
+
     def __init__(self, app: GliderApp):
         super().__init__()
         self.setWindowTitle("Glider Schneider")
@@ -61,7 +63,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.state = app.state
 
         self.actions = {}
-        self.active_windows = []
 
         self.main_widget = QtWidgets.QSplitter()
         self.main_widget.setOrientation(QtCore.Qt.Vertical)
@@ -137,7 +138,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.signal_handler = ConsoleHandler(self.console)
 
-        self.previews = {}
         self.add_actions()
 
         self.setAcceptDrops(True)
@@ -214,7 +214,7 @@ class MainWindow(QtWidgets.QMainWindow):
         return self.app.loop
 
     async def execute(self, function: Callable[[Any], Any], *args: Any, **kwargs: Any) -> Any:
-        logger.warning(f"use main application to execute function")
+        logger.warning(f"use main application to execute function: {function}")
         result = await self.app.execute(function, *args, **kwargs)
         return result
     
@@ -239,13 +239,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 fname = str(url.toLocalFile())
             
             if fname:
-                if fname.endswith("hdf5"):
-                    self.load_fem_case()
-                    from openglider_physics.gui.wizzards.physics.fem import (
-                        FemImportTask, FemView)
-                    self.task_queue.append(FemImportTask(fname), FemView)
-                else:
-                    asyncio.create_task(self.load_glider(fname))
+                asyncio.create_task(self.load_glider(fname))
             #self.load_image()
         else:
             e.ignore()

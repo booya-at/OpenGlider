@@ -1,3 +1,4 @@
+import inspect
 import json
 import re
 import datetime
@@ -18,7 +19,17 @@ class Encoder(json.JSONEncoder):
         elif isinstance(obj, datetime.datetime):
             return str(obj)
         elif hasattr(obj, "__json__"):
-            result = obj.__json__()
+            if inspect.isclass(obj):
+                return {
+                    "_type": obj.__name__,
+                    "_module": obj.__module__,
+                }
+
+            try:
+                result = obj.__json__()
+            except Exception as e:
+                print(e)
+                raise ValueError(f"could not convert object: {obj}")
 
             if type(result) == dict:
                 type_str = str(obj.__class__)
@@ -29,9 +40,11 @@ class Encoder(json.JSONEncoder):
                     raise ValueError(f"couldn't match type: {type_str}")
                 class_name = match.group(1)
 
-                return {"_type": class_name,
-                        "_module": module,
-                        "data": obj.__json__()}
+                return {
+                    "_type": class_name,
+                    "_module": module,
+                    "data": result
+                }
             else:
                 return result
         else:

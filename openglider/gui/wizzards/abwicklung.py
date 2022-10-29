@@ -150,9 +150,17 @@ class PlotWizzard(GliderWindow):
 
 
 class PatternTask(Task):
+    multiprocessed: bool = False
+    
     def __init__(self, patterns: Patterns, directory: str):
         self.patterns = patterns
         self.directory = directory
+
+    def __json__(self):
+        return {
+            "patterns": self.patterns,
+            "directory": self.directory
+        }
 
     def get_name(self) -> str:
         return f"Patterns: {self.patterns.project.name} ({self.directory})"

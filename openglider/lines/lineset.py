@@ -1,8 +1,10 @@
 from __future__ import annotations
+from cmath import isnan
 
 import copy
 import dataclasses
 import logging
+import math
 import os
 import re
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
@@ -62,6 +64,7 @@ class LineSet(object):
 
 
         self.mat = SagMatrix(len(self.lines))
+        self.rename_lines()
         
 
     def __repr__(self) -> str:
@@ -72,6 +75,36 @@ class LineSet(object):
         """.format(super(LineSet, self).__repr__(),
                    len(self.lines),
                    self.total_length)
+
+    def __json__(self) -> Dict[str, Any]:
+        lines = [l.__json__() for l in self.lines]
+        nodes = list(self.nodes)
+        for line in lines:
+            line["upper_node"] = nodes.index(line["upper_node"])
+            line["lower_node"] = nodes.index(line["lower_node"])
+
+        return {
+            'lines': lines,
+            'nodes': nodes,
+            'v_inf': self.v_inf
+        }
+
+    @classmethod
+    def __from_json__(cls, lines: List[Dict[str, Any]], nodes: List[Node], v_inf: euklid.vector.Vector3D) -> LineSet:
+        lines_new = []
+        for line in lines:
+            if isinstance(line["upper_node"], int):
+                line["upper_node"] = nodes[line["upper_node"]]
+            if isinstance(line["lower_node"], int):
+                line["lower_node"] = nodes[line["lower_node"]]
+            
+            lines_new.append(Line.__from_json__(**line))
+        
+        v_inf = euklid.vector.Vector3D(v_inf)
+        obj = cls(lines_new, v_inf)
+        obj.recalc()
+        return obj
+
     @property
     def v_inf(self) -> euklid.vector.Vector3D:
         return self._v_inf
@@ -219,15 +252,8 @@ class LineSet(object):
         if LineSet.calculate_sag = True, drag induced sag will be calculated
         :return: self
         """
-        # for att in self.lower_attachment_points:
-        #     for line in self.get_upper_connected_lines(att):
-        #         for node in self.get_upper_influence_nodes(line):
-        #             node.get_position()
-        # TODO: recalc always for reproducibility
-
-        if iterations > 1:
-            for line in self.lines:
-                line.force = None
+        for line in self.lines:
+            line.force = None
 
         if glider is not None:
             logger.info("get positions")
@@ -239,6 +265,9 @@ class LineSet(object):
                     p.get_position(rib)
 
         self.calculate_sag = calculate_sag
+
+        for line in self.lines:
+            line.v_inf = self.v_inf
         
         logger.info("calc geo")
         for _i in range(iterations):
@@ -253,12 +282,20 @@ class LineSet(object):
 
     def _calc_geo(self, start: Optional[List[Line]]=None) -> None:
         if start is None:
-            start = self.lowest_lines
-        for line in start:
+            start_lines = self.lowest_lines
+        else:
+            start_lines = start
+
+        for line in start_lines:
             if line.upper_node.node_type == Node.NODE_TYPE.KNOT and line.init_length is not None:  # no gallery line
                 lower_point = line.lower_node.position
                 tangential = self.get_tangential_comp(line, lower_point)
-                line.upper_node.position = lower_point + tangential * line.init_length
+
+                upper_point = lower_point + tangential * line.init_length
+
+                if math.isnan(upper_point[0]):
+                    raise ValueError(f"{line} {lower_point} {tangential} {line.init_length}")
+                line.upper_node.position = upper_point
 
                 self._calc_geo(self.get_upper_connected_lines(line.upper_node))
 
@@ -310,15 +347,24 @@ class LineSet(object):
                     if line.force is None:
                         logger.warning(f"error line force not set: {line}")
                     else:
-                        force += line.diff_vector * line.force
+                        line_force = line.diff_vector * line.force
+                        if math.isnan(line_force.length()):
+                            raise ValueError(f"invalid line force: {line} {line.upper_node} {line.lower_node} {line.force}")
+                        force += line_force
                 # vec = line_lower.upper_node.vec - line_lower.lower_node.vec
-                line_lower.force = force.dot(vec)
+
+                result = force.dot(vec)
+
+                if math.isnan(result):
+                    raise ValueError(f"invalid force: {force} {vec} {line_lower}")
+                else:
+                    line_lower.force = force.dot(vec)
 
             else:
                 force = line_lower.upper_node.force
                 force_projected = proj_force(force, vec)
                 if force_projected is None:
-                    logger.error(f"invalid line: {line_lower.name} ({line_lower.type})")
+                    logger.error(f"invalid line: {line_lower.name} ({line_lower.type}, {force} {vec})")
                     line_lower.force = 10
                 else:
                     line_lower.force = force_projected
@@ -380,6 +426,10 @@ class LineSet(object):
         # we have to make sure to not overcompensate the residual force
         if line.has_geo and line.force is not None:
             r = self.get_residual_force(line.upper_node)
+
+            if r.length() < 1e-10:
+                return line.diff_vector
+
             s = line.get_correction_influence(r)
 
             for con_line in self.get_connected_lines(line.upper_node):
@@ -389,7 +439,12 @@ class LineSet(object):
             # of the upper node has impact on the compensation of residual force
             # of the lower node (and the other way).
             comp = line.diff_vector + r / s * 0.5
-            return comp.normalized()
+            comp_normalized = comp.normalized()
+
+            if math.isnan(comp_normalized[0]):
+                raise ValueError(f"invalid comp_normalized: {comp} {r} {s}")
+            
+            return comp_normalized
 
             # if norm(r) == 0:
             #     return line.diff_vector
@@ -483,9 +538,9 @@ class LineSet(object):
                     if floor:
                         floor_no = int(floor[:-1]) # strip "_"
 
-                    layer_no = sum([ord(l) for l in layer.lower()])
+                    layer_no = sum([ord(l) for l in layer.lower()]) / len(layer)
 
-                    line_values[name] = 100000*floor_no + layer_no * 50 + int(index)
+                    line_values[name] = (layer_no, floor_no, index)
 
                 lines_new.sort(key=lambda line: line_values[line.name])
 
@@ -524,13 +579,13 @@ class LineSet(object):
         for node in start_nodes:
             lines += self.get_upper_connected_lines(node)
 
-        return [(line, self.create_tree([line.upper_node])) for line in self.sort_lines(lines)]
+        return [(line, self.create_tree([line.upper_node])) for line in self.sort_lines(lines, by_names=True)]
 
     def _get_lines_table(self, callback: Callable[[Line], List[str]], start_nodes: Optional[List[Node]]=None, insert_node_names: bool=True) -> Table:
         line_tree = self.create_tree(start_nodes=start_nodes)
         table = Table()
 
-        floors = max(self.floors.values())
+        floors = max(self.floors.values(), default=0)
         columns_per_line = len(callback(line_tree[0][0]))
 
         def insert_block(line: Line, upper: List[Any], row: int, column: int) -> int:
@@ -589,7 +644,7 @@ class LineSet(object):
     node_group_rex = re.compile(r"[^A-Za-z]*([A-Za-z]*)[^A-Za-z]*")
 
     def rename_lines(self) -> LineSet:
-        floors = max(self.floors.values())
+        floors = max(self.floors.values(), default=0)
 
         # get all upper nodes + all connected lines
         upper_nodes = []
@@ -630,6 +685,10 @@ class LineSet(object):
                     lines_new.add(lower_line)
             
             lines = list(lines_new)
+        
+        for line in self.lines:
+            if line.upper_node.node_type != Node.NODE_TYPE.UPPER:
+                line.upper_node.name = line.name
         
         return self
     
@@ -775,31 +834,6 @@ class LineSet(object):
 
     def copy(self) -> LineSet:
         return copy.deepcopy(self)
-
-    def __json__(self) -> Dict[str, Any]:
-        lines = [l.__json__() for l in self.lines]
-        nodes = list(self.nodes)
-        for line in lines:
-            line["upper_node"] = nodes.index(line["upper_node"])
-            line["lower_node"] = nodes.index(line["lower_node"])
-
-        return {
-            'lines': lines,
-            'nodes': nodes,
-            'v_inf': self.v_inf
-        }
-
-    @classmethod
-    def __from_json__(cls, lines: List[Line], nodes: List[Node], v_inf: euklid.vector.Vector3D) -> LineSet:
-        for line in lines:
-            if isinstance(line.upper_node, int):
-                line.upper_node = nodes[line.upper_node]
-            if isinstance(line.lower_node, int):
-                line.lower_node = nodes[line.lower_node]
-        
-        v_inf = euklid.vector.Vector3D(v_inf)
-        obj = cls(lines, v_inf)
-        return obj
 
     def __getitem__(self, name: str) -> Line:
         if isinstance(name, list):

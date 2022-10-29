@@ -28,6 +28,15 @@ class Combine(Mark):
     
     def __json__(self) -> Dict[str, Any]:
         return {"marks": self.marks}
+    
+    @classmethod
+    def __from_json__(cls, marks) -> Combine:
+        return cls(*marks)
+
+    def __repr__(self) -> str:
+        repr_self = self.__class__.__name__
+        repr_children = ", ".join([str(x) for x in self.marks])
+        return f"{repr_self} ({repr_children})"
 
     def __call__(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> List[euklid.vector.PolyLine2D]:
         result: List[euklid.vector.PolyLine2D] = []
@@ -124,7 +133,11 @@ class Dot(Mark):
         self.positions = positions
 
     def __json__(self) -> Dict[str, Any]:
-        return {"pos": self.positions}
+        return {"positions": self.positions}
+    
+    @classmethod
+    def __from_json__(cls, positions) -> Dot:
+        return cls(*positions)
 
     def __call__(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> List[euklid.vector.PolyLine2D]:
         dots = []
@@ -154,7 +167,7 @@ class Rotate(_Modify):
         self.rotation = euklid.vector.Rotation2D(rotation)
         super(Rotate, self).__init__(func)
     
-    def __deepcopy__(self, memo) -> Rotate:
+    def __deepcopy__(self, memo: Any) -> Rotate:
         return Rotate(self.func, self.angle)
 
     def __json__(self) -> Dict[str, Any]:

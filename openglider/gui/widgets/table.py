@@ -4,14 +4,14 @@ import openglider.utils.table
 
 
 class QTable(QtWidgets.QTableWidget):
-    def __init__(self, parent=None, table=None, readonly=True):
+    def __init__(self, parent: QtWidgets.QWidget=None, table: openglider.utils.table.Table=None, readonly: bool=True):
         self.readonly = readonly
         super(QTable, self).__init__(parent=parent)
 
         if table is not None:
             self.push_table(table)
 
-    def push_table(self, table: openglider.utils.table.Table):
+    def push_table(self, table: openglider.utils.table.Table) -> None:
         self.clear()
 
         self.setColumnCount(table.num_columns)

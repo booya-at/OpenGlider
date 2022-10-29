@@ -231,6 +231,8 @@ class GliderList(QtWidgets.QListWidget):
         elif isinstance(glider, GliderProject):
             project = glider
             project.filename = filename
+        else:
+            raise ValueError(f"cannot import {glider}")
         
         if project.name is None:
             name = os.path.split(filename)[1]

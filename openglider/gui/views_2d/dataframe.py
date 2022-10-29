@@ -1,12 +1,9 @@
-import re
-from typing import List, Any, Optional
-from openglider.gui.qt import QtCore, QtGui, QtWidgets
-from openglider.utils.colors import Color, colorwheel
-import pyqtgraph
 import logging
+from typing import Any, Dict, List, Optional
+
 import pandas
-import numpy
-from openglider.vector.drawing import Layout
+import pyqtgraph
+from openglider.utils.colors import Color, colorwheel
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +11,8 @@ class DataFramePlot(pyqtgraph.PlotWidget):
     log_x = False
     log_y = False
     grid = False
+
+    column_plots: Dict[str, pyqtgraph.PlotDataItem]
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)

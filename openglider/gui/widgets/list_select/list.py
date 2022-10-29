@@ -55,7 +55,7 @@ class ListWidget(QtWidgets.QListWidget, Generic[ListItemType]):
 
     def _changed(self, current: QtWidgets.QListWidgetItem | None=None, next_value: QtWidgets.QListWidgetItem | None=None) -> None:
         if current is None:
-            current: QtWidgets.QListWidgetItem = self.currentItem()
+            current = self.currentItem()
         
         if current is not None:
             self.selection_list.selected_element = current.element.name

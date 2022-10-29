@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Generic, List, Tuple, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Generic, List, Tuple, TypeVar
 from datetime import datetime
 import re
 from openglider.glider.glider import Glider
@@ -45,7 +45,7 @@ class SelectionItem(QtWidgets.QWidget, Generic[T]):
         super().__init__()
         self.obj = obj
         self.name = name
-        self.on_change = []
+        self.on_change: List[Callable[[SelectionItem[T]], None]] = []
 
         self.setLayout(QtWidgets.QHBoxLayout())
 

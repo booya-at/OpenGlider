@@ -59,6 +59,8 @@ class Cache(Generic[ListType, CacheListType]):
 
     
     def get_selected(self) -> CacheListType:
+        if self.elements.selected_element is None:
+            raise ValueError("no selected element")
         return self._get_object(self.elements.selected_element)[0]
     
     def get_update(self) -> ChangeSet[CacheListType]:

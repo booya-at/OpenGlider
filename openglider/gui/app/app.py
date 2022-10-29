@@ -11,7 +11,7 @@ import sys
 import time
 import traceback
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Callable, Type
+from typing import TYPE_CHECKING, Any, Callable, Optional, Type
 
 import qtmodern.styles
 import qtmodern.windows
@@ -37,7 +37,7 @@ os.environ.setdefault('QT_API', 'pyside2')
 
 class GliderApp(QtWidgets.QApplication):
     debug = False
-    exception_window = None
+    exception_window: QtWidgets.QMessageBox | None = None
     state: ApplicationState
 
     def __init__(self, *args: Any, **kwargs: Any):
@@ -80,6 +80,7 @@ class GliderApp(QtWidgets.QApplication):
 
         self.state = openglider.gui.app.state.ApplicationState.load()
         self.task_queue = openglider.utils.tasks.TaskQueue(self.execute)
+        #self.task_queue = openglider.utils.tasks.TaskQueue()
         self.task_queue.exception_hook = self.show_exception
         self.main_window = openglider.gui.app.main_window.MainWindow(self)
         self.main_window.showMaximized()
@@ -119,7 +120,7 @@ class GliderApp(QtWidgets.QApplication):
         if args or kwargs:
             func = functools.partial(function, *args, **kwargs)
         else:
-            func = function
+            func = function  # type: ignore
 
         #with QThreadExecutor(1) as pool:
         try:
@@ -134,7 +135,7 @@ class GliderApp(QtWidgets.QApplication):
             self.show_exception(*sys.exc_info())
             #raise e
 
-    def show_exception(self, exception_type: Type[BaseException], exception_value: BaseException, tracebackobj: TracebackType) -> None:
+    def show_exception(self, exception_type: Type[BaseException], exception_value: BaseException, tracebackobj: Optional[TracebackType]) -> Any:
         """
         Global function to catch unhandled exceptions.
 

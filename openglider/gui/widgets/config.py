@@ -22,7 +22,7 @@ class ConfigWidget(QtWidgets.QWidget):
         self.config = Config()
         self.checkboxes = {}
 
-        def get_clickhandler(prop) -> Callable[[bool], None]:
+        def get_clickhandler(prop: str) -> Callable[[bool], None]:
             
             def toggle_prop(value: bool) -> None:
                 setattr(self.config, prop, value)

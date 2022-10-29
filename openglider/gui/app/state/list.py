@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import  Generator, ItemsView, Sequence, Tuple, TypeVar, Generic, List, Dict, Optional, Iterator, Any
+from typing import Any, Dict, Generic, ItemsView, Iterator, List, Optional, TypeVar
 
 from openglider.utils.colors import Color, colorwheel
-from openglider.utils.dataclass import dataclass, Field
+from openglider.utils.dataclass import Field, dataclass
 
 ListType = TypeVar("ListType")
 
@@ -110,7 +110,7 @@ class SelectionList(Generic[ListType]):
             element.name: element for element in self.elements.values()
         }
     
-    def __iter__(self) -> Generator[ListType]:
+    def __iter__(self) -> Iterator[ListType]:
         for name in self.elements:
             yield self.elements[name].element
     

@@ -11,7 +11,6 @@ import euklid
 
 import openglider
 from openglider.glider.cell.attachment_point import CellAttachmentPoint
-from openglider.glider.rib import minirib
 from openglider.glider.rib.attachment_point import AttachmentPoint
 
 from openglider.glider.rib.rib import Rib
@@ -52,11 +51,9 @@ class Glider(object):
             cell_dct["rib2"] = ribs.index(cell.rib2)
             cells.append(cell_dct)
 
-        lineset_json = self.lineset.__json__()
-
         return {"cells": cells,
                 "ribs": ribs,
-                "lineset": lineset_json
+                "lineset": self.lineset
                 }
 
     @classmethod
@@ -71,7 +68,13 @@ class Glider(object):
             cells_new.append(Cell(**cell))
 
         glider = cls(cells_new, lineset=lineset)
-        #glider.lineset.recalc(calculate_sag= True, glider=glider)
+
+        attachment_points = glider.attachment_points
+        for line in glider.lineset.lines:
+            if line.upper_node.name in attachment_points:
+                line.upper_node = attachment_points[line.upper_node.name]
+        
+        glider.lineset.recalc(calculate_sag= True, glider=glider)
 
         return glider
 

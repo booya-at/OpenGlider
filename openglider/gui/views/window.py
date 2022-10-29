@@ -27,8 +27,7 @@ class Window(QtWidgets.QWidget):
         self.close_button.setIcon(self.icon)
 
         self.close_button.clicked.connect(self.close)
-            
-        logging.info(f"active windows: {self.app.active_windows}")
+
 
     @classmethod
     def get_class_name(cls) -> str:

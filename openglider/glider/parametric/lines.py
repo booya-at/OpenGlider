@@ -119,8 +119,8 @@ class LineSet2D(object):
         for line in lines:
             if isinstance(line["upper_node"], int):
                 line["upper_node"] = nodes[line["upper_node"]]
-            if isinstance(line["upper_node"], int):
-                line["upper_node"] = nodes[line["upper_node"]]
+            if isinstance(line["lower_node"], int):
+                line["lower_node"] = nodes[line["lower_node"]]
             
             new_lines.append(Line2D(**line))
         
@@ -162,13 +162,6 @@ class LineSet2D(object):
         return [node for node in self.nodes if isinstance(node, LowerNode2D)]
 
     def return_lineset(self, glider: Glider, v_inf: euklid.vector.Vector3D) -> LineSet:
-        """
-        Get Lineset_3d
-        :param glider: Glider3D
-        :param v_inf:
-        :return: LineSet (3d)
-        """
-        #v_inf = v_inf or glider.v_inf
         lines: List[Line] = []
         # now get the connected lines
         # get the other point (change the nodes if necessary)
@@ -290,6 +283,28 @@ class LineSet2D(object):
             return [line.upper_node]
         return sum([self.get_influence_nodes(l) for l in self.get_upper_connected_lines(line.upper_node)], [])
 
+    def get_sort_key(self, line: Line2D) -> Tuple[float, int]:
+        nodes = self.get_influence_nodes(line)
+        if not nodes:
+            pass
+        
+        layers = set()
+        min_index = 99999
+
+        for node in nodes:
+            match = re.match(r"([a-zA-Z]+)([0-9]+)", node.name)
+            if not match:
+                raise ValueError(f"invalid node name: {node.name}")
+            
+            layer, index = match.groups()
+            layers.add(layer)
+            min_index = min(int(index), min_index)
+        
+        layer_str = "".join(layers)
+        layer_index = sum([ord(l) for l in layer_str]) / len(layer_str)
+
+        return layer_index, min_index
+
     def create_tree(self, start_node: LowerNode2D | BatchNode2D | None=None) -> Any:
         if start_node is None:
             start_nodes = self.get_lower_attachment_points()
@@ -299,36 +314,11 @@ class LineSet2D(object):
         else:
             lines = self.get_upper_connected_lines(start_node)
 
-        def get_influence_nodes(line: Line2D) -> List[UpperNode2D]:
-            if isinstance(line.upper_node, UpperNode2D):
-                return [line.upper_node]
-            return sum([get_influence_nodes(l) for l in self.get_upper_connected_lines(line.upper_node)], [])
-
         for line in lines:
-            if not get_influence_nodes(line):
+            if not self.get_influence_nodes(line):
                 return line
 
-        def sort_key(line: Line2D) -> Any:
-            nodes = get_influence_nodes(line)
-            if not nodes:
-                pass
-                #return -1
-            
-            layers = set()
-            min_index = 99999
-
-            for node in nodes:
-                match = re.match(r"([a-zA-Z]+)([0-9]+)", node.name)
-                if not match:
-                    raise ValueError(f"invalid node name: {node.name}")
-                
-                layer, index = match.groups()
-                layers.add(layer)
-                min_index = min(int(index), min_index)
-            
-            return "".join(layers) + f"{min_index:09d}"
-
-        lines.sort(key=sort_key)
+        lines.sort(key=self.get_sort_key)
 
         upper_trees = []
 
@@ -437,7 +427,7 @@ class LineSet2D(object):
         return cls(linelist)
 
     def delete_not_connected(self, glider: Glider) -> None:
-        temp = []
+        temp: List[Line2D] = []
         temp_new = []
         attachment_points = glider.attachment_points
         for line in self.lines:

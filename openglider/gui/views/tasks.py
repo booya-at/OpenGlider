@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Optional, Type
+from typing import TYPE_CHECKING, Any, List, Optional, Type
 import logging
 import asyncio
 
@@ -125,7 +125,7 @@ class QTaskQueue(QtWidgets.QWidget):
                 entry.update()
             await asyncio.sleep(1)
 
-    def close(self, *args, **kwargs) -> None:
+    def close(self, *args: Any, **kwargs: Any) -> None:
         #self.update_task.cancel()
         super().close(*args, **kwargs)
 

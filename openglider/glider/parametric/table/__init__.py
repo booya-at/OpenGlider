@@ -1,4 +1,3 @@
-import io
 import logging
 from typing import Any, Dict, List
 
@@ -8,14 +7,14 @@ from openglider.glider.parametric.table.cell.cuts import CutTable
 from openglider.glider.parametric.table.cell.diagonals import DiagonalTable, StrapTable
 from openglider.glider.parametric.table.cell.miniribs import MiniRibTable
 from openglider.glider.parametric.table.curve import CurveTable
+from openglider.glider.parametric.table.elements import TableType
 from openglider.glider.parametric.table.material import CellClothTable, RibClothTable
 from openglider.glider.parametric.table.rib.holes import HolesTable
 from openglider.glider.parametric.table.rib.profile import ProfileTable
 from openglider.glider.parametric.table.rib.rib import SingleSkinTable
 from openglider.glider.parametric.table.rigidfoil import CellRigidTable, RibRigidTable
-from openglider.glider.parametric.table.elements import TableType
 from openglider.utils.table import Table
-
+from openglider.version import __version__
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +81,7 @@ class GliderTables:
     def get_rib_sheet(self) -> Table:
         table = Table()
         table.name = "Rib Elements"
-        table[0,0] = "V"
+        table[0,0] = f"V_{__version__}"
 
         table.append_right(self.profiles.table)
         table.append_right(self.holes.table)
@@ -99,7 +98,7 @@ class GliderTables:
     def get_cell_sheet(self) -> Table:
         table = Table()
         table.name = "Cell Elements"
-        table[0,0] = "V"
+        table[0,0] = f"V_{__version__}"
 
         table.append_right(self.cuts.table)
         table.append_right(self.diagonals.table)

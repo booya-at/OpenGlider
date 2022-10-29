@@ -1,12 +1,14 @@
 from __future__ import annotations
 from ast import Call
+import multiprocessing
 
-from typing import Any, Callable, Iterator, List, Optional, Type
+from typing import Any, Callable, Dict, Iterator, List, Optional, Type
 import functools
 import asyncio
 import logging
 import time
 import sys
+from typing_extensions import Self
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +21,8 @@ class Task:
     finished = False
     failed = False
 
+    multiprocessed: bool = False
+
     parent: Optional[Task] = None
     start_time: Optional[float] = None
     end_time: Optional[float] = None
@@ -28,6 +32,10 @@ class Task:
     def __init__(self, name: str=None) -> None:
         self.execute = execute_sync
         self.name = name
+    
+    @classmethod
+    def __from_json__(cls, **kwargs) -> Self:
+        return cls(**kwargs)        
     
     def get_name(self) -> str:
         name = self.__class__.__name__
@@ -88,6 +96,19 @@ class Task:
     async def run(self) -> Any:
         return
 
+import openglider.jsonify
+def run_task_async(jsondata) -> Any:
+    task = openglider.jsonify.loads(jsondata)["data"]
+    try:
+        asyncio.run(task.run())
+    except Exception as e:
+        with open("/home/simon/openglider/error_log", "w+") as outfile:
+            outfile.write(str(e.args))
+
+    return openglider.jsonify.dumps(task)
+
+
+from concurrent.futures import ProcessPoolExecutor
 
 class TaskQueue:
     tasks: List[Task]
@@ -97,7 +118,10 @@ class TaskQueue:
     def __init__(self, execute_function: Callable[[Any], Any]=None):
         self.tasks = []
 
+        self.pool = ProcessPoolExecutor(max_workers=2)
+
         if execute_function is None:
+            #execute_function = self.pool.apply
             execute_function = asyncio.create_task
             
         self.execute = execute_function
@@ -121,6 +145,8 @@ class TaskQueue:
     async def process(self) -> None:
         self.running = True
 
+        loop = asyncio.get_event_loop()
+
         while self.running:
             for task in self.tasks:
                 if task.running:
@@ -130,8 +156,12 @@ class TaskQueue:
                 if not any([task.finished, task.running, task.failed]):
                     if task.is_ready:
                         try:
-                            await task._run(self.execute)
+                            if task.multiprocessed:
+                                await loop.run_in_executor(self.pool, run_task_async, openglider.jsonify.dumps(task))
+                            else:
+                                await task._run(self.execute)
                         except Exception as e:
+                            task.failed = True
                             if self.exception_hook:
                                 self.exception_hook(*sys.exc_info())
                             else:

@@ -30,7 +30,7 @@ def proj_force(force: euklid.vector.Vector3D, vec: euklid.vector.Vector3D) -> Op
     try:
         assert projection**2 >= 0.00001
     except AssertionError:
-        logger.warning(f"singular force projection: {vec} / {force} ({projection}")
+        logger.warning(f"singular force projection: direction: {vec}, force: {force} => {projection}")
         return None
     return force.dot(force) / projection
 

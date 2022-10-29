@@ -52,13 +52,17 @@ def object_hook(dct: Dict[str, Any]) -> Any:
             obj = get_element(dct["_module"], dct["_type"])
         except ModuleNotFoundError as e:
             raise TypeError("{} in element: {} ({})".format(e, dct["_type"], dct["_module"]))
+        
+        if obj is None:
+            raise ValueError(f'could not get {dct["_module"]}.{dct["_type"]}')
+        # class serialized
+        if "data" not in dct:
+            return obj
 
         try:
             # use the __from_json__ function if present. __init__ otherwise
             deserializer = getattr(obj, '__from_json__', None)
             if deserializer is None:
-                if obj is None:
-                    return None
                 deserializer = obj
             try:
                 return deserializer(**dct['data'])

@@ -17,7 +17,7 @@ class ToggleGroup(QtWidgets.QWidget):
 
         def get_clickhandler(prop: str) -> Callable[[Any], None]:
             
-            def toggle_prop(value):
+            def toggle_prop(value: bool) -> None:
                 setattr(self.config, prop, value)
                 self.changed.emit()
             

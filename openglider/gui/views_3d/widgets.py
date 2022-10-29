@@ -5,6 +5,7 @@ import vtkmodules.vtkRenderingCore
 import vtkmodules.qt
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from vtkmodules.vtkRenderingAnnotation import vtkAxesActor
+from vtkmodules.vtkRenderingCore import vtkActor
 
 import openglider.mesh
 from openglider.gui.views_3d.actors import MeshView, PanelView
@@ -56,7 +57,7 @@ class View3D(QtWidgets.QWidget):
             self.show_actor(self.axes)
         self.rerender()
 
-    def show_actor(self, actor) -> None:
+    def show_actor(self, actor: vtkActor) -> None:
         self.renderer.AddActor(actor)
         self.VTKRenderWindow.Render()
 

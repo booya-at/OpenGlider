@@ -109,8 +109,7 @@ class Line(CachedObject):
         """
         #the node vectors can be None or numpy.arrays. So we have to check for both types
         try:
-            return all(list(self.lower_node.position) + 
-                       list(self.upper_node.position))
+            return (self.lower_node.position.length() + self.upper_node.position.length()) > 0
         except TypeError:
             # one of the nodes vec is None
             return False
@@ -192,7 +191,7 @@ class Line(CachedObject):
             # computing weight without sag
             return weight * self.length_no_sag
 
-    @cached_property('force', 'lower_node.position', 'upper_node.position')
+    @cached_property('force', 'lower_node.vec_proj', 'lower_node.position', 'upper_node.vec_proj', 'upper_node.position')
     def force_projected(self) -> float:
         try:
             return self.force * self.length_projected / self.length_no_sag
