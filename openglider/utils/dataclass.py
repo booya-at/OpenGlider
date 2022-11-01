@@ -1,5 +1,4 @@
 from __future__ import annotations
-from errno import EUCLEAN
 
 import euklid
 from typing import TYPE_CHECKING, Callable, Dict, Any, List, Tuple, Type, TypeAlias, TypeVar

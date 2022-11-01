@@ -172,7 +172,7 @@ class Curve:
         start = int(min(x_values))
         end = int(max(x_values))
 
-        start_int = int(start) + (start % 1) > 1e-10
+        start_int = int(start) + ((start % 1) > 1e-10)
 
         x_values_lst = list(range(start_int, int(end)+1))
 
@@ -181,8 +181,13 @@ class Curve:
         
         if end % 1:
             x_values_lst.append(end)
+
+        points = [self.shape.get_point(x, self.get(x)) for x in x_values_lst]
+
+        if start == 1 and self.shape.has_center_cell:
+            points.insert(0, points[0] * euklid.vector.Vector2D([-1,1]))
         
-        return euklid.vector.PolyLine2D([self.shape.get_point(x, self.get(x)) for x in x_values_lst])
+        return euklid.vector.PolyLine2D(points)
 
 
 

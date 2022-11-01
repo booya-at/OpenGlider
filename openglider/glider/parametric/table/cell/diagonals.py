@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class DiagonalTable(CellTable):
 
-    def __init__(self, table: Table=None, file_version: int=None):
+    def __init__(self, table: Table=None, file_version: int=None, migrate: bool=False):
         if file_version == 1:
             pass
             # height (0,1) -> (-1,1)
@@ -19,7 +19,7 @@ class DiagonalTable(CellTable):
             #height1 = height1 * 2 - 1
             #height2 = height2 * 2 - 1
 
-        super().__init__(table)
+        super().__init__(table, migrate=migrate)
 
 
     keywords = {

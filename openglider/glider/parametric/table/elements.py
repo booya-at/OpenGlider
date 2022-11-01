@@ -95,11 +95,10 @@ class ElementTable(Generic[ElementType]):
     table_type: TableType = TableType.general
     keywords: dict[str, Keyword] = {}
 
-    def __init__(self, table: Table=None):
+    def __init__(self, table: Table=None, migrate: bool=False):
         self.table = Table()
-        self.table[0, 0] = f"V_{__version__}"
         if table is not None:
-            if table[0, 0] is not None and table[0, 0] < "V4":
+            if migrate:
                 _table = table.get_rows(0, 1)
                 _table.append_bottom(table.get_rows(1, table.num_rows), space=1)
             else:
@@ -110,9 +109,6 @@ class ElementTable(Generic[ElementType]):
                     data_length = self.keywords[keyword].attribute_length
                     for column in self.get_columns(_table, keyword, data_length):
                         self.table.append_right(column)
-        
-        for i in range(1, self.table.num_rows+1):
-            self.table[i, 0] = i
     
     def __json__(self) -> Dict[str, Any]:
         return {

@@ -79,9 +79,6 @@ def get_glider_tables(glider: ParametricGlider) -> List[Table]:
     cell_sheet = glider.tables.get_cell_sheet()
     rib_sheet = glider.tables.get_rib_sheet()
 
-    cell_sheet["A1"] = file_version
-    rib_sheet["A1"] = file_version
-
     tables.append(cell_sheet)
     tables.append(rib_sheet)
     tables.append(get_airfoil_sheet(glider))
