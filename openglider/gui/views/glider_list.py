@@ -32,7 +32,7 @@ class GliderListWidget(QtWidgets.QWidget):
         self.button_active.clicked.connect(self.toggle_active)
 
         self.button_reload = QtWidgets.QPushButton()
-        self.button_reload.setIcon(Icon("elusive:refresh"))
+        self.button_reload.setIcon(Icon("repeat"))
         self.button_reload.setFixedSize(30,30)
         self.layout().addWidget(self.button_reload)
 
@@ -49,7 +49,7 @@ class GliderListWidget(QtWidgets.QWidget):
         self.layout().addWidget(self.button_color)
 
         self.button_remove = QtWidgets.QPushButton()
-        self.button_remove.setIcon(Icon("elusive:remove"))
+        self.button_remove.setIcon(Icon("trash"))
         #self.button_remove.setIcon(self.style().standardIcon("edit-delete"))
         self.button_remove.setFixedSize(30, 30)
         self.layout().addWidget(self.button_remove)
