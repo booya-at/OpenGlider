@@ -10,7 +10,7 @@ from openglider.glider.project import GliderProject
 from openglider.gui.app.state import ApplicationState
 from openglider.gui.qt import QtCore, QtWidgets, QtGui, QAction
 from openglider.gui.views.compare import GliderPreview
-from openglider.gui.views.console import ConsoleHandler, LoggingConsole
+from openglider.gui.views.console import ConsoleHandler, ConsoleWidget
 from openglider.gui.views.diff import DiffView
 from openglider.gui.views.glider_list import GliderList
 from openglider.gui.views.tasks import QTaskQueue
@@ -133,7 +133,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.task_queue = QTaskQueue(self, self.app.task_queue)
         self.top_panel.addTab(self.task_queue, "Tasks")
 
-        self.console = LoggingConsole(self)
+        self.console = ConsoleWidget(self)
         self.bottom_panel.layout().addWidget(self.console, 75)
 
         self.signal_handler = ConsoleHandler(self.console)
@@ -202,12 +202,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
                 self.menus[menu_name].addAction(qt_action)
                 self.actions[name] = action
-
-    def call_action(self, name: str) -> None:
-        raise NotImplementedError()
-        action = self.actions[name]
-        action.run()
-
     
     @property
     def loop(self) -> QtCore.QEventLoop:

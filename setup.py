@@ -56,7 +56,7 @@ setup(
             "qtawesome",
             "qasync",
             "qtmodern",
-            "pyqtconsole",
+            "qtconsole",
             "iconify",
             "pyqtgraph",
             "matplotlib",

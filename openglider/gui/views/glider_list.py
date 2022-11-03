@@ -49,8 +49,7 @@ class GliderListWidget(QtWidgets.QWidget):
         self.layout().addWidget(self.button_color)
 
         self.button_remove = QtWidgets.QPushButton()
-        self.button_remove.setIcon(Icon("trash"))
-        #self.button_remove.setIcon(self.style().standardIcon("edit-delete"))
+        self.button_remove.setIcon(Icon("multiply"))
         self.button_remove.setFixedSize(30, 30)
         self.layout().addWidget(self.button_remove)
 
