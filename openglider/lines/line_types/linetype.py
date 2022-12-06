@@ -14,7 +14,7 @@ registry: Dict[str, LineType] = {}
 class LineType:
     name: str
     thickness: float
-    stretch_curve: Union[List[Tuple[float, float]], List[List[float]]]
+    stretch_curve: Union[List[Tuple[float, float]], List[List[float]], float]
     min_break_load: float | None = None
     weight: float = 0
     sheated: bool = False
@@ -105,7 +105,7 @@ class LineType:
                     <tr>
                         <td>name</td>
                         <td>thickness</td>
-                        <td>stretch_curve</td>
+                        <td>stretch</td>
                         <td>spring</td>
                         <td>resistance</td>
                         <td>weight</td>
@@ -115,12 +115,15 @@ class LineType:
                 </thead>
                 """
         
-        for line_type in registry.values():
+        sorted_types = list(registry.values())
+        sorted_types.sort(key=lambda line_type: line_type.name)
+        for line_type in sorted_types:
+            stretch = 100 * (line_type.get_stretch_factor(line_type.min_break_load)-1)
             html += f"""
                 <tr>
                     <td>{line_type.name}</td>
                     <td>{line_type.thickness*1000:.02f}</td>
-                    <td>{line_type.stretch_curve}</td>
+                    <td>{stretch:.2f}%</td>
                     <td>{line_type.get_spring_constant() or 0:.0f}</td>
                     <td>{line_type.min_break_load or 0:.02f}</td>
                     <td>{line_type.weight or 0:.02f}</td>

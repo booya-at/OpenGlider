@@ -50,17 +50,21 @@ class AttachmentPointTable(RibTable):
         
         return node
     
-    def apply_forces(self, forces: Dict[str, euklid.vector.Vector3D]) -> None:
+    def apply_forces(self, forces: Dict[str, euklid.vector.Vector3D | float]) -> None:
         new_table = Table()
 
         for keyword_name, keyword in self.keywords.items():
             data_length = keyword.attribute_length
             for column in self.get_columns(self.table, keyword_name, data_length):
-                for row in range(1, column.num_rows):
+                for row in range(2, column.num_rows):
                     name = column[row, 0]
                     if name:
                         if name in forces:
-                            column[row, 2] = str(list(forces[name]))
+                            force = forces[name]
+                            try:
+                                column[row, 2] = str(list(force))
+                            except TypeError:
+                                column[row, 2] = force
                         else:
                             logger.warning(f"no force for {name}")
                 

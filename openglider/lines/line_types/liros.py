@@ -89,3 +89,16 @@ LineType("liros.dsl350", 2., [[100, 0.15], [300, 0.33]], 3500, 3.25)
 
 LineType("liros.dsl600", 2.4, [[100, 0.08], [300, 0.24]], 6000, 4.3)
 
+
+LineType("liros.dc60", 0.6, 3.2, 600, 1, False)
+LineType("liros.dc100", 0.8, 3., 1000, 1, False)
+LineType("liros.dc120", 0.85, 3.2, 1200, 1, False)
+LineType("liros.dc160", 1.1, 2.3, 1600, 1, False)
+LineType("liros.dc200", 1.6, 3.7, 2000, 1, False)
+
+LineType("liros.ppsl120", 1.15, 3.7, 1200, 1, True)
+LineType("liros.ppsl160", 1.4, 3.7, 1600, 1, True)
+LineType("liros.ppsl191", 1.2, 3.7, 1900, 1, True)
+LineType("liros.ppsl200", 1.42, 3.7, 2000, 1, True)
+LineType("liros.ppsl275", 1.9, 3.7, 2750, 1, True)
+LineType("liros.ppsl350", 2.25, 3.7, 3500, 1, True)

@@ -220,9 +220,6 @@ class ParametricGlider:
     def apply_aoa(self, glider: Glider) -> None:
         aoa_values = self.get_aoa()
 
-        if self.shape.has_center_cell:
-            aoa_values.insert(0, aoa_values[0])
-
         for rib, aoa in zip(glider.ribs, aoa_values):
             rib.aoa_relative = aoa
 
@@ -274,7 +271,7 @@ class ParametricGlider:
         x_values = self.shape.rib_x_values
         shape_ribs = self.shape.ribs
 
-        aoa_int = euklid.vector.Interpolation(self.aoa.get_sequence(num).nodes)
+        aoa_values = self.get_aoa()
         zrot_int = euklid.vector.Interpolation(self.zrot.get_sequence(num).nodes)
 
         arc_pos = self.arc.get_arc_positions(x_values).tolist()
@@ -341,7 +338,7 @@ class ParametricGlider:
                 arcang=rib_angles[rib_no],
                 xrot=self.tables.rib_modifiers.get_xrot(rib_no),
                 glide=self.glide,
-                aoa_absolute=aoa_int.get_value(abs(x_value)),
+                aoa_absolute=aoa_values[rib_no],
                 zrot=zrot_int.get_value(abs(x_value)),
                 holes=this_rib_holes,
                 rigidfoils=this_rigid_foils,
@@ -350,7 +347,7 @@ class ParametricGlider:
                 sharknose=sharknose,
                 attachment_points=[]
             )
-            rib.aoa_relative = aoa_int.get_value(abs(x_value))
+            rib.aoa_relative = aoa_values[rib_no]
 
             singleskin_data = self.tables.rib_modifiers.get(rib_no)
             if singleskin_data:

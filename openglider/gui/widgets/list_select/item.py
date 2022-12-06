@@ -64,7 +64,7 @@ class ListItemWidget(QtWidgets.QWidget, Generic[ListItemType]):
     def toggle_active(self) -> None:
         self.list_item.active = not self.list_item.active
         self.update_active_icon()
-        self.parent._changed()
+        self.list._changed()
     
     def update_active_icon(self) -> None:
         if self.list_item.active:

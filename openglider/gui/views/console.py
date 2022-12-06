@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+import openglider
 from openglider.gui.qt import QtCore
 from qasync import QEventLoop
 from qtconsole.inprocess import (QtInProcessKernelClient,
@@ -62,6 +63,17 @@ class ConsoleWidget(RichJupyterWidget):
         self.set_default_style("linux")
         self.font_size = 6
         self.gui_completion = 'droplist'
+
+        self.push_local_ns("app", self.app)
+        self.push_local_ns("openglider", openglider)
+    
+    def _complete(self):
+        code = self.input_buffer
+
+        # TODO: check what happens on autocompletion
+        if code.startswith("app"):
+            return
+        return super()._complete()
 
     def push_local_ns(self, name, value):
         """

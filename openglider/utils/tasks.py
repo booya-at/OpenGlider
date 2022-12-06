@@ -1,13 +1,11 @@
 from __future__ import annotations
-from ast import Call
-import multiprocessing
 
-from typing import Any, Callable, Dict, Iterator, List, Optional, Type
-import functools
 import asyncio
 import logging
-import time
 import sys
+import time
+from typing import Any, Callable, Dict, Iterator, List, Optional, Type
+
 from typing_extensions import Self
 
 logger = logging.getLogger(__name__)
@@ -97,7 +95,9 @@ class Task:
         return
 
 import openglider.jsonify
-def run_task_async(jsondata) -> Any:
+
+
+def run_task_async(jsondata: Any) -> Any:
     task = openglider.jsonify.loads(jsondata)["data"]
     try:
         asyncio.run(task.run())
@@ -109,6 +109,7 @@ def run_task_async(jsondata) -> Any:
 
 
 from concurrent.futures import ProcessPoolExecutor
+
 
 class TaskQueue:
     tasks: List[Task]

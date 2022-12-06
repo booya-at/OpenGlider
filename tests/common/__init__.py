@@ -20,7 +20,6 @@ from openglider.glider.parametric import ParametricGlider
 import_dir = os.path.dirname(os.path.abspath(__file__))
 test_dir = os.path.dirname(import_dir)
 #demokite = import_dir + '/demokite.ods'
-# demokite = import_dir + "/glider2d_midrip.json"
 demokite = import_dir + "/demokite.json"
 
 

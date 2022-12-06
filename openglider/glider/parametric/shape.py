@@ -121,6 +121,7 @@ class ParametricShape:
         if self.stabi_cell:
             width = 0.4 * (xvalues[-1] - xvalues[-2])
             xvalues.append(xvalues[-1] + width)
+            xvalues = [p*self.span/xvalues[-1] for p in xvalues]
         
         if self.has_center_cell:
             xvalues.insert(0, -xvalues[0])
