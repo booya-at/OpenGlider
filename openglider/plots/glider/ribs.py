@@ -177,9 +177,10 @@ class RibPlot(object):
     def insert_holes(self) -> List[euklid.vector.PolyLine2D]:
         holes = []
         for hole in self.rib.holes:
-            for l in hole.get_flattened(self.rib):
-                self.plotpart.layers[self.layer_name_crossports].append(l)
-                holes.append(l)
+            for line in hole.get_curves(self.rib, scale=True):
+                holes.append(line)
+            
+            self.plotpart += hole.get_flattened(self.rib)
         
         return holes
 

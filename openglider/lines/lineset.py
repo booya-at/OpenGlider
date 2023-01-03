@@ -540,7 +540,7 @@ class LineSet(object):
 
                     layer_no = sum([ord(l) for l in layer.lower()]) / len(layer)
 
-                    line_values[name] = (layer_no, floor_no, index)
+                    line_values[name] = (layer_no, floor_no, int(index))
 
                 lines_new.sort(key=lambda line: line_values[line.name])
 

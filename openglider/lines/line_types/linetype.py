@@ -49,7 +49,7 @@ class LineType:
         self.thickness = self.thickness / 1000
         self.seam_correction = self.seam_correction / 1000
 
-        if self.min_break_load is None:
+        if self.min_break_load is None and isinstance(self.stretch_curve, list):
             self.min_break_load = self.stretch_curve[-1][0]
 
         registry[self.name] = self
@@ -82,7 +82,9 @@ class LineType:
             
         return result
 
-    def get_stretch_factor(self, force: float) -> float:
+    def get_stretch_factor(self, force: float | None) -> float:
+        if force is None:
+            return 1 + self.stretch_interpolation.nodes[-1][1] / 100
         return 1. + self.stretch_interpolation.get_value(force) / 100
 
     def predict_weight(self) -> float:
@@ -104,6 +106,7 @@ class LineType:
                 <thead>
                     <tr>
                         <td>name</td>
+                        <td>sheated</td>
                         <td>thickness</td>
                         <td>stretch</td>
                         <td>spring</td>
@@ -122,6 +125,7 @@ class LineType:
             html += f"""
                 <tr>
                     <td>{line_type.name}</td>
+                    <td>{line_type.sheated}</td>
                     <td>{line_type.thickness*1000:.02f}</td>
                     <td>{stretch:.2f}%</td>
                     <td>{line_type.get_spring_constant() or 0:.0f}</td>

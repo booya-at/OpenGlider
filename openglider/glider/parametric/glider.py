@@ -369,7 +369,14 @@ class ParametricGlider:
             ballooning_factor = ballooning_factors[cell_no]
             ballooning = self.merge_ballooning(*ballooning_factor)
             
-            cell = Cell(rib1=rib1, rib2=rib2, ballooning=ballooning, name="c{}".format(cell_no+1), attachment_points=[])
+            cell = Cell(
+                rib1=rib1,
+                rib2=rib2,
+                ballooning=ballooning,
+                name="c{}".format(cell_no+1),
+                attachment_points=[],
+                ballooning_ramp=self.tables.ballooning_factors.get_ballooning_ramp(cell_no)
+                )
 
             attachment_points = self.tables.attachment_points_cell.get(cell_no, curves=curves, cell=cell)
             cell.attachment_points = attachment_points

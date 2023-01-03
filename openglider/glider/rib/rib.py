@@ -64,7 +64,7 @@ class Rib:
         if scale:
             return self.transformation.apply(data)
         else:
-            return self.rotation_matrix.apply(data) + self.pos
+            return self.rotation_matrix.apply(data).move(self.pos)
 
     def align(self, point: euklid.vector.Vector2D, scale: bool=True) -> euklid.vector.Vector3D:
         if scale:
@@ -178,7 +178,7 @@ class Rib:
 
         if len(self.holes) > 0 and hole_num > 3:
             for hole in self.holes:
-                curves = hole.get_flattened(self, num=hole_num, scale=False)
+                curves = hole.get_curves(self, num=hole_num, scale=False)
 
                 for curve in curves:
                     start_index = len(vertices)
@@ -206,7 +206,13 @@ class Rib:
             points = self.align_all(euklid.vector.PolyLine2D(mesh.points))
             boundaries = {self.name: list(range(len(mesh.points)))}
 
-            return Mesh.from_indexed(points.nodes, polygons={"ribs": [(tri, {}) for tri in mesh.elements]} , boundaries=boundaries)
+            rib_mesh = Mesh.from_indexed(points.nodes, polygons={"ribs": [(tri, {}) for tri in mesh.elements]} , boundaries=boundaries)
+            
+            for hole in self.holes:
+                if hole_mesh := hole.get_mesh(self):
+                    rib_mesh += hole_mesh
+
+            return rib_mesh
 
     @cached_function("self")
     def get_offset_outline(self, margin: float) -> pyfoil.Airfoil:        

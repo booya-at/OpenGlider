@@ -356,7 +356,7 @@ class Glider(object):
     def trailing_edge_length(self) -> float:
         d = 0.
         for i, cell in enumerate(self.cells):
-            ballooning = (cell.ballooning[1] + cell.ballooning[-1])/2
+            ballooning = (cell.ballooning_modified[1] + cell.ballooning_modified[-1])/2
             vector = cell.prof1.get(0) - cell.prof2.get(0)
 
             diff = vector.length() * (1 + ballooning)

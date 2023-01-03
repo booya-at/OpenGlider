@@ -65,22 +65,45 @@ class KnotCorrections:
         for knot in self.knots_table:
             key = self._knot_key(*knot[:3])
             self.knots_dict[key] = knot[3:]
+
+    def predict(self, lower_type: LineType, upper_type: LineType, num: int) -> Tuple[float, float]:
+        d1_base = 6.86042156e-01
+        d1_num = 2.89561675e-01
+        d2_base = 2.67032978
+        d2_num = 4.82535042e-02
+        sheet_factor = 1.48554646
+        count_factor = 7.22786326e-04
+        
+        d1 = lower_type.thickness
+        d2 = upper_type.thickness
+    
+        d1_sheet = d2_sheet = 1.
+        if lower_type.sheated:
+            d1_sheet *= sheet_factor
+        
+        if upper_type.sheated:
+            d2_sheet *= sheet_factor
+            
+            
+        base_amount = (d1_base + num * d1_num) * d1 * d1_sheet + (d2_base + num * d2_num) * d2 * d2_sheet
+        return (
+            base_amount,
+            base_amount + count_factor * (num-1)
+        )
+    
     
     def get(self, lower_type: LineType, upper_type: LineType, upper_num: int) -> List[float]:
         key = self._knot_key(lower_type, upper_type, upper_num)
 
         if key not in self.knots_dict:
             logger.warning(f"no shortening values for {lower_type} and {upper_type} with {upper_num} top lines")
-            return [0] * upper_num
+            first, last = self.predict(lower_type, upper_type, upper_num)
+        else:
+            try:
+                first = self.knots_dict[key][0]
+                last = self.knots_dict[key][1]
+            except:
+                raise Exception(f"whooot {lower_type} and {upper_type} with {upper_num} top")
 
-        try:
-            first = self.knots_dict[key][0] * 0.001
-            last = self.knots_dict[key][1] * 0.001
-        except:
-            raise Exception(f"whooot {lower_type} and {upper_type} with {upper_num} top")
-        
-        if upper_num == 1:
-            return [first]
-
-        return [first + index * (last-first) / (upper_num-1) for index in range(upper_num)]
+        return [(first + index * (last-first) / (upper_num-1)) * 0.001 for index in range(upper_num)]
 

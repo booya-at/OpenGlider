@@ -18,7 +18,7 @@ class CellCache(Cache[GliderProject, GliderCellPlots]):
 
 
 class CellView(QtWidgets.QWidget):
-    grid = False
+    grid = True
 
     def __init__(self, app: GliderApp) -> None:
         super().__init__()

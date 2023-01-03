@@ -5,6 +5,7 @@ import pandas
 import openglider
 import euklid
 from openglider.glider.cell.cell import Cell
+from openglider.utils import sign
 from openglider.utils.colors import Color
 from openglider.glider.project import GliderProject
 from openglider.gui.views_2d.canvas import Canvas, LayoutGraphics
@@ -14,15 +15,6 @@ from openglider.vector.drawing import Layout, PlotPart
 
 
 logger = logging.getLogger(__name__)
-
-
-class CellPlots:
-    def __init__(self, cell: Cell) -> None:
-        self.cell = cell
-    
-    def plot(self, config: CellPlotLayers) -> None:
-        if config.ballooning:
-            self.cell.ballooning
 
 
 class GliderCellPlots:
@@ -49,7 +41,31 @@ class GliderCellPlots:
             ])
             if cell_no < len(self.project.glider_3d.cells):
                 cell = self.project.glider_3d.cells[cell_no]
-                part = PlotPart([cell.ballooning.draw()], marks=[zero_line])
+
+                panels = cell.get_connected_panels()
+                cuts = set()
+                for p in panels:
+                    x1 = max([p.cut_front.x_left, p.cut_front.x_right])
+                    x2 = min([p.cut_back.x_left, p.cut_back.x_right])
+
+                    for x in (x1, x2):
+                        if abs(x) < (1 - 1e-10):
+                            cuts.add(x)
+
+                cut_lines = []
+                ballooning_max = max([-sign(p[0]) * p[1] for p in cell.ballooning_modified])
+                ballooning_min = min([-sign(p[0]) * p[1] for p in cell.ballooning_modified])
+                for cut in cuts:
+                    x = abs(cut)
+                    y = ballooning_max
+                    if cut > 0:
+                        y = ballooning_min
+                    
+                    cut_lines.append(euklid.vector.PolyLine2D([
+                        [x, 0],
+                        [x, y]
+                    ]))
+                part = PlotPart([cell.ballooning_modified.draw()] + cut_lines, marks=[zero_line])
                 dwg = Layout([part])
                 dwg.layer_config["cuts"] = {
                     "id": 'outer',

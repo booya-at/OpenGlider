@@ -42,7 +42,7 @@ class Cell(BaseModel):
     rigidfoils: List[PanelRigidFoil] = Field(default_factory=list)
     name: str = "unnamed"
 
-
+    ballooning_ramp: float | None = None
     sigma_3d_cut: float = 0.06
 
     diagonal_naming_scheme = "{cell.name}d{diagonal_no}"
@@ -203,7 +203,7 @@ class Cell(BaseModel):
             phi_values = profile_phi[index]
             phi_max = max(phi_values)
 
-            bl = self.ballooning[xvalue]
+            bl = self.ballooning_modified[xvalue]
 
             length_bow = (1+bl) * (right_point - left_point).length()  # L
 
@@ -274,11 +274,45 @@ class Cell(BaseModel):
     def get_midribs(self, numribs: int) -> List[Profile3D]:
         y_values = linspace(0, 1, numribs)
         return [self.midrib(y) for y in y_values]
+    
+    @cached_property('ballooning', 'rib1.profile_2d.x_values', 'rib2.profile_2d.x_values', 'panels')
+    def ballooning_modified(self) -> BallooningBase:
+        if self.ballooning_ramp is None:
+            return self.ballooning
 
-    @cached_property('ballooning', 'rib1.profile_2d.x_values', 'rib2.profile_2d.x_values')
+        panels = self.get_connected_panels()
+        cuts = set()
+
+        for p in panels:
+            x1 = max([p.cut_front.x_left, p.cut_front.x_right])
+            x2 = min([p.cut_back.x_left, p.cut_back.x_right])
+
+            for x in (x1, x2):
+                if abs(x) < (1 - 1e-10):
+                    cuts.add(x)
+        
+        ballooning = self.ballooning
+        from openglider.glider.ballooning.new import BallooningNew
+        for cut in cuts:
+            def y(x: euklid.vector.Vector2D) -> euklid.vector.Vector2D:
+                distance = abs(x[0]-cut)
+                y_new = x[1]
+
+                if distance <= self.ballooning_ramp:
+                    y_new *= -(math.cos(distance / self.ballooning_ramp * math.pi) - 1) / 2
+                
+                    return euklid.vector.Vector2D([x[0], y_new])
+                
+                return x
+
+            ballooning = BallooningNew(euklid.vector.Interpolation([y(x) for x in ballooning]), ballooning.name)
+        
+        return ballooning
+
+    @cached_property('ballooning_modified')
     def ballooning_phi(self) -> HashedList:
         x_values = [max(-1, min(1, x)) for x in self.rib1.profile_2d.x_values]
-        balloon = [self.ballooning[i] for i in x_values]
+        balloon = [self.ballooning_modified[i] for i in x_values]
         return HashedList([BallooningBase.arcsinc(1. / (1+bal)) if bal > 0 else 0 for bal in balloon])
     
     @cached_property('ballooning', '_child_cells')

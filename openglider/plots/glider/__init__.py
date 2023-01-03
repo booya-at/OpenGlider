@@ -40,6 +40,7 @@ class PlotMaker:
         self.dribs = collections.OrderedDict()
         self.straps = collections.OrderedDict()
         self.rigidfoils = collections.OrderedDict()
+        self.extra_parts = []
         self._cellplotmakers: Dict[Cell, DefaultCellPlotMaker] = dict()
 
         self.weight: Dict[str, MaterialUsage] = {}
@@ -49,6 +50,7 @@ class PlotMaker:
             "glider3d": self.glider_3d,
             "config": self.config,
             "panels": self.panels,
+            "extra_parts": self.extra_parts,
             #"dribs": self.dribs,
             "ribs": self.ribs
         }
@@ -58,6 +60,7 @@ class PlotMaker:
         ding = cls(dct["glider3d"], dct["config"])
         ding.panels = dct["panels"]
         ding.ribs = dct["ribs"]
+        ding.extra_parts = dct.get("extra_parts", [])
         # ding.dribs = dct["dribs"]
 
         return ding
@@ -116,6 +119,9 @@ class PlotMaker:
                 rib_plot = self.RibPlot(rib, self.config)
 
             rib_plot.flatten(self.glider_3d)
+
+            for hole in rib.holes:
+                self.extra_parts += hole.get_parts(rib)
 
             rib_weight = rib_plot.weight
             if rib_no == 0:
@@ -207,7 +213,11 @@ class PlotMaker:
         if len(rigidfoils.parts):
             rigidfoils.draw_border()
             rigidfoils.add_text(f"rigidfoils")
-            all_layouts += [rigidfoils]
+            all_layouts.append(rigidfoils)
+
+        if len(self.extra_parts):
+            extra_parts = Layout.stack_row(self.extra_parts, self.config.patterns_align_dist_x)
+            all_layouts += group(extra_parts, "extra_parts")
 
         return Layout.stack_column(all_layouts, 0.1, center_x=False)
 

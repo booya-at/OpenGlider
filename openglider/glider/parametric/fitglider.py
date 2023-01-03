@@ -46,7 +46,7 @@ def fit_glider_3d(cls: Type[ParametricGlider], glider: Glider, numpoints: int=3)
     profile_dist = euklid.spline.BSplineCurve.fit(euklid.vector.PolyLine2D([[i, i] for i, rib in enumerate(front)]),  # type: ignore
                                    numpoints)  # type: ignore
 
-    balloonings = [cell.ballooning for cell in glider.cells]
+    balloonings = [cell.ballooning_modified for cell in glider.cells]
     ballooning_dist = euklid.spline.BSplineCurve.fit(euklid.vector.PolyLine2D([[i, i] for i, rib in enumerate(front.nodes[1:])]),  # type: ignore
                                    numpoints)  # type: ignore
 

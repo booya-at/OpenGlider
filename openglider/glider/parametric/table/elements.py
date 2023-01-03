@@ -7,7 +7,6 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 from openglider.glider.curve import GliderCurveType
 from openglider.utils.table import Table
 from openglider.version import __version__
-
 logger = logging.getLogger(__name__)
 
 
@@ -23,7 +22,7 @@ KeywordsType = list[Union[tuple[str, typing.Any], str]]
 
 class Keyword(Generic[ElementType]):
     NoneType = typing.Any
-    target_cls: typing.Any
+    target_cls: typing.Any = dict
     def __init__(self, attributes: Optional[KeywordsType]=None, description: str="", target_cls: Type[ElementType]=None):
         if attributes is None:
             if target_cls is not None:
