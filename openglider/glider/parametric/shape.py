@@ -132,8 +132,6 @@ class ParametricShape:
     @property
     def cell_x_values(self) -> List[float]:
         ribs = self.rib_x_values
-        if self.has_center_cell:
-            ribs.insert(0, -ribs[0])
 
         cells = []
         for x1, x2 in zip(ribs[:-1], ribs[1:]):

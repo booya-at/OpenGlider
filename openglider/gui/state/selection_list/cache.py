@@ -1,4 +1,4 @@
-from openglider.gui.app.state.list import SelectionList
+from openglider.gui.state.selection_list.list import SelectionList, SelectionListItem
 from openglider.utils.dataclass import dataclass
 from typing import Any, List, Tuple, TypeVar, Generic, Dict
 
@@ -14,7 +14,7 @@ class ChangeSet(Generic[ListType]):
 
 
 class Cache(Generic[ListType, CacheListType]):
-    elements: SelectionList[ListType]
+    elements: SelectionList[ListType, SelectionListItem[ListType]]
     cache: Dict[str, CacheListType]
     cache_hashes: Dict[str, int]
     cache_last_active: List[str]
@@ -22,7 +22,7 @@ class Cache(Generic[ListType, CacheListType]):
     update_on_color_change = True
     update_on_name_change = True
 
-    def __init__(self, elements: SelectionList[ListType]):
+    def __init__(self, elements: SelectionList[ListType, SelectionListItem[ListType]]):
         self.elements = elements
 
         self.cache = {}

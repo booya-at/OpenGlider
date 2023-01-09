@@ -4,9 +4,8 @@ from openglider.glider.glider import Glider
 
 from openglider.utils.colors import Color
 from openglider.glider.project import GliderProject
-from openglider.gui.views_2d.canvas import Canvas, LayoutGraphics
+from openglider.gui.views_2d.canvas import LayoutGraphics
 from openglider.gui.views.compare.rib.settings import RibPlotLayers
-from openglider.gui.app.state.state import GuiProject
 from openglider.plots.glider.ribs import RibPlot
 from openglider.vector.drawing import Layout
 

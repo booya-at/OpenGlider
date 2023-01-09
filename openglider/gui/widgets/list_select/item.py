@@ -2,7 +2,7 @@ from __future__ import annotations
 import logging
 from typing import TypeVar, Generic, TYPE_CHECKING
 
-from openglider.gui.app.state.list import SelectionListItem
+from openglider.gui.state.selection_list.list import SelectionListItem, ItemType
 from openglider.gui.widgets import InputLabel
 from openglider.gui.widgets.icon import Icon
 from openglider.utils.colors import Color
@@ -10,17 +10,16 @@ from openglider.gui.qt import QtCore, QtGui, QtWidgets
 
 if TYPE_CHECKING:
     from .list import ListWidget
+    from openglider.gui.widgets.list_select.list import GenericListWidget
 
 
 logger = logging.getLogger(__name__)
 
-ListItemType = TypeVar("ListItemType")
 
-
-class ListItemWidget(QtWidgets.QWidget, Generic[ListItemType]):
+class ListWidgetItemWidget(QtWidgets.QWidget, Generic[ItemType]):
     changed = QtCore.Signal()
 
-    def __init__(self, parent: ListWidget[ListItemType], list_item: SelectionListItem[ListItemType]):
+    def __init__(self, parent: ListWidget[ItemType], list_item: SelectionListItem[ItemType]):
         super().__init__(parent)
         self.list = parent
         self.list_item = list_item
@@ -98,20 +97,28 @@ class ListItemWidget(QtWidgets.QWidget, Generic[ListItemType]):
     def update(self) -> None:
         self.button_color.setStyleSheet(f"background-color: #{self.list_item.color.hex()};")
 
+ListItemWidgetT = TypeVar("ListItemWidgetT", bound=ListWidgetItemWidget)
  
-class ListItem(QtWidgets.QListWidgetItem, Generic[ListItemType]):
-    project: SelectionListItem[ListItemType]
 
-    def __init__(self, parent: ListWidget[ListItemType], element: SelectionListItem[ListItemType]):
+class ListWidgetItem(QtWidgets.QListWidgetItem, Generic[ItemType, ListItemWidgetT]):
+    item: SelectionListItem[ItemType]
+    parent: GenericListWidget[ItemType, ListItemWidgetT]
+    widget: QtWidgets.QWidget
+
+    def __init__(self, parent: GenericListWidget[ItemType, ListItemWidgetT], element: SelectionListItem[ItemType]):
         super().__init__(parent)
         self.parent = parent
-        self.element = element
-        self.widget = ListItemWidget(parent, element)
-
-        self.widget.changed.connect(lambda: self._changed)
-        self.widget.button_remove.clicked.connect(lambda: self._remove())
+        self.item = element
+        self.widget = self.get_widget(parent, element)
 
         self.setSizeHint(self.widget.sizeHint())
+    
+    def get_widget(self, parent: GenericListWidget[ItemType, ListItemWidgetT], element: SelectionListItem[ItemType]) -> ListWidgetItemWidget:
+        widget = ListWidgetItemWidget(parent, element)
+        widget.changed.connect(lambda: self._changed)
+        widget.button_remove.clicked.connect(lambda: self._remove())
+
+        return widget
     
     def _changed(self) -> None:
         self.parent._changed()
@@ -119,7 +126,7 @@ class ListItem(QtWidgets.QListWidgetItem, Generic[ListItemType]):
     def _remove(self) -> None:
         lst = self.parent.selection_list
 
-        name = lst.get_name(self.element)
+        name = lst.get_name(self.item)
         lst.remove(name)
         self.parent.render()
         self.parent._changed()

@@ -1,17 +1,16 @@
 import logging
-from openglider.gui.app.state.cache import Cache
+from openglider.gui.state.glider_list import GliderCache
 
 from openglider.gui.qt import QtGui, QtCore, QtWidgets
 from openglider.gui.app.app import GliderApp
 from openglider.gui.views_2d.canvas import Canvas
 from openglider.gui.views.compare.cell.graphics import GliderCellPlots, CellPlotLayers
 from openglider.gui.views.compare.cell.settings import CellCompareSettings
-from openglider.glider.project import GliderProject
 
 logger = logging.getLogger(__name__)
 
 
-class CellCache(Cache[GliderProject, GliderCellPlots]):
+class CellCache(GliderCache[GliderCellPlots]):
     def get_object(self, element: str) -> GliderCellPlots:
         project = self.elements[element]
         return GliderCellPlots(project.element, color=project.color)

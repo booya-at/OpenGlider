@@ -2,7 +2,7 @@ import logging
 
 from openglider.glider.project import GliderProject
 from openglider.gui.app.app import GliderApp
-from openglider.gui.app.state.cache import Cache
+from openglider.gui.state.glider_list import GliderCache
 from openglider.gui.views.compare.glider_3d.actor import GliderActors
 from openglider.gui.views.compare.glider_3d.config import GliderViewConfigWidget
 from openglider.gui.views_3d.widgets import View3D
@@ -11,7 +11,7 @@ from openglider.gui.qt import QtCore, QtGui, QtWidgets
 logger = logging.getLogger(__name__)
 
 
-class Glider3DCache(Cache[GliderProject, GliderActors]):
+class Glider3DCache(GliderCache[GliderActors]):
     update_on_color_change = False
     update_on_name_change = False
     

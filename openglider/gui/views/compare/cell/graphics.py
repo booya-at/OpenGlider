@@ -2,15 +2,12 @@ from typing import Dict, List
 import logging
 
 import pandas
-import openglider
 import euklid
-from openglider.glider.cell.cell import Cell
 from openglider.utils import sign
 from openglider.utils.colors import Color
 from openglider.glider.project import GliderProject
-from openglider.gui.views_2d.canvas import Canvas, LayoutGraphics
+from openglider.gui.views_2d.canvas import LayoutGraphics
 from openglider.gui.views.compare.cell.settings import CellPlotLayers
-from openglider.gui.app.state.state import GuiProject
 from openglider.vector.drawing import Layout, PlotPart
 
 

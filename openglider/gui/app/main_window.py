@@ -1,18 +1,18 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 import logging
 import os
 from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, Iterator, List, Optional, Tuple
 
 import openglider
 from openglider.glider.project import GliderProject
-from openglider.gui.app.state import ApplicationState
 from openglider.gui.qt import QtCore, QtWidgets, QtGui, QAction
 from openglider.gui.views.compare import GliderPreview
 from openglider.gui.views.console import ConsoleHandler, ConsoleWidget
 from openglider.gui.views.diff import DiffView
-from openglider.gui.views.glider_list import GliderList
+from openglider.gui.views.glider_list import GliderListWidget
 from openglider.gui.views.tasks import QTaskQueue
 from openglider.gui.views.window import GliderWindow
 from openglider.gui.widgets.icon import Icon
@@ -36,7 +36,10 @@ class Action():
         self.action = None
 
     def run(self) -> None:
-        glider = self.main_window.state.get_selected()
+        glider = self.main_window.state.projects.get_selected()
+        if glider is None:
+            return
+
         logger.info(f"open {self.name}({glider.name})")
 
         window = self.widget(self.main_window, glider)
@@ -115,8 +118,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.menus["file"].addAction(load_glider)
         self.menus["file"].addAction(load_demokite)
 
-        self.glider_list = GliderList(self, self.state)
-        self.glider_list.on_change.append(self.current_glider_changed)
+        #self.glider_list = ListWidget(self, self.state.projects)
+        self.glider_list = GliderListWidget(self, self.state.projects)
+        self.glider_list.changed.connect(self.current_glider_changed)
 
         self.overview = QtWidgets.QWidget(self.main_widget)
         self.overview.setLayout(QtWidgets.QHBoxLayout())
@@ -144,12 +148,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.current_glider_changed()
 
 
-        try:
-            selected_glider = self.state.get_selected()
-            self.current_glider_changed(selected_glider)
-        except Exception as e:
-            pass
-    
     def _get_actions(self) -> Dict[str, List[Tuple[object, QtWidgets.QWidget]]]:
         from openglider.gui.app.actions import menu_actions
         return menu_actions
@@ -243,16 +241,14 @@ class MainWindow(QtWidgets.QMainWindow):
     
     @property
     def glider_projects(self) -> List[GliderProject]:
-        return self.state.get_glider_projects()
+        return self.state.projects.get_all()
 
-    def current_glider_changed(self, glider: GliderProject=None) -> None:
+    def current_glider_changed(self) -> None:
         # cleanup widgets
         self.glider_preview.update()
         self.diff_view.update()
-        try:
-            active_wing = self.state.get_selected()
-        except Exception:
-            active_wing = None
+
+        active_wing = self.state.projects.get_selected()
             
         self.console.push_local_ns("active_wing", active_wing)
 
@@ -277,7 +273,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.glider_list.render()
 
         self.console.push_local_ns("wings", list(self.glider_projects))
-        self.current_glider_changed(glider)
+        self.current_glider_changed()
         self.update_menu()
         self.top_panel.setCurrentIndex(0)
 

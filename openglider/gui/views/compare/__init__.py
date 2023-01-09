@@ -2,7 +2,8 @@ import logging
 from typing import Dict
 
 from openglider.gui.app.app import GliderApp
-from openglider.gui.views.compare.aoa import AoAView
+from openglider.gui.views.compare.cell_plots import CellPlotView
+from openglider.gui.views.compare.rib_plots import RibPlotView
 from openglider.gui.views.compare.arc import ArcView
 from openglider.gui.views.compare.cell import CellView
 from openglider.gui.views.compare.data import GliderTable
@@ -27,8 +28,9 @@ class GliderPreview(QtWidgets.QWidget):
         self.tabs = {
             "Shape": ShapeView(app),
             "Arc": ArcView(app),
-            "AoA": AoAView(app),
+            "Rib Plots": RibPlotView(app),
             "Ribs": RibView(app),
+            "Cell Plots": CellPlotView(app),
             "Cells": CellView(app),
             "Table": GliderTable(app),
             "3D": Glider3DView(app)

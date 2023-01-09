@@ -7,12 +7,12 @@ from openglider.glider.project import GliderProject
 from openglider.gui.app.app import GliderApp
 from openglider.gui.views_2d.canvas import Canvas
 from openglider.gui.views_2d.arc import Arc2D
-from openglider.gui.app.state.cache import Cache
+from openglider.gui.state.glider_list import GliderCache
 
 logger = logging.getLogger(__name__)
 
 
-class ArcPlotCache(Cache[GliderProject, Arc2D]):
+class ArcPlotCache(GliderCache[Arc2D]):
     def get_object(self, name: str) -> Arc2D:
         project = self.elements[name]
         return Arc2D(project.element, color=project.color)

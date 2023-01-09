@@ -2,11 +2,11 @@ import datetime
 import enum
 import logging
 from typing import Any, Callable, Dict, List, Tuple
-from openglider.gui.app.state.cache import Cache
 
 import pyqtgraph
 from openglider.glider.project import GliderProject
 from openglider.gui.app.app import GliderApp
+from openglider.gui.state.glider_list import GliderCache
 from openglider.gui.views_2d.canvas import Canvas, LayoutGraphics
 from openglider.gui.widgets.select import EnumSelection
 from openglider.plots.sketches.shapeplot import ShapePlot, ShapePlotConfig
@@ -94,7 +94,7 @@ class ShapeConfigWidget(QtWidgets.QWidget):
         #    self.changed.emit()
 
 
-class ShapePlotCache(Cache[GliderProject, Tuple[ShapePlot, ShapePlot, str]]):
+class ShapePlotCache(GliderCache[Tuple[ShapePlot, ShapePlot, str]]):
     def get_object(self, element: str) -> Tuple[ShapePlot, ShapePlot, str]:
         project = self.elements[element]
         return ShapePlot(project.element), ShapePlot(project.element), element

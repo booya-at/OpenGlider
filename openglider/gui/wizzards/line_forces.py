@@ -1,10 +1,17 @@
-from openglider.gui.qt import QtWidgets, QtGui
+from __future__ import annotations
+from typing import TYPE_CHECKING
+from openglider.glider.project import GliderProject
 
+from openglider.gui.qt import QtWidgets
 from openglider.gui.wizzards.base import Wizard
-from openglider.gui.widgets import QTable, Slider
+from openglider.gui.widgets import QTable
+
+if TYPE_CHECKING:
+    from openglider.gui.app.app import GliderApp
+
 
 class LineForceView(Wizard):
-    def __init__(self, app, project):
+    def __init__(self, app: GliderApp, project: GliderProject):
         super().__init__(app, project)
 
         self.line_force_table = QTable()

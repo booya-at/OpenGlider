@@ -1,19 +1,17 @@
 import logging
-from openglider.gui.app.state.cache import Cache
+from openglider.gui.state.glider_list import GliderCache
 
-from openglider.gui.qt import QtGui, QtCore, QtWidgets
+from openglider.gui.qt import QtWidgets
 from openglider.gui.app.app import GliderApp
 from openglider.gui.views_2d.canvas import Canvas
 from openglider.gui.views.compare.rib.graphics import GliderRibPlots
 from openglider.gui.views.compare.rib.settings import RibCompareSettings
 
-from openglider.glider.project import GliderProject
-
 
 logger = logging.getLogger(__name__)
 
 
-class RibCache(Cache[GliderProject, GliderRibPlots]):
+class RibCache(GliderCache[GliderRibPlots]):
     def get_object(self, element: str) -> GliderRibPlots:
         project = self.elements[element]
         return GliderRibPlots(project.element, color=project.color)

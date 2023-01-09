@@ -8,16 +8,12 @@ from openglider.glider.project import GliderProject
 from openglider.gui.app.app import GliderApp
 from openglider.utils.table import Table
 from openglider.gui.widgets.table import QTable
-
-
-logger = logging.getLogger(__name__)
-
-from openglider.gui.app.state.cache import Cache
+from openglider.gui.state.glider_list import GliderCache
 
 logger = logging.getLogger(__name__)
 
 
-class TableCache(Cache[GliderProject, Table]):
+class TableCache(GliderCache[Table]):
     def get_object(self, name: str) -> Table:
         project = self.elements[name]
         table = project.element.get_data_table()

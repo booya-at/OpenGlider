@@ -1,17 +1,18 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Generic, ItemsView, Iterator, List, Optional, TypeVar
+from typing import Any, Dict, Generic, ItemsView, Iterator, List, Optional, Type, TypeAlias, TypeVar
 
 from openglider.utils.colors import Color, colorwheel
 from openglider.utils.dataclass import Field, dataclass
 
-ListType = TypeVar("ListType")
+ItemType = TypeVar("ItemType")
 
 colors = colorwheel(5)
 
+
 @dataclass
-class SelectionListItem(Generic[ListType]):
-    element: ListType
+class SelectionListItem(Generic[ItemType]):
+    element: ItemType
     active: bool
     color: Color
     name: str
@@ -32,13 +33,15 @@ class SelectionListItem(Generic[ListType]):
     def __hash__(self) -> int:
         return hash(self.element)
 
+SelectionListItemT = TypeVar("SelectionListItemT", bound=SelectionListItem, covariant=True)
 
 @dataclass
-class SelectionList(Generic[ListType]):
-    elements: Dict[str, SelectionListItem[ListType]]=Field(default_factory=lambda: {})
+class SelectionList(Generic[ItemType, SelectionListItemT]):
+
+    elements: Dict[str, SelectionListItemT]=Field(default_factory=lambda: {})
     selected_element: Optional[str] = None
 
-    def get_selected(self) -> Optional[ListType]:
+    def get_selected(self) -> Optional[ItemType]:
         elem = self.get_selected_wrapped()
 
         if elem:
@@ -46,13 +49,13 @@ class SelectionList(Generic[ListType]):
         
         return None
         
-    def get_selected_wrapped(self) -> Optional[SelectionListItem[ListType]]:
+    def get_selected_wrapped(self) -> Optional[SelectionListItemT]:
         if self.selected_element is not None and self.selected_element in self:
             return self.elements[self.selected_element]
         
         return None
     
-    def get_active(self) -> List[ListType]:
+    def get_active(self) -> List[ItemType]:
         result = []
 
         for name, element in self.elements.items():
@@ -61,31 +64,40 @@ class SelectionList(Generic[ListType]):
         
         return result
     
-    def filter_active(self) -> Iterator[SelectionListItem[ListType]]:
+    def filter_active(self) -> Iterator[SelectionListItemT]:
         for name, element in self.elements.items():
             if self.selected_element == name or element.active:
                 yield element
     
-    def get_all(self) -> List[ListType]:
+    def get_all(self) -> List[ItemType]:
         return [e.element for e in self.elements.values()]
     
-    def get(self, name: str) -> ListType:
+    def get(self, name: str) -> ItemType:
         if name not in self:
             raise ValueError(f"no element named {name}")
         
         return self.elements[name].element
     
-    def add(self, name: str, obj: ListType, color: Color=None, select: bool=True) -> None:
-        self.elements[name] = SelectionListItem(
-            element=obj,
-            active=False,
+    @classmethod
+    def get_type(cls) -> Type[SelectionListItemT]:
+        return SelectionListItem  # type: ignore
+    
+    def add(self, name: str, obj: ItemType, color: Color=None, select: bool=True) -> SelectionListItemT:
+        element = self.get_type()(
+            obj,
+            active = False,
             color=color or colors[len(self.elements)%len(colors)],
             name=name
-        )
+            )
+        
+        self.elements[name] = element
+
         if select:
             self.selected_element = name
+        
+        return element
 
-    def get_name(self, element: SelectionListItem[ListType]) -> str:
+    def get_name(self, element: SelectionListItem[ItemType]) -> str:
         for name, element2 in self.elements.items():
             if element is element2:
                 return name
@@ -110,17 +122,17 @@ class SelectionList(Generic[ListType]):
             element.name: element for element in self.elements.values()
         }
     
-    def __iter__(self) -> Iterator[ListType]:
+    def __iter__(self) -> Iterator[ItemType]:
         for name in self.elements:
             yield self.elements[name].element
     
     def __len__(self) -> int:
         return len(self.elements)
     
-    def __getitem__(self, name: str) -> SelectionListItem[ListType]:
+    def __getitem__(self, name: str) -> SelectionListItem[ItemType]:
         return self.elements[name]
     
-    def __setitem__(self, name: str, item: ListType) -> None:
+    def __setitem__(self, name: str, item: ItemType) -> None:
         if name in self:
             self.elements[name].element = item
         else:
@@ -129,5 +141,5 @@ class SelectionList(Generic[ListType]):
     def __contains__(self, item: str) -> bool:
         return item in self.elements
     
-    def items(self) -> ItemsView[str, SelectionListItem[ListType]]:
+    def items(self) -> ItemsView[str, SelectionListItem[ItemType]]:
         return self.elements.items()

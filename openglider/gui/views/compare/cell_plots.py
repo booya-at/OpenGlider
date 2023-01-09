@@ -5,40 +5,38 @@ from openglider.gui.widgets.config import ConfigWidget
 import pandas
 from openglider.gui.qt import QtGui, QtCore, QtWidgets
 from openglider.gui.app.app import GliderApp
-from openglider.gui.app.state.cache import Cache
-from openglider.glider.project import GliderProject
+from openglider.gui.state.glider_list import GliderCache
 from openglider.utils.dataclass import BaseModel
 
 logger = logging.getLogger(__name__)
 
 
-class AoAConfig(BaseModel):
-    aoa_absolute: bool = False
-    aoa_relative: bool = False
-    aoa_projection: bool = True
+class CellPlotConfig(BaseModel):
+    width: bool = False
+    aspect_ratio: bool = True
+    area: bool = False
+    projected_area: bool = False
 
 
-class AoAPlotCache(Cache[GliderProject, pandas.DataFrame]):
+class CellPlotCache(GliderCache[pandas.DataFrame]):
     def get_object(self, project_name: str) -> pandas.DataFrame:
         project = self.elements[project_name]
-        x_values_unscaled = project.element.glider.shape.rib_x_values
+        x_values_unscaled = project.element.glider.shape.cell_x_values
         span = max(x_values_unscaled)
         x_values = [x/span for x in x_values_unscaled]
         
-        ribs = project.element.glider_3d.ribs[project.element.glider_3d.has_center_cell:]
+        data = [
+            (x, cell.span, cell.aspect_ratio, cell.area, cell.projected_area)
+            for x, cell in zip(x_values, project.element.glider_3d.cells)
+        ]
 
-        att_pt = project.element.glider_3d.get_main_attachment_point().position
-        deg = 180/math.pi
-        aoa_absolute = [rib.aoa_absolute*deg for rib in ribs]
-        aoa_relative = [rib.aoa_relative*deg for rib in ribs]
-        aoa_projection = [rib.get_projection(att_pt) for rib in ribs]
         return pandas.DataFrame(
-            zip(x_values, aoa_absolute, aoa_relative, aoa_projection),
-            columns=["x", "aoa_absolute", "aoa_relative", "aoa_projection"]
+            data,
+            columns=["x", "width", "aspect_ratio", "area", "projected_area"]
             ).set_index("x"), project.color, project.element.name
 
 
-class AoAView(QtWidgets.QWidget):
+class CellPlotView(QtWidgets.QWidget):
     grid = False
 
     def __init__(self, app: GliderApp):
@@ -48,19 +46,19 @@ class AoAView(QtWidgets.QWidget):
 
         self.plot = DataFramePlot()
 
-        self.config = ConfigWidget(AoAConfig, self)
+        self.config = ConfigWidget(CellPlotConfig, self)
         self.config.changed.connect(self.update)
         
         self.layout().addWidget(self.config)
         self.layout().addWidget(self.plot)
 
-        self.arc_cache = AoAPlotCache(app.state.projects)
+        self.plot_cache = CellPlotCache(app.state.projects)
 
     def update(self) -> None:
         logger.info(f"update")
         self.plot.clear()
 
-        changeset = self.arc_cache.get_update()
+        changeset = self.plot_cache.get_update()
         config = self.config.config
 
         for df, color, name in changeset.active:
