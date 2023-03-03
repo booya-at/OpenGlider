@@ -2,19 +2,16 @@
 
 from optparse import OptionParser
 import sys
-try:
-    import unittest2 as unittest
-except (ImportError, NameError):
-    import unittest
+import unittest
 
 
-def test():
+def test() -> None:
     parser = OptionParser()
     parser.add_option("-n", "--num", default=1, help="Number of loops")
     parser.add_option("-a", "--run_all", action='store_true', help="Run all tests (including visual)")
     parser.add_option("-p", "--pattern", help="Run a custom Pattern to find")
-    parser.add_option("-f", "--folder", default="tests")
-    parser.add_option("-v", "--verbose", default=2)
+    parser.add_option("-f", "--folder", default="openglider/tests")
+    parser.add_option("-v", "--verbose", default=0)
 
     args = parser.parse_args()[0]
 

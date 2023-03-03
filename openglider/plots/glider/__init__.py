@@ -40,7 +40,7 @@ class PlotMaker:
         self.dribs = collections.OrderedDict()
         self.straps = collections.OrderedDict()
         self.rigidfoils = collections.OrderedDict()
-        self.extra_parts = []
+        self.extra_parts: list[PlotPart] = []
         self._cellplotmakers: Dict[Cell, DefaultCellPlotMaker] = dict()
 
         self.weight: Dict[str, MaterialUsage] = {}

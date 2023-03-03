@@ -453,7 +453,7 @@ class PanelPlot:
                             left = bl.get(bl.walk(ik, -offset))
                             right = br.get(br.walk(ik, -offset))
 
-                        if self.config.layout_seperate_panels and self.panel.is_lower:
+                        if self.config.layout_seperate_panels and self.panel.is_lower():
                             # rotated later
                             p2 = left
                             p1 = right

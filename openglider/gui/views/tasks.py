@@ -20,9 +20,6 @@ Td = QtWidgets.QTableWidgetItem
 
 
 class QTaskListWidget(QtWidgets.QWidget):
-    view = None
-    view_class = None
-
     def __init__(self, parent: QtWidgets.QWidget, app: GliderApp, task: Task, view: Type[QtWidgets.QWidget] | None):
         super().__init__(parent)
         self.task = task

@@ -16,7 +16,7 @@ iconify.path.addIconDirectory(icon_dir)
 
 _icon_cache: Dict[str, iconify.Icon] = {}
 
-def Icon(icon_name):
+def Icon(icon_name: str) -> iconify.Icon:
     if icon_name not in _icon_cache:
         color = QtGui.QColor(255,255,255)
         icon = iconify.Icon(icon_name, color=color)

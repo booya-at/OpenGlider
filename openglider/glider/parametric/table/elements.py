@@ -159,7 +159,7 @@ class ElementTable(Generic[ElementType]):
         return elements
     
     @staticmethod
-    def get_curve_value(curves: Dict[str, GliderCurveType], curve_name: str | float, rib_no: int) -> float:
+    def get_curve_value(curves: Dict[str, GliderCurveType] | None, curve_name: str | float, rib_no: int) -> float:
         if curves is None:
             raise ValueError("No curves specified")
 

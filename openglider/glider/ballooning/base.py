@@ -39,6 +39,7 @@ class ArcSinc:
 
 class BallooningBase(ABC):
     arcsinc = ArcSinc()
+    name: str
 
     def draw(self) -> euklid.vector.PolyLine2D:
         points = []

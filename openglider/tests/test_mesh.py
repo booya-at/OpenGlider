@@ -1,23 +1,20 @@
 import unittest
 
 
-from .common import *
+from openglider.tests.common import *
 
 from openglider.mesh import Mesh, Vertex, Polygon
 import openglider
 from openglider.utils.distribution import Distribution
 
 
-class TestMesh(TestCase):
-    def setUp(self, complete=True):
-        self.glider = self.import_glider()
-
-    def test_mesh(self):
-        p1 = Vertex(*[0, 0, 0])
-        p2 = Vertex(*[1, 0, 0])
-        p3 = Vertex(*[0, 1, 0])
-        p4 = Vertex(*[1, 1, 0])
-        p5 = Vertex(*[0, 0, 0])
+class TestMesh(GliderTestCase):
+    def test_mesh(self) -> None:
+        p1 = Vertex(0, 0, 0)
+        p2 = Vertex(1, 0, 0)
+        p3 = Vertex(0, 1, 0)
+        p4 = Vertex(1, 1, 0)
+        p5 = Vertex(0, 0, 0)
         a = Polygon([p1, p2, p3, p4])
         b = Polygon([p1, p2, p4, p5])
         m1 = Mesh({"a": [a]}, boundary_nodes={"j": list(a)})
@@ -28,11 +25,10 @@ class TestMesh(TestCase):
             matches = [vertex.is_equal(p) for p in m3.vertices]
             self.assertTrue(any(matches))
 
-    def test_glider_mesh(self):
+    def test_glider_mesh(self) -> None:
         dist = Distribution.from_nose_cos_distribution(30, 0.2)
-        dist.add_glider_fixed_nodes(self.glider)
 
-        self.glider.profile_x_values = dist
+        self.glider.profile_x_values = list(dist)
         m = Mesh(name="glider_mesh")
         for cell in self.glider.cells[1:-1]:
             m += cell.get_mesh(0)

@@ -21,7 +21,7 @@ logging.getLogger("openglider")
 class OpenGliderKernel(QtInProcessKernelClient):
     loop: QEventLoop = None
 
-    def _dispatch_to_kernel(self, msg):
+    def _dispatch_to_kernel(self, msg: str) -> None:
         """Send a message to the kernel and handle a reply."""
         kernel = self.kernel
         if kernel is None:
@@ -33,7 +33,7 @@ class OpenGliderKernel(QtInProcessKernelClient):
 
         asyncio.create_task(self.async_dispatch(msg_parts))
     
-    async def async_dispatch(self, msg_parts):
+    async def async_dispatch(self, msg_parts: list[str]) -> None:
         await self.kernel.dispatch_shell(msg_parts)
         idents, reply_msg = self.session.recv(self.kernel.shell_stream, copy=False)
         self.shell_channel.call_handlers_later(reply_msg)
@@ -47,7 +47,7 @@ class ConsoleWidget(RichJupyterWidget):
     We can replace the standard banner using the customBanner argument
     """
 
-    def __init__(self, app: MainWindow, customBanner=None, *args, **kwargs):
+    def __init__(self, app: MainWindow, customBanner: Any=None, *args: Any, **kwargs: Any):
 
         super().__init__(*args, **kwargs)
         self.app = app
@@ -67,7 +67,7 @@ class ConsoleWidget(RichJupyterWidget):
         self.push_local_ns("app", self.app)
         self.push_local_ns("openglider", openglider)
     
-    def _complete(self):
+    def _complete(self) -> None:
         code = self.input_buffer
 
         # TODO: check what happens on autocompletion
@@ -75,7 +75,7 @@ class ConsoleWidget(RichJupyterWidget):
             return
         return super()._complete()
 
-    def push_local_ns(self, name, value):
+    def push_local_ns(self, name: str, value: Any) -> None:
         """
         Given a dictionary containing name / value pairs, push those variables
         to the IPython console widget
@@ -83,7 +83,7 @@ class ConsoleWidget(RichJupyterWidget):
         if self.kernel_manager.kernel is not None:
             self.kernel_manager.kernel.shell.push({name: value})
 
-    def clear(self):
+    def clear(self) -> None:
         """
         Clears the terminal
         """
@@ -91,7 +91,7 @@ class ConsoleWidget(RichJupyterWidget):
 
         # self.kernel_manager
 
-    def print_text(self, text):
+    def print_text(self, text: str) -> None:
         """
         Prints some plain text to the console
         """
@@ -99,13 +99,13 @@ class ConsoleWidget(RichJupyterWidget):
         self._scroll_to_end()
         #self._append_plain_text(text)
 
-    def execute_command(self, command):
+    def execute_command(self, command: str) -> None:
         """
         Execute a command in the frame of the console widget
         """
         self._execute(command, False)
     
-    def log_message(self, message):
+    def log_message(self, message: str) -> None:
         self.print_text(message + '\n')
 
 

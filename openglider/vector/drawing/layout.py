@@ -3,7 +3,7 @@ import os
 import io
 import math
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Sequence, Union, Optional
+from typing import Any, Dict, Iterable, Iterator, List, Sequence, Union, Optional
 
 import ezdxf
 import ezdxf.document
@@ -159,7 +159,7 @@ class Layout(object):
         return row_dwg
 
     @classmethod
-    def stack_grid(cls, parts: List[Sequence[PlotPart | Layout]], distance_x: float, distance_y: float, draw_grid: bool=True) -> Layout:
+    def stack_grid(cls, parts: Sequence[Sequence[PlotPart | Layout]], distance_x: float, distance_y: float, draw_grid: bool=True) -> Layout:
         all_parts = cls()
         rows = len(parts)
         columns = len(parts[0])
@@ -539,7 +539,7 @@ class Layout(object):
 
         return drawing.tostring()
 
-    def export_svg(self, path: os.PathLike, add_styles: bool=False, fill: bool=False) -> None:
+    def export_svg(self, path: str | os.PathLike, add_styles: bool=False, fill: bool=False) -> None:
         drawing = self.get_svg_drawing(fill=fill)
 
         if add_styles:
@@ -594,7 +594,7 @@ class Layout(object):
         "R": ["stitches"]
     }
 
-    def export_ntv(self, path: os.PathLike) -> None:
+    def export_ntv(self, path: str | os.PathLike) -> None:
         filename = os.path.split(path)[-1]
 
         def format_line(line: euklid.vector.PolyLine2D) -> str:
@@ -635,7 +635,7 @@ class Layout(object):
             # end
             outfile.write("\n0")
             
-    def export_pdf(self, path: os.PathLike, fill: bool=False) -> None:
+    def export_pdf(self, path: str | os.PathLike, fill: bool=False) -> None:
         dwg = self.get_svg_drawing(fill=fill).tostring().encode("utf-8")
         with io.BytesIO(dwg) as fp:
             report = svglib.svglib.svg2rlg(fp)

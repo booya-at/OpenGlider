@@ -168,7 +168,7 @@ class Image(pyqtgraph.ImageItem):
 
     @classmethod
     def read_pdf(cls, path: str) -> Image:
-        pass
+        raise NotImplementedError()
 
     @classmethod
     def read_jpg(cls, path: str) -> Image:

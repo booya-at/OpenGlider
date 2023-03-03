@@ -1,53 +1,33 @@
-#! /usr/bin/python2
-# -*- coding: utf-8; -*-
-#
-# (c) 2013 booya (http://booya.at)
-#
-# This file is part of the OpenGlider project.
-#
-# OpenGlider is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# OpenGlider is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-
 import os
 import tempfile
 import unittest
 import random
 
-from .common import import_dir
+from openglider.tests.common import import_dir
 from openglider.airfoil import Profile2D
 
 TEMPDIR =  tempfile.gettempdir()
 
 class TestProfile(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.prof = Profile2D.import_from_dat(import_dir + "/testprofile.dat").normalized()
 
-    def test_numpoints(self):
+    def test_numpoints(self) -> None:
         num = random.randint(4, 500)
 
         prof2 = self.prof.resample(num)
 
         self.assertEqual(num + 1 - num % 2, prof2.numpoints)
 
-    def test_export(self):
+    def test_export(self) -> None:
         path = os.path.join(TEMPDIR, "prof.dat")
         self.prof.export_dat(path)
 
-    def test_profilepoint(self):
+    def test_profilepoint(self) -> None:
         x = random.random() * random.randint(-1, 1)
         self.assertAlmostEqual(abs(x), self.prof.profilepoint(x)[0])
 
-    def test_multiplication(self):
+    def test_multiplication(self) -> None:
         factor = random.random()
         other = self.prof * factor
         self.assertAlmostEqual(other.thickness, self.prof.thickness * factor)
@@ -55,11 +35,11 @@ class TestProfile(unittest.TestCase):
         self.assertAlmostEqual(other.thickness, self.prof.thickness)
 
     @unittest.skip("skip")
-    def test_area(self):
+    def test_area(self) -> None:
         factor = random.random()
-        self.assertAlmostEqual(factor * self.prof.area, (self.prof * factor).area)
+        self.assertAlmostEqual(factor * self.prof.curve.get_area(), (self.prof * factor).curve.get_area())
 
-    def test_compute_naca(self):
+    def test_compute_naca(self) -> None:
         numpoints = random.randint(10, 200)
         thickness = random.randint(8, 20)
         m = random.randint(1, 9) * 1000  # Maximum camber position
@@ -67,15 +47,15 @@ class TestProfile(unittest.TestCase):
         prof = Profile2D.compute_naca(naca=m+p+thickness, numpoints=numpoints)
         self.assertAlmostEqual(prof.thickness*100, thickness, 0)
 
-    def test_add(self):
+    def test_add(self) -> None:
         other = self.prof.copy()
         other = self.prof + other
         self.assertAlmostEqual(2*self.prof.thickness, other.thickness)
 
-    def test_mul(self):
+    def test_mul(self) -> None:
         self.prof *= 0
 
-    def test_thickness(self):
+    def test_thickness(self) -> None:
         val = random.random()
         thickness = self.prof.thickness
 
@@ -84,7 +64,7 @@ class TestProfile(unittest.TestCase):
         self.assertAlmostEqual(new.thickness, thickness*val)
 
     @unittest.skip("whatsoever!")
-    def test_camber(self):
+    def test_camber(self) -> None:
         val = random.random()
         camber = max(self.prof.camber[:, 1])
 
@@ -92,20 +72,16 @@ class TestProfile(unittest.TestCase):
 
         self.assertAlmostEqual(new.camber, camber*val)
 
-    @unittest.skip("skip")
-    def test_contains_point(self):
+    def test_contains_point(self) -> None:
         allowance = random.random()*0.1
-        prof = self.prof.copy()
-        prof2 = self.prof.copy()
-        prof2.add_stuff(2*allowance)
-        self.prof.add_stuff(allowance)
-        self.prof.close()
-        # prof<self.prof<prof2
-        #print("jo")
-        for p in prof.data:
-            self.assertTrue(self.prof.contains_point(p))
-        for p in prof2.data:
-            self.assertFalse(self.prof.contains_point(p))
+        prof_big = self.prof.copy()
+        
+        prof_big.curve = prof_big.curve.offset(2*allowance).close()
+        
+        for p in self.prof.curve:
+            self.assertTrue(prof_big.curve.contains(p))
+        for p in prof_big.curve:
+            self.assertFalse(self.prof.curve.contains(p))
 
 
 if __name__ == '__main__':

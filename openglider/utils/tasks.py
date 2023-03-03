@@ -32,8 +32,8 @@ class Task:
         self.name = name
     
     @classmethod
-    def __from_json__(cls, **kwargs) -> Self:
-        return cls(**kwargs)        
+    def __from_json__(cls, **kwargs: Any) -> Self:
+        return cls(**kwargs)
     
     def get_name(self) -> str:
         name = self.__class__.__name__
@@ -160,7 +160,7 @@ class TaskQueue:
                             if task.multiprocessed:
                                 await loop.run_in_executor(self.pool, run_task_async, openglider.jsonify.dumps(task))
                             else:
-                                await task._run(self.execute)
+                                await task._run(self.execute)  # type: ignore
                         except Exception as e:
                             task.failed = True
                             if self.exception_hook:

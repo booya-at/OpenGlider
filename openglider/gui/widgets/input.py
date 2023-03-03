@@ -4,8 +4,8 @@ from openglider.gui.qt import QtWidgets, QtCore
 T = TypeVar("T")
 
 class Input(QtWidgets.QWidget, Generic[T]):
-    on_change: List[Callable[[str], None]]
-    on_changed: List[Callable[[str], None]]
+    on_change: List[Callable[[T], None]]
+    on_changed: List[Callable[[T], None]]
 
     def __init__(self, parent: QtWidgets.QWidget=None, name: str="", default: T=None, vertical: bool=False):
         super().__init__(parent=parent)
@@ -38,7 +38,7 @@ class Input(QtWidgets.QWidget, Generic[T]):
         if propagate:
             self.input.setText(str(value))
 
-    def _on_change(self, text: str) -> None:
+    def _on_change(self, text: T) -> None:
         self.set_value(text)
         for f in self.on_change:
             f(self.value)

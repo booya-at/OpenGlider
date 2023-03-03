@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, TypeAlias
+from typing import TYPE_CHECKING, Any, Dict, TypeAlias
 from openglider.gui.qt import QtWidgets, QtGui
 import logging
 
@@ -156,7 +156,7 @@ class PatternTask(Task):
         self.patterns = patterns
         self.directory = directory
 
-    def __json__(self):
+    def __json__(self) -> Dict[str, Any]:
         return {
             "patterns": self.patterns,
             "directory": self.directory
@@ -167,7 +167,7 @@ class PatternTask(Task):
     
     async def run(self) -> None:
         logger.info("patterns running")
-        await self.execute(self.patterns.unwrap, self.directory)
+        await self.execute(self.patterns.unwrap, self.directory)  # type: ignore
         os.system(f"xdg-open {self.directory}")
     
 

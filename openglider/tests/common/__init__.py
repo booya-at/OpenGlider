@@ -2,39 +2,45 @@ import sys
 import os
 import unittest
 
+from openglider.glider.project import GliderProject
+
 try:
     import openglider
 except ImportError:
-    def stepup(path, num):
+    def stepup(path: str | os.PathLike, num: int) -> str | os.PathLike:
         if num == 0:
             return path
         else:
             return stepup(os.path.dirname(path), num-1)
-    sys.path.append(stepup(__file__,3))
-    print(sys.path)
+    
+    sys.path.append(str(stepup(__file__,3)))
     import openglider
 
 import openglider.glider
+from openglider.glider import Glider
 from openglider.glider.parametric import ParametricGlider
 
 import_dir = os.path.dirname(os.path.abspath(__file__))
 test_dir = os.path.dirname(import_dir)
-#demokite = import_dir + '/demokite.ods'
-demokite = import_dir + "/demokite.json"
+demokite = import_dir + '/demokite.ods'
+#demokite = import_dir + "/demokite.json"
 
 
-class TestCase(unittest.TestCase):
-    @classmethod
-    def import_glider(cls):
-        glider_2d = cls.import_glider_2d()
-        return glider_2d.get_glider_3d()
+class GliderTestCase(unittest.TestCase):
+    project: GliderProject
 
-    @classmethod
-    def import_glider_2d(cls):
-        return openglider.load(demokite)
-        #return ParametricGlider.import_ods(path=demokite)
+    def setUp(self) -> None:
+        self.project = openglider.load(demokite)
 
-    def assertEqualGlider(self, glider1, glider2, precision=None):
+    @property
+    def parametric_glider(self) -> ParametricGlider:
+        return self.project.glider
+    
+    @property
+    def glider(self) -> Glider:
+        return self.project.glider_3d
+
+    def assertEqualGlider(self, glider1: Glider, glider2: Glider, precision: int=None) -> None:
         self.assertEqual(len(glider1.ribs), len(glider2.ribs))
         self.assertEqual(len(glider1.cells), len(glider2.cells))
         for rib_no, (rib_1, rib_2) in enumerate(zip(glider1.ribs, glider2.ribs)):
@@ -44,7 +50,7 @@ class TestCase(unittest.TestCase):
                     self.assertAlmostEqual(_p1, _p2, places=precision, msg="Not matching at Rib {}, Coordinate {}; {}//{}".format(rib_no, i, _p1, _p2))
                     # todo: expand test: lines, diagonals,...
 
-    def assertEqualGlider2D(self, glider1, glider2):
+    def assertEqualGlider2D(self, glider1: ParametricGlider, glider2: ParametricGlider) -> None:
         self.assertEqual(glider1.shape.cell_num, glider2.shape.cell_num)
 
 if __name__ == "__main__":

@@ -142,7 +142,7 @@ class Cell(BaseModel):
         return profiles
 
     def get_connected_panels(self, skip: Optional[PANELCUT_TYPES]=None) -> List[Panel]:
-        panels = []
+        panels: List[Panel] = []
         self.panels.sort(key=lambda panel: panel.mean_x())
 
         p0 = self.panels[0]
@@ -279,9 +279,11 @@ class Cell(BaseModel):
     def ballooning_modified(self) -> BallooningBase:
         if self.ballooning_ramp is None:
             return self.ballooning
+        else:
+            ballooning_ramp = self.ballooning_ramp
 
         panels = self.get_connected_panels()
-        cuts = set()
+        cuts = set[float]()
 
         for p in panels:
             x1 = max([p.cut_front.x_left, p.cut_front.x_right])
@@ -298,8 +300,8 @@ class Cell(BaseModel):
                 distance = abs(x[0]-cut)
                 y_new = x[1]
 
-                if distance <= self.ballooning_ramp:
-                    y_new *= -(math.cos(distance / self.ballooning_ramp * math.pi) - 1) / 2
+                if distance <= ballooning_ramp:
+                    y_new *= -(math.cos(distance / ballooning_ramp * math.pi) - 1) / 2
                 
                     return euklid.vector.Vector2D([x[0], y_new])
                 

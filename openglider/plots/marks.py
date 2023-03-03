@@ -30,7 +30,7 @@ class Combine(Mark):
         return {"marks": self.marks}
     
     @classmethod
-    def __from_json__(cls, marks) -> Combine:
+    def __from_json__(cls, marks: list[Mark]) -> Combine:
         return cls(*marks)
 
     def __repr__(self) -> str:
@@ -136,7 +136,7 @@ class Dot(Mark):
         return {"positions": self.positions}
     
     @classmethod
-    def __from_json__(cls, positions) -> Dot:
+    def __from_json__(cls, positions: list[float]) -> Dot:
         return cls(*positions)
 
     def __call__(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> List[euklid.vector.PolyLine2D]:

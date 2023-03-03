@@ -62,6 +62,8 @@ class AttachmentPointTable(RibTable):
                         if name in forces:
                             force = forces[name]
                             try:
+                                if isinstance(force, float):
+                                    raise TypeError()
                                 column[row, 2] = str(list(force))
                             except TypeError:
                                 column[row, 2] = force
