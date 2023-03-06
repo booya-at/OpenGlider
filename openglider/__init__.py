@@ -2,12 +2,10 @@ import logging
 from pathlib import Path
 from typing import Any
 
-__path__ = __import__('pkgutil').extend_path(__path__, __name__)
-
+from openglider.version import __version__
 from openglider.config import config
 import openglider.jsonify
 import openglider.glider
-from openglider.version import __version__
 
 logger = logging.getLogger(__name__)
 
