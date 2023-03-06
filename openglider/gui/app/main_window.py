@@ -278,7 +278,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.top_panel.setCurrentIndex(0)
 
     def load_demokite(self) -> None:
-        og_dir = os.path.dirname(os.path.dirname(openglider.__file__))
+        og_dir = os.path.dirname(openglider.__file__)
         filename = os.path.join(og_dir, "tests/common/demokite.ods")
         asyncio.create_task(self.load_glider(filename))
 

@@ -19,7 +19,6 @@ def start_main_window() -> None:
         app.debug = True
 
     home = os.path.expanduser("~")
-    filename = os.path.join(home, "Dropbox/para/paragleiter/fluegel/booya/akkro9/carlito_17.ods")
 
     #og_dir = os.path.dirname(os.path.dirname(openglider.__file__))
     #filename = os.path.join(og_dir, "tests/common/demokite.ods")

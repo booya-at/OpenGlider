@@ -10,6 +10,8 @@ for _ in range(2):
     dirname = os.path.dirname(dirname)
 
 icon_dir = os.path.join(dirname, "icons")
+
+print(f"icon dir: {icon_dir}")
 iconify.path.addIconDirectory(icon_dir)
 
 
