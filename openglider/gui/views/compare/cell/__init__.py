@@ -41,6 +41,7 @@ class CellView(QtWidgets.QWidget):
 
     def update(self) -> None:
         self.plot.clear()
+        self.plot.update_data()
 
         selected =self.app.state.projects.get_selected()
         if selected:

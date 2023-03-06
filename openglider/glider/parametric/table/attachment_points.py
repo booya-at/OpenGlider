@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Mapping, Optional, Union, TYPE_CHECKING
 
 import ast
 import logging
@@ -50,7 +50,7 @@ class AttachmentPointTable(RibTable):
         
         return node
     
-    def apply_forces(self, forces: Dict[str, euklid.vector.Vector3D | float]) -> None:
+    def apply_forces(self, forces: Mapping[str, euklid.vector.Vector3D | float]) -> None:
         new_table = Table()
 
         for keyword_name, keyword in self.keywords.items():
