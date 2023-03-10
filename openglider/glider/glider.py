@@ -123,7 +123,6 @@ class Glider(object):
 
         mesh += self.lineset.get_mesh()
         mesh += self.get_mesh_panels(num_midribs=midribs)
-        mesh += self.get_mesh_hull(midribs)
 
         return mesh
 
