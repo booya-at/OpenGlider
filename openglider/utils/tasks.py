@@ -1,17 +1,22 @@
 from __future__ import annotations
 
 import asyncio
+import functools
 import logging
 import sys
 import time
-from typing import Any, Callable, Dict, Iterator, List, Optional, Type
+from typing import Any, Callable, Concatenate, Dict, Iterator, List, Optional, TypeVar, ParamSpec, Type, NoReturn
 
 from typing_extensions import Self
 
 logger = logging.getLogger(__name__)
 
+T = TypeVar("T")
+P = ParamSpec("P")
 
-async def execute_sync(func: Callable[[], Any], *args: Any, **kwargs: Any) -> Any:
+functools.partial(print, "jo")
+
+async def execute_sync(func: Callable[..., T], *args: Any, **kwargs: Any) -> T:
     return func(*args, **kwargs)
 
 class Task:
@@ -25,10 +30,9 @@ class Task:
     start_time: Optional[float] = None
     end_time: Optional[float] = None
 
-    execute: Callable[[Callable[[], Any]], Any]
+    execute = execute_sync
 
     def __init__(self, name: str=None) -> None:
-        self.execute = execute_sync
         self.name = name
     
     @classmethod
