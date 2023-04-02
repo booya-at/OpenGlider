@@ -4,7 +4,6 @@ import re
 import sys
 import time
 import datetime
-from tkinter.messagebox import NO
 from typing import Any, Dict, Type
 
 import pydantic
