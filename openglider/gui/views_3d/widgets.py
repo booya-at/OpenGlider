@@ -25,6 +25,13 @@ class View3D(QtWidgets.QWidget):
         self.layout().addWidget(self.frame)
         
         self.renderer = vtkmodules.vtkRenderingCore.vtkRenderer()
+
+        # enable SSAO
+        self.renderer.UseSSAOOn()
+        self.renderer.SetSSAORadius(0.2)
+        self.renderer.SetSSAOKernelSize(256)
+        self.renderer.SetSSAOBlur(False)
+
         self.renderer.SetBackground(.2, .3, .4)
         self.renderer.SetViewport(0, 0, 1, 1)
 

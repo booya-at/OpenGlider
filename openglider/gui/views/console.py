@@ -72,6 +72,12 @@ class ConsoleWidget(RichJupyterWidget):
 
         # TODO: check what happens on autocompletion
         if code.startswith("app"):
+            cursor_pos = self._get_input_buffer_cursor_pos()
+            msg_id = self.kernel_client.complete(code=code, cursor_pos=cursor_pos)
+            info = self._CompletionRequest(msg_id, code, cursor_pos)
+            self._request_info['complete'] = info
+
+            print(msg_id)
             return
         return super()._complete()
 

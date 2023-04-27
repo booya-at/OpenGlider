@@ -10,11 +10,11 @@ logger = logging.getLogger(__name__)
 
 class GliderViewConfig(BaseModel):
     show_panels: bool = True
-    show_ribs: bool = False
+    show_ribs: bool = True
     show_lines: bool = True
 
-    show_diagonals: bool = False
-    show_straps: bool = False
+    show_diagonals: bool = True
+    show_straps: bool = True
 
     profile_numpoints: int = 20
     numribs: int = 3
