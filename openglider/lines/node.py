@@ -11,15 +11,16 @@ from openglider.utils.dataclass import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
-class NODE_TYPE(enum.Enum):
+class NODE_TYPE_ENUM(enum.Enum):
     LOWER = 0
     KNOT = 1
     UPPER = 2
 
 
 class Node(BaseModel):
-    NODE_TYPE: TypeAlias = NODE_TYPE
-    node_type: NODE_TYPE
+    NODE_TYPE = NODE_TYPE_ENUM
+
+    node_type: NODE_TYPE_ENUM
     force: euklid.vector.Vector3D = Field(default_factory=lambda: euklid.vector.Vector3D())
     position: euklid.vector.Vector3D = Field(default_factory=lambda: euklid.vector.Vector3D())
     vec_proj: euklid.vector.Vector3D = Field(default_factory=lambda: euklid.vector.Vector3D())
@@ -35,7 +36,7 @@ class Node(BaseModel):
     @classmethod
     def __from_json__(cls, **kwargs: Any) -> Node:
         node_type_name: str = kwargs.pop("node_type")
-        node_type: NODE_TYPE = getattr(cls.NODE_TYPE, node_type_name)
+        node_type: NODE_TYPE_ENUM = getattr(cls.NODE_TYPE, node_type_name)
 
         return cls(
             node_type=node_type,

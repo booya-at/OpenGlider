@@ -221,7 +221,7 @@ class ParametricGlider:
         aoa_values = self.get_aoa()
 
         for rib, aoa in zip(glider.ribs, aoa_values):
-            rib.aoa_relative = aoa
+            rib.set_aoa_relative(aoa)
 
     def get_profile_merge(self) -> List[float]:
         profile_merge_curve = euklid.vector.Interpolation(self.profile_merge_curve.get_sequence(self.num_interpolate).nodes)
@@ -347,7 +347,7 @@ class ParametricGlider:
                 sharknose=sharknose,
                 attachment_points=[]
             )
-            rib.aoa_relative = aoa_values[rib_no]
+            rib.set_aoa_relative(aoa_values[rib_no])
 
             singleskin_data = self.tables.rib_modifiers.get(rib_no)
             if singleskin_data:

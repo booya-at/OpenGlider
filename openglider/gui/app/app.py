@@ -47,7 +47,7 @@ class GliderApp(QtWidgets.QApplication):
 
         log_format = '%(levelname)s %(asctime)s - %(name)s : %(message)s'
         logging.basicConfig(level=logging.INFO, format=log_format, datefmt="%d-%m-%y %H:%M")
-        logging.info(f"Current working directory: {os.getcwd()}")
+        logger.info(f"Current working directory: {os.getcwd()}")
 
         self.loop = QEventLoop(self)
         asyncio.set_event_loop(self.loop)
@@ -64,6 +64,8 @@ class GliderApp(QtWidgets.QApplication):
 
         installed_packages = pkgutil.iter_modules()
 
+        plugins = []
+
         for p in installed_packages:
             if p.name.startswith("openglider") and p.name != "openglider":
                 print(f"using plugin: {p.name}")
@@ -74,6 +76,8 @@ class GliderApp(QtWidgets.QApplication):
                         init(self)
                     else:
                         logger.warning(f"no init function in plugin: {p.name}")
+                    
+                    plugins.append(p.name)
                 except Exception as e:
                     raise e
                     logger.error(str(e))
@@ -83,6 +87,9 @@ class GliderApp(QtWidgets.QApplication):
         #self.task_queue = openglider.utils.tasks.TaskQueue()
         self.task_queue.exception_hook = self.show_exception
         self.main_window = openglider.gui.app.main_window.MainWindow(self)
+
+        for plugin in plugins:
+            self.main_window.signal_handler.add_logger(plugin)
         self.main_window.showMaximized()
     
     def reload_code(self) -> None:

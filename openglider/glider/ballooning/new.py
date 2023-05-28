@@ -53,18 +53,19 @@ class BallooningNew(BallooningBase):
         return BallooningNew(interpolation)
 
     def close_trailing_edge(self, start_x: float) -> None:
-        nodes = []
-        for n in self.interpolation.nodes:
-            x = abs(n[0])
-            y = n[1]
-            if x > start_x:
+        if self[-1] > 1e-10 or self[1] > 1e-10:
+            nodes = []
+            for n in self.interpolation.nodes:
+                x = abs(n[0])
                 y = n[1]
-                t_e_c = start_x
-                y = y * (1 - (x-t_e_c)/(1-t_e_c))
+                if x > start_x:
+                    y = n[1]
+                    t_e_c = start_x
+                    y = y * (1 - (x-t_e_c)/(1-t_e_c))
+                
+                nodes.append([n[0], y])
             
-            nodes.append([n[0], y])
-        
-        self.interpolation = euklid.vector.Interpolation(nodes)
+            self.interpolation = euklid.vector.Interpolation(nodes)
 
     def copy(self) -> BallooningNew:
         return BallooningNew(self.interpolation.copy(), name=self.name)

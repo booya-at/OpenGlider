@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Dict, List, Mapping, Optional, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Mapping, Union, TYPE_CHECKING
 
 import ast
 import logging

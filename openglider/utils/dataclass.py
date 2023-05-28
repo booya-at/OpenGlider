@@ -1,4 +1,5 @@
 from __future__ import annotations
+import inspect
 
 import euklid
 from typing import TYPE_CHECKING, Callable, Dict, Any, List, Tuple, Type, TypeAlias, TypeVar
@@ -39,7 +40,7 @@ def dataclass(_cls: Type[Any]) -> Type[OGDataclassT]:
     if TYPE_CHECKING:
         _cls_new = dc(_cls)
     else:
-        _cls_new = pydantic.dataclasses.dataclass(config=Config)(_cls)
+        _cls_new = pydantic.dataclasses.dataclass(config=Config, kw_only=False)(_cls)
         
     old_json = getattr(_cls, "__json__", None)
     if old_json is None or getattr(old_json, "is_auto", False):
@@ -97,8 +98,7 @@ pydantic.validators._VALIDATORS += [
 ]
 
 class BaseModel(pydantic.BaseModel):
-    _cache: Dict[str, Any] = {}
-
+    # TODO: does not support property setters!
     class Config:
         arbitrary_types_allowed = True
         keep_untouched = (CachedProperty,)

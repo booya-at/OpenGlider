@@ -71,7 +71,7 @@ class Task:
 
     async def _run(self, execute: Callable[[Callable[[], Any]], Any]=None) -> Any:
         if execute is not None:
-            self.execute = execute
+            self.execute = execute  # type: ignore
 
         if self.finished:
             return

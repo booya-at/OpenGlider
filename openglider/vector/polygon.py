@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing_extensions import Self
 
 import numpy
 import euklid
@@ -38,7 +39,15 @@ class CirclePart(object):
 
         self.center = cut_result.point
         self.r: euklid.vector.Vector2D = p1 - self.center
+    
+    @classmethod
+    def with_height(cls, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D, height: float) -> Self:
+        diff = (p2 - p1) / 2
+        diff_rot = euklid.vector.Rotation2D(-math.pi/2).apply(diff)
+        p3 = p1 + diff * 0.5 + diff_rot * height
 
+        return cls(p1, p3, p2)
+    
     def get_sequence(self, num: int=20) -> euklid.vector.PolyLine2D:
         lst = []
 

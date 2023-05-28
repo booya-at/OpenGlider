@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Dict, Any
 
 import euklid
 from openglider.glider.shape import Shape
-from openglider.lines import Node
+from openglider.lines.node import Node, NODE_TYPE_ENUM
 
 if TYPE_CHECKING:
     from openglider.glider.cell.cell import Cell
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class CellAttachmentPoint(Node):
     cell_pos: float
     rib_pos: float
-    node_type = Node.NODE_TYPE.UPPER
+    node_type: NODE_TYPE_ENUM = Node.NODE_TYPE.UPPER
     ballooned=False
     offset: float = 0.
 

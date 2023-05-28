@@ -4,7 +4,7 @@ import logging
 
 import euklid
 from openglider.glider.shape import Shape
-from openglider.lines.node import Node, NODE_TYPE
+from openglider.lines.node import NODE_TYPE_ENUM, Node
 from openglider.utils.dataclass import dataclass
 from openglider.vector.polygon import Circle
 
@@ -64,34 +64,11 @@ class GibusArcs:
 class AttachmentPoint(Node):
     rib_pos: float
 
-    node_type = Node.NODE_TYPE.UPPER
+    node_type: NODE_TYPE_ENUM = Node.NODE_TYPE.UPPER
     offset: float = -0.01
     protoloops: int = False
     protoloop_distance: float = 0.02
     protoloop_distance_absolute: bool = True
-    
-    def __init__(
-        self, name: str,
-        rib_pos: float,
-        force: euklid.vector.Vector3D,
-        offset: float=-0.01,
-        protoloops: int=0,
-        protoloop_distance: float=0.02,
-        protoloop_distance_absolute: bool=True,
-        node_type: Node.NODE_TYPE=Node.NODE_TYPE.UPPER
-        ):
-        
-        super().__init__(node_type=Node.NODE_TYPE.UPPER, rib_pos=rib_pos, name=name, force=force)
-
-        self.rib_pos = rib_pos
-        self.name = name
-        self.force = euklid.vector.Vector3D(force)
-
-        self.offset = offset
-
-        self.protoloops = protoloops
-        self.protoloop_distance = protoloop_distance
-        self.protoloop_distance_absolute = protoloop_distance_absolute
 
     def __repr__(self) -> str:
         return "<Attachment point '{}' ({})>".format(self.name, self.rib_pos)
