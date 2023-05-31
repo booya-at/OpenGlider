@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Optional
 
 from openglider.utils.table import Table
-from openglider.glider.parametric.table.elements import RibTable, Keyword
+from openglider.glider.parametric.table.base import RibTable, Keyword
 
 import logging
 

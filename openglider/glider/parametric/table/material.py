@@ -1,6 +1,6 @@
 from typing import Any, List, Optional
 
-from openglider.glider.parametric.table.elements import ElementTable, Keyword, TableType
+from openglider.glider.parametric.table.base import ElementTable, Keyword, TableType
 from openglider.materials import cloth, Material
 
 import logging

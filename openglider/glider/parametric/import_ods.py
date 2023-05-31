@@ -129,24 +129,25 @@ def import_ods_glider(cls: Type[ParametricGlider], tables: List[Table]) -> Param
         name: value for name, value in data_dct.pop("trim_correction", [])
     }
 
-    migrate = cell_sheet[0, 0] is not None and cell_sheet[0, 0] < "V4"
+    migrate_header = cell_sheet[0, 0] is not None and cell_sheet[0, 0] < "V4"
+    openglider_version = data_dct.pop("version", 0)
 
     glider_tables = GliderTables()
     glider_tables.curves = curves
-    glider_tables.cuts = CutTable(cell_sheet, migrate=migrate)
-    glider_tables.ballooning_factors = BallooningTable(cell_sheet, migrate=migrate)
-    glider_tables.holes = HolesTable(rib_sheet, migrate=migrate)
-    glider_tables.diagonals = DiagonalTable(cell_sheet, file_version, migrate=migrate)
-    glider_tables.rigidfoils_rib = RibRigidTable(rib_sheet, migrate=migrate)
-    glider_tables.rigidfoils_cell = CellRigidTable(cell_sheet, migrate=migrate)
-    glider_tables.straps = StrapTable(cell_sheet, migrate=migrate)
-    glider_tables.material_cells = CellClothTable(cell_sheet, migrate=migrate)
-    glider_tables.material_ribs = RibClothTable(rib_sheet, migrate=migrate)
-    glider_tables.miniribs = MiniRibTable(cell_sheet, migrate=migrate)
-    glider_tables.rib_modifiers = SingleSkinTable(rib_sheet, migrate=migrate)
-    glider_tables.profiles = ProfileTable(rib_sheet, migrate=migrate)
-    glider_tables.attachment_points_rib = AttachmentPointTable(rib_sheet, migrate=migrate)
-    glider_tables.attachment_points_cell = CellAttachmentPointTable(cell_sheet, migrate=migrate)
+    glider_tables.cuts = CutTable(cell_sheet, migrate_header=migrate_header)
+    glider_tables.ballooning_factors = BallooningTable(cell_sheet, migrate_header=migrate_header)
+    glider_tables.holes = HolesTable(rib_sheet, migrate_header=migrate_header)
+    glider_tables.diagonals = DiagonalTable(cell_sheet, file_version, migrate=migrate_header)
+    glider_tables.rigidfoils_rib = RibRigidTable(rib_sheet, migrate_header=migrate_header)
+    glider_tables.rigidfoils_cell = CellRigidTable(cell_sheet, migrate_header=migrate_header)
+    glider_tables.straps = StrapTable(cell_sheet, migrate_header=migrate_header)
+    glider_tables.material_cells = CellClothTable(cell_sheet, migrate_header=migrate_header)
+    glider_tables.material_ribs = RibClothTable(rib_sheet, migrate_header=migrate_header)
+    glider_tables.miniribs = MiniRibTable(cell_sheet, migrate_header=migrate_header)
+    glider_tables.rib_modifiers = SingleSkinTable(rib_sheet, migrate_header=migrate_header)
+    glider_tables.profiles = ProfileTable(rib_sheet, migrate_header=migrate_header)
+    glider_tables.attachment_points_rib = AttachmentPointTable(rib_sheet, migrate_header=migrate_header)
+    glider_tables.attachment_points_cell = CellAttachmentPointTable(cell_sheet, migrate_header=migrate_header)
     
     glider_2d = cls(tables=glider_tables,
                          profiles=profiles,

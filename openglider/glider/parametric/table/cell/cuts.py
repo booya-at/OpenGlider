@@ -1,8 +1,9 @@
 from typing import Any, Dict, Tuple, List, Optional
 from openglider.glider.curve import GliderCurveType
+from openglider.glider.parametric.table.base.parser import Parser
 
 from openglider.utils.table import Table
-from openglider.glider.parametric.table.elements import CellTable, Keyword, KeywordsType
+from openglider.glider.parametric.table.base import CellTable, Keyword, KeywordsType
 from openglider.glider.cell.panel import PanelCut, PANELCUT_TYPES
 
 import logging
@@ -30,10 +31,12 @@ class CutTable(CellTable):
         "singleskin": cut_kw(),
     }
 
-    def get_element(self, row: int, keyword: str, data: List[Any], curves: Dict[str, GliderCurveType]=None, **kwargs: Any) -> PanelCut:            
-        left = self.get_curve_value(curves, data[0], row)
-        right = self.get_curve_value(curves, data[1], row+1)
-            
+    def get_element(self, row: int, keyword: str, data: List[Any], resolvers: list[Parser]=None, **kwargs: Any) -> PanelCut:            
+        assert resolvers is not None
+
+        left = resolvers[row].parse(data[0])
+        right = resolvers[row+1].parse(data[1])
+
         cut_type = None
         if keyword in ("EKV", "EKH", "folded"):
             cut_type = PANELCUT_TYPES.folded

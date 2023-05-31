@@ -3,9 +3,11 @@ from __future__ import annotations
 import copy
 import logging
 import math
-from typing import TYPE_CHECKING, Dict, List, Tuple, Optional
+from typing import TYPE_CHECKING, Callable, Dict, List, Tuple, Optional
 
 import euklid
+from openglider.glider.parametric.table.base.parser import Parser
+from openglider.glider.parametric.table.base.table import ElementTable
 import openglider.materials
 import pyfoil
 from openglider.glider.ballooning.base import BallooningBase
@@ -17,12 +19,13 @@ from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.export_ods import export_ods_2d
 from openglider.glider.parametric.fitglider import fit_glider_3d
 from openglider.glider.parametric.import_ods import import_ods_2d
-from openglider.glider.parametric.lines import LineSet2D, UpperNode2D
+from openglider.glider.parametric.lines import LineSet2D
 from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.parametric.table import GliderTables
 from openglider.glider.rib import Rib, SingleSkinRib
-from openglider.utils import ZipCmp, linspace
-from openglider.utils.dataclass import dataclass, Field, BaseModel
+from openglider.utils import ZipCmp
+from openglider.utils.cache import cached_function, cached_property
+from openglider.utils.dataclass import dataclass, Field
 from openglider.utils.distribution import Distribution
 from openglider.utils.table import Table
 from openglider.utils.types import CurveType, SymmetricCurveType
@@ -133,7 +136,7 @@ class ParametricGlider:
         :param glider_3d: (optional)
         :return: list of "cells"
         """
-        curves = self.get_curves()
+        resolvers = self.resolvers
 
         cells: List[List[Panel]]
 
@@ -145,7 +148,7 @@ class ParametricGlider:
         for cell_no, panel_lst in enumerate(cells):
             panel_lst.clear()
 
-            cuts: List[PanelCut] = self.tables.cuts.get(cell_no, curves=curves)
+            cuts: List[PanelCut] = self.tables.cuts.get(cell_no, resolvers=resolvers)
 
             all_values = [c.x_left for c in cuts] + [c.x_right for c in cuts]
 
@@ -192,17 +195,17 @@ class ParametricGlider:
         return cells
 
     def apply_diagonals(self, glider: Glider) -> None:
-        curves = self.get_curves()
+        resolvers = self.resolvers
 
         for cell_no, cell in enumerate(glider.cells):
-            cell.diagonals = self.tables.diagonals.get(row_no=cell_no, curves=curves)
+            cell.diagonals = self.tables.diagonals.get(row_no=cell_no, resolvers=resolvers)
 
             cell.diagonals.sort(key=lambda strap: strap.get_average_x())
 
             for strap_no, strap in enumerate(cell.diagonals):
                 strap.name = "c{}{}{}".format(cell_no+1, "d", strap_no)
 
-            cell.straps = self.tables.straps.get(row_no=cell_no, curves=curves)
+            cell.straps = self.tables.straps.get(row_no=cell_no, resolvers=resolvers)
             cell.straps.sort(key=lambda strap: strap.get_average_x())
 
             for strap_no, strap in enumerate(cell.diagonals):
@@ -223,7 +226,7 @@ class ParametricGlider:
         for rib, aoa in zip(glider.ribs, aoa_values):
             rib.set_aoa_relative(aoa)
 
-    def get_profile_merge(self) -> List[float]:
+    def get_profile_merge_values(self) -> List[float]:
         profile_merge_curve = euklid.vector.Interpolation(self.profile_merge_curve.get_sequence(self.num_interpolate).nodes)
         return [profile_merge_curve.get_value(abs(x)) for x in self.shape.rib_x_values]
 
@@ -259,6 +262,31 @@ class ParametricGlider:
             rib.chord = abs(front[1]-back[1])
             rib.arcang = rib_angles[rib_no]
 
+    @cached_property('tables.curves', 'shape')
+    def resolvers(self) -> list[Parser]:
+        parsers = []
+        curves=self.get_curves()
+
+        def resolver_factory(rib_no: int) -> Callable[[str], float]:
+            return lambda name: curves[name].get(rib_no)
+
+
+        for rib_no, chord in enumerate(self.shape.chords):
+            # 1st step: replace metric parameters with chord factor
+            units = {
+                "mm": 0.001/chord,
+                "cm": 0.01/chord,
+                "dm": 0.1/chord,
+                "m": 1./chord
+            }
+            
+            parsers.append(Parser(
+                units=units,
+                variable_resolver=resolver_factory(rib_no)
+            ))
+        
+        return parsers
+
     def get_glider_3d(self, glider: Glider=None, num: int=50, num_profile: Optional[int]=None) -> Glider:
         """returns a new glider from parametric values"""
         glider = glider or Glider()
@@ -267,6 +295,7 @@ class ParametricGlider:
         logger.info("apply curves")
         self.rescale_curves()
         curves = self.get_curves()
+        resolvers = self.resolvers
 
         x_values = self.shape.rib_x_values
         shape_ribs = self.shape.ribs
@@ -291,7 +320,7 @@ class ParametricGlider:
 
 
         logger.info("create ribs")
-        profile_merge_values = self.get_profile_merge()
+        profile_merge_values = self.get_profile_merge_values()
 
         for rib_no, x_value in enumerate(x_values):
             front, back = shape_ribs[rib_no]
@@ -303,7 +332,7 @@ class ParametricGlider:
                 material = self.tables.material_ribs.get(rib_no)[0]
             except (KeyError, IndexError):
                 logger.warning(f"no material set for rib: {rib_no+1}")
-                material = openglider.materials.Material(name="unknown")
+                material = openglider.materials.Material.default()
 
             chord = abs(front[1]-back[1])
             factor = profile_merge_values[rib_no]
@@ -327,8 +356,8 @@ class ParametricGlider:
 
             sharknose = self.tables.profiles.get_sharknose(rib_no)
 
-            this_rib_holes = self.tables.holes.get(rib_no, curves=curves)
-            this_rigid_foils = self.tables.rigidfoils_rib.get(rib_no)
+            this_rib_holes = self.tables.holes.get(rib_no, resolvers=resolvers)
+            this_rigid_foils = self.tables.rigidfoils_rib.get(rib_no, resolvers=resolvers)
 
             logger.debug(f"holes for rib:  {rib_no} {this_rib_holes}")
             rib = Rib(
@@ -349,11 +378,11 @@ class ParametricGlider:
             )
             rib.set_aoa_relative(aoa_values[rib_no])
 
-            singleskin_data = self.tables.rib_modifiers.get(rib_no)
+            singleskin_data = self.tables.rib_modifiers.get(rib_no, resolvers=resolvers)
             if singleskin_data:
                 rib = SingleSkinRib.from_rib(rib, singleskin_data[0])
             
-            attachment_points = self.tables.attachment_points_rib.get(rib_no, rib=rib, curves=curves)
+            attachment_points = self.tables.attachment_points_rib.get(rib_no, rib=rib, resolvers=resolvers)
             for p in rib.attachment_points:
                 p.get_position(rib)
             rib.attachment_points = attachment_points

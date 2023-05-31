@@ -1,7 +1,7 @@
 from typing import Dict, List, Tuple
 
 from openglider.utils.table import Table
-from openglider.glider.parametric.table.elements import CellTable, Keyword
+from openglider.glider.parametric.table.base import CellTable, Keyword
 
 import logging
 

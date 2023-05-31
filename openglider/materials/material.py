@@ -31,6 +31,10 @@ class Material:
                 raise ValueError(f"invalid attribute: {arg}")
         
             setattr(self, arg, value)
+
+    @classmethod
+    def default(cls) -> Material:
+        return cls(name="unknown")
         
     def get_color_rgb(self) -> Tuple[int, int, int]:
         color = Color.parse_hex(self.color_code)

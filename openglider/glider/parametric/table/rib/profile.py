@@ -2,7 +2,7 @@ from typing import Any, List, Tuple, Optional, Dict
 import logging
 
 from openglider.glider.rib.sharknose import Sharknose
-from openglider.glider.parametric.table.elements import RibTable, Keyword
+from openglider.glider.parametric.table.base import RibTable, Keyword
 
 logger = logging.getLogger(__name__)
 

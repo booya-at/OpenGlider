@@ -9,7 +9,8 @@ import euklid
 from openglider.glider.cell.attachment_point import CellAttachmentPoint
 from openglider.glider.cell.cell import Cell
 from openglider.glider.curve import GliderCurveType
-from openglider.glider.parametric.table.elements import CellTable, Keyword, RibTable
+from openglider.glider.parametric.table.base import CellTable, Keyword, RibTable
+from openglider.glider.parametric.table.base.parser import Parser
 from openglider.glider.rib.attachment_point import AttachmentPoint
 from openglider.glider.rib.rib import Rib
 from openglider.utils.table import Table
@@ -29,7 +30,7 @@ class AttachmentPointTable(RibTable):
         "ATPPROTO": Keyword([("name", str), ("pos", float), ("force", Union[float, str]), ("proto_distance", float)], target_cls=AttachmentPoint)
     }
 
-    def get_element(self, row: int, keyword: str, data: List[Any], curves: Dict[str, GliderCurveType]={}, rib: Rib=None, **kwargs: Any) -> AttachmentPoint:
+    def get_element(self, row: int, keyword: str, data: List[Any], resolvers: list[Parser]=None, rib: Rib=None, **kwargs: Any) -> AttachmentPoint:
         # rib_no, rib_pos, cell_pos, force, name, is_cell
         force = data[2]
 
@@ -38,15 +39,20 @@ class AttachmentPointTable(RibTable):
         elif rib is not None:
             force = AttachmentPoint.calculate_force_rib_aligned(rib, force)
 
-        rib_pos = data[1]
-        if isinstance(rib_pos, str):
-            rib_pos = curves[rib_pos].get(row)
+        assert resolvers is not None
+        resolver = resolvers[row]
+        rib_pos = resolver.parse(data[1])
         
         node = AttachmentPoint(name=data[0], rib_pos=rib_pos, force=force)
 
         if keyword == "ATPPROTO":
-            node.protoloop_distance_absolute = data[3]
             node.protoloops = 1
+
+            default_resolver = Parser()
+            node.protoloop_distance = default_resolver.parse(data[3])
+
+            if default_resolver.has_units(data[3]):
+                node.protoloop_distance_absolute = False
         
         return node
     

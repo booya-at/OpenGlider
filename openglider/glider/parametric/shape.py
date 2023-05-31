@@ -200,6 +200,10 @@ class ParametricShape:
     @property
     def ribs(self) -> List[Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]]:
         return self.get_half_shape().ribs
+    
+    @property
+    def chords(self) -> list[float]:
+        return [(p1-p2).length() for p1, p2 in self.ribs]
 
     def get_rib_point(self, rib_no: int, x: float) -> euklid.vector.Vector2D:
         ribs = list(self.ribs)

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Dict, Any
-from openglider.glider.parametric.table.elements import TableType
+from openglider.glider.parametric.table.base import TableType
 
 from openglider.utils.table import Table
 from openglider.glider.shape import Shape

@@ -1,7 +1,7 @@
 from typing import Any, List
 from openglider.glider.rib import MiniRib
 
-from openglider.glider.parametric.table.elements import CellTable, Keyword
+from openglider.glider.parametric.table.base import CellTable, Keyword
 
 class MiniRibTable(CellTable):
     keywords = {

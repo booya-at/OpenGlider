@@ -7,7 +7,7 @@ from openglider.glider.parametric.table.cell.cuts import CutTable
 from openglider.glider.parametric.table.cell.diagonals import DiagonalTable, StrapTable
 from openglider.glider.parametric.table.cell.miniribs import MiniRibTable
 from openglider.glider.parametric.table.curve import CurveTable
-from openglider.glider.parametric.table.elements import TableType
+from openglider.glider.parametric.table.base import TableType
 from openglider.glider.parametric.table.material import CellClothTable, RibClothTable
 from openglider.glider.parametric.table.rib.holes import HolesTable
 from openglider.glider.parametric.table.rib.profile import ProfileTable

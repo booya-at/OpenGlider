@@ -1,4 +1,4 @@
-from openglider.glider.parametric.table.elements import CellTable, RibTable, Keyword
+from openglider.glider.parametric.table.base import CellTable, RibTable, Keyword
 
 from openglider.glider.cell.rigidfoil import PanelRigidFoil
 from openglider.glider.rib.rigidfoils import RigidFoil, RigidFoil2

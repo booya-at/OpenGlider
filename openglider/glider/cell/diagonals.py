@@ -256,7 +256,7 @@ class DiagonalRib:
 class TensionStrap(DiagonalRib):
     hole_num: int=0
 
-    def __init__(self, left: float, right: float, width: float, height: float=-1, **kwargs: Any):
+    def __init__(self, left: float, right: float, width: float | tuple[float, float], height: float=-1, **kwargs: Any) -> None:
         """
         Similar to a Diagonalrib but always connected to the bottom-sail.
         :param left: left center of TensionStrap as x-value
@@ -265,8 +265,11 @@ class TensionStrap(DiagonalRib):
         :param material_code: color/material-name (optional)
         :param name: name of TensionStrap (optional)
         """
-        left_side = DiagonalSide.create_from_center(left, width, height)
-        right_side = DiagonalSide.create_from_center(right, width, height)
+        if not isinstance(width, tuple):
+            width = width, width
+        
+        left_side = DiagonalSide.create_from_center(left, width[0], height)
+        right_side = DiagonalSide.create_from_center(right, width[1], height)
 
         super().__init__(left_side, right_side, **kwargs)
     
