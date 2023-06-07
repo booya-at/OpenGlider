@@ -19,6 +19,7 @@ from openglider.utils.config import Config
 from openglider.vector.drawing import PlotPart
 from openglider.vector.drawing.part import Layer
 from openglider.vector.text import Text
+from openglider.vector.unit import Percentage
 
 if TYPE_CHECKING:
     from openglider.glider.cell import Cell
@@ -218,7 +219,7 @@ class PanelPlot:
         return MaterialUsage().consume(self.panel.material, area)
 
 
-    def get_point(self, x: float) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
+    def get_point(self, x: float | Percentage) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
         ik = get_x_value(self.x_values, x)
 
         return (
@@ -245,7 +246,7 @@ class PanelPlot:
     def insert_mark(
         self,
         mark: Callable[[euklid.vector.Vector2D, euklid.vector.Vector2D], List[euklid.vector.PolyLine2D]],
-        x: float,
+        x: float | Percentage,
         layer: Layer,
         is_right: bool
         ) -> None:
@@ -253,11 +254,13 @@ class PanelPlot:
             return
 
         if is_right:
-            side = "right"
+            x_front = self.panel.cut_front.x_right
+            x_back = self.panel.cut_back.x_right
         else:
-            side = "left"
+            x_front = self.panel.cut_front.x_left
+            x_back = self.panel.cut_back.x_left
 
-        if getattr(self.panel.cut_front, f"x_{side}") <= x <= getattr(self.panel.cut_back, f"x_{side}"):
+        if x_front <= x <= x_back:
             ik = get_x_value(self.x_values, x)
             p1 = self.ballooned[is_right].get(ik)
             p2 = self.outer_orig[is_right].get(ik)
@@ -404,11 +407,11 @@ class PanelPlot:
             cut_f = cut_f_l + cell_pos * (cut_f_r - cut_f_l)
             cut_b = cut_b_l + cell_pos * (cut_b_r - cut_b_l)
 
-            positions = [cell_attachment_point.rib_pos]
+            positions = [cell_attachment_point.rib_pos.si]
             
             for rib_pos_no, rib_pos in enumerate(positions):
 
-                if cut_f <= cell_attachment_point.rib_pos <= cut_b:
+                if cut_f <= cell_attachment_point.rib_pos.si <= cut_b:
                     left, right = self.get_point(rib_pos)
 
                     p1 = left + (right - left) * cell_pos

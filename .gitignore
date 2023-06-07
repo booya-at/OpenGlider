@@ -12,6 +12,7 @@
 *.so
 *.lyx
 
+local
 # Packages
 *.egg
 *.egg-info

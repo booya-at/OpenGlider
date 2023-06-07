@@ -291,7 +291,7 @@ class Cell(BaseModel):
 
             for x in (x1, x2):
                 if abs(x) < (1 - 1e-10):
-                    cuts.add(x)
+                    cuts.add(float(x))
         
         ballooning = self.ballooning
         from openglider.glider.ballooning.new import BallooningNew

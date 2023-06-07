@@ -42,4 +42,4 @@ def set_strap_names(glider: Glider) -> None:
         straps = cell.straps[:]
         straps.sort(key=lambda strap: strap.get_average_x())
         for strap in cell.straps:
-            strap.name = get_name(strap.left.center)
+            strap.name = get_name(strap.left.center.si)

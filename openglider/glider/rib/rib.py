@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing_extensions import Self
-from typing import Any, List, TYPE_CHECKING, Tuple
+from typing import Any, List, TYPE_CHECKING, Tuple, Type
 import copy
 import numpy as np
 import logging
@@ -17,6 +17,7 @@ from openglider.utils.cache import cached_function, cached_property
 from openglider.mesh import Mesh, triangulate
 from openglider.glider.rib.sharknose import Sharknose
 from openglider.utils.dataclass import BaseModel, Field
+from openglider.vector.unit import Length, Percentage
 
 
 if TYPE_CHECKING:
@@ -83,8 +84,8 @@ class RibBase(BaseModel):
     def transformation(self) -> euklid.vector.Transformation:
         raise NotImplementedError()
     
-    def point(self, x_value: float) -> euklid.vector.Vector3D:
-        return self.align(self.profile_2d.profilepoint(x_value))
+    def point(self, x_value: float | Percentage) -> euklid.vector.Vector3D:
+        return self.align(self.profile_2d.profilepoint(float(x_value)))
     
 
     def copy(self, *args: Any, **kwargs: Any) -> Self:
@@ -125,6 +126,17 @@ class Rib(RibBase):
     def __post_init__(self) -> None:
         self.pos = euklid.vector.Vector3D(self.pos)
 
+    def convert_to_percentage(self, value: Percentage | Length) -> Percentage:
+        if isinstance(value, Percentage):
+            return value
+        
+        return Percentage(value.si/self.chord)
+    
+    def convert_to_chordlength(self, value: Percentage | Length) -> Length:
+        if isinstance(value, Length):
+            return value
+        
+        return Length(value.si*self.chord)
 
     @property
     def aoa_relative(self) -> float:
@@ -229,11 +241,14 @@ class Rib(RibBase):
             return rib_mesh
 
     @cached_function("self")
-    def get_offset_outline(self, margin: float) -> pyfoil.Airfoil:        
+    def get_offset_outline(self, margin: Percentage | Length) -> pyfoil.Airfoil:
         if margin == 0.:
             return self.profile_2d
         else:
-            envelope = self.profile_2d.curve.offset(-margin/self.chord, simple=False)
+            if isinstance(margin, Percentage):
+                margin = margin/self.chord
+            
+            envelope = self.profile_2d.curve.offset(-margin.si, simple=False)
             
             return pyfoil.Airfoil(envelope)
         

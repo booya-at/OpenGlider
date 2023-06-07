@@ -22,6 +22,7 @@ from openglider.utils.distribution import Distribution
 from openglider.vector.projection import flatten_list
 from openglider.lines.lineset import LineSet
 from openglider.lines.node import Node
+from openglider.vector.unit import Percentage
 
 if TYPE_CHECKING:
     from openglider.glider.cell.panel import Panel
@@ -420,7 +421,7 @@ class Glider(object):
 
     def get_attachment_point_layers(self) -> Dict[str, euklid.vector.Interpolation]:
         regex = re.compile(r"([a-zA-Z]+)([0-9]+)")
-        attachment_point_per_group: Dict[str, List[Tuple[int, float]]] = {}
+        attachment_point_per_group: Dict[str, List[Tuple[int, Percentage]]] = {}
 
         for rib_no, rib in enumerate(self.ribs):
             for point in rib.attachment_points:

@@ -3,12 +3,48 @@ from typing import Any, Dict, List
 from openglider.glider.cell.diagonals import DiagonalRib, DiagonalSide, TensionLine, TensionStrap
 from openglider.glider.curve import GliderCurveType
 from openglider.glider.parametric.table.base import CellTable, Keyword
+from openglider.glider.parametric.table.base.dto import DTO, CellTuple
 from openglider.glider.parametric.table.base.parser import Parser
 from openglider.utils.table import Table
 
 import logging
 
+from openglider.vector.unit import Length, Percentage
+
 logger = logging.getLogger(__name__)
+
+class QRDTO(DTO):
+    position: CellTuple[Percentage]
+    width: CellTuple[Percentage | Length]
+    height: CellTuple[Percentage]
+
+    def get_object(self) -> DiagonalRib:
+        left_side = DiagonalSide(center=self.position.first, width=self.width.first, height=self.height.first.si)
+        right_side = DiagonalSide(center=self.position.second, width=self.width.second, height=self.height.second.si)
+
+        return DiagonalRib(left_side, right_side)
+    
+class DiagonalDTO(QRDTO):
+    material_code: str
+
+    def get_object(self) -> DiagonalRib:
+        diagonal = super().get_object()
+        diagonal.material_code = self.material_code
+
+        return diagonal
+
+class StrapDTO(DTO):
+    position: CellTuple[Percentage]
+    width: Percentage | Length
+
+    def get_object(self) -> TensionStrap:
+        return TensionStrap(self.position.first, self.position.second, self.width)
+    
+class TensionLineDTO(DTO):
+    position: CellTuple[Percentage]
+
+    def get_object(self) -> TensionLine:
+        return TensionLine(self.position.first, self.position.second)
 
 class DiagonalTable(CellTable):
 
@@ -24,54 +60,19 @@ class DiagonalTable(CellTable):
 
 
     keywords = {
-        "QR": Keyword(["left", "right", "width_left", "width_right", "height_left", "height_right"], target_cls=DiagonalRib)
+        #"QR": Keyword(["left", "right", "width_left", "width_right", "height_left", "height_right"], target_cls=DiagonalRib)
     }
-    
-    def get_element(self, row: int, keyword: str, data: List[Any], resolvers: list[Parser]=None, **kwargs: Any) -> DiagonalRib:
-        assert resolvers is not None
-        r1 = resolvers[row]
-        r2 = resolvers[row + 1]
-
-        left = r1.parse(data[0])
-        right = r2.parse(data[1])
-        name = None
-
-        if name is not None:
-            name = f"D{row}{name}"
-        else:
-            name = f"D{row}-"
-
-        if keyword == "QR":
-            # left, right, width_left, width_right, height_left, height_right
-
-            left_side = DiagonalSide.create_from_center(left, r1.parse(data[2]), data[4])
-            right_side = DiagonalSide.create_from_center(right, r2.parse(data[3]), data[5])
-
-            return DiagonalRib(left_side, right_side, name=name)      
-
-        raise ValueError()
-
+    dtos = {
+        "QR": QRDTO,
+        "DIAGONAL": DiagonalDTO
+    }
 
 class StrapTable(CellTable):
     keywords = {
-        "STRAP": Keyword([("left", float) , ("right", float), ("width", float)], target_cls=TensionStrap),  # left, right, width
-        "VEKTLAENGE": Keyword(["left", "right"], target_cls=TensionLine)
+        #"STRAP": Keyword([("left", float) , ("right", float), ("width", float)], target_cls=TensionStrap),  # left, right, width
+        #"VEKTLAENGE": Keyword(["left", "right"], target_cls=TensionLine)
     }
-    
-    def get_element(self, row: int, keyword: str, data: List[Any], resolvers: list[Parser]=None, **kwargs: Any) -> DiagonalRib:
-        assert resolvers is not None
-        r1 = resolvers[row]
-        r2 = resolvers[row+1]
-
-        data[0] = r1.parse(data[0])
-        data[1] = r2.parse(data[1])
-        name = None
-        
-        if len(data) > 2:
-            return TensionStrap(
-                data[0],
-                data[1],
-                (r1.parse(data[2]), r2.parse(data[2]))
-            )
-
-        return super().get_element(row, keyword, data, name=name)
+    dtos = {
+        "STRAP": StrapDTO,
+        "VEKTLAENGE": TensionLineDTO
+    }

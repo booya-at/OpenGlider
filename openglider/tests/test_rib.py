@@ -8,6 +8,7 @@ from openglider.glider.rib.rib import Rib
 from openglider.glider.rib.crossports import RibHole
 from openglider.mesh import Mesh
 from openglider.materials import cloth
+from openglider.vector.unit import Percentage
 
 class TestRib(unittest.TestCase):
 
@@ -44,7 +45,7 @@ class TestRib(unittest.TestCase):
             self.assertAlmostEqual(p1[2], p2[2])
 
     def test_mesh(self) -> None:
-        self.rib.holes.append(RibHole(pos=0.2))
+        self.rib.holes.append(RibHole(pos=Percentage(0.2)))
         self.rib.get_mesh()
 
 

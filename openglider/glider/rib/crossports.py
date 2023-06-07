@@ -12,6 +12,7 @@ from openglider.vector.polygon import Ellipse
 from openglider.vector.drawing import PlotPart
 from openglider.vector.text import Text
 from openglider.mesh import Mesh
+from openglider.vector.unit import Angle, Length, Percentage
 
 if TYPE_CHECKING:
     from openglider.glider.rib.rib import Rib
@@ -21,18 +22,18 @@ logger = logging.getLogger(__name__)
 
 class RibHoleBase(BaseModel):
     name: str = "unnamed"
-    margin: float=Field(default=0.04, kw_only=True)
+    margin: Percentage | Length= Percentage("2%")
 
     def get_envelope_airfoil(self, rib: Rib) -> pyfoil.Airfoil:
         return rib.get_offset_outline(self.margin)
     
     @cached_function("margin")
-    def get_envelope_boundaries(self, rib: Rib) -> Tuple[float, float]:
+    def get_envelope_boundaries(self, rib: Rib) -> Tuple[Percentage, Percentage]:
         envelope = self.get_envelope_airfoil(rib)
         x2 = envelope.curve.nodes[0][0]
         x1 = min([p[0] for p in envelope.curve.nodes])
 
-        return x1, x2
+        return Percentage(x1), Percentage(x2)
     
     def align_contolpoints(self, controlpoints: List[euklid.vector.Vector2D], rib: Rib) -> List[euklid.vector.Vector2D]:
         envelope = self.get_envelope_airfoil(rib)
@@ -73,20 +74,20 @@ class RibHole(RibHoleBase):
     Round holes.
     height is relative to profile height, rotation is from lower point
     """
-    pos: float
-    size: float=0.5
-    width: float=1
+    pos: Percentage
+    size: Percentage=Percentage(0.5)
+    width: Percentage=Percentage(1.)
 
     vertical_shift: float=0
-    rotation: float=0
+    rotation: Angle=Angle(0)
 
     def _get_points(self, rib: Rib) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
-        lower = rib.profile_2d.get(self.pos)
-        upper = rib.profile_2d.get(-self.pos)
+        lower = rib.profile_2d.get(self.pos.si)
+        upper = rib.profile_2d.get(-self.pos.si)
 
         diff = upper - lower
         if self.rotation:
-            diff = euklid.vector.Rotation2D(self.rotation).apply(diff)
+            diff = euklid.vector.Rotation2D(self.rotation.si).apply(diff)
 
         center = lower + diff * (0.5 + self.vertical_shift/2)
         outer_point = center + diff.normalized() * self.get_diameter(rib)/2
@@ -96,17 +97,17 @@ class RibHole(RibHoleBase):
     def _get_curves(self, rib: Rib, num: int=80) -> List[euklid.vector.PolyLine2D]:
         center, outer_point = self._get_points(rib)
         
-        circle = Ellipse.from_center_p2(center, outer_point, self.width)
+        circle = Ellipse.from_center_p2(center, outer_point, self.width.si)
 
         return [circle.get_sequence(num)]
     
     def get_diameter(self, rib: Rib) -> float:
-        lower = rib.profile_2d.get(self.pos)
-        upper = rib.profile_2d.get(-self.pos)
+        lower = rib.profile_2d.get(self.pos.si)
+        upper = rib.profile_2d.get(-self.pos.si)
 
         diff = upper - lower
         
-        return diff.length() * self.size
+        return diff.length() * self.size.si
     
     def get_centers(self, rib: Rib, scale: bool=False) -> List[euklid.vector.Vector2D]:
         return [self._get_points(rib)[0]]
@@ -164,14 +165,16 @@ class PolygonHole(RibHoleBase):
 
 
 class RibSquareHole(RibHoleBase):
-    x: float
-    width: float
-    height: float
-    corner_size: float = 1
+    x: Percentage
+    width: Percentage | Length
+    height: Percentage
+    corner_size: float = 1        
 
     def get_centers(self, rib: Rib, scale: bool=False) -> List[euklid.vector.Vector2D]:
-        x1 = self.x - self.width/2
-        x2 = self.x + self.width/2
+        width = rib.convert_to_percentage(self.width)
+
+        x1 = self.x - width/2
+        x2 = self.x + width/2
 
         xmin, xmax = self.get_envelope_boundaries(rib)
         if x1 < xmin or x2 > xmax:
@@ -185,8 +188,9 @@ class RibSquareHole(RibHoleBase):
         return centers
     
     def _get_curves(self, rib: Rib, num: int=80) -> List[euklid.vector.PolyLine2D]:
-        x1 = self.x - self.width/2
-        x2 = self.x + self.width/2
+        width = rib.convert_to_percentage(self.width)
+        x1 = self.x - width/2
+        x2 = self.x + width/2
 
         xmin, xmax = self.get_envelope_boundaries(rib)
         if x1 < xmin or x2 > xmax:
@@ -203,51 +207,50 @@ class RibSquareHole(RibHoleBase):
 
 
 class MultiSquareHole(RibHoleBase):
-    start: float
-    end: float
-    height: float
+    start: Percentage
+    end: Percentage
+    height: Percentage
     num_holes: int
-    border_width: float
+    border_width: Percentage | Length
 
     @property
-    def total_border(self) -> float:
+    def total_border(self) -> Percentage | Length:
         return (self.num_holes-1) * self.border_width
 
-    @property
-    def hole_width(self) -> float:
+    def hole_width(self, rib: Rib) -> Percentage:
+        total_border = rib.convert_to_percentage(self.total_border)
 
-        width = (self.end - self.start - self.total_border) / self.num_holes
+        width = (self.end - self.start - total_border) / self.num_holes
         if width < 1e-5:
             raise ValueError(f"Cannot fit {self.num_holes} with border: {self.border_width}")
 
         return width
     
-    @property
-    def hole_x_values(self) -> List[float]:
-        hole_width = self.hole_width
+    def hole_x_values(self, rib: Rib) -> List[Percentage]:
+        hole_width = self.hole_width(rib)
 
         x = self.start + hole_width/2
 
         return [x + i*(hole_width+self.border_width) for i in range(self.num_holes)]
     
-    def _get_holes(self) -> List[RibSquareHole]:
-        hole_width = self.hole_width
+    def _get_holes(self, rib: Rib) -> List[RibSquareHole]:
+        hole_width = self.hole_width(rib)
         holes = []
-        for center in self.hole_x_values:
+        for center in self.hole_x_values(rib):
             holes.append(RibSquareHole(x=center, width=hole_width, height=self.height, margin=self.margin))
 
         return holes
     
     def get_centers(self, rib: Rib, scale: bool=False) -> List[euklid.vector.Vector2D]:
         holes = []
-        for hole in self._get_holes():
+        for hole in self._get_holes(rib):
             holes += hole.get_centers(rib, scale=scale)
         
         return holes
     
     def _get_curves(self, rib: Rib, num: int=80) -> List[euklid.vector.PolyLine2D]:
         curves = []
-        for hole in self._get_holes():
+        for hole in self._get_holes(rib):
             curves += hole.get_curves(rib, num)
         
         return curves

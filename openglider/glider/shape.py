@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, List, Tuple, TypeAlias
 
 import euklid
 from openglider.vector.drawing import Layout, PlotPart
+from openglider.vector.unit import Percentage
 
 if TYPE_CHECKING:
     from openglider.glider.cell.panel import Panel
@@ -29,11 +30,11 @@ class Shape(object):
     def has_center_cell(self) -> bool:
         return abs(self.front.nodes[0][0]) > 1e-5 and abs(self.back.nodes[0][0]) > 1e-5
 
-    def get_point(self, x: float | int, y: float) -> euklid.vector.Vector2D:
+    def get_point(self, x: float | int, y: float | Percentage) -> euklid.vector.Vector2D:
         front = self.front.get(x)
         back = self.back.get(x)
 
-        return front + (back-front) *  y
+        return front + (back-front) *  float(y)
 
     def get_panel(self, cell_no: int, panel: Panel) -> Tuple[V2, V2, V2, V2]:
         p1 = self.get_point(cell_no, panel.cut_front.x_left)

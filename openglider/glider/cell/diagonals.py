@@ -10,6 +10,7 @@ import openglider.mesh.triangulate
 from openglider.utils.dataclass import dataclass, BaseModel
 from openglider.vector.mapping import Mapping, Mapping3D
 from openglider.vector.projection import flatten_list
+from openglider.vector.unit import Length, Percentage
 
 if TYPE_CHECKING:
     from openglider.glider.cell import Cell
@@ -22,43 +23,27 @@ class DiagonalSide(BaseModel):
     """
     Connection between a diagonal and a rib
     """
-    start_x: float
-    start_height: float
-
-    end_x: float
-    end_height: float
-
-    @classmethod
-    def create_from_center(cls, center: float, width: float, height: float) -> DiagonalSide:
-        kwargs = {
-            "start_x": center - width/2,
-            "end_x": center + width/2,
-            "start_height": height,
-            "end_height": height
-        }
-        return cls(**kwargs)
+    # TODO: use center, width (length/pct)
+    center: Percentage
+    width: Percentage | Length
+    
+    height: float
 
     @property
     def is_lower(self) -> bool:
-        return self.start_height == -1 and self.end_height == -1
+        return self.height == -1
     
     @property
     def is_upper(self) -> bool:
-        return self.start_height == 1 and self.end_height == 1
+        return self.height == 1
     
     @property
-    def width(self) -> float:
-        return abs(self.start_x - self.end_x)
-
-    @width.setter
-    def width(self, width: float) -> None:
-        center = self.center
-        self.start_x = center - width/2
-        self.end_x = center + width/2
+    def start_x(self) -> Percentage:
+        return self.center - self.width/2
     
     @property
-    def center(self) -> float:
-        return (self.start_x + self.end_x)/2
+    def end_x(self) -> Percentage:
+        return self.center + self.width/2
 
     def get_curve(self, rib: Rib) -> euklid.vector.PolyLine3D:
             # Is it at 0 or 1?
@@ -76,8 +61,8 @@ class DiagonalSide(BaseModel):
                 #return euklid.vector.PolyLine3D(rib.profile_3d[front:back].data.tolist())
             else:
                 return euklid.vector.PolyLine3D([
-                    rib.align(rib.profile_2d.align([self.start_x, self.start_height])),
-                    rib.align(rib.profile_2d.align([self.end_x, self.end_height]))
+                    rib.align(rib.profile_2d.align([self.start_x, self.height])),
+                    rib.align(rib.profile_2d.align([self.end_x, self.height]))
                 ])
 
 
@@ -246,7 +231,7 @@ class DiagonalRib:
         left, right = flatten_list(first, second)
         return left, right
 
-    def get_average_x(self) -> float:
+    def get_average_x(self) -> Percentage:
         """
         return average x value for sorting
         """
@@ -256,7 +241,7 @@ class DiagonalRib:
 class TensionStrap(DiagonalRib):
     hole_num: int=0
 
-    def __init__(self, left: float, right: float, width: float | tuple[float, float], height: float=-1, **kwargs: Any) -> None:
+    def __init__(self, left: Percentage, right: Percentage, width: Percentage | Length, height: float=-1, **kwargs: Any) -> None:
         """
         Similar to a Diagonalrib but always connected to the bottom-sail.
         :param left: left center of TensionStrap as x-value
@@ -265,11 +250,9 @@ class TensionStrap(DiagonalRib):
         :param material_code: color/material-name (optional)
         :param name: name of TensionStrap (optional)
         """
-        if not isinstance(width, tuple):
-            width = width, width
         
-        left_side = DiagonalSide.create_from_center(left, width[0], height)
-        right_side = DiagonalSide.create_from_center(right, width[1], height)
+        left_side = DiagonalSide(center=left, width=width, height=height)
+        right_side = DiagonalSide(center=right, width=width, height=height)
 
         super().__init__(left_side, right_side, **kwargs)
     
@@ -278,11 +261,11 @@ class TensionStrap(DiagonalRib):
             "left": self.left.center,
             "right": self.right.center,
             "width": (self.left.width + self.right.width)/2,
-            "height": self.left.start_height
+            "height": self.left.height
         }
 
 class TensionLine(TensionStrap):
-    def __init__(self, left: float, right: float, material_code: str="", name: str=""):
+    def __init__(self, left: Percentage, right: Percentage, material_code: str="", name: str=""):
         """
         Similar to a TensionStrap but with fixed width (0.01)
         :param left: left center of TensionStrap as x-value
@@ -290,7 +273,7 @@ class TensionLine(TensionStrap):
         :param material_code: color/material-name
         :param name: optional argument names
         """
-        super().__init__(left, right, 0.01, material_code=material_code, name=name)
+        super().__init__(left, right, Length(0.01), material_code=material_code, name=name)
 
     def __json__(self) -> Dict[str, Any]:
         return {"left": self.left,

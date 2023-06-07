@@ -22,13 +22,15 @@ from typing import List
 from openglider.airfoil.profile_2d import Profile2D
 from openglider.airfoil.profile_2d_parametric import BezierProfile2D
 from openglider.airfoil.profile_3d import Profile3D
+from openglider.vector.unit import Percentage
 
 
-def get_x_value(x_value_list: List[float], x: float) -> float:
+def get_x_value(x_value_list: List[float], x: Percentage | float) -> float:
     """
     Get position of x in a list of x_values
     zb get_x_value([1,2,3],1.5)=0.5
     """
+    x = float(x)
     for i in range(len(x_value_list) - 1):
         if x_value_list[i + 1] >= x or i == len(x_value_list) - 2:
             return i - (x_value_list[i] - x) / (x_value_list[i + 1] - x_value_list[i])

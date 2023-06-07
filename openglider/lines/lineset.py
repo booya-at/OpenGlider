@@ -18,6 +18,7 @@ from openglider.lines.knots import KnotCorrections
 from openglider.lines.line_types.linetype import LineType
 from openglider.mesh import Mesh
 from openglider.utils.table import Table
+from openglider.vector.unit import Percentage
 
 if TYPE_CHECKING:
     from openglider.glider.glider import Glider
@@ -551,9 +552,9 @@ class LineSet(object):
             y_value = 0.
             val_rib_pos = 0.
             for node in nodes:
-                position = getattr(node, "rib_pos", None)
+                position: Percentage | None = getattr(node, "rib_pos", None)
                 if position is not None:
-                    val_rib_pos += position
+                    val_rib_pos += position.si
                 else:
                     val_rib_pos += 1000.*node.position[0]
 
@@ -693,12 +694,12 @@ class LineSet(object):
         return self
     
     def get_line_length(self, line: Line, with_sag: bool=True) -> LineLength:
-        loop_correction = 0
+        loop_correction = 0.
         # reduce by canopy-loop length / brake offset
         if len(self.get_upper_connected_lines(line.upper_node)) == 0:
-            diff = getattr(line.upper_node, "offset", None)
-            if diff:
-                loop_correction += diff
+            offset = getattr(line.upper_node, "offset")
+            if offset:
+                loop_correction += float(offset)
 
         # get knot correction
         knot_correction = 0.

@@ -153,10 +153,10 @@ class ParametricGlider:
             all_values = [c.x_left for c in cuts] + [c.x_right for c in cuts]
 
             if -1 not in all_values:
-                cuts.append(PanelCut(-1, -1, PANELCUT_TYPES.parallel))
+                cuts.append(PanelCut(-1, -1, PANELCUT_TYPES.parallel))  # type: ignore
             
             if 1 not in all_values:
-                cuts.append(PanelCut(1, 1, PANELCUT_TYPES.parallel))
+                cuts.append(PanelCut(1, 1, PANELCUT_TYPES.parallel))  # type: ignore
 
             cuts.sort(key=lambda cut: cut.get_average_x())
 
@@ -271,17 +271,8 @@ class ParametricGlider:
             return lambda name: curves[name].get(rib_no)
 
 
-        for rib_no, chord in enumerate(self.shape.chords):
-            # 1st step: replace metric parameters with chord factor
-            units = {
-                "mm": 0.001/chord,
-                "cm": 0.01/chord,
-                "dm": 0.1/chord,
-                "m": 1./chord
-            }
-            
+        for rib_no, chord in enumerate(self.shape.chords):            
             parsers.append(Parser(
-                units=units,
                 variable_resolver=resolver_factory(rib_no)
             ))
         
@@ -443,9 +434,9 @@ class ParametricGlider:
         logger.info("create lineset")
 
         glider.lineset = self.lineset.return_lineset(glider, self.v_inf)
-        for rib in glider.ribs:
-            for p in rib.attachment_points:
-                pass#p.calculate_force_rib_aligned(rib)
+        #for rib in glider.ribs:
+        #    for p in rib.attachment_points:
+        #        pass#p.calculate_force_rib_aligned(rib)
         #glider.lineset.iterate_target_length()
         glider.lineset.recalc(glider=glider)
         glider.lineset.rename_lines()

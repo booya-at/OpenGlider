@@ -8,6 +8,7 @@ from typing import Tuple, TypeVar, List, TYPE_CHECKING
 import euklid
 import numpy as np
 from openglider.utils.dataclass import BaseModel, dataclass
+from openglider.vector.unit import Length, Percentage
 
 if TYPE_CHECKING:
     from openglider.glider.rib.rib import Rib
@@ -18,9 +19,9 @@ logger = logging.getLogger(__name__)
 
 class RigidFoilBase(ABC, BaseModel):
     name: str = "unnamed"
-    start: float = -0.1
-    end: float = 0.1
-    distance: float = 0.005
+    start: Percentage = Percentage(-0.1)
+    end: Percentage = Percentage(0.1)
+    distance: Length | Percentage = Length("5mm")
 
     def get_3d(self, rib: Rib) -> euklid.vector.PolyLine3D:
         return euklid.vector.PolyLine3D([rib.align(p, scale=False) for p in self.get_flattened(rib)])
@@ -40,22 +41,22 @@ class RigidFoilBase(ABC, BaseModel):
 
 
 class RigidFoil(RigidFoilBase):
-    circle_radius: float = 0.03
+    circle_radius: Length = Length("3cm")
 
     def func(self, pos: float) -> float:
         dsq = None
-        if -0.05 <= pos - self.start < self.circle_radius:
-            dsq = self.circle_radius**2 - (self.circle_radius + self.start - pos)**2
-        if -0.05 <= self.end - pos < self.circle_radius:
-            dsq = self.circle_radius**2 - (self.circle_radius + pos - self.end)**2
+        if -0.05 <= pos - self.start.si < self.circle_radius.si:
+            dsq = self.circle_radius.si**2 - (self.circle_radius.si + self.start.si - pos)**2
+        if -0.05 <= self.end.si - pos < self.circle_radius.si:
+            dsq = self.circle_radius.si**2 - (self.circle_radius.si + pos - self.end.si)**2
 
         if dsq is not None:
             dsq = max(dsq, 0)
-            return (self.circle_radius - np.sqrt(dsq)) * 0.35
+            return (self.circle_radius.si - np.sqrt(dsq)) * 0.35
         return 0.
 
     def get_cap_radius(self, start: bool) -> Tuple[float, float]:
-        return self.circle_radius, 1.
+        return self.circle_radius.si, 1.
 
     def _get_flattened(self, rib: Rib, glider: Glider=None) -> euklid.vector.PolyLine2D:
         max_segment = 0.005  # 5mm
@@ -84,8 +85,11 @@ class RigidFoil(RigidFoilBase):
 
         indices = [profile(x) for x in point_range]
 
+        # convert to unitless percentage (everything is scaled later)
+        distance = rib.convert_to_percentage(self.distance)
+
         nodes = [
-            (profile.curve.get(ik) - profile_normvectors.get(ik) * (self.distance/rib.chord + self.func(x))) * rib.chord 
+            (profile.curve.get(ik) - profile_normvectors.get(ik) * (distance.si + self.func(x))) * rib.chord 
             for ik, x in zip(indices, point_range)
             ]
 
@@ -96,10 +100,12 @@ class _RigidFoilCurved(RigidFoilBase):
     def _get_flattened(self, rib: Rib, glider: Glider=None) -> euklid.vector.PolyLine2D:
         profile = rib.get_hull()
 
-        start = profile.get_ik(self.start)
-        end = profile.get_ik(self.end)
+        start = profile.get_ik(self.start.si)
+        end = profile.get_ik(self.end.si)
 
-        rigidfoil_curve = (profile.curve.get(start, end) * rib.chord).offset(-self.distance).fix_errors()
+        distance = rib.convert_to_chordlength(self.distance)
+
+        rigidfoil_curve = (profile.curve.get(start, end) * rib.chord).offset(-distance.si).fix_errors()
         segments = rigidfoil_curve.get_segments()
         rot_90 = euklid.vector.Rotation2D(math.pi/2)
 

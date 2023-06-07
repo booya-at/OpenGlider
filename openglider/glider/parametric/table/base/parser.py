@@ -1,36 +1,39 @@
 import math
 import operator
-from typing import Any, Callable
+from typing import Any, Callable, Type, TypeVar
 
 from pydantic import Field
 from pyparsing import (CaselessKeyword, Forward, Group, Literal, ParseException, ParseResults,
                        Regex, Suppress, Word, alphanums, alphas, delimitedList)
 
 from openglider.utils.dataclass import BaseModel
+from openglider.vector.unit import Angle, Length, Percentage, Quantity
 
 # parse arithmetic expressions similar to the pyparsing calculator example:
 # https://github.com/pyparsing/pyparsing/blob/master/examples/fourFn.py
 
 
-default_units = {
-    "mm": 0.001,
-    "cm": 0.01,
-    "dm": 0.1,
-    "m": 1,
-    "km": 1000,
-    "°": math.pi/180
-}
+default_units: list[Type[Quantity]] = [
+    Length,
+    Percentage,
+    Angle,
+]
+
+AllUnits = Length | Percentage | Angle
+#UnitAndFloat = Length | Percentage | Angle | float
 
 def default_resolver(key: str) -> float:
     raise KeyError(f"unable to resolve '{key}' (no variable resolver)")
 
 
 class Parser(BaseModel):
-    units: dict[str, float] = Field(default_factory=default_units.copy)
+    units: list[Type[Quantity]] = Field(default_factory=default_units.copy)
     variable_resolver: Callable[[str], float] = default_resolver
 
     _parser: Forward | None = None
-    stack: list[str | float] = Field(default_factory=list)
+    _units: dict[str, Type[Quantity]] | None = None
+
+    stack: list[str | float | Quantity] = Field(default_factory=list)
 
     _operations = {
         "+": operator.add,
@@ -53,15 +56,26 @@ class Parser(BaseModel):
     }
 
     _constants = {
-        "PI": math.pi,
-        "E": math.e
+        "PI": Angle(math.pi),
+        #"E": math.e
     }
+
+    def get_units(self) -> dict[str, Type[Quantity]]:
+        if self._units is None:
+            result = {}
+            for quantity_type in self.units:
+                result[quantity_type.unit] = quantity_type
+                for unit in quantity_type.unit_variants:
+                    result[unit] = quantity_type
+            
+            self._units = result
+        
+        return self._units
     
     def get_parser(self) -> Forward:
         if self._parser is None:            
-            regex_number = Regex(r"([-+]?\d*\.\d*(?:[eE][+-]?\d+)?|\d+)")
-
-            units = regex_number + Regex(rf"\s*\w+(?!\S)")
+            regex_number = Regex(Quantity.re_number)
+            units = regex_number + Regex(Quantity.re_unit)
 
             identifier = Word(alphas, alphanums + "_$")
 
@@ -106,11 +120,12 @@ class Parser(BaseModel):
     
     def push_with_unit(self, toks: ParseResults) -> None:
         _amount, unit = toks
+        available_units = self.get_units()
 
-        if unit not in self.units:
-            raise ValueError(f"unknown unit '{unit}' available units: {list(self.units.keys())}")
-
-        amount = float(_amount) * self.units[unit]
+        if unit not in available_units:
+            raise ValueError(f"unknown unit '{unit}' available units: {list(available_units.keys())}")
+        
+        amount = available_units[unit](float(_amount), unit=unit)
         self.stack.append(amount)
     
     def push_first(self, toks: ParseResults) -> None:
@@ -123,7 +138,7 @@ class Parser(BaseModel):
             else:
                 break
     
-    def parse(self, expression: str | float) -> float:
+    def parse(self, expression: str | float) -> Quantity | float:
         if isinstance(expression, (float, int)):
             return float(expression)
         
@@ -139,22 +154,13 @@ class Parser(BaseModel):
             return self.evaluate_stack()
         
         raise Exception("")
-    
-    def has_units(self, expression: str) -> bool:
-        regex_number = Regex(r"([-+]?\d*\.\d*(?:[eE][+-]?\d+)?|\d+)")
-        regex_units = regex_number + Regex(rf"\s*\w+(?!\S)")
 
-        try:
-            return regex_units.parse_string(expression) is not None
-        except ParseException:
-            return False
-
-    def evaluate_stack(self) -> float:
+    def evaluate_stack(self) -> Quantity | float:
         op, num_args = self.stack.pop(), 0
 
-        if isinstance(op, (float, int)):
+        if isinstance(op, (float, int, Quantity)):
             return op
-        
+
         if isinstance(op, tuple):
             op, num_args = op
 
@@ -181,4 +187,4 @@ class Parser(BaseModel):
 if __name__ == "__main__":
     parser = Parser()
 
-    print(parser.parse("3cm"))
+    print(parser.parse("3 + 3cm"))

@@ -11,6 +11,7 @@ from openglider.glider.parametric.glider import ParametricGlider
 
 from openglider.glider.cell.panel import Panel, PanelCut
 from openglider.utils.dataclass import BaseModel
+from openglider.vector.unit import Percentage
 
 logging.getLogger(__name__)
 
@@ -131,11 +132,13 @@ class Shape2D(QtWidgets.QGraphicsObject):
             cell_side_panels: Iterator[Panel] = filter(match, cell_panels)
 
             for panel in cell_side_panels:
-                def normalize_x(val: float) -> float:
-                    if lower:
-                        return max(val, 0.)
-                    else:
-                        return max(-val, 0.)
+                def normalize_x(val: Percentage) -> Percentage:
+                    if lower and val < 0:
+                        return Percentage(0.)
+                    elif not lower and val > 0:
+                        return Percentage(0.)
+
+                    return val
 
 
                 def get_cut_line(cut: PanelCut) -> List[euklid.vector.Vector2D]:

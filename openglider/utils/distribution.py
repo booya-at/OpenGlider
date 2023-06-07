@@ -171,7 +171,7 @@ class Distribution(HashedList[float]):
         return cls(first_half + second_half)
 
     def add_glider_fixed_nodes(self, glider: Glider) -> None:
-        insert_pts = [-abs(point.rib_pos) for point in glider.attachment_points.values()] + [0]
+        insert_pts = [-abs(point.rib_pos.si) for point in glider.attachment_points.values()] + [0]
         self.insert_values(insert_pts)
         self.data = self.upper + [-i for i in reversed(self.upper[:-1])]
 

@@ -56,7 +56,7 @@ class DribPlot(object):
             side_obj = self.drib.right
 
         if not side_obj.is_lower and not side_obj.is_upper:
-            raise ValueError(f"invalid height: {side_obj.start_height} / {side_obj.end_height}")
+            raise ValueError(f"invalid height: {side_obj.height}")
 
         boundary = [side_obj.start_x, side_obj.end_x]
         boundary.sort()
@@ -128,14 +128,14 @@ class DribPlot(object):
 
         for attachment_point in self.cell.rib1.attachment_points:
             try:
-                p1, p2 = self.get_left(attachment_point.rib_pos)
+                p1, p2 = self.get_left(attachment_point.rib_pos.si)
             except ValueError:
                 continue
             _add_mark(p1, p2)
 
         for attachment_point in self.cell.rib2.attachment_points:
             try:
-                p1, p2 = self.get_right(attachment_point.rib_pos)
+                p1, p2 = self.get_right(attachment_point.rib_pos.si)
             except ValueError:
                 continue
             _add_mark(p1, p2)

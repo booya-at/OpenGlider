@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Dict, Any
 import euklid
 from openglider.glider.shape import Shape
 from openglider.lines.node import Node, NODE_TYPE_ENUM
+from openglider.vector.unit import Percentage
 
 if TYPE_CHECKING:
     from openglider.glider.cell.cell import Cell
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class CellAttachmentPoint(Node):
     cell_pos: float
-    rib_pos: float
+    rib_pos: Percentage
     node_type: NODE_TYPE_ENUM = Node.NODE_TYPE.UPPER
     ballooned=False
     offset: float = 0.
@@ -65,5 +66,5 @@ class CellAttachmentPoint(Node):
         if cell_no is None:
             raise ValueError("Not in a cell: {self}")
 
-        return shape.get_point(cell_no+self.cell_pos, self.rib_pos)
+        return shape.get_point(cell_no+self.cell_pos, self.rib_pos.si)
 

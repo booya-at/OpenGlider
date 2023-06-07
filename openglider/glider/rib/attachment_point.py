@@ -7,6 +7,7 @@ from openglider.glider.shape import Shape
 from openglider.lines.node import NODE_TYPE_ENUM, Node
 from openglider.utils.dataclass import dataclass
 from openglider.vector.polygon import Circle
+from openglider.vector.unit import Percentage, Length
 
 if TYPE_CHECKING:
     from openglider.glider.rib.rib import Rib
@@ -22,11 +23,9 @@ class GibusArcs:
     A Reinforcement, in the shape of an arc, to reinforce attachment points
     """
 
-    position: float
-    size: float = 0.05
+    position: Percentage
+    size: Length | Percentage = Percentage(0.05)
     material_code: str = ""
-
-    size_abs: bool = True
 
     def get_3d(self, rib: "Rib", num_points: int=10) -> euklid.vector.PolyLine3D:
         # create circle with center on the point
@@ -41,11 +40,7 @@ class GibusArcs:
         start = profile(self.position)
         point_1 = profile.curve.get(start)
 
-        if self.size_abs:
-            # reverse scale now
-            size = self.size / rib.chord
-        else:
-            size = self.size
+        size = rib.convert_to_chordlength(self.size).si
         
         n = profile.normvectors.get(start)
 
@@ -62,13 +57,12 @@ class GibusArcs:
 
 # Node from lines
 class AttachmentPoint(Node):
-    rib_pos: float
+    rib_pos: Percentage
 
     node_type: NODE_TYPE_ENUM = Node.NODE_TYPE.UPPER
-    offset: float = -0.01
-    protoloops: int = False
-    protoloop_distance: float = 0.02
-    protoloop_distance_absolute: bool = True
+    offset: Length = Length("1cm")
+    protoloops: int = 0
+    protoloop_distance: Percentage | Length = Percentage("2%")
 
     def __repr__(self) -> str:
         return "<Attachment point '{}' ({})>".format(self.name, self.rib_pos)
@@ -80,7 +74,6 @@ class AttachmentPoint(Node):
             "force": self.force,
             "protoloops": self.protoloops,
             "protoloop_distance": self.protoloop_distance,
-            "protoloop_distance_absolute": self.protoloop_distance_absolute
         }
     
     @classmethod
@@ -91,7 +84,7 @@ class AttachmentPoint(Node):
 
     
     def get_x_values(self, rib: Rib) -> List[float]:
-        positions = [self.rib_pos]
+        positions = [self.rib_pos.value]
 
         if self.protoloops:
             hull = rib.get_hull()
@@ -99,15 +92,15 @@ class AttachmentPoint(Node):
 
             for i in range(self.protoloops):
                 diff = (i+1) * self.protoloop_distance
-                if self.protoloop_distance_absolute:
-                    front_ik = hull.curve.walk(ik_start, -diff / rib.chord)
-                    back_ik = hull.curve.walk(ik_start, diff / rib.chord)
+                if isinstance(self.protoloop_distance, Length):
+                    front_ik = hull.curve.walk(ik_start, (-diff / rib.chord).si)
+                    back_ik = hull.curve.walk(ik_start, (diff / rib.chord).si)
 
                     positions.append(hull.curve.get(front_ik)[0])
                     positions.append(hull.curve.get(back_ik)[0])
                 else:
-                    positions.append(self.rib_pos-diff)
-                    positions.append(self.rib_pos+diff)
+                    positions.append((self.rib_pos-diff).si)
+                    positions.append((self.rib_pos+diff).si)
         
         return positions
     
@@ -121,7 +114,7 @@ class AttachmentPoint(Node):
         hull = rib.get_hull()
         profile_3d = rib.get_profile_3d()
 
-        self.position = profile_3d.get(hull(self.rib_pos))
+        self.position = profile_3d.get(hull(self.rib_pos.si))
 
         return self.position
     
@@ -135,4 +128,4 @@ class AttachmentPoint(Node):
         if rib_no is None:
             raise ValueError(f"no rib found for node: {self}")
 
-        return shape.get_point(rib_no, self.rib_pos)
+        return shape.get_point(rib_no, self.rib_pos.si)

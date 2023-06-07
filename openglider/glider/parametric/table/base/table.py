@@ -4,10 +4,14 @@ import sys
 import typing
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
+from pydantic import BaseModel
+
 from openglider.glider.curve import GliderCurveType
 from openglider.glider.parametric.shape import ParametricShape
+from openglider.glider.parametric.table.base.dto import DTO
 from openglider.glider.parametric.table.base.parser import Parser
 from openglider.utils.table import Table
+from openglider.vector.unit import Quantity
 from openglider.version import __version__
 
 from .keyword import Keyword
@@ -24,6 +28,7 @@ class TableType(enum.Enum):
 class ElementTable(Generic[ElementType]):
     table_type: TableType = TableType.general
     keywords: dict[str, Keyword] = {}
+    dtos: dict[str, Type[DTO]] = {}
 
     def __init__(self, table: Table=None, migrate_header: bool=False):
         self.table = Table()
@@ -35,10 +40,17 @@ class ElementTable(Generic[ElementType]):
                 _table = table
 
             if _table is not None:
-                for keyword in self.keywords:
-                    data_length = self.keywords[keyword].attribute_length
+                def add_data(keyword: str, data_length: int) -> None:
                     for column in self.get_columns(_table, keyword, data_length):
                         self.table.append_right(column)
+
+                for keyword in self.keywords:
+                    data_length = self.keywords[keyword].attribute_length
+                    add_data(keyword, data_length)
+
+                for dto in self.dtos:
+                    data_length = self.dtos[dto].column_length()
+                    add_data(dto, data_length)
     
     def __json__(self) -> Dict[str, Any]:
         return {
@@ -49,8 +61,17 @@ class ElementTable(Generic[ElementType]):
     def get_columns(cls, table: Table, keyword: str, data_length: int) -> list[Table]:
         columns = []
         column = 0
-        keyword_instance = cls.keywords[keyword]
-        header = keyword_instance.get_header(keyword)
+
+        if keyword in cls.keywords:
+            keyword_instance = cls.keywords[keyword]
+            header = keyword_instance.get_header(keyword)
+        elif keyword in cls.dtos:
+            dto = cls.dtos[keyword]
+            types = dto.describe()
+            header = Table()
+            header[0, 0] = keyword
+            for i, (field_name, field_type) in enumerate(types):
+                header[1, i] = f"{field_name}: {field_type}"
 
         while column < table.num_columns:
             if table[0, column] == keyword:
@@ -69,8 +90,11 @@ class ElementTable(Generic[ElementType]):
         row_no += 2  # skip header line
         elements = []
         
-        for keyword in self.keywords:
-            data_length = self.keywords[keyword].attribute_length
+        for keyword in list(self.keywords.keys()) + list(self.dtos.keys()):
+            if keyword in self.keywords:
+                data_length = self.keywords[keyword].attribute_length
+            else:
+                data_length = self.dtos[keyword].column_length()
 
             if keywords is not None and keyword not in keywords:
                 logger.debug(f"skipping keyword {keyword}")
@@ -116,9 +140,37 @@ class ElementTable(Generic[ElementType]):
         return None
     
     def get_element(self, row: int, keyword: str, data: list[typing.Any], **kwargs: Any) -> ElementType:
-        keyword_mapper = self.keywords[keyword]
+        if keyword in self.keywords:
+            keyword_mapper = self.keywords[keyword]
 
-        return keyword_mapper.get(keyword, data)
+            return keyword_mapper.get(keyword, data)
+        
+        elif keyword in self.dtos:
+            def resolve(keyword: str | float, row_no: int) -> Quantity | float:
+                resolver: Parser = kwargs["resolvers"][row_no]
+                return resolver.parse(keyword)
+            
+            dto = self.dtos[keyword]
+            fields = dto.__fields__.items()
+            
+            dct: dict[str, Any] = {}
+            index = 0
+
+            for field_name, field in fields:
+                if dto._is_cell_tuple(field.type_):
+                    dct[field_name] = (
+                        resolve(data[index], row),
+                        resolve(data[index+1], row+1)
+                    )
+                    index += 2
+                else:
+                    dct[field_name] = resolve(data[index], row)
+                    index += 1
+                
+            return dto(**dct).get_object()
+
+        else:
+            raise ValueError()
 
     def _repr_html_(self) -> str:
         return self.table._repr_html_()

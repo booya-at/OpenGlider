@@ -38,22 +38,24 @@ class GliderCellPlots:
             ])
             if cell_no < len(self.project.glider_3d.cells):
                 cell = self.project.glider_3d.cells[cell_no]
+                ballooning_max = max([-sign(p[0]) * p[1] for p in cell.ballooning_modified])
+                ballooning_min = min([-sign(p[0]) * p[1] for p in cell.ballooning_modified])
 
+                # get entry x values
                 panels = cell.get_connected_panels()
                 cuts = set()
                 for p in panels:
                     x1 = max([p.cut_front.x_left, p.cut_front.x_right])
                     x2 = min([p.cut_back.x_left, p.cut_back.x_right])
 
-                    for x in (x1, x2):
-                        if abs(x) < (1 - 1e-10):
-                            cuts.add(x)
+                    for panel_cut in (x1, x2):
+                        if abs(panel_cut) < (1 - 1e-10):
+                            cuts.add(panel_cut)
 
                 cut_lines = []
-                ballooning_max = max([-sign(p[0]) * p[1] for p in cell.ballooning_modified])
-                ballooning_min = min([-sign(p[0]) * p[1] for p in cell.ballooning_modified])
                 for cut in cuts:
-                    x = abs(cut)
+                    x = abs(float(cut))
+
                     y = ballooning_max
                     if cut > 0:
                         y = ballooning_min
@@ -62,6 +64,7 @@ class GliderCellPlots:
                         [x, 0],
                         [x, y]
                     ]))
+
                 part = PlotPart([cell.ballooning_modified.draw()] + cut_lines, marks=[zero_line])
                 dwg = Layout([part])
                 dwg.layer_config["cuts"] = {

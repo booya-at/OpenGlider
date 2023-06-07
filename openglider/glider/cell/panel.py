@@ -13,6 +13,7 @@ from openglider.materials import Material, cloth
 from openglider.mesh.mesh import Vertex
 from openglider.utils.cache import cached_function, hash_list
 from openglider.utils.dataclass import BaseModel, dataclass, Field
+from openglider.vector.unit import Length, Percentage
 
 if TYPE_CHECKING:
     from openglider.glider.cell.cell import Cell
@@ -30,12 +31,12 @@ class PANELCUT_TYPES(Enum):
 
 @dataclass
 class PanelCut:    
-    x_left: float
-    x_right: float
+    x_left: Percentage
+    x_right: Percentage
     cut_type: PANELCUT_TYPES
     cut_3d_amount: List[float] = Field(default_factory=lambda: [0, 0])
-    x_center: Optional[float] = None
-    seam_allowance: Optional[float] = None
+    x_center: Optional[Percentage] = None
+    seam_allowance: Optional[Length] = None
 
     def __json__(self) -> Dict[str, Any]:
         return {
@@ -77,7 +78,7 @@ class PanelCut:
     def mirror(self) -> None:
         self.x_left, self.x_right = self.x_right, self.x_left
     
-    def get_x_values(self) -> List[float]:
+    def get_x_values(self) -> List[Percentage]:
         values = [self.x_left, self.x_right]
 
         if self.x_center is not None:
@@ -85,10 +86,10 @@ class PanelCut:
         
         return values
     
-    def get_average_x(self) -> float:
+    def get_average_x(self) -> Percentage:
         values = self.get_x_values()
         
-        return sum(values)/len(values)
+        return sum(values, start=Percentage(0))/len(values)
     
     def __hash__(self) -> int:
         return hash_list(self.x_left, self.x_right, self.cut_type)
@@ -137,7 +138,7 @@ class PanelCut:
         ]
 
         if self.x_center:
-            p = [0.5, self.x_center]
+            p = [0.5, self.x_center.si]
             p1 = inner[0].get(get_x_value(x_values_left, p[1]))
             p2 = inner[-1].get(get_x_value(x_values_left, p[1]))
 
@@ -220,15 +221,25 @@ class Panel(object):
 
     @classmethod
     def dummy(cls) -> Panel:
+        top = Percentage(-1)
+        bottom = Percentage(1)
         return cls(
-            PanelCut(x_left=-1, x_right=-1,cut_type=PANELCUT_TYPES.parallel),
-            PanelCut(x_left=1, x_right=1,cut_type=PANELCUT_TYPES.parallel)
+            PanelCut(
+                x_left=top,
+                x_right=top,
+                cut_type=PANELCUT_TYPES.parallel
+                ),
+            PanelCut(
+                x_left=bottom,
+                x_right=bottom,
+                cut_type=PANELCUT_TYPES.parallel
+                )
         )
     
     def __hash__(self) -> int:
         return hash_list(self.cut_front.__hash__(), self.cut_back.__hash__())
 
-    def mean_x(self) -> float:
+    def mean_x(self) -> Percentage:
         """
         :return: center point of the panel as x-values
         """
@@ -399,10 +410,10 @@ class Panel(object):
         """
         p_l = cell.rib1.profile_2d
         p_r = cell.rib2.profile_2d
-        self.cut_back.x_left = p_l.find_nearest_x_value(self.cut_back.x_left)
-        self.cut_back.x_right = p_r.find_nearest_x_value(self.cut_back.x_right)
-        self.cut_front.x_left = p_l.find_nearest_x_value(self.cut_front.x_left)
-        self.cut_front.x_right = p_r.find_nearest_x_value(self.cut_front.x_right)
+        self.cut_back.x_left = Percentage(p_l.find_nearest_x_value(self.cut_back.x_left.si))
+        self.cut_back.x_right = Percentage(p_r.find_nearest_x_value(self.cut_back.x_right.si))
+        self.cut_front.x_left = Percentage(p_l.find_nearest_x_value(self.cut_front.x_left.si))
+        self.cut_front.x_right = Percentage(p_r.find_nearest_x_value(self.cut_front.x_right.si))
 
     @cached_function("self")
     def _get_ik_values(self, cell: Cell, numribs: int=0, exact: bool=True) -> List[Tuple[float, float]]:

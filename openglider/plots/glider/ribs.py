@@ -16,6 +16,7 @@ from openglider.plots.usage_stats import MaterialUsage
 from openglider.utils.config import Config
 from openglider.vector.drawing import PlotPart
 from openglider.vector.text import Text
+from openglider.vector.unit import Percentage
 
 if TYPE_CHECKING:
     from openglider.glider.rib import Rib
@@ -59,7 +60,7 @@ class RibPlot(object):
         self._insert_attachment_points(glider)
         holes = self.insert_holes()
 
-        panel_cuts: Set[float] = set()
+        panel_cuts: Set[Percentage] = set()
         for cell in glider.cells:
             if self.config.insert_design_cuts:
                 panels = cell.panels
@@ -112,7 +113,7 @@ class RibPlot(object):
 
         return self.plotpart
 
-    def _get_inner_outer(self, x_value: float) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
+    def _get_inner_outer(self, x_value: Percentage | float) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
         ik = get_x_value(self.x_values, x_value)
 
         #ik = get_x_value(self.x_values, position)
@@ -124,7 +125,7 @@ class RibPlot(object):
 
     def insert_mark(
         self,
-        position: float,
+        position: float | Percentage,
         mark_function: Callable[[euklid.vector.Vector2D, euklid.vector.Vector2D], List[euklid.vector.PolyLine2D]],
         laser: bool=False,
         insert: bool=True
@@ -154,7 +155,8 @@ class RibPlot(object):
             marks.append(self.insert_mark(x, self.config.marks_controlpoint, laser=True))       
         
 
-    def get_point(self, x: float, y: float=-1.) -> euklid.vector.Vector2D:
+    def get_point(self, x: float | Percentage, y: float=-1.) -> euklid.vector.Vector2D:
+        x = float(x)
         assert x >= 0
         p = self.rib.profile_2d.profilepoint(x, y)
         return p * self.rib.chord
@@ -170,8 +172,8 @@ class RibPlot(object):
             self.insert_mark(-side.end_x, self.config.marks_diagonal_front)
             #self.insert_mark(-side.center, self.config.marks_diagonal_center, laser=True)
         else:
-            p1 = self.get_point(side.start_x, side.start_height)
-            p2 = self.get_point(side.end_x, side.end_height)
+            p1 = self.get_point(side.start_x, side.height)
+            p2 = self.get_point(side.end_x, side.height)
             self.plotpart.layers[self.layer_name_marks].append(euklid.vector.PolyLine2D([p1, p2]))
 
     def insert_holes(self) -> List[euklid.vector.PolyLine2D]:
@@ -320,9 +322,9 @@ class RibPlot(object):
 
 
 class SingleSkinRibPlot(RibPlot):
-    skin_cut: float | None = None
+    skin_cut: Percentage | None = None
 
-    def _get_inner_outer(self, x_value: float) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
+    def _get_inner_outer(self, x_value: Percentage | float) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
         # TODO: shift when after the endpoint
         inner, outer = super()._get_inner_outer(x_value)
 
@@ -331,7 +333,7 @@ class SingleSkinRibPlot(RibPlot):
         else:
             return inner, inner + (inner - outer)
 
-    def _get_singleskin_cut(self, glider: Glider) -> float:
+    def _get_singleskin_cut(self, glider: Glider) -> Percentage:
         if self.skin_cut is None:
             singleskin_cut = None
 

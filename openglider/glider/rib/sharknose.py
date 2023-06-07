@@ -6,6 +6,7 @@ import euklid
 import openglider.airfoil
 from openglider.utils.dataclass import dataclass
 from openglider.glider.rib.rigidfoils import RigidFoilBase, RigidFoilCurved
+from openglider.vector.unit import Percentage
 
 if typing.TYPE_CHECKING:
     from openglider.glider.rib.rib import Rib
@@ -90,7 +91,7 @@ class Sharknose:
         result: typing.List[RigidFoilBase] = []
 
         nearest_position = round(rib.profile_2d.get_ik(self.position))
-        position = rib.profile_2d.curve.get(nearest_position)[0]
+        position = Percentage(rib.profile_2d.curve.get(nearest_position)[0])
 
         for rigidfoil in rib.rigidfoils:
             if rigidfoil.start < position and rigidfoil.end > position:

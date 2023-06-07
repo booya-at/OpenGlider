@@ -6,20 +6,44 @@ import logging
 import re
 
 import euklid
+from pydantic import BaseModel
 from openglider.glider.cell.attachment_point import CellAttachmentPoint
 from openglider.glider.cell.cell import Cell
 from openglider.glider.curve import GliderCurveType
-from openglider.glider.parametric.table.base import CellTable, Keyword, RibTable
+from openglider.glider.parametric.table.base import CellTable, Keyword, RibTable, dto
 from openglider.glider.parametric.table.base.parser import Parser
 from openglider.glider.rib.attachment_point import AttachmentPoint
 from openglider.glider.rib.rib import Rib
 from openglider.utils.table import Table
+from openglider.vector.unit import Length, Percentage
 
 if TYPE_CHECKING:
     from openglider.glider.glider import Glider
     from openglider.glider.parametric.glider import ParametricGlider
 
 logger = logging.getLogger(__name__)
+
+class ATP(dto.DTO):
+    name: str
+    pos: Percentage
+    force: Union[float, str]
+
+    #@validator("force", pre=True)
+    #def validate_force(self, force: Any):
+    #    pass
+
+    def get_object(self) -> AttachmentPoint:
+        #raise NotImplementedError()
+        logger.warning(f"get element {self}")
+        return AttachmentPoint(
+            rib_pos=self.pos,
+            name=self.name,
+        )
+
+
+class ATPPROTO(ATP):
+    protoloop_distance: Percentage | Length
+
 
 class AttachmentPointTable(RibTable):
     regex_node_layer = re.compile(r"([a-zA-Z]*)([0-9]*)")
@@ -28,6 +52,10 @@ class AttachmentPointTable(RibTable):
         "ATP": Keyword([("name", str), ("pos", float), ("force", Union[float, str])], target_cls=AttachmentPoint), 
         "AHP": Keyword([("name", str), ("pos", float), ("force", Union[float, str])], target_cls=AttachmentPoint),
         "ATPPROTO": Keyword([("name", str), ("pos", float), ("force", Union[float, str]), ("proto_distance", float)], target_cls=AttachmentPoint)
+    }
+    dtos = {
+        #"ATP": ATP,
+        #"AHP": ATP,
     }
 
     def get_element(self, row: int, keyword: str, data: List[Any], resolvers: list[Parser]=None, rib: Rib=None, **kwargs: Any) -> AttachmentPoint:
@@ -43,16 +71,13 @@ class AttachmentPointTable(RibTable):
         resolver = resolvers[row]
         rib_pos = resolver.parse(data[1])
         
-        node = AttachmentPoint(name=data[0], rib_pos=rib_pos, force=force)
+        node = AttachmentPoint(name=data[0], rib_pos=rib_pos, force=force)  # type: ignore
 
         if keyword == "ATPPROTO":
             node.protoloops = 1
 
             default_resolver = Parser()
-            node.protoloop_distance = default_resolver.parse(data[3])
-
-            if default_resolver.has_units(data[3]):
-                node.protoloop_distance_absolute = False
+            node.protoloop_distance = default_resolver.parse(data[3])  # type: ignore
         
         return node
     

@@ -16,6 +16,7 @@ from openglider.glider.cell.panel import Panel, PanelCut
 from openglider.utils.dataclass import dataclass
 from openglider.vector.drawing import Layout, PlotPart
 from openglider.vector.text import Text
+from openglider.vector.unit import Percentage
 
 logger = logging.getLogger(__name__)
 
@@ -158,11 +159,11 @@ class ShapePlot(object):
             cell_side_panels: Iterator[Panel] = filter(match, cell_panels)
 
             for panel in cell_side_panels:
-                def normalize_x(val: float) -> float:
+                def normalize_x(val: float | Percentage) -> float:
                     if lower:
-                        return max(val, 0.)
+                        return max(float(val), 0.)
                     else:
-                        return max(-val, 0.)
+                        return max(float(-val), 0.)
 
                 def get_cut_line(cut: PanelCut) -> euklid.vector.PolyLine2D:
                     left = shape.get_point(cell_no, normalize_x(cut.x_left))

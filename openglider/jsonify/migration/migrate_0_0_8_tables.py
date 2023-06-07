@@ -109,8 +109,8 @@ def get_diagonals_table(diagonals: List[Any]) -> DiagonalTable:
                 diagonal_table[cell_no+1, 1] = _diagonal.right.center
                 diagonal_table[cell_no+1, 2] = _diagonal.left.width
                 diagonal_table[cell_no+1, 3] = _diagonal.right.width
-                diagonal_table[cell_no+1, 4] = _diagonal.left.start_height
-                diagonal_table[cell_no+1, 5] = _diagonal.right.start_height
+                diagonal_table[cell_no+1, 4] = _diagonal.left.height
+                diagonal_table[cell_no+1, 5] = _diagonal.right.height
 
         table.append_right(diagonal_table)
 
