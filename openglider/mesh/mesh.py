@@ -193,8 +193,8 @@ class Mesh(object):
     @property
     def bounding_box(self) -> Tuple[euklid.vector.Vector3D, euklid.vector.Vector3D]:
         vertices_x = [p.x for p in self.vertices]
-        vertices_y = [p.x for p in self.vertices]
-        vertices_z = [p.x for p in self.vertices]
+        vertices_y = [p.y for p in self.vertices]
+        vertices_z = [p.z for p in self.vertices]
 
         return euklid.vector.Vector3D([min(vertices_x), min(vertices_y), min(vertices_z)]), euklid.vector.Vector3D([max(vertices_x), max(vertices_y), max(vertices_z)])
 
