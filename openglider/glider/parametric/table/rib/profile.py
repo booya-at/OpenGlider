@@ -1,8 +1,10 @@
 from typing import Any, List, Tuple, Optional, Dict
 import logging
+from openglider.glider.parametric.table.base.dto import DTO
 
 from openglider.glider.rib.sharknose import Sharknose
 from openglider.glider.parametric.table.base import RibTable, Keyword
+from openglider.vector.unit import Angle, Length, Percentage
 
 logger = logging.getLogger(__name__)
 
@@ -12,14 +14,33 @@ class FloatDict(dict):
             name: float(value) for name, value in kwargs.items()
         })
 
+class SharknoseDTO(DTO):
+    position: Percentage
+    amount: Percentage
+    start: Percentage
+    end: Percentage
+
+    def get_object(self) -> Sharknose:
+        return Sharknose(
+            **self.dict()
+        )
+
+class Sharknose8(SharknoseDTO):
+    angle_front: Angle
+    angle_back: Angle
+    rigidfoil_circle_radius: Length
+    rigidfoil_circle_amount: Length
 
 class ProfileTable(RibTable):
     keywords = {
         "ProfileFactor": Keyword(attributes=["thickness_factor"], target_cls=FloatDict),
         "ProfileMerge": Keyword(attributes=["merge_factor"], target_cls=FloatDict),
         "Flap": Keyword(attributes=["begin", "amount"], target_cls=FloatDict),
-        "Sharknose": Keyword(attributes=["position", "amount", "start", "end"], target_cls=Sharknose),
-        "Sharknose8": Keyword(attributes=["position", "amount", "start", "end", "angle_front", "angle_back", "rigidfoil_circle_radius", "rigidfoil_circle_amount"], target_cls=Sharknose)
+    }
+
+    dtos = {
+        "Sharknose": SharknoseDTO,
+        "Sharknose8": Sharknose8,
     }
 
     def get_merge_factors(self, merge_factor_list: List[float]) -> List[Tuple[float, float]]:
@@ -45,8 +66,8 @@ class ProfileTable(RibTable):
         
         return list(zip(merge_factors, multipliers))
     
-    def get_sharknose(self, row_no: int) -> Optional[Sharknose]:
-        return self.get_one(row_no, keywords=["Sharknose", "Sharknose8"])
+    def get_sharknose(self, row_no: int, **kwargs: Any) -> Optional[Sharknose]:
+        return self.get_one(row_no, keywords=["Sharknose", "Sharknose8"], **kwargs)
 
     
     def get_flap(self, row_no: int) -> Optional[Dict[str, float]]:

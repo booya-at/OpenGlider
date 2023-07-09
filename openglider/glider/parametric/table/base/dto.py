@@ -1,9 +1,8 @@
-
-
+from __future__ import annotations
 
 import abc
 import types
-from typing import Any, Callable, Generator, Generic, Self, TypeVar
+from typing import Any, Callable, Generator, Generic, Self, Type, TypeVar
 
 from pydantic.generics import GenericModel
 
@@ -34,6 +33,7 @@ class CellTuple(GenericModel, Generic[TupleType]):
                 second=v
             )
 
+_type_cache: dict[Type[DTO], list[tuple[str, str]]] = {}
 
 class DTO(Generic[ReturnType], BaseModel, abc.ABC):
     _types: list[tuple[str, str]] | None = None
@@ -65,7 +65,7 @@ class DTO(Generic[ReturnType], BaseModel, abc.ABC):
 
     @classmethod
     def describe(cls) -> list[tuple[str, str]]:
-        if cls._types is None:
+        if cls not in _type_cache:
             result = []
             for field in cls.__fields__.values():
                 is_cell_tuple = cls._is_cell_tuple(field.type_)
@@ -79,10 +79,10 @@ class DTO(Generic[ReturnType], BaseModel, abc.ABC):
                 
                 else:
                     result.append((field.name, cls._get_type_string(field.type_)))
-            
-            cls._types = result
-        
-        return cls._types
+
+            _type_cache[cls] = result
+
+        return _type_cache[cls]
         
     @classmethod
     def column_length(cls) -> int:

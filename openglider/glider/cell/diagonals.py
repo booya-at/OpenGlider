@@ -23,7 +23,6 @@ class DiagonalSide(BaseModel):
     """
     Connection between a diagonal and a rib
     """
-    # TODO: use center, width (length/pct)
     center: Percentage
     width: Percentage | Length
     
@@ -37,13 +36,27 @@ class DiagonalSide(BaseModel):
     def is_upper(self) -> bool:
         return self.height == 1
     
-    @property
-    def start_x(self) -> Percentage:
-        return self.center - self.width/2
+    def _get_position(self, distance: Length, rib: Rib) -> Percentage:
+        ik = rib.profile_2d.get_ik(self.center)
+        ik_2 = rib.profile_2d.curve.walk(ik, distance.si/rib.chord)
+        p = rib.profile_2d.curve.get(ik_2)
+
+        if ik_2 > rib.profile_2d.noseindex:
+            return Percentage(p[0])
+        else:
+            return -Percentage(p[0])
+        
+    def start_x(self, rib: Rib) -> Percentage:
+        if isinstance(self.width, Length):
+            return self._get_position(-self.width/2, rib)
+        else:
+            return self.center - self.width/2
     
-    @property
-    def end_x(self) -> Percentage:
-        return self.center + self.width/2
+    def end_x(self, rib: Rib) -> Percentage:
+        if isinstance(self.width, Length):
+            return self._get_position(self.width/2, rib)
+        else:
+            return self.center + self.width/2
 
     def get_curve(self, rib: Rib) -> euklid.vector.PolyLine3D:
             # Is it at 0 or 1?
@@ -54,8 +67,8 @@ class DiagonalSide(BaseModel):
                 
                 profile = rib.get_hull()
 
-                front_ik = profile.get_ik(self.start_x * factor)
-                back_ik = profile.get_ik(self.end_x * factor)
+                front_ik = profile.get_ik(self.start_x(rib) * factor)
+                back_ik = profile.get_ik(self.end_x(rib) * factor)
 
                 return rib.profile_3d.curve.get(front_ik, back_ik)
                 #return euklid.vector.PolyLine3D(rib.profile_3d[front:back].data.tolist())

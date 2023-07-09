@@ -312,8 +312,8 @@ class ShapePlot(object):
         for cell_no in self._get_cell_range(left):
             cell = self.glider_3d.cells[cell_no]
             for diagonal in cell.straps:
-                left_x_values = [abs(x) for x in (diagonal.left.start_x, diagonal.left.end_x)]
-                right_x_values = [abs(x) for x in (diagonal.right.start_x, diagonal.right.end_x)]
+                left_x_values = [abs(x) for x in (diagonal.left.start_x(cell.rib1), diagonal.left.end_x(cell.rib1))]
+                right_x_values = [abs(x) for x in (diagonal.right.start_x(cell.rib2), diagonal.right.end_x(cell.rib2))]
 
                 points_left = [shape.get_point(cell_no, p) for p in left_x_values]
                 points_right = [shape.get_point(cell_no+1, p) for p in right_x_values]
@@ -328,8 +328,8 @@ class ShapePlot(object):
         for cell_no in self._get_cell_range(left):
             cell = self.glider_3d.cells[cell_no]
             for diagonal in cell.diagonals:
-                left_x_values = [abs(x) for x in (diagonal.left.start_x, diagonal.left.end_x)]
-                right_x_values = [abs(x) for x in (diagonal.right.start_x, diagonal.right.end_x)]
+                left_x_values = [abs(x) for x in (diagonal.left.start_x(cell.rib1), diagonal.left.end_x(cell.rib1))]
+                right_x_values = [abs(x) for x in (diagonal.right.start_x(cell.rib2), diagonal.right.end_x(cell.rib2))]
 
                 points_left = [shape.get_point(cell_no, p) for p in left_x_values]
                 points_right = [shape.get_point(cell_no+1, p) for p in right_x_values]

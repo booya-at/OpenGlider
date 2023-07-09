@@ -4,6 +4,7 @@ from typing import Type
 from openglider.utils.config import Config
 from openglider.utils.distribution import Distribution
 from openglider.plots import marks, cuts
+from openglider.vector.unit import Length
 
 class PatternConfigOld(Config):
     patterns_scale = 1000 # mm
@@ -51,7 +52,7 @@ class PatternConfigOld(Config):
 
     allowance_design = 0.012  # trailing_edge
 
-    drib_allowance_folds = 0.012
+    drib_allowance_folds = Length(0.012)
     drib_num_folds = 1
     drib_text_position = 0.1
 
@@ -72,7 +73,7 @@ class OtherPatternConfig(PatternConfigOld):
     rib_text_in_seam = False
     
     allowance_design = 0.01
-    drib_allowance_folds = 0.01
+    drib_allowance_folds = Length("1cm")
     strap_num_folds = 1
     allowance_entry_open = 0.021
 

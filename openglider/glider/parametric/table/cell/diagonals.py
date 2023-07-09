@@ -59,19 +59,12 @@ class DiagonalTable(CellTable):
         super().__init__(table, migrate_header=migrate)
 
 
-    keywords = {
-        #"QR": Keyword(["left", "right", "width_left", "width_right", "height_left", "height_right"], target_cls=DiagonalRib)
-    }
     dtos = {
         "QR": QRDTO,
         "DIAGONAL": DiagonalDTO
     }
 
 class StrapTable(CellTable):
-    keywords = {
-        #"STRAP": Keyword([("left", float) , ("right", float), ("width", float)], target_cls=TensionStrap),  # left, right, width
-        #"VEKTLAENGE": Keyword(["left", "right"], target_cls=TensionLine)
-    }
     dtos = {
         "STRAP": StrapDTO,
         "VEKTLAENGE": TensionLineDTO

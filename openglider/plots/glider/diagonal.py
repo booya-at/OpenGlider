@@ -52,13 +52,15 @@ class DribPlot(object):
     def validate(self, x: float, right_side: bool=False) -> bool:
         if not right_side:
             side_obj = self.drib.left
+            rib = self.cell.rib1
         else:
             side_obj = self.drib.right
+            rib = self.cell.rib2
 
         if not side_obj.is_lower and not side_obj.is_upper:
             raise ValueError(f"invalid height: {side_obj.height}")
 
-        boundary = [side_obj.start_x, side_obj.end_x]
+        boundary = [side_obj.start_x(rib), side_obj.end_x(rib)]
         boundary.sort()
 
         if not boundary[0] <= x <= boundary[1]:
@@ -80,14 +82,14 @@ class DribPlot(object):
             inner = self.right
             outer = self.right_out
         
-        if side_obj.start_x > x or side_obj.end_x < x:
+        if side_obj.start_x(rib) > x or side_obj.end_x(rib) < x:
             raise ValueError(f"invalid x: {x} ({side_obj.start_x} / {side_obj.end_x}")
 
         foil = rib.profile_2d
         # -1 -> lower, 1 -> upper
         foil_side = 1 if side_obj.is_lower else -1
 
-        x1 = side_obj.start_x * foil_side
+        x1 = side_obj.start_x(rib) * foil_side
         x2 = x * foil_side
 
         ik_1 = foil(x1)

@@ -9,30 +9,28 @@ logger = logging.getLogger(__name__)
 
 class DesignCut(DTO):
     x: CellTuple[Percentage]
-    cut_type = PANELCUT_TYPES.orthogonal
+    _cut_type = PANELCUT_TYPES.orthogonal
 
     def get_object(self) -> PanelCut:
-        print("jo", self.cut_type)
         return PanelCut(
             x_left=self.x.first,
             x_right=self.x.second,
-            cut_type=self.cut_type
+            cut_type=self._cut_type
         )
 
 class FoldedCut(DesignCut):
-    pass
-    #cut_type = PANELCUT_TYPES.folded
+    _cut_type = PANELCUT_TYPES.folded
 
 class Cut3D(DesignCut):
-    cut_type = PANELCUT_TYPES.cut_3d
+    _cut_type = PANELCUT_TYPES.cut_3d
 
 class SingleSkinCut(DesignCut):
-    cut_type = PANELCUT_TYPES.singleskin
+    _cut_type = PANELCUT_TYPES.singleskin
 
 class CutRound(DesignCut):
     center: Percentage
     amount: Length
-    cut_type = PANELCUT_TYPES.round
+    _cut_type = PANELCUT_TYPES.round
 
     def get_object(self) -> PanelCut:
         cut = super().get_object()

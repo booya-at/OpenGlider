@@ -5,7 +5,7 @@ import collections
 import copy
 import functools
 import logging
-from typing import Callable, Dict, Generic, Iterator, Literal, Optional, Tuple, Type, TypeVar, List, Any
+from typing import Callable, Dict, Generator, Generic, Iterator, Literal, Optional, Sequence, Tuple, Type, TypeVar, List, Any
 
 import numpy as np
 from typing import TYPE_CHECKING
@@ -130,8 +130,8 @@ def cached_property(*hashlist: str, max_size: int=1024) -> Type[property]:
 
 
 F = TypeVar("F")
-    
-def cached_function(*hashlist: str, max_size: int=1024) -> Callable[[F], F]:
+
+def cached_function(*hashlist: str, exclude: list[str | None]=None, generator: Callable[[Any], Sequence[Any]]=None, max_size: int=1024) -> Callable[[F], F]:
     if TYPE_CHECKING:
         @functools.wraps
         def wrapper(f: F) -> F:
@@ -145,7 +145,7 @@ def cached_function(*hashlist: str, max_size: int=1024) -> Callable[[F], F]:
 
             @functools.wraps(getter)
             def new_function(self, *args, **kwargs):
-                cls_hash = hash_attributes(self, hashlist)
+                cls_hash = hash_attributes(self, hashlist, exclude, generator)
                 hashvalue = hash_list(cls_hash, *args, *kwargs.values())
 
                 value = cache.get(hashvalue)
@@ -185,31 +185,43 @@ def c_mul(a: float, b: int) -> int:
     """
     return eval(hex((int(a) * b) & 0xFFFFFFFF)[:-1])
 
+def hash_value(value: Any) -> int:
+    hash_func = getattr(value, "__hash__", None)
+    hash_func = None
+    if hash_func is not None:
+        thahash = value.__hash__()
+    else:
+        try:
+            thahash = hash(value)
+        except TypeError:  # Lists p.e.
+            logger.debug(f"bad hash value: {value}")
+            #logger.debug(f"bad cache: {type(class_instance)} -> {attribute}, {type(value)} {type(value)}")
+            try:
+                thahash = hash(frozenset(value))
+            except TypeError:
+                thahash = hash(str(value))
+    
+    return thahash
 
-def hash_attributes(class_instance: Any, hashlist: List[str]) -> int:
+
+def hash_attributes(class_instance: CLS, hashlist: list[str], exclude: list[str] | None=None, generator: Callable[[CLS], Iterator[Any]]=None) -> int:
     """
     http://effbot.org/zone/python-hash.htm
     """
     value_lst: Tuple[int,...] = (id(class_instance), )
 
-    for attribute in hashlist:
-        el = recursive_getattr(class_instance, attribute)
+    if len(hashlist) == 1 and hashlist[0] in ("self", "*") and exclude is not None:
+        for key, value in class_instance.__dict__.items():
+            if key not in exclude:
+                value_lst += (hash_value(value), )
+    else:
+        for attribute in hashlist:
+            el = recursive_getattr(class_instance, attribute)
+            value_lst += (hash_value(el), )
 
-        hash_func = getattr(el, "__hash__", None)
-        hash_func = None
-        if hash_func is not None:
-            thahash = el.__hash__()
-        else:
-            try:
-                thahash = hash(el)
-            except TypeError:  # Lists p.e.
-                logger.debug(f"bad cache: {type(class_instance)} -> {attribute}, {type(el)} {type(el)}")
-                try:
-                    thahash = hash(frozenset(el))
-                except TypeError:
-                    thahash = hash(str(el))
-        
-        value_lst += (thahash, )
+    if generator is not None:
+        for el in generator(class_instance):
+            value_lst += (hash_value(el), )
 
     return hash(value_lst)
 

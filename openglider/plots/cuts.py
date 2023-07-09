@@ -5,6 +5,7 @@ import logging
 import euklid
 
 from openglider.utils.dataclass import BaseModel
+from openglider.vector.unit import Length
 
 
 logger = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ class CutResult(BaseModel):
 InnerLists = List[Tuple[euklid.vector.PolyLine2D, float]]
 
 class Cut(ABC, BaseModel):
-    amount: float
+    amount: Length
 
     def apply(
         self,
@@ -51,7 +52,7 @@ class DesignCut(Cut):
     
     @property
     def total_amount(self) -> float:
-        return self.num_folds * self.amount
+        return self.num_folds * float(self.amount)
 
     def get_p1_p2(self, inner_lists: InnerLists, amount_3d: Optional[List[float]]) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
         l1, ik1 = inner_lists[0]

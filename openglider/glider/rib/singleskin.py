@@ -8,54 +8,50 @@ import pyfoil
 
 from openglider.glider.rib.rib import Rib
 from openglider.utils import linspace
-from openglider.utils.dataclass import Field
+from openglider.utils.dataclass import Field, BaseModel
 from openglider.utils.cache import cached_function
+
+from openglider.vector.unit import Angle, Length, Percentage
 
 if typing.TYPE_CHECKING:
     from openglider.glider.glider import Glider
 
+
+class SingleSkinParameters(BaseModel):
+    att_dist: Length | Percentage = Length("2cm")
+    height: Percentage = Percentage(0.8)
+    continued_min: bool = True
+    continued_min_angle: Angle = Angle(-0.03)
+    continued_min_delta_y : float = 0.
+    continued_min_end: Percentage = Percentage("94%")
+    continued_min_x: Percentage = Percentage(0)
+    double_first: bool = True
+    le_gap: bool = True
+    straight_te: bool = True
+    te_gap: bool = False
+    num_points: int = 30
+
+
+
+
 class SingleSkinRib(Rib):
-    single_skin_par: typing.Dict[str, typing.Any] = Field(default_factory=dict)
-    
-    def __init__(self, **kwargs: typing.Any):
-        single_skin_par = {
-            "att_dist": 0.02,
-            "height": 0.8,
-            "continued_min": True,
-            "continued_min_angle": -0.03,
-            "continued_min_delta_y": 0,
-            "continued_min_end": 0.94,
-            "continued_min_x": 0,
-            "double_first": True,
-            "le_gap": True,
-            "straight_te": True,
-            "te_gap": False,
-            "num_points": 30
-        }
+    single_skin_par: SingleSkinParameters = Field(default_factory=SingleSkinParameters)
 
-        single_skin_par_2 = kwargs.pop("single_skin_par", {})
-        single_skin_par.update(single_skin_par_2)
-        
-        kwargs["single_skin_par"] = single_skin_par
-        super().__init__(**kwargs)
-
-        # we have to apply this function once for the profile2d
-        # this will change the position of the attachmentpoints!
-        # therefore it shouldn't be placed int the get_hull function
-        self.single_skin_par = single_skin_par
-        if self.single_skin_par['continued_min']: 
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        if self.single_skin_par.continued_min:
             self.apply_continued_min()
 
     def apply_continued_min(self) -> None:
-        self.profile_2d = self.profile_2d.move_nearest_point(self.single_skin_par['continued_min_end'])
+        self.profile_2d = self.profile_2d.move_nearest_point(self.single_skin_par.continued_min_end)
         data = np.array(self.profile_2d.curve.tolist())
         x, y = data.T
         min_index = y.argmin()
         y_min = y[min_index]
         new_y = []
         for i, xy in enumerate(data):
-            if i > min_index and (self.single_skin_par['continued_min_end'] - xy[0]) > -1e-8:
-                new_y += [y_min + (xy[0] - data[min_index][0]) * np.tan(self.single_skin_par['continued_min_angle'])]
+            if i > min_index and (self.single_skin_par.continued_min_end - xy[0]) > -1e-8:
+                new_y += [y_min + (xy[0] - data[min_index][0]) * np.tan(self.single_skin_par.continued_min_angle.si)]
             else:
                 new_y += [xy[1]]
 
@@ -63,24 +59,23 @@ class SingleSkinRib(Rib):
         self.profile_2d = pyfoil.Airfoil(data)
 
     @classmethod
-    def from_rib(cls, rib: Rib, single_skin_par: typing.Dict[str, typing.Any]) -> SingleSkinRib:
+    def from_rib(cls, rib: Rib, single_skin_par: SingleSkinParameters, xrot: Angle | None) -> SingleSkinRib:
         json_dict = rib.__json__()  # type: ignore
-        if "xrot" in single_skin_par:
-            json_dict["xrot"] = single_skin_par.pop("xrot")
-        json_dict["single_skin_par"] = single_skin_par
-        single_skin_rib = cls(**json_dict)
-        return single_skin_rib
+        if xrot is not None: 
+            json_dict['xrot'] = xrot
+
+        return cls(**json_dict, single_skin_par=single_skin_par)
 
     def __json__(self) -> typing.Dict[str, typing.Any]:
         json_dict = super().__json__()  # type: ignore
         json_dict["single_skin_par"] = self.single_skin_par
         return json_dict
 
-    @cached_function("self")
+    @cached_function("self", exclude=["attachment_points"], generator=lambda rib: [p.rib_pos for p in rib.attachment_points])
     def get_hull(self) -> pyfoil.Airfoil:
         profile = self.profile_2d
         attach_pts = self.attachment_points
-        fixed_positions = list(set([att.rib_pos for att in attach_pts] + [1]))
+        fixed_positions = list(set([att.rib_pos.si for att in attach_pts] + [1.]))
 
         if len(fixed_positions) > 1:
             span_list = []
@@ -93,22 +88,22 @@ class SingleSkinRib(Rib):
                 # so we have to normalize the "att_dist" which is the thickness of
                 # rib between two bows. normally something like 2cm
                 # length of the flat part at the attachment point
-                le_gap = self.single_skin_par["att_dist"] / self.chord / 2
+                le_gap = self.convert_to_percentage(self.single_skin_par.att_dist) / 2
                 te_gap = le_gap
 
                 # le_gap is the gap between the FIRST BOW start and the attachment point next
                 # to this point. (before)
-                if i == 0 and not self.single_skin_par["le_gap"]: 
-                    le_gap = 0
+                if i == 0 and not self.single_skin_par.le_gap: 
+                    le_gap = Percentage(0.)
 
                 # te_gap is the gap between the LAST BOW end and the trailing edge
-                if i == len(fixed_positions)-2 and not self.single_skin_par["te_gap"]:
-                    te_gap = 0
+                if i == len(fixed_positions)-2 and not self.single_skin_par.te_gap:
+                    te_gap = Percentage(0.)
 
-                span_list.append([fixed_positions[i] + le_gap, fixed_positions[i+1] - te_gap])
+                span_list.append([fixed_positions[i] + le_gap.si, fixed_positions[i+1] - te_gap.si])
 
             for k, span in enumerate(span_list):
-                if self.single_skin_par["double_first"] and k == 0:
+                if self.single_skin_par.double_first and k == 0:
                     continue # do not insert points between att for double-first ribs (a-b)
 
                 # first we insert the start and end point of the bow
@@ -123,13 +118,13 @@ class SingleSkinRib(Rib):
 
                 # insert sequence of xvalues between start and end. endpoint=False is necessary because 
                 # start and end are already inserted.
-                for x in linspace(span[0], span[1], self.single_skin_par["num_points"])[:-1]:
+                for x in linspace(span[0], span[1], self.single_skin_par.num_points)[:-1]:
                     profile = profile.insert_point(x)
 
             # construct shifting function:
             for i, span in enumerate(span_list):
                 # parabola from 3 points
-                if self.single_skin_par["double_first"] and i == 0:
+                if self.single_skin_par.double_first and i == 0:
                     continue
 
                 x_start = profile.profilepoint(span[0])
@@ -138,7 +133,7 @@ class SingleSkinRib(Rib):
                 x_mid = (x_start + x_end)[0] / 2
 
                 height = (profile.profilepoint(-x_mid) - profile.profilepoint(x_mid)).length()
-                height *= self.single_skin_par["height"] # anything bewtween 0..1
+                height *= self.single_skin_par.height.si # anything bewtween 0..1
                 
                 y_vec = euklid.vector.Rotation2D(math.pi/2).apply(x_end - x_start).normalized() * height
 
@@ -146,7 +141,7 @@ class SingleSkinRib(Rib):
                     if upper or x[0] < x_start[0] or x[0] > x_end[0]:
                         return x
                     else:
-                        if self.single_skin_par["straight_te"] and i == len(span_list) - 1:
+                        if self.single_skin_par.straight_te and i == len(span_list) - 1:
                             # last span part (->trailing edge)
                             return self.straight_line(x, x_start, x_end)
                         else:

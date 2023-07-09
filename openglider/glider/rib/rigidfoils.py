@@ -23,6 +23,8 @@ class RigidFoilBase(ABC, BaseModel):
     end: Percentage = Percentage(0.1)
     distance: Length | Percentage = Length("5mm")
 
+    cap_length: Length = Length("2cm")
+
     def get_3d(self, rib: Rib) -> euklid.vector.PolyLine3D:
         return euklid.vector.PolyLine3D([rib.align(p, scale=False) for p in self.get_flattened(rib)])
 
@@ -43,20 +45,20 @@ class RigidFoilBase(ABC, BaseModel):
 class RigidFoil(RigidFoilBase):
     circle_radius: Length = Length("3cm")
 
-    def func(self, pos: float) -> float:
+    def func(self, pos: float, radius: Percentage) -> float:
         dsq = None
-        if -0.05 <= pos - self.start.si < self.circle_radius.si:
-            dsq = self.circle_radius.si**2 - (self.circle_radius.si + self.start.si - pos)**2
-        if -0.05 <= self.end.si - pos < self.circle_radius.si:
-            dsq = self.circle_radius.si**2 - (self.circle_radius.si + pos - self.end.si)**2
+        if -0.05 <= pos - self.start.si < radius.si:
+            dsq = radius.si**2 - (radius.si + self.start.si - pos)**2
+        if -0.05 <= self.end.si - pos < radius.si:
+            dsq = radius.si**2 - (radius.si + pos - self.end.si)**2
 
         if dsq is not None:
             dsq = max(dsq, 0)
-            return (self.circle_radius.si - np.sqrt(dsq)) * 0.35
+            return (radius.si - np.sqrt(dsq)) * 0.35
         return 0.
 
     def get_cap_radius(self, start: bool) -> Tuple[float, float]:
-        return self.circle_radius.si, 1.
+        return -self.circle_radius.si, 0.35
 
     def _get_flattened(self, rib: Rib, glider: Glider=None) -> euklid.vector.PolyLine2D:
         max_segment = 0.005  # 5mm
@@ -68,7 +70,7 @@ class RigidFoil(RigidFoilBase):
 
         point_range = []
         last_node = None
-        for p in profile.curve.get(start, end):
+        for p in profile.curve.get(start, end).nodes:
             sign = -1 if p[1] > 0 else +1
 
             if last_node is not None:
@@ -87,9 +89,10 @@ class RigidFoil(RigidFoilBase):
 
         # convert to unitless percentage (everything is scaled later)
         distance = rib.convert_to_percentage(self.distance)
+        radius = rib.convert_to_percentage(self.circle_radius)
 
         nodes = [
-            (profile.curve.get(ik) - profile_normvectors.get(ik) * (distance.si + self.func(x))) * rib.chord 
+            (profile.curve.get(ik) - profile_normvectors.get(ik) * (distance.si + self.func(x, radius))) * rib.chord
             for ik, x in zip(indices, point_range)
             ]
 
@@ -97,6 +100,8 @@ class RigidFoil(RigidFoilBase):
 
 
 class _RigidFoilCurved(RigidFoilBase):
+    append_curve = True
+
     def _get_flattened(self, rib: Rib, glider: Glider=None) -> euklid.vector.PolyLine2D:
         profile = rib.get_hull()
 
@@ -106,26 +111,48 @@ class _RigidFoilCurved(RigidFoilBase):
         distance = rib.convert_to_chordlength(self.distance)
 
         rigidfoil_curve = (profile.curve.get(start, end) * rib.chord).offset(-distance.si).fix_errors()
+        inner_curve = rigidfoil_curve
+
         segments = rigidfoil_curve.get_segments()
         rot_90 = euklid.vector.Rotation2D(math.pi/2)
 
         # first ending
         radius, amount = self.get_cap_radius(True)
-        cp1 = rigidfoil_curve.get(0)
-        cp2 = cp1 - segments[0].normalized() * radius * amount
-        cp3 = cp1 - segments[0].normalized() * radius + rot_90.apply(segments[0].normalized()) * radius * amount
+
+        if radius > 0:
+            cp1 = rigidfoil_curve.get(0)
+            cp2 = cp1 - segments[0].normalized() * radius * amount
+            cp3 = cp1 - segments[0].normalized() * radius + rot_90.apply(segments[0].normalized()) * radius * amount
+        else:
+            cp2_ik = rigidfoil_curve.walk(0, abs(radius * amount))
+            cp2 = rigidfoil_curve.get(cp2_ik)
+            cp1_ik = rigidfoil_curve.walk(0, abs(radius))
+            cp1 = rigidfoil_curve.get(cp1_ik)
+            cp3 = rigidfoil_curve.get(0) - rot_90.apply(segments[0].normalized()) * radius * amount
+            inner_curve = inner_curve.get(cp1_ik, len(inner_curve)-1)
+
 
         ending_1 = euklid.spline.BSplineCurve([cp3, cp2, cp1]).get_sequence(10).get(0, 9)
 
         # second ending
         radius, amount = self.get_cap_radius(False)
-        cp1 = rigidfoil_curve.get(len(rigidfoil_curve)-1)
-        cp2 = cp1 + segments[-1].normalized() * radius * amount
-        cp3 = cp1 + segments[-1].normalized() * radius + rot_90.apply(segments[-1].normalized()) * radius * amount
+        end_ik = len(rigidfoil_curve)-1
+        if radius > 0:
+            cp1 = rigidfoil_curve.get(end_ik)
+            cp2 = cp1 + segments[-1].normalized() * radius * amount
+            cp3 = cp1 + segments[-1].normalized() * radius + rot_90.apply(segments[-1].normalized()) * radius * amount
+        else:
+            cp2_ik = rigidfoil_curve.walk(end_ik, -abs(radius * amount))
+            cp2 = rigidfoil_curve.get(cp2_ik)
+            cp1_ik = rigidfoil_curve.walk(end_ik, -abs(radius))
+            cp1 = rigidfoil_curve.get(cp1_ik)
+            cp3 = rigidfoil_curve.get(end_ik) - rot_90.apply(segments[-1].normalized()) * radius * amount
+            inner_curve = inner_curve.get(0, cp1_ik)
+
 
         ending_2 = euklid.spline.BSplineCurve([cp1, cp2, cp3]).get_sequence(10).get(0, 9)
 
-        return euklid.vector.PolyLine2D(ending_1.nodes + rigidfoil_curve.nodes + ending_2.nodes)
+        return euklid.vector.PolyLine2D(ending_1.nodes + inner_curve.nodes + ending_2.nodes)
 
 
 class RigidFoilCurved(_RigidFoilCurved):

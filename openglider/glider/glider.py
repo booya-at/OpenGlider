@@ -371,17 +371,13 @@ class Glider(object):
     @property
     def area(self) -> float:
         area = 0.
-        if len(self.ribs) == 0:
-            return 0
-        front = self.get_spanwise(0).nodes
-        back = self.get_spanwise(1).nodes
-        front[0][1] = 0  # Get only half a midrib, if there is...
-        back[0][1] = 0
-        for i in range(len(front) - 1):
-            area += (front[i] - front[i+1]).cross(back[i+1]-front[i+1]).length()
-            area += (back[i] - back[i + 1]).cross(back[i] - front[i]).length()
-            # By this we get twice the area of half the glider :)
-            # http://en.wikipedia.org/wiki/Triangle#Using_vectors
+        if len(self.cells) > 1:
+            area += self.cells[0].area
+            if not self.has_center_cell:
+                area = 2 * area
+        for cell in self.cells[1:]:
+            area += 2 * cell.area
+
         return area
 
     @area.setter

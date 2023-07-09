@@ -19,7 +19,7 @@ from openglider.utils.config import Config
 from openglider.vector.drawing import PlotPart
 from openglider.vector.drawing.part import Layer
 from openglider.vector.text import Text
-from openglider.vector.unit import Percentage
+from openglider.vector.unit import Length, Percentage
 
 if TYPE_CHECKING:
     from openglider.glider.cell import Cell
@@ -77,14 +77,14 @@ class PanelPlot:
 
         # get seam allowance
         if self.panel.cut_front.seam_allowance is not None:
-            allowance_front = -self.panel.cut_front.seam_allowance
+            allowance_front: Length = -self.panel.cut_front.seam_allowance
         else:
-            allowance_front = -cut_allowances[self.panel.cut_front.cut_type]
+            allowance_front = Length(-cut_allowances[self.panel.cut_front.cut_type])
         
         if self.panel.cut_back.seam_allowance is not None:
-            allowance_back = self.panel.cut_back.seam_allowance
+            allowance_back: Length = self.panel.cut_back.seam_allowance
         else:
-            allowance_back = cut_allowances[self.panel.cut_back.cut_type]
+            allowance_back = Length(cut_allowances[self.panel.cut_back.cut_type])
 
         # cuts -> cut-line, index left, index right
         self.cut_front = cut_types[self.panel.cut_front.cut_type](amount=allowance_front)
@@ -315,12 +315,12 @@ class PanelPlot:
 
         front = (
             self.front_curve,
-            self.front_curve.offset(-self.cut_front.amount)
+            self.front_curve.offset(-float(self.cut_front.amount))
         )
 
         back = (
             self.back_curve,
-            self.back_curve.offset(-self.cut_back.amount)
+            self.back_curve.offset(-float(self.cut_back.amount))
         )
 
         for i in range(x_dots):
@@ -350,12 +350,12 @@ class PanelPlot:
 
                 # more than 25cm? -> add start / end marks too
                 if strap.left.get_curve(self.cell.rib1).get_length() > 0.25:
-                    self.insert_mark(self.config.marks_diagonal_front, factor * strap.left.start_x, layer, False)
-                    self.insert_mark(self.config.marks_diagonal_back, factor * strap.left.end_x, layer, False)
+                    self.insert_mark(self.config.marks_diagonal_front, factor * strap.left.start_x(self.cell.rib1), layer, False)
+                    self.insert_mark(self.config.marks_diagonal_back, factor * strap.left.end_x(self.cell.rib1), layer, False)
 
                 if strap.right.get_curve(self.cell.rib1).get_length() > 0.25:
-                    self.insert_mark(self.config.marks_diagonal_back, factor * strap.right.start_x, layer, True)
-                    self.insert_mark(self.config.marks_diagonal_front, factor * strap.right.end_x, layer, True)
+                    self.insert_mark(self.config.marks_diagonal_back, factor * strap.right.start_x(self.cell.rib2), layer, True)
+                    self.insert_mark(self.config.marks_diagonal_front, factor * strap.right.end_x(self.cell.rib2), layer, True)
 
             else:
                 if strap.left.is_lower:

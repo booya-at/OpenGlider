@@ -58,7 +58,7 @@ class GliderProject:
         return cls(**kwargs)
     
     def __hash__(self) -> int:
-        return hash(self.modified.timestamp)       
+        return hash(self.modified.timestamp)
 
     
     @property

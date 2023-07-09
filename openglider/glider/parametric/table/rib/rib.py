@@ -1,11 +1,19 @@
+import logging
 from typing import Any, Dict, List, Optional
 
+from openglider.glider.parametric.table.base import Keyword, RibTable, dto
+from openglider.glider.rib.singleskin import SingleSkinParameters
 from openglider.utils.table import Table
-from openglider.glider.parametric.table.base import RibTable, Keyword
-
-import logging
+from openglider.vector.unit import Angle, Percentage
 
 logger = logging.getLogger(__name__)
+
+class SkinRib(dto.DTO):
+    continued_min_end: Percentage
+    xrot: Angle
+
+    def get_object(self) -> tuple[SingleSkinParameters, Angle]:
+        return SingleSkinParameters(continued_min_end=self.continued_min_end), self.xrot
 
 SkinRib7 = Keyword([
     ("att_dist", float),
@@ -24,13 +32,15 @@ SkinRib7 = Keyword([
 
 class SingleSkinTable(RibTable):
     keywords: Dict[str, Keyword] = {
-        "SkinRib": Keyword([("continued_min_end", float), ("xrot", float)], target_cls=dict),
         "SkinRib7": SkinRib7,
         "XRot": Keyword([("angle", float)], target_cls=dict)
     }
+    dtos = {
+        "SkinRib": SkinRib
+    }
 
-    def get_singleskin_ribs(self, rib_no: int) -> List[Dict[str, Any]]:
-        return self.get(rib_no, keywords=["SkinRib", "SkinRib7"])
+    def get_singleskin_ribs(self, rib_no: int, **kwargs: Any) -> tuple[SingleSkinParameters, Angle] | None:
+        return self.get_one(rib_no, ["SkinRib"], **kwargs)
     
     def get_xrot(self, rib_no: int) -> float:
         rotation = 0

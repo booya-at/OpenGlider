@@ -29,6 +29,7 @@ class PlotMaker:
 
     DefaultConfig: TypeAlias = PatternConfig
     CellPlotMaker: TypeAlias = DefaultCellPlotMaker
+    SingleSkinRibPlot = SingleSkinRibPlot
     RibPlot = RibPlot
 
     def __init__(self, glider_3d: Glider, config: Optional[Config]=None):
@@ -114,7 +115,7 @@ class PlotMaker:
         for rib_no, rib in enumerate(self.glider_3d.ribs):
             rib_plot: SingleSkinRibPlot | RibPlot
             if isinstance(rib, SingleSkinRib):
-                rib_plot = SingleSkinRibPlot(rib)
+                rib_plot = self.SingleSkinRibPlot(rib, self.config)
             else:
                 rib_plot = self.RibPlot(rib, self.config)
 

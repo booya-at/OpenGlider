@@ -9,7 +9,7 @@ from openglider.glider.rib.crossports import RibHole, RibSquareHole, MultiSquare
 
 import logging
 
-from openglider.vector.unit import Percentage
+from openglider.vector.unit import Angle, Length, Percentage
 
 logger = logging.getLogger(__name__)
 
@@ -17,33 +17,85 @@ class HoleDTO(DTO):
     pos: Percentage
     size: Percentage
 
-    def get_object(self) -> Any:
+    def get_object(self) -> RibHole:
         return RibHole(
             pos=self.pos,
             size=self.size
         )
 
+class HoleSQDTO(DTO):
+    x: Percentage
+    width: Percentage
+    height: Percentage
+
+    def get_object(self) -> RibSquareHole:
+        return RibSquareHole(
+            x=self.x,
+            width=self.width,
+            height=self.height
+        )
+
+class Hole5DTO(HoleDTO):
+    width: Percentage
+    vertical_shift: Percentage
+    rotation: Angle
+
+    def get_object(self) -> RibHole:
+        hole = super().get_object()
+        hole.vertical_shift = self.vertical_shift
+        hole.rotation = self.rotation
+
+        return hole
+    
+class HoleSqMultiDTO(DTO):
+    start: Percentage
+    end: Percentage
+    height: Percentage
+    num_holes: int
+    border_width: Percentage | Length
+
+    def get_object(self) -> MultiSquareHole:
+        return MultiSquareHole(
+            start=self.start, end=self.end, height=self.height,
+            num_holes=self.num_holes, border_width=self.border_width
+        )
+
+class HoleSqMulti6(HoleSqMultiDTO):
+    margin: Percentage | Length
+
+    def get_object(self) -> MultiSquareHole:
+        hole = super().get_object()
+        hole.margin = self.margin
+
+        return hole
+
+class HoleATP(DTO):
+    start: Percentage
+    end: Percentage
+    num_holes: int
+
+    def get_object(self) -> AttachmentPointHole:
+        return AttachmentPointHole(
+            **self.dict()
+        )
+
+class HOLEATP5(HoleATP):
+    border: Length | Percentage
+    side_boder: Length | Percentage
+
+class HOLEATP6(HOLEATP5):
+    corner_size: Percentage
+
 
 class HolesTable(RibTable):
-    keywords = {
-        "QUERLOCH": Keyword(["pos", "size"], target_cls=RibHole),
-        "HOLE5": Keyword(["pos", "size", "width", "vertical_shift", "rotation"], target_cls=RibHole),
-        "HOLESQ": Keyword(["x", "width", "height"], target_cls=RibSquareHole),
-        "HOLESQMULTI": Keyword(["start", "end", "height", "num_holes", "border_width"], target_cls=MultiSquareHole),
-        "HOLESQMULTI6": Keyword(["start", "end", "height", "num_holes", "border_width", "margin"], target_cls=MultiSquareHole),
-        "HOLEATP": Keyword(["start", "end", "height", "num_holes"], target_cls=AttachmentPointHole),
-        "HOLEATP6": Keyword(["start", "end", "height", "num_holes", "border", "side_border"], target_cls=AttachmentPointHole),
-        "HOLEATP7": Keyword(["start", "end", "height", "num_holes", "border", "side_border", "corner_size"], target_cls=AttachmentPointHole)
-    }
     dtos = {
-        "HOLE": HoleDTO
+        "HOLE": HoleDTO,
+        "QUERLOCH": HoleDTO,
+        "HOLESQ": HoleSQDTO,
+        "HOLE5": Hole5DTO,
+        "HOLESQMULTI": HoleSqMultiDTO,
+        "HOLESQMULTI6": HoleSqMulti6,
+        "HOLEATP": HoleATP,
+        "HOLEATP5": HOLEATP5,
+        "HOLEATP6": HOLEATP6,
     }
-
-
-    def get_element(self, row: int, keyword: str, data: List[Any], resolvers: list[Parser]=None, **kwargs: Any) -> Any:
-        assert resolvers is not None
-
-        if keyword != "HOLE":
-            data = [resolvers[row].parse(x) for x in data]  # type: ignore
-
-        return super().get_element(row, keyword, data, resolvers=resolvers, **kwargs)

@@ -1,14 +1,18 @@
 from typing import Any, List
+from openglider.glider.parametric.table.base.dto import DTO
 from openglider.glider.rib import MiniRib
 
 from openglider.glider.parametric.table.base import CellTable, Keyword
+from openglider.vector.unit import Percentage
+
+class MiniRibDTO(DTO):
+    y_value: Percentage
+    front_cut: Percentage
+
+    def get_object(self) -> Any:
+        return MiniRib(yvalue=float(self.y_value), front_cut=float(self.front_cut))
 
 class MiniRibTable(CellTable):
-    keywords = {
-        "MINIRIB": Keyword(["yvalue", "front_cut"], target_cls=MiniRib)
+    dtos = {
+        "MINIRIB": MiniRibDTO
     }
-
-    def get_element(self, row: int, keyword: str, data: List[Any], **kwargs: Any) -> MiniRib:
-        elem = super().get_element(row, keyword, data)
-        elem.name = f"minirib_{row}_{data[0]:02f}"
-        return elem

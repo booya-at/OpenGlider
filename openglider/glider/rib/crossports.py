@@ -1,17 +1,17 @@
 from __future__ import annotations
+
 import logging
 import math
-from typing import List, TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING, List, Tuple
 
 import euklid
 import pyfoil
-from openglider.mesh.mesh import Polygon, Vertex
-from openglider.utils.cache import cached_function
-from openglider.utils.dataclass import BaseModel, Field
-from openglider.vector.polygon import Ellipse
-from openglider.vector.drawing import PlotPart
-from openglider.vector.text import Text
+
 from openglider.mesh import Mesh
+from openglider.utils.cache import cached_function
+from openglider.utils.dataclass import BaseModel
+from openglider.vector.drawing import PlotPart
+from openglider.vector.polygon import Ellipse
 from openglider.vector.unit import Angle, Length, Percentage
 
 if TYPE_CHECKING:
@@ -78,7 +78,7 @@ class RibHole(RibHoleBase):
     size: Percentage=Percentage(0.5)
     width: Percentage=Percentage(1.)
 
-    vertical_shift: float=0
+    vertical_shift: Percentage=Percentage(0)
     rotation: Angle=Angle(0)
 
     def _get_points(self, rib: Rib) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
@@ -89,7 +89,7 @@ class RibHole(RibHoleBase):
         if self.rotation:
             diff = euklid.vector.Rotation2D(self.rotation.si).apply(diff)
 
-        center = lower + diff * (0.5 + self.vertical_shift/2)
+        center = lower + diff * (0.5 + self.vertical_shift.si/2)
         outer_point = center + diff.normalized() * self.get_diameter(rib)/2
 
         return center, outer_point
@@ -257,14 +257,13 @@ class MultiSquareHole(RibHoleBase):
 
 
 class AttachmentPointHole(RibHoleBase):
-    start: float
-    end: float
-    height: float
+    start: Percentage
+    end: Percentage
 
     num_holes: int
-    border: float=0.1
-    side_border: float=0.1
-    corner_size: float = 1.
+    border: Length | Percentage=Length(0.1)
+    side_border: Length | Percentage=Length(0.1)
+    corner_size: Percentage = Percentage(1.)
 
     @cached_function('self')
     def _get_holes(self, rib: Rib) -> List[PolygonHole]:
@@ -277,9 +276,12 @@ class AttachmentPointHole(RibHoleBase):
         upper = euklid.vector.Interpolation([p1, p2, p3])
         lower = euklid.vector.Interpolation([p1, p3])
 
-        total_border = (2*self.side_border + (self.num_holes-1)*self.border) / rib.chord
+        side_border_pct = rib.convert_to_percentage(self.side_border)
+        border_pct = rib.convert_to_percentage(self.border)
 
-        hole_width  = (abs(self.start-self.end) - total_border)/self.num_holes
+        total_border_pct = (2*side_border_pct + (self.num_holes-1)*border_pct)
+
+        hole_width  = (Percentage(float(abs(self.start-self.end))) - total_border_pct)/self.num_holes
 
         if hole_width < 0:
             raise ValueError(f"not enough space for {self.num_holes} holes between {self.start} / {self.end} ({rib.name})")
@@ -287,16 +289,16 @@ class AttachmentPointHole(RibHoleBase):
         holes = []
 
         for hole_no in range(self.num_holes):
-            left = self.start + (self.side_border + hole_no*self.border)/rib.chord + hole_no*hole_width
+            left = self.start + side_border_pct + hole_no*border_pct + hole_no*hole_width
             right = left + hole_width
 
-            p1 = euklid.vector.Vector2D([left, lower.get_value(left)])
-            p2 = euklid.vector.Vector2D([right, lower.get_value(right)])
+            p1 = euklid.vector.Vector2D([left, lower.get_value(left.si)])
+            p2 = euklid.vector.Vector2D([right, lower.get_value(right.si)])
             
-            p4 = euklid.vector.Vector2D([left, upper.get_value(left)])
-            p3 = euklid.vector.Vector2D([right, upper.get_value(right)])
+            p4 = euklid.vector.Vector2D([left, upper.get_value(left.si)])
+            p3 = euklid.vector.Vector2D([right, upper.get_value(right.si)])
 
-            holes.append(PolygonHole(points=[p1, p2, p3, p4], corner_size=self.corner_size))
+            holes.append(PolygonHole(points=[p1, p2, p3, p4], corner_size=self.corner_size.si))
         
         return holes
 

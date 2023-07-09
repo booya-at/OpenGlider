@@ -3,6 +3,7 @@ from typing import Any, List, Dict, Literal
 import euklid
 
 from openglider.vector.drawing.part import PlotPart
+from openglider.vector.unit import Length
 
 text_vectors: Dict[str, List[List[float]]] = {
     "1": [[0.2, 0.5], [0.6, 1.], [0.6, 0.]],
@@ -61,7 +62,7 @@ class Text(object):
         text: str,
         p1: euklid.vector.Vector2D,
         p2: euklid.vector.Vector2D,
-        size: float=None,
+        size: Length | float | None=None,
         align: Literal["left"] | Literal["right"] | Literal["center"]="left",
         height: float=0.8,
         space: float=0.2,
@@ -115,9 +116,10 @@ class Text(object):
         vectors = []
         diff = self.p2 - self.p1
 
-        letter_width = self.size
-        if letter_width is None:
+        if self.size is None:
             letter_width = diff.length() / len(self.text)
+        else:
+            letter_width = float(self.size)
 
         letter_height = self.height * letter_width
         angle = diff.angle()

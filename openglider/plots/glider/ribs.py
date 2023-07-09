@@ -4,7 +4,6 @@ import math
 from typing import TYPE_CHECKING, Callable, List, Optional, Set, Tuple, Union
 
 import euklid
-import openglider.glider
 from openglider import logging
 from openglider.airfoil import get_x_value
 from openglider.glider.cell.diagonals import (DiagonalRib, DiagonalSide,
@@ -18,12 +17,97 @@ from openglider.vector.drawing import PlotPart
 from openglider.vector.text import Text
 from openglider.vector.unit import Percentage
 
+from openglider.utils.dataclass import BaseModel
+
+from openglider.utils.cache import cached_function
+
 if TYPE_CHECKING:
     from openglider.glider.rib import Rib
     from openglider.glider import Glider
 
 
+Vector2D = euklid.vector.Vector2D
+
 logger = logging.getLogger(__name__)
+
+
+class RigidFoilPlot:
+    rigidfoil: RigidFoilBase
+    ribplot: RibPlot
+
+    inner_curve: euklid.vector.PolyLine2D | None = None
+    outer_curve: euklid.vector.PolyLine2D | None = None
+
+    def __init__(self, rigidfoil: RigidFoilBase, ribplot: RibPlot) -> None:
+        self.rigidfoil = rigidfoil
+        self.ribplot = ribplot
+
+    def add_text(self, plotpart: PlotPart) -> None:
+        (_, p1), (_, p2) = self.get_cap(-1, True)
+
+        plotpart.layers[self.ribplot.layer_name_text] += Text(
+            self.rigidfoil.name, p1, p2, align="center", valign=0.6
+        ).get_vectors()
+
+    def get_cap(self, position: int, rear: bool) -> tuple[tuple[Vector2D, Vector2D], tuple[Vector2D, Vector2D]]:
+        assert self.inner_curve is not None and self.outer_curve is not None
+
+        # back cap
+        p1 = self.inner_curve.nodes[position]
+        p2 = self.outer_curve.nodes[position]
+        angle = math.pi/2
+        if rear:
+            angle = -angle
+        diff = euklid.vector.Rotation2D(angle).apply(p1-p2).normalized() * self.rigidfoil.cap_length.si
+
+        return (
+            (p1, p2),
+            (p1+diff, p2+diff)
+        )
+    
+    def flatten(self, glider: Glider) -> PlotPart:
+        plotpart = PlotPart()
+
+        controlpoints: list[list[euklid.vector.PolyLine2D]] = []
+        for x in self.ribplot.config.distribution_controlpoints:
+            controlpoints.append(self.ribplot.insert_mark(x, self.ribplot.config.marks_controlpoint, laser=True, insert=False))
+
+        curve = self.rigidfoil.get_flattened(self.ribplot.rib, glider)
+
+        # add marks into the profile
+        self.ribplot.plotpart.layers[self.ribplot.layer_name_rigidfoils].append(curve)
+        self.ribplot.plotpart.layers[self.ribplot.layer_name_laser_dots].append(euklid.vector.PolyLine2D([curve.get(0)]))
+        self.ribplot.plotpart.layers[self.ribplot.layer_name_laser_dots].append(euklid.vector.PolyLine2D([curve.get(len(curve)-1)]))
+
+        self.inner_curve = curve.offset(-self.ribplot.config.allowance_general).fix_errors()
+        self.outer_curve = curve.offset(self.ribplot.config.allowance_general).fix_errors()
+
+        plotpart.layers[self.ribplot.layer_name_marks].append(curve)
+
+        back_cap = self.get_cap(-1, True)
+        plotpart.layers[self.ribplot.layer_name_marks].append(euklid.vector.PolyLine2D(list(back_cap[0])))
+
+        front_cap = self.get_cap(0, False)
+        plotpart.layers[self.ribplot.layer_name_marks].append(euklid.vector.PolyLine2D(list(front_cap[0])))
+        
+        outline = self.inner_curve
+        outline += euklid.vector.PolyLine2D(list(back_cap[1]))
+        outline += self.outer_curve.reverse()
+        outline += euklid.vector.PolyLine2D(list(front_cap[1])).reverse()
+
+        for controlpoint in controlpoints:
+            p = controlpoint[0].nodes[0]
+
+            if outline.contains(p):
+                plotpart.layers[self.ribplot.layer_name_laser_dots] += controlpoint
+                
+        plotpart.layers[self.ribplot.layer_name_outline].append(outline.fix_errors().close())
+
+        self.add_text(plotpart)
+
+        return plotpart
+
+
 
 class RibPlot(object):
     x_values: List[float]
@@ -31,6 +115,7 @@ class RibPlot(object):
     outer: euklid.vector.PolyLine2D
 
     DefaultConf = PatternConfig
+    RigidFoilPlotFactory = RigidFoilPlot
 
     rib: Rib
 
@@ -104,12 +189,14 @@ class RibPlot(object):
         self.plotpart.layers[self.layer_name_outline] += [envelope]
         self.plotpart.layers[self.layer_name_sewing].append(self.inner)
 
-
-        rigidfoils = self.draw_rigidfoils(glider)
-        rigidfoils.move(euklid.vector.Vector2D([-(rigidfoils.max_x-self.plotpart.min_x+0.2), 0]))
-
         if add_rigidfoils_to_plot:
-            self.plotpart += rigidfoils
+            rigidfoils = self.draw_rigidfoils(glider)
+            if rigidfoils:
+                diff = max([r.max_x for r in rigidfoils])
+                for rigidfoil in rigidfoils:
+                    rigidfoil.move(euklid.vector.Vector2D([-(diff-self.plotpart.min_x+0.2), 0]))
+
+                    self.plotpart += rigidfoil
 
         return self.plotpart
 
@@ -168,12 +255,12 @@ class RibPlot(object):
             self.insert_mark(side.end_x, self.config.marks_diagonal_back)
             self.insert_mark(side.center, self.config.marks_diagonal_center, laser=True)
         elif side.is_upper:
-            self.insert_mark(-side.start_x, self.config.marks_diagonal_back)
-            self.insert_mark(-side.end_x, self.config.marks_diagonal_front)
+            self.insert_mark(-side.start_x(self.rib), self.config.marks_diagonal_back)
+            self.insert_mark(-side.end_x(self.rib), self.config.marks_diagonal_front)
             #self.insert_mark(-side.center, self.config.marks_diagonal_center, laser=True)
         else:
-            p1 = self.get_point(side.start_x, side.height)
-            p2 = self.get_point(side.end_x, side.height)
+            p1 = self.get_point(side.start_x(self.rib), side.height)
+            p2 = self.get_point(side.end_x(self.rib), side.height)
             self.plotpart.layers[self.layer_name_marks].append(euklid.vector.PolyLine2D([p1, p2]))
 
     def insert_holes(self) -> List[euklid.vector.PolyLine2D]:
@@ -251,74 +338,15 @@ class RibPlot(object):
 
         self.plotpart.layers[self.layer_name_text] += _text.get_vectors()
     
-    def draw_rigidfoils(self, glider: Glider) -> PlotPart:
-        plotpart = PlotPart()
-
-        controlpoints = []
-        for x in self.config.distribution_controlpoints:
-            controlpoints.append(self.insert_mark(x, self.config.marks_controlpoint, laser=True, insert=False))
-
-        def draw_rigid(rigidfoil: RigidFoilBase, name: str) -> None:
-            curve = rigidfoil.get_flattened(self.rib, glider)
-
-            # add marks into the profile
-            self.plotpart.layers[self.layer_name_rigidfoils].append(curve)
-            self.plotpart.layers[self.layer_name_laser_dots].append(euklid.vector.PolyLine2D([curve.get(0)]))
-            self.plotpart.layers[self.layer_name_laser_dots].append(euklid.vector.PolyLine2D([curve.get(len(curve)-1)]))
-
-            inner = curve.offset(-self.config.allowance_general).fix_errors()
-            outer = curve.offset(self.config.allowance_general).fix_errors()
-
-            plotpart.layers[self.layer_name_marks].append(curve)
-
-            # back cap
-            p1 = inner.nodes[-1]
-            p2 = outer.nodes[-1]
-
-            plotpart.layers[self.layer_name_marks].append(euklid.vector.PolyLine2D([p1, p2]))
-            diff = euklid.vector.Rotation2D(-math.pi/2).apply(p1-p2).normalized() * 0.02
-            back_cap = euklid.vector.PolyLine2D([
-                p1 + diff,
-                p2 + diff
-            ])
-
-            plotpart.layers[self.layer_name_text] += Text(
-                name, p2, p2+diff, align="center", valign=0.6
-            ).get_vectors()
-
-
-            # front cap -> close to start
-            p1 = inner.nodes[0]
-            p2 = outer.nodes[0]
-
-            plotpart.layers[self.layer_name_marks].append(euklid.vector.PolyLine2D([p1, p2]))
-            diff = euklid.vector.Rotation2D(math.pi/2).apply(p1-p2).normalized() * 0.02
-            front_cap = euklid.vector.PolyLine2D([
-                p2 + diff,
-                p1 + diff,
-                p1
-            ])
-
-
-
-
-            # back cap
-
-            outline = inner + back_cap + outer.reverse() + front_cap
-
-            for controlpoint in controlpoints:
-                p = controlpoint[0].nodes[0]
-
-                if outline.contains(p):
-                    plotpart.layers[self.layer_name_laser_dots] += controlpoint
-                    
-            plotpart.layers[self.layer_name_outline].append(outline.fix_errors())
+    def draw_rigidfoils(self, glider: Glider) -> list[PlotPart]:
+        result = []
 
         # rigidfoils
         for i, rigid in enumerate(self.rib.get_rigidfoils()):
-            draw_rigid(rigid, f"{self.rib.name}r{i+1}")
+            plt = self.RigidFoilPlotFactory(rigidfoil=rigid, ribplot=self)
+            result.append(plt.flatten(glider))
 
-        return plotpart
+        return result
 
 
 class SingleSkinRibPlot(RibPlot):
@@ -379,30 +407,20 @@ class SingleSkinRibPlot(RibPlot):
 
         contour = euklid.vector.PolyLine2D([])
 
-        if isinstance(self.rib, openglider.glider.rib.SingleSkinRib):
-            # outer is going from the back back until the singleskin cut
+        # outer is going from the back back until the singleskin cut
 
-            singleskin_cut_left = self._get_singleskin_cut(glider)
-            single_skin_cut = self.rib.profile_2d(singleskin_cut_left)
+        singleskin_cut_left = self._get_singleskin_cut(glider)
+        single_skin_cut = self.rib.profile_2d(singleskin_cut_left)
 
-            buerzl = euklid.vector.PolyLine2D([
-                inner_rib.get(0),
-                inner_rib.get(0) + euklid.vector.Vector2D([t_e_allowance, 0]),
-                outer_rib.get(start) + euklid.vector.Vector2D([t_e_allowance, 0]),
-                outer_rib.get(start)
-                ])
-            contour += outer_rib.get(start, single_skin_cut)
-            contour += inner_rib.get(single_skin_cut, len(inner_rib)-1)
-            contour += buerzl
+        buerzl = euklid.vector.PolyLine2D([
+            inner_rib.get(0),
+            inner_rib.get(0) + euklid.vector.Vector2D([t_e_allowance, 0]),
+            outer_rib.get(start) + euklid.vector.Vector2D([t_e_allowance, 0]),
+            outer_rib.get(start)
+            ])
+        contour += outer_rib.get(start, single_skin_cut)
+        contour += inner_rib.get(single_skin_cut, len(inner_rib)-1)
+        contour += buerzl
 
-        else:
-
-            buerzl = euklid.vector.PolyLine2D([outer_rib.get(stop),
-                                 outer_rib.get(stop) + euklid.vector.Vector2D([t_e_allowance, 0]),
-                                 outer_rib.get(start) + euklid.vector.Vector2D([t_e_allowance, 0]),
-                                 outer_rib.get(start)])
-
-            contour += euklid.vector.PolyLine2D(outer_rib.get(start, stop))
-            contour += buerzl
         
         return contour

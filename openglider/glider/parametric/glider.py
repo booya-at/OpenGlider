@@ -345,7 +345,7 @@ class ParametricGlider:
                 logger.debug(f"add flap: {flap}")
                 profile = profile.add_flap(**flap)
 
-            sharknose = self.tables.profiles.get_sharknose(rib_no)
+            sharknose = self.tables.profiles.get_sharknose(rib_no, resolvers=resolvers)
 
             this_rib_holes = self.tables.holes.get(rib_no, resolvers=resolvers)
             this_rigid_foils = self.tables.rigidfoils_rib.get(rib_no, resolvers=resolvers)
@@ -369,9 +369,9 @@ class ParametricGlider:
             )
             rib.set_aoa_relative(aoa_values[rib_no])
 
-            singleskin_data = self.tables.rib_modifiers.get(rib_no, resolvers=resolvers)
+            singleskin_data = self.tables.rib_modifiers.get_singleskin_ribs(rib_no, resolvers=resolvers)
             if singleskin_data:
-                rib = SingleSkinRib.from_rib(rib, singleskin_data[0])
+                rib = SingleSkinRib.from_rib(rib, *singleskin_data)
             
             attachment_points = self.tables.attachment_points_rib.get(rib_no, rib=rib, resolvers=resolvers)
             for p in rib.attachment_points:
