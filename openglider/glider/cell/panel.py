@@ -266,7 +266,12 @@ class Panel(object):
             return None
 
     def is_lower(self) -> bool:
-        return self.cut_front.x_left + self.cut_front.x_right >= -1e-3
+        if (self.cut_front.x_left + self.cut_back.x_left) >=  1e-3:
+            return True
+        if (self.cut_front.x_right + self.cut_back.x_right) >=  1e-3:
+            return True
+        
+        return False
 
     def get_3d(self, cell: Cell, numribs: int=0, midribs: Optional[List[Profile3D]]=None) -> List[euklid.vector.PolyLine3D]:
         """

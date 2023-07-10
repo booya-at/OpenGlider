@@ -55,10 +55,12 @@ class LineType:
         registry[self.name] = self
        
     def __str__(self) -> str:
-        return f"linetype: {self.name}"
+        if self.color:
+            return f"{self.name}:{self.color}"
+        return f"{self.name}"
     
     def __repr__(self) -> str:
-        return str(self)
+        return f"linetype: {self}"
     
     def __hash__(self) -> int:
         return hash(self.name)

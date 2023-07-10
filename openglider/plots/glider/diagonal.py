@@ -115,8 +115,13 @@ class DribPlot(object):
     
     def _insert_controlpoints(self, plotpart: PlotPart) -> None:
         x: float
-        for x in self.config.distribution_controlpoints:
-            for side in (False, True):
+        sides = (
+            (False, self.cell.rib1),
+            (True, self.cell.rib2)
+        )
+
+        for side, rib in sides:
+            for x in self.config.get_controlpoints(rib):
                 try:
                     p1, p2 = self.get_p1_p2(x, side)
                     plotpart.layers["L0"] += self.config.marks_controlpoint(p1, p2)
@@ -124,8 +129,9 @@ class DribPlot(object):
                     continue
 
     def _insert_attachment_points(self, plotpart: PlotPart) -> None:
-        def _add_mark(p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> None:
+        def _add_mark(name: str, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> None:
             plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
+            plotpart.layers["marks"] += Text(name, p1 + (p1 - p2), p1).get_vectors()
             plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
 
         for attachment_point in self.cell.rib1.attachment_points:
@@ -133,14 +139,14 @@ class DribPlot(object):
                 p1, p2 = self.get_left(attachment_point.rib_pos.si)
             except ValueError:
                 continue
-            _add_mark(p1, p2)
+            _add_mark(attachment_point.name, p1, p2)
 
         for attachment_point in self.cell.rib2.attachment_points:
             try:
                 p1, p2 = self.get_right(attachment_point.rib_pos.si)
             except ValueError:
                 continue
-            _add_mark(p1, p2)
+            _add_mark(attachment_point.name, p1, p2)
 
     def _insert_text(self, plotpart: PlotPart, reverse: bool=False) -> None:
         if reverse:

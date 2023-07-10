@@ -583,7 +583,7 @@ class Layout(object):
                             dxf_obj = ms.add_lwpolyline(elem.tolist(), dxfattribs=dxfattribs)
                             if len(elem) > 2 and all([elem.get(len(elem)-1)[i] == elem.get(0)[i] for i in range(2)]):
                                 dxf_obj.closed = True
-                        part_group.append(dxf_obj)
+                            part_group.append(dxf_obj)
 
         drawing.saveas(path)
         return drawing

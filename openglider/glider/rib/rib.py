@@ -121,7 +121,7 @@ class Rib(RibBase):
     sharknose: Sharknose | None = None
 
     hole_naming_scheme = "{rib.name}h{}"
-    rigid_naming_scheme = "{rib.name}rigid{}"
+    rigid_naming_scheme = "{rib.name}r{}"
 
     def __post_init__(self) -> None:
         self.pos = euklid.vector.Vector3D(self.pos)

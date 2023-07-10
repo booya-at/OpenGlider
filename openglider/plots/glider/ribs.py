@@ -69,7 +69,7 @@ class RigidFoilPlot:
         plotpart = PlotPart()
 
         controlpoints: list[list[euklid.vector.PolyLine2D]] = []
-        for x in self.ribplot.config.distribution_controlpoints:
+        for x in self.ribplot.config.get_controlpoints(self.ribplot.rib):
             controlpoints.append(self.ribplot.insert_mark(x, self.ribplot.config.marks_controlpoint, laser=True, insert=False))
 
         curve = self.rigidfoil.get_flattened(self.ribplot.rib, glider)
@@ -109,11 +109,12 @@ class RigidFoilPlot:
 
 
 
-class RibPlot(object):
+class RibPlot:
     x_values: List[float]
     inner: euklid.vector.PolyLine2D
     outer: euklid.vector.PolyLine2D
 
+    config: PatternConfig
     DefaultConf = PatternConfig
     RigidFoilPlotFactory = RigidFoilPlot
 
@@ -236,10 +237,12 @@ class RibPlot(object):
             self.plotpart.layers[layer] += mark
         return mark
 
-    def insert_controlpoints(self) -> None:
+    def insert_controlpoints(self, controlpoints: list[float]=None) -> None:
         marks = []
-        for x in self.config.distribution_controlpoints:
-            marks.append(self.insert_mark(x, self.config.marks_controlpoint, laser=True))       
+        if controlpoints is None:
+            controlpoints = list(self.config.get_controlpoints(self.rib))
+        for x in controlpoints:
+            marks.append(self.insert_mark(x, self.config.marks_controlpoint, laser=True))
         
 
     def get_point(self, x: float | Percentage, y: float=-1.) -> euklid.vector.Vector2D:
@@ -354,12 +357,27 @@ class SingleSkinRibPlot(RibPlot):
 
     def _get_inner_outer(self, x_value: Percentage | float) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
         # TODO: shift when after the endpoint
-        inner, outer = super()._get_inner_outer(x_value)
 
         if self.skin_cut is None or x_value < self.skin_cut:
-            return inner, outer
+            return super()._get_inner_outer(x_value)
         else:
-            return inner, inner + (inner - outer)
+            hull = self.rib.get_hull()
+            segments = hull.curve.get_segments()
+            ik = hull.get_ik(x_value)
+
+            segment = segments[min(int(ik), len(segments)-1)].normalized()
+            normal = euklid.vector.Rotation2D(math.pi/2).apply(segment)
+
+
+            p1 = hull.curve.get(ik) * self.rib.chord
+            p2 = p1 + normal * self.config.allowance_general
+            return p1, p2
+        
+    def insert_controlpoints(self, controlpoints: list[float]=None) -> None:
+        if self.skin_cut is not None:
+            controlpoints = [x for x in self.config.get_controlpoints(self.rib) if x < self.skin_cut.si]
+
+        return super().insert_controlpoints(controlpoints)
 
     def _get_singleskin_cut(self, glider: Glider) -> Percentage:
         if self.skin_cut is None:

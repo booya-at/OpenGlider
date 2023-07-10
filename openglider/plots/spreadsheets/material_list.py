@@ -17,24 +17,33 @@ def get_material_sheets(glider: Glider) -> Tuple[Table, Table, Table]:
         ribs_sheet[rib_no+1, 1] = str(rib.material)
 
     # panels
-    all_panels: List[Panel] = sum([cell.panels for cell in glider.cells], [])
-
     panel_sheet = Table(name="material_panels")
 
-    panel_sheet[0, 0] = "Panel"
-    panel_sheet[0, 1] = "Material"
-    for panel_no, panel in enumerate(all_panels):
-        panel_sheet[panel_no+1, 0] = panel.name
-        panel_sheet[panel_no+1, 1] = str(panel.material)
+    panel_sheet[0, 0] = "Cell"
+    panel_sheet[0, 1] = "Panel"
+    panel_sheet[0, 2] = "Material"
+    current_line = 1
+    for cell_no, cell in enumerate(glider.cells):
+        for panel_no, panel in enumerate(cell.panels):
+            panel_sheet[current_line, 0] = cell.name
+            panel_sheet[current_line, 1] = panel.name
+            panel_sheet[current_line, 2] = str(panel.material)
+            current_line += 1
 
     # dribs
     all_dribs: List[DiagonalRib] = sum([cell.diagonals for cell in glider.cells], [])
     dribs_sheet = Table(name="material_dribs")
 
-    dribs_sheet[0, 0] = "Diagonal"
-    dribs_sheet[0, 1] = "Material"
-    for drib_no, drib in enumerate(all_dribs):
-        dribs_sheet[drib_no+1, 0] = drib.name
-        dribs_sheet[drib_no+1, 1] = drib.material_code
+    current_line = 1
+    dribs_sheet[0, 0] = "Cell"
+    dribs_sheet[0, 1] = "Diagonal"
+    dribs_sheet[0, 2] = "Material"
+
+    for cell in glider.cells:
+        for drib_no, drib in enumerate(cell.diagonals):
+            dribs_sheet[current_line, 0] = cell.name
+            dribs_sheet[current_line, 1] = drib.name
+            dribs_sheet[current_line, 2] = drib.material_code
+            current_line += 1
 
     return ribs_sheet, panel_sheet, dribs_sheet

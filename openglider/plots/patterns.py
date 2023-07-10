@@ -30,7 +30,7 @@ class PatternsNew:
     plotmaker = PlotMaker
     config: PatternConfigOld
 
-    DefaultConf = PlotMaker.DefaultConfig
+    DefaultConf = PlotMaker.DefaultConf
 
     def __init__(self, project: GliderProject, config: Optional[Config]=None):
         self.project = self.prepare_glider_project(project)

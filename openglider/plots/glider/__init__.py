@@ -27,14 +27,14 @@ class PlotMaker:
     straps: PlotPartDict
     rigidfoils: PlotPartDict
 
-    DefaultConfig: TypeAlias = PatternConfig
+    DefaultConf: TypeAlias = PatternConfig
     CellPlotMaker: TypeAlias = DefaultCellPlotMaker
     SingleSkinRibPlot = SingleSkinRibPlot
     RibPlot = RibPlot
 
     def __init__(self, glider_3d: Glider, config: Optional[Config]=None):
         self.glider_3d = glider_3d.copy()
-        self.config = self.DefaultConfig(config)
+        self.config = self.DefaultConf(config)
         self.panels = Layout()
         self.ribs = []
 
@@ -119,6 +119,7 @@ class PlotMaker:
             else:
                 rib_plot = self.RibPlot(rib, self.config)
 
+            print("ribplot: ", rib_plot)
             rib_plot.flatten(self.glider_3d)
 
             for hole in rib.holes:

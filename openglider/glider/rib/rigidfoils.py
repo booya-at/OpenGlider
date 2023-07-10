@@ -24,12 +24,13 @@ class RigidFoilBase(ABC, BaseModel):
     distance: Length | Percentage = Length("5mm")
 
     cap_length: Length = Length("2cm")
+    tension: Percentage = Percentage("97%")
 
     def get_3d(self, rib: Rib) -> euklid.vector.PolyLine3D:
         return euklid.vector.PolyLine3D([rib.align(p, scale=False) for p in self.get_flattened(rib)])
 
     def get_length(self, rib: Rib) -> float:
-        return self.get_flattened(rib).get_length()
+        return self.get_flattened(rib).get_length() * self.tension.si
 
     def get_flattened(self, rib: Rib, glider: Glider=None) -> euklid.vector.PolyLine2D:
         return self._get_flattened(rib, glider).fix_errors()

@@ -210,6 +210,18 @@ class PanelPlot:
 
         self.plotpart = plotpart
         return plotpart
+    
+    def get_endcurves(self) -> tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
+        ik_values = self.panel._get_ik_values(self.cell, self.config.midribs, exact=True)
+        front = euklid.vector.PolyLine2D([
+            line.get(ik[0]) for line, ik in zip(self.inner, ik_values)
+        ])
+        back = euklid.vector.PolyLine2D([
+            line.get(ik[1]) for line, ik in zip(self.inner, ik_values)
+        ])
+
+        return front, back
+
 
     def get_material_usage(self) -> MaterialUsage:
         part = self.flatten()
@@ -306,8 +318,9 @@ class PanelPlot:
         # insert chord-wise controlpoints
         layer = plotpart.layers["L0"]
 
-        for x in self.config.distribution_controlpoints:
+        for x in self.config.get_controlpoints(self.cell.rib1):
             self.insert_mark(self.config.marks_controlpoint, x, layer, False)
+        for x in self.config.get_controlpoints(self.cell.rib2):
             self.insert_mark(self.config.marks_controlpoint, x, layer, True)
         
         # insert horizontal (spanwise) controlpoints

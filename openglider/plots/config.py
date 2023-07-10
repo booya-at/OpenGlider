@@ -1,10 +1,12 @@
 import math
-from typing import Type
+from typing import Any, Callable, Type
 
+from openglider.glider.rib.rib import Rib
+from openglider.plots import cuts, marks
 from openglider.utils.config import Config
 from openglider.utils.distribution import Distribution
-from openglider.plots import marks, cuts
 from openglider.vector.unit import Length
+
 
 class PatternConfigOld(Config):
     patterns_scale = 1000 # mm
@@ -43,7 +45,7 @@ class PatternConfigOld(Config):
 
     marks_strap = marks.Inside(marks.Line(name="strap"))
 
-    distribution_controlpoints = Distribution.from_linear(20, -1, 1)
+    distribution_controlpoints: Distribution | Callable[[Rib], Distribution] = Distribution.from_linear(20, -1, 1)
     marks_controlpoint = marks.Dot(0.2)
 
     marks_panel_cut = marks.Combine(marks.Line(name="panel_cut"), marks.Dot(0.2, 0.8))
@@ -61,6 +63,12 @@ class PatternConfigOld(Config):
     insert_attachment_point_text = True
 
     layout_seperate_panels = True
+
+    def get_controlpoints(self, rib: Rib) -> Distribution:
+        if isinstance(self.distribution_controlpoints, Distribution):
+            return self.distribution_controlpoints
+        
+        return self.distribution_controlpoints(rib)
 
 
 class OtherPatternConfig(PatternConfigOld):
