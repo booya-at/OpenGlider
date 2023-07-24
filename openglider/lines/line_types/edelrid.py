@@ -1,14 +1,25 @@
 from openglider.lines.line_types.linetype import LineType
 
+def A8001(strength: int, diameter: float, weight: float) -> None:
+    LineType(
+        f"edelrid.A-8001-{strength:03d}",
+        diameter,
+        [[10*strength, 0.05]],
+        10*strength,
+        weight,
+        sheated=False,
+        colors=["orange", "blue", "magenta", ]
+        )
 
-LineType("edelrid.A-8001-025", 0.4, [[250, 0.05]], 250, 0.15, False)
-LineType("edelrid.A-8001-050", 0.5, [[500, 0.05]], 500, 0.25, False)
-LineType("edelrid.A-8001-070", 0.7, [[700, 0.05]], 700, 0.4, False)
-LineType("edelrid.A-8001-090", 0.8, [[900, 0.05]], 900, 0.55, False)
-LineType("edelrid.A-8001-130", 1.0, [[1300, 0.05]], 1300, 0.8, False)
-LineType("edelrid.A-8001-135", 1.1, [[1350, 0.05]], 1350, 0.85, False)
-LineType("edelrid.A-8001-190", 1.2, [[1900, 0.05]], 1900, 1.1, False)
-LineType("edelrid.A-8001-230", 1.5, [[2300, 0.05]], 2300, 1.4, False)
-LineType("edelrid.A-8001-280", 1.7, [[2800, 0.05]], 2800, 1.7, False)
-LineType("edelrid.A-8001-340", 1.9, [[3400, 0.05]], 3400, 2.1, False)
-LineType("edelrid.A-8001-470", 2.2, [[4700, 0.05]], 4700, 2.8, False)
+
+A8001(25, 0.4, 0.15)
+A8001(50, 0.5, 0.25)
+A8001(70, 0.7, 0.4)
+A8001(90, 0.8, 0.55)
+A8001(130, 1.0, 0.8)
+A8001(135, 1.1, 0.85)
+A8001(190, 1.2, 1.1)
+A8001(230, 1.5, 1.4)
+A8001(280, 1.7, 1.7)
+A8001(340, 1.9, 2.1)
+A8001(470, 2.2, 2.8)

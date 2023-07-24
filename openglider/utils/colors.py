@@ -15,6 +15,9 @@ class Color:
         for x in (self.r, self.g, self.b):
             yield x
 
+    def rgb(self) -> tuple[int, int, int]:
+        return self.r, self.g, self.b
+
     def hex(self) -> str:
         return f"{self.r:02x}{self.g:02x}{self.b:02x}"
 

@@ -44,6 +44,7 @@ class Hole5DTO(HoleDTO):
         hole = super().get_object()
         hole.vertical_shift = self.vertical_shift
         hole.rotation = self.rotation
+        hole.width = self.width
 
         return hole
     

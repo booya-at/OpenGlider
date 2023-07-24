@@ -744,7 +744,7 @@ class LineSet(object):
         length_table.name = "lines"
 
         line_name_table = self._get_lines_table(lambda line: [line.name], insert_node_names=False)
-        line_type_table = self._get_lines_table(lambda line: [line.type.name], insert_node_names=False)
+        line_type_table = self._get_lines_table(lambda line: [f"{line.type.name} ({line.color})"], insert_node_names=False)
         line_color_table = self._get_lines_table(lambda line: [line.color], insert_node_names=False)
 
         def get_checklength(line: Line, upper_lines: Any) -> List[float]:
@@ -790,7 +790,7 @@ class LineSet(object):
 
 
     def get_table_2(self) -> Table:
-        table = self._get_lines_table(lambda line: [line.name, line.type.name, f"{line.get_stretched_length()*1000:.0f}"])
+        table = self._get_lines_table(lambda line: [line.name, f"{line.type.name} ({line.color})", f"{line.get_stretched_length()*1000:.0f}"])
         table.name = "lines_2"
         return table
 

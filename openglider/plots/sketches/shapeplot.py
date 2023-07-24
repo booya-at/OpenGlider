@@ -235,7 +235,7 @@ class ShapePlot(object):
             cross_right = p1 + diff
 
             cross = self.attachment_point_mark(cross_left, cross_right)
-            part.layers["marks"] += cross
+            part.layers["marks"] += sum(cross.values(), start=[])
 
             if add_text and name:
                 p1 = p1 + euklid.vector.Vector2D([0, 0.02])

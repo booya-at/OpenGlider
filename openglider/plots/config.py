@@ -40,8 +40,10 @@ class PatternConfigOld(Config):
     marks_diagonal_back: marks.Mark = marks.Combine(marks.Inside(marks.Arrow(left=False, name="diagonal_back")), marks.Dot(0.2, 0.8))
     marks_diagonal_center: marks.Mark = marks.Combine(marks.Rotate(marks.Arrow(), -math.pi/2), marks.Dot(0.2, 0.8))
 
-    marks_laser_attachment_point = marks.Dot(0.2, 0.8)
-    marks_attachment_point = marks.OnLine(marks.Rotate(marks.Cross(name="attachment_point"), math.pi / 4))
+    marks_attachment_point: marks.Mark = marks.Combine(
+        marks.OnLine(marks.Rotate(marks.Cross(name="attachment_point"), math.pi / 4)),
+        marks.Dot(0.2, 0.8)
+    )
 
     marks_strap = marks.Inside(marks.Line(name="strap"))
 

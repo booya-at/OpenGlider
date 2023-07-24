@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING, Callable, List, Optional, Set, Tuple, Union
+from typing import TYPE_CHECKING, Callable, Iterator, List, Optional, Set, Tuple, Union
 
 import euklid
 from openglider import logging
@@ -40,6 +40,7 @@ class RigidFoilPlot:
 
     def __init__(self, rigidfoil: RigidFoilBase, ribplot: RibPlot) -> None:
         self.rigidfoil = rigidfoil
+        print(self.rigidfoil.name, self.rigidfoil.distance)
         self.ribplot = ribplot
 
     def add_text(self, plotpart: PlotPart) -> None:
@@ -65,12 +66,21 @@ class RigidFoilPlot:
             (p1+diff, p2+diff)
         )
     
+    def _get_inner_outer(self, glider: Glider) -> tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
+        curve = self.rigidfoil.get_flattened(self.ribplot.rib, glider)
+        inner_curve = curve.offset(-self.ribplot.config.allowance_general).fix_errors()
+        outer_curve = curve.offset(self.ribplot.config.allowance_general).fix_errors()
+
+        return inner_curve, outer_curve
+
+    
     def flatten(self, glider: Glider) -> PlotPart:
         plotpart = PlotPart()
 
-        controlpoints: list[list[euklid.vector.PolyLine2D]] = []
+        controlpoints: list[tuple[float, list[euklid.vector.PolyLine2D]]] = []
         for x in self.ribplot.config.get_controlpoints(self.ribplot.rib):
-            controlpoints.append(self.ribplot.insert_mark(x, self.ribplot.config.marks_controlpoint, laser=True, insert=False))
+            for mark in self.ribplot.insert_mark(x, self.ribplot.config.marks_controlpoint, insert=False):
+                controlpoints.append((x, mark))
 
         curve = self.rigidfoil.get_flattened(self.ribplot.rib, glider)
 
@@ -79,8 +89,7 @@ class RigidFoilPlot:
         self.ribplot.plotpart.layers[self.ribplot.layer_name_laser_dots].append(euklid.vector.PolyLine2D([curve.get(0)]))
         self.ribplot.plotpart.layers[self.ribplot.layer_name_laser_dots].append(euklid.vector.PolyLine2D([curve.get(len(curve)-1)]))
 
-        self.inner_curve = curve.offset(-self.ribplot.config.allowance_general).fix_errors()
-        self.outer_curve = curve.offset(self.ribplot.config.allowance_general).fix_errors()
+        self.inner_curve, self.outer_curve = self._get_inner_outer(glider)
 
         plotpart.layers[self.ribplot.layer_name_marks].append(curve)
 
@@ -95,10 +104,10 @@ class RigidFoilPlot:
         outline += self.outer_curve.reverse()
         outline += euklid.vector.PolyLine2D(list(front_cap[1])).reverse()
 
-        for controlpoint in controlpoints:
+        for x, controlpoint in controlpoints:
             p = controlpoint[0].nodes[0]
-
-            if outline.contains(p):
+            fits_x = self.rigidfoil.start < x and x < self.rigidfoil.end
+            if fits_x or outline.contains(p):
                 plotpart.layers[self.ribplot.layer_name_laser_dots] += controlpoint
                 
         plotpart.layers[self.ribplot.layer_name_outline].append(outline.fix_errors().close())
@@ -172,7 +181,7 @@ class RibPlot:
                     self.insert_drib_mark(diagonal.right)
 
         for cut in panel_cuts:
-            if cut not in (-1, 1):
+            if -0.99 < cut.si and cut.si < 0.99:
                 self.insert_mark(cut, self.config.marks_panel_cut)
 
         self._insert_text(self.rib.name)
@@ -214,35 +223,32 @@ class RibPlot:
     def insert_mark(
         self,
         position: float | Percentage,
-        mark_function: Callable[[euklid.vector.Vector2D, euklid.vector.Vector2D], List[euklid.vector.PolyLine2D]],
-        laser: bool=False,
+        mark_function: Callable[[euklid.vector.Vector2D, euklid.vector.Vector2D], dict[str, list[euklid.vector.PolyLine2D]]],
         insert: bool=True
-        ) -> List[euklid.vector.PolyLine2D]:
+        ) -> list[list[euklid.vector.PolyLine2D]]:
 
-        if mark_function_func := getattr(mark_function, "__func__", None):
-            mark_function = mark_function_func
+        marks = []
+        #if mark_function_func := getattr(mark_function, "__func__", None):
+        #    mark_function = mark_function_func
 
         if mark_function is None:
             return
 
         inner, outer = self._get_inner_outer(position)
 
-        if laser:
-            layer = self.layer_name_laser_dots
-        else:
-            layer = self.layer_name_marks
+        for mark_layer, mark in mark_function(inner, outer).items():
+            if insert:
+                self.plotpart.layers[mark_layer] += mark
 
-        mark = mark_function(inner, outer)
-        if insert:
-            self.plotpart.layers[layer] += mark
-        return mark
+            marks.append(mark)
+        
+        return marks
 
     def insert_controlpoints(self, controlpoints: list[float]=None) -> None:
-        marks = []
         if controlpoints is None:
             controlpoints = list(self.config.get_controlpoints(self.rib))
         for x in controlpoints:
-            marks.append(self.insert_mark(x, self.config.marks_controlpoint, laser=True))
+            marks = self.insert_mark(x, self.config.marks_controlpoint)
         
 
     def get_point(self, x: float | Percentage, y: float=-1.) -> euklid.vector.Vector2D:
@@ -256,25 +262,25 @@ class RibPlot:
             return  # disabled
             self.insert_mark(side.start_x, self.config.marks_diagonal_front)
             self.insert_mark(side.end_x, self.config.marks_diagonal_back)
-            self.insert_mark(side.center, self.config.marks_diagonal_center, laser=True)
         elif side.is_upper:
             self.insert_mark(-side.start_x(self.rib), self.config.marks_diagonal_back)
             self.insert_mark(-side.end_x(self.rib), self.config.marks_diagonal_front)
-            #self.insert_mark(-side.center, self.config.marks_diagonal_center, laser=True)
         else:
             p1 = self.get_point(side.start_x(self.rib), side.height)
             p2 = self.get_point(side.end_x(self.rib), side.height)
             self.plotpart.layers[self.layer_name_marks].append(euklid.vector.PolyLine2D([p1, p2]))
 
     def insert_holes(self) -> List[euklid.vector.PolyLine2D]:
-        holes = []
-        for hole in self.rib.holes:
-            for line in hole.get_curves(self.rib, scale=True):
-                holes.append(line)
-            
-            self.plotpart += hole.get_flattened(self.rib)
+        holes: list[PlotPart] = []
+        for hole in self.rib.holes:            
+            holes.append(hole.get_flattened(self.rib, num=200))
         
-        return holes
+        curves: list[euklid.vector.PolyLine2D] = []
+        for plotpart in holes:
+            self.plotpart += plotpart
+            curves += list(plotpart.layers["cuts"])
+
+        return curves
 
     def draw_outline(self, glider: Glider) -> euklid.vector.PolyLine2D:
         """
@@ -320,7 +326,6 @@ class RibPlot:
 
             for position in positions:
                 self.insert_mark(position, self.config.marks_attachment_point)
-                self.insert_mark(position, self.config.marks_laser_attachment_point, laser=True)
 
     def _insert_text(self, text: str) -> None:
         if self.config.rib_text_in_seam:

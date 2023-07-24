@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Sequence, Tuple, List, Dict, TypeAlias
+from typing import TYPE_CHECKING, Any, Self, Sequence, Tuple, List, Dict, TypeAlias
 import copy
 import re
 import logging
@@ -160,6 +160,45 @@ class LineSet2D(object):
 
     def get_lower_attachment_points(self) -> List[LowerNode2D]:
         return [node for node in self.nodes if isinstance(node, LowerNode2D)]
+    
+    @classmethod
+    def from_lineset(cls, lineset: LineSet) -> Self:
+        lines = []
+        trim_corrections = {}
+        nodes: dict[Node, LowerNode2D | BatchNode2D | UpperNode2D] = {}
+
+        for line in lineset.lines:
+            if line.lower_node not in nodes:
+                pos_2d = euklid.vector.Vector2D()
+                if line.lower_node.node_type == line.lower_node.NODE_TYPE.LOWER:
+                    nodes[line.lower_node] = LowerNode2D(pos_2d, line.lower_node.position, name=line.lower_node.name)
+                elif line.lower_node.node_type == line.lower_node.NODE_TYPE.KNOT:
+                    nodes[line.lower_node] = BatchNode2D(pos_2d)
+                else:
+                    raise ValueError()
+                
+            if line.upper_node not in nodes:
+                pos_2d = euklid.vector.Vector2D()
+                if line.upper_node.node_type == line.upper_node.NODE_TYPE.UPPER:
+                    nodes[line.upper_node] = UpperNode2D(line.upper_node.name)
+                elif line.upper_node.node_type == line.upper_node.NODE_TYPE.KNOT:
+                    nodes[line.upper_node] = BatchNode2D(pos_2d)
+                else:
+                    raise ValueError()
+                
+            lines.append(Line2D(
+                nodes[line.lower_node],  # type: ignore
+                nodes[line.upper_node],  # type: ignore
+                target_length=line.init_length,
+                line_type=str(line.type),
+                name=line.name
+            ))
+
+            if line.trim_correction:
+                trim_corrections[line.name] = line.trim_correction
+
+        return cls(lines, trim_corrections)
+
 
     def return_lineset(self, glider: Glider, v_inf: euklid.vector.Vector3D) -> LineSet:
         lines: List[Line] = []
@@ -181,7 +220,7 @@ class LineSet2D(object):
             if lower and upper:
                 line_3d = Line(number=line_no, lower_node=lower, upper_node=upper,
                             v_inf=v_inf, target_length=line.target_length,
-                            line_type=line.line_type, name=line.name, trim_correction=offset)
+                            line_type=line.line_type, name=line.name, trim_correction=offset, color=line.color or "")
                 lines.append(line_3d)
 
         lineset = LineSet(lines, v_inf)
@@ -336,7 +375,10 @@ class LineSet2D(object):
         table = Table()
 
         def insert_block(line: Line2D, upper: List[Tuple[Line2D, List[Any]]], row: int, column: int) -> int:
-            table[row, column+1] = line.line_type.name
+            line_name = line.line_type.name
+            if line.color is not None:
+                line_name += "#{line.color}"
+            table[row, column+1] = line_name
             if upper:
                 target_length = line.target_length or 0.
                 table[row, column] = round(target_length, 3)
@@ -411,9 +453,16 @@ class LineSet2D(object):
                     
                     if lower_node is None:
                         raise ValueError(f"no lower node: {row} / {column}")
+                    
+                    line_type_name_parts = line_type_name.split("#")
+                    if len(line_type_name_parts) == 2:
+                        line_type_name = line_type_name_parts[0]
+                        color = line_type_name_parts[1]
+                    else:
+                        color = None
 
                     linelist.append(
-                        Line2D(lower_node, upper, target_length=line_length, line_type=line_type_name))
+                        Line2D(lower_node, upper, target_length=line_length, line_type=line_type_name, color=color))
                         
             else:
                 if column == 0:
@@ -451,7 +500,7 @@ class LineSet2D(object):
 class Line2D(object):
     target_length: float | None
     def __init__(self, lower_node: BatchNode2D | LowerNode2D, upper_node: BatchNode2D | UpperNode2D, 
-                 target_length: float=None, line_type: str='default', layer: str="", name: str=""):
+                 target_length: float=None, line_type: str='default', layer: str="", name: str="", color: str | None=None):
         self.lower_node = lower_node
         self.upper_node = upper_node
         self.target_length = target_length
@@ -459,6 +508,7 @@ class Line2D(object):
         self.line_type = line_types.LineType.get(line_type)
         self.layer = layer
         self.name = name
+        self.color = color
 
 
     def __json__(self) -> Dict[str, Any]:

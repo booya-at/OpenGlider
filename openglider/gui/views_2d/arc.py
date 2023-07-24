@@ -53,7 +53,7 @@ class Arc2D(QtWidgets.QGraphicsObject):
         return points_left.reverse() + points
 
     def paint(self, p: QtGui.QPainter, *args: Any) -> None:
-        color = QtGui.QColor(*self.color, self.alpha)
+        color = QtGui.QColor(*self.color.rgb(), self.alpha)
         pen = QtGui.QPen(QtGui.QBrush(color), 1)
         pen.setCosmetic(True)
         p.setPen(pen)

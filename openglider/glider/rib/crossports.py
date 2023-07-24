@@ -57,7 +57,7 @@ class RibHoleBase(BaseModel):
         hole = self.get_curves(rib, num=num)
         return [rib.align_all(c) for c in hole]
 
-    def get_flattened(self, rib: Rib, num: int=80) -> PlotPart:        
+    def get_flattened(self, rib: Rib, num: int=80) -> PlotPart:
         curves = [l.scale(rib.chord) for l in self.get_curves(rib, num)]
         
         return PlotPart(cuts=curves)
@@ -128,8 +128,7 @@ class PolygonHole(RibHoleBase):
         
         return centers
 
-    def _get_curves(self, rib: Rib, num: int=80) -> List[euklid.vector.PolyLine2D]:
-
+    def _get_curves(self, rib: Rib, num: int=160) -> List[euklid.vector.PolyLine2D]:
         segments = []
 
         def get_point(index: int) -> euklid.vector.Vector2D:

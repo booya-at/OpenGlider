@@ -113,6 +113,12 @@ class PlotMaker:
         weight = MaterialUsage()
         self.ribs = []
         for rib_no, rib in enumerate(self.glider_3d.ribs):
+            if rib_no == 0 and self.glider_3d.has_center_cell:
+                continue
+
+            if rib.profile_2d.thickness < 1e-5:
+                continue
+            
             rib_plot: SingleSkinRibPlot | RibPlot
             if isinstance(rib, SingleSkinRib):
                 rib_plot = self.SingleSkinRibPlot(rib, self.config)

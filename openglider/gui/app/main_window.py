@@ -17,6 +17,8 @@ from openglider.gui.views.tasks import QTaskQueue
 from openglider.gui.views.window import GliderWindow
 from openglider.gui.widgets.icon import Icon
 
+from openglider.gui.views.help import HelpView
+
 if TYPE_CHECKING:
     from openglider.gui.app.app import GliderApp
 #from openglider.gui.views.window import Window
@@ -136,6 +138,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.task_queue = QTaskQueue(self, self.app.task_queue)
         self.top_panel.addTab(self.task_queue, "Tasks")
+
+        self.help = HelpView()
+        self.top_panel.addTab(self.help, "Help")
 
         self.console = ConsoleWidget(self)
         self.bottom_panel.layout().addWidget(self.console, 75)

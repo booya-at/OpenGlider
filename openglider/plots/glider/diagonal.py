@@ -104,7 +104,9 @@ class DribPlot(object):
             ik = inner.walk(0, inner.get_length()/2)
             p1 = inner.get(ik)
             p2 = outer.get(ik)
-            plotpart.layers["marks"] += self.config.marks_diagonal_center(p1, p2)
+
+            for layer_name, marks in self.config.marks_diagonal_center(p1, p2).items():
+                plotpart.layers[layer_name] += marks
 
         # put center marks only on lower sides of diagonal ribs, always on straight ones
         if self.drib.left.is_lower or self.drib.is_upper:
@@ -124,15 +126,16 @@ class DribPlot(object):
             for x in self.config.get_controlpoints(rib):
                 try:
                     p1, p2 = self.get_p1_p2(x, side)
-                    plotpart.layers["L0"] += self.config.marks_controlpoint(p1, p2)
+                    for layer_name, marks in self.config.marks_controlpoint(p1, p2).items():
+                        plotpart.layers[layer_name] += marks
                 except ValueError:
                     continue
 
     def _insert_attachment_points(self, plotpart: PlotPart) -> None:
         def _add_mark(name: str, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> None:
-            plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
+            for layer_name, marks in self.config.marks_attachment_point(p1, p2).items():
+                plotpart.layers[layer_name] += marks
             plotpart.layers["marks"] += Text(name, p1 + (p1 - p2), p1).get_vectors()
-            plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
 
         for attachment_point in self.cell.rib1.attachment_points:
             try:
@@ -168,6 +171,7 @@ class DribPlot(object):
         plotpart = PlotPart(material_code=self.drib.material_code, name=self.drib.name)
 
         if num_folds > 0:
+            print("a", num_folds, self.drib.num_folds)
             alw2 = self.config.drib_allowance_folds
             cut_front = self.config.cut_diagonal_fold(amount=alw2, num_folds=num_folds)
             cut_back = self.config.cut_diagonal_fold(amount=-alw2, num_folds=num_folds)
@@ -182,6 +186,7 @@ class DribPlot(object):
             ]
 
         else:
+            print("b", num_folds, self.drib.num_folds)
             #p1 = self.left_out.cut(self.left.get(0), self.right.get(0), 0)[0]
             #p2 = self.left_out.cut(self.left.get(len(self.left)-1), self.right.get(len(self.right)-1), len(self.left_out))[0]
             #p3 = self.right_out.cut(self.left.get(0), self.right.get(0), 0)[0]
@@ -242,4 +247,4 @@ class DribPlot(object):
 
 class StrapPlot(DribPlot):
     def flatten(self) -> PlotPart:
-        return self._flatten(self.config.strap_num_folds)
+        return self._flatten(self.drib.num_folds)

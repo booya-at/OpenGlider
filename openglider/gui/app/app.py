@@ -6,7 +6,6 @@ import importlib
 import io
 import logging
 import os
-import pkgutil
 import sys
 import time
 import traceback
@@ -61,26 +60,9 @@ class GliderApp(QtWidgets.QApplication):
         import openglider.gui.app.main_window
         import openglider.gui.app.state
         import openglider.utils.tasks
+        from openglider.utils.plugin import setup_plugins
 
-        installed_packages = pkgutil.iter_modules()
-
-        plugins = []
-
-        for p in installed_packages:
-            if p.name.startswith("openglider") and p.name != "openglider":
-                print(f"using plugin: {p.name}")
-                try:
-                    module = importlib.import_module(p.name)
-                    init = getattr(module, "init", None)
-                    if init is not None:
-                        init(self)
-                    else:
-                        logger.warning(f"no init function in plugin: {p.name}")
-                    
-                    plugins.append(p.name)
-                except Exception as e:
-                    raise e
-                    logger.error(str(e))
+        plugins = setup_plugins(self)
 
         self.state = openglider.gui.app.state.ApplicationState.load()
         self.task_queue = openglider.utils.tasks.TaskQueue(self.execute)

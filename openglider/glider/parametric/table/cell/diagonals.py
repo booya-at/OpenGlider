@@ -40,6 +40,17 @@ class StrapDTO(DTO):
     def get_object(self) -> TensionStrap:
         return TensionStrap(self.position.first, self.position.second, self.width)
     
+class Strap3DTO(StrapDTO):
+    num_folds: int
+
+    def get_object(self) -> TensionStrap:
+        result = super().get_object()
+        result.num_folds = self.num_folds
+
+        print(result)
+
+        return result
+    
 class TensionLineDTO(DTO):
     position: CellTuple[Percentage]
 
@@ -67,5 +78,6 @@ class DiagonalTable(CellTable):
 class StrapTable(CellTable):
     dtos = {
         "STRAP": StrapDTO,
+        "STRAP3": Strap3DTO,
         "VEKTLAENGE": TensionLineDTO
     }

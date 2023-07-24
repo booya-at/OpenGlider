@@ -131,8 +131,9 @@ class LayoutGraphics(QtWidgets.QGraphicsObject):
     points: Dict[str, List[QtCore.QPointF]]
     lines: Dict[str, List[Tuple[QtCore.QPointF, QtCore.QPointF]]]
     polygons: Dict[str, List[List[QtCore.QPointF]]]
+    shown_layers: list[str] | None = None
 
-    bounding_box: QtCore.QRectF = None
+    bounding_box: QtCore.QRectF | None = None
 
     def __init__(self, layout: Layout, fill: bool=False, color: Optional[Color]=None):
         super().__init__()
@@ -144,7 +145,7 @@ class LayoutGraphics(QtWidgets.QGraphicsObject):
         #pyqtgraph.GraphicsScene.registerObject(self)
         self.update()
 
-    def update(self) -> None:
+    def update(self) -> None:  # type: ignore
         self.points = {}
         self.lines = {}
         self.polygons = {}
@@ -174,6 +175,9 @@ class LayoutGraphics(QtWidgets.QGraphicsObject):
                     fill_color = normalize_color_code(fill_color_str[0])
 
             for layer_name, layer in part.layers.items():
+                if self.shown_layers is not None and layer_name not in self.shown_layers:
+                    continue
+
                 layer_config = self.layout.layer_config.get(layer_name, default_config)
                 if not layer_config.get("visible", True):
                     continue

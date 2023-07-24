@@ -73,7 +73,9 @@ class Config:
         for key, value in self.__dict__.items():
             if key != "get":
                 yield key, value
-        #return self.__dict__.__iter__()
+        for key, value in self.__class__.__dict__.items():
+            if not key.startswith("_"):
+                yield key, value
 
     def __getitem__(self, item: str) -> Any:
         return self.__getattribute__(item)

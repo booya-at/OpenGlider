@@ -257,9 +257,9 @@ class PanelPlot:
 
     def insert_mark(
         self,
-        mark: Callable[[euklid.vector.Vector2D, euklid.vector.Vector2D], List[euklid.vector.PolyLine2D]],
+        mark: Callable[[euklid.vector.Vector2D, euklid.vector.Vector2D], dict[str, list[euklid.vector.PolyLine2D]]],
         x: float | Percentage,
-        layer: Layer,
+        plotpart: PlotPart,
         is_right: bool
         ) -> None:
         if mark is None:
@@ -277,7 +277,8 @@ class PanelPlot:
             p1 = self.ballooned[is_right].get(ik)
             p2 = self.outer_orig[is_right].get(ik)
 
-            layer += mark(p1, p2)
+            for layer_name, mark_lines in mark(p1, p2).items():
+                plotpart.layers[layer_name] += mark_lines
 
     def _align_upright(self, plotpart: PlotPart) -> PlotPart:
         ik_front = self.front_curve.walk(0, self.front_curve.get_length()/2)
@@ -316,12 +317,10 @@ class PanelPlot:
 
     def _insert_controlpoints(self, plotpart: PlotPart) -> None:
         # insert chord-wise controlpoints
-        layer = plotpart.layers["L0"]
-
         for x in self.config.get_controlpoints(self.cell.rib1):
-            self.insert_mark(self.config.marks_controlpoint, x, layer, False)
+            self.insert_mark(self.config.marks_controlpoint, x, plotpart, False)
         for x in self.config.get_controlpoints(self.cell.rib2):
-            self.insert_mark(self.config.marks_controlpoint, x, layer, True)
+            self.insert_mark(self.config.marks_controlpoint, x, plotpart, True)
         
         # insert horizontal (spanwise) controlpoints
         x_dots = 2
@@ -342,7 +341,8 @@ class PanelPlot:
             for inner, outer in (front, back):
                 p1 = inner.get(inner.walk(0, inner.get_length() * x))
                 p2 = outer.get(outer.walk(0, outer.get_length() * x))
-                plotpart.layers["L0"] += self.config.marks_controlpoint(p1, p2)
+                for layer_name, mark in self.config.marks_controlpoint(p1, p2).items():
+                    plotpart.layers[layer_name] += mark
 
 
     def _insert_diagonals(self, plotpart: PlotPart) -> None:
@@ -358,26 +358,26 @@ class PanelPlot:
                 if is_upper:
                     factor = -1
 
-                self.insert_mark(self.config.marks_diagonal_center, factor * strap.left.center, layer, False)
-                self.insert_mark(self.config.marks_diagonal_center, factor * strap.right.center, layer, True)
+                self.insert_mark(self.config.marks_diagonal_center, factor * strap.left.center, plotpart, False)
+                self.insert_mark(self.config.marks_diagonal_center, factor * strap.right.center, plotpart, True)
 
                 # more than 25cm? -> add start / end marks too
                 if strap.left.get_curve(self.cell.rib1).get_length() > 0.25:
-                    self.insert_mark(self.config.marks_diagonal_front, factor * strap.left.start_x(self.cell.rib1), layer, False)
-                    self.insert_mark(self.config.marks_diagonal_back, factor * strap.left.end_x(self.cell.rib1), layer, False)
+                    self.insert_mark(self.config.marks_diagonal_front, factor * strap.left.start_x(self.cell.rib1), plotpart, False)
+                    self.insert_mark(self.config.marks_diagonal_back, factor * strap.left.end_x(self.cell.rib1), plotpart, False)
 
                 if strap.right.get_curve(self.cell.rib1).get_length() > 0.25:
-                    self.insert_mark(self.config.marks_diagonal_back, factor * strap.right.start_x(self.cell.rib2), layer, True)
-                    self.insert_mark(self.config.marks_diagonal_front, factor * strap.right.end_x(self.cell.rib2), layer, True)
+                    self.insert_mark(self.config.marks_diagonal_back, factor * strap.right.start_x(self.cell.rib2), plotpart, True)
+                    self.insert_mark(self.config.marks_diagonal_front, factor * strap.right.end_x(self.cell.rib2), plotpart, True)
 
             else:
                 if strap.left.is_lower:
-                    self.insert_mark(self.config.marks_diagonal_center, strap.left.center, layer, False)
+                    self.insert_mark(self.config.marks_diagonal_center, strap.left.center, plotpart, False)
                 
                 if strap.right.is_lower:
-                    self.insert_mark(self.config.marks_diagonal_center, strap.right.center, layer, True)
+                    self.insert_mark(self.config.marks_diagonal_center, strap.right.center, plotpart, True)
 
-    def _insert_attachment_points(self, plotpart: PlotPart) -> None:
+    def _insert_attachment_points(self, plotpart: PlotPart, insert_left: bool=True, insert_right: bool=True) -> None:
         def insert_side_mark(name: str, positions: List[float], is_right: bool) -> None:
             try:
                 p1, p2 = self.get_p1_p2(positions[0], is_right)
@@ -392,22 +392,26 @@ class PanelPlot:
 
                 text_align = "left" if is_right else "right"
                 plotpart.layers["text"] += Text(name, start, end, size=0.01, align=text_align, valign=0, height=0.8).get_vectors()  # type: ignore
+                
+                for layer_name, mark in self.config.marks_attachment_point(p1, p2).items():
+                    plotpart.layers[layer_name] += mark
             except  ValueError:
                 pass
 
             for position in positions:
-                self.insert_mark(self.config.marks_attachment_point, position, plotpart.layers["marks"], is_right)
-                self.insert_mark(self.config.marks_laser_attachment_point, position, plotpart.layers["L0"], is_right)
+                self.insert_mark(self.config.marks_attachment_point, position, plotpart, is_right)
 
-        for attachment_point in self.cell.rib1.attachment_points:
-            # left side
-            positions = attachment_point.get_x_values(self.cell.rib1)
-            insert_side_mark(attachment_point.name, positions, False)
+        if insert_left:
+            for attachment_point in self.cell.rib1.attachment_points:
+                # left side
+                positions = attachment_point.get_x_values(self.cell.rib1)
+                insert_side_mark(attachment_point.name, positions, False)
 
-        for attachment_point in self.cell.rib2.attachment_points:
-            # left side
-            positions = attachment_point.get_x_values(self.cell.rib2)
-            insert_side_mark(attachment_point.name, positions, True)
+        if insert_right:
+            for attachment_point in self.cell.rib2.attachment_points:
+                # left side
+                positions = attachment_point.get_x_values(self.cell.rib2)
+                insert_side_mark(attachment_point.name, positions, True)
         
         for cell_attachment_point in self.cell.attachment_points:
 
@@ -436,11 +440,11 @@ class PanelPlot:
                         
                     if cell_pos in (1, 0):
                         x1, x2 = self.get_p1_p2(rib_pos, bool(cell_pos))
-                        plotpart.layers["marks"] += self.config.marks_attachment_point(x1, x2)
-                        plotpart.layers["L0"] += self.config.marks_laser_attachment_point(x1, x2)
+                        for layer_name, mark in self.config.marks_attachment_point(x1, x2).items():
+                            plotpart.layers[layer_name] += mark
                     else:
-                        plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
-                        plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
+                        for layer_name, mark in self.config.marks_attachment_point(p1, p2).items():
+                            plotpart.layers[layer_name] += mark
                     
                     if self.config.insert_attachment_point_text and rib_pos_no == 0:
                         text_align = "left" if cell_pos > 0.7 else "right"
@@ -559,7 +563,7 @@ class CellPlotMaker:
             panels = self.cell.panels
 
         for panel in panels:
-            plot = self.PanelPlot(panel, self.cell, self.flattened_cell, self.config)
+            plot = self.PanelPlot(panel, self.cell, self.flattened_cell, config=self.config)
             dwg = plot.flatten()
             cell_panels.append(dwg)
             self.consumption += plot.get_material_usage()
