@@ -7,7 +7,7 @@ class Signals(QtCore.QObject):
     error = QtCore.Signal(tuple)
 
 class Thread(QtCore.QRunnable):
-    name = None
+    name: str | None = None
     
     def __init__(self, signals: Signals | None=None) -> None:
         if signals is None:

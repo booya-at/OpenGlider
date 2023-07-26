@@ -15,8 +15,9 @@ class LineForceView(Wizard):
         super().__init__(app, project)
 
         self.line_force_table = QTable()
-        self.setLayout(QtWidgets.QGridLayout())
-        self.layout().addWidget(self.line_force_table, 0, 0)
+        layout = QtWidgets.QGridLayout()
+        self.setLayout(layout)
+        layout.addWidget(self.line_force_table, 0, 0)
 
         self.project.glider_3d.lineset.iterate_target_length()
 
@@ -25,3 +26,4 @@ class LineForceView(Wizard):
         line_table.append_right(self.project.glider_3d.lineset.get_force_table())
         
         self.line_force_table.push_table(line_table)
+

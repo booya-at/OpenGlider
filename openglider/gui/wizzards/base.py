@@ -11,11 +11,13 @@ from openglider.gui.views.window import GliderWindow
 from openglider.glider.project import GliderProject
 from openglider.utils.colors import Color, colorwheel
 
+
 if TYPE_CHECKING:
     from openglider.gui.app import GliderApp
+    from openglider.gui.app.main_window import MainWindow
 
 class Wizard(GliderWindow):
-    def __init__(self, app: GliderApp, project: GliderProject):
+    def __init__(self, app: MainWindow, project: GliderProject):
         super().__init__(app, project)
 
         self.logger = logging.getLogger("{}.{}".format(self.__class__.__module__, self.__class__.__name__))
@@ -104,7 +106,8 @@ class SelectionWizard(Wizard):
 
 
         self.right_widget = QtWidgets.QWidget()
-        self.right_widget.setLayout(QtWidgets.QVBoxLayout())
+        self.right_widget_layout = QtWidgets.QHBoxLayout()
+        self.right_widget.setLayout(self.right_widget_layout)
 
         self.selection = QtWidgets.QWidget()
         self.selection.setLayout(QtWidgets.QVBoxLayout())

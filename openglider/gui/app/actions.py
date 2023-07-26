@@ -1,21 +1,24 @@
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Type
 import logging
 
 from openglider.gui.qt import QtWidgets
 
+from openglider.gui.wizzards.base import Wizard
+from openglider.gui.wizzards.input import input_wizzards
 from openglider.gui.wizzards.line_forces import LineForceView
 
 logger = logging.getLogger(__name__)
 __all__ = ["menu_actions"]
 
-menu_actions: Dict[str, List[Tuple[object, QtWidgets.QWidget]]] = {
+menu_actions: Dict[str, List[Tuple[Type[Wizard], str]]] = {
     "view": [
         (LineForceView, "Leinen")
-    ]
+    ],
+    "edit": input_wizzards
 }
 
 
-def add_actions(actions: Dict[str, List[Tuple[object, QtWidgets.QWidget]]]) -> None:
+def add_actions(actions: Dict[str, List[Tuple[Type[Wizard], str]]]) -> None:
     for group_name, group_actions in actions.items():
         menu_actions.setdefault(group_name, [])
         menu_actions[group_name] += group_actions
