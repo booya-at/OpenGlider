@@ -1,22 +1,22 @@
 from __future__ import annotations
 
 import logging
-from typing import Generic, Type, TypeVar
+from typing import Any, Generic, Type, TypeVar
 
 from openglider.gui.state.selection_list.list import SelectionList, SelectionListItemT
 from openglider.gui.qt import QtCore, QtWidgets
 
-from .item import ListWidgetItem, ItemType
+from .item import ListWidgetItem, ItemType, ListItemWidget
 
 logger = logging.getLogger(__name__)
 
-WidgetTypeT = TypeVar("WidgetTypeT", bound=ListWidgetItem)
+WidgetTypeT = TypeVar("WidgetTypeT", bound=ListItemWidget)
 
 
 class GenericListWidget(Generic[ItemType, WidgetTypeT], QtWidgets.QListWidget):
-    WidgetType: Type[WidgetTypeT]
+    WidgetType: Type[ListWidgetItem[ItemType, WidgetTypeT]]
     changed = QtCore.Signal()
-    _change_handler = None
+    _has_change_handler = False
 
     def __init__(self, parent: QtWidgets.QWidget, selection_list: SelectionList[ItemType, SelectionListItemT]):
         super().__init__(parent=parent)
@@ -24,10 +24,9 @@ class GenericListWidget(Generic[ItemType, WidgetTypeT], QtWidgets.QListWidget):
 
         self.render()
     
-    def render(self) -> None:
-        if self._change_handler:
+    def render(self, *args: Any, **kwargs: Any) -> None:
+        if self._has_change_handler:
             self.currentItemChanged.disconnect(self._changed)
-            self._change_handler = None
         
         self.clear()
 
@@ -38,10 +37,11 @@ class GenericListWidget(Generic[ItemType, WidgetTypeT], QtWidgets.QListWidget):
                 focus = False
 
             self.add(element, focus=focus)
+        
+        self.currentItemChanged.connect(self._changed)
+        self._has_change_handler = True
 
-        self._change_handler = self.currentItemChanged.connect(self._changed)
-
-    def add(self, element: SelectionListItemT, focus: bool=True) -> WidgetTypeT:  # type: ignore
+    def add(self, element: SelectionListItemT, focus: bool=True) -> ListWidgetItem[ItemType, WidgetTypeT]:  # type: ignore
         list_item = self.WidgetType(self, element)
         widget = list_item.widget
         widget.changed.connect(self._changed)
@@ -54,12 +54,12 @@ class GenericListWidget(Generic[ItemType, WidgetTypeT], QtWidgets.QListWidget):
         
         return list_item
 
-    def _changed(self, current: WidgetTypeT | None=None, next_value: WidgetTypeT | None=None) -> None:
+    def _changed(self, current: ListWidgetItem | None=None, next_value: WidgetTypeT | None=None) -> None:
         if current is not None:
             self.selection_list.selected_element = current.item.name
 
         self.changed.emit()
 
 
-class ListWidget(Generic[ItemType], GenericListWidget[ItemType, ListWidgetItem]):
+class ListWidget(Generic[ItemType], GenericListWidget[ItemType, ListItemWidget]):
     WidgetType = ListWidgetItem

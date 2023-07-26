@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import logging
-from typing import Any, Callable, List, Tuple
+from typing import TYPE_CHECKING, Any, Callable, List, Tuple
 
 import euklid
 from openglider.glider.parametric.shape import ParametricShape
@@ -13,6 +15,8 @@ from openglider.gui.wizzards.base import GliderSelectionWizard
 from openglider.plots.sketches.shapeplot import ShapePlot, ShapePlotConfig
 from openglider.utils.colors import Color
 
+if TYPE_CHECKING:
+    from openglider.gui.app.main_window import MainWindow
 
 logger = logging.getLogger(__name__)
 # TODO: Show & change data: Area, Aspect ratio, Span, Tip Chord, Tip center
@@ -203,7 +207,7 @@ class ShapeSettings(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
 
-        self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
 
         self.input_area = NumberInput(self, "Area", default=shape.area, places=2)
         self.input_aspect_ratio = NumberInput(self, "Aspect Ratio", default=shape.aspect_ratio, places=2)
@@ -237,7 +241,7 @@ class ShapeSettings(QtWidgets.QWidget):
 
 
 class ShapeWizard(GliderSelectionWizard):
-    def __init__(self, app: GliderApp, project: GliderProject):
+    def __init__(self, app: MainWindow, project: GliderProject):
         super().__init__(app=app, project=project)
         self.shape_backup = self.shape.copy()
         self.shape_input = ShapeInput(self.project)

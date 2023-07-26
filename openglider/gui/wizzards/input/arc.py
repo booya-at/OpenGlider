@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Tuple
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Dict, List, Tuple
 from openglider.gui.app.app import GliderApp
 from openglider.gui.qt import QtWidgets, QtGui, QtCore
 from openglider.utils.colors import Color
@@ -10,6 +12,8 @@ from openglider.gui.views_2d import Canvas, DraggableLine
 from openglider.gui.wizzards.base import GliderSelectionWizard
 from openglider.gui.views_2d.arc import Arc2D
 
+if TYPE_CHECKING:
+    from openglider.gui.app.main_window import MainWindow
 
 class ArcInput(Canvas):
     arcs: List[Arc2D]
@@ -120,7 +124,7 @@ class ArcInput(Canvas):
 
 
 class ArcWidget(GliderSelectionWizard):
-    def __init__(self, app: GliderApp, project: GliderProject):
+    def __init__(self, app: MainWindow, project: GliderProject):
         super().__init__(app=app, project=project)
         self.arc_input = ArcInput(self.project)
 

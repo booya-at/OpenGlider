@@ -11,7 +11,7 @@ class Slider(QtWidgets.QWidget):
         self.slider_max = max_value
 
         if vertical:
-            layout = QtWidgets.QVBoxLayout()
+            layout: QtWidgets.QVBoxLayout | QtWidgets.QHBoxLayout = QtWidgets.QVBoxLayout()
         else:
             layout = QtWidgets.QHBoxLayout()
         self.setLayout(layout)
@@ -20,10 +20,11 @@ class Slider(QtWidgets.QWidget):
         layout.addWidget(label)
 
         self.slider = QtWidgets.QSlider(parent=self)
-        self.slider.setTickPosition(self.slider.TicksBelow)
+        self.slider.setTickPosition(self.slider.TickPosition.TicksBelow)
         self.slider.setTickInterval(1)
-        self.slider.setObjectName(name)
-        self.slider.setOrientation(QtCore.Qt.Horizontal)
+        if name is not None:
+            self.slider.setObjectName(name)
+        self.slider.setOrientation(QtCore.Qt.Orientation.Horizontal)
 
         layout.addWidget(self.slider)
 

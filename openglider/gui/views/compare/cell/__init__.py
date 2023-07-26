@@ -28,7 +28,7 @@ class CellView(CompareView):
 
         self.settings_widget = CellCompareSettings(self)
         self.layout().addWidget(self.settings_widget)
-        self.settings_widget.changed.connect(self.update)
+        self.settings_widget.changed.connect(self.update_view)
         self.plot = Canvas()
         self.plot.locked_aspect_ratio = True
         self.plot.grid = self.grid

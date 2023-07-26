@@ -3,6 +3,7 @@ from __future__ import annotations
 import inspect
 import json
 import html
+from pathlib import Path
 from typing import Any, Dict, Iterator, Optional, Tuple
 
 from pydantic import parse_obj_as
@@ -133,7 +134,7 @@ class ConfigNew(BaseModel):
             openglider.jsonify.dump(self, jsonfile)
 
     @classmethod
-    def read(cls, filename: str) -> ConfigNew:
+    def read(cls, filename: str | Path) -> ConfigNew:
         with open(filename, "r") as jsonfile:
             data = json.load(jsonfile)
 

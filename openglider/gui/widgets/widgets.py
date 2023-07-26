@@ -12,10 +12,11 @@ class WindowSwitcher(QtWidgets.QWidget):
         self.target_widget_layout = QtWidgets.QStackedLayout()
         self.target_widget.setLayout(self.target_widget_layout)
 
-        self.setLayout(QtWidgets.QVBoxLayout())
+        layout = QtWidgets.QVBoxLayout()
+        self.setLayout(layout)
         self.selector = QtWidgets.QComboBox()
-        self.selector.activated[str].connect(self.show_widget)
-        self.layout().addWidget(self.selector)
+        self.selector.activated.connect(self.show_widget, str)
+        layout.addWidget(self.selector)
 
         self.widgets = {}
 
@@ -41,16 +42,17 @@ class InputLabel(QtWidgets.QWidget):
 
     def __init__(self) -> None:
         super().__init__()
-        self.setLayout(QtWidgets.QStackedLayout())
+        self._layout = QtWidgets.QStackedLayout()
+        self.setLayout(self._layout)
 
         self.label = QtWidgets.QLabel()
         self.input = QtWidgets.QLineEdit()
 
         self.input.returnPressed.connect(self.apply)
 
-        self.layout().addWidget(self.label)
-        self.layout().addWidget(self.input)
-        self.layout().setCurrentWidget(self.label)
+        self._layout.addWidget(self.label)
+        self._layout.addWidget(self.input)
+        self._layout.setCurrentWidget(self.label)
 
         self._text = ""
         self._active = False
@@ -58,7 +60,7 @@ class InputLabel(QtWidgets.QWidget):
 
     def apply(self) -> None:
         self._active = False
-        self.layout().setCurrentWidget(self.label)
+        self._layout.setCurrentWidget(self.label)
         if self.input.isModified():
             print("jo, new")
             self.text = self.input.text()
@@ -71,7 +73,7 @@ class InputLabel(QtWidgets.QWidget):
         
         self._active = True
 
-        self.layout().setCurrentWidget(self.input)
+        self._layout.setCurrentWidget(self.input)
 
     @property
     def text(self) -> str:

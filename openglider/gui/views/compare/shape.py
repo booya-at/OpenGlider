@@ -114,7 +114,7 @@ class ShapeView(CompareView):
         self.config = ShapeConfigWidget()
         self.layout().addWidget(self.config)
 
-        self.config.changed.connect(self.update)
+        self.config.changed.connect(self.update_view)
 
         self.plots = Canvas()
         self.plots = pyqtgraph.GraphicsLayoutWidget()

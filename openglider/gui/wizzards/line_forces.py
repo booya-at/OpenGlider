@@ -7,11 +7,11 @@ from openglider.gui.wizzards.base import Wizard
 from openglider.gui.widgets import QTable
 
 if TYPE_CHECKING:
-    from openglider.gui.app.app import GliderApp
+    from openglider.gui.app.main_window import MainWindow
 
 
 class LineForceView(Wizard):
-    def __init__(self, app: GliderApp, project: GliderProject):
+    def __init__(self, app: MainWindow, project: GliderProject):
         super().__init__(app, project)
 
         self.line_force_table = QTable()

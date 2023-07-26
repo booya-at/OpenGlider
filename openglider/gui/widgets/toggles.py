@@ -5,6 +5,7 @@ from openglider.utils.config import Config
 
 class ToggleGroup(QtWidgets.QWidget):
     config: Config
+    changed = QtCore.Signal()
     
     def __init__(self, options: Any, horizontal: bool=True) -> None:
         super().__init__()

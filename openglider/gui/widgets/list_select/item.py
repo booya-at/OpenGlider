@@ -1,6 +1,6 @@
 from __future__ import annotations
 import logging
-from typing import TypeVar, Generic, TYPE_CHECKING
+from typing import Any, TypeVar, Generic, TYPE_CHECKING
 
 from openglider.gui.state.selection_list.list import SelectionListItem, ItemType
 from openglider.gui.widgets import InputLabel
@@ -16,10 +16,10 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class ListWidgetItemWidget(QtWidgets.QWidget, Generic[ItemType]):
+class ListItemWidget(QtWidgets.QWidget, Generic[ItemType]):
     changed = QtCore.Signal()
 
-    def __init__(self, parent: ListWidget[ItemType], list_item: SelectionListItem[ItemType]):
+    def __init__(self, parent: GenericListWidget[ItemType, Any], list_item: SelectionListItem[ItemType]):
         super().__init__(parent)
         self.list = parent
         self.list_item = list_item
@@ -88,22 +88,22 @@ class ListWidgetItemWidget(QtWidgets.QWidget, Generic[ItemType]):
     def choose_color(self) -> None:
         chooser = QtWidgets.QColorDialog()
         color = chooser.getColor().getRgb()
-        self.list_item.color = Color(*color[:3])
+        self.list_item.color = Color(*color[:3])  # type: ignore
 
         self.update()
         self.update_active_icon()
         self.changed.emit()
 
-    def update(self) -> None:
+    def update(self, *args: Any, **kwargs: Any) -> None:
         self.button_color.setStyleSheet(f"background-color: #{self.list_item.color.hex()};")
 
-ListItemWidgetT = TypeVar("ListItemWidgetT", bound=ListWidgetItemWidget)
+ListItemWidgetT = TypeVar("ListItemWidgetT", bound=ListItemWidget)
  
 
 class ListWidgetItem(QtWidgets.QListWidgetItem, Generic[ItemType, ListItemWidgetT]):
     item: SelectionListItem[ItemType]
     parent: GenericListWidget[ItemType, ListItemWidgetT]
-    widget: QtWidgets.QWidget
+    widget: ListItemWidget[ItemType]
 
     def __init__(self, parent: GenericListWidget[ItemType, ListItemWidgetT], element: SelectionListItem[ItemType]):
         super().__init__(parent)
@@ -113,8 +113,8 @@ class ListWidgetItem(QtWidgets.QListWidgetItem, Generic[ItemType, ListItemWidget
 
         self.setSizeHint(self.widget.sizeHint())
     
-    def get_widget(self, parent: GenericListWidget[ItemType, ListItemWidgetT], element: SelectionListItem[ItemType]) -> ListWidgetItemWidget:
-        widget = ListWidgetItemWidget(parent, element)
+    def get_widget(self, parent: GenericListWidget[ItemType, ListItemWidgetT], element: SelectionListItem[ItemType]) -> ListItemWidget:
+        widget = ListItemWidget(parent, element)
         widget.changed.connect(lambda: self._changed)
         widget.button_remove.clicked.connect(lambda: self._remove())
 

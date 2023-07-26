@@ -52,7 +52,7 @@ class RibPlotView(CompareView):
         self.plot = DataFramePlot()
 
         self.config = ConfigWidget(RibPlotConfig, self)
-        self.config.changed.connect(self.update)
+        self.config.changed.connect(self.update_view)
         
         self.layout().addWidget(self.config)
         self.layout().addWidget(self.plot)

@@ -23,7 +23,7 @@ class EnumSelection(QtWidgets.QWidget):
             self.selector.addItem(x.name)
             
         
-        self.selector.activated[int].connect(self._update)
+        self.selector.activated.connect(self._update)
         #self.selector.changed.connect(self._update)
     
     @property

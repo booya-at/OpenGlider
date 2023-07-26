@@ -1,17 +1,19 @@
-from typing import Any, List, Tuple
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, List, Tuple
 from openglider.glider.ballooning.base import BallooningBase
 from openglider.glider.project import GliderProject
-from openglider.gui.app.app import GliderApp
 
 from openglider.gui.qt import QtWidgets, QtGui, QtCore
 import euklid
 
 from openglider.glider.ballooning import BallooningBezierNeu, Ballooning
 from openglider.gui.views_2d import Canvas, DraggableLine
-from openglider.gui.widgets.widgets import WindowSwitcher
 from openglider.gui.wizzards.base import SelectionWizard
 from openglider.utils.colors import Color
 
+if TYPE_CHECKING:
+    from openglider.gui.app.main_window import MainWindow
 
 class Ballooning2D(QtWidgets.QGraphicsObject):
     def __init__(self, ballooning: BallooningBezierNeu, color: Color=None, alpha: int=160):
@@ -85,7 +87,7 @@ class BallooningInput(Canvas):
             if not isinstance(ballooning, BallooningBezierNeu):
                 raise ValueError()
             ballooning_2d = Ballooning2D(ballooning, color, 100)
-            self.balloonings.append(ballooning_2d)
+            self.balloonings.append(ballooning_2d)  # type: ignore
             self.addItem(ballooning_2d)
 
     def on_node_move(self, curve: DraggableLine, event: Any) -> None:
@@ -109,7 +111,7 @@ class BallooningInput(Canvas):
 class BallooningWidget(SelectionWizard):
     widget_name = "Ballooning"
     
-    def __init__(self, app: GliderApp, project: GliderProject):
+    def __init__(self, app: MainWindow, project: GliderProject):
         balloonings: List[Tuple[BallooningBase, str]] = []
         for _project in app.state.projects:
             for i, ballooning in enumerate(_project.glider.balloonings):
@@ -133,7 +135,7 @@ class BallooningWidget(SelectionWizard):
         self.ballooning_input = BallooningInput(self.project.glider.balloonings[0])
 
         self.selector = QtWidgets.QComboBox()
-        self.selector.activated[int].connect(self.select_ballooning)
+        self.selector.activated.connect(self.select_ballooning)
         self.main_widget.addWidget(self.selector)
         self.main_widget.addWidget(self.ballooning_input.get_widget())
 

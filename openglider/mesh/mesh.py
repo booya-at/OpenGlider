@@ -327,7 +327,7 @@ class Mesh(object):
 
     __from_json__ = from_indexed
 
-    def export_obj(self, path: str=None, offset: float=0) -> str:
+    def export_obj(self, path: str | Path | None=None, offset: float=0) -> str:
         vertices, polygons, boundaries = self.get_indexed()
         out = ""
 
@@ -350,7 +350,7 @@ class Mesh(object):
         if path:
             with open(path, "w") as outfile:
                 outfile.write(out)
-            return path
+            return out
         else:
             return out
 

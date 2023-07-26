@@ -4,11 +4,9 @@ import logging
 from typing import Any, Callable, Dict, List, Tuple
 
 import euklid
-from openglider.glider.curve import (CurveEnum, GliderCurveType,
-                                     ShapeBSplineCurve)
+from openglider.glider.curve import CurveEnum, GliderCurveType, ShapeBSplineCurve
 from openglider.glider.project import GliderProject
 from openglider.glider.shape import Shape
-from openglider.gui.app.app import GliderApp
 from openglider.gui.state.selection_list.list import SelectionList, SelectionListItem
 from openglider.gui.qt import QtCore, QtWidgets
 from openglider.gui.views.compare.shape import ShapeConfigWidget
@@ -183,7 +181,7 @@ class CurveWizard(Wizard):
         self.setLayout(QtWidgets.QHBoxLayout())
 
         self.main_widget = QtWidgets.QSplitter()
-        self.main_widget.setOrientation(QtCore.Qt.Horizontal)
+        self.main_widget.setOrientation(QtCore.Qt.Orientation.Horizontal)
         self.layout().addWidget(self.main_widget)
 
         self.right_widget = QtWidgets.QWidget()

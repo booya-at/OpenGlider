@@ -49,22 +49,23 @@ class SelectionItem(QtWidgets.QWidget, Generic[T]):
         self.name = name
         self.on_change: List[Callable[[SelectionItem[T]], None]] = []
 
-        self.setLayout(QtWidgets.QHBoxLayout())
+        layout = QtWidgets.QHBoxLayout()
+        self.setLayout(layout)
 
         self.checkbox = QtWidgets.QCheckBox()
-        self.layout().addWidget(self.checkbox)
+        layout.addWidget(self.checkbox)
         self.checkbox.clicked.connect(self._on_change)
 
         self.colorbox = QtWidgets.QGraphicsView(self)
         self.colorbox.setFixedWidth(15)
         self.colorbox.setFixedHeight(15)
-        self.layout().addWidget(self.colorbox)
+        layout.addWidget(self.colorbox)
         self.colorbox_scene = QtWidgets.QGraphicsScene(0, 0, 10, 10)
         self.colorbox.setScene(self.colorbox_scene)
 
         self.label = QtWidgets.QLabel(name)
-        self.layout().addWidget(self.label)
-        self.layout().addStretch()
+        layout.addWidget(self.label)
+        layout.addStretch()
 
     def _on_change(self) -> None:
         for f in self.on_change:
@@ -79,7 +80,7 @@ class SelectionItem(QtWidgets.QWidget, Generic[T]):
 
     def set_color(self, color: Color=None) -> None:
         if color is not None:
-            qcolor = QtGui.QColor(*color, 255)
+            qcolor = QtGui.QColor(*color.rgb(), 255)
             brush = QtGui.QBrush(qcolor)
             self.colorbox_scene.setBackgroundBrush(brush)
         else:
@@ -90,20 +91,20 @@ class SelectionItem(QtWidgets.QWidget, Generic[T]):
 
 class SelectionWizard(Wizard):
     project: GliderProject
-    def __init__(self, app: GliderApp, project: GliderProject, selection_lst: list[Tuple[T, str]]):
+    def __init__(self, app: MainWindow, project: GliderProject, selection_lst: list[Tuple[T, str]]):
         super().__init__(app, project)
 
-        self.setLayout(QtWidgets.QHBoxLayout())
+        layout = QtWidgets.QHBoxLayout()
+        self.setLayout(layout)
 
         self.main_widget = QtWidgets.QSplitter()
-        self.main_widget.setOrientation(QtCore.Qt.Vertical)
+        self.main_widget.setOrientation(QtCore.Qt.Orientation.Vertical)
 
         self.splitter = QtWidgets.QSplitter()
-        self.splitter.setOrientation(QtCore.Qt.Horizontal)
+        self.splitter.setOrientation(QtCore.Qt.Orientation.Horizontal)
 
         self.setLayout(QtWidgets.QHBoxLayout())
-        self.layout().addWidget(self.splitter)
-
+        layout.addWidget(self.splitter)
 
         self.right_widget = QtWidgets.QWidget()
         self.right_widget_layout = QtWidgets.QHBoxLayout()
@@ -111,7 +112,7 @@ class SelectionWizard(Wizard):
 
         self.selection = QtWidgets.QWidget()
         self.selection.setLayout(QtWidgets.QVBoxLayout())
-        self.selection.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        self.selection.setSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
         self.right_widget.layout().addWidget(self.selection)
 
         self.selection_items: List[SelectionItem] = []
@@ -162,7 +163,7 @@ class SelectionWizard(Wizard):
 
 
 class GliderSelectionWizard(SelectionWizard):
-    def __init__(self, app: GliderApp, project: GliderProject):
+    def __init__(self, app: MainWindow, project: GliderProject):
         selection_lst = [(project, project.name) for project in app.glider_projects]
         super().__init__(app, project, selection_lst)
 

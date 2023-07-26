@@ -9,10 +9,10 @@ from openglider.glider.project import GliderProject
 from openglider.gui.state.glider_list import GliderListItem, GliderList
 from openglider.gui.qt import QtWidgets
 from openglider.gui.widgets.icon import Icon
-from openglider.gui.widgets.list_select.item import ListWidgetItem, ListWidgetItemWidget
+from openglider.gui.widgets.list_select.item import ListWidgetItem, ListItemWidget
 from openglider.gui.widgets.list_select.list import GenericListWidget
 
-class GliderListWidgetItemWidget(ListWidgetItemWidget[GliderProject]):
+class GliderListWidgetItemWidget(ListItemWidget[GliderProject]):
     list_item: GliderListItem
     def __init__(self, parent: GliderListWidget, list_item: GliderListItem):
         super().__init__(parent, list_item)  # type: ignore
@@ -79,7 +79,7 @@ class GliderListWidgetItem(ListWidgetItem[GliderProject, GliderListWidgetItemWid
 
         return widget
 
-class GliderListWidget(GenericListWidget[GliderProject, GliderListWidgetItem]):
+class GliderListWidget(GenericListWidget[GliderProject, GliderListWidgetItemWidget]):
     WidgetType = GliderListWidgetItem
 
     def __init__(self, parent: QtWidgets.QWidget, selection_list: GliderList):

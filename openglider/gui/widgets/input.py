@@ -15,7 +15,7 @@ class Input(QtWidgets.QWidget, Generic[T]):
         self.on_changed = []
 
         if vertical:
-            layout = QtWidgets.QVBoxLayout()
+            layout: QtWidgets.QVBoxLayout | QtWidgets.QHBoxLayout = QtWidgets.QVBoxLayout()
         else:
             layout = QtWidgets.QHBoxLayout()
         self.setLayout(layout)

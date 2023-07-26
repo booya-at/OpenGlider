@@ -31,7 +31,7 @@ class QTable(QtWidgets.QTableWidget):
 
                 item = QtWidgets.QTableWidgetItem(text)
                 if self.readonly:
-                    item.setFlags(QtCore.Qt.ItemIsEnabled)
+                    item.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
 
                 self.setItem(row_no, column_no, item)
 

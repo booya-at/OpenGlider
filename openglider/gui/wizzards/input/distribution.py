@@ -1,16 +1,14 @@
 import logging
 from typing import Any, Callable, List
-from openglider.gui.app.app import GliderApp
-from openglider.gui.qt import QtWidgets, QtGui, QtCore
-import pyqtgraph
+
 import euklid
 
 from openglider.glider.project import GliderProject
+from openglider.gui.app.main_window import MainWindow
+from openglider.gui.qt import QtCore, QtWidgets
 from openglider.gui.views_2d import Canvas, DraggableLine, Line2D
 from openglider.gui.wizzards.base import Wizard
-from openglider.utils.types import CurveType, SymmetricCurveType
-
-from openglider.gui.app.main_window import MainWindow
+from openglider.utils.types import CurveType
 
 logger = logging.getLogger(__name__)
 # TODO: Show & change data: Area, Aspect ratio, Span, Tip Chord, Tip center
@@ -57,10 +55,10 @@ class BallooningCurveWizard(Wizard):
         self.setLayout(QtWidgets.QHBoxLayout())
 
         self.main_widget = QtWidgets.QSplitter()
-        self.main_widget.setOrientation(QtCore.Qt.Vertical)
+        self.main_widget.setOrientation(QtCore.Qt.Orientation.Vertical)
 
         self.splitter = QtWidgets.QSplitter()
-        self.splitter.setOrientation(QtCore.Qt.Horizontal)
+        self.splitter.setOrientation(QtCore.Qt.Orientation.Horizontal)
 
         self.setLayout(QtWidgets.QHBoxLayout())
         self.layout().addWidget(self.splitter)

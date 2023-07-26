@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import math
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, TYPE_CHECKING
 
 import euklid
-from openglider.gui.app import GliderApp
 from openglider.glider.project import GliderProject
 from openglider.gui.qt import QtCore, QtGui, QtWidgets
 from openglider.gui.views_2d import Canvas, DraggableLine
@@ -10,6 +11,8 @@ from openglider.gui.widgets.input import NumberInput
 from openglider.gui.wizzards.base import GliderSelectionWizard
 from openglider.utils.colors import Color, colorwheel
 
+if TYPE_CHECKING:
+    from openglider.gui.app.main_window import MainWindow
 
 class AOA2D(QtWidgets.QGraphicsObject):
     def __init__(self, project: GliderProject, color: Color=None, alpha: int=160):
@@ -41,7 +44,7 @@ class AOA2D(QtWidgets.QGraphicsObject):
         for i in range(len(x_normalized) - 1):
             p.drawLine(points_relative[i], points_relative[i+1])
 
-        pen.setStyle(QtCore.Qt.DashLine)
+        pen.setStyle(QtCore.Qt.PenStyle.DashLine)
         pen.setWidth(2)
         p.setPen(pen)
 
@@ -127,7 +130,7 @@ class AOAInput(Canvas):
 
 class AOAWizard(GliderSelectionWizard):
     project: GliderProject
-    def __init__(self, app: GliderApp, project: GliderProject):
+    def __init__(self, app: MainWindow, project: GliderProject):
         super().__init__(app=app, project=project)
         self.shape_input = AOAInput(self.project)
 
