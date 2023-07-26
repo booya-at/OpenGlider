@@ -59,7 +59,7 @@ class GliderPreview(QtWidgets.QWidget):
         self.app.state.current_preview = name
         self.update()
 
-    def update(self) -> None:
+    def update_current(self) -> None:
         if not self.app.state.current_preview:
             name = self.get_active_view_name()
             if name:

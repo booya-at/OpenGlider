@@ -5,6 +5,8 @@ from openglider.glider.project import GliderProject
 from openglider.gui.app.state import ApplicationState
 from openglider.gui.qt import QtWebEngineWidgets, QtWidgets
 
+from openglider.gui.views.compare.base import CompareView
+
 logger = logging.getLogger(__name__)
 
 
@@ -45,7 +47,7 @@ class DiffView(QtWidgets.QWidget):
 
         self.choosers = QtWidgets.QWidget()
         self.choosers.setLayout(QtWidgets.QHBoxLayout())
-        self.choosers.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        self.choosers.setSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
         self.layout().addWidget(self.choosers)
 
         self.chooser_left = WingSelector(self, self.state)
@@ -58,7 +60,7 @@ class DiffView(QtWidgets.QWidget):
         self.diff_view = QtWebEngineWidgets.QWebEngineView()
         self.layout().addWidget(self.diff_view)
     
-    def update(self) -> None:
+    def update_view(self) -> None:
         self.chooser_left._setup_options()
         self.chooser_right._setup_options()
         self.diff()

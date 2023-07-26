@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, List, Optional, Type
+from typing import TYPE_CHECKING, Any, Generic, List, Optional, Type, TypeVar
 import logging
 import asyncio
 
@@ -8,9 +8,11 @@ from openglider.gui.qt import QtGui, QtWidgets, QtCore
 
 from openglider.utils.tasks import TaskQueue, Task
 from openglider.gui.widgets.icon import Icon
+from openglider.gui.views.window import Window
 
 if TYPE_CHECKING:
     from openglider.gui.app.app import GliderApp
+    from openglider.gui.app.main_window import MainWindow
 
 
 logger = logging.getLogger(__name__)
@@ -18,9 +20,15 @@ logger = logging.getLogger(__name__)
 
 Td = QtWidgets.QTableWidgetItem
 
+class TaskWindow(Window):
+    task: Task
+    def __init__(self, app: MainWindow, task: Task):
+        self.task = task
+        super().__init__(app)
+
 
 class QTaskListWidget(QtWidgets.QWidget):
-    def __init__(self, parent: QtWidgets.QWidget, app: GliderApp, task: Task, view: Type[QtWidgets.QWidget] | None):
+    def __init__(self, parent: QtWidgets.QWidget, app: MainWindow, task: Task, view: Type[TaskWindow] | None):
         super().__init__(parent)
         self.task = task
         self.app = app
@@ -46,7 +54,7 @@ class QTaskListWidget(QtWidgets.QWidget):
 
         self.update()
     
-    def update(self) -> None:
+    def update(self, *args: Any, **kwargs: Any) -> None:
         button = "database-1"
         if self.task.finished:
             button = "checked"
@@ -70,8 +78,8 @@ class QTaskListWidget(QtWidgets.QWidget):
 
 
 class QTaskEntry(QtWidgets.QListWidgetItem):
-    def __init__(self, parent: QtWidgets.QWidget, app: GliderApp, task: Task, view: Type[QtWidgets.QWidget] | None):
-        super().__init__(parent)
+    def __init__(self, parent: QtWidgets.QWidget, app: MainWindow, task: Task, view: Type[TaskWindow] | None):
+        super().__init__()
         self.app = app
         self.task = task
         self.widget = QTaskListWidget(parent, app, task, view)
@@ -88,10 +96,10 @@ class QTaskEntry(QtWidgets.QListWidgetItem):
 class QTaskQueue(QtWidgets.QWidget):
     tasks: List[QTaskEntry]
 
-    app: GliderApp
+    app: MainWindow
     queue: TaskQueue
 
-    def __init__(self, app: GliderApp, queue: TaskQueue):
+    def __init__(self, app: MainWindow, queue: TaskQueue):
         super().__init__()
         self.app = app
         self.queue = queue
@@ -106,7 +114,7 @@ class QTaskQueue(QtWidgets.QWidget):
 
         self.tasks = []
 
-    def append(self, task: Task, view: Optional[Type[QtWidgets.QWidget]]=None) -> None:
+    def append(self, task: Task, view: Type[TaskWindow] | None = None) -> None:
         list_entry = QTaskEntry(self.list, self.app, task, view)
 
         self.tasks.append(list_entry)
@@ -122,7 +130,7 @@ class QTaskQueue(QtWidgets.QWidget):
                 entry.update()
             await asyncio.sleep(1)
 
-    def close(self, *args: Any, **kwargs: Any) -> None:
+    def close(self, *args: Any, **kwargs: Any) -> None:  # type: ignore
         #self.update_task.cancel()
         super().close(*args, **kwargs)
 

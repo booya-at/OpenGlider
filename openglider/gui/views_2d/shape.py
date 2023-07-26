@@ -28,7 +28,7 @@ class ShapeConfig(BaseModel):
 
 
 class Shape2D(QtWidgets.QGraphicsObject):
-    shape: ParametricShape
+    glider_shape: ParametricShape
 
     half_wing: bool=False
     draw_ribs: bool=True
@@ -44,12 +44,12 @@ class Shape2D(QtWidgets.QGraphicsObject):
 
     def __init__(self, shape: ParametricShape, panels: List[List[Panel]]=None, color: Tuple[int, int, int]=None, alpha: int=160, config: ShapeConfig=None) -> None:
         super().__init__()
-        self.shape = shape
-        self.shape_r = shape.get_half_shape()
-        self.shape_l = self.shape_r.copy().scale(x=-1)
-        self.shape_both = self.shape.get_shape()
+        self.glider_shape = shape
+        self.glider_shape_r = shape.get_half_shape()
+        self.glider_shape_l = self.glider_shape_r.copy().scale(x=-1)
+        self.glider_shape_both = self.glider_shape.get_shape()
 
-        self.shapes = [self.shape_r, self.shape_l]
+        self.glider_shapes = [self.glider_shape_r, self.glider_shape_l]
 
         self.panels = panels or []
         self.config = config or ShapeConfig()
@@ -65,9 +65,9 @@ class Shape2D(QtWidgets.QGraphicsObject):
         p.setPen(pen)
 
         if self.config.half_wing:
-            shape = self.shape_r
+            shape = self.glider_shape_r
         else:
-            shape = self.shape_both
+            shape = self.glider_shape_both
 
         if self.config.scale_area is not None:
             shape.area = self.config.scale_area
@@ -104,14 +104,14 @@ class Shape2D(QtWidgets.QGraphicsObject):
     
     def _cell_range(self, left: bool) -> range:
         start = 0
-        end = self.shape.half_cell_num
-        if self.shape.has_center_cell and left:
+        end = self.glider_shape.half_cell_num
+        if self.glider_shape.has_center_cell and left:
             start = 1
 
         return range(start, end)
 
     def paint_design(self, p: QtGui.QPainter, left: bool, lower: bool, *args: Any) -> None:
-        shape = self.shapes[left]
+        shape = self.glider_shapes[left]
 
         panels = self.panels
 
@@ -166,8 +166,8 @@ class Shape2D(QtWidgets.QGraphicsObject):
                 p.drawPolygon(qt_nodes)
 
     def boundingRect(self) -> QtCore.QRectF:
-        span = self.shape.span
-        chord = self.shape.get_rib_point(0, 1)[1]
+        span = self.glider_shape.span
+        chord = self.glider_shape.get_rib_point(0, 1)[1]
         if self.half_wing:
             return QtCore.QRectF(0, 0, span, chord)
         else:

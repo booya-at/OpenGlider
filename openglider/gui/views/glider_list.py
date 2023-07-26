@@ -2,6 +2,7 @@ from __future__ import annotations
 import asyncio
 
 import os
+from typing import Any
 
 import openglider
 from openglider.glider.project import GliderProject
@@ -14,7 +15,7 @@ from openglider.gui.widgets.list_select.list import GenericListWidget
 class GliderListWidgetItemWidget(ListWidgetItemWidget[GliderProject]):
     list_item: GliderListItem
     def __init__(self, parent: GliderListWidget, list_item: GliderListItem):
-        super().__init__(parent, list_item)
+        super().__init__(parent, list_item)  # type: ignore
 
     
     def draw_buttons(self) -> None:
@@ -28,8 +29,8 @@ class GliderListWidgetItemWidget(ListWidgetItemWidget[GliderProject]):
 
         self.button_reload = QtWidgets.QPushButton()
 
-    def update(self) -> None:
-        super().update()
+    def update(self, *args: Any, **kwargs: Any) -> None:
+        super().update(*args, **kwargs)
 
         if self.list_item.element.filename is None:
             self.button_reload.setEnabled(False)

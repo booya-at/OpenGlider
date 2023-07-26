@@ -27,8 +27,8 @@ class PlotCanvas(FigureCanvas):
         self.figure.set_tight_layout(True)
         super().__init__(figure=self.figure)
 
-        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                           QtWidgets.QSizePolicy.Expanding)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding,
+                           QtWidgets.QSizePolicy.Policy.Expanding)
         self.updateGeometry()
 
         if zoom is not None:

@@ -43,7 +43,7 @@ class Canvas(pyqtgraph.ViewBox):
         diff = -(pos - last_pos)
 
         ## Scale or translate based on mouse button
-        if ev.button() & (QtCore.Qt.LeftButton | QtCore.Qt.MidButton):
+        if ev.button() & (QtCore.Qt.MouseButton.LeftButton | QtCore.Qt.MouseButton.MiddleButton):
             if ev.isFinish():  ## This is the final move in the drag; change the view scale now
                 #print "finish"
                 self.rbScaleBox.hide()
@@ -57,7 +57,7 @@ class Canvas(pyqtgraph.ViewBox):
                 self.updateScaleBox(ev.buttonDownPos(), ev.pos())
         elif self.static:
             return
-        elif ev.button() & QtCore.Qt.RightButton:
+        elif ev.button() & QtCore.Qt.MouseButton.RightButton:
             tr = diff  # *mask
             tr = self.mapToView(tr) - self.mapToView(pyqtgraph.Point(0, 0))
             x = tr.x() # if mask[0] == 1 else None
@@ -69,7 +69,7 @@ class Canvas(pyqtgraph.ViewBox):
             self.sigRangeChangedManually.emit(self.state['mouseEnabled'])
 
     def dragEnterEvent(self, e: QtGui.QDragEnterEvent) -> None:
-        if e.mimeData().hasUrls:
+        if e.mimeData().hasUrls():
             e.accept()
         else:
             e.ignore()
@@ -78,8 +78,8 @@ class Canvas(pyqtgraph.ViewBox):
         """
         Drag and Drop glider files
         """
-        if e.mimeData().hasUrls:
-            e.setDropAction(QtCore.Qt.CopyAction)
+        if e.mimeData().hasUrls():
+            e.setDropAction(QtCore.Qt.DropAction.CopyAction)
             e.accept()
             fname = None
             # Workaround for OSx dragging and dropping
@@ -215,7 +215,7 @@ class LayoutGraphics(QtWidgets.QGraphicsObject):
             else:
                 color = color_code
 
-            qt_color = QtGui.QColor(*color, self.alpha)
+            qt_color = QtGui.QColor(*color.rgb(), self.alpha)
 
             brush = QtGui.QBrush(qt_color)
             pen = QtGui.QPen(brush, 1)

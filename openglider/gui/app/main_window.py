@@ -4,7 +4,7 @@ import asyncio
 import datetime
 import logging
 import os
-from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, Iterator, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, Iterator, List, Optional, Tuple, Type
 
 import openglider
 from openglider.glider.project import GliderProject
@@ -14,16 +14,17 @@ from openglider.gui.views.console import ConsoleHandler, ConsoleWidget
 from openglider.gui.views.diff import DiffView
 from openglider.gui.views.glider_list import GliderListWidget
 from openglider.gui.views.tasks import QTaskQueue
-from openglider.gui.views.window import GliderWindow
+from openglider.gui.views.window import GliderWindow, Window
 from openglider.gui.widgets.icon import Icon
 
 from openglider.gui.views.help import HelpView
 
+from openglider.gui.wizzards.base import Wizard
+
+from openglider.gui import views
+
 if TYPE_CHECKING:
     from openglider.gui.app.app import GliderApp
-#from openglider.gui.views.window import Window
-
-#from qasync import QThreadExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,7 @@ logger = logging.getLogger(__name__)
 class Action():
     action: Optional[QAction]
     
-    def __init__(self, main_window: MainWindow, name: str, widget: QtWidgets.QWidget) -> None:
+    def __init__(self, main_window: MainWindow, name: str, widget: Type[Wizard]) -> None:
         self.name = name
         self.widget = widget
         self.main_window = main_window
@@ -58,7 +59,8 @@ class Action():
 class MainWindow(QtWidgets.QMainWindow):
     main_widget_class = GliderPreview
 
-    actions: Dict[str, Action]
+    # actions need to be saved in a dict (prevent garbage collection)
+    action_store: Dict[str, Action]
 
     def __init__(self, app: GliderApp):
         super().__init__()
@@ -67,17 +69,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.app = app
         self.state = app.state
 
-        self.actions = {}
+        self.action_store = {}
 
         self.main_widget = QtWidgets.QSplitter()
-        self.main_widget.setOrientation(QtCore.Qt.Vertical)
+        self.main_widget.setOrientation(QtCore.Qt.Orientation.Vertical)
         
 
         self.top_panel = QtWidgets.QTabWidget(self.main_widget)
         self.main_widget.addWidget(self.top_panel)
 
         self.bottom_panel = QtWidgets.QWidget(self.main_widget)
-        self.bottom_panel.setLayout(QtWidgets.QHBoxLayout())
+        bottom_panel_layout = QtWidgets.QHBoxLayout()
+        self.bottom_panel.setLayout(bottom_panel_layout)
         self.main_widget.addWidget(self.bottom_panel)
 
         self.main_widget.setSizes([800, 200])
@@ -125,11 +128,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.glider_list.changed.connect(self.current_glider_changed)
 
         self.overview = QtWidgets.QWidget(self.main_widget)
-        self.overview.setLayout(QtWidgets.QHBoxLayout())
-        self.overview.layout().addWidget(self.glider_list, 25)
+        overview_layout = QtWidgets.QHBoxLayout()
+        self.overview.setLayout(overview_layout)
+        overview_layout.addWidget(self.glider_list, 25)
 
         self.glider_preview = GliderPreview(self.app)
-        self.overview.layout().addWidget(self.glider_preview, 75)
+        overview_layout.addWidget(self.glider_preview, 75)
 
         self.top_panel.addTab(self.overview, "Main")
 
@@ -143,7 +147,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.top_panel.addTab(self.help, "Help")
 
         self.console = ConsoleWidget(self)
-        self.bottom_panel.layout().addWidget(self.console, 75)
+        bottom_panel_layout.addWidget(self.console, 75)
 
         self.signal_handler = ConsoleHandler(self.console)
 
@@ -153,20 +157,20 @@ class MainWindow(QtWidgets.QMainWindow):
         self.current_glider_changed()
 
 
-    def _get_actions(self) -> Dict[str, List[Tuple[object, QtWidgets.QWidget]]]:
+    def _get_actions(self) -> Dict[str, List[Tuple[Type[Wizard], str]]]:
         from openglider.gui.app.actions import menu_actions
         return menu_actions
 
-    def show_tab(self, window: GliderWindow) -> None:
+    def show_tab(self, window: Window) -> None:
         tab_index = self.top_panel.count()
 
         self.top_panel.addTab(window, window.name)
         self.top_panel.setCurrentIndex(tab_index)
 
-        self.state.current_tab = window
+        self.state.current_tab = window.name
         
         tabbar: QtWidgets.QTabBar = self.top_panel.tabBar()
-        tabbar.setTabButton(tab_index, QtWidgets.QTabBar.RightSide, window.close_button)
+        tabbar.setTabButton(tab_index, QtWidgets.QTabBar.ButtonPosition.RightSide, window.close_button)
 
         def close() -> None:
             # iterate through all closable tabs (i>=2)
@@ -204,7 +208,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 qt_action = action.get_qt_action()
 
                 self.menus[menu_name].addAction(qt_action)
-                self.actions[name] = action
+                self.action_store[name] = action
     
     @property
     def loop(self) -> QtCore.QEventLoop:
@@ -216,7 +220,7 @@ class MainWindow(QtWidgets.QMainWindow):
         return result
     
     def dragEnterEvent(self, e: QtGui.QDragMoveEvent) -> None:
-        if e.mimeData().hasUrls:
+        if e.mimeData().hasUrls():
             e.accept()
         else:
             e.ignore()
@@ -225,8 +229,8 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Drag and Drop glider files
         """
-        if e.mimeData().hasUrls:
-            e.setDropAction(QtCore.Qt.CopyAction)
+        if e.mimeData().hasUrls():
+            e.setDropAction(QtCore.Qt.DropAction.CopyAction)
             e.accept()
             fname = None
             # Workaround for OSx dragging and dropping
@@ -250,8 +254,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def current_glider_changed(self) -> None:
         # cleanup widgets
-        self.glider_preview.update()
-        self.diff_view.update()
+        self.glider_preview.update_current()
+        self.diff_view.update_view()
 
         active_wing = self.state.projects.get_selected()
             
@@ -317,11 +321,11 @@ class MainWindow(QtWidgets.QMainWindow):
             text = "\n".join(["   - "+p.name for p in unsaved_gliders])
             msgBox.setInformativeText(text)
 
-            msgBox.setStandardButtons(QtWidgets.QMessageBox.Save | QtWidgets.QMessageBox.Discard)
-            msgBox.setDefaultButton(QtWidgets.QMessageBox.Save)
+            msgBox.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Save | QtWidgets.QMessageBox.StandardButton.Discard)
+            msgBox.setDefaultButton(QtWidgets.QMessageBox.StandardButton.Save)
             ret = msgBox.exec_()
 
-            if ret == QtWidgets.QMessageBox.Save:
+            if ret == QtWidgets.QMessageBox.StandardButton.Save:
                 event.ignore()
             else:
                 event.accept()
@@ -336,12 +340,12 @@ class MainWindow(QtWidgets.QMainWindow):
             text = "\n".join(["   - "+p.name for p in unsaved_gliders])
             msgBox.setInformativeText(text)
 
-            msgBox.setStandardButtons(QtWidgets.QMessageBox.Save | QtWidgets.QMessageBox.Discard)
-            msgBox.setDefaultButton(QtWidgets.QMessageBox.Save)
+            msgBox.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Save | QtWidgets.QMessageBox.StandardButton.Discard)
+            msgBox.setDefaultButton(QtWidgets.QMessageBox.StandardButton.Save)
 
             ret = msgBox.exec_()
 
-            if ret == QtWidgets.QMessageBox.Save:
+            if ret == QtWidgets.QMessageBox.StandardButton.Save:
                 event.ignore()
             else:
                 self.app.loop.run_until_complete(self.task_queue.queue.quit())

@@ -23,7 +23,7 @@ class Line2D(QtWidgets.QGraphicsObject):
     color: Color
 
     def __init__(self, data: List[euklid.vector.Vector2D], color: Tuple[int, int, int] | Color | None=None, dashed: bool=False) -> None:
-        self.data = data or []
+        self.curve_data = data or []
         if isinstance(color, Color):
             self.color = color
         elif isinstance(color, tuple):
@@ -35,30 +35,30 @@ class Line2D(QtWidgets.QGraphicsObject):
         super().__init__()
 
     def paint(self, p: QtGui.QPainter, *args: Any) -> None:
-        if not self.data:
+        if not self.curve_data:
             return
             
-        color = QtGui.QColor(*self.color, 255)
+        color = QtGui.QColor(*self.color.rgb(), 255)
         #pen = QtGui.QPen(color)
         pen = QtGui.QPen(QtGui.QBrush(color), 1)
 
         if self.dashed:
-            pen.setStyle(QtCore.Qt.DashLine)
+            pen.setStyle(QtCore.Qt.PenStyle.DashLine)
 
         pen.setCosmetic(True)
         p.setPen(pen)
         #p.setPen(pyqtgraph.mkPen(*self.color))
 
-        nodes = [QtCore.QPointF(*p) for p in self.data]
+        nodes = [QtCore.QPointF(*p) for p in self.curve_data]
 
         for p1, p2 in zip(nodes[:-1], nodes[1:]):
             p.drawLine(p1, p2)
 
         #p.drawRect(self.boundingRect())
     def boundingRect(self) -> QtCore.QRectF:
-        if len(self.data):
-            x=[p[0] for p in self.data]
-            y=[p[1] for p in self.data]
+        if len(self.curve_data):
+            x=[p[0] for p in self.curve_data]
+            y=[p[1] for p in self.curve_data]
             return QtCore.QRectF(min(x), min(y), max(x)-min(x), max(y) - min(y))
         
         return QtCore.QRectF(0,0,1,1)
@@ -120,7 +120,7 @@ class Image(pyqtgraph.ImageItem):
 
 
     def clickEvent(self, ev: QtWidgets.QGraphicsSceneMouseEvent) -> None:
-        if ev.button() & QtCore.Qt.LeftButton:
+        if ev.button() & QtCore.Qt.MouseButton.LeftButton:
             ev.accept()
 
             if self.is_transforming or self.is_scaling:
@@ -137,7 +137,7 @@ class Image(pyqtgraph.ImageItem):
 
             rect2 =  QtCore.QRectF(self.p2-points_dim, self.p2+points_dim)
             if rect2.contains(position):
-                self.is_scaling = position
+                self.is_scaling = bool(position)
 
     def dragEvent(self, point: QtCore.QPointF) -> None:
         if self.is_scaling or self.is_transforming:
@@ -154,7 +154,7 @@ class Image(pyqtgraph.ImageItem):
                 x2 = self.p2.x() - self.p1.x()
                 #diff = (coords - self.p2)
                 self.p2 = self.p1 + (self.p2 - self.p1) * (x1/x2)
-                self.is_scaling = self.p2
+                #self.is_scaling = self.p2
             
             self._update_rect()
 
@@ -220,8 +220,8 @@ class DraggableLine(pyqtgraph.GraphItem):
     def mouseClickEvent(self, scatter: SpotItem, points: ScatterPlotItem, ev: QtGui.QMouseEvent) -> None:
         keys = ev.modifiers()
 
-        is_ctrl_key = (keys == QtCore.Qt.ControlModifier)
-        is_shift_key = (keys == QtCore.Qt.ShiftModifier)
+        is_ctrl_key = (keys == QtCore.Qt.KeyboardModifier.ControlModifier)
+        is_shift_key = (keys == QtCore.Qt.KeyboardModifier.ShiftModifier)
 
         if is_ctrl_key or is_shift_key:
             node_index = points[0].data()[0]
@@ -256,7 +256,7 @@ class DraggableLine(pyqtgraph.GraphItem):
             ev.accept()
 
     def mouseDragEvent(self, ev: pyqtgraph.GraphicsScene.mouseEvents.MouseDragEvent) -> None:
-        if ev.button() != QtCore.Qt.LeftButton:
+        if ev.button() != QtCore.Qt.MouseButton.LeftButton:
             ev.ignore()
             return
 
@@ -287,7 +287,7 @@ class DraggableLine(pyqtgraph.GraphItem):
 
         new_position = list(ev.pos() + self.drag_start_position)
 
-        if ev.modifiers() == QtCore.Qt.ShiftModifier:
+        if ev.modifiers() == QtCore.Qt.KeyboardModifier.ShiftModifier:
             diff_x = abs(new_position[0] - self.drag_start_node_position[0])
             diff_y = abs(new_position[1] - self.drag_start_node_position[1])
 
