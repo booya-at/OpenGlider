@@ -7,6 +7,8 @@ from openglider.gui.views_2d.canvas import Canvas
 from openglider.gui.views.compare.rib.graphics import GliderRibPlots
 from openglider.gui.views.compare.rib.settings import RibCompareSettings
 
+from openglider.gui.views.compare.base import CompareView
+
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +19,7 @@ class RibCache(GliderCache[GliderRibPlots]):
         return GliderRibPlots(project.element, color=project.color)
 
 
-class RibView(QtWidgets.QWidget):
+class RibView(CompareView):
     grid = False
 
     def __init__(self, app: GliderApp):
@@ -38,7 +40,7 @@ class RibView(QtWidgets.QWidget):
 
         self.cache = RibCache(app.state.projects)
 
-    def update(self) -> None:
+    def update_view(self) -> None:
         self.plot.clear()
 
         selected = self.app.state.projects.get_selected()

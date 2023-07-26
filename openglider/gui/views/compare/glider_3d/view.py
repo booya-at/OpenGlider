@@ -2,11 +2,13 @@ import logging
 
 from openglider.glider.project import GliderProject
 from openglider.gui.app.app import GliderApp
-from openglider.gui.state.glider_list import GliderCache
-from openglider.gui.views.compare.glider_3d.actor import GliderActors
-from openglider.gui.views.compare.glider_3d.config import GliderViewConfigWidget
-from openglider.gui.views_3d.widgets import View3D
 from openglider.gui.qt import QtCore, QtGui, QtWidgets
+from openglider.gui.state.glider_list import GliderCache
+from openglider.gui.views.compare.base import CompareView
+from openglider.gui.views.compare.glider_3d.actor import GliderActors
+from openglider.gui.views.compare.glider_3d.config import \
+    GliderViewConfigWidget
+from openglider.gui.views_3d.widgets import View3D
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +22,7 @@ class Glider3DCache(GliderCache[GliderActors]):
         return GliderActors(project.element)
 
 
-class Glider3DView(QtWidgets.QWidget):
+class Glider3DView(CompareView):
     def __init__(self, app: GliderApp):
         super().__init__()
         self.setLayout(QtWidgets.QVBoxLayout())
@@ -41,7 +43,7 @@ class Glider3DView(QtWidgets.QWidget):
         for actor in self.actor_cache.get_update().active:
             actor.add(self.view_3d, self.config.config)
 
-    def update(self) -> None:
+    def update_view(self) -> None:
         changeset = self.actor_cache.get_update()
 
         for actor in changeset.removed:

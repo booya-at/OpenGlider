@@ -7,6 +7,8 @@ from openglider.gui.views_2d.canvas import Canvas
 from openglider.gui.views.compare.cell.graphics import GliderCellPlots, CellPlotLayers
 from openglider.gui.views.compare.cell.settings import CellCompareSettings
 
+from openglider.gui.views.compare.base import CompareView
+
 logger = logging.getLogger(__name__)
 
 
@@ -16,7 +18,7 @@ class CellCache(GliderCache[GliderCellPlots]):
         return GliderCellPlots(project.element, color=project.color)
 
 
-class CellView(QtWidgets.QWidget):
+class CellView(CompareView):
     grid = True
 
     def __init__(self, app: GliderApp) -> None:
@@ -39,7 +41,7 @@ class CellView(QtWidgets.QWidget):
 
         #self.arc_cache = ArcPlotCache(app)
 
-    def update(self) -> None:
+    def update_view(self) -> None:
         self.plot.clear()
         self.plot.update_data()
 

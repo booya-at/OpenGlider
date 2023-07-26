@@ -14,6 +14,8 @@ from openglider.utils.colors import Color
 from openglider.gui.qt import QtCore, QtGui, QtWidgets
 from openglider.gui.widgets.flow_layout import FlowLayout
 
+from openglider.gui.views.compare.base import CompareView
+
 logger = logging.getLogger(__name__)
 
 
@@ -101,7 +103,7 @@ class ShapePlotCache(GliderCache[Tuple[ShapePlot, ShapePlot, str]]):
 
 
 
-class ShapeView(QtWidgets.QWidget):
+class ShapeView(CompareView):
     grid = False
 
     def __init__(self, app: GliderApp):
@@ -134,7 +136,7 @@ class ShapeView(QtWidgets.QWidget):
         #self.layout().addWidget(self.plots)
         self.layout().addWidget(self.plots)
 
-    def update(self) -> None:
+    def update_view(self) -> None:
         self.plot_lower.clear()
         self.plot_upper.clear()
 

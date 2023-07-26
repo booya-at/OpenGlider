@@ -9,6 +9,8 @@ from openglider.gui.views_2d.canvas import Canvas
 from openglider.gui.views_2d.arc import Arc2D
 from openglider.gui.state.glider_list import GliderCache
 
+from openglider.gui.views.compare.base import CompareView
+
 logger = logging.getLogger(__name__)
 
 
@@ -18,7 +20,7 @@ class ArcPlotCache(GliderCache[Arc2D]):
         return Arc2D(project.element, color=project.color)
 
 
-class ArcView(QtWidgets.QWidget):
+class ArcView(CompareView):
     grid = False
 
     def __init__(self, app: GliderApp):
@@ -36,7 +38,7 @@ class ArcView(QtWidgets.QWidget):
 
         self.arc_cache = ArcPlotCache(app.state.projects)
 
-    def update(self) -> None:
+    def update_view(self) -> None:
         changeset = self.arc_cache.get_update()
 
         for plt in changeset.removed:

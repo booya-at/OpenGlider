@@ -5,8 +5,6 @@ from openglider.glider.project import GliderProject
 from openglider.gui.app.state import ApplicationState
 from openglider.gui.qt import QtWebEngineWidgets, QtWidgets
 
-from openglider.gui.views.compare.base import CompareView
-
 logger = logging.getLogger(__name__)
 
 

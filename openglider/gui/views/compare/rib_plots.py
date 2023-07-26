@@ -8,6 +8,8 @@ from openglider.gui.app.app import GliderApp
 from openglider.gui.state.glider_list import GliderCache
 from openglider.utils.dataclass import BaseModel
 
+from openglider.gui.views.compare.base import CompareView
+
 logger = logging.getLogger(__name__)
 
 
@@ -39,7 +41,7 @@ class RibPlotCache(GliderCache[pandas.DataFrame]):
             ).set_index("x"), project.color, project.element.name
 
 
-class RibPlotView(QtWidgets.QWidget):
+class RibPlotView(CompareView):
     grid = False
 
     def __init__(self, app: GliderApp):
@@ -57,7 +59,7 @@ class RibPlotView(QtWidgets.QWidget):
 
         self.plot_cache = RibPlotCache(app.state.projects)
 
-    def update(self) -> None:
+    def update_view(self) -> None:
         logger.info(f"update")
         self.plot.clear()
 

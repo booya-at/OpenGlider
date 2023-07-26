@@ -10,6 +10,8 @@ from openglider.utils.table import Table
 from openglider.gui.widgets.table import QTable
 from openglider.gui.state.glider_list import GliderCache
 
+from openglider.gui.views.compare.base import CompareView
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,14 +22,14 @@ class TableCache(GliderCache[Table]):
         return table
 
 
-class GliderTable(QTable):
+class GliderTable(QTable, CompareView):
     def __init__(self, app: GliderApp, parent: QtWidgets.QWidget=None):
         super().__init__(parent)
         self.app = app
         self.cache = TableCache(app.state.projects)
-        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
     
-    def update(self) -> None:
+    def update_view(self) -> None:
         table = Table()
         
         for i, active_project_table in enumerate(self.cache.get_update().active):
