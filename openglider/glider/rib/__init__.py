@@ -1,4 +1,4 @@
-from openglider.glider.rib.attachment_point import AttachmentPoint, GibusArcs
+from openglider.glider.rib.attachment_point import AttachmentPoint, RoundReinforcement
 from openglider.glider.rib.rigidfoils import RigidFoil, RigidFoil2
 from openglider.glider.rib.crossports import RibHole
 from openglider.glider.rib.rib import Rib

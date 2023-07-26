@@ -5,7 +5,7 @@ import logging
 import euklid
 from openglider.glider.shape import Shape
 from openglider.lines.node import NODE_TYPE_ENUM, Node
-from openglider.utils.dataclass import dataclass
+from openglider.utils.dataclass import BaseModel, dataclass
 from openglider.vector.polygon import Circle
 from openglider.vector.unit import Percentage, Length
 
@@ -16,25 +16,25 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-
-@dataclass
-class GibusArcs:
+class RoundReinforcement(BaseModel):
     """
     A Reinforcement, in the shape of an arc, to reinforce attachment points
     """
-
     position: Percentage
-    size: Length | Percentage = Percentage(0.05)
+    size: Length | Percentage = Length("4cm")
     material_code: str = ""
 
-    def get_3d(self, rib: "Rib", num_points: int=10) -> euklid.vector.PolyLine3D:
+    def get_3d(self, rib: "Rib", num_points: int=10) -> list[euklid.vector.PolyLine3D]:
         # create circle with center on the point
-        gib_arc = self.get_flattened(rib, num_points=num_points)
+        polygons = self.get_flattened(rib, num_points=num_points)
+        aligned_polygons = []
+        for polygon in polygons:
 
-        return rib.align_all(gib_arc, scale=False)
-        #return [rib.align([p[0], p[1], 0], scale=False) for p in gib_arc]
+            aligned_polygons.append(rib.align_all(polygon, scale=False))
+        
+        return aligned_polygons
 
-    def get_flattened(self, rib: "Rib", num_points: int=10) -> euklid.vector.PolyLine2D:
+    def get_flattened(self, rib: "Rib", num_points: int=10) -> list[euklid.vector.PolyLine2D]:
         # get center point
         profile = rib.profile_2d
         start = profile(self.position)
@@ -47,12 +47,7 @@ class GibusArcs:
         point_2 = point_1 + n * size  # get outside start point
         circle = Circle.from_center_p2(point_1, point_2).get_sequence()
 
-        cuts = circle.cut(profile.curve)
-
-        cut1 = cuts[0]
-        cut2 = cuts[-1]
-
-        return circle.get(cut1[0], cut2[0]) + profile.curve.get(cut2[1], cut1[1])
+        return circle.bool_union(profile.curve)
 
 
 # Node from lines
