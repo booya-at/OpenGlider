@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pyupgrade._main
 import autoflake
+import black
+import black.mode
 
 basedir = Path(__file__).absolute().parent
 
@@ -31,15 +33,21 @@ flake_args = {
 
 }
 
+black_args = black.mode.Mode(
+    target_versions=set([black.mode.TargetVersion.PY310, black.mode.TargetVersion.PY311]),
+    line_length=100,
+)
+
 def run():
     for dirname, x, files in os.walk(basedir / "openglider"):
 
         for file in files:
             if file.endswith(".py"):
-                fullpath = os.path.join(dirname, file)
+                fullpath = Path(dirname) / file
                 print(fullpath)
 
                 pyupgrade._main._fix_file(fullpath, args)
                 autoflake.fix_file(fullpath, flake_args)
+                black.format_file_in_place(fullpath, fast=False, mode=black_args)
 
 run()

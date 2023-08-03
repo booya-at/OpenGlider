@@ -7,7 +7,7 @@ class GliderTestCase2D(GliderTestCase):
         super().setUp()
         self.shape = self.parametric_glider.shape.get_half_shape()
 
-    def test_chords(self) -> None:
+    #def test_chords(self) -> None:
         # print(shape)
 
 if __name__ == '__main__':

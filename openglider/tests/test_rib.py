@@ -23,7 +23,7 @@ class TestRib(unittest.TestCase):
                        glide=random.random()*10,
                        material=cloth.get("default"))
 
-    def test_normvectors(self) -> None:
+    #def test_normvectors(self) -> None:
 
     def test_align(self) -> None:
         first = self.rib.pos

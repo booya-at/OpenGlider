@@ -1,7 +1,6 @@
 import unittest
 
 import tempfile
-import os
 from openglider.tests.common import GliderTestCase
 from openglider import jsonify
 from openglider.glider import ParametricGlider
@@ -21,7 +20,7 @@ class GliderTestCase2D(GliderTestCase):
         imp = jsonify.loads(exp)['data']
         self.assertEqualGlider2D(self.parametric_glider, imp)
 
-    def test_export_ods(self) -> None:
+        #def test_export_ods(self) -> None:
 
     def test_set_area(self) -> None:
         self.parametric_glider.shape.set_area(10)
