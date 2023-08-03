@@ -1,10 +1,6 @@
-from typing import Any, Dict, List
-
 from openglider.glider.cell.diagonals import DiagonalRib, DiagonalSide, TensionLine, TensionStrap
-from openglider.glider.curve import GliderCurveType
-from openglider.glider.parametric.table.base import CellTable, Keyword
+from openglider.glider.parametric.table.base import CellTable
 from openglider.glider.parametric.table.base.dto import DTO, CellTuple
-from openglider.glider.parametric.table.base.parser import Parser
 from openglider.utils.table import Table
 
 import logging

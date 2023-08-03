@@ -1,5 +1,3 @@
-from asyncio.log import logger
-from typing import List, Optional
 from collections.abc import Callable
 from openglider.gui.qt import QtWidgets, QtCore
 

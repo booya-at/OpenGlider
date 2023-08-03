@@ -1,4 +1,4 @@
-from typing import Any, List, Optional
+from typing import Any
 
 from openglider.glider.parametric.table.base import ElementTable, Keyword, TableType
 from openglider.materials import cloth, Material

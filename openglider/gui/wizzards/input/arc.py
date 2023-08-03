@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Tuple
-from openglider.gui.app.app import GliderApp
-from openglider.gui.qt import QtWidgets, QtGui, QtCore
+from typing import TYPE_CHECKING, Any
 from openglider.utils.colors import Color
 import pyqtgraph
 import euklid

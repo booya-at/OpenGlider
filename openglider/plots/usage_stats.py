@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 from openglider.materials import Material
 from openglider.utils.dataclass import BaseModel, Field
 from openglider.utils.table import Table

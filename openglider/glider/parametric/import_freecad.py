@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, List
+from typing import TYPE_CHECKING, Any
 import zipfile
 import lxml
 import json
@@ -109,7 +109,6 @@ class FreeCADFile:
     def _read_floatlist(self, node: Any) -> list[float]:
         filename = node.get("file")
         bytestring = self.infile.open(filename).read()
-        offset=4
         float_array = array.array('d')
         float_array.frombytes(bytestring[4:])
         

@@ -1,7 +1,5 @@
-import datetime
 import enum
 import logging
-from typing import Any, Dict, List, Tuple
 from collections.abc import Callable
 
 import pyqtgraph
@@ -11,8 +9,7 @@ from openglider.gui.state.glider_list import GliderCache
 from openglider.gui.views_2d.canvas import Canvas, LayoutGraphics
 from openglider.gui.widgets.select import EnumSelection
 from openglider.plots.sketches.shapeplot import ShapePlot, ShapePlotConfig
-from openglider.utils.colors import Color
-from openglider.gui.qt import QtCore, QtGui, QtWidgets
+from openglider.gui.qt import QtCore, QtWidgets
 from openglider.gui.widgets.flow_layout import FlowLayout
 
 from openglider.gui.views.compare.base import CompareView

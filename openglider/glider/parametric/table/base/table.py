@@ -2,17 +2,14 @@ import enum
 import logging
 import sys
 import typing
-from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
+from typing import Any, Generic, TypeVar
 
-from pydantic import BaseModel
 
 from openglider.glider.curve import GliderCurveType
-from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.parametric.table.base.dto import DTO
 from openglider.glider.parametric.table.base.parser import Parser
 from openglider.utils.table import Table
 from openglider.vector.unit import Quantity
-from openglider.version import __version__
 
 from .keyword import Keyword
 

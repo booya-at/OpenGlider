@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Type
+from typing import TYPE_CHECKING
 import euklid
 import numpy as np
 from openglider.glider.parametric.arc import ArcCurve

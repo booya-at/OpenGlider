@@ -1,11 +1,11 @@
 import math
 import operator
-from typing import Any, Type, TypeVar
+from typing import Any
 from collections.abc import Callable
 
 from pydantic import Field
-from pyparsing import (CaselessKeyword, Forward, Group, Literal, ParseException, ParseResults,
-                       Regex, Suppress, Word, alphanums, alphas, delimitedList)
+from pyparsing import (Forward, Group, Literal, ParseResults, Regex, Suppress,
+                       Word, alphanums, alphas, delimitedList)
 
 from openglider.utils.dataclass import BaseModel
 from openglider.vector.unit import Angle, Length, Percentage, Quantity

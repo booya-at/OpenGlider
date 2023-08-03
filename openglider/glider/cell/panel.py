@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum
 import logging
 import math
-from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Optional, Type, TypeAlias, Union
+from typing import TYPE_CHECKING, Any
 
 import euklid
 from openglider.airfoil.profile_3d import Profile3D
@@ -12,7 +12,7 @@ from openglider.airfoil import get_x_value
 from openglider.materials import Material, cloth
 from openglider.mesh.mesh import Vertex
 from openglider.utils.cache import cached_function, hash_list
-from openglider.utils.dataclass import BaseModel, dataclass, Field
+from openglider.utils.dataclass import dataclass, Field
 from openglider.vector.unit import Length, Percentage
 
 if TYPE_CHECKING:

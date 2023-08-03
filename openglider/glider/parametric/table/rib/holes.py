@@ -1,9 +1,5 @@
-from typing import Any, Dict, List
-from openglider.glider import curve
-from openglider.glider.curve import GliderCurveType
-from openglider.glider.parametric.table.base import RibTable, Keyword
+from openglider.glider.parametric.table.base import RibTable
 from openglider.glider.parametric.table.base.dto import DTO
-from openglider.glider.parametric.table.base.parser import Parser
 
 from openglider.glider.rib.crossports import RibHole, RibSquareHole, MultiSquareHole, AttachmentPointHole
 

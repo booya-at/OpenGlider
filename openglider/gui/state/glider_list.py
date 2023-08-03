@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
-from typing import Generic, Type, TYPE_CHECKING
+from typing import Generic, TYPE_CHECKING
 import logging
 import openglider
 
@@ -10,7 +10,6 @@ from openglider.gui.state.selection_list.list import SelectionList, SelectionLis
 from openglider.gui.state.selection_list.cache import Cache, CacheListType
 from openglider.glider.project import GliderProject
 from openglider.utils.colors import Color
-from openglider.utils.dataclass import dataclass
 
 if TYPE_CHECKING:
     from openglider.gui.views.glider_list import GliderListWidget

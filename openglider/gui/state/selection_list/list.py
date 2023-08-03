@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Generic, List, Optional, Type, TypeAlias, TypeVar
+from typing import Any, Generic, TypeVar
 from collections.abc import ItemsView, Iterator
 
 from openglider.utils.colors import Color, colorwheel

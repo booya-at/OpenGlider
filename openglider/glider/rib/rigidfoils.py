@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC
 import logging
 import math
-from typing import Tuple, TypeVar, List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import euklid
 import numpy as np

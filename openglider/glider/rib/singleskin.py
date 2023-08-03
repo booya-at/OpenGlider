@@ -14,7 +14,7 @@ from openglider.utils.cache import cached_function
 from openglider.vector.unit import Angle, Length, Percentage
 
 if typing.TYPE_CHECKING:
-    from openglider.glider.glider import Glider
+    pass
 
 
 class SingleSkinParameters(BaseModel):

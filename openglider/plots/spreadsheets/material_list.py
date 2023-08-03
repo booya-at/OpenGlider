@@ -1,7 +1,4 @@
-from typing import Tuple, List
-
 from openglider.glider.cell.diagonals import DiagonalRib
-from openglider.glider.cell.panel import Panel
 from openglider.glider.glider import Glider
 from openglider.utils.table import Table
 

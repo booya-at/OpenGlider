@@ -4,10 +4,9 @@ import collections
 import copy
 import functools
 import logging
-from typing import Dict, Generic, Literal, Optional, Tuple, Type, TypeVar, List, Any
-from collections.abc import Callable, Generator, Iterator, Sequence
+from typing import Generic, TypeVar, Any
+from collections.abc import Callable, Iterator, Sequence
 
-import numpy as np
 from typing import TYPE_CHECKING
 
 import openglider

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC
 import math
-from typing import Any, Dict, List
+from typing import Any
 from collections.abc import Sequence
 
 import euklid

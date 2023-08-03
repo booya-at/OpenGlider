@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING, List, Optional, Set, Tuple, Union
-from collections.abc import Callable, Iterator
+from typing import TYPE_CHECKING
+from collections.abc import Callable
 
 import euklid
 from openglider import logging
@@ -18,9 +18,7 @@ from openglider.vector.drawing import PlotPart
 from openglider.vector.text import Text
 from openglider.vector.unit import Percentage
 
-from openglider.utils.dataclass import BaseModel
 
-from openglider.utils.cache import cached_function
 
 if TYPE_CHECKING:
     from openglider.glider.rib import Rib
@@ -249,8 +247,7 @@ class RibPlot:
         if controlpoints is None:
             controlpoints = list(self.config.get_controlpoints(self.rib))
         for x in controlpoints:
-            marks = self.insert_mark(x, self.config.marks_controlpoint)
-        
+            self.insert_mark(x, self.config.marks_controlpoint)
 
     def get_point(self, x: float | Percentage, y: float=-1.) -> euklid.vector.Vector2D:
         x = float(x)
@@ -427,7 +424,6 @@ class SingleSkinRibPlot(RibPlot):
         cuts = outer_rib.cut(p1, p2)
 
         start = cuts[0][0]
-        stop = cuts[-1][0]
 
         contour = euklid.vector.PolyLine2D([])
 

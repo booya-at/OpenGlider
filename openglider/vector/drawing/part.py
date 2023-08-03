@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, TypeAlias
-from collections.abc import Iterable, Iterator, Sequence
+from typing import TYPE_CHECKING, Any, TypeAlias
+from collections.abc import Iterator
 import copy
 import svgwrite
 import svgwrite.shapes
@@ -11,7 +11,7 @@ import euklid
 import numpy as np
 
 if TYPE_CHECKING:
-    from openglider.vector.drawing.layout import Layout
+    pass
 
 LineList = list[euklid.vector.PolyLine2D]
 
@@ -200,7 +200,7 @@ class PlotPart:
         for layer_name, layer in self.layers.items():
             try:
                 value = max(self.max_function(0, layer), value)
-            except Exception as e:
+            except Exception:
                 #print("error", layer_name)
                 raise Exception(f"error {layer_name}, {len(layer)}, {list(layer)}")
         

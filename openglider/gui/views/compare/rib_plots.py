@@ -3,7 +3,7 @@ import math
 from openglider.gui.views_2d.dataframe import DataFramePlot
 from openglider.gui.widgets.config import ConfigWidget
 import pandas
-from openglider.gui.qt import QtGui, QtCore, QtWidgets
+from openglider.gui.qt import QtWidgets
 from openglider.gui.app.app import GliderApp
 from openglider.gui.state.glider_list import GliderCache
 from openglider.utils.dataclass import BaseModel

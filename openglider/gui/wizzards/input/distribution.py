@@ -1,5 +1,5 @@
 import logging
-from typing import Any, List
+from typing import Any
 from collections.abc import Callable
 
 import euklid

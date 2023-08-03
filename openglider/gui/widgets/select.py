@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import Any
 from openglider.gui.qt import QtWidgets, QtCore
 import enum
 

@@ -1,6 +1,5 @@
 from abc import ABC
 import math
-from typing import List, Optional, Tuple
 import logging
 import euklid
 
@@ -305,9 +304,7 @@ class FoldedCut(DesignCut):
         right_end_index = outer_right.cut(p1_with_offset, p2_with_offset, inner_lists[-1][1])[0]
 
         left_start = outer_left.get(left_start_index)
-        left_end = outer_left.get(left_end_index)
         right_start = outer_right.get(right_start_index)
-        right_end = outer_right.get(right_end_index)
 
         left_piece = outer_left.get(left_end_index, left_start_index)
         right_piece = outer_right.get(right_end_index, right_start_index)

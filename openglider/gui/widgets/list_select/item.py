@@ -9,7 +9,6 @@ from openglider.utils.colors import Color
 from openglider.gui.qt import QtCore, QtGui, QtWidgets
 
 if TYPE_CHECKING:
-    from .list import ListWidget
     from openglider.gui.widgets.list_select.list import GenericListWidget
 
 

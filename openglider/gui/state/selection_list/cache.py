@@ -1,6 +1,6 @@
 from openglider.gui.state.selection_list.list import SelectionList, SelectionListItem
 from openglider.utils.dataclass import dataclass
-from typing import Any, List, Tuple, TypeVar, Generic, Dict
+from typing import Any, TypeVar, Generic
 
 ListType = TypeVar("ListType")
 CacheListType = TypeVar("CacheListType")

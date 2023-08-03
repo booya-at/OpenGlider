@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Tuple, TypeAlias
-from collections.abc import Iterator, Sequence
+from typing import TYPE_CHECKING, Any, TypeAlias
+from collections.abc import Iterator
 import euklid
 
 from openglider.glider.ballooning.base import BallooningBase

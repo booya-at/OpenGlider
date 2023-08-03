@@ -1,5 +1,4 @@
 from openglider.glider import Glider
-from openglider.glider.cell.rigidfoil import PanelRigidFoil
 from openglider.utils.table import Table
 
 

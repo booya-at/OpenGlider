@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import pyqtgraph
 from pyqtgraph.GraphicsScene.mouseEvents import MouseDragEvent

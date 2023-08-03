@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, List, Tuple
+from typing import TYPE_CHECKING, Any
 from collections.abc import Callable
 
 import euklid
 from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.project import GliderProject
-from openglider.gui.app.app import GliderApp
 from openglider.gui.qt import QtWidgets
 from openglider.gui.views_2d import Canvas, DraggableLine, Line2D
 from openglider.gui.views_2d.canvas import LayoutGraphics

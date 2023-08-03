@@ -1,6 +1,3 @@
-from typing import Dict, Tuple
-
-
 colour_codes: dict[int, tuple[int, int, int]] = {
     0: (0, 0, 0),
     1: (255, 0, 0),

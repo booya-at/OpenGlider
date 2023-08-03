@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Type
+from typing import TYPE_CHECKING, Any
 import logging
 import math
 import numbers
@@ -8,7 +8,7 @@ import re
 
 import euklid
 from openglider.glider.ballooning.base import BallooningBase
-from openglider.utils.types import CurveType, SymmetricCurveType
+from openglider.utils.types import SymmetricCurveType
 import pyfoil
 from openglider.glider.ballooning import BallooningBezier, BallooningBezierNeu
 from openglider.glider.parametric.arc import ArcCurve
@@ -130,7 +130,6 @@ def import_ods_glider(cls: type[ParametricGlider], tables: list[Table]) -> Param
     }
 
     migrate_header = cell_sheet[0, 0] is not None and cell_sheet[0, 0] < "V4"
-    openglider_version = data_dct.pop("version", 0)
 
     glider_tables = GliderTables()
     glider_tables.curves = curves

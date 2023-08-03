@@ -1,7 +1,6 @@
 import unittest
 import random
 
-from openglider.tests.common import openglider
 from openglider.glider import ballooning
 import euklid
 

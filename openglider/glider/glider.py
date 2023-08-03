@@ -1,12 +1,10 @@
 from __future__ import annotations
 import logging
 
-from typing import TYPE_CHECKING, List, Dict, Any, Optional, Tuple
+from typing import TYPE_CHECKING, Any
 import copy
 import math
-from typing import List
 import re
-import numpy as np
 import euklid
 
 import openglider

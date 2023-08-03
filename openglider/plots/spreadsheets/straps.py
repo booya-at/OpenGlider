@@ -1,4 +1,3 @@
-from openglider.glider.cell.diagonals import TensionStrap
 from openglider.glider.glider import Glider
 from openglider.utils.table import Table
 

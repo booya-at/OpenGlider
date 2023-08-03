@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Dict, List, Union, TYPE_CHECKING
+from typing import Any, Union, TYPE_CHECKING
 from collections.abc import Mapping
 
 import ast
@@ -7,7 +7,6 @@ import logging
 import re
 
 import euklid
-from pydantic import BaseModel
 from openglider.glider.cell.attachment_point import CellAttachmentPoint
 from openglider.glider.cell.cell import Cell
 from openglider.glider.curve import GliderCurveType

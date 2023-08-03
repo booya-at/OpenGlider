@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 from collections.abc import Callable
 
 import numpy as np
@@ -113,7 +113,6 @@ class Image(pyqtgraph.ImageItem):
         if vt is None:
             return QtCore.QPointF(self.point_radius, self.point_radius)
         #vt = pyqtgraph.functions.invertQTransform(vt)
-        p0 = QtCore.QPointF(0, 0)
         v1 = vt.map(QtCore.QLineF(0, 0, 1, 0)).length()
         v2 = vt.map(QtCore.QLineF(0, 0, 0, 1)).length()
 

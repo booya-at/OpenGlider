@@ -1,7 +1,7 @@
 from __future__ import annotations
 import math
 
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from collections.abc import Callable
 import numpy as np
 

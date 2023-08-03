@@ -4,7 +4,7 @@ import euklid
 import string
 import subprocess
 from asyncio.log import logger
-from typing import Any, Dict, List, Optional
+from typing import Any
 from pathlib import Path
 
 import openglider.glider

@@ -3,8 +3,8 @@ import os
 import io
 import math
 from pathlib import Path
-from typing import Any, Dict, List, Union, Optional
-from collections.abc import Iterable, Iterator, Sequence
+from typing import Any
+from collections.abc import Iterator, Sequence
 
 import ezdxf
 import ezdxf.document

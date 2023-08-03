@@ -1,9 +1,8 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from openglider.glider.parametric.table.base import Keyword, RibTable, dto
 from openglider.glider.rib.singleskin import SingleSkinParameters
-from openglider.utils.table import Table
 from openglider.vector.unit import Angle, Percentage
 
 logger = logging.getLogger(__name__)

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, List, Dict, Optional
+from typing import TYPE_CHECKING, Any
 import logging
 
 import euklid
@@ -9,7 +9,6 @@ from openglider.lines.node import Node
 from openglider.lines import line_types
 from openglider.utils.cache import cached_property, CachedObject
 from openglider.mesh import Mesh, Vertex, Polygon
-from openglider.utils.dataclass import BaseModel
 
 if TYPE_CHECKING:
     from openglider.glider.glider import Glider

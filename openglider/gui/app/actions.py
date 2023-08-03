@@ -1,7 +1,5 @@
-from typing import Dict, Tuple, List, Type
 import logging
 
-from openglider.gui.qt import QtWidgets
 
 from openglider.gui.wizzards.base import Wizard
 from openglider.gui.wizzards.input import input_wizzards

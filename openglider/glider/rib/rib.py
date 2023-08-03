@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing_extensions import Self
-from typing import Any, List, TYPE_CHECKING, Tuple, Type
-import copy
+from typing import Any, TYPE_CHECKING
 import numpy as np
 import logging
 
@@ -21,8 +20,7 @@ from openglider.vector.unit import Length, Percentage
 
 
 if TYPE_CHECKING:
-    from openglider.lines.line import Line
-    from openglider.glider.glider import  Glider
+    pass
 
 
 logger = logging.getLogger(__name__)

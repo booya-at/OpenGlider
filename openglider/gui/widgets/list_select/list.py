@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Generic, Type, TypeVar
+from typing import Any, Generic, TypeVar
 
 from openglider.gui.state.selection_list.list import SelectionList, SelectionListItemT
 from openglider.gui.qt import QtCore, QtWidgets

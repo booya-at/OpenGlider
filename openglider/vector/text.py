@@ -1,4 +1,4 @@
-from typing import Any, List, Dict, Literal
+from typing import Any, Literal
 
 import euklid
 

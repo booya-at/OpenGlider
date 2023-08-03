@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import logging
 from openglider.gui.qt import QtWidgets, QtGui, QtCore
-from typing import Any, List, Tuple
+from typing import Any
 from collections.abc import Iterator
 import euklid
-from typing import Literal, Optional
 
 from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.parametric.glider import ParametricGlider

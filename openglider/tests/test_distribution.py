@@ -2,7 +2,6 @@ import random
 from typing import Any
 import unittest
 
-import numpy as np
 
 from openglider.utils.distribution import Distribution
 

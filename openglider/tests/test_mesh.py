@@ -1,10 +1,9 @@
 import unittest
 
 
-from openglider.tests.common import *
+from openglider.tests.common import GliderTestCase
 
 from openglider.mesh import Mesh, Vertex, Polygon
-import openglider
 from openglider.utils.distribution import Distribution
 
 

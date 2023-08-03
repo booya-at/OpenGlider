@@ -1,8 +1,7 @@
 import logging
 
-from openglider.glider.project import GliderProject
 from openglider.gui.app.app import GliderApp
-from openglider.gui.qt import QtCore, QtGui, QtWidgets
+from openglider.gui.qt import QtWidgets
 from openglider.gui.state.glider_list import GliderCache
 from openglider.gui.views.compare.base import CompareView
 from openglider.gui.views.compare.glider_3d.actor import GliderActors

@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import asyncio
-import datetime
 import logging
 import os
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type
-from collections.abc import Callable, Generator, Iterator
+from typing import TYPE_CHECKING, Any
+from collections.abc import Callable, Iterator
 
 import openglider
 from openglider.glider.project import GliderProject
@@ -15,14 +14,13 @@ from openglider.gui.views.console import ConsoleHandler, ConsoleWidget
 from openglider.gui.views.diff import DiffView
 from openglider.gui.views.glider_list import GliderListWidget
 from openglider.gui.views.tasks import QTaskQueue
-from openglider.gui.views.window import GliderWindow, Window
+from openglider.gui.views.window import Window
 from openglider.gui.widgets.icon import Icon
 
 from openglider.gui.views.help import HelpView
 
 from openglider.gui.wizzards.base import Wizard
 
-from openglider.gui import views
 
 if TYPE_CHECKING:
     from openglider.gui.app.app import GliderApp

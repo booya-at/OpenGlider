@@ -3,12 +3,11 @@ from __future__ import annotations
 import copy
 import logging
 import math
-from typing import TYPE_CHECKING, Dict, List, Tuple, Optional
+from typing import TYPE_CHECKING
 from collections.abc import Callable
 
 import euklid
 from openglider.glider.parametric.table.base.parser import Parser
-from openglider.glider.parametric.table.base.table import ElementTable
 import openglider.materials
 import pyfoil
 from openglider.glider.ballooning.base import BallooningBase
@@ -25,7 +24,7 @@ from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.parametric.table import GliderTables
 from openglider.glider.rib import Rib, SingleSkinRib
 from openglider.utils import ZipCmp
-from openglider.utils.cache import cached_function, cached_property
+from openglider.utils.cache import cached_property
 from openglider.utils.dataclass import dataclass, Field
 from openglider.utils.distribution import Distribution
 from openglider.utils.table import Table

@@ -1,6 +1,5 @@
-from typing import Dict, List
 from collections.abc import Callable
-from openglider.gui.qt import QtWidgets, QtCore
+from openglider.gui.qt import QtWidgets
 
 
 class WindowSwitcher(QtWidgets.QWidget):
@@ -16,7 +15,7 @@ class WindowSwitcher(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
         self.selector = QtWidgets.QComboBox()
-        self.selector.activated.connect(self.show_widget, str)
+        self.selector.activated.connect(self.show_widget)
         layout.addWidget(self.selector)
 
         self.widgets = {}

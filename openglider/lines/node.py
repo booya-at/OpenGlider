@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import enum
-from typing import Any, Dict, TypeAlias
+from typing import Any
 
 import euklid
 

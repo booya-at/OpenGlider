@@ -18,7 +18,6 @@ def start_main_window() -> None:
     if sys.gettrace() != None:
         app.debug = True
 
-    home = os.path.expanduser("~")
 
     #og_dir = os.path.dirname(os.path.dirname(openglider.__file__))
     #filename = os.path.join(og_dir, "tests/common/demokite.ods")

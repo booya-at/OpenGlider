@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Dict, Any
+from typing import TYPE_CHECKING, Any
 
-from openglider.jsonify.encoder import Encoder
 from openglider.jsonify.migration.migration import Migration
 
 if TYPE_CHECKING:

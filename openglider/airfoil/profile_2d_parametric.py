@@ -1,7 +1,7 @@
 from __future__ import annotations
 import math
 
-from typing import Any, Dict, List, Literal
+from typing import Any, Literal
 import numpy as np
 import euklid
 

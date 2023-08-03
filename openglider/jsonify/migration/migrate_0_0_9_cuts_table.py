@@ -1,12 +1,10 @@
 import logging
-import json
-from typing import TYPE_CHECKING, Any, Dict, List, Literal, Tuple, Type
+from typing import TYPE_CHECKING, Any, Literal
 from openglider.glider.parametric.table.curve import CurveTable
 from openglider.glider.parametric.table.rigidfoil import CellRigidTable, RibRigidTable
-from openglider.glider.parametric.table.material import CellClothTable, RibClothTable, Material
+from openglider.glider.parametric.table.material import CellClothTable, RibClothTable
 from openglider.glider.parametric.table.cell.miniribs import MiniRibTable
 
-from openglider.jsonify.encoder import Encoder
 from openglider.jsonify.migration.migration import Migration
 from openglider.glider.parametric.table.cell.cuts import CutTable
 from openglider.utils.table import Table

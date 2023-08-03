@@ -1,10 +1,6 @@
-from typing import Dict, List
-import datetime
 import logging
-import pyqtgraph
 from openglider.gui.qt import QtWidgets
 
-from openglider.glider.project import GliderProject
 from openglider.gui.app.app import GliderApp
 from openglider.utils.table import Table
 from openglider.gui.widgets.table import QTable

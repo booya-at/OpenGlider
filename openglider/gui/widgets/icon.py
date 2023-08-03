@@ -1,5 +1,4 @@
 import os
-from typing import Dict
 
 import iconify
 from openglider.gui.qt import QtGui

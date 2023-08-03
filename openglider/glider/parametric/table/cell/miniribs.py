@@ -1,8 +1,8 @@
-from typing import Any, List
+from typing import Any
 from openglider.glider.parametric.table.base.dto import DTO
 from openglider.glider.rib import MiniRib
 
-from openglider.glider.parametric.table.base import CellTable, Keyword
+from openglider.glider.parametric.table.base import CellTable
 from openglider.vector.unit import Percentage
 
 class MiniRibDTO(DTO):

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from typing import List, Tuple
 from collections.abc import Iterator
 from openglider.utils.dataclass import dataclass
 import euklid

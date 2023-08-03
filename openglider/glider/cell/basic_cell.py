@@ -1,8 +1,6 @@
 from __future__ import annotations
 import copy
 import math
-from typing import List
-import numpy as np
 import euklid
 
 from openglider.airfoil import Profile3D

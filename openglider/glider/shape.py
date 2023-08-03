@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import math
-from typing import TYPE_CHECKING, List, Tuple, TypeAlias
+from typing import TYPE_CHECKING, TypeAlias
 
 import euklid
 from openglider.vector.drawing import Layout, PlotPart

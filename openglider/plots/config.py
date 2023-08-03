@@ -1,5 +1,4 @@
 import math
-from typing import Any, Type
 from collections.abc import Callable
 
 from openglider.glider.rib.rib import Rib

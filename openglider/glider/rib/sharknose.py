@@ -36,7 +36,6 @@ class Sharknose:
 
         point_start = rib.profile_2d.curve.get(ik_start)
         point_position = rib.profile_2d.curve.get(ik_position)
-        position = point_position[0]
         point_end = rib.profile_2d.curve.get(ik_end)
 
         point_position[1] = point_position[1] + (point_start[1]-point_position[1])*self.amount

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 import math
-from typing import Any, Dict, List
+from typing import Any
 import euklid
 import numpy as np
 from openglider.utils.types import SymmetricCurveType

@@ -1,5 +1,3 @@
-from typing import Dict
-
 from openglider.glider.glider import Glider
 
 

@@ -1,5 +1,4 @@
-from typing import Any, List
-from openglider.gui.qt import QtGui, QtCore, QtWidgets
+from openglider.gui.qt import QtCore, QtWidgets
 
 
 class FlowLayout(QtWidgets.QLayout):

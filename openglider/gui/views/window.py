@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 import typing
 
-import numpy
 from openglider.glider.project import GliderProject
 from openglider.gui.qt import QtCore, QtGui, QtWidgets
 

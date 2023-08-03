@@ -6,7 +6,6 @@ import euklid
 import openglider
 from openglider.glider.rib.rib import Rib
 from openglider.glider.rib.crossports import RibHole
-from openglider.mesh import Mesh
 from openglider.materials import cloth
 from openglider.vector.unit import Percentage
 
@@ -25,7 +24,6 @@ class TestRib(unittest.TestCase):
                        material=cloth.get("default"))
 
     def test_normvectors(self) -> None:
-        normvectors = self.rib.normvectors
 
     def test_align(self) -> None:
         first = self.rib.pos

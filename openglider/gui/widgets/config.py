@@ -1,7 +1,5 @@
-from typing import Type
 from collections.abc import Callable
 from openglider.gui.qt import QtWidgets, QtCore
-import enum
 
 import logging
 

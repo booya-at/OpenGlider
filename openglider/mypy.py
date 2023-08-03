@@ -1,4 +1,4 @@
-from typing import Optional, Type
+from typing import Type
 from collections.abc import Callable
 
 from mypy.plugin import ClassDefContext, Plugin

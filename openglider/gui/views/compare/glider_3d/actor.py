@@ -1,5 +1,4 @@
 import logging
-from typing import Dict
 
 import openglider.mesh
 from openglider.glider.glider import Glider

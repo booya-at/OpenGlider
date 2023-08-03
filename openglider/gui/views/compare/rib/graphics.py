@@ -1,6 +1,4 @@
-from typing import Dict, List
 import logging
-from openglider.glider.glider import Glider
 
 from openglider.utils.colors import Color
 from openglider.glider.project import GliderProject

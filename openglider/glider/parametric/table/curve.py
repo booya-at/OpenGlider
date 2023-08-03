@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Any
+from typing import Any
 from openglider.glider.parametric.table.base import TableType
 
 from openglider.utils.table import Table

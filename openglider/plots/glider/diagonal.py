@@ -1,14 +1,12 @@
 import logging
-from typing import List, Tuple
 
 import euklid
 from openglider.glider.cell import DiagonalRib
 from openglider.glider.cell.cell import Cell
-from openglider.glider.rib.attachment_point import AttachmentPoint
 from openglider.plots.config import PatternConfig
 from openglider.plots.usage_stats import Material, MaterialUsage
 from openglider.utils.config import Config
-from openglider.vector.drawing import Layout, PlotPart
+from openglider.vector.drawing import PlotPart
 from openglider.vector.text import Text
 
 

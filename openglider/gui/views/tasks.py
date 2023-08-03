@@ -1,17 +1,16 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Generic, List, Optional, Type, TypeVar
+from typing import TYPE_CHECKING, Any
 import logging
 import asyncio
 
-from openglider.gui.qt import QtGui, QtWidgets, QtCore
+from openglider.gui.qt import QtWidgets, QtCore
 
 from openglider.utils.tasks import TaskQueue, Task
 from openglider.gui.widgets.icon import Icon
 from openglider.gui.views.window import Window
 
 if TYPE_CHECKING:
-    from openglider.gui.app.app import GliderApp
     from openglider.gui.app.main_window import MainWindow
 
 

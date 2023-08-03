@@ -4,11 +4,10 @@ import inspect
 import json
 import html
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 from collections.abc import Iterator
 
 from pydantic import parse_obj_as
-from openglider.utils.cache import recursive_getattr
 import logging
 
 from openglider.utils.dataclass import BaseModel

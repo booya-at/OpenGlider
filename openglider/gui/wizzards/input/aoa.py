@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import Any, List, Tuple, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import euklid
 from openglider.glider.project import GliderProject

@@ -1,6 +1,6 @@
-from typing import Generic, List, Optional, TypeVar
+from typing import Generic, TypeVar
 from collections.abc import Callable
-from openglider.gui.qt import QtWidgets, QtCore
+from openglider.gui.qt import QtWidgets
 
 T = TypeVar("T")
 

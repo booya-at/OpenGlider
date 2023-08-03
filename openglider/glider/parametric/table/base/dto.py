@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import abc
 import types
-from typing import Any, Generic, Self, Type, TypeVar
+from typing import Any, Generic, Self, TypeVar
 from collections.abc import Callable, Generator
 
 from pydantic.generics import GenericModel

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 import euklid
 
 from openglider.airfoil import Profile3D
-from openglider.utils.dataclass import BaseModel, dataclass, Field
+from openglider.utils.dataclass import dataclass, Field
 
 if TYPE_CHECKING:
     from openglider.glider.cell import Cell
@@ -58,15 +58,8 @@ class MiniRib:
         return Profile3D(euklid.vector.PolyLine3D(points))
 
     def get_flattened(self, cell: Cell) -> None:
-        prof_3d = self.get_3d(cell)
-        prof_flat = prof_3d.flatten()
-        prof_normalized = prof_flat.copy().normalized()
 
-        p1 = prof_normalized(-self.back_cut)
-        p2 = prof_normalized(-self.front_cut)
 
-        p3 = prof_normalized(self.front_cut)
-        p4 = prof_normalized(self.back_cut)
 
         raise NotImplementedError()
 

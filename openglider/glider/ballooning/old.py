@@ -1,11 +1,10 @@
 from __future__ import annotations
 import copy
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import euklid
 
 from openglider.glider.ballooning.base import BallooningBase
-from openglider.utils.types import CurveType
 
 
 class Ballooning(BallooningBase):

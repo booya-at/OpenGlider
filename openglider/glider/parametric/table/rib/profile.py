@@ -1,4 +1,4 @@
-from typing import Any, List, Tuple, Optional, Dict
+from typing import Any
 import logging
 from openglider.glider.parametric.table.base.dto import DTO
 

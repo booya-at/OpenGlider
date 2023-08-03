@@ -5,8 +5,8 @@ import functools
 import logging
 import sys
 import time
-from typing import Any, Concatenate, Dict, List, Optional, TypeVar, ParamSpec, Type, NoReturn
-from collections.abc import Callable, Iterator
+from typing import Any, TypeVar, ParamSpec
+from collections.abc import Callable
 
 from typing_extensions import Self
 

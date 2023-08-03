@@ -1,12 +1,8 @@
-import enum
 import logging
-import sys
 import typing
-from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
+from typing import Generic, TypeVar, Union
 
-from openglider.glider.curve import GliderCurveType
 from openglider.utils.table import Table
-from openglider.version import __version__
 
 logger = logging.getLogger(__name__)
 

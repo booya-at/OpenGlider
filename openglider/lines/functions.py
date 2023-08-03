@@ -19,7 +19,6 @@
 
 import logging
 import euklid
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 

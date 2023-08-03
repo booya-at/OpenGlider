@@ -1,11 +1,11 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, List, Dict, Optional
+from typing import TYPE_CHECKING, Any
 import logging
 
 import euklid
 from openglider.glider.shape import Shape
 from openglider.lines.node import NODE_TYPE_ENUM, Node
-from openglider.utils.dataclass import BaseModel, dataclass
+from openglider.utils.dataclass import BaseModel
 from openglider.vector.polygon import Circle
 from openglider.vector.unit import Percentage, Length
 

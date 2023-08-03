@@ -5,7 +5,7 @@ import os
 import re
 import datetime
 import logging
-from typing import Any, List, Tuple, Dict
+from typing import Any
 
 from openglider.glider.glider import Glider
 from openglider.glider.parametric import ParametricGlider

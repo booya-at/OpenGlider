@@ -1,6 +1,4 @@
-from typing import Any, Optional, Type
-import PySide6.QtCore
-import PySide6.QtWidgets
+from typing import Any
 from openglider.gui.qt import QtWidgets
 
 from openglider.gui.widgets.select import AutoComplete

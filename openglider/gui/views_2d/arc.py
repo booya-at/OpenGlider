@@ -1,8 +1,7 @@
-from typing import Any, List, Tuple
+from typing import Any
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.gui.qt import QtWidgets, QtGui, QtCore
 from openglider.utils.colors import Color
-import pyqtgraph
 import euklid
 
 from openglider.glider.project import GliderProject

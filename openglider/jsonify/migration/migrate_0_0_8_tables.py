@@ -1,7 +1,7 @@
 import logging
 import json
 import copy
-from typing import Any, Dict, List, Literal
+from typing import Any, Literal
 
 from openglider.jsonify.encoder import Encoder
 from openglider.jsonify.migration.migration import Migration

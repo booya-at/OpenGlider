@@ -1,17 +1,14 @@
 from __future__ import annotations
 
-import copy
-from datetime import datetime
 import math
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 import euklid
 import ezodf
 import openglider.glider
-from openglider.glider.ballooning.old import Ballooning, BallooningBezier
+from openglider.glider.ballooning.old import BallooningBezier
 import openglider.glider.parametric.glider
 from openglider.glider.ballooning import BallooningBezierNeu
-from openglider.glider.rib import attachment_point
 from openglider.utils.table import Table
 from openglider.utils.types import CurveType
 

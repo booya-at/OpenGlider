@@ -1,4 +1,4 @@
-from openglider.gui.qt import QtWidgets, QtGui
+from openglider.gui.qt import QtWidgets
 import vtkmodules
 import vtkmodules.vtkRenderingOpenGL2
 import vtkmodules.vtkRenderingCore
@@ -7,8 +7,6 @@ from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from vtkmodules.vtkRenderingAnnotation import vtkAxesActor
 from vtkmodules.vtkRenderingCore import vtkActor
 
-import openglider.mesh
-from openglider.gui.views_3d.actors import MeshView, PanelView
 from openglider.gui.views_3d.interactor import Interactor
 
 

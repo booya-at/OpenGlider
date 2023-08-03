@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 import math
 from os import PathLike
-from typing import Dict, List, Optional
 from collections.abc import Iterator
 
 import euklid
@@ -11,7 +10,6 @@ import numpy as np
 from openglider.lines.line import Line
 from openglider.lines.node import Node
 import openglider.plots.marks as marks
-from attr import attr
 from openglider.glider import GliderProject
 from openglider.glider.cell.panel import Panel, PanelCut
 from openglider.utils.dataclass import dataclass

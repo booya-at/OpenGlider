@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from openglider.utils.dataclass import dataclass, Field, BaseModel
-from typing import Dict, List, Tuple, Union, Optional
+from openglider.utils.dataclass import dataclass, Field
 import logging
 
 import euklid

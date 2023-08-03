@@ -1,7 +1,7 @@
 import random
 import unittest
 
-from openglider.tests.common import *
+from openglider.tests.common import GliderTestCase
 
 
 class TestGlider(GliderTestCase):

@@ -1,5 +1,4 @@
 from __future__ import annotations
-from cmath import isnan
 
 import copy
 import dataclasses
@@ -7,7 +6,7 @@ import logging
 import math
 import os
 import re
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any
 from collections.abc import Callable
 
 import euklid
@@ -202,7 +201,6 @@ class LineSet:
         node =  node or self.get_main_attachment_point()
         def recursive_level(node: Node, current_level: int) -> list[Line]:
             lines = self.get_upper_connected_lines(node)
-            nodes = [line.upper_node for line in lines]
             if not lines and en_style:
                 return self.get_lower_connected_lines(node)
             elif current_level == target_floor:

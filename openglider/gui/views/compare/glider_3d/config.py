@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional
 import logging
-from openglider.gui.qt import QtGui, QtCore, QtWidgets
+from openglider.gui.qt import QtCore, QtWidgets
 
-from openglider.utils.dataclass import dataclass, BaseModel
+from openglider.utils.dataclass import BaseModel
 
 logger = logging.getLogger(__name__)
 

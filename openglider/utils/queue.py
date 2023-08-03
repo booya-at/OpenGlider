@@ -1,8 +1,8 @@
 import asyncio
 import multiprocessing
 import logging
-from typing import Any, List
-from collections.abc import Callable, Coroutine
+from typing import Any
+from collections.abc import Coroutine
 
 logger = logging.getLogger(__name__)
 

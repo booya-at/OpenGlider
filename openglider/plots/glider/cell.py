@@ -1,16 +1,14 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Dict, Literal, Optional, Type
+from typing import TYPE_CHECKING, Any
 from collections.abc import Callable
 import logging
 import math
-from typing import Tuple, List, Final
 
 import euklid
 import numpy as np
 from openglider.airfoil import get_x_value
 from openglider.glider.cell.cell import FlattenedCell
 from openglider.glider.cell.panel import Panel, PANELCUT_TYPES
-from openglider.glider.cell.diagonals import DiagonalRib
 from openglider.plots.config import PatternConfig
 from openglider.plots.cuts import Cut
 from openglider.plots.glider.diagonal import DribPlot, StrapPlot
@@ -18,7 +16,6 @@ from openglider.plots.usage_stats import MaterialUsage
 from openglider.utils.cache import cached_property
 from openglider.utils.config import Config
 from openglider.vector.drawing import PlotPart
-from openglider.vector.drawing.part import Layer
 from openglider.vector.text import Text
 from openglider.vector.unit import Length, Percentage
 
@@ -347,7 +344,6 @@ class PanelPlot:
 
 
     def _insert_diagonals(self, plotpart: PlotPart) -> None:
-        layer = plotpart.layers["L0"]
 
 
         for strap in self.cell.straps + self.cell.diagonals:

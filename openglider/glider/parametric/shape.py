@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import math
-from typing import List, Literal, Tuple
+from typing import Literal
 import logging
 
 import euklid
 from openglider.glider.shape import Shape
 from openglider.utils import linspace
-from openglider.utils.dataclass import BaseModel, dataclass
-from openglider.utils.table import Table
+from openglider.utils.dataclass import dataclass
 from openglider.utils.types import CurveType, SymmetricCurveType
 
 

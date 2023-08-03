@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Generic, List, Tuple, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 from collections.abc import Callable
 from datetime import datetime
-import re
-from openglider.glider.glider import Glider
 from openglider.gui.qt import QtWidgets, QtGui, QtCore
 import logging
 
@@ -14,7 +12,6 @@ from openglider.utils.colors import Color, colorwheel
 
 
 if TYPE_CHECKING:
-    from openglider.gui.app import GliderApp
     from openglider.gui.app.main_window import MainWindow
 
 class Wizard(GliderWindow):

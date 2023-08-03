@@ -1,9 +1,5 @@
-from typing import Dict, List
-import datetime
-import pyqtgraph
 import logging
-from openglider.gui.qt import QtGui, QtCore, QtWidgets
-from openglider.glider.project import GliderProject
+from openglider.gui.qt import QtWidgets
 from openglider.gui.app.app import GliderApp
 from openglider.gui.views_2d.canvas import Canvas
 from openglider.gui.views_2d.arc import Arc2D

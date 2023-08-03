@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Self, Tuple, List, Dict, TypeAlias
-from collections.abc import Sequence
-import copy
+from typing import TYPE_CHECKING, Any, Self, TypeAlias
 import re
 import logging
 import math
 
-import numpy as np
 import euklid
 from openglider.glider.cell.attachment_point import CellAttachmentPoint
 from openglider.glider.rib.attachment_point import AttachmentPoint
@@ -242,7 +239,6 @@ class LineSet2D:
         lower_lines_count = 0
 
         for line in self.lines:
-            target_length = getattr(line, "target_length", None)
             if line.target_length is not None:
                 if scale_lower_floor or line.lower_node not in lower_nodes:
                     line.target_length *= factor

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Tuple
+from typing import Any
 from collections.abc import Callable
 
 import euklid
@@ -57,8 +57,6 @@ class CurveInput(Canvas):
     def draw_shape(self) -> None:
         if self.layout_graphics is not None:
             self.removeItem(self.layout_graphics)
-        config = self.shape_settings.get_config()
-        dwg = self.shape_plot.redraw(config[0] + config[1])
 
         self.layout_graphics = LayoutGraphics(self.shape_plot.drawing, fill=False)
         self.addItem(self.layout_graphics)

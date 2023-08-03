@@ -2,7 +2,7 @@ import inspect
 import json
 import re
 import datetime
-from typing import Any, Dict
+from typing import Any
 
 
 # Main json-export routine.

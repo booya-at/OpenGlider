@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, List, Tuple
+from typing import TYPE_CHECKING, Any
 from openglider.glider.ballooning.base import BallooningBase
 from openglider.glider.project import GliderProject
 

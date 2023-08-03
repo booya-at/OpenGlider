@@ -10,7 +10,7 @@ import sys
 import time
 import traceback
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Optional, Type
+from typing import TYPE_CHECKING, Any
 from collections.abc import Callable
 
 import qtmodern.styles

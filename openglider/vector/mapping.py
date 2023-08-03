@@ -1,9 +1,8 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import math
 import numpy
 import euklid
-import openglider.jsonify
 
 d = 1e-4
 

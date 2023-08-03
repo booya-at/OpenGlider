@@ -1,5 +1,4 @@
 import euklid
-from typing import List, Optional, Tuple
 from collections.abc import Iterator, Sized
 from meshpy.triangle import MeshInfo
 import meshpy._internals as internals

@@ -1,9 +1,8 @@
 from __future__ import annotations
-import asyncio
 
 import os
 import logging
-from typing import TYPE_CHECKING, Dict, Any
+from typing import TYPE_CHECKING, Any
 
 from openglider.gui.state.glider_list import GliderList
 import openglider.jsonify
@@ -11,7 +10,7 @@ from openglider.glider.project import GliderProject
 from openglider.utils.dataclass import dataclass, Field
 
 if TYPE_CHECKING:
-    from openglider.gui.views.glider_list import GliderListWidget
+    pass
 
 @dataclass
 class ApplicationState:

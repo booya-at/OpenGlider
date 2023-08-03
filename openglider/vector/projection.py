@@ -1,6 +1,3 @@
-from typing import Tuple
-
-import numpy as np
 import euklid
 
 V3 = euklid.vector.Vector3D

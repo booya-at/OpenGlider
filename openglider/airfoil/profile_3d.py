@@ -1,4 +1,4 @@
-from typing import List, Union, Optional, overload
+from typing import overload
 
 import euklid
 import pyfoil
