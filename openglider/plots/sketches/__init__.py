@@ -4,7 +4,7 @@ from openglider.plots.sketches.shapeplot import ShapePlot
 from openglider.plots.sketches.lineplan import LinePlan
 
 
-def get_all_plots(project: GliderProject) -> Dict[str, ShapePlot]:
+def get_all_plots(project: GliderProject) -> dict[str, ShapePlot]:
     design_upper = ShapePlot(project)
     design_upper.draw_design(lower=False)
     design_upper.draw_design(lower=False, left=True)

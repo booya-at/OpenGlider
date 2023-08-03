@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
+from collections.abc import Callable
 
 import euklid
 from openglider.glider.curve import CurveEnum, GliderCurveType, ShapeBSplineCurve
@@ -35,7 +36,7 @@ class CurveInput(Canvas):
     curves: SelectionList[GliderCurveType, SelectionListItem[GliderCurveType]]
     active_curve: SelectionListItem[GliderCurveType] | None = None
     layout_graphics: LayoutGraphics | None
-    on_change: List[Callable]
+    on_change: list[Callable]
 
     def __init__(self, project: GliderProject, curves: SelectionList[GliderCurveType, SelectionListItem[GliderCurveType]]):
         super().__init__(parent=None)
@@ -49,7 +50,7 @@ class CurveInput(Canvas):
         self.shape_settings.changed.connect(self.draw_shape)
 
 
-        self.curve_shapes: Dict[str, Tuple[Line2D, Line2D]] = {}
+        self.curve_shapes: dict[str, tuple[Line2D, Line2D]] = {}
         self.layout_graphics = None
         self.draw_shape()
     

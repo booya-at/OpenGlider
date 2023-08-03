@@ -1,9 +1,10 @@
-from typing import Callable, Dict, List
+from typing import Dict, List
+from collections.abc import Callable
 from openglider.gui.qt import QtWidgets, QtCore
 
 
 class WindowSwitcher(QtWidgets.QWidget):
-    widgets: Dict[str, QtWidgets.QWidget]
+    widgets: dict[str, QtWidgets.QWidget]
     
     def __init__(self, target_widget: QtWidgets.QWidget) -> None:
         super().__init__()
@@ -38,7 +39,7 @@ class WindowSwitcher(QtWidgets.QWidget):
 class InputLabel(QtWidgets.QWidget):
     _text: str
     _active: bool
-    on_change: List[Callable[[str], None]]
+    on_change: list[Callable[[str], None]]
 
     def __init__(self) -> None:
         super().__init__()

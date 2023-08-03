@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Generic, ItemsView, Iterator, List, Optional, Type, TypeAlias, TypeVar
+from typing import Any, Dict, Generic, List, Optional, Type, TypeAlias, TypeVar
+from collections.abc import ItemsView, Iterator
 
 from openglider.utils.colors import Color, colorwheel
 from openglider.utils.dataclass import Field, dataclass
@@ -17,7 +18,7 @@ class SelectionListItem(Generic[ItemType]):
     color: Color
     name: str
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {
             "element": self.element,
             "active": self.active,
@@ -26,7 +27,7 @@ class SelectionListItem(Generic[ItemType]):
         }
     
     @classmethod
-    def __from_json__(cls, **dct: Dict[str, Any]) -> SelectionListItem:
+    def __from_json__(cls, **dct: dict[str, Any]) -> SelectionListItem:
         dct["color"] = Color.parse_hex(dct["color"])  # type: ignore
         return cls(**dct)  # type: ignore
 
@@ -38,10 +39,10 @@ SelectionListItemT = TypeVar("SelectionListItemT", bound=SelectionListItem, cova
 @dataclass
 class SelectionList(Generic[ItemType, SelectionListItemT]):
 
-    elements: Dict[str, SelectionListItemT]=Field(default_factory=lambda: {})
-    selected_element: Optional[str] = None
+    elements: dict[str, SelectionListItemT]=Field(default_factory=lambda: {})
+    selected_element: str | None = None
 
-    def get_selected(self) -> Optional[ItemType]:
+    def get_selected(self) -> ItemType | None:
         elem = self.get_selected_wrapped()
 
         if elem:
@@ -49,13 +50,13 @@ class SelectionList(Generic[ItemType, SelectionListItemT]):
         
         return None
         
-    def get_selected_wrapped(self) -> Optional[SelectionListItemT]:
+    def get_selected_wrapped(self) -> SelectionListItemT | None:
         if self.selected_element is not None and self.selected_element in self:
             return self.elements[self.selected_element]
         
         return None
     
-    def get_active(self) -> List[ItemType]:
+    def get_active(self) -> list[ItemType]:
         result = []
 
         for name, element in self.elements.items():
@@ -69,7 +70,7 @@ class SelectionList(Generic[ItemType, SelectionListItemT]):
             if self.selected_element == name or element.active:
                 yield element
     
-    def get_all(self) -> List[ItemType]:
+    def get_all(self) -> list[ItemType]:
         return [e.element for e in self.elements.values()]
     
     def get(self, name: str) -> ItemType:
@@ -79,7 +80,7 @@ class SelectionList(Generic[ItemType, SelectionListItemT]):
         return self.elements[name].element
     
     @classmethod
-    def get_type(cls) -> Type[SelectionListItemT]:
+    def get_type(cls) -> type[SelectionListItemT]:
         return SelectionListItem  # type: ignore
     
     def add(self, name: str, obj: ItemType, color: Color=None, select: bool=True) -> SelectionListItemT:

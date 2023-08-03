@@ -24,7 +24,7 @@ class GliderProject:
     glider_3d: Glider = Field(default=None)
     filename: str | None=None
     name: str=""
-    changelog: List[Tuple[datetime.datetime, str, str]] = Field(default_factory=lambda: [])
+    changelog: list[tuple[datetime.datetime, str, str]] = Field(default_factory=lambda: [])
 
     _regex_revision_no = re.compile(r"(.*)_rev([0-9]*)$")
 
@@ -149,7 +149,7 @@ class GliderProject:
         elif filename.endswith(".json"):
             openglider.save(self, filename)
         else:
-            raise ValueError("Invalid Extension ({})".format(filename))
+            raise ValueError(f"Invalid Extension ({filename})")
         
         self.filename = filename
 
@@ -193,7 +193,7 @@ class GliderProject:
     def update_all(self) -> None:
         self.glider.get_glider_3d(self.glider_3d)
 
-    def get_data(self) -> Dict[str, float]:
+    def get_data(self) -> dict[str, float]:
         area = self.glider_3d.area
         area_projected = self.glider_3d.projected_area
         return {

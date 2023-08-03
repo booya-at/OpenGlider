@@ -30,18 +30,18 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class Glider(object):
+class Glider:
     cell_naming_scheme = "c{cell_no}"
     rib_naming_scheme = "p{rib_no}"
 
-    cells: List[Cell]
+    cells: list[Cell]
     lineset: LineSet
 
-    def __init__(self, cells: Optional[List[Cell]]=None, lineset: LineSet=None):
-        self.cells: List[Cell] = cells or []
+    def __init__(self, cells: list[Cell] | None=None, lineset: LineSet=None):
+        self.cells: list[Cell] = cells or []
         self.lineset = lineset or LineSet([])
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         new = self.copy()
         ribs = new.ribs[:]
         cells = []
@@ -58,7 +58,7 @@ class Glider(object):
                 }
 
     @classmethod
-    def __from_json__(cls, cells: List[Dict[str, Any]], ribs: List[Rib], lineset: LineSet) -> Glider:
+    def __from_json__(cls, cells: list[dict[str, Any]], ribs: list[Rib], lineset: LineSet) -> Glider:
         cells_new = []
         for cell in cells:
             cell.update({
@@ -86,7 +86,7 @@ class Glider(object):
         Span: {}
         A/R: {}
         Cells: {}
-        """.format(super(Glider, self).__repr__(),
+        """.format(super().__repr__(),
                    self.area,
                    self.span,
                    self.aspect_ratio,
@@ -102,8 +102,8 @@ class Glider(object):
             cell.name = self.cell_naming_scheme.format(cell=cell, cell_no=cell_no+1)
             cell.rename_parts(cell_no=cell_no)
 
-    def get_panel_groups(self) -> Dict[str, List[Panel]]:
-        panels: Dict[str, List["openglider.glider.cell.panel.Panel"]] = {}
+    def get_panel_groups(self) -> dict[str, list[Panel]]:
+        panels: dict[str, list[openglider.glider.cell.panel.Panel]] = {}
         for cell in self.cells:
             for panel in cell.panels:
                 material_code = str(panel.material)
@@ -141,7 +141,7 @@ class Glider(object):
         num = len(ribs)
         numpoints = len(ribs[0])  # points per rib
 
-        polygons: List[Tuple[Tuple[int, int, int, int], Dict[str, Any]]] = []
+        polygons: list[tuple[tuple[int, int, int, int], dict[str, Any]]] = []
         boundary: Mesh.boundary_nodes_type = {
             "ribs": [],
             "trailing_edge": []
@@ -164,7 +164,7 @@ class Glider(object):
 
         return Mesh.from_indexed(ribs_flat, {"hull": polygons}, boundary)
 
-    def return_ribs(self, num_midribs: int=0, ballooning: bool=True) -> List[List[euklid.vector.Vector3D]]:
+    def return_ribs(self, num_midribs: int=0, ballooning: bool=True) -> list[list[euklid.vector.Vector3D]]:
         """
         Get a list of rib-curves
         :param num: number of midribs per cell
@@ -312,7 +312,7 @@ class Glider(object):
         return Shape(front.rotate(-math.pi/2, zero), back.rotate(-math.pi/2, zero))
 
     @property
-    def ribs(self) -> List[Rib]:
+    def ribs(self) -> list[Rib]:
         ribs = []
         for cell in self.cells:
             for rib in cell.ribs:
@@ -329,12 +329,12 @@ class Glider(object):
         self.profile_x_values = list(Distribution.from_nose_cos_distribution(numpoints, 0.3))
 
     @property
-    def profile_x_values(self) -> List[float]:
+    def profile_x_values(self) -> list[float]:
         return self.ribs[0].profile_2d.x_values
         # return consistent_value(self.ribs, 'profile_2d.x_values')
 
     @profile_x_values.setter
-    def profile_x_values(self, xvalues: List[float]) -> None:
+    def profile_x_values(self, xvalues: list[float]) -> None:
         for rib in self.ribs:
             rib.profile_2d = rib.profile_2d.set_x_values(xvalues)
 
@@ -415,9 +415,9 @@ class Glider(object):
         """
         return euklid.vector.PolyLine3D([rib.align_x(x) for rib in self.ribs])
 
-    def get_attachment_point_layers(self) -> Dict[str, euklid.vector.Interpolation]:
+    def get_attachment_point_layers(self) -> dict[str, euklid.vector.Interpolation]:
         regex = re.compile(r"([a-zA-Z]+)([0-9]+)")
-        attachment_point_per_group: Dict[str, List[Tuple[int, Percentage]]] = {}
+        attachment_point_per_group: dict[str, list[tuple[int, Percentage]]] = {}
 
         for rib_no, rib in enumerate(self.ribs):
             for point in rib.attachment_points:
@@ -453,8 +453,8 @@ class Glider(object):
         return p / area
 
     @property
-    def attachment_points(self) -> Dict[str, AttachmentPoint | CellAttachmentPoint]:
-        points: List[AttachmentPoint | CellAttachmentPoint] = []
+    def attachment_points(self) -> dict[str, AttachmentPoint | CellAttachmentPoint]:
+        points: list[AttachmentPoint | CellAttachmentPoint] = []
         for rib in self.ribs:
             points += rib.attachment_points
         for cell in self.cells:

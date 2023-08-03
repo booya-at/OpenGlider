@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 V2: TypeAlias = euklid.vector.Vector2D
 
-class Shape(object):
+class Shape:
     def __init__(self, front: euklid.vector.PolyLine2D, back: euklid.vector.PolyLine2D) -> None:
         # TODO: REMOVE
         if not isinstance(front, euklid.vector.PolyLine2D):
@@ -36,7 +36,7 @@ class Shape(object):
 
         return front + (back-front) *  float(y)
 
-    def get_panel(self, cell_no: int, panel: Panel) -> Tuple[V2, V2, V2, V2]:
+    def get_panel(self, cell_no: int, panel: Panel) -> tuple[V2, V2, V2, V2]:
         p1 = self.get_point(cell_no, panel.cut_front.x_left)
         p2 = self.get_point(cell_no, panel.cut_back.x_left)
         p3 = self.get_point(cell_no+1, panel.cut_back.x_right)
@@ -53,12 +53,12 @@ class Shape(object):
         return len(self.front)
 
     @property
-    def ribs(self) -> List[Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]]:
+    def ribs(self) -> list[tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]]:
         return [(self.front.get(x), self.back.get(x)) for x in range(len(self.front))]
 
     @property
-    def ribs_front_back(self) -> Tuple[
-        List[Tuple[V2, V2]],
+    def ribs_front_back(self) -> tuple[
+        list[tuple[V2, V2]],
         euklid.vector.PolyLine2D,
         euklid.vector.PolyLine2D    
     ]:
@@ -75,11 +75,11 @@ class Shape(object):
 
 
     @property
-    def chords(self) -> List[float]:
+    def chords(self) -> list[float]:
         return [(p1-p2).length() for p1, p2 in zip(self.front, self.back)]
 
     @property
-    def cell_widths(self) -> List[float]:
+    def cell_widths(self) -> list[float]:
         return [p2[0]-p1[0] for p1, p2 in zip(self.front.nodes[:-1], self.front.nodes[1:])]
 
     @property

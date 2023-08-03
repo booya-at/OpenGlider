@@ -16,7 +16,7 @@ class GliderActors:
     project: GliderProject
     glider_3d: Glider | None
     config: GliderViewConfig | None
-    actors: Dict[str, MeshView]
+    actors: dict[str, MeshView]
 
     def __init__(self, project: GliderProject):
         self.project = project

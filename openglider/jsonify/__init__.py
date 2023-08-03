@@ -21,7 +21,7 @@ __ALL__ = ['dumps', 'dump', 'loads', 'load']
 datetime_format = "%d.%m.%Y %H:%M"
 datetime_format_regex = re.compile(r'^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}$')
 
-def get_element(_module: str, _name: str) -> Type[Any]:
+def get_element(_module: str, _name: str) -> type[Any]:
     for rex in openglider.config["json_forbidden_modules"]:
         if re.match(rex, _module):
             raise Exception
@@ -38,7 +38,7 @@ def get_element(_module: str, _name: str) -> Type[Any]:
     raise ValueError(f"could not find element type: {_module}.{_name}")
 
 
-def object_hook(dct: Dict[str, Any]) -> Any:
+def object_hook(dct: dict[str, Any]) -> Any:
     """
     Return the de-serialized object
     """
@@ -77,7 +77,7 @@ def object_hook(dct: Dict[str, Any]) -> Any:
         return dct
 
 
-def add_metadata(data: Any) -> Dict[str, Any]:
+def add_metadata(data: Any) -> dict[str, Any]:
     if isinstance(data, dict) and 'MetaData' in data:
         data['MetaData']['date_modified'] = time.strftime("%d.%m.%y %H:%M")
         return data

@@ -1,5 +1,6 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Callable, Dict, Literal, Optional, Type
+from typing import TYPE_CHECKING, Any, Dict, Literal, Optional, Type
+from collections.abc import Callable
 import logging
 import math
 from typing import Tuple, List, Final
@@ -34,7 +35,7 @@ class PanelPlot:
     panel: Panel
     cell: Cell
 
-    def __init__(self, panel: Panel, cell: Cell, flattended_cell: FlattenedCellWithAllowance, config: Optional[Config]=None):
+    def __init__(self, panel: Panel, cell: Cell, flattended_cell: FlattenedCellWithAllowance, config: Config | None=None):
         self.panel = panel
         self.cell = cell
         self.config = self.DefaultConf(config)
@@ -64,7 +65,7 @@ class PanelPlot:
             _cut_types.round: self.config.allowance_design
         }
 
-        cut_types: Dict[PANELCUT_TYPES, Type[Cut]] = {
+        cut_types: dict[PANELCUT_TYPES, type[Cut]] = {
             _cut_types.folded: self.config.cut_entry,
             _cut_types.parallel: self.config.cut_trailing_edge,
             _cut_types.orthogonal: self.config.cut_design,
@@ -231,7 +232,7 @@ class PanelPlot:
         return MaterialUsage().consume(self.panel.material, area)
 
 
-    def get_point(self, x: float | Percentage) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
+    def get_point(self, x: float | Percentage) -> tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
         ik = get_x_value(self.x_values, x)
 
         return (
@@ -239,7 +240,7 @@ class PanelPlot:
             self.ballooned[1].get(ik)
         )
 
-    def get_p1_p2(self, x: float, is_right: bool) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
+    def get_p1_p2(self, x: float, is_right: bool) -> tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
         if is_right:
             front, back = self.panel.cut_front.x_right, self.panel.cut_back.x_right
         else:
@@ -378,7 +379,7 @@ class PanelPlot:
                     self.insert_mark(self.config.marks_diagonal_center, strap.right.center, plotpart, True)
 
     def _insert_attachment_points(self, plotpart: PlotPart, insert_left: bool=True, insert_right: bool=True) -> None:
-        def insert_side_mark(name: str, positions: List[float], is_right: bool) -> None:
+        def insert_side_mark(name: str, positions: list[float], is_right: bool) -> None:
             try:
                 p1, p2 = self.get_p1_p2(positions[0], is_right)
                 diff = p1 - p2
@@ -451,10 +452,10 @@ class PanelPlot:
 
                         if text_align == "right":
                             d1 = (self.get_point(cut_f_l)[0] - left).length()
-                            d2 = ((self.get_point(cut_b_l)[0] - left)).length()
+                            d2 = (self.get_point(cut_b_l)[0] - left).length()
                         else:
-                            d1 = ((self.get_point(cut_f_r)[1] - right)).length()
-                            d2 = ((self.get_point(cut_b_r)[1] - right)).length()
+                            d1 = (self.get_point(cut_f_r)[1] - right).length()
+                            d2 = (self.get_point(cut_b_r)[1] - right).length()
 
                         bl = self.ballooned[0]
                         br = self.ballooned[1]
@@ -482,7 +483,7 @@ class PanelPlot:
                             p1 = left
                             p2 = right
                             # text_align = text_align
-                        plotpart.layers["text"] += Text(" {} ".format(cell_attachment_point.name), p1, p2,
+                        plotpart.layers["text"] += Text(f" {cell_attachment_point.name} ", p1, p2,
                                                         size=0.01,  # 1cm
                                                         align=text_align, valign=0, height=0.8).get_vectors()  # type: ignore
     
@@ -498,11 +499,11 @@ class PanelPlot:
 
 
 class FlattenedCellWithAllowance(FlattenedCell):
-    outer: Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]
-    outer_orig: Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]
+    outer: tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]
+    outer_orig: tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]
 
     def copy(self, **kwargs: Any) -> FlattenedCellWithAllowance:
-        def copy_tuple(t: Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]) -> Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
+        def copy_tuple(t: tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]) -> tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
             return (
                 t[0].copy(),
                 t[1].copy()
@@ -521,7 +522,7 @@ class CellPlotMaker:
     StrapPlot = StrapPlot
     PanelPlot = PanelPlot
 
-    def __init__(self, cell: Cell, config: Optional[Config]=None):
+    def __init__(self, cell: Cell, config: Config | None=None):
         self.cell = cell
         self.config = self.DefaultConf(config)
         
@@ -555,7 +556,7 @@ class CellPlotMaker:
             outer_orig=outer_orig
         )
 
-    def get_panels(self, panels: Optional[List[Panel]]=None) -> List[PlotPart]:
+    def get_panels(self, panels: list[Panel] | None=None) -> list[PlotPart]:
         cell_panels = []
         self.cell.calculate_3d_shaping(numribs=self.config.midribs)
 
@@ -570,11 +571,11 @@ class CellPlotMaker:
         
         return cell_panels
 
-    def get_panels_lower(self) -> List[PlotPart]:
+    def get_panels_lower(self) -> list[PlotPart]:
         panels = [p for p in self.cell.panels if p.is_lower()]
         return self.get_panels(panels)
 
-    def get_panels_upper(self) -> List[PlotPart]:
+    def get_panels_upper(self) -> list[PlotPart]:
         panels = [p for p in self.cell.panels if not p.is_lower()]
         return self.get_panels(panels)
 
@@ -589,7 +590,7 @@ class CellPlotMaker:
         
         return dribs
 
-    def get_straps(self) -> List[PlotPart]:
+    def get_straps(self) -> list[PlotPart]:
         straps = self.cell.straps[:]
         straps.sort(key=lambda d: d.name)
         result = []
@@ -600,7 +601,7 @@ class CellPlotMaker:
         
         return result
     
-    def get_rigidfoils(self) -> List[PlotPart]:
+    def get_rigidfoils(self) -> list[PlotPart]:
         rigidfoils = []
         for rigidfoil in self.cell.rigidfoils:
             rigidfoils.append(rigidfoil.get_flattened(self.cell))

@@ -1,7 +1,8 @@
 import asyncio
 import multiprocessing
 import logging
-from typing import Any, Callable, Coroutine, List
+from typing import Any, List
+from collections.abc import Callable, Coroutine
 
 logger = logging.getLogger(__name__)
 
@@ -13,9 +14,9 @@ class AsyncTaskQueue:
         if num_workers is None:
             num_workers = multiprocessing.cpu_count()
             
-        self.tasks: List[asyncio.Task] = []
-        self.tasks_todo: List[Coroutine] = []
-        self.results: List[Any] = []
+        self.tasks: list[asyncio.Task] = []
+        self.tasks_todo: list[Coroutine] = []
+        self.results: list[Any] = []
         self.num_workers = num_workers
     
     @property
@@ -48,7 +49,7 @@ class AsyncTaskQueue:
             coroutine = self.tasks_todo.pop()
             self.start_task(coroutine)
     
-    async def finish(self) -> List[Any]:
+    async def finish(self) -> list[Any]:
         while len(self.tasks) > 0:
             await asyncio.sleep(self.num_workers)
         

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Callable, List, Tuple
+from typing import TYPE_CHECKING, Any, List, Tuple
+from collections.abc import Callable
 
 import euklid
 from openglider.glider.parametric.shape import ParametricShape
@@ -26,8 +27,8 @@ class ShapeInput(Canvas):
     locked_aspect_ratio = True
 
     glider_shape: ParametricShape
-    on_change: List[Callable[[ParametricShape], None]]
-    glider_shapes: List[LayoutGraphics]
+    on_change: list[Callable[[ParametricShape], None]]
+    glider_shapes: list[LayoutGraphics]
 
     def __init__(self, project: GliderProject):
         super().__init__(parent=None)
@@ -61,7 +62,7 @@ class ShapeInput(Canvas):
         self._update_curves()
         self.redraw()
 
-    def draw_shapes(self, shapes: List[Tuple[GliderProject, Color]], clear: bool=True, normalize_area: bool=False, normalize_span: bool=False) -> None:
+    def draw_shapes(self, shapes: list[tuple[GliderProject, Color]], clear: bool=True, normalize_area: bool=False, normalize_span: bool=False) -> None:
         # list of glider projects
         if clear:
             for shape in self.glider_shapes:
@@ -135,8 +136,8 @@ class ShapeInput(Canvas):
             
 
 class RibDistInput(Canvas):
-    shapes: List[Line2D]
-    on_change: List[Callable]
+    shapes: list[Line2D]
+    on_change: list[Callable]
 
     def __init__(self, shape: ParametricShape):
         super().__init__()
@@ -165,7 +166,7 @@ class RibDistInput(Canvas):
         self.on_change = []
         self.shapes = []
 
-    def draw_shapes(self, projects: List[Tuple[GliderProject, Color]], clear: bool=True) -> None:
+    def draw_shapes(self, projects: list[tuple[GliderProject, Color]], clear: bool=True) -> None:
         # list of glider projects
         if clear:
             for shape in self.shapes:
@@ -289,7 +290,7 @@ class ShapeWizard(GliderSelectionWizard):
         self.shape_settings.update_shape(self.shape)
         self.shape_input.redraw()
 
-    def selection_changed(self, selected: List[Tuple[GliderProject, Color]]) -> None:
+    def selection_changed(self, selected: list[tuple[GliderProject, Color]]) -> None:
         self.shape_input.draw_shapes(selected, normalize_area=self.shape_settings.normalize_area, normalize_span=self.shape_settings.normalize_span)
         self.distribution_input.draw_shapes(selected)
 

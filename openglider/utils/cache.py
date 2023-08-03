@@ -1,11 +1,11 @@
-
 from __future__ import annotations
 import collections
 
 import copy
 import functools
 import logging
-from typing import Callable, Dict, Generator, Generic, Iterator, Literal, Optional, Sequence, Tuple, Type, TypeVar, List, Any
+from typing import Dict, Generic, Literal, Optional, Tuple, Type, TypeVar, List, Any
+from collections.abc import Callable, Generator, Iterator, Sequence
 
 import numpy as np
 from typing import TYPE_CHECKING
@@ -15,33 +15,33 @@ import openglider
 
 logger = logging.getLogger(__name__)
 
-cache_instances: List[CachedProperty] = []
+cache_instances: list[CachedProperty] = []
 
 def clear() -> None:
     for instance in cache_instances:
         instance.cache.cache.clear()
 
-def stats() -> List[Tuple[str, int, int]]:
+def stats() -> list[tuple[str, int, int]]:
     return [
         (instance.__qualname__, instance.cache.hits, instance.cache.misses) for instance in cache_instances
     ]
 
 
-class CachedObject(object):
+class CachedObject:
     """
     An object to provide cached properties and functions.
     Provide a list of attributes to hash down for tracking changes
     """
     name: str = "unnamed"
-    hashlist: List[str] = []
+    hashlist: list[str] = []
 
     def __hash__(self) -> int:
         return hash_attributes(self, self.hashlist)
 
     def __repr__(self) -> str:
-        rep = super(CachedObject, self).__repr__()
+        rep = super().__repr__()
         if hasattr(self, "name"):
-            rep = rep[:-1] + ': "{}">'.format(self.name)
+            rep = rep[:-1] + f': "{self.name}">'
         return rep
 
 
@@ -86,9 +86,9 @@ class LruCache(Generic[Result]):
             
 
 class CachedProperty(Generic[Result]):
-    hashlist: List[str]
+    hashlist: list[str]
 
-    def __init__(self, fget: Callable[[CLS], Result], hashlist: List[str], maxsize: int):
+    def __init__(self, fget: Callable[[CLS], Result], hashlist: list[str], maxsize: int):
         super().__init__()
         self.function = fget
         self.__doc__ = fget.__doc__
@@ -119,7 +119,7 @@ class CachedProperty(Generic[Result]):
         return value
 
 
-def cached_property(*hashlist: str, max_size: int=1024) -> Type[property]:
+def cached_property(*hashlist: str, max_size: int=1024) -> type[property]:
     if TYPE_CHECKING:
         return property
 
@@ -208,7 +208,7 @@ def hash_attributes(class_instance: CLS, hashlist: list[str], exclude: list[str]
     """
     http://effbot.org/zone/python-hash.htm
     """
-    value_lst: Tuple[int,...] = (id(class_instance), )
+    value_lst: tuple[int,...] = (id(class_instance), )
 
     if len(hashlist) == 1 and hashlist[0] in ("self", "*") and exclude is not None:
         for key, value in class_instance.__dict__.items():
@@ -227,7 +227,7 @@ def hash_attributes(class_instance: CLS, hashlist: list[str], exclude: list[str]
 
 
 def hash_list(*lst: Any) -> int:
-    value_lst: List[int] = []
+    value_lst: list[int] = []
     for el in lst:
 
         hash_func = getattr(el, "__hash__", None)
@@ -257,13 +257,13 @@ class HashedList(Generic[T]):
     """
     _hash: int | None
     name = "unnamed"
-    def __init__(self, data: List[T], name: str="unnamed"):
-        self._data: List[T] = []
+    def __init__(self, data: list[T], name: str="unnamed"):
+        self._data: list[T] = []
         self._hash = None
         self.data = data
         self.name = name
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         # attrs = self.__init__.func_code.co_varnames
         # return {key: getattr(self, key) for key in attrs if key != 'self'}
         return {"data": self.data, "name": self.name}
@@ -285,21 +285,20 @@ class HashedList(Generic[T]):
         return len(self.data)
 
     def __iter__(self) -> Iterator[T]:
-        for el in self.data:
-            yield el
+        yield from self.data
 
     def __str__(self) -> str:
         return str(self.data)
 
     def __repr__(self) -> str:
-        return "<class '{}' name: {}".format(self.__class__, self.name)
+        return f"<class '{self.__class__}' name: {self.name}"
 
     @property
-    def data(self) -> List[T]:
+    def data(self) -> list[T]:
         return self._data
 
     @data.setter
-    def data(self, data: List[T]) -> None:
+    def data(self, data: list[T]) -> None:
         if data is not None:
             self._data = data
             self._hash = None

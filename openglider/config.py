@@ -11,7 +11,7 @@ class GlobalConfig(Config):
     debug = False
     json_allowed_modules = [r"openglider\..*", r"euklid\..*", r"pyfoil\..*"]
     json_forbidden_modules = [r".*eval", r".*subprocess.*"]
-    user = "{}/{}".format(platform.node(), getpass.getuser())
+    user = f"{platform.node()}/{getpass.getuser()}"
 
 
 config = GlobalConfig()

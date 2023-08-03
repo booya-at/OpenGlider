@@ -7,17 +7,17 @@ CacheListType = TypeVar("CacheListType")
 
 @dataclass
 class ChangeSet(Generic[ListType]):
-    active: List[ListType]
+    active: list[ListType]
 
-    added: List[ListType]
-    removed: List[ListType]
+    added: list[ListType]
+    removed: list[ListType]
 
 
 class Cache(Generic[ListType, CacheListType]):
     elements: SelectionList[ListType, SelectionListItem[ListType]]
-    cache: Dict[str, CacheListType]
-    cache_hashes: Dict[str, int]
-    cache_last_active: List[str]
+    cache: dict[str, CacheListType]
+    cache_hashes: dict[str, int]
+    cache_last_active: list[str]
 
     update_on_color_change = True
     update_on_name_change = True
@@ -39,8 +39,8 @@ class Cache(Generic[ListType, CacheListType]):
         """
         raise NotImplementedError()
     
-    def _get_object(self, element: str) -> Tuple[CacheListType, bool]:
-        hash_workload: List[Any] = [self.elements[element].element]
+    def _get_object(self, element: str) -> tuple[CacheListType, bool]:
+        hash_workload: list[Any] = [self.elements[element].element]
         if self.update_on_color_change:
             hash_workload += self.elements[element].color
         if self.update_on_name_change:

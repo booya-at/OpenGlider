@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 @Migration.add("0.1.0")
-def migrate_attachment_points(cls: Migration, jsondata: Dict[str, Any]) -> Dict[str, Any]:
+def migrate_attachment_points(cls: Migration, jsondata: dict[str, Any]) -> dict[str, Any]:
     nodes = cls.find_nodes(jsondata, name=r"ParametricGlider")
     
     if not nodes:
@@ -31,7 +31,7 @@ def migrate_attachment_points(cls: Migration, jsondata: Dict[str, Any]) -> Dict[
 
 
 @Migration.add("0.1.1")
-def migrate_tables(cls: Migration, jsondata: Dict[str, Any]) -> Dict[str, Any]:
+def migrate_tables(cls: Migration, jsondata: dict[str, Any]) -> dict[str, Any]:
     nodes = cls.find_nodes(jsondata, name=r"ParametricGlider")
     
     if not nodes:
@@ -65,7 +65,7 @@ def migrate_tables(cls: Migration, jsondata: Dict[str, Any]) -> Dict[str, Any]:
     return jsondata
 
 @Migration.add("0.1.2")
-def migrate_table_names(cls: Migration, jsondata: Dict[str, Any]) -> Dict[str, Any]:
+def migrate_table_names(cls: Migration, jsondata: dict[str, Any]) -> dict[str, Any]:
     tables = cls.find_nodes(jsondata, "GliderTables")
 
     for table in tables:
@@ -140,4 +140,3 @@ def migrate_table_names(cls: Migration, jsondata: Dict[str, Any]) -> Dict[str, A
         glider["data"].pop("modified", None)
 
     return jsondata
-    

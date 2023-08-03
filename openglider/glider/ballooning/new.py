@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Sequence, Tuple, TypeAlias
+from typing import TYPE_CHECKING, Any, Dict, List, Tuple, TypeAlias
+from collections.abc import Iterator, Sequence
 import euklid
 
 from openglider.glider.ballooning.base import BallooningBase
@@ -18,7 +19,7 @@ class BallooningNew(BallooningBase):
         self.interpolation = interpolation
         self.name = name
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {
             "interpolation": self.interpolation.tolist(),
             "name": self.name
@@ -38,7 +39,7 @@ class BallooningNew(BallooningBase):
         if -1 <= xval <= 1:
             return max(0, self.interpolation.get_value(xval))
         else:
-            raise ValueError("Value {} not between -1 and 1".format(xval))
+            raise ValueError(f"Value {xval} not between -1 and 1")
     
     def __add__(self, other: BallooningBase) -> BallooningNew:
         if not isinstance(other, BallooningNew):
@@ -71,18 +72,18 @@ class BallooningNew(BallooningBase):
         return BallooningNew(self.interpolation.copy(), name=self.name)
 
 
-VecType: TypeAlias = euklid.vector.Vector2D | Tuple[float, float]
+VecType: TypeAlias = euklid.vector.Vector2D | tuple[float, float]
 
 class BallooningBezierNeu(BallooningNew):
     spline_curve: euklid.spline.BSplineCurve
 
-    def __init__(self, spline: List[euklid.vector.Vector2D] | List[Tuple[float, float]] | euklid.vector.PolyLine2D, name: str="ballooning_new") -> None:
+    def __init__(self, spline: list[euklid.vector.Vector2D] | list[tuple[float, float]] | euklid.vector.PolyLine2D, name: str="ballooning_new") -> None:
         super().__init__(None, None)  # type: ignore
         self.spline_curve = euklid.spline.BSplineCurve(spline)
         self.name = name
         self.apply_splines()
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {
             "spline": self.spline_curve.controlpoints,
             "name": self.name
@@ -97,7 +98,7 @@ class BallooningBezierNeu(BallooningNew):
         if -1 <= xval <= 1:
             return self.interpolation.get_value(xval)
         else:
-            raise ValueError("Value {} not between -1 and 1".format(xval))
+            raise ValueError(f"Value {xval} not between -1 and 1")
 
     def copy(self) -> BallooningBezierNeu:
         return BallooningBezierNeu(self.spline_curve.copy().controlpoints.nodes, name=self.name)
@@ -115,7 +116,7 @@ class BallooningBezierNeu(BallooningNew):
         #data = [(-p[0], p[1]) for p in upper[::-1]] + list(lower)
 
         spline = euklid.spline.BSplineCurve.fit(data, numpoints)  # type: ignore
-        controlpoints: List[euklid.vector.Vector2D] = []
+        controlpoints: list[euklid.vector.Vector2D] = []
 
         for x, y in spline.controlpoints:
             x = max(-1, min(x, 1))
@@ -124,7 +125,7 @@ class BallooningBezierNeu(BallooningNew):
         #return data
         return cls(controlpoints)
 
-    def get_points(self, n: int=300) -> List[euklid.vector.Vector2D]:
+    def get_points(self, n: int=300) -> list[euklid.vector.Vector2D]:
         return self.spline_curve.get_sequence(n).nodes
 
     def apply_splines(self) -> None:

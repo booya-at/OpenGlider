@@ -14,7 +14,7 @@ WidgetTypeT = TypeVar("WidgetTypeT", bound=ListItemWidget)
 
 
 class GenericListWidget(Generic[ItemType, WidgetTypeT], QtWidgets.QListWidget):
-    WidgetType: Type[ListWidgetItem[ItemType, WidgetTypeT]]
+    WidgetType: type[ListWidgetItem[ItemType, WidgetTypeT]]
     changed = QtCore.Signal()
     _has_change_handler = False
 

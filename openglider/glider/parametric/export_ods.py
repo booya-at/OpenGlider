@@ -31,7 +31,7 @@ def export_ods_project(glider: GliderProject, filename: str) -> None:
     doc.saveas(filename)
 
 
-def get_split_tables(project: GliderProject) -> List[Table]:
+def get_split_tables(project: GliderProject) -> list[Table]:
     tables = []
     tables.append(get_changelog_table(project))
     tables.append(get_parametric_sheet(project.glider))
@@ -46,7 +46,7 @@ def get_split_tables(project: GliderProject) -> List[Table]:
     return tables
 
 
-def get_project_tables(project: GliderProject) -> List[Table]:
+def get_project_tables(project: GliderProject) -> list[Table]:
     tables = get_glider_tables(project.glider)
     changelog_table = get_changelog_table(project)
 
@@ -71,7 +71,7 @@ def get_changelog_table(project: GliderProject) -> Table:
 
 
 
-def get_glider_tables(glider: ParametricGlider) -> List[Table]:
+def get_glider_tables(glider: ParametricGlider) -> list[Table]:
     tables = []
 
     tables.append(get_geom_sheet(glider))
@@ -181,7 +181,7 @@ def get_ballooning_sheet(glider_2d: ParametricGlider) -> Table:
     for ballooning_no, ballooning in enumerate(balloonings):
         
         #sheet.append_columns(2)
-        table[0, 2*ballooning_no] = "ballooning_{}".format(ballooning_no)
+        table[0, 2*ballooning_no] = f"ballooning_{ballooning_no}"
         if isinstance(ballooning, BallooningBezierNeu):
             table[0, 2*ballooning_no+1] = "V3"
             pts = list(ballooning.controlpoints)
@@ -234,7 +234,7 @@ def get_data_sheet(glider: ParametricGlider) -> Table:
     # lower attachment_points
     for att_pt in glider.lineset.get_lower_attachment_points():
         for i, axis in enumerate(['X', 'Y', 'Z']):
-            table[current_row + i, 0] = "AHP{}{}".format(axis, att_pt.name)
+            table[current_row + i, 0] = f"AHP{axis}{att_pt.name}"
             table[current_row + i, 1] = att_pt.pos_3D[i]
         current_row += 3
 

@@ -11,7 +11,7 @@ from openglider.plots.spreadsheets.material_list import get_material_sheets
 from openglider.plots.usage_stats import MaterialUsage
 
 
-def get_glider_data(project: GliderProject, consumption: Dict[str, MaterialUsage]=None) -> ezodf.document.PackagedDocument:
+def get_glider_data(project: GliderProject, consumption: dict[str, MaterialUsage]=None) -> ezodf.document.PackagedDocument:
     specsheet = project.get_data_table()
     glider = project.glider_3d
     #specsheet = get_specs(glider)

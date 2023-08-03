@@ -1,6 +1,3 @@
-
-
-
 import unittest
 from openglider.glider.parametric.table.base.dto import DTO, CellTuple
 from openglider.vector.unit import Length, Percentage

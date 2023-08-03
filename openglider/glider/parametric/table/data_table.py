@@ -5,7 +5,7 @@ from openglider.utils.table import Table
 
 
 class DataTable:
-    subdicts: Dict[str, List[type]] = {
+    subdicts: dict[str, list[type]] = {
         "trim_correction": [str, float]
     }
 
@@ -13,7 +13,7 @@ class DataTable:
     def __init__(self, table: Table):
         self.table = table
 
-    def get_dct(self) -> Dict[str, Any]:
+    def get_dct(self) -> dict[str, Any]:
         dct = {}
         for row in range(1, self.table.num_rows):
             key = self.table[row, 0]

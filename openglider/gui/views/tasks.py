@@ -28,7 +28,7 @@ class TaskWindow(Window):
 
 
 class QTaskListWidget(QtWidgets.QWidget):
-    def __init__(self, parent: QtWidgets.QWidget, app: MainWindow, task: Task, view: Type[TaskWindow] | None):
+    def __init__(self, parent: QtWidgets.QWidget, app: MainWindow, task: Task, view: type[TaskWindow] | None):
         super().__init__(parent)
         self.task = task
         self.app = app
@@ -78,7 +78,7 @@ class QTaskListWidget(QtWidgets.QWidget):
 
 
 class QTaskEntry(QtWidgets.QListWidgetItem):
-    def __init__(self, parent: QtWidgets.QWidget, app: MainWindow, task: Task, view: Type[TaskWindow] | None):
+    def __init__(self, parent: QtWidgets.QWidget, app: MainWindow, task: Task, view: type[TaskWindow] | None):
         super().__init__()
         self.app = app
         self.task = task
@@ -94,7 +94,7 @@ class QTaskEntry(QtWidgets.QListWidgetItem):
 
 
 class QTaskQueue(QtWidgets.QWidget):
-    tasks: List[QTaskEntry]
+    tasks: list[QTaskEntry]
 
     app: MainWindow
     queue: TaskQueue
@@ -114,7 +114,7 @@ class QTaskQueue(QtWidgets.QWidget):
 
         self.tasks = []
 
-    def append(self, task: Task, view: Type[TaskWindow] | None = None) -> None:
+    def append(self, task: Task, view: type[TaskWindow] | None = None) -> None:
         list_entry = QTaskEntry(self.list, self.app, task, view)
 
         self.tasks.append(list_entry)

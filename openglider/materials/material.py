@@ -36,7 +36,7 @@ class Material:
     def default(cls) -> Material:
         return cls(name="unknown")
         
-    def get_color_rgb(self) -> Tuple[int, int, int]:
+    def get_color_rgb(self) -> tuple[int, int, int]:
         color = Color.parse_hex(self.color_code)
         return (color.r, color.g, color.b)
 
@@ -59,7 +59,7 @@ class Material:
     def __repr__(self) -> str:
         return f"<Material: {self.__str__()}>"
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {
             "name": str(self)
         }

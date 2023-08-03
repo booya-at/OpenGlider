@@ -1,5 +1,4 @@
 #! /usr/bin/python2
-# -*- coding: utf-8; -*-
 #
 # (c) 2013 booya (http://booya.at)
 #
@@ -25,7 +24,7 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 
-def proj_force(force: euklid.vector.Vector3D, vec: euklid.vector.Vector3D) -> Optional[float]:
+def proj_force(force: euklid.vector.Vector3D, vec: euklid.vector.Vector3D) -> float | None:
     projection = vec.dot(force)
     try:
         assert projection**2 >= 0.00001

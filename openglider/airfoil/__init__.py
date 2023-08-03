@@ -1,5 +1,4 @@
 #! /usr/bin/python2
-# -*- coding: utf-8; -*-
 #
 # (c) 2013 booya (http://booya.at)
 #
@@ -17,7 +16,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import division
 from typing import List
 from openglider.airfoil.profile_2d import Profile2D
 from openglider.airfoil.profile_2d_parametric import BezierProfile2D
@@ -25,7 +23,7 @@ from openglider.airfoil.profile_3d import Profile3D
 from openglider.vector.unit import Percentage
 
 
-def get_x_value(x_value_list: List[float], x: Percentage | float) -> float:
+def get_x_value(x_value_list: list[float], x: Percentage | float) -> float:
     """
     Get position of x in a list of x_values
     zb get_x_value([1,2,3],1.5)=0.5

@@ -8,28 +8,28 @@ from openglider.glider.shape import Shape
 from openglider.utils.cache import cached_property
 
 class FreeCurve:
-    def __init__(self, points: List[euklid.vector.Vector2D], shape: Shape):
+    def __init__(self, points: list[euklid.vector.Vector2D], shape: Shape):
         self.shape = shape
         self.interpolation = euklid.vector.Interpolation(points)
     
     @property
-    def controlpoints(self) -> List[euklid.vector.Vector2D]:
+    def controlpoints(self) -> list[euklid.vector.Vector2D]:
         return self.interpolation.nodes
     
     @controlpoints.setter
-    def controlpoints(self, points: List[euklid.vector.Vector2D]) -> None:
+    def controlpoints(self, points: list[euklid.vector.Vector2D]) -> None:
         self.interpolation = euklid.vector.Interpolation(points)
 
     @property
-    def controlpoints_2d(self) -> List[euklid.vector.Vector2D]:
+    def controlpoints_2d(self) -> list[euklid.vector.Vector2D]:
         return self.to_2d(self.controlpoints)
     
-    def set_controlpoints_2d(self, points: List[euklid.vector.Vector2D]) -> None:
+    def set_controlpoints_2d(self, points: list[euklid.vector.Vector2D]) -> None:
         controlpoints = self.to_controlpoints(points)
         self.controlpoints = controlpoints
     
-    def to_2d(self, points: List[euklid.vector.Vector2D]) -> List[euklid.vector.Vector2D]:
-        nodes: List[euklid.vector.Vector2D] = []
+    def to_2d(self, points: list[euklid.vector.Vector2D]) -> list[euklid.vector.Vector2D]:
+        nodes: list[euklid.vector.Vector2D] = []
         for p in points:
             x_shape = p[0]
             y = p[1]
@@ -41,8 +41,8 @@ class FreeCurve:
         return nodes
 
     
-    def to_controlpoints(self, points: List[euklid.vector.Vector2D]) -> List[euklid.vector.Vector2D]:
-        controlpoints: List[euklid.vector.Vector2D] = []
+    def to_controlpoints(self, points: list[euklid.vector.Vector2D]) -> list[euklid.vector.Vector2D]:
+        controlpoints: list[euklid.vector.Vector2D] = []
 
         x_values = [p[0] for p in self.shape.front]
 
@@ -65,7 +65,7 @@ class FreeCurve:
         return controlpoints
     
     @property
-    def points_2d(self) -> List[euklid.vector.Vector2D]:
+    def points_2d(self) -> list[euklid.vector.Vector2D]:
         return self.to_2d(self.interpolation.nodes)
     
     def get(self, rib_no: int) -> float:
@@ -95,29 +95,29 @@ class FreeCurve:
 
 class Curve:
     upper = False
-    def __init__(self, points: List[euklid.vector.Vector2D], shape: Shape):
+    def __init__(self, points: list[euklid.vector.Vector2D], shape: Shape):
         self.interpolation = euklid.vector.Interpolation(points)
         self.shape = shape
 
     @property
-    def controlpoints(self) -> List[euklid.vector.Vector2D]:
+    def controlpoints(self) -> list[euklid.vector.Vector2D]:
         return self.interpolation.nodes
     
     @controlpoints.setter
-    def controlpoints(self, points: List[euklid.vector.Vector2D]) -> None:
+    def controlpoints(self, points: list[euklid.vector.Vector2D]) -> None:
         self.interpolation = euklid.vector.Interpolation(points)
 
     @property
-    def controlpoints_2d(self) -> List[euklid.vector.Vector2D]:
+    def controlpoints_2d(self) -> list[euklid.vector.Vector2D]:
         return [
             euklid.vector.Vector2D(self.shape.get_point(*p)) for p in self.controlpoints
         ]
     
-    def set_controlpoints_2d(self, points: List[euklid.vector.Vector2D]) -> None:
+    def set_controlpoints_2d(self, points: list[euklid.vector.Vector2D]) -> None:
         controlpoints = self.to_controlpoints(points)
         self.controlpoints = controlpoints
     
-    def to_controlpoints(self, points: List[euklid.vector.Vector2D]) -> List[euklid.vector.Vector2D]:
+    def to_controlpoints(self, points: list[euklid.vector.Vector2D]) -> list[euklid.vector.Vector2D]:
         controlpoints = []
 
         x_values = [p[0] for p in self.shape.front]
@@ -210,7 +210,7 @@ class ShapeCurve(Curve):
 class ShapeBSplineCurve(ShapeCurve):
     curve_cls = euklid.spline.BSplineCurve
 
-    def __init__(self, points: List[euklid.vector.Vector2D], shape: Shape, curve_cls: Any=None):
+    def __init__(self, points: list[euklid.vector.Vector2D], shape: Shape, curve_cls: Any=None):
         if curve_cls is not None:
             self.curve_cls = curve_cls
         

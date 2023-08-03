@@ -10,7 +10,7 @@ from openglider.glider.project import GliderProject
 
 class Arc2D(QtWidgets.QGraphicsObject):
     positions: euklid.vector.PolyLine2D
-    bbox: Tuple[float, float, float, float]
+    bbox: tuple[float, float, float, float]
 
     def __init__(self, project: GliderProject, color: Color | None=None, alpha: int=160) -> None:
         super().__init__()
@@ -20,7 +20,7 @@ class Arc2D(QtWidgets.QGraphicsObject):
         
         self.update_arc()
 
-    def get_normalized_arc(self) -> Tuple[ArcCurve, List[float]]:
+    def get_normalized_arc(self) -> tuple[ArcCurve, list[float]]:
         new_arc = self.project.glider.arc.copy()
         x_values = self.project.glider.shape.rib_x_values
         max_x = max(x_values)

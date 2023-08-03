@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from openglider.glider.glider import Glider
     from openglider.glider.parametric.glider import ParametricGlider
 
-def fit_glider_3d(cls: Type[ParametricGlider], glider: Glider, numpoints: int=3) -> ParametricGlider:
+def fit_glider_3d(cls: type[ParametricGlider], glider: Glider, numpoints: int=3) -> ParametricGlider:
     """
     Create a parametric model from glider
     """

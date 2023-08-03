@@ -17,7 +17,7 @@ class View3D(QtWidgets.QWidget):
     renderer: vtkmodules.vtkRenderingCore.vtkRenderer
 
     def __init__(self, parent: QtWidgets.QWidget=None) -> None:
-        super(View3D, self).__init__(parent)
+        super().__init__(parent)
         self.setLayout(QtWidgets.QHBoxLayout(self))
 
         self.frame = QtWidgets.QFrame()

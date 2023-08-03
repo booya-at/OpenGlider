@@ -41,7 +41,7 @@ class ParametricShape:
 
     def __repr__(self) -> str:
         return "{}\n\tcells: {}\n\tarea: {:.2f}\n\taspect_ratio: {:.2f}".format(
-            super(ParametricShape, self).__repr__(),
+            super().__repr__(),
             self.cell_num,
             self.area,
             self.aspect_ratio
@@ -94,7 +94,7 @@ class ParametricShape:
         )
 
     @property
-    def rib_dist_interpolation(self) -> List[Tuple[float, float]]:
+    def rib_dist_interpolation(self) -> list[tuple[float, float]]:
         """
         Interpolate Cell-distribution
         """
@@ -110,12 +110,12 @@ class ParametricShape:
         return euklid.vector.PolyLine2D(self.rib_distribution.controlpoints.nodes[1:-1])
 
     @rib_dist_controlpoints.setter
-    def rib_dist_controlpoints(self, arr: List[List[float]]) -> None:
+    def rib_dist_controlpoints(self, arr: list[list[float]]) -> None:
 
         self.rib_distribution.controlpoints = euklid.vector.PolyLine2D([[0., 0.]] + arr + [[1., 1.]])
 
     @property
-    def rib_x_values(self) -> List[float]:
+    def rib_x_values(self) -> list[float]:
         xvalues = [p[0]*self.span for p in self.rib_dist_interpolation]
 
         if self.stabi_cell:
@@ -130,7 +130,7 @@ class ParametricShape:
 
 
     @property
-    def cell_x_values(self) -> List[float]:
+    def cell_x_values(self) -> list[float]:
         ribs = self.rib_x_values
 
         cells = []
@@ -182,7 +182,7 @@ class ParametricShape:
         """
         return self.get_half_shape().copy_complete()
 
-    def __getitem__(self, pos: Tuple[int, float]) -> euklid.vector.Vector2D:
+    def __getitem__(self, pos: tuple[int, float]) -> euklid.vector.Vector2D:
         """if first argument is negative the point is returned mirrored"""
         rib_nr, rib_pos = pos
         ribs = self.ribs
@@ -198,7 +198,7 @@ class ParametricShape:
         return euklid.vector.Vector2D([sign * x, y])
 
     @property
-    def ribs(self) -> List[Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]]:
+    def ribs(self) -> list[tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]]:
         return self.get_half_shape().ribs
     
     @property
@@ -226,7 +226,7 @@ class ParametricShape:
             return p1
 
     @property
-    def depth_integrated(self) -> List[Tuple[float, float]]:
+    def depth_integrated(self) -> list[tuple[float, float]]:
         """
         Return A(x)
         """
@@ -283,7 +283,7 @@ class ParametricShape:
             factor = area/self.area
             self.scale(factor, 1)
         else:
-            raise ValueError("Invalid Value: {} for 'constant' (aspect_ratio, span, depth)".format(fixed))
+            raise ValueError(f"Invalid Value: {fixed} for 'constant' (aspect_ratio, span, depth)")
 
         return self.area
 

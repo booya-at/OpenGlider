@@ -35,13 +35,13 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-def import_ods_2d(cls: Type[ParametricGlider], filename: str) -> ParametricGlider:
+def import_ods_2d(cls: type[ParametricGlider], filename: str) -> ParametricGlider:
     logger.info(f"Import file: {filename}")
     tables = Table.load(filename)
 
     return import_ods_glider(cls, tables)
     
-def import_ods_glider(cls: Type[ParametricGlider], tables: List[Table]) -> ParametricGlider:
+def import_ods_glider(cls: type[ParametricGlider], tables: list[Table]) -> ParametricGlider:
     cell_sheet = tables[1]
     rib_sheet = tables[2]
 
@@ -69,7 +69,7 @@ def import_ods_glider(cls: Type[ParametricGlider], tables: List[Table]) -> Param
         geometry = get_geometry_explicit(tables[0])
         has_center_cell = geometry["shape"].has_center_cell
 
-    balloonings: List[BallooningBase] = []
+    balloonings: list[BallooningBase] = []
     for i, (name, baloon) in enumerate(transpose_columns(tables[4])):
         ballooning_type = (tables[4][0, 2*i+1] or "").upper()
         if baloon:
@@ -164,7 +164,7 @@ def import_ods_glider(cls: Type[ParametricGlider], tables: List[Table]) -> Param
     return glider_2d
 
 
-def get_geometry_explicit(sheet: Table) -> Dict[str, Any]:
+def get_geometry_explicit(sheet: Table) -> dict[str, Any]:
     # All Lists
     front = []
     back = []
@@ -181,7 +181,7 @@ def get_geometry_explicit(sheet: Table) -> Dict[str, Any]:
         if not line[0]:
             break  # skip empty line
         if not all(isinstance(c, numbers.Number) for c in line[:10]):
-            raise ValueError("Invalid row ({}): {}".format(i, line))
+            raise ValueError(f"Invalid row ({i}): {line}")
         # Index, Choord, Span(x_2d), Front(y_2d=x_3d), d_alpha(next), aoa,
         chord = line[1]
         span = line[2]
@@ -204,7 +204,7 @@ def get_geometry_explicit(sheet: Table) -> Dict[str, Any]:
 
         span_last = span
 
-    def symmetric_fit(data: List[List[float]], bspline: bool=True) -> SymmetricCurveType:
+    def symmetric_fit(data: list[list[float]], bspline: bool=True) -> SymmetricCurveType:
         line = euklid.vector.PolyLine2D(data)
         #not_from_center = int(data[0][0] == 0)
         #mirrored = [[-p[0], p[1]] for p in data[not_from_center:]][::-1] + data
@@ -238,7 +238,7 @@ def get_geometry_explicit(sheet: Table) -> Dict[str, Any]:
     }
 
 
-def get_geometry_parametric(table: Table, cell_num: int) -> Dict[str, Any]:
+def get_geometry_parametric(table: Table, cell_num: int) -> dict[str, Any]:
     data = {}
     curve_types = {
         "front": euklid.spline.SymmetricBSplineCurve,
@@ -283,8 +283,8 @@ def get_geometry_parametric(table: Table, cell_num: int) -> Dict[str, Any]:
         "ballooning_merge_curve": data["ballooning_merge_curve"]
     }
 
-def get_lower_aufhaengepunkte(data: Dict[str, Any]) -> Dict[str, LowerNode2D]:
-    aufhaengepunkte: Dict[str, List[float]] = {}
+def get_lower_aufhaengepunkte(data: dict[str, Any]) -> dict[str, LowerNode2D]:
+    aufhaengepunkte: dict[str, list[float]] = {}
 
     axis_to_index = {"X": 0, "Y": 1, "Z": 2}
     regex = re.compile("AHP([XYZ])(.*)")
@@ -308,7 +308,7 @@ def get_lower_aufhaengepunkte(data: Dict[str, Any]) -> Dict[str, LowerNode2D]:
             for name, position in aufhaengepunkte.items()}
 
 
-def transpose_columns(sheet: Table, columnswidth: int=2) -> List[Tuple[str, Any]]:
+def transpose_columns(sheet: Table, columnswidth: int=2) -> list[tuple[str, Any]]:
     num_columns = sheet.num_columns
     num_elems = num_columns // columnswidth
     # if num % columnswidth > 0:
@@ -332,7 +332,7 @@ def transpose_columns(sheet: Table, columnswidth: int=2) -> List[Tuple[str, Any]
             if all([j is None for j in row]):  # Break at empty line
                 break
             if not all([isinstance(j, numbers.Number) for j in row]):
-                raise ValueError("Invalid value at row {}: {}".format(i, row))
+                raise ValueError(f"Invalid value at row {i}: {row}")
             element.append(row)
         result.append((name, element))
     return result

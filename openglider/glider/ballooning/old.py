@@ -14,7 +14,7 @@ class Ballooning(BallooningBase):
         self.upper: euklid.vector.Interpolation = f_upper
         self.lower: euklid.vector.Interpolation = f_lower
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {'f_upper': self.upper,
                 'f_lower': self.lower}
 
@@ -27,7 +27,7 @@ class Ballooning(BallooningBase):
             #return -self.lower.xpoint(xval)[1]
             return self.lower.get_value(xval)
         else:
-            raise ValueError("Value {} not between -1 and 1".format(xval))
+            raise ValueError(f"Value {xval} not between -1 and 1")
 
     def __add__(self, other: BallooningBase) -> BallooningBase:
         """Add another Ballooning to this one, needed for merging purposes"""
@@ -62,7 +62,7 @@ class Ballooning(BallooningBase):
     def copy(self) -> Ballooning:
         return copy.deepcopy(self)
 
-    def mapx(self, xvals: List[float]) -> List[float]:
+    def mapx(self, xvals: list[float]) -> list[float]:
         return [self[i] for i in xvals]
 
     @property
@@ -137,7 +137,7 @@ class Ballooning(BallooningBase):
 
 class BallooningBezier(Ballooning):
     num_points = 100
-    def __init__(self, upper: List[euklid.vector.Vector2D]=None, lower: List[euklid.vector.Vector2D]=None, name: str="ballooning") -> None:
+    def __init__(self, upper: list[euklid.vector.Vector2D]=None, lower: list[euklid.vector.Vector2D]=None, name: str="ballooning") -> None:
         super().__init__(None, None)  # type: ignore
         upper = upper or euklid.vector.PolyLine2D([[0, 0], [0.1, 0], [0.2, 0.14], [0.8, 0.14], [0.9, 0], [1, 0]]).nodes
         lower = lower or euklid.vector.PolyLine2D([[0, 0], [0.1, 0], [0.2, 0.14], [0.8, 0.14], [0.9, 0], [1, 0]]).nodes
@@ -153,7 +153,7 @@ class BallooningBezier(Ballooning):
         self.name = name
         self.apply_splines()
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {"upper": [list(p) for p in self.upper_spline.controlpoints],
                 "lower": [list(p) for p in self.lower_spline.controlpoints]}
 
@@ -164,7 +164,7 @@ class BallooningBezier(Ballooning):
 
         return euklid.vector.PolyLine2D(upper + lower.nodes)
 
-    def get_points(self, n: int=150) -> List[euklid.vector.Vector2D]:
+    def get_points(self, n: int=150) -> list[euklid.vector.Vector2D]:
         n_2 = int(n / 2)
 
         upper = self.upper_spline.get_sequence(n_2).reverse() * euklid.vector.Vector2D([-1., 1.])
@@ -200,11 +200,11 @@ class BallooningBezier(Ballooning):
         Ballooning.__init__(self, euklid.vector.Interpolation(upper.nodes), euklid.vector.Interpolation(lower.nodes))
 
     @property
-    def controlpoints(self) -> Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
+    def controlpoints(self) -> tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
         return self.upper_spline.controlpoints, self.lower_spline.controlpoints
 
     @controlpoints.setter
-    def controlpoints(self, controlpoints: Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]) -> None:
+    def controlpoints(self, controlpoints: tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]) -> None:
         upper, lower = controlpoints
         if upper is not None:
             self.upper_spline.controlpoints = upper
@@ -213,6 +213,6 @@ class BallooningBezier(Ballooning):
         self.apply_splines()
 
     def scale(self, factor: float) -> None:
-        super(BallooningBezier, self).scale(factor)
+        super().scale(factor)
         self.upper_spline.controlpoints = self.upper_spline.controlpoints.scale(euklid.vector.Vector2D([1, factor]))
         self.lower_spline.controlpoints = self.lower_spline.controlpoints.scale(euklid.vector.Vector2D([1, factor]))

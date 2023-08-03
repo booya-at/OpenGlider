@@ -5,7 +5,7 @@ import euklid
 from openglider.vector.drawing.part import PlotPart
 from openglider.vector.unit import Length
 
-text_vectors: Dict[str, List[List[float]]] = {
+text_vectors: dict[str, list[list[float]]] = {
     "1": [[0.2, 0.5], [0.6, 1.], [0.6, 0.]],
     "2": [[0.2, 1.], [0.8, 1.], [0.8, 0.5], [0.2, 0.5], [0.2, 0.], [0.8, 0.]],
     "3": [[0.2, 1.], [0.8, 1.], [0.8, 0.5], [0.2, 0.5], [0.8, 0.5], [0.8, 0.], [0.2, 0.]],
@@ -55,7 +55,7 @@ text_vectors: Dict[str, List[List[float]]] = {
 }
 
 
-class Text(object):
+class Text:
     letters = text_vectors
     def __init__(
         self,
@@ -88,7 +88,7 @@ class Text(object):
         self.align = align
         self.valign = valign
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {
             "text": self.text,
             "p1": self.p1,
@@ -99,19 +99,19 @@ class Text(object):
             "align": self.align
         }
 
-    def get_letter(self, letter: str, replace_unknown: bool=True) -> List[List[List[float]]]:
+    def get_letter(self, letter: str, replace_unknown: bool=True) -> list[list[list[float]]]:
         letter = letter.upper()
         if letter not in self.letters:
                 if replace_unknown:
                     letter = "_"
                 else:
-                    raise KeyError("Letter {} from word '{}' not available".format(letter, self.text.upper()))
+                    raise KeyError(f"Letter {letter} from word '{self.text.upper()}' not available")
         
         letter_vec = self.letters[letter]
         
         return [letter_vec]
 
-    def get_vectors(self, replace_unknown: bool=True) -> List[euklid.vector.PolyLine2D]:
+    def get_vectors(self, replace_unknown: bool=True) -> list[euklid.vector.PolyLine2D]:
         # todo: add valign (space)
         vectors = []
         diff = self.p2 - self.p1

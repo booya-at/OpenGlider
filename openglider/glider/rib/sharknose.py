@@ -87,8 +87,8 @@ class Sharknose:
         
         return openglider.airfoil.Profile2D(data)
 
-    def update_rigidfoils(self, rib: "Rib") -> typing.List[RigidFoilBase]:
-        result: typing.List[RigidFoilBase] = []
+    def update_rigidfoils(self, rib: Rib) -> list[RigidFoilBase]:
+        result: list[RigidFoilBase] = []
 
         nearest_position = round(rib.profile_2d.get_ik(self.position))
         position = Percentage(rib.profile_2d.curve.get(nearest_position)[0])

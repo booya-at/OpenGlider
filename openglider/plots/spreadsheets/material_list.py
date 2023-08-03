@@ -6,7 +6,7 @@ from openglider.glider.glider import Glider
 from openglider.utils.table import Table
 
 
-def get_material_sheets(glider: Glider) -> Tuple[Table, Table, Table]:
+def get_material_sheets(glider: Glider) -> tuple[Table, Table, Table]:
     # ribs
     ribs_sheet = Table(name="material_ribs")
 
@@ -31,7 +31,7 @@ def get_material_sheets(glider: Glider) -> Tuple[Table, Table, Table]:
             current_line += 1
 
     # dribs
-    all_dribs: List[DiagonalRib] = sum([cell.diagonals for cell in glider.cells], [])
+    all_dribs: list[DiagonalRib] = sum([cell.diagonals for cell in glider.cells], [])
     dribs_sheet = Table(name="material_dribs")
 
     current_line = 1

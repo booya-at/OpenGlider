@@ -15,7 +15,7 @@ class CellClothTable(ElementTable):
         "MATERIAL": Keyword([("Name", str)], target_cls=Material)
     }
 
-    def get_element(self, row: int, keyword: str, data: List[Any], **kwargs: Any) -> Optional[Material]:
+    def get_element(self, row: int, keyword: str, data: list[Any], **kwargs: Any) -> Material | None:
         name = data[0]
 
         if name == "empty":

@@ -1,4 +1,5 @@
-from typing import Callable, Optional, Type
+from typing import Optional, Type
+from collections.abc import Callable
 
 from mypy.plugin import ClassDefContext, Plugin
 from mypy.plugins import dataclasses
@@ -15,7 +16,7 @@ def plugin(version: str) -> 'Type[Plugin]':
 
 class OpengliderPlugin(Plugin):
     dataclass_fullname: str = "openglider.utils.dataclass.dataclass"
-    def get_class_decorator_hook_2(self, fullname: str) -> Optional[Callable[[ClassDefContext], bool]]:
+    def get_class_decorator_hook_2(self, fullname: str) -> Callable[[ClassDefContext], bool] | None:
         if fullname == self.dataclass_fullname:
             return dataclasses.dataclass_class_maker_callback
         return None

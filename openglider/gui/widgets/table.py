@@ -6,7 +6,7 @@ import openglider.utils.table
 class QTable(QtWidgets.QTableWidget):
     def __init__(self, parent: QtWidgets.QWidget=None, table: openglider.utils.table.Table=None, readonly: bool=True):
         self.readonly = readonly
-        super(QTable, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         if table is not None:
             self.push_table(table)
@@ -22,7 +22,7 @@ class QTable(QtWidgets.QTableWidget):
                 value = table[row_no, column_no]
 
                 if type(value) is float:
-                    text = "{:.3f}".format(value)
+                    text = f"{value:.3f}"
                 elif value is None:
                     text = ""
                 else:

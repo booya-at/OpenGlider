@@ -21,7 +21,7 @@ def set_strap_names(glider: Glider) -> None:
 
         cell_layers.sort(key=lambda el: el[1])
         
-        layers_between: Dict[str, int] = {}
+        layers_between: dict[str, int] = {}
         
         def get_name(position: float) -> str:
             name = "-"

@@ -55,7 +55,7 @@ def migrate_diagonals(cls: Migration, jsondata: Any) -> Any:
 
 
 
-def get_hole_table(holes: List[Any]) -> HolesTable:
+def get_hole_table(holes: list[Any]) -> HolesTable:
     table = Table()
 
     for hole in holes:
@@ -74,7 +74,7 @@ def get_hole_table(holes: List[Any]) -> HolesTable:
 
 
 
-def get_diagonals_table(diagonals: List[Any]) -> DiagonalTable:
+def get_diagonals_table(diagonals: list[Any]) -> DiagonalTable:
     from openglider.glider.cell.diagonals import DiagonalRib
 
 
@@ -116,10 +116,10 @@ def get_diagonals_table(diagonals: List[Any]) -> DiagonalTable:
 
     return DiagonalTable(table)
 
-def get_straps_table(straps: List[Any], simple: bool=False) -> StrapTable:
+def get_straps_table(straps: list[Any], simple: bool=False) -> StrapTable:
     table = Table()
     cell_num = max([max(strap["cells"]) for strap in straps], default=0)
-    straps_per_cell: List[List[List[float]]] = []
+    straps_per_cell: list[list[list[float]]] = []
 
     for _i in range(cell_num+1):
         straps_per_cell.append([])

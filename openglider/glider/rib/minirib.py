@@ -48,7 +48,7 @@ class MiniRib:
         shape_with_bal = cell.basic_cell.midrib(self.yvalue, True).curve.nodes
         shape_wo_bal = cell.basic_cell.midrib(self.yvalue, False).curve.nodes
 
-        points: List[euklid.vector.Vector3D] = []
+        points: list[euklid.vector.Vector3D] = []
         for xval, with_bal, without_bal in zip(
                 cell.x_values, shape_with_bal, shape_wo_bal):
             fakt = self.multiplier(xval)  # factor ballooned/unb. (0-1)

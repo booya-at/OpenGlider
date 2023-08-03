@@ -3,7 +3,8 @@ from __future__ import annotations
 import logging
 import math
 from os import PathLike
-from typing import Dict, Iterator, List, Optional
+from typing import Dict, List, Optional
+from collections.abc import Iterator
 
 import euklid
 import numpy as np
@@ -35,10 +36,10 @@ class ShapePlotConfig:
     straps: bool = False
     diagonals: bool = False
 
-    scale_area: Optional[float] = None
-    scale_span: Optional[float] = None
+    scale_area: float | None = None
+    scale_span: float | None = None
 
-    def view_layers(self) -> Dict[str, bool]:
+    def view_layers(self) -> dict[str, bool]:
         layers = {}
         for attribute in self.__annotations__:
             if not attribute.startswith("scale"):
@@ -66,13 +67,13 @@ class ShapePlotConfig:
     
 
 
-class ShapePlot(object):
+class ShapePlot:
     project: GliderProject
     config: ShapePlotConfig | None
     attachment_point_mark = marks.Cross(name="attachment_point", rotation=np.pi/4)
 
-    def __init__(self, project: GliderProject, drawing: Optional[Layout]=None):
-        super(ShapePlot, self).__init__()
+    def __init__(self, project: GliderProject, drawing: Layout | None=None):
+        super().__init__()
         self.project = project
         self.glider_2d = project.glider
         self.glider_3d = project.glider_3d
@@ -185,7 +186,7 @@ class ShapePlot(object):
 
         return self
 
-    def draw_baseline(self, pct: Optional[float]=None, left: bool=False) -> None:
+    def draw_baseline(self, pct: float | None=None, left: bool=False) -> None:
         shape = self.shapes[left]
 
         if pct is None:
@@ -206,7 +207,7 @@ class ShapePlot(object):
         self.draw_cells(left=left)
         return self
 
-    def _get_attachment_point_positions(self, left: bool=False) -> Dict[str, euklid.vector.Vector2D]:
+    def _get_attachment_point_positions(self, left: bool=False) -> dict[str, euklid.vector.Vector2D]:
 
         points = {}
         shape = self.shapes[left]
@@ -240,7 +241,7 @@ class ShapePlot(object):
             if add_text and name:
                 p1 = p1 + euklid.vector.Vector2D([0, 0.02])
                 p2 = p2 + euklid.vector.Vector2D([0, 0.02])
-                text = Text(" {} ".format(name), p1, p2)
+                text = Text(f" {name} ", p1, p2)
                 vectors = text.get_vectors()
                 part.layers["text"] += vectors
 
@@ -386,8 +387,8 @@ class ShapePlot(object):
 
             return position
 
-        def all_upper_lines(node: Node) -> List[Line]:
-            lines: List[Line] = []
+        def all_upper_lines(node: Node) -> list[Line]:
+            lines: list[Line] = []
             for line in self.glider_3d.lineset.get_upper_connected_lines(node):
                 lines.append(line)
                 lines += all_upper_lines(line.upper_node)

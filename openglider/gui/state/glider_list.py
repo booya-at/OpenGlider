@@ -25,7 +25,7 @@ class GliderListItem(SelectionListItem[GliderProject]):
 class GliderList(SelectionList[GliderProject, GliderListItem]):
 
     @classmethod
-    def get_type(cls) -> Type[SelectionListItemT]:
+    def get_type(cls) -> type[SelectionListItemT]:
         return GliderListItem  # type: ignore
 
     async def watch(self, glider_list: GliderListWidget) -> None:

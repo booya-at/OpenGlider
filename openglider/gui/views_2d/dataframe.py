@@ -12,14 +12,14 @@ class DataFramePlot(pyqtgraph.PlotWidget):
     log_y = False
     grid = False
 
-    column_plots: Dict[str, pyqtgraph.PlotDataItem]
+    column_plots: dict[str, pyqtgraph.PlotDataItem]
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.column_plots = {}
         self.addLegend()
     
-    def plotDataFrameColumns(self, dataframe: pandas.DataFrame, config: Any, color: Color, name: Optional[str]=None) -> None:
+    def plotDataFrameColumns(self, dataframe: pandas.DataFrame, config: Any, color: Color, name: str | None=None) -> None:
         x = dataframe.index.tolist()
         for attr in config.__annotations__:
             if getattr(config, attr):
@@ -29,7 +29,7 @@ class DataFramePlot(pyqtgraph.PlotWidget):
                 self.plot(x, y, name=name, pen=pen)
 
 
-    def plotDataFrame(self, dataframe: pandas.DataFrame, columns: List[str]=None, force_new: bool=False) -> None:
+    def plotDataFrame(self, dataframe: pandas.DataFrame, columns: list[str]=None, force_new: bool=False) -> None:
         if columns is None:
             _columns: pandas.Index = dataframe.columns
             columns = _columns.tolist()

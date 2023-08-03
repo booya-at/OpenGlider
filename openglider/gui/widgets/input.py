@@ -1,11 +1,12 @@
-from typing import Callable, Generic, List, Optional, TypeVar
+from typing import Generic, List, Optional, TypeVar
+from collections.abc import Callable
 from openglider.gui.qt import QtWidgets, QtCore
 
 T = TypeVar("T")
 
 class Input(QtWidgets.QWidget, Generic[T]):
-    on_change: List[Callable[[T], None]]
-    on_changed: List[Callable[[T], None]]
+    on_change: list[Callable[[T], None]]
+    on_changed: list[Callable[[T], None]]
 
     def __init__(self, parent: QtWidgets.QWidget=None, name: str="", default: T=None, vertical: bool=False):
         super().__init__(parent=parent)
@@ -50,17 +51,17 @@ class Input(QtWidgets.QWidget, Generic[T]):
 
 
 class NumberInput(Input[float]):
-    on_change: List[Callable[[float], None]]  # type: ignore
-    on_changed: List[Callable[[float], None]]  # type: ignore
+    on_change: list[Callable[[float], None]]  # type: ignore
+    on_changed: list[Callable[[float], None]]  # type: ignore
 
     def __init__(
         self,
         parent: QtWidgets.QWidget=None,
         name: str="",
-        min_value: Optional[float]=None,
-        max_value: Optional[float]=None,
-        places: Optional[int]=None,
-        default: Optional[float]=None,
+        min_value: float | None=None,
+        max_value: float | None=None,
+        places: int | None=None,
+        default: float | None=None,
         vertical: bool=False
         ):
 
@@ -82,4 +83,3 @@ class NumberInput(Input[float]):
         
         super().set_value(value, propagate)  # type: ignore
 
-        

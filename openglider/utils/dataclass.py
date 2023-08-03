@@ -2,7 +2,8 @@ from __future__ import annotations
 import inspect
 
 import euklid
-from typing import TYPE_CHECKING, Callable, Dict, Any, List, Tuple, Type, TypeAlias, TypeVar
+from typing import TYPE_CHECKING, Dict, Any, List, Tuple, Type, TypeAlias, TypeVar
+from collections.abc import Callable
 
 import pydantic
 import pydantic.validators
@@ -20,7 +21,7 @@ if TYPE_CHECKING:
 
     OGDataclassT = TypeVar("OGDataclassT", bound="OGDataclass")
     class OGDataclass(Dataclass):
-        def __json__(self: OGDataclassT) -> Dict[str, Any]:
+        def __json__(self: OGDataclassT) -> dict[str, Any]:
             pass
 
         def copy(self: OGDataclassT) -> OGDataclassT:
@@ -35,7 +36,7 @@ class Config:
     #post_init_call = 'after_validation'
 
 @dataclass_transform(kw_only_default=False)
-def dataclass(_cls: Type[Any]) -> Type[OGDataclassT]:
+def dataclass(_cls: type[Any]) -> type[OGDataclassT]:
 
     if TYPE_CHECKING:
         _cls_new = dc(_cls)
@@ -44,7 +45,7 @@ def dataclass(_cls: Type[Any]) -> Type[OGDataclassT]:
         
     old_json = getattr(_cls, "__json__", None)
     if old_json is None or getattr(old_json, "is_auto", False):
-        def __json__(instance: Any) -> Dict[str, Any]:
+        def __json__(instance: Any) -> dict[str, Any]:
             return {
                 key: getattr(instance, key) for key in _cls_new.__dataclass_fields__
             }
@@ -82,7 +83,7 @@ def dataclass(_cls: Type[Any]) -> Type[OGDataclassT]:
 
 
 # https://github.com/pydantic/pydantic/issues/501
-def get_validator(cls: Type) -> Callable[[Any], Any]:
+def get_validator(cls: type) -> Callable[[Any], Any]:
     def validator(v: Any) -> Any:
         if isinstance(v, (list, tuple)):
             return cls(v)
@@ -107,7 +108,7 @@ class BaseModel(pydantic.BaseModel):
     def __eq__(self, other: Any) -> bool:
         return other.__class__ == self.__class__ and self.__dict__ == other.__dict__
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return dict(self._iter())
 
     def __hash__(self) -> int:

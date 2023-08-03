@@ -34,11 +34,11 @@ class PanelCut:
     x_left: Percentage
     x_right: Percentage
     cut_type: PANELCUT_TYPES
-    cut_3d_amount: List[float] = Field(default_factory=lambda: [0, 0])
-    x_center: Optional[Percentage] = None
-    seam_allowance: Optional[Length] = None
+    cut_3d_amount: list[float] = Field(default_factory=lambda: [0, 0])
+    x_center: Percentage | None = None
+    seam_allowance: Length | None = None
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {
             "x_left": self.x_left,
             "x_right": self.x_right,
@@ -78,7 +78,7 @@ class PanelCut:
     def mirror(self) -> None:
         self.x_left, self.x_right = self.x_right, self.x_left
     
-    def get_x_values(self) -> List[Percentage]:
+    def get_x_values(self) -> list[Percentage]:
         values = [self.x_left, self.x_right]
 
         if self.x_center is not None:
@@ -95,7 +95,7 @@ class PanelCut:
         return hash_list(self.x_left, self.x_right, self.cut_type)
 
     @cached_function("self")
-    def _get_ik_values(self, cell: Cell, numribs: int=0, exact: bool=True) -> List[float]:
+    def _get_ik_values(self, cell: Cell, numribs: int=0, exact: bool=True) -> list[float]:
         x_values_left = cell.rib1.profile_2d.x_values
         x_values_right = cell.rib2.profile_2d.x_values
 
@@ -191,7 +191,7 @@ class PanelCut:
         return euklid.vector.PolyLine3D(points)
 
 
-class Panel(object):
+class Panel:
     """
     Glider cell-panel
     :param cut_front {'left': 0.06, 'right': 0.06, 'type': 'orthogonal'}
@@ -201,7 +201,7 @@ class Panel(object):
     material: Material = cloth.get("porcher.skytex_32.white")
     name: str
 
-    def __init__(self, cut_front: PanelCut, cut_back: PanelCut, material: Optional[Union[Material, str]]=None, name: str="unnamed"):
+    def __init__(self, cut_front: PanelCut, cut_back: PanelCut, material: Material | str | None=None, name: str="unnamed"):
         self.cut_front = cut_front
         self.cut_back = cut_back
 
@@ -212,7 +212,7 @@ class Panel(object):
 
         self.name = name
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {'cut_front': self.cut_front,
                 'cut_back': self.cut_back,
                 "material": str(self.material),
@@ -250,14 +250,14 @@ class Panel(object):
 
         return total/4
 
-    def __radd__(self, other: Panel) -> Optional[Panel]:
+    def __radd__(self, other: Panel) -> Panel | None:
         """needed for sum(panels)"""
         if not isinstance(other, Panel):
             return self
         
         return None
 
-    def __add__(self, other: Panel) -> Optional[Panel]:
+    def __add__(self, other: Panel) -> Panel | None:
         if self.cut_front == other.cut_back:
             return Panel(other.cut_front, self.cut_back, material=self.material)
         elif self.cut_back == other.cut_front:
@@ -273,7 +273,7 @@ class Panel(object):
         
         return False
 
-    def get_3d(self, cell: Cell, numribs: int=0, midribs: Optional[List[Profile3D]]=None) -> List[euklid.vector.PolyLine3D]:
+    def get_3d(self, cell: Cell, numribs: int=0, midribs: list[Profile3D] | None=None) -> list[euklid.vector.PolyLine3D]:
         """
         Get 3d-Panel
         :param glider: glider class
@@ -313,9 +313,9 @@ class Panel(object):
         xvalues = cell.rib1.profile_2d.x_values
         x_value_interpolation = euklid.vector.Interpolation([[i, x] for i, x in enumerate(xvalues)])
 
-        rib_iks: List[List[float]] = []
-        nodes: List[euklid.vector.Vector3D] = []
-        rib_node_indices: List[List[int]] = []
+        rib_iks: list[list[float]] = []
+        nodes: list[euklid.vector.Vector3D] = []
+        rib_node_indices: list[list[int]] = []
 
         ik_values = self._get_ik_values(cell, numribs, exact=exact)
 
@@ -336,16 +336,16 @@ class Panel(object):
         points = [mesh.Vertex(*p) for p in nodes]
 
         polygons = []
-        lines: List[List[Tuple[Vertex, Vertex]]] = []
+        lines: list[list[tuple[Vertex, Vertex]]] = []
 
         # helper functions
-        def left_triangle(l_i: int, r_i: int) -> List[mesh.Polygon]:
+        def left_triangle(l_i: int, r_i: int) -> list[mesh.Polygon]:
             return [mesh.Polygon([points[l_i+1], points[l_i], points[r_i]])]
 
-        def right_triangle(l_i: int, r_i: int) -> List[mesh.Polygon]:
+        def right_triangle(l_i: int, r_i: int) -> list[mesh.Polygon]:
             return [mesh.Polygon([points[r_i+1], points[l_i], points[r_i]])]
 
-        def quad(l_i: int, r_i: int) -> List[mesh.Polygon]:
+        def quad(l_i: int, r_i: int) -> list[mesh.Polygon]:
             if tri:
                 return left_triangle(l_i, r_i) + right_triangle(l_i, r_i)
             else:
@@ -421,7 +421,7 @@ class Panel(object):
         self.cut_front.x_right = Percentage(p_r.find_nearest_x_value(self.cut_front.x_right.si))
 
     @cached_function("self")
-    def _get_ik_values(self, cell: Cell, numribs: int=0, exact: bool=True) -> List[Tuple[float, float]]:
+    def _get_ik_values(self, cell: Cell, numribs: int=0, exact: bool=True) -> list[tuple[float, float]]:
         """
         :param cell: the parent cell of the panel
         :param numribs: number of interpolation steps between ribs
@@ -433,13 +433,13 @@ class Panel(object):
         return [(ik1, ik2) for ik1, ik2 in zip(ik_front, ik_back)]
         
     @cached_function("self")
-    def _get_ik_interpolation(self, cell: Cell, numribs: int=0, exact: bool=True) -> Tuple[euklid.vector.Interpolation, euklid.vector.Interpolation]:
+    def _get_ik_interpolation(self, cell: Cell, numribs: int=0, exact: bool=True) -> tuple[euklid.vector.Interpolation, euklid.vector.Interpolation]:
         i1 = self.cut_front._get_ik_interpolation(cell, numribs, exact)
         i2 = self.cut_back._get_ik_interpolation(cell, numribs, exact)
 
         return i1, i2
 
-    def integrate_3d_shaping(self, cell: Cell, sigma: float, inner_2d: List[euklid.vector.PolyLine2D], midribs: Optional[List[Profile3D]]=None) -> Tuple[List[float], List[float]]:
+    def integrate_3d_shaping(self, cell: Cell, sigma: float, inner_2d: list[euklid.vector.PolyLine2D], midribs: list[Profile3D] | None=None) -> tuple[list[float], list[float]]:
         """
         :param cell: the parent cell of the panel
         :param sigma: std-deviation parameter of gaussian distribution used to weight the length differences.
@@ -474,7 +474,7 @@ class Panel(object):
             # -> sigma = einflussfaktor [m]
             # integral = sqrt(pi/2)*sigma * [ erf(x / (sqrt(2)*sigma) ) ]
 
-            def integrate(lengths_2d: List[float], lengths_3d: List[float]) -> float:
+            def integrate(lengths_2d: list[float], lengths_3d: list[float]) -> float:
                 amount = 0.
                 distance = 0.
 

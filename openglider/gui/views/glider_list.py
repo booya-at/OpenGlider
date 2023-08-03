@@ -50,7 +50,7 @@ class GliderListWidgetItemWidget(ListItemWidget[GliderProject]):
         }
         filename, extension = QtWidgets.QFileDialog.getSaveFileName(
             self,
-            "Save {}".format(self.list_item.element.name),
+            f"Save {self.list_item.element.name}",
             self.list_item.element.name,
             filter=";;".join(filters.keys())
             )

@@ -26,7 +26,7 @@ class Node(BaseModel):
     vec_proj: euklid.vector.Vector3D = Field(default_factory=lambda: euklid.vector.Vector3D())
     name: str = "unnamed_node"
     
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return{
             'node_type': self.node_type.name,
             'position': list(self.position),

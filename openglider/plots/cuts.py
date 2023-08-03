@@ -15,9 +15,9 @@ class CutResult(BaseModel):
     curve: euklid.vector.PolyLine2D
     index_left: float
     index_right: float
-    inner_indices: List[float]
+    inner_indices: list[float]
 
-    def __init__(self, curve: euklid.vector.PolyLine2D, index_left: float, index_right: float, inner_indices: List[float]):
+    def __init__(self, curve: euklid.vector.PolyLine2D, index_left: float, index_right: float, inner_indices: list[float]):
         super().__init__(
             curve=curve,
             index_left = index_left,
@@ -25,7 +25,7 @@ class CutResult(BaseModel):
             inner_indices = inner_indices
         )
 
-InnerLists = List[Tuple[euklid.vector.PolyLine2D, float]]
+InnerLists = list[tuple[euklid.vector.PolyLine2D, float]]
 
 class Cut(ABC, BaseModel):
     amount: Length
@@ -35,7 +35,7 @@ class Cut(ABC, BaseModel):
         inner_lists: InnerLists,
         outer_left: euklid.vector.PolyLine2D,
         outer_right: euklid.vector.PolyLine2D,
-        amount_3d: List[float] | None=None
+        amount_3d: list[float] | None=None
         ) -> CutResult:
 
         raise NotImplementedError()
@@ -54,7 +54,7 @@ class DesignCut(Cut):
     def total_amount(self) -> float:
         return self.num_folds * float(self.amount)
 
-    def get_p1_p2(self, inner_lists: InnerLists, amount_3d: Optional[List[float]]) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
+    def get_p1_p2(self, inner_lists: InnerLists, amount_3d: list[float] | None) -> tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
         l1, ik1 = inner_lists[0]
         l2, ik2 = inner_lists[-1]
 
@@ -67,7 +67,7 @@ class DesignCut(Cut):
         return l1.get(ik1), l2.get(ik2)
 
 
-    def _get_indices(self, inner_lists: InnerLists, amount_3d: Optional[List[float]]) -> List[float]:
+    def _get_indices(self, inner_lists: InnerLists, amount_3d: list[float] | None) -> list[float]:
         indices = []
         for i, lst in enumerate(inner_lists):
             line, ik = lst
@@ -83,7 +83,7 @@ class DesignCut(Cut):
         inner_lists: InnerLists,
         outer_left: euklid.vector.PolyLine2D,
         outer_right: euklid.vector.PolyLine2D,
-        amount_3d: List[float] | None=None
+        amount_3d: list[float] | None=None
         ) -> CutResult:
 
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
@@ -123,7 +123,7 @@ class SimpleCut(DesignCut):
         inner_lists: InnerLists,
         outer_left: euklid.vector.PolyLine2D,
         outer_right: euklid.vector.PolyLine2D,
-        amount_3d: List[float] | None=None
+        amount_3d: list[float] | None=None
         ) -> CutResult:
 
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
@@ -168,7 +168,7 @@ class Cut3D(DesignCut):
         inner_lists: InnerLists,
         outer_left: euklid.vector.PolyLine2D,
         outer_right: euklid.vector.PolyLine2D,
-        amount_3d: List[float] | None=None
+        amount_3d: list[float] | None=None
         ) -> CutResult:
         
         """
@@ -231,7 +231,7 @@ class Cut3D_2(DesignCut):
         inner_lists: InnerLists,
         outer_left: euklid.vector.PolyLine2D,
         outer_right: euklid.vector.PolyLine2D,
-        amount_3d: List[float] | None=None
+        amount_3d: list[float] | None=None
         ) -> CutResult:
         
         """
@@ -288,7 +288,7 @@ class FoldedCut(DesignCut):
         inner_lists: InnerLists,
         outer_left: euklid.vector.PolyLine2D,
         outer_right: euklid.vector.PolyLine2D,
-        amount_3d: List[float] | None=None
+        amount_3d: list[float] | None=None
         ) -> CutResult:
         
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
@@ -341,7 +341,7 @@ class ParallelCut(DesignCut):
         inner_lists: InnerLists,
         outer_left: euklid.vector.PolyLine2D,
         outer_right: euklid.vector.PolyLine2D,
-        amount_3d: List[float] | None=None
+        amount_3d: list[float] | None=None
         ) -> CutResult:
         
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)

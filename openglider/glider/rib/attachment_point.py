@@ -24,7 +24,7 @@ class RoundReinforcement(BaseModel):
     size: Length | Percentage = Length("4cm")
     material_code: str = ""
 
-    def get_3d(self, rib: "Rib", num_points: int=10) -> list[euklid.vector.PolyLine3D]:
+    def get_3d(self, rib: Rib, num_points: int=10) -> list[euklid.vector.PolyLine3D]:
         # create circle with center on the point
         polygons = self.get_flattened(rib, num_points=num_points)
         aligned_polygons = []
@@ -34,7 +34,7 @@ class RoundReinforcement(BaseModel):
         
         return aligned_polygons
 
-    def get_flattened(self, rib: "Rib", num_points: int=10) -> list[euklid.vector.PolyLine2D]:
+    def get_flattened(self, rib: Rib, num_points: int=10) -> list[euklid.vector.PolyLine2D]:
         # get center point
         profile = rib.profile_2d
         start = profile(self.position)
@@ -60,9 +60,9 @@ class AttachmentPoint(Node):
     protoloop_distance: Percentage | Length = Percentage("2%")
 
     def __repr__(self) -> str:
-        return "<Attachment point '{}' ({})>".format(self.name, self.rib_pos)
+        return f"<Attachment point '{self.name}' ({self.rib_pos})>"
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "rib_pos": self.rib_pos,
@@ -78,7 +78,7 @@ class AttachmentPoint(Node):
 
 
     
-    def get_x_values(self, rib: Rib) -> List[float]:
+    def get_x_values(self, rib: Rib) -> list[float]:
         positions = [self.rib_pos.value]
 
         if self.protoloops:
@@ -100,7 +100,7 @@ class AttachmentPoint(Node):
         return positions
     
     @classmethod
-    def calculate_force_rib_aligned(self, rib: Rib, force: Optional[float]=None) -> euklid.vector.Vector3D:
+    def calculate_force_rib_aligned(self, rib: Rib, force: float | None=None) -> euklid.vector.Vector3D:
         if force is None:
             force = self.force.length()
         return rib.rotation_matrix.apply([0, force, 0])

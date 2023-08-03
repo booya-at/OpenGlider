@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import logging
 import math
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Tuple
+from collections.abc import Sequence
 
 import euklid
 import openglider.utils
@@ -26,20 +27,20 @@ logger = logging.getLogger(__file__)
 
 
 class FlattenedCell(BaseModel):
-    inner: List[euklid.vector.PolyLine2D]
-    ballooned: Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]
+    inner: list[euklid.vector.PolyLine2D]
+    ballooned: tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]
 
 
 class Cell(BaseModel):
     rib1: Rib
     rib2: Rib
     ballooning: BallooningBase
-    attachment_points: List[CellAttachmentPoint] = Field(default_factory=list)
-    miniribs: List[MiniRib] = Field(default_factory=list)
-    panels: List[Panel] = Field(default_factory=list)
-    diagonals: List[DiagonalRib] = Field(default_factory=list)
-    straps: List[TensionStrap] = Field(default_factory=list)
-    rigidfoils: List[PanelRigidFoil] = Field(default_factory=list)
+    attachment_points: list[CellAttachmentPoint] = Field(default_factory=list)
+    miniribs: list[MiniRib] = Field(default_factory=list)
+    panels: list[Panel] = Field(default_factory=list)
+    diagonals: list[DiagonalRib] = Field(default_factory=list)
+    straps: list[TensionStrap] = Field(default_factory=list)
+    rigidfoils: list[PanelRigidFoil] = Field(default_factory=list)
     name: str = "unnamed"
 
     ballooning_ramp: float | None = None
@@ -141,8 +142,8 @@ class Cell(BaseModel):
 
         return profiles
 
-    def get_connected_panels(self, skip: Optional[PANELCUT_TYPES]=None) -> List[Panel]:
-        panels: List[Panel] = []
+    def get_connected_panels(self, skip: PANELCUT_TYPES | None=None) -> list[Panel]:
+        panels: list[Panel] = []
         self.panels.sort(key=lambda panel: panel.mean_x())
 
         p0 = self.panels[0]
@@ -161,7 +162,7 @@ class Cell(BaseModel):
         # self.basic_cell.prof2 = self.prof2
         shape_with_ballooning = self.basic_cell.midrib(minirib.yvalue, ballooning=True, arc_argument=False).curve.nodes
         shape_without_ballooning = self.basic_cell.midrib(minirib.yvalue, ballooning=False).curve.nodes
-        points: List[euklid.vector.Vector3D] = []
+        points: list[euklid.vector.Vector3D] = []
         for xval, with_bal, without_bal in zip(
                 self.x_values, shape_with_ballooning, shape_without_ballooning):
             fakt = minirib.multiplier(xval)  # factor ballooned/unb. (0-1)
@@ -170,13 +171,13 @@ class Cell(BaseModel):
         return Profile3D(euklid.vector.PolyLine3D(points))
 
     @cached_property('rib_profiles_3d')
-    def _child_cells(self) -> List[BasicCell]:
+    def _child_cells(self) -> list[BasicCell]:
         """
         get all the sub-cells within the current cell,
         (separated by miniribs)
         """
         # TODO: test / fix
-        cells: List[BasicCell] = []
+        cells: list[BasicCell] = []
         for cell_no in range(len(self.rib_profiles_3d)-1):
             leftrib = self.rib_profiles_3d[cell_no]
             rightrib = self.rib_profiles_3d[cell_no+1]
@@ -230,15 +231,15 @@ class Cell(BaseModel):
         return cells
 
     @property
-    def ribs(self) -> List[Rib]:
+    def ribs(self) -> list[Rib]:
         return [self.rib1, self.rib2]
 
     @property
-    def _yvalues(self) -> List[float]:
+    def _yvalues(self) -> list[float]:
         return [0.] + [mrib.yvalue for mrib in self.miniribs] + [1.]
 
     @property
-    def x_values(self) -> List[float]:
+    def x_values(self) -> list[float]:
         return consistent_value(self.ribs, 'profile_2d.x_values')
 
     @property
@@ -271,7 +272,7 @@ class Cell(BaseModel):
         else:
             return self.basic_cell.midrib(y, ballooning=False)
 
-    def get_midribs(self, numribs: int) -> List[Profile3D]:
+    def get_midribs(self, numribs: int) -> list[Profile3D]:
         y_values = linspace(0, 1, numribs)
         return [self.midrib(y) for y in y_values]
     
@@ -318,13 +319,13 @@ class Cell(BaseModel):
         return HashedList([BallooningBase.arcsinc(1. / (1+bal)) if bal > 0 else 0 for bal in balloon])
     
     @cached_property('ballooning', '_child_cells')
-    def ballooning_tension_factors(self) -> List[float]:
+    def ballooning_tension_factors(self) -> list[float]:
         if len(self._child_cells) <= 1:
             return self.basic_cell.ballooning_tension_factors
         
         child_factors = [cell.ballooning_tension_factors for cell in self._child_cells]
 
-        factors: List[float] = []
+        factors: list[float] = []
 
         prof1 = self.prof1.curve
         prof2 = self.prof2.curve
@@ -417,7 +418,7 @@ class Cell(BaseModel):
             mean_rib += self.midrib(y).flatten().normalized()
         return mean_rib * (1. / num_midribs)
 
-    def get_mesh_grid(self, numribs: int=0, half_cell: bool=False) -> List[List[Vertex]]:
+    def get_mesh_grid(self, numribs: int=0, half_cell: bool=False) -> list[list[Vertex]]:
         """
         Get Cell-grid
         :param numribs: number of miniribs to calculate
@@ -425,7 +426,7 @@ class Cell(BaseModel):
         """
         numribs += 1
 
-        grid: List[List[Vertex]] = []
+        grid: list[list[Vertex]] = []
         rib_indices = range(numribs + 1)
         if half_cell:
             rib_indices = rib_indices[(numribs) // 2:]
@@ -465,7 +466,7 @@ class Cell(BaseModel):
         return mesh
 
     @cached_function("self")
-    def get_flattened_cell(self, numribs: int=50, num_inner: Optional[int]=None) -> FlattenedCell:
+    def get_flattened_cell(self, numribs: int=50, num_inner: int | None=None) -> FlattenedCell:
         midribs = self.get_midribs(numribs)
         numpoints = len(midribs[0].curve.nodes)
 
@@ -548,15 +549,15 @@ class Cell(BaseModel):
             ballooned=ballooned
         )
     
-    def calculate_3d_shaping(self, panels: Optional[List[Panel]]=None, numribs: int=10) -> None:
+    def calculate_3d_shaping(self, panels: list[Panel] | None=None, numribs: int=10) -> None:
         if panels is None:
             panels = self.panels
 
         flat = self.get_flattened_cell(numribs)
 
-        cuts_3d: Dict[int, List[float]] = {}
+        cuts_3d: dict[int, list[float]] = {}
 
-        def add_amount(cut: PanelCut, amount: List[float]) -> None:
+        def add_amount(cut: PanelCut, amount: list[float]) -> None:
             cut_key = cut.__hash__()
 
             for key in cuts_3d:
@@ -568,7 +569,7 @@ class Cell(BaseModel):
 
             cuts_3d[cut_key] = amount
 
-        def get_amount(cut: PanelCut) -> List[float]:
+        def get_amount(cut: PanelCut) -> list[float]:
             cut_key = cut.__hash__()
             data = cuts_3d[cut_key]
             # TODO: Investigate

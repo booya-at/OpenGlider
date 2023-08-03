@@ -23,9 +23,9 @@ class CellAttachmentPoint(Node):
     offset: float = 0.
 
     def __repr__(self) -> str:
-        return "<Attachment point '{}' ({})>".format(self.name, self.rib_pos)
+        return f"<Attachment point '{self.name}' ({self.rib_pos})>"
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {
             "cell_pos": self.cell_pos,
             "rib_pos": self.rib_pos,
@@ -57,7 +57,7 @@ class CellAttachmentPoint(Node):
             
         return self.position
     
-    def get_position_2d(self, shape: Shape, glider: "Glider") -> euklid.vector.Vector2D:
+    def get_position_2d(self, shape: Shape, glider: Glider) -> euklid.vector.Vector2D:
         cell_no = None
         for i, cell in enumerate(glider.cells):
             if self in cell.attachment_points:

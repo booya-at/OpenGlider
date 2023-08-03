@@ -27,7 +27,7 @@ colors = vtkmodules.vtkCommonColor.vtkNamedColors()
 class Sphere(vtkmodules.vtkRenderingCore.vtkActor):
     color = (1., 1., .3)
 
-    def __init__(self, p: Tuple[float, float, float], color: Tuple[float, float, float] | None=None):
+    def __init__(self, p: tuple[float, float, float], color: tuple[float, float, float] | None=None):
         super().__init__()
         self.sphere = vtkmodules.vtkFiltersSources.vtkSphereSource()
         self.sphere.SetCenter(p)
@@ -46,7 +46,7 @@ class Sphere(vtkmodules.vtkRenderingCore.vtkActor):
 class Arrow(vtkmodules.vtkRenderingCore.vtkActor):
     color = (1., 0., 0.)
 
-    def __init__(self, p1: euklid.vector.Vector3D, p2: euklid.vector.Vector3D, shaft: float=0.01, tip: float=.2, color: Tuple[float, float, float] | None=None):
+    def __init__(self, p1: euklid.vector.Vector3D, p2: euklid.vector.Vector3D, shaft: float=0.01, tip: float=.2, color: tuple[float, float, float] | None=None):
         super().__init__()
         if color:
             self.color = color
@@ -252,7 +252,7 @@ class PanelView(MeshView):
         self.cell = cell
         self.panel = panel
 
-        super(PanelView, self).__init__()
+        super().__init__()
 
         self.draw(midribs=midribs)
 
@@ -297,7 +297,7 @@ class LinesetView(MeshView):
 
 
 class MeshDataView(MeshView):
-    def __init__(self, mesh: Mesh, data: List[float]):
+    def __init__(self, mesh: Mesh, data: list[float]):
         super().__init__()
         self.mesh = mesh
         self.data = data

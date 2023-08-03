@@ -15,7 +15,7 @@ class BezierProfile2D(Profile2D):
     # controllpoints to zero.
     def __init__(self, data: euklid.vector.PolyLine2D=None, name: str="unnamed",
                  upper_spline: CurveType=None, lower_spline: CurveType=None):
-        super(BezierProfile2D, self).__init__(data=data, name=name)
+        super().__init__(data=data, name=name)
         self.curve = self.normalized().curve
         if upper_spline is None:
             upper_spline = self.fit_upper()
@@ -29,8 +29,8 @@ class BezierProfile2D(Profile2D):
 
         self.apply_splines()
 
-    def __json__(self) -> Dict[str, Any]:
-        dct = super(BezierProfile2D, self).__json__()
+    def __json__(self) -> dict[str, Any]:
+        dct = super().__json__()
         dct.update({'upper_spline': self.upper_spline,
                     'lower_spline': self.lower_spline})
         return dct
@@ -53,11 +53,11 @@ class BezierProfile2D(Profile2D):
         else:
             return euklid.spline.BSplineCurve.fit(lower_smooth, control_num)  # type: ignore
 
-    def fit_region(self, start: float, stop: float, num_points: int, control_points: List[euklid.vector.Vector2D]) -> CurveType:
+    def fit_region(self, start: float, stop: float, num_points: int, control_points: list[euklid.vector.Vector2D]) -> CurveType:
         smoothened = euklid.vector.PolyLine2D([self.get(x) for x in np.linspace(start, stop, num=num_points)])
         return euklid.spline.BezierCurve.fit(smoothened, numpoints=num_points)  # type: ignore
 
-    def fit_profile(self, num_points: int, control_points: List[euklid.vector.Vector2D]) -> None:
+    def fit_profile(self, num_points: int, control_points: list[euklid.vector.Vector2D]) -> None:
         # todo: classmethod
         self.upper_spline = self.fit_region(-1., 0., num_points, control_points)
         self.lower_spline = self.fit_region(0., 1., num_points, control_points)
@@ -68,7 +68,7 @@ class BezierProfile2D(Profile2D):
 
         self.data = euklid.vector.PolyLine2D(upper.tolist() + lower.tolist()[1:])
 
-    def make_smooth_dist(self, points: List[euklid.vector.Vector2D], num: int=70, dist: Literal["const"] | Literal["sin"] | None=None, upper: bool=True) -> euklid.vector.PolyLine2D:
+    def make_smooth_dist(self, points: list[euklid.vector.Vector2D], num: int=70, dist: Literal["const"] | Literal["sin"] | None=None, upper: bool=True) -> euklid.vector.PolyLine2D:
         # make array [[length, x, y], ...]
         if not dist:
             return euklid.vector.PolyLine2D(points)

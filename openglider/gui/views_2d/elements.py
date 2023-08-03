@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
+from collections.abc import Callable
 
 import numpy as np
 from matplotlib import image
@@ -22,7 +23,7 @@ logger = logging.getLogger(__name__)
 class Line2D(QtWidgets.QGraphicsObject):
     color: Color
 
-    def __init__(self, data: List[euklid.vector.Vector2D], color: Tuple[int, int, int] | Color | None=None, dashed: bool=False) -> None:
+    def __init__(self, data: list[euklid.vector.Vector2D], color: tuple[int, int, int] | Color | None=None, dashed: bool=False) -> None:
         self.curve_data = data or []
         if isinstance(color, Color):
             self.color = color
@@ -177,13 +178,13 @@ class Image(pyqtgraph.ImageItem):
 
 
 class DraggableLine(pyqtgraph.GraphItem):
-    on_node_move: List[Callable[[DraggableLine, Any], None]]
-    on_node_release: List[Callable[[DraggableLine, Any], None]]
+    on_node_move: list[Callable[[DraggableLine, Any], None]]
+    on_node_release: list[Callable[[DraggableLine, Any], None]]
 
-    data: Dict[str, Any]
+    data: dict[str, Any]
     drag_node_index: int | None
 
-    def __init__(self, data: List[euklid.vector.Vector2D]) -> None:
+    def __init__(self, data: list[euklid.vector.Vector2D]) -> None:
         self.drag_node_index = None
         self.drag_start_position = None
         self.on_node_move = []
@@ -200,7 +201,7 @@ class DraggableLine(pyqtgraph.GraphItem):
     def controlpoints(self) -> euklid.vector.PolyLine2D:
         return euklid.vector.PolyLine2D(self.data["pos"].tolist())
 
-    def set_controlpoints(self, controlpoints: List[euklid.vector.Vector2D]) -> None:
+    def set_controlpoints(self, controlpoints: list[euklid.vector.Vector2D]) -> None:
         if isinstance(controlpoints, euklid.vector.PolyLine2D):
             controlpoints = controlpoints.nodes
 

@@ -72,7 +72,7 @@ class Line(CachedObject):
         self.name = name or "unnamed_line"
         self.trim_correction = trim_correction
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return{
             'number': self.number,
             'lower_node': self.lower_node,
@@ -199,7 +199,7 @@ class Line(CachedObject):
             logger.error(f"invalid force: {self.name}, {self.force} {self.length_no_sag}")
             raise e
 
-    def get_line_points(self, sag: bool=True, numpoints: int=10) -> List[euklid.vector.Vector3D]:
+    def get_line_points(self, sag: bool=True, numpoints: int=10) -> list[euklid.vector.Vector3D]:
         """
         Return points of the line
         """
@@ -223,12 +223,12 @@ class Line(CachedObject):
              self.sag_par_1 + self.sag_par_2)
         return float(u)
 
-    def get_mesh(self, numpoints: int=2, segment_length: Optional[float]=None) -> Mesh:
+    def get_mesh(self, numpoints: int=2, segment_length: float | None=None) -> Mesh:
         if segment_length is not None:
             numpoints = max(round(self.length_no_sag / segment_length), 2)
 
         line_points = [Vertex(*point) for point in self.get_line_points(numpoints=numpoints)]
-        boundary: Dict[str, List[Vertex]] = {"lines": []}
+        boundary: dict[str, list[Vertex]] = {"lines": []}
         if self.lower_node.node_type == Node.NODE_TYPE.LOWER:
             boundary["lower_attachment_points"] = [line_points[0]]
         else:
@@ -258,21 +258,21 @@ class Line(CachedObject):
         return Mesh(line_poly, boundary)
 
     @property
-    def _get_projected_par(self) -> List[float | None]:
+    def _get_projected_par(self) -> list[float | None]:
         if self.sag_par_1 is None or self.sag_par_2 is None:
             raise ValueError(f"No sag calculated: {self.name}")
         c1_n = self.lower_node.get_diff().dot(self.v_inf_0)
         c2_n = self.upper_node.get_diff().dot(self.v_inf_0)
         return [c1_n + self.sag_par_1, c2_n / self.length_projected + self.sag_par_2]
 
-    def get_connected_ribs(self, glider: Glider) -> List[Rib]:
+    def get_connected_ribs(self, glider: Glider) -> list[Rib]:
         '''
         return the connected ribs
         '''
         ribs = []
         att_pnts = glider.lineset.get_upper_influence_nodes(self)
         for rib in glider.ribs:
-            if any((p in rib.attachment_points for p in att_pnts)):
+            if any(p in rib.attachment_points for p in att_pnts):
                 ribs.append(rib)
         
         return ribs

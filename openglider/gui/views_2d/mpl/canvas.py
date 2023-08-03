@@ -59,7 +59,7 @@ class PlotCanvas(FigureCanvas):
 
         self.draw()
 
-    def bbox(self) -> Tuple[int, int]:
+    def bbox(self) -> tuple[int, int]:
         bbox = self.axes.get_window_extent().transformed(self.figure.dpi_scale_trans.inverted())
         dpi = self.figure.dpi
         #width = bbox.width
@@ -80,7 +80,7 @@ class PlotCanvas(FigureCanvas):
             "down": self.zoom_factor
         }.get(event.button, 1)
 
-        def new_lims(old_lims: Tuple[float, float], x: float) -> Tuple[float, float]:
+        def new_lims(old_lims: tuple[float, float], x: float) -> tuple[float, float]:
             dl = x - min(old_lims)
             dr = max(old_lims) - x
 
@@ -105,7 +105,7 @@ class PlotCanvas(FigureCanvas):
 
             # Do Pan
 
-            def _pan_update_limits(axis_id: int, pan_event: Any) -> Tuple[float, float]:
+            def _pan_update_limits(axis_id: int, pan_event: Any) -> tuple[float, float]:
                 """Compute limits with applied pan."""
                 assert axis_id in (0, 1)
                 if axis_id == 0:

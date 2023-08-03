@@ -24,7 +24,7 @@ class Quad:
     matrix_inverse: numpy.ndarray = numpy.linalg.inv(matrix)
 
     def __init__(self, p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D, p3: euklid.vector.Vector2D, p4: euklid.vector.Vector2D):
-        self.nodes: List[euklid.vector.Vector2D] = [
+        self.nodes: list[euklid.vector.Vector2D] = [
             p1, p2, p3, p4
         ]
 
@@ -39,7 +39,7 @@ class Quad:
         
         return euklid.vector.Vector2D([x,y])
 
-    def to_local(self, point: euklid.vector.Vector2D) -> Tuple[float, float]:
+    def to_local(self, point: euklid.vector.Vector2D) -> tuple[float, float]:
         #for i, node in enumerate(self.nodes):
         if abs(point[0] - self.nodes[0][0]) < 1e-10 and abs(point[1] - self.nodes[0][1]) < 1e-10:
             return 0., 0.
@@ -66,7 +66,7 @@ class Quad:
 
 
 class Mapping:
-    def __init__(self, curves: List[euklid.vector.PolyLine2D]):
+    def __init__(self, curves: list[euklid.vector.PolyLine2D]):
         self.curves = curves
         self.curve_length = len(curves[0].nodes)
 
@@ -93,7 +93,7 @@ class Mapping:
             
             self.quads.append(quads)
     
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {
             "curves": self.curves
         }
@@ -112,7 +112,7 @@ class Mapping:
         return poly.to_global(k_x, k_y)
 
     
-    def get_iks(self, point: euklid.vector.Vector2D) -> Tuple[float, float]:
+    def get_iks(self, point: euklid.vector.Vector2D) -> tuple[float, float]:
         for quads_row in self.quads:
             for quad in quads_row:
                 m, l = quad.to_local(point)
@@ -135,7 +135,7 @@ class Mapping:
 
 
 class Mapping3D:
-    def __init__(self, curves: List[euklid.vector.PolyLine3D]):
+    def __init__(self, curves: list[euklid.vector.PolyLine3D]):
         self.curves = curves
 
     def get_point(self, ik_x: float, ik_y: float) -> euklid.vector.Vector3D:

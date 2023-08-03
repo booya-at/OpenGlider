@@ -9,7 +9,7 @@ from openglider.utils.types import SymmetricCurveType
 from openglider.vector.polygon import CirclePart
 
 
-class ArcCurve(object):
+class ArcCurve:
     """
     _
     """
@@ -18,17 +18,17 @@ class ArcCurve(object):
     def __init__(self, curve: SymmetricCurveType) -> None:
         self.curve = curve
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {"curve": self.curve}
 
     def copy(self) -> ArcCurve:
         return copy.deepcopy(self)
 
     @staticmethod
-    def has_center_cell(x_values: List[float]) -> bool:
+    def has_center_cell(x_values: list[float]) -> bool:
         return x_values[0] != 0
 
-    def get_arc_positions(self, x_values: List[float]) -> euklid.vector.PolyLine2D:
+    def get_arc_positions(self, x_values: list[float]) -> euklid.vector.PolyLine2D:
         """
         calculate y/z positions vor the arc-curve, given a shape's rib-x-values
 
@@ -55,7 +55,7 @@ class ArcCurve(object):
         
         return euklid.vector.PolyLine2D(positions)
 
-    def get_cell_angles(self, x_values: List[float], rad: bool=True) -> List[float]:
+    def get_cell_angles(self, x_values: list[float], rad: bool=True) -> list[float]:
         """
         Calculate cell rotation angles given a shape's rib-x-values
         :param x_values:
@@ -81,7 +81,7 @@ class ArcCurve(object):
         return cell_angles
 
     @classmethod
-    def from_cell_angles(cls, angles: List[float], x_values: List[float], rad: bool=True) -> ArcCurve:
+    def from_cell_angles(cls, angles: list[float], x_values: list[float], rad: bool=True) -> ArcCurve:
         last_pos = euklid.vector.Vector2D([0,0])
         last_x = 0.
         nodes = []
@@ -103,7 +103,7 @@ class ArcCurve(object):
         
         return cls(spline)
 
-    def get_rib_angles(self, x_values: List[float]) -> List[float]:
+    def get_rib_angles(self, x_values: list[float]) -> list[float]:
         """
         Calculate rib rotation angles given a shape's rib-x-values
         :param x_values:
@@ -127,7 +127,7 @@ class ArcCurve(object):
 
         return rib_angles
 
-    def get_flattening(self, x_values: List[float]) -> float:
+    def get_flattening(self, x_values: list[float]) -> float:
         arc_curve = self.get_arc_positions(x_values)
         span_projected = arc_curve.nodes[-1][0]
         return span_projected / arc_curve.get_length()
@@ -138,7 +138,7 @@ class ArcCurve(object):
         return CirclePart(p1, p2, p3).get_sequence(n)
 
 
-    def rescale(self, x_values: List[float]) -> None:
+    def rescale(self, x_values: list[float]) -> None:
         positions = self.get_arc_positions(x_values)
         diff = euklid.vector.Vector2D([0, -positions.nodes[0][1]])
         self.curve.controlpoints = euklid.vector.PolyLine2D([p + diff for p in self.curve.controlpoints.nodes])

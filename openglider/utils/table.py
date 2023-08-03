@@ -11,17 +11,17 @@ except ImportError:
 
 import ezodf
 
-CellIndex = Union[Tuple[int, int], str]
+CellIndex = Union[tuple[int, int], str]
 
 class Table:
     rex = re.compile(r"([A-Z]*)([0-9]*)")
     format_float_digits = 4
     name: str=""
 
-    dct: Dict[str, Any]
+    dct: dict[str, Any]
 
     @classmethod
-    def str_decrypt(cls, str: str) -> Tuple[int, int]:
+    def str_decrypt(cls, str: str) -> tuple[int, int]:
         result = cls.rex.match(str.upper())
         if result:
             column, row = result.groups()
@@ -56,13 +56,13 @@ class Table:
         self.num_columns = columns
         self.name=name
     
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {
             "dct": self.dct
         }
     
     @classmethod
-    def __from_json__(cls, dct: Dict[str, Any]) -> Table:
+    def __from_json__(cls, dct: dict[str, Any]) -> Table:
         table = cls()
         table.dct = dct
 
@@ -88,7 +88,7 @@ class Table:
             item = self.str_encrypt(column_no, row_no)
         return self.dct.get(item, None)
 
-    def get_columns(self, from_i: int, to_j: Optional[int]) -> Table:
+    def get_columns(self, from_i: int, to_j: int | None) -> Table:
         if to_j is None:
             to_j = self.num_columns
         new_table = self.__class__(self.num_rows, to_j-from_i)
@@ -100,7 +100,7 @@ class Table:
         
         return new_table
     
-    def get_rows(self, from_row: int, to_row: Optional[int]) -> Table:
+    def get_rows(self, from_row: int, to_row: int | None) -> Table:
         if to_row is None:
             to_row = self.num_rows
         row_count = to_row - from_row
@@ -149,7 +149,7 @@ class Table:
         key = self.str_encrypt(column_no, row_no)
         self.dct[key] = value
 
-    def insert_row(self, row: List[Any], row_no: int | None=None) -> None:
+    def insert_row(self, row: list[Any], row_no: int | None=None) -> None:
         if row_no is None:
             row_no = self.num_rows
         for i, el in enumerate(row):
@@ -203,7 +203,7 @@ class Table:
         return doc
     
     @classmethod
-    def save_tables(self, tables: List[Table], path: str) -> ezodf.document.PackagedDocument:
+    def save_tables(self, tables: list[Table], path: str) -> ezodf.document.PackagedDocument:
         doc = ezodf.newdoc(doctype="ods", filename=path)
 
         for table in tables:
@@ -212,7 +212,7 @@ class Table:
         return doc
 
     @classmethod
-    def load(cls, path: str) -> List[Table]:
+    def load(cls, path: str) -> list[Table]:
         data = pyexcel_ods.get_data(path)
 
         sheets = [cls.from_list(sheet) for sheet in data.values()]
@@ -234,7 +234,7 @@ class Table:
         return table
 
     @classmethod
-    def from_list(cls, lst: List[List[Any]]) -> Table:
+    def from_list(cls, lst: list[list[Any]]) -> Table:
         table = cls()
 
         for row_no, row in enumerate(lst):
@@ -287,17 +287,17 @@ class Table:
     def _repr_html_(self) -> str:
         html = "<table><thead><td></td>"
         for column_no in range(self.num_columns):
-            html += "<td>{}</td>".format(self.column_to_char(column_no + 1))
+            html += f"<td>{self.column_to_char(column_no + 1)}</td>"
 
         html += "</thead>"
         for row_no in range(self.num_rows):
-            html += "<tr><td>{}</td>".format(row_no+1)
+            html += f"<tr><td>{row_no+1}</td>"
             for column_no in range(self.num_columns):
                 ident = self.str_encrypt(column_no, row_no)
                 value = self.dct.get(ident, "")
                 if isinstance(value, float):
                     value = round(value, self.format_float_digits)
-                html += "<td>{}</td>".format(value)
+                html += f"<td>{value}</td>"
             html += "</tr>"
 
         html += "</table>"

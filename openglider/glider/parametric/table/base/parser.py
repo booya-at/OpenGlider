@@ -1,6 +1,7 @@
 import math
 import operator
-from typing import Any, Callable, Type, TypeVar
+from typing import Any, Type, TypeVar
+from collections.abc import Callable
 
 from pydantic import Field
 from pyparsing import (CaselessKeyword, Forward, Group, Literal, ParseException, ParseResults,
@@ -13,7 +14,7 @@ from openglider.vector.unit import Angle, Length, Percentage, Quantity
 # https://github.com/pyparsing/pyparsing/blob/master/examples/fourFn.py
 
 
-default_units: list[Type[Quantity]] = [
+default_units: list[type[Quantity]] = [
     Length,
     Percentage,
     Angle,
@@ -27,11 +28,11 @@ def default_resolver(key: str) -> float:
 
 
 class Parser(BaseModel):
-    units: list[Type[Quantity]] = Field(default_factory=default_units.copy)
+    units: list[type[Quantity]] = Field(default_factory=default_units.copy)
     variable_resolver: Callable[[str], float] = default_resolver
 
     _parser: Forward | None = None
-    _units: dict[str, Type[Quantity]] | None = None
+    _units: dict[str, type[Quantity]] | None = None
 
     stack: list[str | float | Quantity] = Field(default_factory=list)
 
@@ -60,7 +61,7 @@ class Parser(BaseModel):
         #"E": math.e
     }
 
-    def get_units(self) -> dict[str, Type[Quantity]]:
+    def get_units(self) -> dict[str, type[Quantity]]:
         if self._units is None:
             result = {}
             for quantity_type in self.units:

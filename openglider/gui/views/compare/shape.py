@@ -1,7 +1,8 @@
 import datetime
 import enum
 import logging
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
+from collections.abc import Callable
 
 import pyqtgraph
 from openglider.glider.project import GliderProject
@@ -60,7 +61,7 @@ class ShapeConfigWidget(QtWidgets.QWidget):
         self.selection.changed.connect(self.update_scale)
         self.layout().addWidget(self.selection)
 
-    def get_config(self) -> Tuple[ShapePlotConfig, ShapePlotConfig]:
+    def get_config(self) -> tuple[ShapePlotConfig, ShapePlotConfig]:
         upper = self.config.copy()
         lower = self.config.copy()
 
@@ -96,8 +97,8 @@ class ShapeConfigWidget(QtWidgets.QWidget):
         #    self.changed.emit()
 
 
-class ShapePlotCache(GliderCache[Tuple[ShapePlot, ShapePlot, str]]):
-    def get_object(self, element: str) -> Tuple[ShapePlot, ShapePlot, str]:
+class ShapePlotCache(GliderCache[tuple[ShapePlot, ShapePlot, str]]):
+    def get_object(self, element: str) -> tuple[ShapePlot, ShapePlot, str]:
         project = self.elements[element]
         return ShapePlot(project.element), ShapePlot(project.element), element
 

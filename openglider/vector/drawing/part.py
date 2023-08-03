@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterable, Iterator, Dict, List, Optional, Sequence, Tuple, TypeAlias
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, TypeAlias
+from collections.abc import Iterable, Iterator, Sequence
 import copy
 import svgwrite
 import svgwrite.shapes
@@ -12,20 +13,20 @@ import numpy as np
 if TYPE_CHECKING:
     from openglider.vector.drawing.layout import Layout
 
-LineList = List[euklid.vector.PolyLine2D]
+LineList = list[euklid.vector.PolyLine2D]
 
-class Layer(object):
-    stroke: Optional[str] = "black"
+class Layer:
+    stroke: str | None = "black"
     stroke_width = 1.
     visible = True
 
-    def __init__(self, polylines: Optional[LineList]=None, stroke: str=None, stroke_width: float=1., visible: bool=True):
+    def __init__(self, polylines: LineList | None=None, stroke: str=None, stroke_width: float=1., visible: bool=True):
         self.polylines = polylines or []
         self.stroke = stroke
         self.stroke_width = stroke_width
         self.visible = visible
 
-    def __add__(self, other: Layer | List[euklid.vector.PolyLine2D]) -> Layer:
+    def __add__(self, other: Layer | list[euklid.vector.PolyLine2D]) -> Layer:
         if isinstance(other, Layer):
             self.polylines += other.polylines
         else:
@@ -39,7 +40,7 @@ class Layer(object):
     def __len__(self) -> int:
         return len(self.polylines)
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {
             "polylines": self.polylines,
             "stroke": self.stroke,
@@ -52,7 +53,7 @@ class Layer(object):
     def copy(self) -> Layer:
         return Layer([p.copy() for p in self.polylines])
 
-    def _get_dxf_attributes(self) -> Dict[str, Any]:
+    def _get_dxf_attributes(self) -> dict[str, Any]:
         # color mapping: red->1, green->3, blue->5, black->7
         if self.stroke == "red":
             color = 1
@@ -67,15 +68,15 @@ class Layer(object):
             "color": color,
         }
 
-LayerType: TypeAlias = Layer | List[euklid.vector.PolyLine2D]
+LayerType: TypeAlias = Layer | list[euklid.vector.PolyLine2D]
 
-class Layers(object):
+class Layers:
     def __init__(self, **layers: Layer):
         self.layers = layers
 
     def __repr__(self) -> str:
         """pretty-print"""
-        lines = ["Layers:"] + ["{} ({})".format(layer_name, len(layer)) for layer_name, layer in self.layers.items()]
+        lines = ["Layers:"] + [f"{layer_name} ({len(layer)})" for layer_name, layer in self.layers.items()]
         return "\n  - ".join(lines)
 
     def __getitem__(self, item: str) -> Layer:
@@ -104,10 +105,10 @@ class Layers(object):
     def values(self) -> Iterator[Layer]:
         return self.layers.values()  # type: ignore
 
-    def items(self) -> Iterator[Tuple[str, Layer]]:
+    def items(self) -> Iterator[tuple[str, Layer]]:
         return self.layers.items()  # type: ignore
 
-    def keys(self) -> List[str]:
+    def keys(self) -> list[str]:
         return list(self.layers)
 
     def copy(self) -> Layers:
@@ -129,7 +130,7 @@ class Layers(object):
         return self.layers.pop(name)
 
 
-class PlotPart(object):
+class PlotPart:
     def __init__(self, cuts: LayerType=None, marks: LayerType=None, text: LayerType=None, stitches: LayerType=None, envelope: LayerType=None, name: str=None, material_code: str="", **extra_layers: LayerType):
         self.layers = Layers()
 
@@ -147,8 +148,8 @@ class PlotPart(object):
         self.name = name
         self.material_code = material_code
 
-    def __json__(self) -> Dict[str, Any]:
-        new: Dict[str, Any] = {
+    def __json__(self) -> dict[str, Any]:
+        new: dict[str, Any] = {
             "name": self.name,
             "material_code": self.material_code
         }
@@ -227,11 +228,11 @@ class PlotPart(object):
         return self.max_y - self.min_y
 
     @property
-    def bbox(self) -> Tuple[
-        Tuple[float, float],
-        Tuple[float, float],
-        Tuple[float, float],
-        Tuple[float, float]
+    def bbox(self) -> tuple[
+        tuple[float, float],
+        tuple[float, float],
+        tuple[float, float],
+        tuple[float, float]
     ]:
         return ((self.min_x, self.min_y), (self.max_x, self.min_y),
                 (self.max_x, self.max_y), (self.min_x, self.max_y))

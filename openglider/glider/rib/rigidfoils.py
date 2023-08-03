@@ -38,7 +38,7 @@ class RigidFoilBase(ABC, BaseModel):
     def _get_flattened(self, rib: Rib, glider: Glider=None) -> euklid.vector.PolyLine2D:
         raise NotImplementedError()
 
-    def get_cap_radius(self, start: bool) -> Tuple[float, float]:
+    def get_cap_radius(self, start: bool) -> tuple[float, float]:
         raise NotImplementedError
 
 
@@ -58,7 +58,7 @@ class RigidFoil(RigidFoilBase):
             return (radius.si - np.sqrt(dsq)) * 0.35
         return 0.
 
-    def get_cap_radius(self, start: bool) -> Tuple[float, float]:
+    def get_cap_radius(self, start: bool) -> tuple[float, float]:
         return -self.circle_radius.si, 0.35
 
     def _get_flattened(self, rib: Rib, glider: Glider=None) -> euklid.vector.PolyLine2D:
@@ -168,7 +168,7 @@ class RigidFoilCurved(_RigidFoilCurved):
     circle_radius_end: float = 0.03
     circle_amount_end: float = 0.7
 
-    def get_cap_radius(self, start: bool) -> Tuple[float, float]:
+    def get_cap_radius(self, start: bool) -> tuple[float, float]:
         if start:
             return self.circle_radius_start, self.circle_amount_start
         else:
@@ -180,12 +180,12 @@ class RigidFoil2(_RigidFoilCurved):
     circle_amount: float=0.5
     straight_part = Length("2cm")
 
-    def get_cap_radius(self, start: bool) -> Tuple[float, float]:
+    def get_cap_radius(self, start: bool) -> tuple[float, float]:
         return self.circle_radius, self.circle_amount
 
 
 @dataclass
-class FoilCurve(object):
+class FoilCurve:
     front: float = 0
     end: float = 0.17
 

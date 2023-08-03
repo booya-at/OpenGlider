@@ -37,7 +37,7 @@ class SagMatrix():
         self.rhs[2 * i + 1] = -lower_line.ortho_pressure * \
             lower_line.length_projected ** 2 / lower_line.force_projected / 2
 
-    def insert_type_1_upper(self, line: Line, upper_lines: List[Line]) -> None:
+    def insert_type_1_upper(self, line: Line, upper_lines: list[Line]) -> None:
         """
         free upper node
         """
@@ -68,7 +68,7 @@ class SagMatrix():
     def solve_system(self) -> None:
         self.solution = np.linalg.solve(self.matrix, self.rhs)
 
-    def get_sag_parameters(self, line_nr: int) -> Tuple[float, float]:
+    def get_sag_parameters(self, line_nr: int) -> tuple[float, float]:
         return (
             self.solution[line_nr * 2],
             self.solution[line_nr * 2 + 1]

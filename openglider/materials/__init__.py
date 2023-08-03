@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 class MaterialRegistry:
     base_type = Material
     def __init__(self, *paths: str):
-        self.materials: Dict[str, Material] = {}
+        self.materials: dict[str, Material] = {}
         for path in paths:
             self.register(path)
 

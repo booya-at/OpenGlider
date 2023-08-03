@@ -1,5 +1,6 @@
 from __future__ import annotations
-from typing import Any, Dict, List, Mapping, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Union, TYPE_CHECKING
+from collections.abc import Mapping
 
 import ast
 import logging
@@ -26,7 +27,7 @@ logger = logging.getLogger(__name__)
 class ATP(dto.DTO):
     name: str
     pos: Percentage
-    force: Union[float, str]
+    force: float | str
 
     #@validator("force", pre=True)
     #def validate_force(self, force: Any):
@@ -58,7 +59,7 @@ class AttachmentPointTable(RibTable):
         #"AHP": ATP,
     }
 
-    def get_element(self, row: int, keyword: str, data: List[Any], resolvers: list[Parser]=None, rib: Rib=None, **kwargs: Any) -> AttachmentPoint:
+    def get_element(self, row: int, keyword: str, data: list[Any], resolvers: list[Parser]=None, rib: Rib=None, **kwargs: Any) -> AttachmentPoint:
         # rib_no, rib_pos, cell_pos, force, name, is_cell
         force = data[2]
 
@@ -110,7 +111,7 @@ class AttachmentPointTable(RibTable):
         raise NotImplementedError()
         table = Table()
 
-        layer_columns: Dict[str, int] = {}
+        layer_columns: dict[str, int] = {}
 
         for cell_no, cell in enumerate(glider.cells):
             #cell_layers = []
@@ -138,7 +139,7 @@ class CellAttachmentPointTable(CellTable):
         "ATPDIFF": Keyword([("name", str), ("cell_pos", float), ("rib_pos", float), ("force", Union[float, str]), ("offset", float)], target_cls=CellAttachmentPoint)
     }
 
-    def get_element(self, row: int, keyword: str, data: List[Any], curves: Dict[str, GliderCurveType]={}, cell: Cell=None, **kwargs: Any) -> CellAttachmentPoint:
+    def get_element(self, row: int, keyword: str, data: list[Any], curves: dict[str, GliderCurveType]={}, cell: Cell=None, **kwargs: Any) -> CellAttachmentPoint:
         force = data[3]
 
         if isinstance(force, str):

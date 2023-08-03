@@ -10,7 +10,7 @@ from openglider.gui.wizzards.line_forces import LineForceView
 logger = logging.getLogger(__name__)
 __all__ = ["menu_actions"]
 
-menu_actions: Dict[str, List[Tuple[Type[Wizard], str]]] = {
+menu_actions: dict[str, list[tuple[type[Wizard], str]]] = {
     "view": [
         (LineForceView, "Leinen")
     ],
@@ -18,7 +18,7 @@ menu_actions: Dict[str, List[Tuple[Type[Wizard], str]]] = {
 }
 
 
-def add_actions(actions: Dict[str, List[Tuple[Type[Wizard], str]]]) -> None:
+def add_actions(actions: dict[str, list[tuple[type[Wizard], str]]]) -> None:
     for group_name, group_actions in actions.items():
         menu_actions.setdefault(group_name, [])
         menu_actions[group_name] += group_actions

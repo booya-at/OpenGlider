@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import logging
 from openglider.gui.qt import QtWidgets, QtGui, QtCore
-from typing import Any, List, Iterator, Tuple
+from typing import Any, List, Tuple
+from collections.abc import Iterator
 import euklid
 from typing import Literal, Optional
 
@@ -23,8 +24,8 @@ class ShapeConfig(BaseModel):
     draw_design_lower: bool = False
     draw_design_upper: bool = True
 
-    scale_area: Optional[float] = None
-    scale_span: Optional[float] = None
+    scale_area: float | None = None
+    scale_span: float | None = None
 
 
 class Shape2D(QtWidgets.QGraphicsObject):
@@ -42,7 +43,7 @@ class Shape2D(QtWidgets.QGraphicsObject):
         shape._clean()
         return cls(shape, panels, **kwargs)
 
-    def __init__(self, shape: ParametricShape, panels: List[List[Panel]]=None, color: Tuple[int, int, int]=None, alpha: int=160, config: ShapeConfig=None) -> None:
+    def __init__(self, shape: ParametricShape, panels: list[list[Panel]]=None, color: tuple[int, int, int]=None, alpha: int=160, config: ShapeConfig=None) -> None:
         super().__init__()
         self.glider_shape = shape
         self.glider_shape_r = shape.get_half_shape()
@@ -141,7 +142,7 @@ class Shape2D(QtWidgets.QGraphicsObject):
                     return val
 
 
-                def get_cut_line(cut: PanelCut) -> List[euklid.vector.Vector2D]:
+                def get_cut_line(cut: PanelCut) -> list[euklid.vector.Vector2D]:
                     left = shape.get_point(cell_no, normalize_x(cut.x_left))
                     right = shape.get_point(cell_no+1, normalize_x(cut.x_right))
 

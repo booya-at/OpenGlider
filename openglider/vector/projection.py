@@ -27,7 +27,7 @@ def point2d(p1_3d: V3, p1_2d: V2, p2_3d: V3, p2_2d: V2, point_3d: V3) -> V2:
 def flatten_list(
     list1: euklid.vector.PolyLine3D,
     list2: euklid.vector.PolyLine3D
-    ) -> Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
+    ) -> tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
     
     if not isinstance(list1, euklid.vector.PolyLine3D):
         list1 = euklid.vector.PolyLine3D(list1.data.tolist())

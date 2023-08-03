@@ -1,15 +1,14 @@
-from __future__ import division
-from __future__ import absolute_import
 import euklid
-from typing import Iterator, List, Optional, Sized, Tuple
+from typing import List, Optional, Tuple
+from collections.abc import Iterator, Sized
 from meshpy.triangle import MeshInfo
 import meshpy._internals as internals
 
 class Triangle(Sized):
     attributes: dict
-    nodes: Tuple[int, int, int]
+    nodes: tuple[int, int, int]
 
-    def __init__(self, lst: Tuple[int, int, int], name: str=""):
+    def __init__(self, lst: tuple[int, int, int], name: str=""):
         self.nodes = lst
         self.attributes = {
             "name": name
@@ -30,7 +29,7 @@ class TriMesh:
             Triangle(v, name) for v in mesh_info.elements
         ]
 
-VectorList = List[Tuple[float, float]]
+VectorList = list[tuple[float, float]]
 
 class Triangulation:
     meshpy_keep_boundary = True
@@ -41,13 +40,13 @@ class Triangulation:
 
     name: str = ""
 
-    def __init__(self, vertices: VectorList, boundary: List[List[int]]=None, holes: Optional[VectorList]=None):
+    def __init__(self, vertices: VectorList, boundary: list[list[int]]=None, holes: VectorList | None=None):
         self.vertices = vertices
         self.boundary = boundary
         self.holes = holes
 
     @staticmethod
-    def get_segments(polyline: List[int]) -> List[Tuple[int, int]]:
+    def get_segments(polyline: list[int]) -> list[tuple[int, int]]:
         segments = []
         for i in range(len(polyline)-1):
             segments.append((polyline[i], polyline[i+1]))
@@ -71,11 +70,11 @@ class Triangulation:
 
         if self.meshpy_max_area is not None:
             opts += "a"
-            opts += "{:f}".format(self.meshpy_max_area)
+            opts += f"{self.meshpy_max_area:f}"
 
         return opts
 
-    def triangulate(self, options: Optional[str]=None) -> TriMesh:
+    def triangulate(self, options: str | None=None) -> TriMesh:
         if options is None:
             options = self._get_triangle_options()
         mesh_info = MeshInfo()

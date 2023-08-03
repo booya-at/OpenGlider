@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Generic, List, Tuple, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, List, Tuple, TypeVar
+from collections.abc import Callable
 from datetime import datetime
 import re
 from openglider.glider.glider import Glider
@@ -20,11 +21,11 @@ class Wizard(GliderWindow):
     def __init__(self, app: MainWindow, project: GliderProject):
         super().__init__(app, project)
 
-        self.logger = logging.getLogger("{}.{}".format(self.__class__.__module__, self.__class__.__name__))
+        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
 
         #self.project = project
     
-    def get_changelog_entry(self) -> Tuple[datetime, str, str]:
+    def get_changelog_entry(self) -> tuple[datetime, str, str]:
         return datetime.now(), self.__class__.__name__, "Modified using wizzard"
 
 
@@ -47,7 +48,7 @@ class SelectionItem(QtWidgets.QWidget, Generic[T]):
         super().__init__()
         self.obj = obj
         self.name = name
-        self.on_change: List[Callable[[SelectionItem[T]], None]] = []
+        self.on_change: list[Callable[[SelectionItem[T]], None]] = []
 
         layout = QtWidgets.QHBoxLayout()
         self.setLayout(layout)
@@ -91,7 +92,7 @@ class SelectionItem(QtWidgets.QWidget, Generic[T]):
 
 class SelectionWizard(Wizard):
     project: GliderProject
-    def __init__(self, app: MainWindow, project: GliderProject, selection_lst: list[Tuple[T, str]]):
+    def __init__(self, app: MainWindow, project: GliderProject, selection_lst: list[tuple[T, str]]):
         super().__init__(app, project)
 
         layout = QtWidgets.QHBoxLayout()
@@ -115,7 +116,7 @@ class SelectionWizard(Wizard):
         self.selection.setSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
         self.right_widget.layout().addWidget(self.selection)
 
-        self.selection_items: List[SelectionItem] = []
+        self.selection_items: list[SelectionItem] = []
 
         for obj, name in selection_lst:
             item = SelectionItem(obj, name)
@@ -134,9 +135,9 @@ class SelectionWizard(Wizard):
         self.splitter.setSizes([800, 200])
 
     @property
-    def selected_items(self) -> List[Tuple[T, Color]]:
+    def selected_items(self) -> list[tuple[T, Color]]:
         # return list of gliders + colors
-        lst: List[SelectionItem] = []
+        lst: list[SelectionItem] = []
 
         for item in self.selection_items:
             if item.is_checked:

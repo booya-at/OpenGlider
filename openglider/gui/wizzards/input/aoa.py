@@ -62,7 +62,7 @@ class AOA2D(QtWidgets.QGraphicsObject):
 
 
 class AOAInput(Canvas):
-    aoas: List[AOA2D]
+    aoas: list[AOA2D]
 
     locked_aspect_ratio = False
 
@@ -93,7 +93,7 @@ class AOAInput(Canvas):
         # scale x -> [0,1], y [deg]
         return cp  * euklid.vector.Vector2D([1./span, 180./math.pi])
 
-    def draw_aoas(self, projects: List[GliderProject], clear: bool=True) -> None:
+    def draw_aoas(self, projects: list[GliderProject], clear: bool=True) -> None:
         if clear:
             for shape in self.aoas:
                 self.removeItem(shape)
@@ -172,7 +172,7 @@ class AOAWizard(GliderSelectionWizard):
         self.shape_input.addItem(AOA2D(self.project, Color(0,255,0)))
         self.shape_input.update()
 
-    def selection_changed(self, selected: List[Tuple[GliderProject, Color]]) -> None:
+    def selection_changed(self, selected: list[tuple[GliderProject, Color]]) -> None:
         for shape in self.shape_input.aoas:
             self.shape_input.removeItem(shape)
             self.shape_input.aoas = []

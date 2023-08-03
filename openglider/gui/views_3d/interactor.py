@@ -4,7 +4,7 @@ from vtkmodules.vtkInteractionStyle import vtkInteractorStyleTrackballCamera
 
 class Interactor(vtkInteractorStyleTrackballCamera):
     def __init__(self) -> None:
-        super(Interactor, self).__init__()
+        super().__init__()
         self.AddObserver("MiddleButtonPressEvent",self.middleButtonPressEvent)
         self.AddObserver("MiddleButtonReleaseEvent",self.middleButtonReleaseEvent)
         self.AddObserver("RightButtonPressEvent",self.rightButtonPressEvent)

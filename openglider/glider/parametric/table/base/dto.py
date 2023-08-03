@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import abc
 import types
-from typing import Any, Callable, Generator, Generic, Self, Type, TypeVar
+from typing import Any, Generic, Self, Type, TypeVar
+from collections.abc import Callable, Generator
 
 from pydantic.generics import GenericModel
 
@@ -33,7 +34,7 @@ class CellTuple(GenericModel, Generic[TupleType]):
                 second=v
             )
 
-_type_cache: dict[Type[DTO], list[tuple[str, str]]] = {}
+_type_cache: dict[type[DTO], list[tuple[str, str]]] = {}
 
 class DTO(Generic[ReturnType], BaseModel, abc.ABC):
     _types: list[tuple[str, str]] | None = None

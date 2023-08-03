@@ -28,7 +28,7 @@ class GliderRibPlots:
     project: GliderProject
     config: RibPlotLayers
     color: Color
-    cache: Dict[int, Layout]
+    cache: dict[int, Layout]
 
     def __init__(self, project: GliderProject, color: Color) -> None:
         self.project = project

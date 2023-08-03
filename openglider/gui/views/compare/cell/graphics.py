@@ -18,7 +18,7 @@ class GliderCellPlots:
     project: GliderProject
     config: CellPlotLayers
     color: Color
-    cache: Dict[int, pandas.DataFrame]
+    cache: dict[int, pandas.DataFrame]
 
     def __init__(self, project: GliderProject, color: Color) -> None:
         self.project = project

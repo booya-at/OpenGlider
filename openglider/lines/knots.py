@@ -10,15 +10,15 @@ logger = logging.getLogger(__name__)
 
 
 class KnotCorrections:
-    knots_table_line_type = Tuple[str, str, int, float, float]
+    knots_table_line_type = tuple[str, str, int, float, float]
 
-    knots_table: List[knots_table_line_type] = [
+    knots_table: list[knots_table_line_type] = [
         # lower_line_type, upper_line_type, upper_line_count, first_line_correction, last_line_correction
         ("liros.ltc65", "liros.ltc65", 2, 2.0, 2.0)
     ]
-    knots_dict: Dict[str, Tuple[float, float]]
+    knots_dict: dict[str, tuple[float, float]]
 
-    def __init__(self, knots: Optional[List[knots_table_line_type]]=None):
+    def __init__(self, knots: list[knots_table_line_type] | None=None):
         if knots:
             self.knots_table = knots
         self.knots_dict = {}
@@ -36,7 +36,7 @@ class KnotCorrections:
     def read_csv(cls, filename: str) -> KnotCorrections:
         with open(filename) as f:
             reader = csv.reader(f)
-            lines: List[Tuple[str, str, int, float, float]] = []
+            lines: list[tuple[str, str, int, float, float]] = []
             
             for i, line in enumerate(reader):
                 if i > 0:
@@ -52,7 +52,7 @@ class KnotCorrections:
 
 
     @staticmethod
-    def _knot_key(line_type_1: Union[LineType, str], line_type_2: Union[LineType, str], upper_num: int) -> str:
+    def _knot_key(line_type_1: LineType | str, line_type_2: LineType | str, upper_num: int) -> str:
         if isinstance(line_type_1, LineType):
             line_type_1 = line_type_1.name
         if isinstance(line_type_2, LineType):
@@ -66,7 +66,7 @@ class KnotCorrections:
             key = self._knot_key(*knot[:3])
             self.knots_dict[key] = knot[3:]
 
-    def predict(self, lower_type: LineType, upper_type: LineType, num: int) -> Tuple[float, float]:
+    def predict(self, lower_type: LineType, upper_type: LineType, num: int) -> tuple[float, float]:
         d1_base = 6.86042156e-01
         d1_num = 2.89561675e-01
         d2_base = 2.67032978
@@ -92,7 +92,7 @@ class KnotCorrections:
         )
     
     
-    def get(self, lower_type: LineType, upper_type: LineType, upper_num: int) -> List[float]:
+    def get(self, lower_type: LineType, upper_type: LineType, upper_num: int) -> list[float]:
         key = self._knot_key(lower_type, upper_type, upper_num)
 
         if key not in self.knots_dict:

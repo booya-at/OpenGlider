@@ -10,7 +10,8 @@ import sys
 import time
 import traceback
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Callable, Optional, Type
+from typing import TYPE_CHECKING, Any, Optional, Type
+from collections.abc import Callable
 
 import qtmodern.styles
 import qtmodern.windows
@@ -124,7 +125,7 @@ class GliderApp(QtWidgets.QApplication):
             self.show_exception(*sys.exc_info())
             #raise e
 
-    def show_exception(self, exception_type: Type[BaseException], exception_value: BaseException, tracebackobj: Optional[TracebackType]) -> Any:
+    def show_exception(self, exception_type: type[BaseException], exception_value: BaseException, tracebackobj: TracebackType | None) -> Any:
         """
         Global function to catch unhandled exceptions.
 
@@ -142,14 +143,14 @@ class GliderApp(QtWidgets.QApplication):
         traceback_io.seek(0)
         traceback_message = traceback_io.read()
 
-        errmsg = '{}: \t{}'.format(str(exception_type), str(exception_value))
+        errmsg = f'{str(exception_type)}: \t{str(exception_value)}'
         message = "\n".join([
             notice,
             time_string,
             separator,
             errmsg,
             separator,
-            "Written to log-file: {}".format(logfile)
+            f"Written to log-file: {logfile}"
         ])
 
         try:
@@ -164,7 +165,7 @@ class GliderApp(QtWidgets.QApplication):
                 separator
             ]))
             f.close()
-        except IOError:
+        except OSError:
             pass
 
         self.exception_window = QtWidgets.QMessageBox()

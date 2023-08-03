@@ -60,7 +60,7 @@ class RibBase(BaseModel):
         return self.profile_2d
     
     @cached_function("self")
-    def get_profile_3d(self, x_values: List[float]=None) -> Profile3D:
+    def get_profile_3d(self, x_values: list[float]=None) -> Profile3D:
         hull = self.get_hull()
 
         if x_values is not None:
@@ -69,7 +69,7 @@ class RibBase(BaseModel):
         return Profile3D(self.align_all(hull.curve))
 
     @cached_property('profile_3d')
-    def normvectors(self) -> List[euklid.vector.Vector3D]:
+    def normvectors(self) -> list[euklid.vector.Vector3D]:
         return [self.rotation_matrix.apply(p) for p in self.profile_2d.normvectors.nodes]
     
     @cached_property('profile_2d', 'transformation')
@@ -115,9 +115,9 @@ class Rib(RibBase):
     zrot: float = 0.
     xrot: float = 0.
 
-    holes: List[RibHoleBase] = Field(default_factory=list)
-    rigidfoils: List[RigidFoilBase] = Field(default_factory=list)
-    attachment_points: List[AttachmentPoint] = Field(default_factory=list)
+    holes: list[RibHoleBase] = Field(default_factory=list)
+    rigidfoils: list[RigidFoilBase] = Field(default_factory=list)
+    attachment_points: list[AttachmentPoint] = Field(default_factory=list)
     sharknose: Sharknose | None = None
 
     hole_naming_scheme = "{rib.name}h{}"
@@ -200,7 +200,7 @@ class Rib(RibBase):
 
         vertices = [(p[0], p[1]) for p in self.get_hull().curve.nodes[:-1]]
         boundary = [list(range(len(vertices))) + [0]]
-        hole_centers: List[Tuple[float, float]] = []
+        hole_centers: list[tuple[float, float]] = []
 
         if len(self.holes) > 0 and hole_num > 3:
             for hole in self.holes:
@@ -252,7 +252,7 @@ class Rib(RibBase):
             
             return pyfoil.Airfoil(envelope)
         
-    def get_rigidfoils(self) -> List[RigidFoilBase]:
+    def get_rigidfoils(self) -> list[RigidFoilBase]:
         if self.sharknose is not None:
             return self.sharknose.update_rigidfoils(self)
         

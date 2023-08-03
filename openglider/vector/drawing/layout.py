@@ -3,7 +3,8 @@ import os
 import io
 import math
 from pathlib import Path
-from typing import Any, Dict, Iterable, Iterator, List, Sequence, Union, Optional
+from typing import Any, Dict, List, Union, Optional
+from collections.abc import Iterable, Iterator, Sequence
 
 import ezdxf
 import ezdxf.document
@@ -19,10 +20,10 @@ from openglider.utils.css import get_material_color, normalize_class_names
 from openglider.vector.text import Text
 
 
-class Layout(object):
-    parts: List[PlotPart]
-    point_width: Optional[float] = None
-    layer_config: Dict[str, Dict[str, str | bool]] = {
+class Layout:
+    parts: list[PlotPart]
+    point_width: float | None = None
+    layer_config: dict[str, dict[str, str | bool]] = {
         "cuts": {
             "id": 'outer',
             "stroke-width": "0.25",
@@ -70,7 +71,7 @@ class Layout(object):
         }
     }
 
-    def __init__(self, parts: Optional[List[PlotPart]]=None):
+    def __init__(self, parts: list[PlotPart] | None=None):
         self.parts = parts or []
         self.layer_config = self.layer_config.copy()
 
@@ -86,7 +87,7 @@ class Layout(object):
         for part in self.parts:
             part.rotate(angle, radians=radians)
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {"parts": self.parts}
 
     def copy(self) -> Layout:
@@ -259,7 +260,7 @@ class Layout(object):
         return border_part
 
     @classmethod
-    def create_raster(cls, parts: List[List[PlotPart]], distance_x: float=0.2, distance_y: float=0.1) -> Layout:
+    def create_raster(cls, parts: list[list[PlotPart]], distance_x: float=0.2, distance_y: float=0.1) -> Layout:
         """
 
         :param parts: [[p1_1, p1_2], [p2_1, p2_2],...]
@@ -275,13 +276,13 @@ class Layout(object):
 
         return area
 
-    def rasterize(self, columns: Optional[int]=None, distance_x: float=0.2, distance_y: float=0.1) -> None:
+    def rasterize(self, columns: int | None=None, distance_x: float=0.2, distance_y: float=0.1) -> None:
         """
         create a raster with cells containing the parts
         """
         columns = columns or round(math.sqrt(len(self.parts)))
         columns = int(columns)  # python2 fix
-        column_lst: List[List[PlotPart]] = [[] for _ in range(columns)]
+        column_lst: list[list[PlotPart]] = [[] for _ in range(columns)]
 
         for i, part in enumerate(self.parts):
             column = i%columns
@@ -327,7 +328,7 @@ class Layout(object):
         return max([part.max_y for part in self.parts])
 
     @property
-    def bbox(self) -> List[euklid.vector.Vector2D]:
+    def bbox(self) -> list[euklid.vector.Vector2D]:
         return [euklid.vector.Vector2D([self.min_x, self.min_y]), euklid.vector.Vector2D([self.max_x, self.min_y]),
                 euklid.vector.Vector2D([self.max_x, self.max_y]), euklid.vector.Vector2D([self.min_x, self.max_y])]
 
@@ -426,8 +427,8 @@ class Layout(object):
         #return blocks
         return dwg
 
-    def get_svg_group(self, config: Dict[str, Any]=None, fill: bool=False) -> svgwrite.container.Group:
-        _config: Dict[str, Dict[str, Any]] = self.layer_config.copy()
+    def get_svg_group(self, config: dict[str, Any]=None, fill: bool=False) -> svgwrite.container.Group:
+        _config: dict[str, dict[str, Any]] = self.layer_config.copy()
         if config is not None:
             _config.update(config)
 
@@ -481,7 +482,7 @@ class Layout(object):
         return group
 
     def get_svg_drawing(self, unit: str="mm", border: float=0.02, fill: bool=False) -> svgwrite.Drawing:
-        border_w, border_h = [2*border*x for x in (self.width, self.height)]
+        border_w, border_h = (2*border*x for x in (self.width, self.height))
         width, height = self.width+border_w, self.height+border_h
 
         drawing = svgwrite.Drawing(size=[("{}"+unit).format(n) for n in (width, height)])
@@ -509,7 +510,7 @@ class Layout(object):
                 _class_new = normalize_class_names(_class)
 
                 if colour:
-                    styles[_class_new] = ["fill: {}".format(colour)]
+                    styles[_class_new] = [f"fill: {colour}"]
             if hasattr(elem, "elements"):
                 for sub_elem in elem.elements:
                     add_style(sub_elem)
@@ -517,9 +518,9 @@ class Layout(object):
         add_style(drawing)
 
         for css_class, attribs in styles.items():
-            style.append(".{} {{\n".format(css_class))
+            style.append(f".{css_class} {{\n")
             for attrib in attribs:
-                style.append("\t{};\n".format(attrib))
+                style.append(f"\t{attrib};\n")
             style.append("}\n")
         style.append("\nline { vector-effect: non-scaling-stroke; stroke-width: 1; }")
         style.append("\npolyline { vector-effect: non-scaling-stroke; stroke-width: 1; }")
@@ -532,8 +533,8 @@ class Layout(object):
         height = int(width * self.height/self.width)+1
         drawing = self.get_svg_drawing()
         self.add_svg_styles(drawing)
-        drawing["width"] = "{}px".format(width)
-        drawing["height"] = "{}px".format(height)
+        drawing["width"] = f"{width}px"
+        drawing["height"] = f"{height}px"
 
         #self.add_svg_styles(drawing)
 
@@ -604,7 +605,7 @@ class Layout(object):
 
         with open(path, "w") as outfile:
             # head
-            outfile.write("A {} {} 1 1 0 0 0 0\n".format(len(filename), filename))
+            outfile.write(f"A {len(filename)} {filename} 1 1 0 0 0 0\n")
             for part in self.parts:
                 # part-header: 1A {name}, {position_x} {pos_y} {rot_degrees} {!derivePerimeter} {useAngle} {flipped}
                 part_header = "\n1A {len_name} {name} ({pos_x}, {pos_y}) {rotation_deg} 0 0 0 0 0"
@@ -624,7 +625,7 @@ class Layout(object):
                     for layer_origin in self.ntv_layer_config[plottype]:
                         for line in part.layers[layer_origin]:
                             # line-header type: (R->ignore, P->plot, C->cut
-                            outfile.write("\n1A P 0 {} 0 0 0".format(plottype))
+                            outfile.write(f"\n1A P 0 {plottype} 0 0 0")
                             outfile.write(format_line(line))
 
 
@@ -650,8 +651,8 @@ class Layout(object):
         self.scale(factor)
         return self
 
-    def group_materials(self) -> Dict[str, Layout]:
-        dct: Dict[str, Layout] = {}
+    def group_materials(self) -> dict[str, Layout]:
+        dct: dict[str, Layout] = {}
         for part in self.parts:
             code = part.material_code
 

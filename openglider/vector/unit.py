@@ -1,8 +1,8 @@
-
 import math
 import operator
 import re
-from typing import Any, Callable, Iterator, Self, TypeVar
+from typing import Any, Self, TypeVar
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 
 OpReturnType = TypeVar("OpReturnType")

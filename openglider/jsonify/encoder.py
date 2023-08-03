@@ -13,7 +13,7 @@ datetime_format = "%d.%m.%Y %H:%M"
 datetime_format_regex = re.compile(r'^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}$')
 
 class Encoder(json.JSONEncoder):
-    def default(self, obj: Any) -> Dict[str, Any] | str | list[Any]:
+    def default(self, obj: Any) -> dict[str, Any] | str | list[Any]:
         if obj.__class__.__module__ == 'numpy':
             return obj.tolist()
         elif isinstance(obj, datetime.datetime):
@@ -34,7 +34,7 @@ class Encoder(json.JSONEncoder):
             if type(result) == dict:
                 type_str = str(obj.__class__)
                 module = obj.__class__.__module__
-                type_regex = "<class '{}\.(.*)'>".format(module.replace(".", "\."))
+                type_regex = r"<class '{}\.(.*)'>".format(module.replace(".", r"\."))
                 match = re.match(type_regex, type_str)
                 if match is None:
                     raise ValueError(f"couldn't match type: {type_str}")
@@ -49,6 +49,6 @@ class Encoder(json.JSONEncoder):
                 return result
         else:
             try:
-                return super(Encoder, self).default(obj)
+                return super().default(obj)
             except TypeError as e:
                 raise TypeError(f"can not convert {obj}") from e

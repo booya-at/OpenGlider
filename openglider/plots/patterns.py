@@ -32,16 +32,16 @@ class PatternsNew:
 
     DefaultConf = PlotMaker.DefaultConf
 
-    def __init__(self, project: GliderProject, config: Optional[Config]=None):
+    def __init__(self, project: GliderProject, config: Config | None=None):
         self.project = self.prepare_glider_project(project)
         self.config = self.DefaultConf(config)
 
 
         self.glider_2d = self.project.glider
         self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
-        self.weight: Dict[str, MaterialUsage] = {}
+        self.weight: dict[str, MaterialUsage] = {}
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {
             "project": self.project,
             "config": self.config
@@ -51,7 +51,7 @@ class PatternsNew:
         project = project.copy()
         return project
 
-    def _get_sketches(self) -> List[Layout]:
+    def _get_sketches(self) -> list[Layout]:
         import openglider.plots.sketches as sketch
         shapeplot = sketch.ShapePlot(self.project)
         design_upper = shapeplot.copy().draw_design(lower=True)
@@ -73,7 +73,7 @@ class PatternsNew:
         straps.draw_attachment_points(add_text=False)
         straps.draw_straps()
 
-        drawings: List[Layout] = [design_upper.drawing, design_lower.drawing, lineplan.drawing, diagonals.drawing, straps.drawing]
+        drawings: list[Layout] = [design_upper.drawing, design_lower.drawing, lineplan.drawing, diagonals.drawing, straps.drawing]
 
         drawings_width = max([dwg.width for dwg in drawings])
 
@@ -189,7 +189,7 @@ class Patterns(PatternsNew):
 
             cell_layers.sort(key=lambda el: el[1])
             
-            layers_between: Dict[str, int] = {}
+            layers_between: dict[str, int] = {}
             
             def get_name(position: float) -> str:
                 name = "-"

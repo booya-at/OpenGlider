@@ -3,7 +3,8 @@ from __future__ import annotations
 import copy
 import logging
 import math
-from typing import TYPE_CHECKING, Callable, Dict, List, Tuple, Optional
+from typing import TYPE_CHECKING, Dict, List, Tuple, Optional
+from collections.abc import Callable
 
 import euklid
 from openglider.glider.parametric.table.base.parser import Parser
@@ -44,9 +45,9 @@ class ParametricGlider:
     shape: ParametricShape
     arc: ArcCurve
     aoa: SymmetricCurveType
-    profiles: List[pyfoil.Airfoil]
+    profiles: list[pyfoil.Airfoil]
     profile_merge_curve: CurveType
-    balloonings: List[BallooningBase]
+    balloonings: list[BallooningBase]
     ballooning_merge_curve: CurveType
     lineset: LineSet2D
     speed: float
@@ -55,7 +56,7 @@ class ParametricGlider:
     zrot: SymmetricCurveType = Field(default_factory=lambda: euklid.spline.SymmetricBSplineCurve([[0,0],[1,0]]))
 
     num_interpolate: int=30
-    num_profile: Optional[int]=None
+    num_profile: int | None=None
 
     @classmethod
     def import_ods(cls, path: str) -> ParametricGlider:
@@ -95,7 +96,7 @@ class ParametricGlider:
 
         return table
 
-    def get_arc_angles(self) -> List[float]:
+    def get_arc_angles(self) -> list[float]:
         """
         Get rib rotations
         """
@@ -127,10 +128,10 @@ class ParametricGlider:
             airfoil = first.copy()
         return airfoil
 
-    def get_curves(self) -> Dict[str, GliderCurveType]:
+    def get_curves(self) -> dict[str, GliderCurveType]:
         return self.tables.curves.get_curves(self.shape.get_half_shape())
 
-    def get_panels(self, glider_3d: Optional[Glider]=None) -> List[List[Panel]]:
+    def get_panels(self, glider_3d: Glider | None=None) -> list[list[Panel]]:
         """
         Create Panels Objects and apply on gliders cells if provided, otherwise create a list of panels
         :param glider_3d: (optional)
@@ -138,7 +139,7 @@ class ParametricGlider:
         """
         resolvers = self.resolvers
 
-        cells: List[List[Panel]]
+        cells: list[list[Panel]]
 
         if glider_3d is None:
             cells = [[] for _ in range(self.shape.half_cell_num)]
@@ -148,7 +149,7 @@ class ParametricGlider:
         for cell_no, panel_lst in enumerate(cells):
             panel_lst.clear()
 
-            cuts: List[PanelCut] = self.tables.cuts.get(cell_no, resolvers=resolvers)
+            cuts: list[PanelCut] = self.tables.cuts.get(cell_no, resolvers=resolvers)
 
             all_values = [c.x_left for c in cuts] + [c.x_right for c in cuts]
 
@@ -187,7 +188,7 @@ class ParametricGlider:
 
                 if material is not None:
                     panel = Panel(cut1, cut2,
-                                name="c{}p{}".format(cell_no+1, len(panel_lst)+1),
+                                name=f"c{cell_no+1}p{len(panel_lst)+1}",
                                 material=material)
                     panel_lst.append(panel)
 
@@ -215,7 +216,7 @@ class ParametricGlider:
     def fit_glider_3d(cls, glider: Glider, numpoints: int=3) -> ParametricGlider:
         return fit_glider_3d(cls, glider, numpoints)
 
-    def get_aoa(self, interpolation_num: Optional[int]=None) -> List[float]:
+    def get_aoa(self, interpolation_num: int | None=None) -> list[float]:
         aoa_interpolation = euklid.vector.Interpolation(self.aoa.get_sequence(interpolation_num or self.num_interpolate).nodes)
 
         return [aoa_interpolation.get_value(abs(x)) for x in self.shape.rib_x_values]
@@ -226,11 +227,11 @@ class ParametricGlider:
         for rib, aoa in zip(glider.ribs, aoa_values):
             rib.set_aoa_relative(aoa)
 
-    def get_profile_merge_values(self) -> List[float]:
+    def get_profile_merge_values(self) -> list[float]:
         profile_merge_curve = euklid.vector.Interpolation(self.profile_merge_curve.get_sequence(self.num_interpolate).nodes)
         return [profile_merge_curve.get_value(abs(x)) for x in self.shape.rib_x_values]
 
-    def get_ballooning_merge(self) -> List[Tuple[float, float]]:
+    def get_ballooning_merge(self) -> list[tuple[float, float]]:
         ballooning_merge_curve = euklid.vector.Interpolation(self.ballooning_merge_curve.get_sequence(self.num_interpolate).nodes)
         factors = [ballooning_merge_curve.get_value(abs(x)) for x in self.shape.cell_x_values]
 
@@ -278,7 +279,7 @@ class ParametricGlider:
         
         return parsers
 
-    def get_glider_3d(self, glider: Glider=None, num: int=50, num_profile: Optional[int]=None) -> Glider:
+    def get_glider_3d(self, glider: Glider=None, num: int=50, num_profile: int | None=None) -> Glider:
         """returns a new glider from parametric values"""
         glider = glider or Glider()
         ribs = []
@@ -339,7 +340,7 @@ class ParametricGlider:
             if scale_factor is not None:
                 profile = profile.set_thickness(profile.thickness * scale_factor)
 
-            profile.name = "Profile{}".format(rib_no)
+            profile.name = f"Profile{rib_no}"
 
             if flap := self.tables.profiles.get_flap(rib_no):
                 logger.debug(f"add flap: {flap}")
@@ -362,7 +363,7 @@ class ParametricGlider:
                 zrot=zrot_int.get_value(abs(x_value)),
                 holes=this_rib_holes,
                 rigidfoils=this_rigid_foils,
-                name="rib{}".format(rib_no),
+                name=f"rib{rib_no}",
                 material=material,
                 sharknose=sharknose,
                 attachment_points=[]
@@ -393,7 +394,7 @@ class ParametricGlider:
                 rib1=rib1,
                 rib2=rib2,
                 ballooning=ballooning,
-                name="c{}".format(cell_no+1),
+                name=f"c{cell_no+1}",
                 attachment_points=[],
                 ballooning_ramp=self.tables.ballooning_factors.get_ballooning_ramp(cell_no)
                 )
@@ -496,8 +497,8 @@ class ParametricGlider:
         rescale(self.zrot)
         self.arc.rescale(self.shape.rib_x_values)
 
-    def get_line_bbox(self) -> Tuple[Tuple[float, float], Tuple[float, float]]:
-        points: List[euklid.vector.Vector2D] = []
+    def get_line_bbox(self) -> tuple[tuple[float, float], tuple[float, float]]:
+        points: list[euklid.vector.Vector2D] = []
         for point in self.lineset.nodes:
             points.append(point.get_2D(self.shape))
 

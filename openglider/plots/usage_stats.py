@@ -6,7 +6,7 @@ from openglider.utils.dataclass import BaseModel, Field
 from openglider.utils.table import Table
 
 class MaterialUsage(BaseModel):
-    usage: Dict[Material | None, float] = Field(default_factory=dict)
+    usage: dict[Material | None, float] = Field(default_factory=dict)
     
     
     def __repr__(self) -> str:

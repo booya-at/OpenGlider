@@ -7,8 +7,8 @@ import math
 
 V2 = euklid.vector.Vector2D
 
-class CirclePart(object):
-    """
+class CirclePart:
+    r"""
     "A piece of the cake"
     
        /) <-- p1
@@ -62,7 +62,7 @@ class CirclePart(object):
 
         svg = "<svg>"
         def point(p: V2, color: str="red") -> str:
-            return '<circle cx="{}" cy="{}" r="1" stroke="{}" fill="transparent" stroke-width="5"/>'.format(p[0], p[1], color)
+            return f'<circle cx="{p[0]}" cy="{p[1]}" r="1" stroke="{color}" fill="transparent" stroke-width="5"/>'
 
         svg += point(self.center, "blue")
 
@@ -75,7 +75,7 @@ class CirclePart(object):
         return svg
 
 
-class Ellipse(object):
+class Ellipse:
     def __init__(self, center: V2, radius: float, height: float, rotation: float=0.):
         self.center = center
         self.radius = radius

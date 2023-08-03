@@ -8,26 +8,26 @@ import euklid
 
 logging.getLogger(__name__)
 
-registry: Dict[str, LineType] = {}
+registry: dict[str, LineType] = {}
 
 @dataclass
 class LineType:
     name: str
     thickness: float
-    stretch_curve: Union[List[Tuple[float, float]], List[List[float]], float]
+    stretch_curve: list[tuple[float, float]] | list[list[float]] | float
     min_break_load: float | None = None
     weight: float = 0
     sheated: bool = False
     seam_correction: float = 0
-    colors: List[str] = Field(default_factory=lambda: [])
-    color: Optional[str] = None
+    colors: list[str] = Field(default_factory=lambda: [])
+    color: str | None = None
     cw: float = 1.1
 
     class Config:
         kw_only = False
     
     def __post_init__(self) -> None:
-        stretch_curve: Union[List[Tuple[float, float]], List[List[float]]]
+        stretch_curve: list[tuple[float, float]] | list[list[float]]
         if isinstance(self.stretch_curve, float):
             if self.min_break_load is None:
                 raise ValueError()
@@ -65,7 +65,7 @@ class LineType:
     def __hash__(self) -> int:
         return hash(self.name)
 
-    def get_similar_lines(self) -> List[LineType]:
+    def get_similar_lines(self) -> list[LineType]:
         lines = list(registry.values())
         lines.remove(self)
         lines.sort(key=lambda line: abs(line.thickness - self.thickness))
@@ -99,7 +99,7 @@ class LineType:
         try:
             return registry[name]
         except KeyError:
-            raise KeyError("Line-type {} not found".format(name))
+            raise KeyError(f"Line-type {name} not found")
     
     @classmethod
     def _repr_html_(self) -> str:

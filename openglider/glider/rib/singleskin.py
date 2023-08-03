@@ -66,7 +66,7 @@ class SingleSkinRib(Rib):
 
         return cls(**json_dict, single_skin_par=single_skin_par)
 
-    def __json__(self) -> typing.Dict[str, typing.Any]:
+    def __json__(self) -> dict[str, typing.Any]:
         json_dict = super().__json__()  # type: ignore
         json_dict["single_skin_par"] = self.single_skin_par
         return json_dict

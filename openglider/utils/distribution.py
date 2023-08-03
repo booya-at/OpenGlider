@@ -1,7 +1,8 @@
 from __future__ import annotations
 import math
 
-from typing import Callable, List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING
+from collections.abc import Callable
 import numpy as np
 
 from openglider.utils.cache import HashedList
@@ -72,7 +73,7 @@ class Distribution(HashedList[float]):
         self.data = l1 + l2 + l3 + l4
         return nearest_ind
 
-    def insert_values(self, values: List[float]) -> None:
+    def insert_values(self, values: list[float]) -> None:
         """
         values: list of values to insert
         shift the data to match values
@@ -176,7 +177,7 @@ class Distribution(HashedList[float]):
         self.data = self.upper + [-i for i in reversed(self.upper[:-1])]
 
     @property
-    def upper(self) -> List[float]:
+    def upper(self) -> list[float]:
         out = []
         i = 0
         while True:

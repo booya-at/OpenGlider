@@ -43,7 +43,7 @@ class Ballooning2D(QtWidgets.QGraphicsObject):
 
 
 class BallooningInput(Canvas):
-    balloonings: List[BallooningBase]
+    balloonings: list[BallooningBase]
     ballooning: BallooningBezierNeu
     ballooning_curve: DraggableLine | None
     ballooning_line: Ballooning2D | None
@@ -78,7 +78,7 @@ class BallooningInput(Canvas):
         self.ballooning_line = Ballooning2D(self.ballooning, Color(255, 255, 255), 160)
         self.addItem(self.ballooning_line)
 
-    def draw_balloonings(self, balloonings: List[Tuple[BallooningBase, Color]]) -> None:
+    def draw_balloonings(self, balloonings: list[tuple[BallooningBase, Color]]) -> None:
         for ballooning in self.balloonings:
             self.removeItem(ballooning)
         self.balloonings.clear()
@@ -112,17 +112,17 @@ class BallooningWidget(SelectionWizard):
     widget_name = "Ballooning"
     
     def __init__(self, app: MainWindow, project: GliderProject):
-        balloonings: List[Tuple[BallooningBase, str]] = []
+        balloonings: list[tuple[BallooningBase, str]] = []
         for _project in app.state.projects:
             for i, ballooning in enumerate(_project.glider.balloonings):
                 balloonings.append((
                     ballooning,
-                    "{}/{}/{}".format(_project.name, i, ballooning.name)
+                    f"{_project.name}/{i}/{ballooning.name}"
                 ))
         super().__init__(app, project, balloonings)
 
         # replace balloonings
-        balloonings_new: List[BallooningBase] = []
+        balloonings_new: list[BallooningBase] = []
 
         for ballooning in self.project.glider.balloonings:
             if isinstance(ballooning, Ballooning):
@@ -140,12 +140,12 @@ class BallooningWidget(SelectionWizard):
         self.main_widget.addWidget(self.ballooning_input.get_widget())
 
         for i, ballooning in enumerate(self.project.glider.balloonings):
-            self.selector.addItem("{}/{} ({})".format(self.project.name, i, ballooning.name))
+            self.selector.addItem(f"{self.project.name}/{i} ({ballooning.name})")
 
     def select_ballooning(self, i: int) -> None:
         self.ballooning_input.set_ballooning(self.project.glider.balloonings[i])
 
-    def selection_changed(self, selected: List[Tuple[BallooningBase, Color]]) -> None:
+    def selection_changed(self, selected: list[tuple[BallooningBase, Color]]) -> None:
         self.ballooning_input.draw_balloonings(selected)
 
     def apply(self, update: bool=True) -> None:

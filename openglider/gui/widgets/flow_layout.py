@@ -3,7 +3,7 @@ from openglider.gui.qt import QtGui, QtCore, QtWidgets
 
 
 class FlowLayout(QtWidgets.QLayout):
-    itemList: List[QtWidgets.QWidget]
+    itemList: list[QtWidgets.QWidget]
     
     def __init__(self, parent: QtWidgets.QWidget=None, margin: int=0, spacing: int=-1):
         super().__init__(parent)
@@ -54,7 +54,7 @@ class FlowLayout(QtWidgets.QLayout):
         return height
 
     def setGeometry(self, rect: QtCore.QRect) -> None:
-        super(FlowLayout, self).setGeometry(rect)
+        super().setGeometry(rect)
         self.doLayout(rect, False)
 
     def sizeHint(self) -> QtCore.QSize:

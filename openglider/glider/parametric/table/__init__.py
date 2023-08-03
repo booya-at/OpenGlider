@@ -53,7 +53,7 @@ class GliderTables:
                 logger.warning(f"unused table/element kwarg: {name}")
         
     
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         dct = {}
         for name in self.__annotations__:
             dct[name] = getattr(self, name)
@@ -114,7 +114,7 @@ class GliderTables:
 
         return table
     
-    def get_all_tables(self) -> List[Table]:
+    def get_all_tables(self) -> list[Table]:
         tables = []
 
         for name in self.__annotations__.keys():

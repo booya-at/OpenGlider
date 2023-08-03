@@ -1,7 +1,7 @@
 from typing import Dict, Tuple
 
 
-colour_codes: Dict[int, Tuple[int, int, int]] = {
+colour_codes: dict[int, tuple[int, int, int]] = {
     0: (0, 0, 0),
     1: (255, 0, 0),
     2: (255, 255, 0),

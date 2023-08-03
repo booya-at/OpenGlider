@@ -28,7 +28,7 @@ class TableType(enum.Enum):
 class ElementTable(Generic[ElementType]):
     table_type: TableType = TableType.general
     keywords: dict[str, Keyword] = {}
-    dtos: dict[str, Type[DTO]] = {}
+    dtos: dict[str, type[DTO]] = {}
 
     def __init__(self, table: Table=None, migrate_header: bool=False):
         self.table = Table()
@@ -52,7 +52,7 @@ class ElementTable(Generic[ElementType]):
                     data_length = self.dtos[dto].column_length()
                     add_data(dto, data_length)
     
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {
             "table": self.table
         }
@@ -86,7 +86,7 @@ class ElementTable(Generic[ElementType]):
 
         return columns
     
-    def get(self, row_no: int, keywords: List[str] | None=None, **kwargs: Any) -> list[ElementType]:
+    def get(self, row_no: int, keywords: list[str] | None=None, **kwargs: Any) -> list[ElementType]:
         row_no += 2  # skip header line
         elements = []
         
@@ -114,7 +114,7 @@ class ElementTable(Generic[ElementType]):
         return elements
     
     @staticmethod
-    def get_curve_value(curves: Dict[str, GliderCurveType] | None, curve_name: str | float, rib_no: int) -> float:
+    def get_curve_value(curves: dict[str, GliderCurveType] | None, curve_name: str | float, rib_no: int) -> float:
         if curves is None:
             raise ValueError("No curves specified")
 
@@ -128,7 +128,7 @@ class ElementTable(Generic[ElementType]):
         
         return curve_name
     
-    def get_one(self, row_no: int, keywords: List[str] | None=None, **kwargs: Any) -> ElementType | None:
+    def get_one(self, row_no: int, keywords: list[str] | None=None, **kwargs: Any) -> ElementType | None:
         elements = self.get(row_no, keywords=keywords, **kwargs)
 
         if len(elements) > 1:

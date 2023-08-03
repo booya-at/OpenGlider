@@ -16,9 +16,9 @@ logger = logging.getLogger(__name__)
 class Window(QtWidgets.QWidget):
     closed = QtCore.Signal(int)
     widget_name: str = ""
-    app: "MainWindow"
+    app: MainWindow
 
-    def __init__(self, app: "MainWindow"):
+    def __init__(self, app: MainWindow):
         super().__init__()
         self.app = app
 

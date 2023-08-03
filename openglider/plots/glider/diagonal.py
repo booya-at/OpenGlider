@@ -15,7 +15,7 @@ from openglider.vector.text import Text
 logger = logging.getLogger(__name__)
 
 
-class DribPlot(object):
+class DribPlot:
     DefaultConf = PatternConfig
 
     def __init__(self, drib: DiagonalRib, cell: Cell, config: Config):
@@ -43,10 +43,10 @@ class DribPlot(object):
         self.left_out = self.left.offset(self.config.allowance_general)
         self.right_out = self.right.offset(-self.config.allowance_general)
 
-    def get_left(self, x: float) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
+    def get_left(self, x: float) -> tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
         return self.get_p1_p2(x, right_side=False)
 
-    def get_right(self, x: float) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
+    def get_right(self, x: float) -> tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
         return self.get_p1_p2(x, right_side=True)
 
     def validate(self, x: float, right_side: bool=False) -> bool:
@@ -68,7 +68,7 @@ class DribPlot(object):
 
         return True
 
-    def get_p1_p2(self, x: float, right_side: bool=False) -> Tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
+    def get_p1_p2(self, x: float, right_side: bool=False) -> tuple[euklid.vector.Vector2D, euklid.vector.Vector2D]:
         self.validate(x, right_side=right_side)
 
         if not right_side:
@@ -157,7 +157,7 @@ class DribPlot(object):
         else:
             node_index = 0
         # text_p1 = left_out[0] + self.config.drib_text_position * (right_out[0] - left_out[0])
-        plotpart.layers["text"] += Text(" {} ".format(self.drib.name),
+        plotpart.layers["text"] += Text(f" {self.drib.name} ",
                                         self.left.nodes[node_index],
                                         self.right.nodes[node_index],
                                         size=self.config.drib_allowance_folds * 0.6,

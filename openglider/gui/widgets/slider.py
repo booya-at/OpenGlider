@@ -1,11 +1,12 @@
 from asyncio.log import logger
-from typing import Callable, List, Optional
+from typing import List, Optional
+from collections.abc import Callable
 from openglider.gui.qt import QtWidgets, QtCore
 
 
 class Slider(QtWidgets.QWidget):
-    def __init__(self, parent: QtWidgets.QWidget=None, name: str=None, min_value: int=0, max_value: int=10, default: Optional[int]=None, vertical: bool=False) -> None:
-        super(Slider, self).__init__(parent=parent)
+    def __init__(self, parent: QtWidgets.QWidget=None, name: str=None, min_value: int=0, max_value: int=10, default: int | None=None, vertical: bool=False) -> None:
+        super().__init__(parent=parent)
         self.name = name
         self.slider_min = min_value
         self.slider_max = max_value
@@ -53,7 +54,7 @@ class Slider(QtWidgets.QWidget):
             self._set_label()
 
     def _set_label(self) -> None:
-        self.display.setText("{}".format(self.value))
+        self.display.setText(f"{self.value}")
 
     def on_change(self, f: Callable[[int], None]) -> None:
         self.slider.valueChanged.connect(f)
@@ -77,7 +78,7 @@ class Slider(QtWidgets.QWidget):
             self.slider.setValue(value)
             self._set_label()
         else:
-            raise ValueError("{} is not in bounds ({} / {})".format(value, self.slider_min, self.slider_max))
+            raise ValueError(f"{value} is not in bounds ({self.slider_min} / {self.slider_max})")
 
     def set_enabled(self, enable: bool=True) -> None:
         self.slider.setEnabled(enable)  
@@ -99,7 +100,7 @@ class FloatSlider(Slider):
         self.set_value(default)
 
     def _set_label(self) -> None:
-        self.display.setText("{:.2}".format(self.value))
+        self.display.setText(f"{self.value:.2}")
 
     def get_value(self) -> float:  # type: ignore
         value = self.slider.value()
@@ -112,7 +113,7 @@ class FloatSlider(Slider):
 
 
 class ExpSlider(Slider):
-    values: List[int]
+    values: list[int]
 
     def __init__(self, parent: QtWidgets.QWidget=None, name: str="", min_value: int=0, max_value: int=3, steps: int=20, default: int| None=None):
         #assert min_value >= 0
@@ -153,4 +154,4 @@ class ExpSlider(Slider):
 
 
     def _set_label(self) -> None:
-        self.display.setText("{:.01e}".format(self.value))
+        self.display.setText(f"{self.value:.01e}")

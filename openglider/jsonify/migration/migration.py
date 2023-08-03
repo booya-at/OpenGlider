@@ -1,4 +1,5 @@
-from typing import Dict, Any, Callable, List, Tuple, TypeAlias
+from typing import Dict, Any, List, Tuple, TypeAlias
+from collections.abc import Callable
 import re
 import json
 import io
@@ -11,12 +12,12 @@ from openglider.jsonify.encoder import Encoder
 logger = logging.getLogger(__name__)
 
 
-MigrationList: TypeAlias = List[Tuple[str, Callable]]
+MigrationList: TypeAlias = list[tuple[str, Callable]]
 
 class Migration:
     migrations: MigrationList = []
 
-    def __init__(self, jsondata: Dict[str, Any]):
+    def __init__(self, jsondata: dict[str, Any]):
         self.json_data = jsondata
 
         metadata = jsondata.get("MetaData", {})
@@ -32,7 +33,7 @@ class Migration:
         self.from_version = version
     
     @staticmethod
-    def to_dict(data: Any) -> Dict[str, Any]:
+    def to_dict(data: Any) -> dict[str, Any]:
         # TODO: improve (speed-wise)!
         return json.loads(json.dumps(data, cls=Encoder))
     
@@ -54,7 +55,7 @@ class Migration:
         add new migration. version parameter is the version to migrate to
         """
         def decorate(function: Callable) -> None:
-            def function_wrapper(jsondata: Dict[str, Any]) -> Dict[str, Any]:
+            def function_wrapper(jsondata: dict[str, Any]) -> dict[str, Any]:
                 logger.info(f"migrating to {to_version}")
                 return function(cls, jsondata)
 
@@ -79,14 +80,14 @@ class Migration:
         return migrations
     
     @classmethod
-    def refactor(cls, jsondata: Dict[str, Any], target_module: str, name: str=r".*", module: str=r".*") -> Dict[str, Any]:
+    def refactor(cls, jsondata: dict[str, Any], target_module: str, name: str=r".*", module: str=r".*") -> dict[str, Any]:
         for node in cls.find_nodes(jsondata, name, module):
             node["_module"] = target_module
         
         return jsondata
     
     @classmethod
-    def find_nodes(cls, jsondata: Dict[str, Any], name: str=r".*", module: str=r".*") -> List[Dict[str, Any]]:
+    def find_nodes(cls, jsondata: dict[str, Any], name: str=r".*", module: str=r".*") -> list[dict[str, Any]]:
         """
         Find nodes recursive
         :param name: *to find any

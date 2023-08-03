@@ -1,5 +1,5 @@
 import logging
-from typing import Callable
+from collections.abc import Callable
 
 from openglider.glider.project import GliderProject
 from openglider.gui.qt import QtCore, QtWidgets

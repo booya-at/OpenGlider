@@ -7,7 +7,8 @@ import logging
 import math
 import os
 import re
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+from collections.abc import Callable
 
 import euklid
 from openglider.lines.node import Node
@@ -49,16 +50,16 @@ class LineLength:
         return length
 
 
-class LineSet(object):
+class LineSet:
     """
     Set of different lines
     """
     calculate_sag = True
     knot_corrections = KnotCorrections.read_csv(os.path.join(os.path.dirname(__file__), "knots.csv"))
     mat: SagMatrix
-    trim_corrections: Dict[str, float]
+    trim_corrections: dict[str, float]
 
-    def __init__(self, lines: List[Line], v_inf: euklid.vector.Vector3D=None):
+    def __init__(self, lines: list[Line], v_inf: euklid.vector.Vector3D=None):
         self._v_inf = v_inf or euklid.vector.Vector3D([0,0,0])
         self.lines = lines or []
         self.trim_corrections = {}
@@ -73,11 +74,11 @@ class LineSet(object):
         {}
         Lines: {}
         Length: {}
-        """.format(super(LineSet, self).__repr__(),
+        """.format(super().__repr__(),
                    len(self.lines),
                    self.total_length)
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         lines = [l.__json__() for l in self.lines]
         nodes = list(self.nodes)
         for line in lines:
@@ -91,7 +92,7 @@ class LineSet(object):
         }
 
     @classmethod
-    def __from_json__(cls, lines: List[Dict[str, Any]], nodes: List[Node], v_inf: euklid.vector.Vector3D) -> LineSet:
+    def __from_json__(cls, lines: list[dict[str, Any]], nodes: list[Node], v_inf: euklid.vector.Vector3D) -> LineSet:
         lines_new = []
         for line in lines:
             if isinstance(line["upper_node"], int):
@@ -117,15 +118,15 @@ class LineSet(object):
             line.v_inf = self._v_inf
 
     @property
-    def lowest_lines(self) -> List[Line]:
+    def lowest_lines(self) -> list[Line]:
         return [line for line in self.lines if line.lower_node.node_type == Node.NODE_TYPE.LOWER]
 
     @property
-    def uppermost_lines(self) -> List[Line]:
+    def uppermost_lines(self) -> list[Line]:
         return [line for line in self.lines if line.upper_node.node_type == Node.NODE_TYPE.UPPER]
 
     @property
-    def nodes(self) -> List[Node]:
+    def nodes(self) -> list[Node]:
         nodes = set()
         for line in self.lines:
             nodes.add(line.upper_node)
@@ -148,11 +149,11 @@ class LineSet(object):
         return self
 
     @property
-    def attachment_points(self) -> List[Node]:
+    def attachment_points(self) -> list[Node]:
         return [n for n in self.nodes if n.node_type == Node.NODE_TYPE.UPPER]
 
     @property
-    def lower_attachment_points(self) -> List[Node]:
+    def lower_attachment_points(self) -> list[Node]:
         return [n for n in self.nodes if n.node_type == Node.NODE_TYPE.LOWER]
 
     def get_main_attachment_point(self) -> Node:
@@ -176,7 +177,7 @@ class LineSet(object):
         return main_attachment_point
 
     @property
-    def floors(self) -> Dict[Node, int]:
+    def floors(self) -> dict[Node, int]:
         """
         floors: number of line-levels
         """
@@ -191,7 +192,7 @@ class LineSet(object):
 
         return {n: recursive_count_floors(n) for n in self.lower_attachment_points}
 
-    def get_lines_by_floor(self, target_floor: int=0, node: Node=None, en_style: bool=True) -> List[Line]:
+    def get_lines_by_floor(self, target_floor: int=0, node: Node=None, en_style: bool=True) -> list[Line]:
         """
         starting from node: walk up "target_floor" floors and return all the lines.
 
@@ -199,7 +200,7 @@ class LineSet(object):
         (see EN 926.1 for details)
         """
         node =  node or self.get_main_attachment_point()
-        def recursive_level(node: Node, current_level: int) -> List[Line]:
+        def recursive_level(node: Node, current_level: int) -> list[Line]:
             lines = self.get_upper_connected_lines(node)
             nodes = [line.upper_node for line in lines]
             if not lines and en_style:
@@ -207,14 +208,14 @@ class LineSet(object):
             elif current_level == target_floor:
                 return lines
             else:
-                line_list: List[Line] = []
+                line_list: list[Line] = []
                 for line in lines:
                     line_list += recursive_level(line.upper_node, current_level+1)
                 return line_list
                     
         return recursive_level(node, 0)
 
-    def get_floor_strength(self, node: Node=None) -> List[float]:
+    def get_floor_strength(self, node: Node=None) -> list[float]:
         strength_list = []
         node =  node or self.get_main_attachment_point()
         for i in range(self.floors[node]):
@@ -230,7 +231,7 @@ class LineSet(object):
             strength_list.append(strength)
         return strength_list
 
-    def get_mesh(self, numpoints: int=10, main_lines_only: bool=False, line_segment_length: Optional[float]=None) -> Mesh:
+    def get_mesh(self, numpoints: int=10, main_lines_only: bool=False, line_segment_length: float | None=None) -> Mesh:
         if main_lines_only:
             lines = self.get_upper_lines(self.get_main_attachment_point())
         else:
@@ -247,7 +248,7 @@ class LineSet(object):
             mesh += line.get_mesh(numpoints)
         return mesh
 
-    def recalc(self, calculate_sag: bool=True, glider: Optional[Glider]=None, iterations: int=5) -> LineSet:
+    def recalc(self, calculate_sag: bool=True, glider: Glider | None=None, iterations: int=5) -> LineSet:
         """
         Recalculate Lineset Geometry.
         if LineSet.calculate_sag = True, drag induced sag will be calculated
@@ -281,7 +282,7 @@ class LineSet(object):
                     line.sag_par_1 = line.sag_par_2  = None
         return self
 
-    def _calc_geo(self, start: Optional[List[Line]]=None) -> None:
+    def _calc_geo(self, start: list[Line] | None=None) -> None:
         if start is None:
             start_lines = self.lowest_lines
         else:
@@ -300,7 +301,7 @@ class LineSet(object):
 
                 self._calc_geo(self.get_upper_connected_lines(line.upper_node))
 
-    def _calc_sag(self, start: Optional[List[Line]]=None) -> None:
+    def _calc_sag(self, start: list[Line] | None=None) -> None:
         if start is None:
             start = self.lowest_lines
         # 0 every line calculates its parameters
@@ -333,7 +334,7 @@ class LineSet(object):
         for u in up:
             self._calc_matrix_entries(u)
 
-    def calc_forces(self, start_lines: List[Line]) -> None:
+    def calc_forces(self, start_lines: list[Line]) -> None:
         for line_lower in start_lines:
             upper_node = line_lower.upper_node
             vec = line_lower.diff_vector.normalized()
@@ -370,10 +371,10 @@ class LineSet(object):
                 else:
                     line_lower.force = force_projected
 
-    def get_upper_connected_lines(self, node: Node) -> List[Line]:
+    def get_upper_connected_lines(self, node: Node) -> list[Line]:
         return [line for line in self.lines if line.lower_node is node]
 
-    def get_upper_lines(self, node: Node) -> List[Line]:
+    def get_upper_lines(self, node: Node) -> list[Line]:
         """
         recursive upper lines for node
         :param node:
@@ -385,13 +386,13 @@ class LineSet(object):
 
         return lines
 
-    def get_lower_connected_lines(self, node: Node) -> List[Line]:
+    def get_lower_connected_lines(self, node: Node) -> list[Line]:
         return [line for line in self.lines if line.upper_node is node]
 
-    def get_connected_lines(self, node: Node) -> List[Line]:
+    def get_connected_lines(self, node: Node) -> list[Line]:
         return self.get_upper_connected_lines(node) + self.get_lower_connected_lines(node)
 
-    def get_drag(self) -> Tuple[euklid.vector.Vector3D, float]:
+    def get_drag(self) -> tuple[euklid.vector.Vector3D, float]:
         """
         Get Total drag of the lineset
         :return: Center of Pressure, Drag (1/2*cw*A*v^2)
@@ -464,7 +465,7 @@ class LineSet(object):
 
             return tangent.normalized()
 
-    def get_upper_influence_nodes(self, line: Optional[Line]=None, node: Optional[Node]=None) -> List[Node]:
+    def get_upper_influence_nodes(self, line: Line | None=None, node: Node | None=None) -> list[Node]:
         """
         get the points that have influence on the line and
         are connected to the wing
@@ -479,7 +480,7 @@ class LineSet(object):
             return [node]
         else:
             upper_lines = self.get_upper_connected_lines(node)
-            result: List[Node] = []
+            result: list[Node] = []
             for upper_line in upper_lines:
                 result += self.get_upper_influence_nodes(line=upper_line)
             return result
@@ -508,8 +509,8 @@ class LineSet(object):
             length += line.get_stretched_length()
         return length
     
-    def get_consumption(self) -> Dict[LineType, float]:
-        consumption: Dict[LineType, float] = {}
+    def get_consumption(self) -> dict[LineType, float]:
+        consumption: dict[LineType, float] = {}
         for line in self.lines:
             length = self.get_line_length(line).get_length()
             linetype = line.type
@@ -518,7 +519,7 @@ class LineSet(object):
         
         return consumption
     
-    def sort_lines(self, lines: Optional[List[Line]]=None, x_factor: float=10., by_names: bool=False) -> List[Line]:
+    def sort_lines(self, lines: list[Line] | None=None, x_factor: float=10., by_names: bool=False) -> list[Line]:
         if lines is None:
             lines = self.lines
         lines_new = lines[:]
@@ -567,7 +568,7 @@ class LineSet(object):
         return lines_new
 
 
-    def create_tree(self, start_nodes: Optional[List[Node]]=None) -> Any:
+    def create_tree(self, start_nodes: list[Node] | None=None) -> Any:
         """
         Create a tree of lines
         :return: [(line, [(upper_line1, []),...]),(...)]
@@ -582,14 +583,14 @@ class LineSet(object):
 
         return [(line, self.create_tree([line.upper_node])) for line in self.sort_lines(lines, by_names=True)]
 
-    def _get_lines_table(self, callback: Callable[[Line], List[str]], start_nodes: Optional[List[Node]]=None, insert_node_names: bool=True) -> Table:
+    def _get_lines_table(self, callback: Callable[[Line], list[str]], start_nodes: list[Node] | None=None, insert_node_names: bool=True) -> Table:
         line_tree = self.create_tree(start_nodes=start_nodes)
         table = Table()
 
         floors = max(self.floors.values(), default=0)
         columns_per_line = len(callback(line_tree[0][0]))
 
-        def insert_block(line: Line, upper: List[Any], row: int, column: int) -> int:
+        def insert_block(line: Line, upper: list[Any], row: int, column: int) -> int:
             values = callback(line)
             column_0 = column-columns_per_line
 
@@ -657,7 +658,7 @@ class LineSet(object):
 
         for floor in range(floors):
             
-            lines_grouped: Dict[str, List[Line]] = {}
+            lines_grouped: dict[str, list[Line]] = {}
             for line in lines:
                 # get all line layer chars (A/B/C/D/BR)
                 line_groups = set()
@@ -747,7 +748,7 @@ class LineSet(object):
         line_type_table = self._get_lines_table(lambda line: [f"{line.type.name} ({line.color})"], insert_node_names=False)
         line_color_table = self._get_lines_table(lambda line: [line.color], insert_node_names=False)
 
-        def get_checklength(line: Line, upper_lines: Any) -> List[float]:
+        def get_checklength(line: Line, upper_lines: Any) -> list[float]:
             line_length = self.get_line_length(line).get_checklength()
             
             if not len(upper_lines):
@@ -778,7 +779,7 @@ class LineSet(object):
         return length_table
 
     def get_force_table(self) -> Table:
-        def get_line_force(line: Line) -> List[str]:
+        def get_line_force(line: Line) -> list[str]:
             percentage = ""
 
             if line.type.min_break_load and line.force:

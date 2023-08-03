@@ -97,7 +97,7 @@ class FreeCADFile:
         
         raise Exception()
     
-    def get_ribs_property(self, parametric_glider: ParametricGlider, obj_name: str, property_name: str="ribs") -> List[int]:
+    def get_ribs_property(self, parametric_glider: ParametricGlider, obj_name: str, property_name: str="ribs") -> list[int]:
         ribs = self.get_property(obj_name, property_name)
 
         if parametric_glider.shape.has_center_cell:
@@ -106,7 +106,7 @@ class FreeCADFile:
         return ribs_lst
 
         
-    def _read_floatlist(self, node: Any) -> List[float]:
+    def _read_floatlist(self, node: Any) -> list[float]:
         filename = node.get("file")
         bytestring = self.infile.open(filename).read()
         offset=4
@@ -115,7 +115,7 @@ class FreeCADFile:
         
         return float_array.tolist()
     
-    def _read_integerlist(self, node: Any) -> List[int]:
+    def _read_integerlist(self, node: Any) -> list[int]:
         return [
             int(x.get("v")) for x in node.getchildren()
         ]
@@ -219,4 +219,3 @@ class FreeCADFile:
             else:
                 logger.warning(classname)
         
-    

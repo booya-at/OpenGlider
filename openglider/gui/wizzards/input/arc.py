@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from openglider.gui.app.main_window import MainWindow
 
 class ArcInput(Canvas):
-    arcs: List[Arc2D]
+    arcs: list[Arc2D]
 
     locked_aspect_ratio = True
 
@@ -44,7 +44,7 @@ class ArcInput(Canvas):
 
         self.diff_plot.setData(**self.get_diff(self.project))
 
-    def draw_arcs(self, arcs: List[Tuple[GliderProject, Color]], clear: bool=True) -> None:
+    def draw_arcs(self, arcs: list[tuple[GliderProject, Color]], clear: bool=True) -> None:
         if clear:
             for arc in self.arcs:
                 self.removeItem(arc)
@@ -70,7 +70,7 @@ class ArcInput(Canvas):
             self.arc_diffs.append(plot)
     
     @staticmethod
-    def get_diff(project: GliderProject) -> Dict[str, List[float]]:
+    def get_diff(project: GliderProject) -> dict[str, list[float]]:
         x_values = project.glider.shape.rib_x_values
         y_values = project.glider.arc.get_cell_angles(x_values, rad=False)
 
@@ -136,7 +136,7 @@ class ArcWidget(GliderSelectionWizard):
         #self.right_widget.layout().insertWidget(0, self.input_controls)
         self._selection_changed()
 
-    def selection_changed(self, selected: List[Tuple[GliderProject, Color]]) -> None:
+    def selection_changed(self, selected: list[tuple[GliderProject, Color]]) -> None:
         self.arc_input.draw_arcs(selected)
 
     def apply(self, update: bool=True) -> None:

@@ -1,5 +1,6 @@
 import logging
-from typing import Any, Callable, List
+from typing import Any, List
+from collections.abc import Callable
 
 import euklid
 
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class DistributionInput(Canvas):
-    on_change: List[Callable]
+    on_change: list[Callable]
     locked_aspect_ratio = True
     
     drag_line: DraggableLine | None = None

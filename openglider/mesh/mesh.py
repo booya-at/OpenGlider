@@ -1,7 +1,8 @@
 from __future__ import annotations
 from pathlib import Path
 
-from typing import Any, Iterator, List, Dict, Literal, Sequence, Sized, Tuple, TypeAlias, Union
+from typing import Any, List, Dict, Literal, Tuple, TypeAlias, Union
+from collections.abc import Iterator, Sequence, Sized
 import copy
 import logging
 
@@ -16,12 +17,12 @@ USE_POLY_TRI = False
 logger = logging.getLogger(__name__)
 
 
-class Vertex(object):
+class Vertex:
     _position: euklid.vector.Vector3D
 
     dmin = 10**-10
 
-    def __init__(self, x: float, y: float, z: float, attributes: Dict[str, Any]=None):
+    def __init__(self, x: float, y: float, z: float, attributes: dict[str, Any]=None):
         self._position = euklid.vector.Vector3D([x,y,z])
         self.attributes = attributes or {}
         self.index = -1
@@ -43,8 +44,8 @@ class Vertex(object):
     def z(self) -> float:
         return self.position[2]
 
-    def __json__(self) -> List[Any]:
-        data: List[Any] = list(self)
+    def __json__(self) -> list[Any]:
+        data: list[Any] = list(self)
         if self.attributes:
             data.append(self.attributes)
 
@@ -77,21 +78,21 @@ class Vertex(object):
         self.position[2] = round(self.position[2], places)
 
     def __repr__(self) -> str:
-        return super(Vertex, self).__repr__() + " {}, {}, {}\n".format(self.position[0], self.position[1], self.position[2])
+        return super().__repr__() + f" {self.position[0]}, {self.position[1]}, {self.position[2]}\n"
 
     @classmethod
-    def from_vertices_list(cls, vertices: List[Any]) -> List[Vertex]:
+    def from_vertices_list(cls, vertices: list[Any]) -> list[Vertex]:
         return [cls(*v) for v in vertices]
 
 
-class Polygon(object):
+class Polygon:
     """the polygon is a simple list, but using a Polygon-object instead of \
        a list let you monkey-patch the object"""
-    def __init__(self, nodes: List[Vertex], attributes: Dict[str, Any]=None):
+    def __init__(self, nodes: list[Vertex], attributes: dict[str, Any]=None):
         self.nodes = nodes
         self.attributes = attributes or {}
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         data = {
             "nodes": self.nodes,
             "attributes": self.attributes
@@ -157,9 +158,9 @@ class Polygon(object):
         return sum(attribute_list)/len(attribute_list)
 
 
-PolygonType: TypeAlias = Union[Tuple[int, int], Tuple[int, int, int], Tuple[int, int, int, int]] | Triangle
+PolygonType: TypeAlias = Union[tuple[int, int], tuple[int, int, int], tuple[int, int, int, int]] | Triangle
 
-class Mesh(object):
+class Mesh:
     """
     Mesh Surface: vertices and polygons
 
@@ -169,9 +170,9 @@ class Mesh(object):
         triangle (3 vertices)
         quadrangle (4 vertices)
     """
-    boundary_nodes_type = Dict[str, List[int]]
+    boundary_nodes_type = dict[str, list[int]]
 
-    def __init__(self, polygons: Dict[str, List[Polygon]]=None, boundary_nodes: Dict[str, List[Vertex]]=None, name: str="unnamed"):
+    def __init__(self, polygons: dict[str, list[Polygon]]=None, boundary_nodes: dict[str, list[Vertex]]=None, name: str="unnamed"):
         self.polygons = polygons or {}
 
         # all nodes that might be in touch with other meshes
@@ -180,25 +181,25 @@ class Mesh(object):
         self.name = name
 
     @property
-    def vertices(self) -> List[Vertex]:
+    def vertices(self) -> list[Vertex]:
         vertices = set()
         for poly in self.get_all_polygons():
             for node in poly:
                 if not isinstance(node, Vertex):
-                    raise Exception("Not a Vertex: {} ({})".format(node, poly))
+                    raise Exception(f"Not a Vertex: {node} ({poly})")
                 vertices.add(node)
 
         return list(vertices)
 
     @property
-    def bounding_box(self) -> Tuple[euklid.vector.Vector3D, euklid.vector.Vector3D]:
+    def bounding_box(self) -> tuple[euklid.vector.Vector3D, euklid.vector.Vector3D]:
         vertices_x = [p.x for p in self.vertices]
         vertices_y = [p.y for p in self.vertices]
         vertices_z = [p.z for p in self.vertices]
 
         return euklid.vector.Vector3D([min(vertices_x), min(vertices_y), min(vertices_z)]), euklid.vector.Vector3D([max(vertices_x), max(vertices_y), max(vertices_z)])
 
-    def get_all_polygons(self) -> List[Polygon]:
+    def get_all_polygons(self) -> list[Polygon]:
         return sum(self.polygons.values(), [])
 
 
@@ -222,18 +223,18 @@ class Mesh(object):
         return self
 
 
-    def get_indexed(self) -> Tuple[List[Vertex], Dict[str, List[Tuple[PolygonType, Dict[str, Any]]]], Dict[str, List[int]]]:
+    def get_indexed(self) -> tuple[list[Vertex], dict[str, list[tuple[PolygonType, dict[str, Any]]]], dict[str, list[int]]]:
         """
         Get [vertices, polygons, boundaries] with references by index
         """
-        vertices: List[Vertex] = list(self.vertices)
+        vertices: list[Vertex] = list(self.vertices)
         for i, v in enumerate(vertices):
             v.index = i
             
-        polygons: Dict[str, List[Tuple[PolygonType, Dict[str, Any]]]] = {}
+        polygons: dict[str, list[tuple[PolygonType, dict[str, Any]]]] = {}
 
         for poly_name, polygon_group in self.polygons.items():
-            poly_group: List[Tuple[PolygonType, Dict[str, Any]]] = []
+            poly_group: list[tuple[PolygonType, dict[str, Any]]] = []
 
             for poly in polygon_group:
                 poly_group.append((
@@ -253,11 +254,11 @@ class Mesh(object):
     @classmethod
     def from_indexed(
         cls,
-        vertices: List[euklid.vector.Vector3D],
-        polygons: Dict[str, Sequence[Tuple[PolygonType, Dict[str, Any]]]],
-        boundaries: Dict[str, List[int]]=None,
+        vertices: list[euklid.vector.Vector3D],
+        polygons: dict[str, Sequence[tuple[PolygonType, dict[str, Any]]]],
+        boundaries: dict[str, list[int]]=None,
         name: str="unnamed",
-        node_attributes: List[Dict[str, Any]]=None,
+        node_attributes: list[dict[str, Any]]=None,
         ) -> Mesh:
 
         _vertices = [Vertex(*node) for node in vertices]
@@ -302,7 +303,7 @@ class Mesh(object):
         """
         polys_new = {}
         for name, faces in self.polygons.items():
-            faces_new: List[Polygon] = []
+            faces_new: list[Polygon] = []
             for face in faces:
                 if len(face) == 4:
                     faces_new.append(Polygon(face.nodes[:3], attributes=face.attributes))
@@ -314,7 +315,7 @@ class Mesh(object):
 
         return self.__class__(polys_new)
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         vertices, polygons, boundaries = self.get_indexed()
         vertices_new = [v.__json__() for v in vertices]
 
@@ -335,7 +336,7 @@ class Mesh(object):
             out += "v {:.6f} {:.6f} {:.6f}\n".format(*vertex)
 
         for polygon_group_name, group_polygons in polygons.items():
-            out += "o {}\n".format(polygon_group_name)
+            out += f"o {polygon_group_name}\n"
             for obj, _attributes in group_polygons:
                 if len(obj) == 2:
                     # line
@@ -355,7 +356,7 @@ class Mesh(object):
             return out
 
     @staticmethod
-    def parse_color_code(string: str) -> Tuple[int, int, int]:
+    def parse_color_code(string: str) -> tuple[int, int, int]:
         import re
         rex = re.compile(r".*#([0-9a-zA-Z]{6})")
         match = rex.match(string)
@@ -416,8 +417,8 @@ class Mesh(object):
                 if len(obj) > 2:
                     out_str = str(len(obj))
                     for x in obj:
-                        out_str += " {}".format(x)
-                    out_str += " {}".format(i)
+                        out_str += f" {x}"
+                    out_str += f" {i}"
                     panels_lines.append(out_str)
 
         with open(path, "w") as outfile:
@@ -425,9 +426,9 @@ class Mesh(object):
             outfile.write("format ascii 1.0\n")
             outfile.write("comment exported using openglider\n")
 
-            outfile.write("element vertex {}\n".format(len(vertices)))
+            outfile.write(f"element vertex {len(vertices)}\n")
             for coord in ("x", "y", "z"):
-                outfile.write("property float32 {}\n".format(coord))
+                outfile.write(f"property float32 {coord}\n")
 
 
             # outfile.write("element material {}\n".format(len(material_lines)))
@@ -444,7 +445,7 @@ class Mesh(object):
             # outfile.write("property specular_blue uchar\n")
             # outfile.write("property specular_coeff float\n")
 
-            outfile.write("element face {}\n".format(len(panels_lines)))
+            outfile.write(f"element face {len(panels_lines)}\n")
             outfile.write("property list uchar uint vertex_indices\n")
             #outfile.write("property material_index int\n")
 
@@ -502,7 +503,7 @@ class Mesh(object):
     # def __iadd__(self, other):
     #     self = self + other
     @staticmethod
-    def _find_duplicates(nodes: List[Vertex]) -> Dict[Vertex, Vertex]:
+    def _find_duplicates(nodes: list[Vertex]) -> dict[Vertex, Vertex]:
         node_lst = [p.position for p in nodes]
         duplicates = euklid.mesh.find_duplicates(node_lst, Vertex.dmin)
         duplicates_dct = {}
@@ -516,7 +517,7 @@ class Mesh(object):
                 
         return duplicates_dct
 
-    def delete_duplicates(self, boundaries: List[str]=None) -> Mesh:
+    def delete_duplicates(self, boundaries: list[str]=None) -> Mesh:
         """
         :param boundaries: list of boundary names to be joined (None->all)
         :return: Mesh (self)
@@ -528,7 +529,7 @@ class Mesh(object):
                 raise ValueError()
         
         replace_dict = {}
-        all_boundary_nodes: List[Vertex] = sum([self.boundary_nodes[name] for name in _boundaries], [])
+        all_boundary_nodes: list[Vertex] = sum([self.boundary_nodes[name] for name in _boundaries], [])
 
         replace_dict = self._find_duplicates(all_boundary_nodes)
 
@@ -567,7 +568,7 @@ class Mesh(object):
                     logger.warning(f"uiuiui, {node} in replace dict is not in vertices")
         return self
 
-    def polygon_size(self) -> Tuple[float, float, float]:
+    def polygon_size(self) -> tuple[float, float, float]:
         """Get the min / max / avg polygon size"""
         polygons = self.get_all_polygons()
 

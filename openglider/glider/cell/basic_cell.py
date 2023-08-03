@@ -13,7 +13,7 @@ class BasicCell(CachedObject):
     """
     A very simple cell without any extras like midribs, diagonals,..
     """
-    def __init__(self, prof1: Profile3D=None, prof2: Profile3D=None, ballooning: List[float]=None, name: str="unnamed_cell"):
+    def __init__(self, prof1: Profile3D=None, prof2: Profile3D=None, ballooning: list[float]=None, name: str="unnamed_cell"):
         self.prof1 = prof1 or Profile3D(euklid.vector.PolyLine3D([]))
         self.prof2 = prof2 or Profile3D(euklid.vector.PolyLine3D([]))
 
@@ -93,11 +93,11 @@ class BasicCell(CachedObject):
         return euklid.vector.PolyLine3D(normals)
 
     @cached_property('ballooning_phi', 'prof1', 'prof2')
-    def ballooning_radius(self) -> List[float]:
+    def ballooning_radius(self) -> list[float]:
         prof1 = self.prof1.curve.nodes
         prof2 = self.prof2.curve.nodes
 
-        radius: List[float] = []
+        radius: list[float] = []
 
         for p1, p2, phi in zip(prof1, prof2, self.ballooning_phi):
             if phi < 1e-10:
@@ -109,10 +109,10 @@ class BasicCell(CachedObject):
         return radius
     
     @cached_property('ballooning_phi', 'prof1', 'prof2')
-    def ballooning_tension_factors(self) -> List[float]:
+    def ballooning_tension_factors(self) -> list[float]:
         prof1 = self.prof1.curve.nodes
         prof2 = self.prof2.curve.nodes
-        tension: List[float] = []
+        tension: list[float] = []
         for p1, p2, phi in zip(prof1, prof2, self.ballooning_phi):
             value =  2. * math.tan(phi)
             if value > 1e-10:

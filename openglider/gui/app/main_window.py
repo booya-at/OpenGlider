@@ -4,7 +4,8 @@ import asyncio
 import datetime
 import logging
 import os
-from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, Iterator, List, Optional, Tuple, Type
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type
+from collections.abc import Callable, Generator, Iterator
 
 import openglider
 from openglider.glider.project import GliderProject
@@ -30,9 +31,9 @@ logger = logging.getLogger(__name__)
 
 
 class Action():
-    action: Optional[QAction]
+    action: QAction | None
     
-    def __init__(self, main_window: MainWindow, name: str, widget: Type[Wizard]) -> None:
+    def __init__(self, main_window: MainWindow, name: str, widget: type[Wizard]) -> None:
         self.name = name
         self.widget = widget
         self.main_window = main_window
@@ -60,7 +61,7 @@ class MainWindow(QtWidgets.QMainWindow):
     main_widget_class = GliderPreview
 
     # actions need to be saved in a dict (prevent garbage collection)
-    action_store: Dict[str, Action]
+    action_store: dict[str, Action]
 
     def __init__(self, app: GliderApp):
         super().__init__()
@@ -157,7 +158,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.current_glider_changed()
 
 
-    def _get_actions(self) -> Dict[str, List[Tuple[Type[Wizard], str]]]:
+    def _get_actions(self) -> dict[str, list[tuple[type[Wizard], str]]]:
         from openglider.gui.app.actions import menu_actions
         return menu_actions
 
@@ -249,7 +250,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.app.processEvents()
     
     @property
-    def glider_projects(self) -> List[GliderProject]:
+    def glider_projects(self) -> list[GliderProject]:
         return self.state.projects.get_all()
 
     def current_glider_changed(self) -> None:

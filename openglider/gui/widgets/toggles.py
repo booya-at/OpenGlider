@@ -1,4 +1,5 @@
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 from openglider.gui.qt import QtGui, QtCore, QtWidgets
 from openglider.utils.config import Config
 

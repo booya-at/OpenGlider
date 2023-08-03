@@ -128,14 +128,14 @@ class CanvasGrid(pyqtgraph.GraphicsLayoutWidget):
 
 
 class LayoutGraphics(QtWidgets.QGraphicsObject):
-    points: Dict[str, List[QtCore.QPointF]]
-    lines: Dict[str, List[Tuple[QtCore.QPointF, QtCore.QPointF]]]
-    polygons: Dict[str, List[List[QtCore.QPointF]]]
+    points: dict[str, list[QtCore.QPointF]]
+    lines: dict[str, list[tuple[QtCore.QPointF, QtCore.QPointF]]]
+    polygons: dict[str, list[list[QtCore.QPointF]]]
     shown_layers: list[str] | None = None
 
     bounding_box: QtCore.QRectF | None = None
 
-    def __init__(self, layout: Layout, fill: bool=False, color: Optional[Color]=None):
+    def __init__(self, layout: Layout, fill: bool=False, color: Color | None=None):
         super().__init__()
         self.layout: Layout = layout
         self.fill = fill

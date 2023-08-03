@@ -43,7 +43,7 @@ class ProfileTable(RibTable):
         "Sharknose8": Sharknose8,
     }
 
-    def get_merge_factors(self, merge_factor_list: List[float]) -> List[Tuple[float, float]]:
+    def get_merge_factors(self, merge_factor_list: list[float]) -> list[tuple[float, float]]:
         # TODO: unused!
         merge_factors = merge_factor_list[:]
 
@@ -66,11 +66,11 @@ class ProfileTable(RibTable):
         
         return list(zip(merge_factors, multipliers))
     
-    def get_sharknose(self, row_no: int, **kwargs: Any) -> Optional[Sharknose]:
+    def get_sharknose(self, row_no: int, **kwargs: Any) -> Sharknose | None:
         return self.get_one(row_no, keywords=["Sharknose", "Sharknose8"], **kwargs)
 
     
-    def get_flap(self, row_no: int) -> Optional[Dict[str, float]]:
+    def get_flap(self, row_no: int) -> dict[str, float] | None:
         flaps = self.get(row_no, keywords=["Flap"])
         flap = None
 
@@ -82,7 +82,7 @@ class ProfileTable(RibTable):
         
         return None
     
-    def get_factors(self, row_no: int) -> Tuple[Optional[float], Optional[float]]:
+    def get_factors(self, row_no: int) -> tuple[float | None, float | None]:
         merge_factors = self.get(row_no, keywords=["ProfileMerge"])
         scale_factors = self.get(row_no, keywords=["ProfileFactor"])
 

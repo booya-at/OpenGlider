@@ -16,12 +16,12 @@ class CurveTable:
         self.table = table or Table()
         self.table.name = self.table_name
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {
             "table": self.table
         }
 
-    def get_curves(self, shape: Shape) -> Dict[str, openglider.glider.curve.GliderCurveType]:
+    def get_curves(self, shape: Shape) -> dict[str, openglider.glider.curve.GliderCurveType]:
         curves = {}
         column = 0
         curve_columns = 2
@@ -49,7 +49,7 @@ class CurveTable:
         
         return curves
     
-    def apply_curves(self, curves: Dict[str, openglider.glider.curve.GliderCurveType]) -> Table:
+    def apply_curves(self, curves: dict[str, openglider.glider.curve.GliderCurveType]) -> Table:
         self.table = Table(name=self.table_name)
         column = 0
 

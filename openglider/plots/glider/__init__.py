@@ -15,14 +15,14 @@ from openglider.vector.drawing.part import PlotPart
 
 logger = logging.getLogger(__name__)
 
-PlotPartDict = collections.OrderedDict[Cell, List[PlotPart]]
+PlotPartDict = collections.OrderedDict[Cell, list[PlotPart]]
 
 class PlotMaker:
     glider_3d: Glider
     config: PatternConfig
     
     panels: Layout
-    ribs: List[PlotPart]
+    ribs: list[PlotPart]
     dribs: PlotPartDict
     straps: PlotPartDict
     rigidfoils: PlotPartDict
@@ -32,7 +32,7 @@ class PlotMaker:
     SingleSkinRibPlot = SingleSkinRibPlot
     RibPlot = RibPlot
 
-    def __init__(self, glider_3d: Glider, config: Optional[Config]=None):
+    def __init__(self, glider_3d: Glider, config: Config | None=None):
         self.glider_3d = glider_3d.copy()
         self.config = self.DefaultConf(config)
         self.panels = Layout()
@@ -42,11 +42,11 @@ class PlotMaker:
         self.straps = collections.OrderedDict()
         self.rigidfoils = collections.OrderedDict()
         self.extra_parts: list[PlotPart] = []
-        self._cellplotmakers: Dict[Cell, DefaultCellPlotMaker] = dict()
+        self._cellplotmakers: dict[Cell, DefaultCellPlotMaker] = dict()
 
-        self.weight: Dict[str, MaterialUsage] = {}
+        self.weight: dict[str, MaterialUsage] = {}
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {
             "glider3d": self.glider_3d,
             "config": self.config,
@@ -57,7 +57,7 @@ class PlotMaker:
         }
 
     @classmethod
-    def __from_json__(cls, dct: Dict[str, Any]) -> PlotMaker:
+    def __from_json__(cls, dct: dict[str, Any]) -> PlotMaker:
         ding = cls(dct["glider3d"], dct["config"])
         ding.panels = dct["panels"]
         ding.ribs = dct["ribs"]
@@ -74,8 +74,8 @@ class PlotMaker:
 
     def get_panels(self) -> Layout:
         self.panels.clear()
-        panels_upper: List[Layout | PlotPart] = []
-        panels_lower: List[Layout | PlotPart] = []
+        panels_upper: list[Layout | PlotPart] = []
+        panels_lower: list[Layout | PlotPart] = []
 
         weight = MaterialUsage()
 
@@ -193,7 +193,7 @@ class PlotMaker:
         straps = stack_grid(self.straps)
         rigidfoils = stack_grid(self.rigidfoils)
 
-        def group(layout: Layout, prefix: str) -> List[Layout]:
+        def group(layout: Layout, prefix: str) -> list[Layout]:
             grouped = layout.group_materials()
             border = layout.draw_border(append=False)
 

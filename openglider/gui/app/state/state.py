@@ -16,13 +16,13 @@ if TYPE_CHECKING:
 @dataclass
 class ApplicationState:
     projects: GliderList = Field(default_factory=lambda: GliderList())
-    opened_tabs: Dict[str, Any] = Field(default_factory=lambda: {})
+    opened_tabs: dict[str, Any] = Field(default_factory=lambda: {})
 
     current_tab: str = ""
     current_preview: str = ""
     debug_level: int = logging.WARNING
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {
             "projects": self.projects,
             "opened_tabs": {tab.name: tab.__class__.__name__ for tab in self.opened_tabs.values()},
@@ -53,7 +53,7 @@ class ApplicationState:
     @classmethod
     def load(cls) -> ApplicationState:
         if os.path.isfile(cls._dump_path):
-            with open(cls._dump_path, "r") as state_file:
+            with open(cls._dump_path) as state_file:
                 result = openglider.jsonify.load(state_file)
 
                 return result["data"]

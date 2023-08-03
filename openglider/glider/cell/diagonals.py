@@ -111,7 +111,7 @@ class DiagonalRib:
         p2 = cell.rib2.point(self.right.center)
         return (p2 - p1).length()
 
-    def get_3d(self, cell: Cell) -> Tuple[euklid.vector.PolyLine3D, euklid.vector.PolyLine3D]:
+    def get_3d(self, cell: Cell) -> tuple[euklid.vector.PolyLine3D, euklid.vector.PolyLine3D]:
         """
         Get 3d-Points of a diagonal rib
         :return: (left_list, right_list)
@@ -132,12 +132,12 @@ class DiagonalRib:
         envelope_3d = left.nodes
 
 
-        def get_list_3d(p1: euklid.vector.Vector3D, p2: euklid.vector.Vector3D) -> List[euklid.vector.Vector3D]:
+        def get_list_3d(p1: euklid.vector.Vector3D, p2: euklid.vector.Vector3D) -> list[euklid.vector.Vector3D]:
             return [
                 p1 + (p2-p1) * ((i+1)/(insert_points+1))
                 for i in range(insert_points)
             ]
-        def get_list_2d(p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> List[euklid.vector.Vector2D]:
+        def get_list_2d(p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> list[euklid.vector.Vector2D]:
             return [
                 p1 + (p2-p1) * ((i+1)/(insert_points+1))
                 for i in range(insert_points)
@@ -176,7 +176,7 @@ class DiagonalRib:
         mapping_2d = Mapping([right_2d.resample(node_no), left_2d.resample(node_no)])
         mapping_3d = Mapping3D([right.resample(node_no), left.resample(node_no)])
 
-        points_3d: List[euklid.vector.Vector3D] = []
+        points_3d: list[euklid.vector.Vector3D] = []
 
         for point_3d, point_2d in zip(envelope_3d, tri_mesh.points[:len(envelope_2d)]):
             vector_3d = euklid.vector.Vector3D(point_3d)
@@ -195,7 +195,7 @@ class DiagonalRib:
         return drib_mesh
 
 
-    def get_holes(self, cell: Cell, points: int=40) -> Tuple[List[euklid.vector.PolyLine2D], List[euklid.vector.Vector2D]]:
+    def get_holes(self, cell: Cell, points: int=40) -> tuple[list[euklid.vector.PolyLine2D], list[euklid.vector.Vector2D]]:
         left, right = self.get_flattened(cell)
 
         len_left = left.get_length()
@@ -239,7 +239,7 @@ class DiagonalRib:
 
         return holes, centers
 
-    def get_flattened(self, cell: Cell, ribs_flattened: Any=None) -> Tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
+    def get_flattened(self, cell: Cell, ribs_flattened: Any=None) -> tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
         first, second = self.get_3d(cell)
         left, right = flatten_list(first, second)
         return left, right
@@ -269,7 +269,7 @@ class TensionStrap(DiagonalRib):
 
         super().__init__(left_side, right_side, **kwargs)
     
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {
             "left": self.left.center,
             "right": self.right.center,
@@ -288,7 +288,7 @@ class TensionLine(TensionStrap):
         """
         super().__init__(left, right, Length(0.01), material_code=material_code, name=name)
 
-    def __json__(self) -> Dict[str, Any]:
+    def __json__(self) -> dict[str, Any]:
         return {"left": self.left,
                 "right": self.right,
                 "material_code": self.material_code,

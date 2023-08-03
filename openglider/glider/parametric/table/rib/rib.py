@@ -28,10 +28,10 @@ SkinRib7 = Keyword([
     ("straight_te", bool),
     ("te_gap", bool),
     ("num_points", int)
-    ], target_cls=Dict[str, Any])
+    ], target_cls=dict[str, Any])
 
 class SingleSkinTable(RibTable):
-    keywords: Dict[str, Keyword] = {
+    keywords: dict[str, Keyword] = {
         "SkinRib7": SkinRib7,
         "XRot": Keyword([("angle", float)], target_cls=dict)
     }

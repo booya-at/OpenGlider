@@ -16,7 +16,7 @@ class Profile3D:
     @overload
     def __getitem__(self, ik: slice) -> euklid.vector.PolyLine3D: ...
 
-    def __getitem__(self, ik: Union[float, slice]) -> Union[euklid.vector.PolyLine3D, euklid.vector.Vector3D]:
+    def __getitem__(self, ik: float | slice) -> euklid.vector.PolyLine3D | euklid.vector.Vector3D:
         if isinstance(ik, slice):
             start = ik.start
             stop = ik.stop
@@ -32,7 +32,7 @@ class Profile3D:
     def __len__(self) -> int:
         return len(self.curve)
     
-    def get_positions(self, start: float, stop: float) -> List[float]:
+    def get_positions(self, start: float, stop: float) -> list[float]:
         return self.curve.get_positions(start, stop)
 
     @overload
@@ -42,7 +42,7 @@ class Profile3D:
     def get(self, start: float, stop: float) -> euklid.vector.PolyLine3D: ...
 
 
-    def get(self, start: float, stop: Optional[float]=None) -> Union[euklid.vector.PolyLine3D, euklid.vector.Vector3D]:
+    def get(self, start: float, stop: float | None=None) -> euklid.vector.PolyLine3D | euklid.vector.Vector3D:
         if stop is None:
             return self.curve.get(start)
             
@@ -88,7 +88,7 @@ class Profile3D:
                          name=self.name or 'profile' + "_flattened")
 
     @cached_property('self')
-    def normvectors(self) -> List[euklid.vector.Vector3D]:
+    def normvectors(self) -> list[euklid.vector.Vector3D]:
         layer = self.projection_layer
         profnorm = layer.normvector
 
@@ -105,5 +105,5 @@ class Profile3D:
         return vectors
 
     @property
-    def tangents(self) -> List[euklid.vector.Vector3D]:
+    def tangents(self) -> list[euklid.vector.Vector3D]:
         return self.curve.get_tangents()

@@ -1,5 +1,6 @@
 import math
-from typing import Any, Callable, Type
+from typing import Any, Type
+from collections.abc import Callable
 
 from openglider.glider.rib.rib import Rib
 from openglider.plots import cuts, marks
@@ -14,12 +15,12 @@ class PatternConfigOld(Config):
     debug = False
     profile_numpoints = 400
 
-    cut_entry: Type[cuts.Cut] = cuts.FoldedCut
-    cut_trailing_edge: Type[cuts.Cut] = cuts.ParallelCut
-    cut_design: Type[cuts.Cut] = cuts.Cut3D
-    cut_diagonal_fold: Type[cuts.Cut] = cuts.FoldedCut
-    cut_3d: Type[cuts.Cut] = cuts.Cut3D
-    cut_round: Type[cuts.Cut] = cuts.Cut3D
+    cut_entry: type[cuts.Cut] = cuts.FoldedCut
+    cut_trailing_edge: type[cuts.Cut] = cuts.ParallelCut
+    cut_design: type[cuts.Cut] = cuts.Cut3D
+    cut_diagonal_fold: type[cuts.Cut] = cuts.FoldedCut
+    cut_3d: type[cuts.Cut] = cuts.Cut3D
+    cut_round: type[cuts.Cut] = cuts.Cut3D
 
     midribs = 50
 

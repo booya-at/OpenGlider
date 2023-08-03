@@ -1,4 +1,5 @@
-from typing import Callable, Type
+from typing import Type
+from collections.abc import Callable
 from openglider.gui.qt import QtWidgets, QtCore
 import enum
 
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 class ConfigWidget(QtWidgets.QWidget):
     changed = QtCore.Signal()
 
-    def __init__(self, Config: Type[BaseModel], parent: QtWidgets.QWidget=None, vertical: bool=False) -> None:
+    def __init__(self, Config: type[BaseModel], parent: QtWidgets.QWidget=None, vertical: bool=False) -> None:
         super().__init__(parent)
 
         if vertical:

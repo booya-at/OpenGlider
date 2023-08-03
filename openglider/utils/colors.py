@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Iterator, List, Tuple
+from typing import List, Tuple
+from collections.abc import Iterator
 from openglider.utils.dataclass import dataclass
 import euklid
 
@@ -12,8 +13,7 @@ class Color:
     name: str="unnamed color"
 
     def __iter__(self) -> Iterator[int]:
-        for x in (self.r, self.g, self.b):
-            yield x
+        yield from (self.r, self.g, self.b)
 
     def rgb(self) -> tuple[int, int, int]:
         return self.r, self.g, self.b
@@ -39,12 +39,12 @@ class Color:
         else:
             raise ValueError(f"{hex} is not a valid color")
         
-        r,g,b = [int(x, base=16)*factor for x in rgb]
+        r,g,b = (int(x, base=16)*factor for x in rgb)
 
         return cls(r, g, b, name=f"#{hex}")
     
 
-def colorwheel(num: int) -> List[Color]:
+def colorwheel(num: int) -> list[Color]:
     # r = 0
     # g = 1/3
     # b = 2/3
@@ -91,14 +91,14 @@ class HeatMap():
         self.max_value = max_value
 
     @classmethod
-    def from_data(cls, data: List[float]) -> HeatMap:
+    def from_data(cls, data: list[float]) -> HeatMap:
         min_value = min(data)
         max_value = max(data)
         if abs(max_value - min_value) < 1e-5:
             max_value += 0.1
         return cls(min_value, max_value)
     
-    def __call__(self, value: float) -> Tuple[int, int, int]:
+    def __call__(self, value: float) -> tuple[int, int, int]:
         pct_raw = (value - self.min_value) / (self.max_value - self.min_value)
         pct = min(1., max(0, pct_raw))
 

@@ -5,7 +5,8 @@ import functools
 import logging
 import sys
 import time
-from typing import Any, Callable, Concatenate, Dict, Iterator, List, Optional, TypeVar, ParamSpec, Type, NoReturn
+from typing import Any, Concatenate, Dict, List, Optional, TypeVar, ParamSpec, Type, NoReturn
+from collections.abc import Callable, Iterator
 
 from typing_extensions import Self
 
@@ -26,9 +27,9 @@ class Task:
 
     multiprocessed: bool = False
 
-    parent: Optional[Task] = None
-    start_time: Optional[float] = None
-    end_time: Optional[float] = None
+    parent: Task | None = None
+    start_time: float | None = None
+    end_time: float | None = None
 
     execute = execute_sync
 
@@ -116,7 +117,7 @@ from concurrent.futures import ProcessPoolExecutor
 
 
 class TaskQueue:
-    tasks: List[Task]
+    tasks: list[Task]
     running = False
     exception_hook: Callable | None = None
 

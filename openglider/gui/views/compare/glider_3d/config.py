@@ -19,7 +19,7 @@ class GliderViewConfig(BaseModel):
     profile_numpoints: int = 20
     numribs: int = 3
 
-    def needs_recalc(self, old_config: Optional[GliderViewConfig]=None) -> bool:
+    def needs_recalc(self, old_config: GliderViewConfig | None=None) -> bool:
         if old_config is None:
             return True
         
@@ -30,7 +30,7 @@ class GliderViewConfig(BaseModel):
         
         return False
     
-    def get_active_keys(self) -> List[str]:
+    def get_active_keys(self) -> list[str]:
         keys = []
         if self.show_panels:
             keys.append("panels")
