@@ -37,7 +37,7 @@ class CellPlotCache(GliderCache[pandas.DataFrame]):
             ).set_index("x"), project.color, project.element.name
 
 
-class CellPlotView(CompareView):
+class CellPlotView(QtWidgets.QWidget, CompareView):
     grid = False
 
     def __init__(self, app: GliderApp):

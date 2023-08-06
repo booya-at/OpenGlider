@@ -21,7 +21,7 @@ class Glider3DCache(GliderCache[GliderActors]):
         return GliderActors(project.element)
 
 
-class Glider3DView(CompareView):
+class Glider3DView(QtWidgets.QWidget, CompareView):
     def __init__(self, app: GliderApp):
         super().__init__()
         self.setLayout(QtWidgets.QVBoxLayout())

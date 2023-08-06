@@ -3,8 +3,8 @@ import os
 import signal
 import sys
 
-os.environ["FORCE_QT_API"] = "pyside2"
-os.environ["QT_API"] = "pyside2"
+os.environ["FORCE_QT_API"] = "pyside6"
+os.environ["QT_API"] = "pyside6"
 
 
 def start_main_window() -> None:

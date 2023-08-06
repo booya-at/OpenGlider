@@ -16,7 +16,7 @@ class ArcPlotCache(GliderCache[Arc2D]):
         return Arc2D(project.element, color=project.color)
 
 
-class ArcView(CompareView):
+class ArcView(QtWidgets.QWidget, CompareView):
     grid = False
 
     def __init__(self, app: GliderApp):

@@ -19,7 +19,7 @@ class RibCache(GliderCache[GliderRibPlots]):
         return GliderRibPlots(project.element, color=project.color)
 
 
-class RibView(CompareView):
+class RibView(QtWidgets.QWidget, CompareView):
     grid = False
 
     def __init__(self, app: GliderApp):

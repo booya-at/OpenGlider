@@ -41,7 +41,7 @@ class RibPlotCache(GliderCache[pandas.DataFrame]):
             ).set_index("x"), project.color, project.element.name
 
 
-class RibPlotView(CompareView):
+class RibPlotView(QtWidgets.QWidget, CompareView):
     grid = False
 
     def __init__(self, app: GliderApp):

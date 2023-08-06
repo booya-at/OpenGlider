@@ -18,7 +18,7 @@ class CellCache(GliderCache[GliderCellPlots]):
         return GliderCellPlots(project.element, color=project.color)
 
 
-class CellView(CompareView):
+class CellView(QtWidgets.QWidget, CompareView):
     grid = True
 
     def __init__(self, app: GliderApp) -> None:

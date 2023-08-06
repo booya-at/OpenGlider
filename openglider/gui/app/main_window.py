@@ -136,8 +136,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.top_panel.addTab(self.overview, "Main")
 
-        self.diff_view = DiffView(self, self.state)
-        self.top_panel.addTab(self.diff_view, "Diff")
+        #self.diff_view = DiffView(self, self.state)
+        #self.top_panel.addTab(self.diff_view, "Diff")
 
         self.task_queue = QTaskQueue(self, self.app.task_queue)
         self.top_panel.addTab(self.task_queue, "Tasks")
@@ -254,7 +254,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def current_glider_changed(self) -> None:
         # cleanup widgets
         self.glider_preview.update_current()
-        self.diff_view.update_view()
+        #self.diff_view.update_view()
 
         active_wing = self.state.projects.get_selected()
             

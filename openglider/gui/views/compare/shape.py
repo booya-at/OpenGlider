@@ -101,7 +101,7 @@ class ShapePlotCache(GliderCache[tuple[ShapePlot, ShapePlot, str]]):
 
 
 
-class ShapeView(CompareView):
+class ShapeView(QtWidgets.QWidget, CompareView):
     grid = False
 
     def __init__(self, app: GliderApp):
