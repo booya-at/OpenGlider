@@ -5,6 +5,7 @@ import os
 from typing import Any
 
 import openglider
+import qtawesome
 from openglider.glider.project import GliderProject
 from openglider.gui.state.glider_list import GliderListItem, GliderList
 from openglider.gui.qt import QtWidgets
@@ -23,7 +24,7 @@ class GliderListWidgetItemWidget(ListItemWidget[GliderProject]):
 
         self.button_save = QtWidgets.QPushButton()
         self.button_save.setFixedSize(30, 30)
-        self.button_save.setIcon(Icon("save"))
+        self.button_save.setIcon(qtawesome.icon("fa.save"))
         self.button_save.clicked.connect(self.save)
         self.layout().addWidget(self.button_save)
 

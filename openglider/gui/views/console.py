@@ -139,7 +139,7 @@ class ConsoleHandler(logging.Handler):
             ))
         
         self.add_logger("openglider")
-        self.add_logger("gpufem")
+        #self.add_logger("gpufem")
     
     def add_logger(self, name: str) -> None:
         logger = logging.getLogger(name)

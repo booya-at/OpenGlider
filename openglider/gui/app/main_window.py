@@ -5,6 +5,7 @@ import logging
 import os
 from typing import TYPE_CHECKING, Any
 from collections.abc import Callable, Iterator
+import qtawesome
 
 import openglider
 from openglider.glider.project import GliderProject
@@ -49,7 +50,7 @@ class Action():
 
     def get_qt_action(self) -> QAction:
         if self.action is None:
-            self.action = QAction(Icon("substract"), self.name, self.main_window)
+            self.action = QAction(qtawesome.icon("fa.minus"), self.name, self.main_window)
             self.action.triggered.connect(self.run)
         
         return self.action
@@ -99,22 +100,22 @@ class MainWindow(QtWidgets.QMainWindow):
             self.menus[menu_name] = menubar.addMenu(f"&{menu_name}")
 
         self.menus["debug"] = menubar.addMenu(f"&Debug")
-        reload_action = QAction(Icon("substract"), "Reload", self)
+        reload_action = QAction(qtawesome.icon("fa.minus"), "Reload", self)
         reload_action.triggered.connect(self.app.reload_code)
         self.menus["debug"].addAction(reload_action)
 
-        toggle_console = QAction(Icon("document"), "Toggle Console", self)
+        toggle_console = QAction(qtawesome.icon("mdi6.file-document-outline"), "Toggle Console", self)
         toggle_console.setShortcut("del")  #QtGui.QKeySequence(QtCore.Qt.Key_AsciiCircum)
         #toggle_console.setStatusTip("Toggle Console")
         toggle_console.triggered.connect(self.toggle_console)
         menubar.addAction(toggle_console)
 
-        load_glider = QAction(Icon("folder"), "Open", self)
+        load_glider = QAction(qtawesome.icon("fa.folder"), "Open", self)
         load_glider.setShortcut("Ctrl+O")
         load_glider.setStatusTip("Load Glider")
         load_glider.triggered.connect(self.open_dialog)
 
-        load_demokite = QAction(Icon("folder"), "Demokite", self)
+        load_demokite = QAction(qtawesome.icon("fa.folder"), "Demokite", self)
         load_demokite.setShortcut("Ctrl+D")
         load_demokite.setStatusTip("Load Demokite")
         load_demokite.triggered.connect(self.load_demokite)
