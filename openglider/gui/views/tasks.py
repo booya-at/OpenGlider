@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 import logging
 import asyncio
+import qtawesome
 
 from openglider.gui.qt import QtWidgets, QtCore
 
@@ -39,7 +40,8 @@ class QTaskListWidget(QtWidgets.QWidget):
         self.label_runtime = QtWidgets.QLabel()
 
         self.button_view = QtWidgets.QToolButton()
-        self.button_view.setIcon(Icon("plus"))
+        self.button_view.setIcon(qtawesome.icon("fa.plus"))
+        
 
         if self.view_class is None:
             self.button_view.setDisabled(True)
@@ -64,6 +66,7 @@ class QTaskListWidget(QtWidgets.QWidget):
             button = "dislike"
 
         icon = Icon(button)
+        
         self.label_status.setPixmap(icon.pixmap(QtCore.QSize(40, 40)))
 
         self.label_runtime.setText(self.task.runtime())

@@ -80,7 +80,7 @@ class GliderApp(QtWidgets.QApplication):
         self.state.dump()
 
         #self._deep_reload("euklid")
-        self._deep_reload("openglider", "gpufem")
+        #self._deep_reload("openglider", "gpufem")
 
         import pydantic
 
