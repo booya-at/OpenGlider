@@ -81,6 +81,7 @@ class GliderApp(QtWidgets.QApplication):
 
         #self._deep_reload("euklid")
         #self._deep_reload("openglider", "gpufem")
+        self._deep_reload("openglider")
 
         import pydantic
 
