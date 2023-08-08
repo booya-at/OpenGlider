@@ -12,11 +12,9 @@ from openglider.glider.project import GliderProject
 from openglider.gui.qt import QtCore, QtWidgets, QtGui, QAction
 from openglider.gui.views.compare import GliderPreview
 from openglider.gui.views.console import ConsoleHandler, ConsoleWidget
-from openglider.gui.views.diff import DiffView
 from openglider.gui.views.glider_list import GliderListWidget
 from openglider.gui.views.tasks import QTaskQueue
 from openglider.gui.views.window import Window
-from openglider.gui.widgets.icon import Icon
 
 from openglider.gui.views.help import HelpView
 

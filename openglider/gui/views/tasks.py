@@ -8,7 +8,6 @@ import qtawesome
 from openglider.gui.qt import QtWidgets, QtCore
 
 from openglider.utils.tasks import TaskQueue, Task
-from openglider.gui.widgets.icon import Icon
 from openglider.gui.views.window import Window
 
 if TYPE_CHECKING:
@@ -56,16 +55,16 @@ class QTaskListWidget(QtWidgets.QWidget):
         self.update()
     
     def update(self, *args: Any, **kwargs: Any) -> None:
-        button = "database-1"
+        button = "fa.database"
         if self.task.finished:
-            button = "checked"
+            button = "fa.check"
         elif self.task.running:
-            button = "play-button"
+            button = "fa.play"
 
         if self.task.failed:
-            button = "dislike"
+            button = "fa.thumbs-down"
 
-        icon = Icon(button)
+        icon = qtawesome.icon(button)
         
         self.label_status.setPixmap(icon.pixmap(QtCore.QSize(40, 40)))
 

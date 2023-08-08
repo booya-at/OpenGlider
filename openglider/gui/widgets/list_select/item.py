@@ -6,7 +6,6 @@ import qtawesome
 
 from openglider.gui.state.selection_list.list import SelectionListItem, ItemType
 from openglider.gui.widgets import InputLabel
-from openglider.gui.widgets.icon import Icon
 from openglider.utils.colors import Color
 from openglider.gui.qt import QtCore, QtGui, QtWidgets
 
