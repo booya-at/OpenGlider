@@ -51,24 +51,22 @@ class PanelPlot:
     def flatten(self) -> PlotPart:
         plotpart = PlotPart(material_code=str(self.panel.material), name=self.panel.name)
 
-        _cut_types = PANELCUT_TYPES
-
         cut_allowances = {
-            _cut_types.folded: self.config.allowance_entry_open,
-            _cut_types.parallel: self.config.allowance_trailing_edge,
-            _cut_types.orthogonal: self.config.allowance_design,
-            _cut_types.singleskin: self.config.allowance_entry_open,
-            _cut_types.cut_3d: self.config.allowance_design,
-            _cut_types.round: self.config.allowance_design
+            PANELCUT_TYPES.folded: self.config.allowance_entry_open,
+            PANELCUT_TYPES.parallel: self.config.allowance_trailing_edge,
+            PANELCUT_TYPES.orthogonal: self.config.allowance_design,
+            PANELCUT_TYPES.singleskin: self.config.allowance_entry_open,
+            PANELCUT_TYPES.cut_3d: self.config.allowance_design,
+            PANELCUT_TYPES.round: self.config.allowance_design
         }
 
         cut_types: dict[PANELCUT_TYPES, type[Cut]] = {
-            _cut_types.folded: self.config.cut_entry,
-            _cut_types.parallel: self.config.cut_trailing_edge,
-            _cut_types.orthogonal: self.config.cut_design,
-            _cut_types.singleskin: self.config.cut_entry,
-            _cut_types.cut_3d: self.config.cut_3d,
-            _cut_types.round: self.config.cut_round
+            PANELCUT_TYPES.folded: self.config.cut_entry,
+            PANELCUT_TYPES.parallel: self.config.cut_trailing_edge,
+            PANELCUT_TYPES.orthogonal: self.config.cut_design,
+            PANELCUT_TYPES.singleskin: self.config.cut_entry,
+            PANELCUT_TYPES.cut_3d: self.config.cut_3d,
+            PANELCUT_TYPES.round: self.config.cut_round
         }
 
         ik_values = self.panel._get_ik_values(self.cell, self.config.midribs, exact=True)
@@ -94,11 +92,11 @@ class PanelPlot:
         shape_3d_amount_front = [-x for x in self.panel.cut_front.cut_3d_amount]
         shape_3d_amount_back = self.panel.cut_back.cut_3d_amount
 
-        if self.panel.cut_front.cut_type != _cut_types.cut_3d:
+        if self.panel.cut_front.cut_type != PANELCUT_TYPES.cut_3d:
             dist = np.linspace(shape_3d_amount_front[0], shape_3d_amount_front[-1], len(shape_3d_amount_front))
             shape_3d_amount_front = list(dist)
 
-        if self.panel.cut_back.cut_type != _cut_types.cut_3d:
+        if self.panel.cut_back.cut_type != PANELCUT_TYPES.cut_3d:
             dist = np.linspace(shape_3d_amount_back[0], shape_3d_amount_back[-1], len(shape_3d_amount_back))
             shape_3d_amount_back = list(dist)
 

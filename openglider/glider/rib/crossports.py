@@ -56,10 +56,12 @@ class RibHoleBase(BaseModel):
         hole = self.get_curves(rib, num=num)
         return [rib.align_all(c) for c in hole]
 
-    def get_flattened(self, rib: Rib, num: int=80) -> PlotPart:
+    def get_flattened(self, rib: Rib, num: int=80, layer_name: str="cuts") -> PlotPart:
         curves = [l.scale(rib.chord) for l in self.get_curves(rib, num)]
         
-        return PlotPart(cuts=curves)
+        pp = PlotPart()
+        pp.layers[layer_name] += curves
+        return pp
     
     def get_parts(self, rib: Rib) -> list[PlotPart]:
         return []

@@ -4,7 +4,7 @@ from openglider.gui.qt import QtWidgets
 
 T = TypeVar("T")
 
-class Input(QtWidgets.QWidget, Generic[T]):
+class Input(Generic[T], QtWidgets.QWidget):
     on_change: list[Callable[[T], None]]
     on_changed: list[Callable[[T], None]]
 

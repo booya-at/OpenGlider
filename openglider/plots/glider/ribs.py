@@ -198,14 +198,13 @@ class RibPlot:
         self.plotpart.layers[self.layer_name_outline] += [envelope]
         self.plotpart.layers[self.layer_name_sewing].append(self.inner)
 
-        if add_rigidfoils_to_plot:
-            rigidfoils = self.draw_rigidfoils(glider)
-            if rigidfoils:
-                diff = max([r.max_x for r in rigidfoils])
-                for rigidfoil in rigidfoils:
-                    rigidfoil.move(euklid.vector.Vector2D([-(diff-self.plotpart.min_x+0.2), 0]))
+        rigidfoils = self.draw_rigidfoils(glider)
+        if add_rigidfoils_to_plot and rigidfoils:
+            diff = max([r.max_x for r in rigidfoils])
+            for rigidfoil in rigidfoils:
+                rigidfoil.move(euklid.vector.Vector2D([-(diff-self.plotpart.min_x+0.2), 0]))
 
-                    self.plotpart += rigidfoil
+                self.plotpart += rigidfoil
 
         return self.plotpart
 
@@ -271,7 +270,7 @@ class RibPlot:
     def insert_holes(self) -> list[euklid.vector.PolyLine2D]:
         holes: list[PlotPart] = []
         for hole in self.rib.holes:            
-            holes.append(hole.get_flattened(self.rib, num=200))
+            holes.append(hole.get_flattened(self.rib, num=200, layer_name=self.layer_name_crossports))
         
         curves: list[euklid.vector.PolyLine2D] = []
         for plotpart in holes:

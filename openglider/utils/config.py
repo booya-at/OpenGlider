@@ -21,7 +21,7 @@ class Config:
         items = inspect.getmembers(self.__class__, lambda a:not(inspect.isroutine(a)))
         annotations = self.get_annotations()
         for key, value in items:
-            if key in annotations:
+            if key in annotations and type(annotations[key]) == type:
                 try:
                     value = annotations[key](value)
                 except Exception:
