@@ -268,7 +268,15 @@ class ParametricGlider:
         curves=self.get_curves()
 
         def resolver_factory(rib_no: int) -> Callable[[str], float]:
-            return lambda name: curves[name].get(rib_no)
+            def resolve(name: str) -> float:
+                if name not in curves:
+                    raise ValueError(
+                        f"could not resolve name '{name}' "+
+                        f"(available curves: {list(curves.keys())})"
+                    )
+                return curves[name].get(rib_no)
+
+            return resolve
 
 
         for rib_no, chord in enumerate(self.shape.chords):            

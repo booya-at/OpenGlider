@@ -78,7 +78,7 @@ class HoleATP(DTO):
 
 class HOLEATP5(HoleATP):
     border: Length | Percentage
-    side_boder: Length | Percentage
+    side_border: Length | Percentage
 
 class HOLEATP6(HOLEATP5):
     corner_size: Percentage

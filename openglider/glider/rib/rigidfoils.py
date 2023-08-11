@@ -176,12 +176,12 @@ class RigidFoilCurved(_RigidFoilCurved):
 
 
 class RigidFoil2(_RigidFoilCurved):
-    circle_radius: float=0.05
-    circle_amount: float=0.5
+    circle_radius: Length=Length("5cm")
+    circle_amount: Percentage=Percentage(0.5)
     straight_part = Length("2cm")
 
     def get_cap_radius(self, start: bool) -> tuple[float, float]:
-        return self.circle_radius, self.circle_amount
+        return self.circle_radius.si, self.circle_amount.si
 
 
 @dataclass

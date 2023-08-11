@@ -98,8 +98,13 @@ class Sharknose:
                 rigid_1 = RigidFoilCurved(
                     start=rigidfoil.start,
                     end=position,
-                    distance=rigidfoil.distance
+                    distance=rigidfoil.distance,
+                    cap_length=rigidfoil.cap_length,
+                    tension=rigidfoil.tension
                 )
+                if straight_part := getattr(rigidfoil, "straight_part"):
+                    rigid_1.straight_part = straight_part
+                    
                 radius, amount =  rigidfoil.get_cap_radius(start=True)
                 rigid_1.circle_radius_start = radius
                 rigid_1.circle_amount_start = amount
@@ -109,8 +114,13 @@ class Sharknose:
                 rigid_2 = RigidFoilCurved(
                     start=position,
                     end=rigidfoil.end,
-                    distance=rigidfoil.distance
+                    distance=rigidfoil.distance,
+                    cap_length=rigidfoil.cap_length,
+                    tension=rigidfoil.tension
                 )
+                if straight_part := getattr(rigidfoil, "straight_part"):
+                    rigid_2.straight_part = straight_part
+
                 radius, amount =  rigidfoil.get_cap_radius(start=False)
                 rigid_2.circle_radius_end = radius
                 rigid_2.circle_amount_end = amount

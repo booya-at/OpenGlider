@@ -39,7 +39,6 @@ class RigidFoilPlot:
 
     def __init__(self, rigidfoil: RigidFoilBase, ribplot: RibPlot) -> None:
         self.rigidfoil = rigidfoil
-        print(self.rigidfoil.name, self.rigidfoil.distance)
         self.ribplot = ribplot
 
     def add_text(self, plotpart: PlotPart) -> None:
@@ -67,11 +66,14 @@ class RigidFoilPlot:
     
     def _get_inner_outer(self, glider: Glider) -> tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
         curve = self.rigidfoil.get_flattened(self.ribplot.rib, glider)
+
+        distance = self.ribplot.rib.convert_to_chordlength(self.rigidfoil.distance)
+        d_outer = self.ribplot.config.allowance_general + distance.si
+
         inner_curve = curve.offset(-self.ribplot.config.allowance_general).fix_errors()
-        outer_curve = curve.offset(self.ribplot.config.allowance_general).fix_errors()
+        outer_curve = curve.offset(d_outer).fix_errors()
 
         return inner_curve, outer_curve
-
     
     def flatten(self, glider: Glider) -> PlotPart:
         plotpart = PlotPart()

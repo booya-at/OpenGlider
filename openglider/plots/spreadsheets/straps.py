@@ -3,17 +3,24 @@ from openglider.utils.table import Table
 
 def get_length_table(glider: Glider) -> Table:
     table = Table(name="straps")
-    num = 0
+    row = 0
+    
+    table[0, 1] = "name"
+    table[0, 2] = "position inner"
+    table[0, 3] = "position outer"
+    table[0, 4] = "side"
+    table[0, 5] = "length"
 
-    for cell_no, cell in enumerate(glider.cells):
-        num = max(num, len(cell.straps))
-        table[cell_no+1, 0] = f"cell_{cell_no}"
-        for strap_no, strap in enumerate(cell.straps):
-            table[cell_no+1, 2*strap_no+1] = f"{strap.left.center}/{strap.right.center}"
-            table[cell_no+1, 2*strap_no+2] = round(1000*strap.get_center_length(cell), 1)
+    for cell in glider.cells:
+        table[row, 0] = f"cell_{cell.name}"
+        for strap in sorted(cell.straps, key=lambda strap: abs(strap.get_average_x())):
+            table[row, 1] = strap.name
+            table[row, 2] = f"{abs(strap.left.center.si*100):.0f}%"
+            table[row, 3] = f"{abs(strap.right.center.si*100):.0f}%"
+            table[row, 4] = "upper" if strap.get_average_x() < 0 else "lower"
+            table[row, 5] = f"{strap.get_center_length(cell)*1000:.0f}mm"
+            
+            row += 1
 
-    for i in range(num):
-        table[0, 2*i+1] = "pos"
-        table[0, 2*i+2] = "length"
 
     return table

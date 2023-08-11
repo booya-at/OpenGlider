@@ -4,6 +4,7 @@ from typing import Any
 from collections.abc import Callable
 
 from pydantic import Field
+import pydantic
 from pyparsing import (Forward, Group, Literal, ParseResults, Regex, Suppress,
                        Word, alphanums, alphas, delimitedList)
 
@@ -31,8 +32,8 @@ class Parser(BaseModel):
     units: list[type[Quantity]] = Field(default_factory=default_units.copy)
     variable_resolver: Callable[[str], float] = default_resolver
 
-    _parser: Forward | None = None
-    _units: dict[str, type[Quantity]] | None = None
+    _parser: Forward | None =  pydantic.PrivateAttr(default=None)
+    _units: dict[str, type[Quantity]] | None = pydantic.PrivateAttr(default=None)
 
     stack: list[str | float | Quantity] = Field(default_factory=list)
 

@@ -2,7 +2,7 @@ import enum
 import logging
 import sys
 import typing
-from typing import Any, Generic, TypeVar
+from typing import Any, Callable, Generic, TypeVar
 
 
 from openglider.glider.curve import GliderCurveType
@@ -135,6 +135,29 @@ class ElementTable(Generic[ElementType]):
             return elements[0]
         
         return None
+
+    def _prepare_dto_data(self, row: int, dto: type[DTO], data: list[Any], resolvers: list[Parser]) -> dict[str, Any]:
+        fields = dto.__fields__.items()
+        
+        dct: dict[str, Any] = {}
+        index = 0
+
+        for field_name, field in fields:
+            if dto._is_cell_tuple(field.type_):
+                dct[field_name] = (
+                    resolvers[row].parse(data[index]),
+                    resolvers[row+1].parse(data[index+1])
+                )
+                index += 2
+            else:
+                if field.type_ == str:
+                    dct[field_name] = data[index]
+                else:
+                    dct[field_name] = resolvers[row].parse(data[index])
+                index += 1
+        
+        return dct
+
     
     def get_element(self, row: int, keyword: str, data: list[typing.Any], **kwargs: Any) -> ElementType:
         if keyword in self.keywords:
@@ -143,26 +166,8 @@ class ElementTable(Generic[ElementType]):
             return keyword_mapper.get(keyword, data)
         
         elif keyword in self.dtos:
-            def resolve(keyword: str | float, row_no: int) -> Quantity | float:
-                resolver: Parser = kwargs["resolvers"][row_no]
-                return resolver.parse(keyword)
-            
-            dto = self.dtos[keyword]
-            fields = dto.__fields__.items()
-            
-            dct: dict[str, Any] = {}
-            index = 0
-
-            for field_name, field in fields:
-                if dto._is_cell_tuple(field.type_):
-                    dct[field_name] = (
-                        resolve(data[index], row),
-                        resolve(data[index+1], row+1)
-                    )
-                    index += 2
-                else:
-                    dct[field_name] = resolve(data[index], row)
-                    index += 1
+            dto = self.dtos[keyword]            
+            dct = self._prepare_dto_data(row, dto, data, kwargs["resolvers"])
                 
             return dto(**dct).get_object()
 

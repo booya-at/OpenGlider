@@ -25,36 +25,46 @@ logger = logging.getLogger(__name__)
 
 class ATP(dto.DTO):
     name: str
-    pos: Percentage
-    force: float | str
+    rib_pos: Percentage
+    force: float | euklid.vector.Vector3D
 
     #@validator("force", pre=True)
     #def validate_force(self, force: Any):
     #    pass
 
-    def get_object(self) -> AttachmentPoint:
-        #raise NotImplementedError()
-        logger.warning(f"get element {self}")
+    def get(self, force: euklid.vector.Vector3D) -> AttachmentPoint:
+        data = self.dict()
+        data.pop("force")
         return AttachmentPoint(
-            rib_pos=self.pos,
-            name=self.name,
+            **data,
+            force=force
         )
 
 
 class ATPPROTO(ATP):
     protoloop_distance: Percentage | Length
+    
+    def get(self, force: euklid.vector.Vector3D) -> AttachmentPoint:
+        p = super().get(force)
+        p.protoloops = 1
+        return p
 
+class ATPPROTO5(ATP):
+    protoloop_distance: Percentage | Length
+    protoloops: int
+
+# TODO: add DTO*s and ATPPROTO5 (with protoloop count)
 
 class AttachmentPointTable(RibTable):
     regex_node_layer = re.compile(r"([a-zA-Z]*)([0-9]*)")
 
     keywords = {
-        "ATP": Keyword([("name", str), ("pos", float), ("force", Union[float, str])], target_cls=AttachmentPoint), 
         "AHP": Keyword([("name", str), ("pos", float), ("force", Union[float, str])], target_cls=AttachmentPoint),
-        "ATPPROTO": Keyword([("name", str), ("pos", float), ("force", Union[float, str]), ("proto_distance", float)], target_cls=AttachmentPoint)
     }
     dtos = {
-        #"ATP": ATP,
+        "ATP": ATP,
+        "ATPPROTO": ATPPROTO,
+        "ATPPROTO5": ATPPROTO5
         #"AHP": ATP,
     }
 
@@ -67,19 +77,16 @@ class AttachmentPointTable(RibTable):
         elif rib is not None:
             force = AttachmentPoint.calculate_force_rib_aligned(rib, force)
 
-        assert resolvers is not None
-        resolver = resolvers[row]
-        rib_pos = resolver.parse(data[1])
-        
-        node = AttachmentPoint(name=data[0], rib_pos=rib_pos, force=force)  # type: ignore
+        if keyword in self.dtos:
+            if resolvers is None:
+                raise ValueError()
+            dto: type[ATP] = self.dtos[keyword]  # type: ignore
+            data[2] = 0.
+            dct = self._prepare_dto_data(row, dto, data, resolvers)
 
-        if keyword == "ATPPROTO":
-            node.protoloops = 1
-
-            default_resolver = Parser()
-            node.protoloop_distance = default_resolver.parse(data[3])  # type: ignore
+            return dto(**dct).get(force=force)
         
-        return node
+        return super().get_element(row, keyword, data)
     
     def apply_forces(self, forces: Mapping[str, euklid.vector.Vector3D | float]) -> None:
         new_table = Table()

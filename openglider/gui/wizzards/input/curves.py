@@ -58,8 +58,11 @@ class CurveInput(Canvas):
         if self.layout_graphics is not None:
             self.removeItem(self.layout_graphics)
 
+        self.shape_plot.redraw(self.shape_settings.config)
+
         self.layout_graphics = LayoutGraphics(self.shape_plot.drawing, fill=False)
         self.addItem(self.layout_graphics)
+        self.draw_curves()
 
     def draw_curves(self, clear: bool=True, normalize_area: bool=False, normalize_span: bool=False) -> None:
         # list of glider projects

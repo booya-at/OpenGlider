@@ -102,7 +102,7 @@ class BaseModel(pydantic.BaseModel):
     class Config:
         arbitrary_types_allowed = True
         keep_untouched = (CachedProperty,)
-        extra = "allow"
+        extra = "forbid"
         
     def __eq__(self, other: Any) -> bool:
         return other.__class__ == self.__class__ and self.__dict__ == other.__dict__
