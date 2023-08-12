@@ -79,8 +79,7 @@ class DiagonalSide(BaseModel):
                 ])
 
 
-@dataclass
-class DiagonalRib:
+class DiagonalRib(BaseModel):
     left: DiagonalSide
     right: DiagonalSide
 
@@ -92,7 +91,7 @@ class DiagonalRib:
     hole_border_side :float=0.15
     hole_border_front_back: float=0.1
 
-    def copy(self) -> DiagonalRib:
+    def copy(self, **kwargs: Any) -> DiagonalRib:
         return copy.copy(self)
 
     @property
@@ -267,7 +266,7 @@ class TensionStrap(DiagonalRib):
         left_side = DiagonalSide(center=left, width=width, height=height)
         right_side = DiagonalSide(center=right, width=width, height=height)
 
-        super().__init__(left_side, right_side, **kwargs)
+        super().__init__(left=left_side, right=right_side, **kwargs)
     
     def __json__(self) -> dict[str, Any]:
         return {

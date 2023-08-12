@@ -3,3 +3,6 @@ from openglider.glider.cell.cell import Cell
 from openglider.glider.cell.rigidfoil import *
 from openglider.glider.cell.diagonals import *
 from openglider.glider.cell.panel import Panel, PanelCut
+
+
+Cell.model_rebuild()

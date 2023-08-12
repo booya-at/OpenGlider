@@ -4,15 +4,14 @@ from typing import Any, Generic, TypeVar
 from collections.abc import ItemsView, Iterator
 
 from openglider.utils.colors import Color, colorwheel
-from openglider.utils.dataclass import Field, dataclass
+from openglider.utils.dataclass import BaseModel, Field, dataclass
 
-ItemType = TypeVar("ItemType")
 
 colors = colorwheel(5)
 
+ItemType = TypeVar("ItemType")
 
-@dataclass
-class SelectionListItem(Generic[ItemType]):
+class SelectionListItem(BaseModel, Generic[ItemType]):
     element: ItemType
     active: bool
     color: Color
@@ -36,8 +35,7 @@ class SelectionListItem(Generic[ItemType]):
 
 SelectionListItemT = TypeVar("SelectionListItemT", bound=SelectionListItem, covariant=True)
 
-@dataclass
-class SelectionList(Generic[ItemType, SelectionListItemT]):
+class SelectionList(BaseModel, Generic[ItemType, SelectionListItemT]):
 
     elements: dict[str, SelectionListItemT]=Field(default_factory=lambda: {})
     selected_element: str | None = None
@@ -85,8 +83,8 @@ class SelectionList(Generic[ItemType, SelectionListItemT]):
     
     def add(self, name: str, obj: ItemType, color: Color=None, select: bool=True) -> SelectionListItemT:
         element = self.get_type()(
-            obj,
-            active = False,
+            element=obj,
+            active=False,
             color=color or colors[len(self.elements)%len(colors)],
             name=name
             )
@@ -123,7 +121,7 @@ class SelectionList(Generic[ItemType, SelectionListItemT]):
             element.name: element for element in self.elements.values()
         }
     
-    def __iter__(self) -> Iterator[ItemType]:
+    def __iter__(self) -> Iterator[ItemType]:  # type: ignore
         for name in self.elements:
             yield self.elements[name].element
     

@@ -5,6 +5,7 @@ import enum
 from typing import Any
 
 import euklid
+from typing import ClassVar
 
 from openglider.lines.functions import proj_force
 from openglider.utils.dataclass import BaseModel, Field
@@ -18,7 +19,7 @@ class NODE_TYPE_ENUM(enum.Enum):
 
 
 class Node(BaseModel):
-    NODE_TYPE = NODE_TYPE_ENUM
+    NODE_TYPE: ClassVar[type[NODE_TYPE_ENUM]] = NODE_TYPE_ENUM
 
     node_type: NODE_TYPE_ENUM
     force: euklid.vector.Vector3D = Field(default_factory=lambda: euklid.vector.Vector3D())
@@ -36,7 +37,7 @@ class Node(BaseModel):
     @classmethod
     def __from_json__(cls, **kwargs: Any) -> Node:
         node_type_name: str = kwargs.pop("node_type")
-        node_type: NODE_TYPE_ENUM = getattr(cls.NODE_TYPE, node_type_name)
+        node_type: NODE_TYPE_ENUM = getattr(NODE_TYPE_ENUM, node_type_name)
 
         return cls(
             node_type=node_type,

@@ -137,20 +137,20 @@ class ElementTable(Generic[ElementType]):
         return None
 
     def _prepare_dto_data(self, row: int, dto: type[DTO], data: list[Any], resolvers: list[Parser]) -> dict[str, Any]:
-        fields = dto.__fields__.items()
+        fields = dto.model_fields.items()
         
         dct: dict[str, Any] = {}
         index = 0
 
         for field_name, field in fields:
-            if dto._is_cell_tuple(field.type_):
+            if dto._is_cell_tuple(field.annotation):
                 dct[field_name] = (
                     resolvers[row].parse(data[index]),
                     resolvers[row+1].parse(data[index+1])
                 )
                 index += 2
             else:
-                if field.type_ == str:
+                if field.annotation == str:
                     dct[field_name] = data[index]
                 else:
                     dct[field_name] = resolvers[row].parse(data[index])

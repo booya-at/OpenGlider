@@ -2,18 +2,18 @@ from __future__ import annotations
 
 import os
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from openglider.gui.state.glider_list import GliderList
 import openglider.jsonify
 from openglider.glider.project import GliderProject
-from openglider.utils.dataclass import dataclass, Field
+from openglider.utils.dataclass import BaseModel, Field
 
 if TYPE_CHECKING:
     pass
 
-@dataclass
-class ApplicationState:
+
+class ApplicationState(BaseModel):
     projects: GliderList = Field(default_factory=lambda: GliderList())
     opened_tabs: dict[str, Any] = Field(default_factory=lambda: {})
 
@@ -43,7 +43,7 @@ class ApplicationState:
     def remove_glider_project(self, project: GliderProject) -> None:
         self.projects.remove(project.name)
 
-    _dump_path = "/tmp/openglider_state.json"
+    _dump_path: ClassVar[str] = "/tmp/openglider_state.json"
 
     def dump(self) -> None:
         with open(self._dump_path, "w") as fp:

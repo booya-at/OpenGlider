@@ -33,7 +33,7 @@ class ATP(dto.DTO):
     #    pass
 
     def get(self, force: euklid.vector.Vector3D) -> AttachmentPoint:
-        data = self.dict()
+        data = self.__json__()
         data.pop("force")
         return AttachmentPoint(
             **data,

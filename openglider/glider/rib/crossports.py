@@ -12,6 +12,7 @@ from openglider.utils.dataclass import BaseModel
 from openglider.vector.drawing import PlotPart
 from openglider.vector.polygon import Ellipse
 from openglider.vector.unit import Angle, Length, Percentage
+from pydantic import ConfigDict
 
 if TYPE_CHECKING:
     from openglider.glider.rib.rib import Rib
@@ -117,9 +118,7 @@ class RibHole(RibHoleBase):
 class PolygonHole(RibHoleBase):
     points: list[euklid.vector.Vector2D]
     corner_size: float=1
-
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def get_centers(self, rib: Rib, scale: bool=False) -> list[euklid.vector.Vector2D]:
         centers = [sum(self.points, start=euklid.vector.Vector2D())/len(self.points)]

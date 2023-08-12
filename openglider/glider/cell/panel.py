@@ -12,7 +12,7 @@ from openglider.airfoil import get_x_value
 from openglider.materials import Material, cloth
 from openglider.mesh.mesh import Vertex
 from openglider.utils.cache import cached_function, hash_list
-from openglider.utils.dataclass import dataclass, Field
+from openglider.utils.dataclass import BaseModel, dataclass, Field
 from openglider.vector.unit import Length, Percentage
 
 if TYPE_CHECKING:
@@ -29,8 +29,8 @@ class PANELCUT_TYPES(Enum):
     parallel = 5
     round = 6
 
-@dataclass
-class PanelCut:    
+
+class PanelCut(BaseModel):
     x_left: Percentage
     x_right: Percentage
     cut_type: PANELCUT_TYPES
@@ -191,7 +191,7 @@ class PanelCut:
         return euklid.vector.PolyLine3D(points)
 
 
-class Panel:
+class Panel(BaseModel):
     """
     Glider cell-panel
     :param cut_front {'left': 0.06, 'right': 0.06, 'type': 'orthogonal'}
@@ -534,4 +534,4 @@ class Panel:
 
         return front, back
 
-PanelCut.__pydantic_model__.update_forward_refs()  # type: ignore
+#PanelCut.__pydantic_model__.update_forward_refs()  # type: ignore

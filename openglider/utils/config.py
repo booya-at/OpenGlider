@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 from collections.abc import Iterator
 
-from pydantic import parse_obj_as
+from pydantic import ConfigDict, parse_obj_as
 import logging
 
 from openglider.utils.dataclass import BaseModel
@@ -107,8 +107,7 @@ class Config:
 
 
 class ConfigNew(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __json__(self) -> dict[str, Any]:
         return {

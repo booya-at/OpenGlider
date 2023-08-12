@@ -5,6 +5,7 @@ import euklid
 
 from openglider.utils.dataclass import BaseModel
 from openglider.vector.unit import Length
+from pydantic import ConfigDict
 
 
 logger = logging.getLogger(__name__)
@@ -45,9 +46,7 @@ class Cut(ABC, BaseModel):
 
 class DesignCut(Cut):
     num_folds: int = 1
-
-    class Config:
-        kw_only = False
+    model_config = ConfigDict(kw_only=False)
     
     @property
     def total_amount(self) -> float:

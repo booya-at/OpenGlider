@@ -101,7 +101,7 @@ class RigidFoil(RigidFoilBase):
 
 
 class _RigidFoilCurved(RigidFoilBase):
-    append_curve = True
+    append_curve: bool = True
     straight_part: Length = Length(0)
 
     def _get_flattened(self, rib: Rib, glider: Glider=None) -> euklid.vector.PolyLine2D:
@@ -178,7 +178,7 @@ class RigidFoilCurved(_RigidFoilCurved):
 class RigidFoil2(_RigidFoilCurved):
     circle_radius: Length=Length("5cm")
     circle_amount: Percentage=Percentage(0.5)
-    straight_part = Length("2cm")
+    straight_part: Length = Length("2cm")
 
     def get_cap_radius(self, start: bool) -> tuple[float, float]:
         return self.circle_radius.si, self.circle_amount.si

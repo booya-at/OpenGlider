@@ -19,7 +19,7 @@ class CellAttachmentPoint(Node):
     cell_pos: float
     rib_pos: Percentage
     node_type: NODE_TYPE_ENUM = Node.NODE_TYPE.UPPER
-    ballooned=False
+    ballooned: bool=False
     offset: float = 0.
 
     def __repr__(self) -> str:

@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import math
 from collections.abc import Sequence
+from typing import ClassVar
 
 import euklid
 import openglider.utils
@@ -45,12 +46,12 @@ class Cell(BaseModel):
     ballooning_ramp: float | None = None
     sigma_3d_cut: float = 0.06
 
-    diagonal_naming_scheme = "{cell.name}d{diagonal_no}"
-    strap_naming_scheme = "{cell.name}s{side}{diagonal_no}"
-    panel_naming_scheme = "{cell.name}p{panel_no}"
-    panel_naming_scheme_upper = "{cell.name}pu{panel_no}"
-    panel_naming_scheme_lower = "{cell.name}pl{panel_no}"
-    minirib_naming_scheme = "{cell.name}mr{minirib_no}"
+    diagonal_naming_scheme: ClassVar[str] = "{cell.name}d{diagonal_no}"
+    strap_naming_scheme: ClassVar[str] = "{cell.name}s{side}{diagonal_no}"
+    panel_naming_scheme: ClassVar[str] = "{cell.name}p{panel_no}"
+    panel_naming_scheme_upper: ClassVar[str] = "{cell.name}pu{panel_no}"
+    panel_naming_scheme_lower: ClassVar[str] = "{cell.name}pl{panel_no}"
+    minirib_naming_scheme: ClassVar[str] = "{cell.name}mr{minirib_no}"
     
     def __hash__(self) -> int:
         return hash_list(self.rib1, self.rib2, *self.miniribs, *self.diagonals)

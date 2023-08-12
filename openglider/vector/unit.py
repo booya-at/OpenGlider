@@ -1,46 +1,53 @@
 import math
 import operator
 import re
-from typing import Any, Self, TypeVar
+from typing import Any, ClassVar, Self, TypeVar
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 
+import pydantic
+from pydantic_core import ArgsKwargs, core_schema
+
 OpReturnType = TypeVar("OpReturnType")
 
-@dataclass(frozen=True, init=False)
-class Quantity:
+#@dataclass(frozen=True, init=False)
+class Quantity(pydantic.BaseModel):
+    model_config = pydantic.ConfigDict(
+        frozen=True,
+        extra=pydantic.Extra.forbid
+    )
     value: float
 
-    unit: str
-    unit_variants: dict[str, float]
+    unit: ClassVar[str]
+    unit_variants: ClassVar[dict[str, float]]
     display_unit: str | None = None
 
 
-    re_number = r"([-+]?\d*\.\d*(?:[eE][+-]?\d+)?|\d+)"
-    re_unit = r"\s*([\w°%]+)(?!\S)"
+    re_number: ClassVar[str] = r"([-+]?\d*\.\d*(?:[eE][+-]?\d+)?|\d+)"
+    re_unit: ClassVar[str] = r"\s*([\w°%]+)(?!\S)"
 
     def __init__(self, value: float | str, unit: str=None, display_unit: str=None):
         value_float = None
 
         if isinstance(value, str):
             assert unit is None
-            if match := re.match(self.re_number + self.re_unit, value):
+            if match := re.match(self.__class__.re_number + self.__class__.re_unit, value):
                 value_str, unit = match.groups()
                 value_float = float(value_str)
         
         if value_float is None:
             value_float = float(value)
 
-        if unit is None or unit == self.unit:
-            super().__setattr__("value", value_float)
+        if unit is None:
+            super().__init__(value=value)
+            pass
         else:
             try:
-                factor = self.unit_variants[unit]
+                factor = self.__class__.unit_variants[unit]
             except KeyError:
                 raise ValueError(f"invalid unit for {self.__class__.__name__}: {unit}")
-
-            super().__setattr__("value", value_float * factor)
-            super().__setattr__("display_unit", unit or display_unit)
+            
+            super().__init__(value=value_float * factor, display_unit=unit or display_unit)
 
     def get(self, unit: str=None) -> float:
         if unit is None or unit == self.unit:
@@ -147,24 +154,24 @@ class Quantity:
     def si(self) -> float:
         return self.value
 
-    # pydantic support
     @classmethod
-    def __get_validators__(cls) -> Iterator[Callable[[Any], Self]]:
-        yield cls.validate
+    def __get_pydantic_core_schema__(cls, source: type[Any], handler: pydantic.GetCoreSchemaHandler) -> core_schema.CoreSchema:
+        return core_schema.no_info_before_validator_function(cls._validate, handler(source))
 
     @classmethod
-    def validate(cls, v: Any) -> Self:
+    def _validate(cls, v: Any) -> dict[str, Any] | Self:
         if isinstance(v, (str, float, int)):
-            return cls(v)        
+            return cls(value=v)
         elif isinstance(v, Quantity):
             if v.unit == cls.unit:
-                return v  # type: ignore
+                return v
+        elif isinstance(v, dict):
+            return v
 
         raise ValueError(f"Invalid value for {cls}: {v}")
 
-
 class Length(Quantity):
-    unit = "m"
+    unit: ClassVar[str] = "m"
     unit_variants = {
         "dm": 0.1,
         "cm": 0.01,
@@ -172,16 +179,16 @@ class Length(Quantity):
     }
 
 class Percentage(Quantity):
-    unit = ""
+    unit: ClassVar[str] = ""
     unit_variants = {
         "%": 0.01,
     }
-    display_unit = "%"
+    display_unit: str = "%"
 
 class Angle(Quantity):
-    unit = "rad"
+    unit: ClassVar[str] = "rad"
     unit_variants = {
         "deg": math.pi/180,
         "°": math.pi/180,
     }
-    display_unit = "°"
+    display_unit: str = "°"

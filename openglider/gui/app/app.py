@@ -12,6 +12,7 @@ import traceback
 from types import TracebackType
 from typing import TYPE_CHECKING, Any
 from collections.abc import Callable
+import pydantic
 
 import qtmodern.styles
 import qtmodern.windows
@@ -64,7 +65,7 @@ class GliderApp(QtWidgets.QApplication):
         from openglider.utils.plugin import setup_plugins
 
         plugins = setup_plugins(self)
-
+        openglider.gui.app.state.ApplicationState.model_rebuild()
         self.state = openglider.gui.app.state.ApplicationState.load()
         self.task_queue = openglider.utils.tasks.TaskQueue(self.execute)
         #self.task_queue = openglider.utils.tasks.TaskQueue()

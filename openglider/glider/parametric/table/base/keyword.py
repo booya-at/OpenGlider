@@ -21,9 +21,9 @@ class Keyword(Generic[ElementType]):
                 raise ValueError(f"invalid configuration for Keyword: {self}")
 
         self.attributes: list[tuple[str, typing.Any]] = []
-        annotations = {}
-        if target_cls:
-            annotations = typing.get_type_hints(target_cls.__init__)
+        annotations = {}  # type: ignore
+        #if target_cls:
+        #    annotations = typing.get_type_hints(target_cls.__init__)
 
         for attribute in attributes:
             if isinstance(attribute, str):

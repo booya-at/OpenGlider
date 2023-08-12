@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing_extensions import Self
-from typing import Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING, ClassVar
 import numpy as np
 import logging
 
@@ -31,7 +31,7 @@ class RibBase(BaseModel):
         glide-wide rotation and glider ratio.
         optional: name, absolute aoa (bool), startposition
     """
-    material: Material | None
+    material: Material | None = None
     profile_2d: pyfoil.Airfoil
     pos: euklid.vector.Vector3D
 
@@ -118,8 +118,8 @@ class Rib(RibBase):
     attachment_points: list[AttachmentPoint] = Field(default_factory=list)
     sharknose: Sharknose | None = None
 
-    hole_naming_scheme = "{rib.name}h{}"
-    rigid_naming_scheme = "{rib.name}r{}"
+    hole_naming_scheme: ClassVar[str] = "{rib.name}h{}"
+    rigid_naming_scheme: ClassVar[str] = "{rib.name}r{}"
 
     def __post_init__(self) -> None:
         self.pos = euklid.vector.Vector3D(self.pos)

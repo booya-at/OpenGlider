@@ -15,14 +15,14 @@ class RigidFoilDTO(DTO[RigidFoil]):
     distance: Length
     
     def get_object(self) -> RigidFoil:
-        return RigidFoil(**self.dict())
+        return RigidFoil(**self.__json__())
     
 class RigidFoil3(DTO[RigidFoil2]):
     start: Percentage
     end: Percentage
     distance: Length
     def get_object(self) -> RigidFoil2:
-        return RigidFoil2(**self.dict())
+        return RigidFoil2(**self.__json__())
 
 class RigidFoil5(RigidFoil3):
     circle_radius: Length

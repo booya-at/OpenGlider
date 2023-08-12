@@ -21,14 +21,14 @@ logger = logging.getLogger(__name__)
 @dataclass
 class GliderProject:
     glider: ParametricGlider
-    glider_3d: Glider = Field(default=None)
+    glider_3d: Glider | None = Field(default=None)
     filename: str | None=None
     name: str=""
     changelog: list[tuple[datetime.datetime, str, str]] = Field(default_factory=lambda: [])
 
     _regex_revision_no = re.compile(r"(.*)_rev([0-9]*)$")
 
-    def __post_init_post_parse__(self) -> None:
+    def __post_init__(self) -> None:
         if not self.name:
             if self.filename is not None:
                 self.name = os.path.split(self.filename)[1]
@@ -37,7 +37,7 @@ class GliderProject:
 
         if self.glider_3d is None:
             logger.info(f"get glider 3d:  {self.name}")
-            self.glider_3d = self.glider.get_glider_3d()
+            #self.glider_3d = self.glider.get_glider_3d()
 
         if len(self.changelog) < 1:
             self.changelog.append((
@@ -82,6 +82,8 @@ class GliderProject:
         return self.name
 
     def get_data_table(self) -> openglider.utils.table.Table:
+        assert self.glider_3d is not None
+
         table = openglider.utils.table.Table(name="glider specs")
         table["A1"] = "Name"
         table["B1"] = f"{self.name}"
@@ -155,7 +157,7 @@ class GliderProject:
 
     def copy(self) -> GliderProject:
         new_glider = self.glider.copy()
-        new_glider_3d = self.glider_3d.copy()
+        new_glider_3d = self.glider_3d and self.glider_3d.copy()
         new = GliderProject(new_glider, new_glider_3d, changelog=self.changelog[:])
         new.name = self.name
 

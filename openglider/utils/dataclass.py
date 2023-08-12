@@ -8,7 +8,7 @@ import pydantic
 import pydantic.validators
 
 #from pydantic import Field as field
-from pydantic import Field  # export Field
+from pydantic import ConfigDict, Field  # export Field
 
 from typing_extensions import dataclass_transform
 from dataclasses import dataclass as dc, replace
@@ -92,18 +92,17 @@ def get_validator(cls: type) -> Callable[[Any], Any]:
     
     return validator
 
-pydantic.validators._VALIDATORS += [
-    (euklid.vector.Vector3D, [get_validator(euklid.vector.Vector3D)]),
-    (euklid.vector.Vector2D, [get_validator(euklid.vector.Vector2D)])
-]
+#pydantic.validators._VALIDATORS += [
+#    (euklid.vector.Vector3D, [get_validator(euklid.vector.Vector3D)]),
+#    (euklid.vector.Vector2D, [get_validator(euklid.vector.Vector2D)])
+#]
 
 class BaseModel(pydantic.BaseModel):
-    # TODO: does not support property setters!
-    class Config:
-        arbitrary_types_allowed = True
-        keep_untouched = (CachedProperty,)
-        extra = "forbid"
-        
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        ignored_types=(CachedProperty,),
+        extra=pydantic.Extra.forbid
+        )
     def __eq__(self, other: Any) -> bool:
         return other.__class__ == self.__class__ and self.__dict__ == other.__dict__
 
