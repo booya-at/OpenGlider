@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 import logging
 import asyncio
 import qtawesome
@@ -18,10 +18,11 @@ logger = logging.getLogger(__name__)
 
 
 Td = QtWidgets.QTableWidgetItem
+TaskType = TypeVar("TaskType", bound=Task)
 
-class TaskWindow(Window):
-    task: Task
-    def __init__(self, app: MainWindow, task: Task):
+class TaskWindow(Window, Generic[TaskType]):
+    task: TaskType
+    def __init__(self, app: MainWindow, task: TaskType):
         self.task = task
         super().__init__(app)
 

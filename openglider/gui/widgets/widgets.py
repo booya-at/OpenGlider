@@ -15,7 +15,7 @@ class WindowSwitcher(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
         self.selector = QtWidgets.QComboBox()
-        self.selector.activated.connect(self.show_widget)
+        self.selector.activated.connect(self.show_widget_id)
         layout.addWidget(self.selector)
 
         self.widgets = {}
@@ -29,9 +29,13 @@ class WindowSwitcher(QtWidgets.QWidget):
         self.widgets[name] = widget
         self.target_widget_layout.addWidget(widget)
 
-    def show_widget(self, widget_name: str) -> None:
-        widget = self.widgets[widget_name]
-        self.selector.setCurrentText(widget_name)
+    def show_widget_id(self, widget_id: int) -> None:
+        name = list(self.widgets.keys())[widget_id]
+        self.show_widget(name)
+
+    def show_widget(self, name: str) -> None:
+        widget = self.widgets[name]
+        self.selector.setCurrentText(name)
         self.target_widget_layout.setCurrentWidget(widget)
 
 
