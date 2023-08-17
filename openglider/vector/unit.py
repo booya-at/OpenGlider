@@ -3,11 +3,9 @@ import math
 import operator
 import re
 from typing import Any, ClassVar, Self, TypeVar
-from collections.abc import Callable, Iterator
-from dataclasses import dataclass
+from collections.abc import Callable
 
 import pydantic
-from pydantic_core import ArgsKwargs, core_schema
 
 logger = logging.Logger(__name__)
 OpReturnType = TypeVar("OpReturnType")
@@ -43,7 +41,6 @@ class Quantity(pydantic.BaseModel):
 
         if unit is None:
             super().__init__(value=value)
-            pass
         else:
             try:
                 factor = self.__class__.unit_variants[unit]

@@ -6,7 +6,7 @@ import euklid
 import openglider.airfoil
 from openglider.utils.dataclass import dataclass
 from openglider.glider.rib.rigidfoils import RigidFoilBase, RigidFoilCurved
-from openglider.vector.unit import Angle, Length, Percentage
+from openglider.vector.unit import Length, Percentage
 
 if typing.TYPE_CHECKING:
     from openglider.glider.rib.rib import Rib

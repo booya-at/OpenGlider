@@ -12,7 +12,7 @@ from openglider.airfoil import get_x_value
 from openglider.materials import Material, cloth
 from openglider.mesh.mesh import Vertex
 from openglider.utils.cache import cached_function, hash_list
-from openglider.utils.dataclass import BaseModel, dataclass, Field
+from openglider.utils.dataclass import BaseModel, Field
 from openglider.vector.unit import Length, Percentage
 
 if TYPE_CHECKING:

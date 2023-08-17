@@ -4,7 +4,7 @@ from typing import Any, Generic, TypeVar
 from collections.abc import ItemsView, Iterator
 
 from openglider.utils.colors import Color, colorwheel
-from openglider.utils.dataclass import BaseModel, Field, dataclass
+from openglider.utils.dataclass import BaseModel, Field
 
 
 colors = colorwheel(5)

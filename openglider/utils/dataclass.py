@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import euklid
 from typing import TYPE_CHECKING, Any, TypeVar
 from collections.abc import Callable
 

@@ -5,7 +5,6 @@ import euklid
 
 from openglider.utils.dataclass import BaseModel
 from openglider.vector.unit import Length
-from pydantic import ConfigDict
 
 
 logger = logging.getLogger(__name__)

@@ -2,14 +2,13 @@ import enum
 import logging
 import sys
 import typing
-from typing import Any, Callable, Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 
 from openglider.glider.curve import GliderCurveType
 from openglider.glider.parametric.table.base.dto import DTO
 from openglider.glider.parametric.table.base.parser import Parser
 from openglider.utils.table import Table
-from openglider.vector.unit import Quantity
 
 from .keyword import Keyword
 

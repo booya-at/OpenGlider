@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 import euklid
 import openglider.mesh as mesh
 import openglider.mesh.triangulate
-from openglider.utils.dataclass import dataclass, BaseModel
+from openglider.utils.dataclass import BaseModel
 from openglider.vector.mapping import Mapping, Mapping3D
 from openglider.vector.projection import flatten_list
 from openglider.vector.unit import Length, Percentage

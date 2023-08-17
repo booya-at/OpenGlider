@@ -12,7 +12,6 @@ import traceback
 from types import TracebackType
 from typing import TYPE_CHECKING, Any
 from collections.abc import Callable
-import pydantic
 
 import qtmodern.styles
 import qtmodern.windows

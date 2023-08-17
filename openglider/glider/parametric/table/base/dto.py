@@ -3,14 +3,10 @@ from __future__ import annotations
 import abc
 import types
 from typing import Any, Generic, Self, TypeVar
-from collections.abc import Callable, Generator
-from typing import get_args
 
 from openglider.utils.dataclass import BaseModel
 import pydantic
-from pydantic_core import CoreSchema, core_schema
 
-from openglider.vector.unit import Length, Quantity
 
 ReturnType = TypeVar("ReturnType")
 TupleType = TypeVar("TupleType")
