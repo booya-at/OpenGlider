@@ -74,7 +74,7 @@ class ShapePlot:
         super().__init__()
         self.project = project
         self.glider_2d = project.glider
-        self.glider_3d = project.glider_3d
+        self.glider_3d = project.get_glider_3d()
         self.drawing = drawing or Layout()
 
         self.reference_area = self.glider_2d.shape.area

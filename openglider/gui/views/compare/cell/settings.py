@@ -59,7 +59,7 @@ class CellCompareSettings(QtWidgets.QWidget):
         self.changed.emit()
     
     def update_reference(self, reference: GliderProject) -> None:
-        self.slider.set_bounds(0, len(reference.glider_3d.cells)-1)
+        self.slider.set_bounds(0, len(reference.get_glider_3d().cells)-1)
 
 
 

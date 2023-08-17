@@ -63,10 +63,12 @@ def object_hook(dct: dict[str, Any]) -> Any:
             deserializer = getattr(obj, '__from_json__', None)
             if deserializer is None:
                 deserializer = obj
-            try:
-                return deserializer(**dct['data'])
-            except pydantic.error_wrappers.ValidationError as e:
-                raise ValueError(f"invalid data: {dct['data']}") from e
+
+            return deserializer(**dct['data'])
+            # TODO: find pydantic v2 pendant
+            #try:
+            #except pydantic.error_wrappers.ValidationError as e:
+            #    raise ValueError(f"invalid data: {dct['data']}") from e
 
         except TypeError as e:
 

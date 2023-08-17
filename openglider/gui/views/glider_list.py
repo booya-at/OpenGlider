@@ -105,6 +105,6 @@ class GliderListWidget(GenericListWidget[GliderProject, GliderListWidgetItemWidg
             name = os.path.split(filename)[1]
             project.name = ".".join(name.split(".")[:-1])
         
-        project.glider_3d.rename_parts()
+        project.get_glider_3d().rename_parts()
 
         return project

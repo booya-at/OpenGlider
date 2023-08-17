@@ -18,6 +18,7 @@ class Quantity(pydantic.BaseModel):
         frozen=True,
         extra=pydantic.Extra.forbid,
     )
+    __pydantic_custom_init__ = True
     value: float
 
     unit: ClassVar[str]
@@ -170,6 +171,9 @@ class Quantity(pydantic.BaseModel):
         raise ValueError(f"Invalid value for {cls}: {v}")
 
 class Length(Quantity):
+    def __init__(self, value: float | str, unit: str=None, display_unit: str=None):
+        super().__init__(value, unit, display_unit)
+
     unit: ClassVar[str] = "m"
     unit_variants = {
         "dm": 0.1,
@@ -178,6 +182,9 @@ class Length(Quantity):
     }
 
 class Percentage(Quantity):
+    def __init__(self, value: float | str, unit: str=None, display_unit: str=None):
+        super().__init__(value, unit, display_unit)
+
     unit: ClassVar[str] = ""
     unit_variants = {
         "%": 0.01,
@@ -185,9 +192,15 @@ class Percentage(Quantity):
     display_unit: str = "%"
 
 class Angle(Quantity):
+    def __init__(self, value: float | str, unit: str=None, display_unit: str=None):
+        super().__init__(value, unit, display_unit)
+
     unit: ClassVar[str] = "rad"
     unit_variants = {
         "deg": math.pi/180,
         "°": math.pi/180,
     }
     display_unit: str = "°"
+
+a=Quantity(2)
+b=Length(2)

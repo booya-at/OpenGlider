@@ -107,7 +107,7 @@ class GliderActors:
 
     def add(self, view_3d: View3D, config: GliderViewConfig) -> None:
         if self.glider_3d is None or config.needs_recalc(self.config):
-            self.glider_3d = self.project.glider_3d.copy()
+            self.glider_3d = self.project.get_glider_3d().copy()
 
             if self.glider_3d is None:
                 return

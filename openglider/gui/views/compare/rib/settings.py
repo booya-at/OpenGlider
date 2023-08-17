@@ -63,7 +63,7 @@ class RibCompareSettings(QtWidgets.QWidget):
         self.changed.emit()
     
     def update_reference(self, reference: GliderProject) -> None:
-        self.slider.set_bounds(0, len(reference.glider_3d.ribs)-1)
+        self.slider.set_bounds(0, len(reference.get_glider_3d().ribs)-1)
 
 
 

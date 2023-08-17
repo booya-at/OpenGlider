@@ -91,10 +91,10 @@ class PatternsNew:
         glider = self.project.glider_3d
 
         if self.config.complete_glider:
-            glider = self.project.glider_3d.copy_complete()
+            glider = self.project.get_glider_3d().copy_complete()
             glider.rename_parts()
         else:
-            glider = self.project.glider_3d
+            glider = self.project.get_glider_3d()
         
 
         plots = self.plotmaker(glider, config=self.config)
@@ -137,7 +137,7 @@ class PatternsNew:
             sketch.export_a4(outdir / f"{sketch_name}.pdf", fill=fill)
 
         self.logger.info("create spreadsheets")
-        self.project.glider_3d.lineset.rename_lines()
+        self.project.get_glider_3d().lineset.rename_lines()
         excel = get_glider_data(self.project, consumption=self.weight)
         excel.saveas(outdir / f"{self.project.name}.ods")
 
@@ -151,9 +151,10 @@ class Patterns(PatternsNew):
     
     def prepare_glider_project(self, project: GliderProject) -> GliderProject:
         new_project: GliderProject = project.copy()
+        glider = new_project.get_glider_3d()
 
-        self.set_names_straps(new_project.glider_3d)
-        self.set_names_panels(new_project.glider_3d)
+        self.set_names_straps(glider)
+        self.set_names_panels(glider)
 
         return new_project
 

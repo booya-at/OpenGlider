@@ -40,10 +40,11 @@ class GliderRibPlots:
             self.config = config.copy()
 
         if rib_no not in self.cache:
-            if rib_no < len(self.project.glider_3d.ribs):
-                rib = self.project.glider_3d.ribs[rib_no]
+            glider = self.project.get_glider_3d()
+            if rib_no < len(glider.ribs):
+                rib = glider.ribs[rib_no]
                 plot = RibPlotWithLayers(rib)
-                plot.flatten(self.project.glider_3d, add_rigidfoils_to_plot=False)
+                plot.flatten(glider, add_rigidfoils_to_plot=False)
                 for layer_name in config.__annotations__.keys():
                     if not getattr(config, layer_name) and layer_name in plot.plotpart.layers:
                         plot.plotpart.layers.pop(layer_name)

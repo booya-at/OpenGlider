@@ -38,7 +38,7 @@ class GliderTestCase(unittest.TestCase):
     
     @property
     def glider(self) -> Glider:
-        return self.project.glider_3d
+        return self.project.get_glider_3d()
 
     def assertEqualGlider(self, glider1: Glider, glider2: Glider, precision: int=None) -> None:
         self.assertEqual(len(glider1.ribs), len(glider2.ribs))

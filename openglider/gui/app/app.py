@@ -84,11 +84,10 @@ class GliderApp(QtWidgets.QApplication):
         #self._deep_reload("openglider", "gpufem")
         self._deep_reload("openglider")
 
-        import pydantic
-
-        for x in list(pydantic.class_validators._FUNCS):
-            if x.startswith("openglider"):
-                pydantic.class_validators._FUNCS.remove(x)
+        # TODO: check!
+        # for x in list(pydantic.class_validators._FUNCS):
+        #     if x.startswith("openglider"):
+        #         pydantic.class_validators._FUNCS.remove(x)
 
 
         self.setup()

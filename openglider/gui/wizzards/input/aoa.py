@@ -30,9 +30,10 @@ class AOA2D(QtWidgets.QGraphicsObject):
         x_values = self.project.glider.shape.rib_x_values
         span = x_values[-1]
         x_normalized = [x/span for x in x_values]
+        glider = self.project.get_glider_3d()
 
-        aoa_absolute = [rib.aoa_absolute * 180 / math.pi for rib in self.project.glider_3d.ribs]
-        aoa_relative = [rib.aoa_relative * 180 / math.pi for rib in self.project.glider_3d.ribs]
+        aoa_absolute = [rib.aoa_absolute * 180 / math.pi for rib in glider.ribs]
+        aoa_relative = [rib.aoa_relative * 180 / math.pi for rib in glider.ribs]
 
         points_absolute = []
         points_relative = []
@@ -52,8 +53,9 @@ class AOA2D(QtWidgets.QGraphicsObject):
             p.drawLine(points_absolute[i], points_absolute[i+1])
 
     def boundingRect(self) -> QtCore.QRectF:
-        aoa_absolute = [rib.aoa_absolute * 180 / math.pi for rib in self.project.glider_3d.ribs]
-        aoa_relative = [rib.aoa_relative * 180 / math.pi for rib in self.project.glider_3d.ribs]
+        glider = self.project.get_glider_3d()
+        aoa_absolute = [rib.aoa_absolute * 180 / math.pi for rib in glider.ribs]
+        aoa_relative = [rib.aoa_relative * 180 / math.pi for rib in glider.ribs]
 
         lower = min(aoa_absolute + aoa_relative)
         upper = max(aoa_absolute + aoa_relative)
@@ -123,7 +125,7 @@ class AOAInput(Canvas):
         controlpoints = euklid.vector.PolyLine2D([[p[0]*span, p[1] * math.pi / 180] for p in curve.controlpoints])
         self.project.glider.aoa.controlpoints = controlpoints
         #self.project.glider.rescale_curves()
-        self.project.glider.apply_aoa(self.project.glider_3d)
+        self.project.glider.apply_aoa(self.project.get_glider_3d())
 
         self.update()
 
@@ -146,17 +148,18 @@ class AOAWizard(GliderSelectionWizard):
 
     def change_glide(self, value: float) -> None:
         print("change!")
-        aoa_absolutes = [rib.aoa_absolute for rib in self.project.glider_3d.ribs]
+        glider = self.project.get_glider_3d()
+        aoa_absolutes = [rib.aoa_absolute for rib in glider.ribs]
         self.project.glider.glide = value
-        self.project.glider_3d.glide = value
+        glider.glide = value
 
-        for aoa, rib in zip(aoa_absolutes, self.project.glider_3d.ribs):
+        for aoa, rib in zip(aoa_absolutes, glider.ribs):
             rib.aoa_absolute = aoa
         
         aoa_curve = self.project.glider.aoa
         numpoints = len(aoa_curve.controlpoints)
         
-        aoa_relatives = [rib.aoa_relative for rib in self.project.glider_3d.ribs]
+        aoa_relatives = [rib.aoa_relative for rib in glider.ribs]
         x_values = self.project.glider.shape.rib_x_values
         if self.project.glider.shape.has_center_cell:
             aoa_relatives = aoa_relatives[1:]
@@ -167,7 +170,7 @@ class AOAWizard(GliderSelectionWizard):
 
         #print(type(aoa_curve), aoa_relatives, numpoints)
         self.project.glider.aoa = type(aoa_curve).fit(aoa_value, numpoints)  # type: ignore
-        self.project.glider.apply_aoa(self.project.glider_3d)
+        self.project.glider.apply_aoa(glider)
         self.shape_input.set_cp(self.project.glider.aoa.controlpoints)
         self.shape_input.addItem(AOA2D(self.project, Color(0,255,0)))
         self.shape_input.update()
@@ -185,7 +188,8 @@ class AOAWizard(GliderSelectionWizard):
         self.shape_input.update()
 
     def apply(self, update: bool=True) -> None:
+        glider = self.project.get_glider_3d()
         self.project.glider.rescale_curves()
-        self.project.glider.apply_shape_and_arc(self.project.glider_3d)
-        self.project.glider_3d.lineset.recalc(glider=self.project.glider_3d)
+        self.project.glider.apply_shape_and_arc(glider)
+        glider.lineset.recalc(glider=glider)
         super().apply(False)

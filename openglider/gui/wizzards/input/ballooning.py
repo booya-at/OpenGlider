@@ -149,5 +149,5 @@ class BallooningWidget(SelectionWizard):
         self.ballooning_input.draw_balloonings(selected)
 
     def apply(self, update: bool=True) -> None:
-        self.project.glider.apply_ballooning(self.project.glider_3d)
+        self.project.glider.apply_ballooning(self.project.get_glider_3d())
         super().apply(update)

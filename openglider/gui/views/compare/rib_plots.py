@@ -27,9 +27,10 @@ class RibPlotCache(GliderCache[pandas.DataFrame]):
         span = max(x_values_unscaled)
         x_values = [x/span for x in x_values_unscaled]
         
-        ribs = project.element.glider_3d.ribs[project.element.glider_3d.has_center_cell:]
+        glider = project.element.get_glider_3d()
+        ribs = glider.ribs[glider.has_center_cell:]
 
-        att_pt = project.element.glider_3d.get_main_attachment_point().position
+        att_pt = glider.get_main_attachment_point().position
         deg = 180/math.pi
         aoa_absolute = [rib.aoa_absolute*deg for rib in ribs]
         aoa_relative = [rib.aoa_relative*deg for rib in ribs]

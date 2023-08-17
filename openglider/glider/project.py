@@ -60,7 +60,6 @@ class GliderProject:
     def __hash__(self) -> int:
         return hash(self.modified.timestamp)
 
-    
     @property
     def modified(self) -> datetime.datetime:
         return self.changelog[-1][0]
@@ -192,15 +191,21 @@ class GliderProject:
         name, ext = os.path.splitext(filename)
         return cls(glider_2d, name=name)
 
+    def get_glider_3d(self) -> Glider:
+        if self.glider_3d is None:
+            self.glider_3d = self.glider.get_glider_3d()
+        
+        return self.glider_3d
+
     def update_all(self) -> None:
         self.glider.get_glider_3d(self.glider_3d)
 
     def get_data(self) -> dict[str, float]:
-        area = self.glider_3d.area
-        area_projected = self.glider_3d.projected_area
+        area = self.get_glider_3d().area
+        area_projected = self.get_glider_3d().projected_area
         return {
             "area": area,
             "area_projected": area_projected,
             "flattening": (1.-area_projected/area) * 100,
-            "aspect_ratio": self.glider_3d.aspect_ratio
+            "aspect_ratio": self.get_glider_3d().aspect_ratio
         }

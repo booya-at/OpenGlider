@@ -28,7 +28,7 @@ class CellPlotCache(GliderCache[pandas.DataFrame]):
         
         data = [
             (x, cell.span, cell.aspect_ratio, cell.area, cell.projected_area)
-            for x, cell in zip(x_values, project.element.glider_3d.cells)
+            for x, cell in zip(x_values, project.element.get_glider_3d().cells)
         ]
 
         return pandas.DataFrame(

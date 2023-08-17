@@ -138,9 +138,10 @@ class ArcWidget(GliderSelectionWizard):
         self.arc_input.draw_arcs(selected)
 
     def apply(self, update: bool=True) -> None:
+        glider = self.project.get_glider_3d()
         #self.project.glider.arc.curve.controlpoints = self.arc_input.arc.curve.controlpoints
         self.project.glider.rescale_curves()
-        self.project.glider.apply_shape_and_arc(self.project.glider_3d)
-        self.project.glider_3d.lineset.recalc(glider=self.project.glider_3d)
+        self.project.glider.apply_shape_and_arc(glider)
+        glider.lineset.recalc(glider=glider)
         super().apply(False)
 

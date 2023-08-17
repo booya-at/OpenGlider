@@ -18,7 +18,8 @@ class CutResult(BaseModel):
     inner_indices: list[float]
 
     def __init__(self, curve: euklid.vector.PolyLine2D, index_left: float, index_right: float, inner_indices: list[float]):
-        super().__init__(
+        # WHY????
+        super().__init__(  # type: ignore
             curve=curve,
             index_left = index_left,
             index_right = index_right,
@@ -46,7 +47,7 @@ class Cut(ABC, BaseModel):
 
 class DesignCut(Cut):
     num_folds: int = 1
-    model_config = ConfigDict(kw_only=False)
+    # model_config = ConfigDict(kw_only=False) TODO: kw_only needed?
     
     @property
     def total_amount(self) -> float:

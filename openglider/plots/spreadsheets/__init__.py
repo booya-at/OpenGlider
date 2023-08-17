@@ -13,7 +13,7 @@ from openglider.plots.usage_stats import MaterialUsage
 
 def get_glider_data(project: GliderProject, consumption: dict[str, MaterialUsage]=None) -> ezodf.document.PackagedDocument:
     specsheet = project.get_data_table()
-    glider = project.glider_3d
+    glider = project.get_glider_3d()
     #specsheet = get_specs(glider)
     glider.lineset.recalc(glider=glider, iterations=30)
     linesheet = glider.lineset.get_table()
@@ -59,7 +59,7 @@ def get_glider_data(project: GliderProject, consumption: dict[str, MaterialUsage
             consumption_table.append_bottom(usage.get_table())
     
     line_consumption_table = Table()
-    line_consumption = project.glider_3d.lineset.get_consumption()
+    line_consumption = glider.lineset.get_consumption()
 
     linetype: LineType
     row = 0

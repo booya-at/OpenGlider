@@ -78,7 +78,8 @@ class GliderList(SelectionList[GliderProject, GliderListItem]):
             name = os.path.split(filename)[1]
             project.name = ".".join(name.split(".")[:-1])
         
-        project.glider_3d.rename_parts()
+        if project.glider_3d is not None:
+            project.glider_3d.rename_parts()
 
         return project
     

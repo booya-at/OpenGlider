@@ -166,11 +166,11 @@ class _RigidFoilCurved(RigidFoilBase):
 
 
 class RigidFoilCurved(_RigidFoilCurved):
-    circle_radius_start: Length = 0.03
-    circle_amount_start: Percentage = 0.7
+    circle_radius_start: Length = Length(0.03)
+    circle_amount_start: Percentage = Percentage(0.7)
 
-    circle_radius_end: Length = 0.03
-    circle_amount_end: Percentage = 0.7
+    circle_radius_end: Length = Length(0.03)
+    circle_amount_end: Percentage = Percentage(0.7)
 
     def get_cap_radius(self, start: bool) -> tuple[Length, Percentage]:
         if start:

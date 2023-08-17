@@ -31,12 +31,13 @@ class GliderCellPlots:
             self.config = config.copy()
 
         if cell_no not in self.cache:
+            glider = self.project.get_glider_3d()
 
             zero_line = euklid.vector.PolyLine2D([
                 [0,0], [1,0]
             ])
-            if cell_no < len(self.project.glider_3d.cells):
-                cell = self.project.glider_3d.cells[cell_no]
+            if cell_no < len(glider.cells):
+                cell = glider.cells[cell_no]
                 ballooning_max = max([-sign(p[0]) * p[1] for p in cell.ballooning_modified])
                 ballooning_min = min([-sign(p[0]) * p[1] for p in cell.ballooning_modified])
 
