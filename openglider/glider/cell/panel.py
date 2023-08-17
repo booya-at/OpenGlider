@@ -204,12 +204,17 @@ class Panel(BaseModel):
     def __init__(self, cut_front: PanelCut, cut_back: PanelCut, material: Material | str | None=None, name: str="unnamed"):
         if isinstance(material, str):
             material = cloth.get(material)
+
+        kwargs = {}
+        if material is not None:
+            kwargs["material"] = material
         
-        super().__init__(
+        # TODO: investigate type bug
+        super().__init__(  # type: ignore
             cut_front=cut_front,
             cut_back=cut_back,
-            material=material,
-            name=name
+            name=name,
+            **kwargs
         )
 
     def __json__(self) -> dict[str, Any]:

@@ -129,7 +129,7 @@ class ElementTable(Generic[ElementType]):
         elements = self.get(row_no, keywords=keywords, **kwargs)
 
         if len(elements) > 1:
-            logger.error(f"too many elements in row {row_no}! {elements}")
+            logger.error(f"received too many elements for {keywords} (expected to get only one) in row {row_no}! {elements}")
 
         if len(elements) > 0:
             return elements[0]
