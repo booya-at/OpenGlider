@@ -153,10 +153,10 @@ class ParametricGlider:
             all_values = [c.x_left for c in cuts] + [c.x_right for c in cuts]
 
             if -1 not in all_values:
-                cuts.append(PanelCut(-1, -1, PANELCUT_TYPES.parallel))  # type: ignore
+                cuts.append(PanelCut(x_left=-1, x_right=-1, cut_type=PANELCUT_TYPES.parallel))  # type: ignore
             
             if 1 not in all_values:
-                cuts.append(PanelCut(1, 1, PANELCUT_TYPES.parallel))  # type: ignore
+                cuts.append(PanelCut(x_left=1, x_right=1, cut_type=PANELCUT_TYPES.parallel))  # type: ignore
 
             cuts.sort(key=lambda cut: cut.get_average_x())
 
@@ -288,10 +288,11 @@ class ParametricGlider:
 
     def get_glider_3d(self, glider: Glider=None, num: int=50, num_profile: int | None=None) -> Glider:
         """returns a new glider from parametric values"""
+        logger.debug("get glider 3d")
         glider = glider or Glider()
         ribs = []
 
-        logger.info("apply curves")
+        logger.debug("apply curves")
         self.rescale_curves()
         curves = self.get_curves()
         resolvers = self.resolvers

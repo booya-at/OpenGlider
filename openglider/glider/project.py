@@ -37,7 +37,7 @@ class GliderProject:
 
         if self.glider_3d is None:
             logger.info(f"get glider 3d:  {self.name}")
-            #self.glider_3d = self.glider.get_glider_3d()
+            self.glider_3d = self.glider.get_glider_3d()
 
         if len(self.changelog) < 1:
             self.changelog.append((

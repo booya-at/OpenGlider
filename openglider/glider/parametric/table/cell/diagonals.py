@@ -18,7 +18,7 @@ class QRDTO(DTO):
         left_side = DiagonalSide(center=self.position.first, width=self.width.first, height=self.height.first.si)
         right_side = DiagonalSide(center=self.position.second, width=self.width.second, height=self.height.second.si)
 
-        return DiagonalRib(left_side, right_side)
+        return DiagonalRib(left=left_side, right=right_side)
     
 class DiagonalDTO(QRDTO):
     material_code: str

@@ -6,7 +6,7 @@ import euklid
 import openglider.airfoil
 from openglider.utils.dataclass import dataclass
 from openglider.glider.rib.rigidfoils import RigidFoilBase, RigidFoilCurved
-from openglider.vector.unit import Percentage
+from openglider.vector.unit import Angle, Length, Percentage
 
 if typing.TYPE_CHECKING:
     from openglider.glider.rib.rib import Rib
@@ -14,18 +14,17 @@ if typing.TYPE_CHECKING:
 
 @dataclass
 class Sharknose:
-    position: float
-    amount: float
+    position: Percentage
+    amount: Percentage
     
-    start: float
-    end: float
+    start: Percentage
+    end: Percentage
 
-    angle_front: float=1.
-    angle_back: float=0.8
+    angle_front: Percentage=Percentage(1.)
+    angle_back: Percentage=Percentage(0.8)
 
-
-    rigidfoil_circle_radius: float = 0.05
-    rigidfoil_circle_amount: float = 0.4
+    rigidfoil_circle_radius: Length = Length("5cm")
+    rigidfoil_circle_amount: Percentage = Percentage(0.4)
 
     def get_modified_airfoil(self, rib: Rib) -> openglider.airfoil.Profile2D:
         data = []
@@ -38,10 +37,10 @@ class Sharknose:
         point_position = rib.profile_2d.curve.get(ik_position)
         point_end = rib.profile_2d.curve.get(ik_end)
 
-        point_position[1] = point_position[1] + (point_start[1]-point_position[1])*self.amount
+        point_position[1] = point_position[1] + (point_start[1]-point_position[1])*self.amount.si
 
         tangents = euklid.vector.PolyLine2D(rib.profile_2d.curve.get_tangents())
-        def get_tangent(ik: float, from_point: euklid.vector.Vector2D, to_point: euklid.vector.Vector2D, amount: float) -> euklid.vector.Vector2D:
+        def get_tangent(ik: float, from_point: euklid.vector.Vector2D, to_point: euklid.vector.Vector2D, amount: Percentage) -> euklid.vector.Vector2D:
             #ik -= 0.5
             #ik = max(ik, 0)
             #ik = min(ik, len(tangents)-1)
@@ -54,7 +53,7 @@ class Sharknose:
             if abs(tangent[0]) > 0:
                 scale = min(scale, abs((from_point[0]-to_point[0])/tangent[0]))
 
-            return tangent * scale * amount
+            return tangent * scale * amount.si
 
         curve_1 = euklid.spline.BSplineCurve([
             point_start,

@@ -1,3 +1,4 @@
+import logging
 import math
 import operator
 import re
@@ -8,13 +9,14 @@ from dataclasses import dataclass
 import pydantic
 from pydantic_core import ArgsKwargs, core_schema
 
+logger = logging.Logger(__name__)
 OpReturnType = TypeVar("OpReturnType")
 
 #@dataclass(frozen=True, init=False)
 class Quantity(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(
         frozen=True,
-        extra=pydantic.Extra.forbid
+        extra=pydantic.Extra.forbid,
     )
     value: float
 
@@ -153,16 +155,13 @@ class Quantity(pydantic.BaseModel):
     @property
     def si(self) -> float:
         return self.value
-
-    @classmethod
-    def __get_pydantic_core_schema__(cls, source: type[Any], handler: pydantic.GetCoreSchemaHandler) -> core_schema.CoreSchema:
-        return core_schema.no_info_before_validator_function(cls._validate, handler(source))
-
+    
+    @pydantic.model_validator(mode="before")
     @classmethod
     def _validate(cls, v: Any) -> dict[str, Any] | Self:
         if isinstance(v, (str, float, int)):
-            return cls(value=v)
-        elif isinstance(v, Quantity):
+            return {"value": v}
+        elif isinstance(v, cls):
             if v.unit == cls.unit:
                 return v
         elif isinstance(v, dict):

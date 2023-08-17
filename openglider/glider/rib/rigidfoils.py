@@ -38,7 +38,7 @@ class RigidFoilBase(ABC, BaseModel):
     def _get_flattened(self, rib: Rib, glider: Glider=None) -> euklid.vector.PolyLine2D:
         raise NotImplementedError()
 
-    def get_cap_radius(self, start: bool) -> tuple[float, float]:
+    def get_cap_radius(self, start: bool) -> tuple[Length, Percentage]:
         raise NotImplementedError
 
 
@@ -58,8 +58,8 @@ class RigidFoil(RigidFoilBase):
             return (radius.si - np.sqrt(dsq)) * 0.35
         return 0.
 
-    def get_cap_radius(self, start: bool) -> tuple[float, float]:
-        return -self.circle_radius.si, 0.35
+    def get_cap_radius(self, start: bool) -> tuple[Length, Percentage]:
+        return -self.circle_radius, Percentage(0.35)
 
     def _get_flattened(self, rib: Rib, glider: Glider=None) -> euklid.vector.PolyLine2D:
         max_segment = 0.005  # 5mm
@@ -119,7 +119,9 @@ class _RigidFoilCurved(RigidFoilBase):
         rot_90 = euklid.vector.Rotation2D(math.pi/2)
 
         # first ending
-        radius, amount = self.get_cap_radius(True)
+        _radius, _amount = self.get_cap_radius(True)
+        radius = _radius.si
+        amount = _amount.si
 
         if radius > 0:
             cp1 = rigidfoil_curve.get(0)
@@ -139,7 +141,9 @@ class _RigidFoilCurved(RigidFoilBase):
             ending_1.insert(0, ending_1[0] + (ending_1[0] - ending_1[1]).normalized() * self.straight_part.si)
 
         # second ending
-        radius, amount = self.get_cap_radius(False)
+        _radius, _amount = self.get_cap_radius(False)
+        radius = _radius.si
+        amount = _amount.si
         end_ik = len(rigidfoil_curve)-1
         if radius > 0:
             cp1 = rigidfoil_curve.get(end_ik)
@@ -162,13 +166,13 @@ class _RigidFoilCurved(RigidFoilBase):
 
 
 class RigidFoilCurved(_RigidFoilCurved):
-    circle_radius_start: float = 0.03
-    circle_amount_start: float = 0.7
+    circle_radius_start: Length = 0.03
+    circle_amount_start: Percentage = 0.7
 
-    circle_radius_end: float = 0.03
-    circle_amount_end: float = 0.7
+    circle_radius_end: Length = 0.03
+    circle_amount_end: Percentage = 0.7
 
-    def get_cap_radius(self, start: bool) -> tuple[float, float]:
+    def get_cap_radius(self, start: bool) -> tuple[Length, Percentage]:
         if start:
             return self.circle_radius_start, self.circle_amount_start
         else:
@@ -180,8 +184,8 @@ class RigidFoil2(_RigidFoilCurved):
     circle_amount: Percentage=Percentage(0.5)
     straight_part: Length = Length("2cm")
 
-    def get_cap_radius(self, start: bool) -> tuple[float, float]:
-        return self.circle_radius.si, self.circle_amount.si
+    def get_cap_radius(self, start: bool) -> tuple[Length, Percentage]:
+        return self.circle_radius, self.circle_amount
 
 
 @dataclass

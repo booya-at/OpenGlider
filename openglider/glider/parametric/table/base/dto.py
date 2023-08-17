@@ -10,6 +10,8 @@ from openglider.utils.dataclass import BaseModel
 import pydantic
 from pydantic_core import CoreSchema, core_schema
 
+from openglider.vector.unit import Length, Quantity
+
 ReturnType = TypeVar("ReturnType")
 TupleType = TypeVar("TupleType")
 
@@ -20,31 +22,24 @@ class CellTuple(BaseModel, Generic[TupleType]):
         )
     first: TupleType
     second: TupleType
-
-    # pydantic support
-    @classmethod
-    def __get_pydantic_core_schema__(
-        cls, source_type: Any, handler: pydantic.GetCoreSchemaHandler
-    ) -> CoreSchema:
-        return core_schema.no_info_before_validator_function(cls.validate, handler(source_type))
     
     @classmethod
     def from_value(cls, value: TupleType) -> Self:
         return cls(first=value, second=value)
 
+    @pydantic.model_validator(mode="before")
     @classmethod
-    def validate(cls, v: Any) -> Self:
-        print(v)
+    def _validate(cls, v: Any) -> dict[str, Any] | Self:
         if isinstance(v, tuple) and len(v) == 2:
-            return cls(
-                first=v[0],
-                second=v[1]
-            )
+            return {
+                "first": v[0],
+                "second": v[1]
+            }
         else:
-            return cls(
-                first=v,
-                second=v
-            )
+            return {
+                "first": v,
+                "second": v
+            }
 
 _type_cache: dict[type[DTO], list[tuple[str, str]]] = {}
 

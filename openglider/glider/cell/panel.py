@@ -202,15 +202,15 @@ class Panel(BaseModel):
     name: str
 
     def __init__(self, cut_front: PanelCut, cut_back: PanelCut, material: Material | str | None=None, name: str="unnamed"):
-        self.cut_front = cut_front
-        self.cut_back = cut_back
-
         if isinstance(material, str):
-            self.material = cloth.get(material)
-        elif isinstance(material, Material):
-            self.material = material
-
-        self.name = name
+            material = cloth.get(material)
+        
+        super().__init__(
+            cut_front=cut_front,
+            cut_back=cut_back,
+            material=material,
+            name=name
+        )
 
     def __json__(self) -> dict[str, Any]:
         return {'cut_front': self.cut_front,

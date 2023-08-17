@@ -50,14 +50,20 @@ def colorwheel(num: int) -> list[Color]:
     colors = []
     for i in range(num):
         alpha = (i/num)
-        red = max(0, 1 - 3*abs(alpha))
-        green = max(0, 1 - 3*abs(1/3 - alpha))  # 1/3 -> 1, 0->0, 2/3->0
-        blue = max(0, 1 - 3*abs(2/3 - alpha))
+        get_value = lambda rgb_index: int(255*max(0,1-3*abs((rgb_index/3) - alpha)))
 
-        rgb = [int(255*x) for x in (red, green, blue)]
-        factor = 255 / max(rgb)
-        rgb_normalized = [min(255, int(factor*x)) for x in rgb]
-        colors.append(tuple(rgb_normalized))
+        red = get_value(0)
+        green = get_value(1)
+        blue = get_value(2)
+
+        factor = 255 / max([red, green, blue])
+        normalize = lambda x: min(255, int(factor*x))
+
+        colors.append(Color(
+            r=normalize(red),
+            g=normalize(green),
+            b=normalize(blue)
+        ))
 
     return colors  # type: ignore
 
