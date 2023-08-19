@@ -159,8 +159,7 @@ class PatternCommand(BaseCommand):
             from openglider import plots
             file_name = QtGui.QFileDialog.getSaveFileName(
                 parent=None,
-                caption='create panels',
-                directory='~')
+                caption='create panels')
             if not file_name[0] == '':
                 file_name = file_name[0]
                 pat = plots.Patterns(obj.Proxy.getParametricGlider())
