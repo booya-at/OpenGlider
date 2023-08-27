@@ -38,7 +38,7 @@ def get_split_tables(project: GliderProject) -> list[Table]:
     
     tables += project.glider.tables.get_all_tables()
 
-    tables.append(get_data_sheet(project.glider))
+    tables.append(project.glider.config.get_table())
 
     return tables
 
@@ -82,7 +82,7 @@ def get_glider_tables(glider: ParametricGlider) -> list[Table]:
     tables.append(get_ballooning_sheet(glider))
     tables.append(get_parametric_sheet(glider))
     tables.append(get_lines_sheet(glider))
-    tables.append(get_data_sheet(glider))
+    tables.append(glider.config.get_table())
 
     tables.append(glider.tables.curves.table)
 
@@ -218,36 +218,9 @@ def get_parametric_sheet(glider : ParametricGlider) -> Table:
 
 
 def get_lines_sheet(glider: ParametricGlider, places: int=3) -> Table:
-    table = glider.lineset.get_input_table()
+    table = glider.tables.lines.table
     table.name = "Lines"
     
-    return table
-
-def get_data_sheet(glider: ParametricGlider) -> Table:
-    table = Table(name="Data")
-    table[0,0] = "Data"
-
-    current_row = 1
-    # lower attachment_points
-    for att_pt in glider.lineset.get_lower_attachment_points():
-        for i, axis in enumerate(['X', 'Y', 'Z']):
-            table[current_row + i, 0] = f"AHP{axis}{att_pt.name}"
-            table[current_row + i, 1] = att_pt.pos_3D[i]
-        current_row += 3
-
-    table[current_row, 0] = "SPEED"
-    table[current_row, 1] = glider.speed
-
-    table[current_row+1, 0] = "GLIDE"
-    table[current_row+1, 1] = glider.glide
-
-    table[current_row+2, 0] = "STABICELL"
-    if glider.shape.stabi_cell:
-        table[current_row+2, 1] = "1"
-
-    table[current_row+3, 0] = "version"
-    table[current_row+3, 1] = openglider.__version__
-
     return table
 
 # for i, value in enumerate(("Ribs", "Chord", "x: (m)", "y LE (m)", "kruemmung", "aoa", "Z-rotation",

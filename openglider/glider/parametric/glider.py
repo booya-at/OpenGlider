@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from collections.abc import Callable
 
 import euklid
+from openglider.glider.parametric.config import ParametricGliderConfig
 from openglider.glider.parametric.table.base.parser import Parser
 import openglider.materials
 import pyfoil
@@ -19,7 +20,6 @@ from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.export_ods import export_ods_2d
 from openglider.glider.parametric.fitglider import fit_glider_3d
 from openglider.glider.parametric.import_ods import import_ods_2d
-from openglider.glider.parametric.lines import LineSet2D
 from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.parametric.table import GliderTables
 from openglider.glider.rib import Rib, SingleSkinRib
@@ -48,7 +48,7 @@ class ParametricGlider:
     profile_merge_curve: CurveType
     balloonings: list[BallooningBase]
     ballooning_merge_curve: CurveType
-    lineset: LineSet2D
+    config: ParametricGliderConfig
     speed: float
     glide: float
     tables: GliderTables = Field(default_factory=lambda: GliderTables())
@@ -441,8 +441,7 @@ class ParametricGlider:
 
 
         logger.info("create lineset")
-
-        glider.lineset = self.lineset.return_lineset(glider, self.v_inf)
+        glider.lineset = self.tables.lines.get_lineset(glider, self.v_inf)
         #for rib in glider.ribs:
         #    for p in rib.attachment_points:
         #        pass#p.calculate_force_rib_aligned(rib)
@@ -473,7 +472,7 @@ class ParametricGlider:
     def set_area(self, area: float) -> None:
         factor = math.sqrt(area/self.shape.area)
         self.shape.scale(factor)
-        self.lineset.scale(factor, scale_lower_floor=False)
+        self.tables.lines.scale(factor, scale_lower_floor=False)
         self.rescale_curves()
 
     def set_aspect_ratio(self, aspect_ratio: float, remain_area: bool=True) -> float:
@@ -482,9 +481,6 @@ class ParametricGlider:
 
 
         self.shape.scale(y=ar0 / aspect_ratio)
-
-        for p in self.lineset.get_lower_attachment_points():
-            p.pos_2D[1] *= ar0 / aspect_ratio
 
         if remain_area:
             self.set_area(area0)
@@ -504,13 +500,3 @@ class ParametricGlider:
         rescale(self.aoa)
         rescale(self.zrot)
         self.arc.rescale(self.shape.rib_x_values)
-
-    def get_line_bbox(self) -> tuple[tuple[float, float], tuple[float, float]]:
-        points: list[euklid.vector.Vector2D] = []
-        for point in self.lineset.nodes:
-            points.append(point.get_2D(self.shape))
-
-        return (
-            (min([p[0] for p in points]), min([p[1] for p in points])),
-            (max([p[0] for p in points]), max([p[1] for p in points])),
-        )

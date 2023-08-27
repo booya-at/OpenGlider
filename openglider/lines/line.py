@@ -3,103 +3,55 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 import logging
 
+import pydantic
 import euklid
 
 from openglider.lines.node import Node
 from openglider.lines import line_types
-from openglider.utils.cache import cached_property, CachedObject
+from openglider.utils.cache import cached_property
 from openglider.mesh import Mesh, Vertex, Polygon
+from openglider.utils.dataclass import BaseModel
+from openglider.vector.unit import Length
 
 if TYPE_CHECKING:
     from openglider.glider.glider import Glider
     from openglider.glider.rib.rib import Rib
+
 logger = logging.getLogger(__name__)
 
 
-class Line(CachedObject):
-    rho_air = 1.2
-
+class Line(BaseModel):
     lower_node: Node
     upper_node: Node
 
-    target_length: float | None
-    init_length: float | None
-    trim_correction: float = 0.
+    target_length: Length | None
 
-    line_type: line_types.LineType
-    force: float | None
-    name: str
-    number: int
+    v_inf: euklid.vector.Vector3D
 
-    sag_par_1: float | None
-    sag_par_2: float | None
+    line_type: line_types.LineType = line_types.LineType.get("default")
+    color: str = "default"
+    name: str = ""
 
+    force: float | None = None
+    trim_correction: Length = Length(0.)
+    init_length: Length | None = None
 
-    def __init__(
-        self,
-        lower_node: Node,
-        upper_node: Node,
-        v_inf: euklid.vector.Vector3D,
-        line_type: line_types.LineType=line_types.LineType.get('default'),
-        target_length: float=None,
-        number: int=None,
-        name: str=None,
-        color: str="",
-        trim_correction: float=0.
-        ):
-        """
-        Line Class
-        """
-        self.number = number  # type: ignore
-        self.type = line_type  # type of line
-        self.v_inf = v_inf  # free-stream velocity
-        
-        self._color = None
-        self.color = color
+    sag_par_1: float | None = None
+    sag_par_2: float | None = None
+    rho_air: float = 1.2
 
-        self.lower_node = lower_node
-        self.upper_node = upper_node
+    def model_post_init(self, __context: Any) -> None:
+        if self.init_length is None:
+            self.init_length = self.target_length
 
-        self.target_length = target_length
-        self.init_length = target_length
+    #@property
+    #def color(self) -> str:
+    #    return self._color or "default"
 
-        self.force = None
-
-        self.sag_par_1 = None
-        self.sag_par_2 = None
-
-        self.name = name or "unnamed_line"
-        self.trim_correction = trim_correction
-
-    def __json__(self) -> dict[str, Any]:
-        return{
-            'number': self.number,
-            'lower_node': self.lower_node,
-            'upper_node': self.upper_node,
-            'v_inf': None,               # remove this!
-            'line_type': self.type.name,
-            'target_length': self.target_length,
-            'name': self.name
-        }
-
-    @classmethod
-    def __from_json__(cls, number: int, lower_node: Node, upper_node: Node, v_inf: euklid.vector.Vector3D, line_type: str, target_length: float, name: str) -> Line:
-        return cls(lower_node,
-                   upper_node,
-                   v_inf,
-                   line_types.LineType.get(line_type),
-                   target_length,
-                   number,
-                   name)
-
-    @property
-    def color(self) -> str:
-        return self._color or "default"
-
-    @color.setter
-    def color(self, color: str) -> None:
-        if color in self.type.colors:
-            self._color = color
+    #@color.setter
+    #def color(self, color: str) -> None:
+    #    if color in self.line_type.colors:
+    #        self._color = color
 
     @property
     def has_geo(self) -> bool:
@@ -155,7 +107,7 @@ class Line(CachedObject):
             l_0 = self.length_with_sag
         else:
             l_0 = self.length_no_sag
-        factor = self.type.get_stretch_factor(pre_load) / self.type.get_stretch_factor(self.force or 0)
+        factor = self.line_type.get_stretch_factor(pre_load) / self.line_type.get_stretch_factor(self.force or 0)
         return l_0 * factor
 
     #@cached_property('v_inf', 'type.cw', 'type.thickness')
@@ -165,7 +117,7 @@ class Line(CachedObject):
         drag per meter (projected)
         :return: 1/2 * cw * d * v^2
         """
-        return 1 / 2 * self.type.cw * self.type.thickness * self.rho_air * self.v_inf.dot(self.v_inf)
+        return 1 / 2 * self.line_type.cw * self.line_type.thickness * self.rho_air * self.v_inf.dot(self.v_inf)
 
     #@cached_property('lower_node.position', 'upper_node.position', 'v_inf')
     @property
@@ -178,12 +130,12 @@ class Line(CachedObject):
         return drag
 
     def get_weight(self) -> float:
-        if self.type.weight is None:
-            logger.warning("predicting weight of linetype {self.type.name} by line-thickness.")
+        if self.line_type.weight is None:
+            logger.warning("predicting weight of linetype {self.line_type.name} by line-thickness.")
             logger.warning("Please enter line_weight in openglider/lines/line_types")
-            weight = self.type.predict_weight()
+            weight = self.line_type.predict_weight()
         else:
-            weight = self.type.weight
+            weight = self.line_type.weight
         try:
             return weight * self.length_with_sag
         except ValueError:
@@ -237,14 +189,14 @@ class Line(CachedObject):
         else:
             boundary["lines"].append(line_points[-1])
         
-        spring = self.type.get_spring_constant()
+        spring = self.line_type.get_spring_constant()
         stretch_factor = 1 + (self.force or 0) / spring
         attributes = {
             "name": self.name,
             "l_12": self.length_no_sag / stretch_factor / (numpoints-1),
             "e_module": spring,
             "e_module_push": 0,
-            "density": max(0.0001, (self.type.weight or 0)/1000)  # g/m -> kg/m, min: 0,1g/m
+            "density": max(0.0001, (self.line_type.weight or 0)/1000)  # g/m -> kg/m, min: 0,1g/m
         }
 
 

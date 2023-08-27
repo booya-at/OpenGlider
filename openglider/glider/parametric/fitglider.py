@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 import euklid
 import numpy as np
 from openglider.glider.parametric.arc import ArcCurve
-from openglider.glider.parametric.lines import LineSet2D
 from openglider.glider.parametric.shape import ParametricShape
 
 if TYPE_CHECKING:
@@ -55,6 +54,8 @@ def fit_glider_3d(cls: type[ParametricGlider], glider: Glider, numpoints: int=3)
     parametric_shape = ParametricShape(front_bezier, back_bezier, rib_distribution_curve, cell_num)
     parametric_arc = ArcCurve(arc_bezier)
 
+    raise NotImplementedError()
+
     return cls(shape=parametric_shape,
                arc=parametric_arc,
                aoa=aoa_bezier,
@@ -64,5 +65,4 @@ def fit_glider_3d(cls: type[ParametricGlider], glider: Glider, numpoints: int=3)
                balloonings=balloonings,
                ballooning_merge_curve=ballooning_dist,
                glide=glider.glide,
-               speed=10,
-               lineset=LineSet2D([]))
+               speed=10)

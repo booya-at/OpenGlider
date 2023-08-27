@@ -8,11 +8,12 @@ import re
 
 import euklid
 from openglider.glider.ballooning.base import BallooningBase
+from openglider.glider.parametric.config import ParametricGliderConfig
 from openglider.utils.types import SymmetricCurveType
 import pyfoil
 from openglider.glider.ballooning import BallooningBezier, BallooningBezierNeu
 from openglider.glider.parametric.arc import ArcCurve
-from openglider.glider.parametric.lines import LineSet2D, LowerNode2D
+from openglider.glider.parametric.table.lines import LineSetTable
 from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.parametric.table import GliderTables
 from openglider.glider.parametric.table.data_table import DataTable
@@ -101,10 +102,10 @@ def import_ods_glider(cls: type[ParametricGlider], tables: list[Table]) -> Param
             else:
                 raise ValueError("No ballooning type specified")
 
-    data_dct = DataTable(tables[7]).get_dct()
+    config = ParametricGliderConfig.read_table(tables[7])
 
     # set stabi cell
-    if data_dct.pop("STABICELL", None):
+    if config.has_stabicell:
         shape = geometry["shape"]
         if not hasattr(shape, "stabi_cell"):
             raise Exception(f"Cannot add stabi cell on {geometry['shape']}")
@@ -118,16 +119,11 @@ def import_ods_glider(cls: type[ParametricGlider], tables: list[Table]) -> Param
     
     curves = CurveTable(curves_table)
 
-    add_rib = geometry["shape"].has_center_cell and data_dct.get("version", "0.0.1") >= "0.1.0"
+    add_rib = geometry["shape"].has_center_cell and config.version >= "0.1.0"
 
-    attachment_points_lower = get_lower_aufhaengepunkte(data_dct)
+    attachment_points_lower = config.get_lower_attachment_points()
 
-    lineset_table = tables[6]
-    lineset = LineSet2D.read_input_table(lineset_table, attachment_points_lower)
-    lineset.set_default_nodes2d_pos(geometry["shape"])
-    lineset.trim_corrections = {
-        name: value for name, value in data_dct.pop("trim_correction", [])
-    }
+    lineset_table = LineSetTable(table=tables[6], lower_attachment_points=attachment_points_lower)
 
     migrate_header = cell_sheet[0, 0] is not None and cell_sheet[0, 0] < "V4"
 
@@ -147,18 +143,15 @@ def import_ods_glider(cls: type[ParametricGlider], tables: list[Table]) -> Param
     glider_tables.profiles = ProfileTable(rib_sheet, migrate_header=migrate_header)
     glider_tables.attachment_points_rib = AttachmentPointTable(rib_sheet, migrate_header=migrate_header)
     glider_tables.attachment_points_cell = CellAttachmentPointTable(cell_sheet, migrate_header=migrate_header)
+    glider_tables.lines = lineset_table
     
     glider_2d = cls(tables=glider_tables,
                          profiles=profiles,
                          balloonings=balloonings,
-                         lineset=lineset,
-                         speed=data_dct.pop("SPEED"),
-                         glide=data_dct.pop("GLIDE"),
+                         config=config,
+                         speed=config.speed,
+                         glide=config.glide,
                          **geometry)
-    
-    if len(data_dct) > 0:
-        logger.error(f"Unknown data keys: {list(data_dct.keys())}")
-
 
     return glider_2d
 
@@ -281,30 +274,6 @@ def get_geometry_parametric(table: Table, cell_num: int) -> dict[str, Any]:
         "profile_merge_curve": data["profile_merge_curve"],
         "ballooning_merge_curve": data["ballooning_merge_curve"]
     }
-
-def get_lower_aufhaengepunkte(data: dict[str, Any]) -> dict[str, LowerNode2D]:
-    aufhaengepunkte: dict[str, list[float]] = {}
-
-    axis_to_index = {"X": 0, "Y": 1, "Z": 2}
-    regex = re.compile("AHP([XYZ])(.*)")
-
-    keys_to_remove = []
-
-    for key in data:
-        if isinstance(key, str):
-            match = regex.match(key)
-            if match:
-                axis, name = match.groups()
-
-                aufhaengepunkte.setdefault(name, [0, 0, 0])
-                aufhaengepunkte[name][axis_to_index[axis]] = data[key]
-                keys_to_remove.append(key)
-    
-    for key in keys_to_remove:
-        data.pop(key)
-
-    return {name: LowerNode2D(euklid.vector.Vector2D([0, 0]), euklid.vector.Vector3D(position), name)
-            for name, position in aufhaengepunkte.items()}
 
 
 def transpose_columns(sheet: Table, columnswidth: int=2) -> list[tuple[str, Any]]:

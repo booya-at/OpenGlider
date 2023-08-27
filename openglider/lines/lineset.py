@@ -6,7 +6,7 @@ import logging
 import math
 import os
 import re
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Iterable, TypeAlias, TypeVar
 from collections.abc import Callable
 
 import euklid
@@ -48,6 +48,9 @@ class LineLength:
 
         return length
 
+
+T = TypeVar('T')
+LineTreePart: TypeAlias = tuple[Line, list[T]]
 
 class LineSet:
     """
@@ -98,8 +101,10 @@ class LineSet:
                 line["upper_node"] = nodes[line["upper_node"]]
             if isinstance(line["lower_node"], int):
                 line["lower_node"] = nodes[line["lower_node"]]
+            if isinstance(line["line_type"], str):
+                line["line_type"] = LineType.get(line["line_type"])
             
-            lines_new.append(Line.__from_json__(**line))
+            lines_new.append(Line(**line))
         
         v_inf = euklid.vector.Vector3D(v_inf)
         obj = cls(lines_new, v_inf)
@@ -220,10 +225,10 @@ class LineSet:
             lines = self.get_lines_by_floor(i, node, en_style=True)
             strength = 0.
             for line in lines:
-                if line.type.min_break_load is None:
-                    logger.warning(f"no min_break_load set for {line.type.name}")
+                if line.line_type.min_break_load is None:
+                    logger.warning(f"no min_break_load set for {line.line_type.name}")
                 else:
-                    strength += line.type.min_break_load
+                    strength += line.line_type.min_break_load
 
 
             strength_list.append(strength)
@@ -291,7 +296,7 @@ class LineSet:
                 lower_point = line.lower_node.position
                 tangential = self.get_tangential_comp(line, lower_point)
 
-                upper_point = lower_point + tangential * line.init_length
+                upper_point = lower_point + tangential * line.init_length.si
 
                 if math.isnan(upper_point[0]):
                     raise ValueError(f"{line} {lower_point} {tangential} {line.init_length}")
@@ -314,7 +319,7 @@ class LineSet:
             self._calc_matrix_entries(line)
         self.mat.solve_system()
         for l in self.lines:
-            l.sag_par_1, l.sag_par_2 = self.mat.get_sag_parameters(l.number)
+            l.sag_par_1, l.sag_par_2 = self.mat.get_sag_parameters(l)
 
     # -----CALCULATE SAG-----#
     def _calc_matrix_entries(self, line: Line) -> None:
@@ -335,7 +340,7 @@ class LineSet:
     def calc_forces(self, start_lines: list[Line]) -> None:
         for line_lower in start_lines:
             upper_node = line_lower.upper_node
-            vec = line_lower.diff_vector.normalized()
+            vec = line_lower.diff_vector
             if line_lower.upper_node.node_type != Node.NODE_TYPE.UPPER:  # not a gallery line
                 # recursive force-calculation
                 # setting the force from top to down
@@ -356,7 +361,7 @@ class LineSet:
                 result = force.dot(vec)
 
                 if math.isnan(result):
-                    raise ValueError(f"invalid force: {force} {vec} {line_lower}")
+                    raise ValueError(f"ls invalid force: {force} {vec} {line_lower}")
                 else:
                     line_lower.force = force.dot(vec)
 
@@ -364,7 +369,7 @@ class LineSet:
                 force = line_lower.upper_node.force
                 force_projected = proj_force(force, vec)
                 if force_projected is None:
-                    logger.error(f"invalid line: {line_lower.name} ({line_lower.type}, {force} {vec})")
+                    logger.error(f"invalid line: {line_lower.name} ({line_lower.line_type}, {force} {vec})")
                     line_lower.force = 10
                 else:
                     line_lower.force = force_projected
@@ -492,7 +497,7 @@ class LineSet:
         for _ in range(steps):
             for l in self.lines:
                 if l.target_length is not None and l.init_length is not None:
-                    diff = self.get_line_length(l).get_length() - l.target_length
+                    diff = self.get_line_length(l).get_length() - l.target_length.si
                     l.init_length -= diff
             self.recalc()
 
@@ -511,7 +516,7 @@ class LineSet:
         consumption: dict[LineType, float] = {}
         for line in self.lines:
             length = self.get_line_length(line).get_length()
-            linetype = line.type
+            linetype = line.line_type
             consumption.setdefault(linetype, 0)
             consumption[linetype] += length
         
@@ -566,7 +571,7 @@ class LineSet:
         return lines_new
 
 
-    def create_tree(self, start_nodes: list[Node] | None=None) -> Any:
+    def create_tree(self, start_nodes: list[Node] | None=None) -> list[LineTreePart]:
         """
         Create a tree of lines
         :return: [(line, [(upper_line1, []),...]),(...)]
@@ -612,33 +617,6 @@ class LineSet:
         for line, upper in line_tree:
             row = insert_block(line, upper, row, floors*(columns_per_line)+2)
 
-        return table
-    
-    def get_input_table(self) -> Table:
-        line_tree = self.create_tree()
-        table = Table()
-
-        def insert_block(line: Line, upper: Any, row: int, column: int) -> int:
-            if column == 0:
-                table.set_value(0, row, line.lower_node.name)
-                column += 1
-
-            if upper:
-                table.set_value(column, row, line.target_length)
-                table.set_value(column+1, row, line.type.name)
-                for line, line_upper in upper:
-                    row = insert_block(line, line_upper, row, column+2)
-            else:
-                table.set_value(column, row, line.upper_node.name)
-                table.set_value(column+1, row, line.type.name)
-                row += 1
-
-            return row
-
-        row = 0
-        for line, upper_lines in line_tree:
-            row = insert_block(line, upper_lines, row, 0)
-        
         return table
     
     node_group_rex = re.compile(r"[^A-Za-z]*([A-Za-z]*)[^A-Za-z]*")
@@ -711,12 +689,12 @@ class LineSet:
             line_no = upper_lines.index(line)
             total_lines = len(upper_lines)
 
-            knot_correction = self.knot_corrections.get(lower_line.type, line.type, total_lines)[line_no]
+            knot_correction = self.knot_corrections.get(lower_line.line_type, line.line_type, total_lines)[line_no]
 
 
         return LineLength(
             line.get_stretched_length(sag=with_sag),
-            line.type.seam_correction,
+            line.line_type.seam_correction,
             loop_correction,
             knot_correction,
             self.trim_corrections.get(line.name, 0)
@@ -743,7 +721,7 @@ class LineSet:
         length_table.name = "lines"
 
         line_name_table = self._get_lines_table(lambda line: [line.name], insert_node_names=False)
-        line_type_table = self._get_lines_table(lambda line: [f"{line.type.name} ({line.color})"], insert_node_names=False)
+        line_type_table = self._get_lines_table(lambda line: [f"{line.line_type.name} ({line.color})"], insert_node_names=False)
         line_color_table = self._get_lines_table(lambda line: [line.color], insert_node_names=False)
 
         def get_checklength(line: Line, upper_lines: Any) -> list[float]:
@@ -780,16 +758,16 @@ class LineSet:
         def get_line_force(line: Line) -> list[str]:
             percentage = ""
 
-            if line.type.min_break_load and line.force:
-                percentage = f"{100*line.force/line.type.min_break_load:.1f}"
+            if line.line_type.min_break_load and line.force:
+                percentage = f"{100*line.force/line.line_type.min_break_load:.1f}"
 
-            return [line.type.name, str(line.force), percentage]
+            return [line.line_type.name, str(line.force), percentage]
 
         return self._get_lines_table(get_line_force)
 
 
     def get_table_2(self) -> Table:
-        table = self._get_lines_table(lambda line: [line.name, f"{line.type.name} ({line.color})", f"{line.get_stretched_length()*1000:.0f}"])
+        table = self._get_lines_table(lambda line: [line.name, f"{line.line_type.name} ({line.color})", f"{line.get_stretched_length()*1000:.0f}"])
         table.name = "lines_2"
         return table
 
@@ -801,7 +779,7 @@ class LineSet:
         lines.sort(key=lambda line: line.name)
         for i, line in enumerate(lines):
             table[i+1, 0] = line.name
-            table[i+1, 1] = line.type.name
+            table[i+1, 1] = line.line_type.name
             table[i+1, 2] = round(line.get_stretched_length()*1000)
         
         return table

@@ -1,5 +1,6 @@
 import logging
 from typing import Any, Dict, List
+from openglider.glider.parametric.table.lines import LineSetTable
 
 from openglider.glider.parametric.table.attachment_points import AttachmentPointTable, CellAttachmentPointTable
 from openglider.glider.parametric.table.cell.ballooning import BallooningTable
@@ -35,6 +36,7 @@ class GliderTables:
     profiles: ProfileTable
     attachment_points_rib: AttachmentPointTable
     attachment_points_cell: CellAttachmentPointTable
+    lines: LineSetTable
 
     def __init__(self, **kwargs: Any):
         used_names = []

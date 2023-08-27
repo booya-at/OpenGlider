@@ -33,7 +33,7 @@ def get_glider_data(project: GliderProject, consumption: dict[str, MaterialUsage
         line_length = glider.lineset.get_line_length(line)
 
         linesheet2[i+2, 0] = line.name
-        linesheet2[i+2, 1] = f"{line.type}"
+        linesheet2[i+2, 1] = f"{line.line_type}"
         linesheet2[i+2, 2] = line.color
         linesheet2[i+2, 3] = round(line_length.get_length() * 1000)
         linesheet2[i+2, 4] = round(line_length.seam_correction * 1000)

@@ -28,7 +28,6 @@ def set_strap_names(glider: Glider) -> None:
                 if pct == position:
                     return layer_name
                     
-                print(pct, position, name)
                 if pct < position:
                     name = layer_name
                 
