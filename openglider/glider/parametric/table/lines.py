@@ -153,35 +153,25 @@ class LineSetTable(BaseModel):
         return cls(table=table, lower_attachment_points=lower_points)
     
     def scale(self, factor: float, scale_lower_floor: bool) -> Self:
-        raise NotImplementedError()
-        #
-        # lower_nodes = []
+        offset_2nd_level = 0
+        for row in range(self.table.num_rows):
+            column = 1
+            while column < self.table.num_columns:
+                if column + 2 < self.table.num_columns and self.table[row, column+2] and self.table[row, column]:
+                    original_length = self.table[row, column]
+                    scaled_length = original_length * factor
 
-        # if not scale_lower_floor:
-        #     lower_nodes = [n for n in self.get_lower_attachment_points() if "main" in n.name]
-        #     if len(lower_nodes) < 1:
-        #         lower_nodes = self.get_lower_attachment_points()
-        #         if len(lower_nodes) < 1:
-        #             raise ValueError("There are no lower floor nodes")
-            
-        # lower_nodes_offset = 0.
-        # lower_lines_count = 0
+                    if column == 1 and not scale_lower_floor:
+                        # riser offset
+                        # riser_theoretical = riser_original * factor
+                        # factor < 1 => riser remains longer than it should -> next floor should be shorter to compensate
+                        offset_2nd_level = scaled_length - original_length
+                    else:
+                        if column == 3:
+                            scaled_length += offset_2nd_level
 
-        # for line in self.lines:
-        #     if line.target_length is not None:
-        #         if scale_lower_floor or line.lower_node not in lower_nodes:
-        #             line.target_length *= factor
-        #         else:
-        #             lower_nodes_offset += line.target_length * (1-factor)
-        #             lower_lines_count += 1
-        
-        # if lower_lines_count != 0:
-        #     lower_nodes_offset /= float(lower_lines_count)
+                        self.table[row, column] = scaled_length
+                    
+                column += 2
 
-        # for node in self.get_lower_attachment_points():
-        #     node.pos_3D[0] = node.pos_3D[0] * factor
-        #     if scale_y:
-        #         node.pos_3D[1] = node.pos_3D[1] * factor
-        #     node.pos_3D[2] = node.pos_3D[2] * factor + sign(node.pos_3D[2]) * lower_nodes_offset
-        #     #node.pos_2D = node.pos_2D * (factor + lower_nodes_offset / node.pos_2D.length())
-
+        return self

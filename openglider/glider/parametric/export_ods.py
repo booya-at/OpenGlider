@@ -5,10 +5,9 @@ from typing import TYPE_CHECKING
 
 import euklid
 import ezodf
-import openglider.glider
-from openglider.glider.ballooning.old import BallooningBezier
-import openglider.glider.parametric.glider
+
 from openglider.glider.ballooning import BallooningBezierNeu
+from openglider.glider.ballooning.old import BallooningBezier
 from openglider.utils.table import Table
 from openglider.utils.types import CurveType
 

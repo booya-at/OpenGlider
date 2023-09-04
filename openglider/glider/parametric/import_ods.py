@@ -1,35 +1,36 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
 import logging
 import math
 import numbers
 import re
+from typing import TYPE_CHECKING, Any
 
 import euklid
-from openglider.glider.ballooning.base import BallooningBase
-from openglider.glider.parametric.config import ParametricGliderConfig
-from openglider.utils.types import SymmetricCurveType
 import pyfoil
+
 from openglider.glider.ballooning import BallooningBezier, BallooningBezierNeu
+from openglider.glider.ballooning.base import BallooningBase
 from openglider.glider.parametric.arc import ArcCurve
-from openglider.glider.parametric.table.lines import LineSetTable
+from openglider.glider.parametric.config import ParametricGliderConfig
 from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.parametric.table import GliderTables
-from openglider.glider.parametric.table.data_table import DataTable
-from openglider.glider.parametric.table.material import CellClothTable, RibClothTable
+from openglider.glider.parametric.table.attachment_points import AttachmentPointTable, CellAttachmentPointTable
 from openglider.glider.parametric.table.cell.ballooning import BallooningTable
 from openglider.glider.parametric.table.cell.cuts import CutTable
 from openglider.glider.parametric.table.cell.diagonals import DiagonalTable, StrapTable
 from openglider.glider.parametric.table.cell.miniribs import MiniRibTable
 from openglider.glider.parametric.table.curve import CurveTable
-from openglider.glider.parametric.table.rib.profile import ProfileTable
+from openglider.glider.parametric.table.lines import LineSetTable
+from openglider.glider.parametric.table.material import CellClothTable, RibClothTable
 from openglider.glider.parametric.table.rib.holes import HolesTable
+from openglider.glider.parametric.table.rib.profile import ProfileTable
 from openglider.glider.parametric.table.rib.rib import SingleSkinTable
-from openglider.glider.parametric.table.rigidfoil import RibRigidTable, CellRigidTable
-from openglider.glider.parametric.table.attachment_points import CellAttachmentPointTable, AttachmentPointTable
+from openglider.glider.parametric.table.rigidfoil import CellRigidTable, RibRigidTable
 from openglider.utils import linspace
+from openglider.utils.dataclass import BaseModel
 from openglider.utils.table import Table
+from openglider.utils.types import SymmetricCurveType
 
 if TYPE_CHECKING:
     from openglider.glider.parametric import ParametricGlider
@@ -68,7 +69,7 @@ def import_ods_glider(cls: type[ParametricGlider], tables: list[Table]) -> Param
         geometry = get_geometry_parametric(tables[5], cell_no)
     else:
         geometry = get_geometry_explicit(tables[0])
-        has_center_cell = geometry["shape"].has_center_cell
+        has_center_cell = geometry.shape.has_center_cell
 
     balloonings: list[BallooningBase] = []
     for i, (name, baloon) in enumerate(transpose_columns(tables[4])):
@@ -106,11 +107,7 @@ def import_ods_glider(cls: type[ParametricGlider], tables: list[Table]) -> Param
 
     # set stabi cell
     if config.has_stabicell:
-        shape = geometry["shape"]
-        if not hasattr(shape, "stabi_cell"):
-            raise Exception(f"Cannot add stabi cell on {geometry['shape']}")
-        
-        shape.stabi_cell = True
+        geometry.shape.stabi_cell = True
 
     if len(tables) > 8:
         curves_table = tables[8]
@@ -118,8 +115,6 @@ def import_ods_glider(cls: type[ParametricGlider], tables: list[Table]) -> Param
         curves_table = None
     
     curves = CurveTable(curves_table)
-
-    add_rib = geometry["shape"].has_center_cell and config.version >= "0.1.0"
 
     attachment_points_lower = config.get_lower_attachment_points()
 
@@ -151,12 +146,21 @@ def import_ods_glider(cls: type[ParametricGlider], tables: list[Table]) -> Param
                          config=config,
                          speed=config.speed,
                          glide=config.glide,
-                         **geometry)
+                         **geometry.model_dump())
 
     return glider_2d
 
 
-def get_geometry_explicit(sheet: Table) -> dict[str, Any]:
+class Geometry(BaseModel):
+    shape: ParametricShape
+    arc: ArcCurve
+    aoa: SymmetricCurveType
+    zrot: SymmetricCurveType
+    profile_merge_curve: SymmetricCurveType
+    ballooning_merge_curve: SymmetricCurveType
+
+
+def get_geometry_explicit(sheet: Table) -> Geometry:
     # All Lists
     front = []
     back = []
@@ -220,17 +224,17 @@ def get_geometry_explicit(sheet: Table) -> dict[str, Any]:
     parametric_shape = ParametricShape(symmetric_fit(front), symmetric_fit(back), rib_distribution_curve, cell_no)
     arc_curve = ArcCurve(symmetric_fit(arc))
 
-    return {
-        "shape": parametric_shape,
-        "arc": arc_curve,
-        "aoa": symmetric_fit(aoa),
-        "zrot": symmetric_fit(zrot),
-        "profile_merge_curve": symmetric_fit(profile_merge, bspline=True),
-        "ballooning_merge_curve": symmetric_fit(ballooning_merge, bspline=True)
-    }
+    return Geometry(
+        shape=parametric_shape,
+        arc=arc_curve,
+        aoa=symmetric_fit(aoa),
+        zrot=symmetric_fit(zrot),
+        profile_merge_curve=symmetric_fit(profile_merge, bspline=True),
+        ballooning_merge_curve=symmetric_fit(ballooning_merge, bspline=True)
+    )
 
 
-def get_geometry_parametric(table: Table, cell_num: int) -> dict[str, Any]:
+def get_geometry_parametric(table: Table, cell_num: int) -> Geometry:
     data = {}
     curve_types = {
         "front": euklid.spline.SymmetricBSplineCurve,
@@ -261,19 +265,16 @@ def get_geometry_parametric(table: Table, cell_num: int) -> dict[str, Any]:
         
 
     parametric_shape = ParametricShape(
-        data["front"], data["back"], data["rib_distribution"], cell_num
+        data.pop("front"), data.pop("back"), data.pop("rib_distribution"), cell_num
     )
 
-    arc_curve = ArcCurve(data["arc"])
+    arc_curve = ArcCurve(data.pop("arc"))
 
-    return {
-        "shape": parametric_shape,
-        "arc": arc_curve,
-        "aoa": data["aoa"],
-        "zrot": data["zrot"],
-        "profile_merge_curve": data["profile_merge_curve"],
-        "ballooning_merge_curve": data["ballooning_merge_curve"]
-    }
+    return Geometry(
+        shape=parametric_shape,
+        arc=arc_curve,
+        **data
+    )
 
 
 def transpose_columns(sheet: Table, columnswidth: int=2) -> list[tuple[str, Any]]:

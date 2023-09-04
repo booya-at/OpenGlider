@@ -1,12 +1,13 @@
 from __future__ import annotations
-from typing import Any, Union, TYPE_CHECKING
-from collections.abc import Mapping
 
 import ast
 import logging
 import re
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any, Union
 
 import euklid
+
 from openglider.glider.cell.attachment_point import CellAttachmentPoint
 from openglider.glider.cell.cell import Cell
 from openglider.glider.curve import GliderCurveType
@@ -91,9 +92,8 @@ class AttachmentPointTable(RibTable):
     def apply_forces(self, forces: Mapping[str, euklid.vector.Vector3D | float]) -> None:
         new_table = Table()
 
-        for keyword_name, keyword in self.keywords.items():
-            data_length = keyword.attribute_length
-            for column in self.get_columns(self.table, keyword_name, data_length):
+        def update_columns(keyword: str, data_length: int, force_position: int) -> None:
+            for column in self.get_columns(self.table, keyword, data_length):
                 for row in range(2, column.num_rows):
                     name = column[row, 0]
                     if name:
@@ -102,41 +102,30 @@ class AttachmentPointTable(RibTable):
                             try:
                                 if isinstance(force, float):
                                     raise TypeError()
-                                column[row, 2] = str(list(force))
+                                column[row, force_position] = str(list(force))
                             except TypeError:
-                                column[row, 2] = force
+                                column[row, force_position] = force
                         else:
                             logger.warning(f"no force for {name}")
                 
                 new_table.append_right(column)
+
+
+        for keyword_name, keyword in self.keywords.items():
+            data_length = keyword.attribute_length
+            update_columns(keyword_name, data_length, 2)
+        
+        for keyword_name, dto in self.dtos.items():
+            data_length = len(dto.describe())
+            update_columns(keyword_name, data_length, 2)
+            
         
         self.table = new_table
     
     @classmethod
     def from_glider(cls, glider: Glider) -> ParametricGlider:
         raise NotImplementedError()
-        table = Table()
 
-        layer_columns: dict[str, int] = {}
-
-        for cell_no, cell in enumerate(glider.cells):
-            #cell_layers = []
-            attachment_points = cell.get_attachment_points(glider)
-            for att_point in attachment_points:
-                match = cls.regex_node_layer.match(att_point.name)
-                
-                if match:
-                    layer = match.group(1)
-                        
-                    if layer not in layer_columns:
-                        layer_columns[layer] = len(layer_columns)
-                    
-                    column_no = 2*layer_columns[layer]
-                    table[cell_no+1, column_no] = att_point.name
-                    table[cell_no+1, column_no+1] = att_point.pos
-        
-        return cls(table)                  
-                    
 
 class CellAttachmentPointTable(CellTable):
     keywords = {

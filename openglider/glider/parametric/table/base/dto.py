@@ -93,6 +93,15 @@ class DTO(BaseModel, Generic[ReturnType], abc.ABC):
             _type_cache[cls] = result
 
         return _type_cache[cls]
+    
+    @classmethod
+    def describe_text(cls) -> str:
+        result = ""
+        for index, (field_name, field_type) in enumerate(cls.describe()):
+            result += f" {index+1: 2d}: {field_name}  ({field_type})\n"
+
+        return result
+
         
     @classmethod
     def column_length(cls) -> int:

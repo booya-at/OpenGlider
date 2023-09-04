@@ -1,10 +1,13 @@
 import re
 from typing import Self
+
 import euklid
+
 from openglider.lines.node import Node
 from openglider.utils.dataclass import BaseModel
 from openglider.utils.table import Table
 from openglider.version import __version__
+
 
 class ParametricGliderConfig(BaseModel):
     speed: float
@@ -26,7 +29,7 @@ class ParametricGliderConfig(BaseModel):
         }
 
         return {
-            name: Node(node_type=Node.NODE_TYPE.LOWER, position=position) for name, position in points.items()
+            name: Node(name=name, node_type=Node.NODE_TYPE.LOWER, position=position) for name, position in points.items()
         }
 
     @classmethod

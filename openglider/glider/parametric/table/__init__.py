@@ -1,5 +1,6 @@
 import logging
 from typing import Any, Dict, List
+from openglider.glider.parametric.table.base.table import ElementTable
 from openglider.glider.parametric.table.lines import LineSetTable
 
 from openglider.glider.parametric.table.attachment_points import AttachmentPointTable, CellAttachmentPointTable
@@ -69,12 +70,16 @@ class GliderTables:
             text += f"## {table_type.value}\n\n"
 
             for name, _cls in cls.__annotations__.items():
-                if _cls.table_type == table_type:
+                if issubclass(_cls, ElementTable) and _cls.table_type == table_type:
                     text += f"### {name}\n\n"
 
                     for keyword_name, keyword in _cls.keywords.items():
                         text += f"- {keyword_name}\n"
                         text += f"{keyword.describe()}\n"
+
+                    for dto_name, dto in _cls.dtos.items():
+                        text += f"- {dto_name}\n"
+                        text += f"{dto.describe_text()}\n"
                     
                     text += "\n\n"
 
@@ -129,5 +134,8 @@ class GliderTables:
 
 
 if __name__ == "__main__":
-    with open("./Readme.md", "w") as outfile:
+    import pathlib
+    filename = pathlib.Path(__file__).absolute().parent / "Readme.md"
+    with open(filename, "w") as outfile:
+        print("writing readme")
         outfile.write(GliderTables.describe())

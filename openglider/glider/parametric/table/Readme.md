@@ -5,65 +5,102 @@
 ### holes
 
 - HOLE
-  * length: 2
-  * attributes: pos: Any, size: Any
+  1: pos  (Percentage)
+  2: size  (Percentage)
+
 - QUERLOCH
-  * length: 2
-  * attributes: pos: Any, size: Any
-- HOLE5
-  * length: 5
-  * attributes: pos: Any, size: Any, width: Any, vertical_shift: Any, rotation: Any
+  1: pos  (Percentage)
+  2: size  (Percentage)
+
 - HOLESQ
-  * length: 3
-  * attributes: x: float, width: float, height: float
+  1: x  (Percentage)
+  2: width  (Percentage)
+  3: height  (Percentage)
+
+- HOLE5
+  1: pos  (Percentage)
+  2: size  (Percentage)
+  3: width  (Percentage)
+  4: vertical_shift  (Percentage)
+  5: rotation  (Angle)
+
 - HOLESQMULTI
-  * length: 5
-  * attributes: start: float, end: float, height: float, num_holes: int, border_width: float
+  1: start  (Percentage)
+  2: end  (Percentage)
+  3: height  (Percentage)
+  4: num_holes  (int)
+  5: border_width  (Percentage | Length)
+
 - HOLESQMULTI6
-  * length: 6
-  * attributes: start: float, end: float, height: float, num_holes: int, border_width: float, margin: float
+  1: start  (Percentage)
+  2: end  (Percentage)
+  3: height  (Percentage)
+  4: num_holes  (int)
+  5: border_width  (Percentage | Length)
+  6: margin  (Percentage | Length)
+
 - HOLEATP
-  * length: 4
-  * attributes: start: float, end: float, height: float, num_holes: int
+  1: start  (Percentage)
+  2: end  (Percentage)
+  3: num_holes  (int)
+
+- HOLEATP5
+  1: start  (Percentage)
+  2: end  (Percentage)
+  3: num_holes  (int)
+  4: border  (Length | Percentage)
+  5: side_border  (Length | Percentage)
+
 - HOLEATP6
-  * length: 6
-  * attributes: start: float, end: float, height: float, num_holes: int, border: float, side_border: float
-- HOLEATP7
-  * length: 7
-  * attributes: start: float, end: float, height: float, num_holes: int, border: float, side_border: float, corner_size: float
+  1: start  (Percentage)
+  2: end  (Percentage)
+  3: num_holes  (int)
+  4: border  (Length | Percentage)
+  5: side_border  (Length | Percentage)
+  6: corner_size  (Percentage)
+
 
 
 ### rigidfoils_rib
 
 - RIGIDFOIL
-  * length: 3
-  * attributes: start: float, end: float, distance: float
+  1: start  (Percentage)
+  2: end  (Percentage)
+  3: distance  (Length)
+
 - RIGIDFOIL3
-  * length: 3
-  * attributes: start: float, end: float, distance: float
+  1: start  (Percentage)
+  2: end  (Percentage)
+  3: distance  (Length)
+
 - RIGIDFOIL5
-  * length: 5
-  * attributes: start: float, end: float, distance: float, circle_radius: float, circle_amount: float
+  1: start  (Percentage)
+  2: end  (Percentage)
+  3: distance  (Length)
+  4: circle_radius  (Length)
+  5: circle_amount  (Percentage)
+
 
 
 ### material_ribs
 
 - MATERIAL
   * length: 1
-  * attributes: Name: Any
+  * attributes: Name: str
 
 
 ### rib_modifiers
 
-- SkinRib
-  * length: 2
-  * attributes: continued_min_end: float, xrot: float
 - SkinRib7
   * length: 12
   * attributes: att_dist: float, height: float, continued_min: bool, continued_min_angle: float, continued_min_delta_y: float, continued_min_end: float, continued_min_x: float, double_first: bool, le_gap: bool, straight_te: bool, te_gap: bool, num_points: int
 - XRot
   * length: 1
   * attributes: angle: float
+- SkinRib
+  1: continued_min_end  (Percentage)
+  2: xrot  (Angle)
+
 
 
 ### profiles
@@ -78,60 +115,88 @@
   * length: 2
   * attributes: begin: Any, amount: Any
 - Sharknose
-  * length: 4
-  * attributes: position: float, amount: float, start: float, end: float
+  1: position  (Percentage)
+  2: amount  (Percentage)
+  3: start  (Percentage)
+  4: end  (Percentage)
+
 - Sharknose8
-  * length: 8
-  * attributes: position: float, amount: float, start: float, end: float, angle_front: float, angle_back: float, rigidfoil_circle_radius: float, rigidfoil_circle_amount: float
+  1: position  (Percentage)
+  2: amount  (Percentage)
+  3: start  (Percentage)
+  4: end  (Percentage)
+  5: angle_front  (Angle)
+  6: angle_back  (Angle)
+  7: rigidfoil_circle_radius  (Length)
+  8: rigidfoil_circle_amount  (Length)
+
 
 
 ### attachment_points_rib
 
-- ATP
-  * length: 3
-  * attributes: name: str, pos: float, force: Union
 - AHP
   * length: 3
   * attributes: name: str, pos: float, force: Union
+- ATP
+  1: name  (str)
+  2: rib_pos  (Percentage)
+  3: force  (float | Vector3D)
+
 - ATPPROTO
-  * length: 4
-  * attributes: name: str, pos: float, force: Union, proto_distance: float
+  1: name  (str)
+  2: rib_pos  (Percentage)
+  3: force  (float | Vector3D)
+  4: protoloop_distance  (Percentage | Length)
+
+- ATPPROTO5
+  1: name  (str)
+  2: rib_pos  (Percentage)
+  3: force  (float | Vector3D)
+  4: protoloop_distance  (Percentage | Length)
+  5: protoloops  (int)
+
 
 
 ## Cell Table
 
 ### cuts
 
-- CUT_ROUND
-  * length: 4
-  * attributes: left: Any, right: Any, center: Any, amount: Any
-- EKV
-  * length: 2
-  * attributes: left: Any, right: Any
-- EKH
-  * length: 2
-  * attributes: left: Any, right: Any
-- folded
-  * length: 2
-  * attributes: left: Any, right: Any
 - DESIGNM
-  * length: 2
-  * attributes: left: Any, right: Any
+  1: x (1)  (Percentage)
+  2: x (2)  (Percentage)
+
 - DESIGNO
-  * length: 2
-  * attributes: left: Any, right: Any
+  1: x (1)  (Percentage)
+  2: x (2)  (Percentage)
+
 - orthogonal
-  * length: 2
-  * attributes: left: Any, right: Any
+  1: x (1)  (Percentage)
+  2: x (2)  (Percentage)
+
+- EKV
+  1: x (1)  (Percentage)
+  2: x (2)  (Percentage)
+
+- EKH
+  1: x (1)  (Percentage)
+  2: x (2)  (Percentage)
+
+- folded
+  1: x (1)  (Percentage)
+  2: x (2)  (Percentage)
+
 - CUT3D
-  * length: 2
-  * attributes: left: Any, right: Any
+  1: x (1)  (Percentage)
+  2: x (2)  (Percentage)
+
 - cut_3d
-  * length: 2
-  * attributes: left: Any, right: Any
+  1: x (1)  (Percentage)
+  2: x (2)  (Percentage)
+
 - singleskin
-  * length: 2
-  * attributes: left: Any, right: Any
+  1: x (1)  (Percentage)
+  2: x (2)  (Percentage)
+
 
 
 ### ballooning_factors
@@ -142,44 +207,71 @@
 - BallooningMerge
   * length: 1
   * attributes: merge_factor: Any
+- BallooningRamp
+  * length: 1
+  * attributes: ballooning_ramp: Any
 
 
 ### diagonals
 
 - QR
-  * length: 6
-  * attributes: left: Any, right: Any, width_left: Any, width_right: Any, height_left: Any, height_right: Any
+  1: position (1)  (Percentage)
+  2: position (2)  (Percentage)
+  3: width (1)  (Percentage | Length)
+  4: width (2)  (Percentage | Length)
+  5: height (1)  (Percentage)
+  6: height (2)  (Percentage)
+
+- DIAGONAL
+  1: position (1)  (Percentage)
+  2: position (2)  (Percentage)
+  3: width (1)  (Percentage | Length)
+  4: width (2)  (Percentage | Length)
+  5: height (1)  (Percentage)
+  6: height (2)  (Percentage)
+  7: material_code  (str)
+
 
 
 ### straps
 
 - STRAP
-  * length: 3
-  * attributes: left: float, right: float, width: float
+  1: position (1)  (Percentage)
+  2: position (2)  (Percentage)
+  3: width  (Percentage | Length)
+
+- STRAP3
+  1: position (1)  (Percentage)
+  2: position (2)  (Percentage)
+  3: width  (Percentage | Length)
+  4: num_folds  (int)
+
 - VEKTLAENGE
-  * length: 2
-  * attributes: left: float, right: float
+  1: position (1)  (Percentage)
+  2: position (2)  (Percentage)
+
 
 
 ### rigidfoils_cell
 
 - RIGIDFOIL
   * length: 3
-  * attributes: x_start: float, x_end: float, y: float
+  * attributes: x_start: Any, x_end: Any, y: Any
 
 
 ### material_cells
 
 - MATERIAL
   * length: 1
-  * attributes: Name: Any
+  * attributes: Name: str
 
 
 ### miniribs
 
 - MINIRIB
-  * length: 2
-  * attributes: yvalue: Any, front_cut: Any
+  1: y_value  (Percentage)
+  2: front_cut  (Percentage)
+
 
 
 ### attachment_points_cell
@@ -187,17 +279,13 @@
 - ATP
   * length: 4
   * attributes: name: str, cell_pos: float, rib_pos: float, force: Union
-- ATPDIFF
-  * length: 5
-  * attributes: name: str, cell_pos: float, rib_pos: float, force: Union, offset: float
 - AHP
   * length: 4
   * attributes: name: str, cell_pos: float, rib_pos: float, force: Union
+- ATPDIFF
+  * length: 5
+  * attributes: name: str, cell_pos: float, rib_pos: float, force: Union, offset: float
 
 
 ## General Table
-
-### curves
-
-
 

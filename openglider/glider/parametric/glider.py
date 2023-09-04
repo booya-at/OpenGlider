@@ -441,11 +441,8 @@ class ParametricGlider:
 
 
         logger.info("create lineset")
+        self.tables.lines.lower_attachment_points = self.config.get_lower_attachment_points()
         glider.lineset = self.tables.lines.get_lineset(glider, self.v_inf)
-        #for rib in glider.ribs:
-        #    for p in rib.attachment_points:
-        #        pass#p.calculate_force_rib_aligned(rib)
-        #glider.lineset.iterate_target_length()
         glider.lineset.recalc(glider=glider)
         glider.lineset.rename_lines()
 
@@ -473,6 +470,8 @@ class ParametricGlider:
         factor = math.sqrt(area/self.shape.area)
         self.shape.scale(factor)
         self.tables.lines.scale(factor, scale_lower_floor=False)
+        self.config.pilot_position[0] = self.config.pilot_position[0] * factor
+        self.config.pilot_position[2] = self.config.pilot_position[2] * factor
         self.rescale_curves()
 
     def set_aspect_ratio(self, aspect_ratio: float, remain_area: bool=True) -> float:
