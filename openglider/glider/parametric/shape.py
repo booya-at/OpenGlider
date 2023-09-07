@@ -1,15 +1,16 @@
 from __future__ import annotations
 
+import logging
 import math
 from typing import Literal
-import logging
 
 import euklid
+
+from openglider.glider.parametric.config import ParametricGliderConfig
 from openglider.glider.shape import Shape
 from openglider.utils import linspace
 from openglider.utils.dataclass import dataclass
 from openglider.utils.types import CurveType, SymmetricCurveType
-
 
 logger = logging.getLogger(__name__)
 
@@ -20,11 +21,7 @@ class ParametricShape:
     back_curve: SymmetricCurveType
     rib_distribution: CurveType
     cell_num: int
-    stabi_cell: bool = False
-    stabi_cell_position: float = 0.7
-    stabi_cell_width: float = 0.5
-    stabi_cell_length: float = 0.6
-
+    config: ParametricGliderConfig
 
     num_shape_interpolation = 50
     num_distribution_interpolation = 50
@@ -52,7 +49,7 @@ class ParametricShape:
             self.back_curve.copy(),
             self.rib_distribution.copy(),
             self.cell_num,
-            stabi_cell=self.stabi_cell
+            config=self.config
         )
 
     @property
@@ -73,11 +70,11 @@ class ParametricShape:
 
     @property
     def half_cell_num(self) -> int:
-        return self.cell_num // 2 + self.has_center_cell + self.stabi_cell
+        return self.cell_num // 2 + self.has_center_cell + self.config.has_stabicell
 
     @property
     def half_rib_num(self) -> int:
-        return self.half_cell_num + 1 - self.has_center_cell + self.stabi_cell
+        return self.half_cell_num + 1 - self.has_center_cell + self.config.has_stabicell
 
     def rescale_curves(self) -> None:
         span = self.span
@@ -117,7 +114,7 @@ class ParametricShape:
     def rib_x_values(self) -> list[float]:
         xvalues = [p[0]*self.span for p in self.rib_dist_interpolation]
 
-        if self.stabi_cell:
+        if self.config.has_stabicell:
             width = 0.4 * (xvalues[-1] - xvalues[-2])
             xvalues.append(xvalues[-1] + width)
             xvalues = [p*self.span/xvalues[-1] for p in xvalues]
@@ -155,13 +152,13 @@ class ParametricShape:
         front = [[x, front_int.get_value(x)] for x in distribution]
         back = [[x, back_int.get_value(x)] for x in distribution]
 
-        if self.stabi_cell:
+        if self.config.has_stabicell:
             y1 = front[-2][1]
             y2 = back[-2][1]
-            delta = (y2 - y1) * (1-self.stabi_cell_length)
+            delta = (y2 - y1) * (1-self.config.stabi_cell_length)
 
-            front[-1][1] = y1 + delta * self.stabi_cell_position
-            back[-1][1] = y2 - delta * (1-self.stabi_cell_position)
+            front[-1][1] = y1 + delta * self.config.stabi_cell_position
+            back[-1][1] = y2 - delta * (1-self.config.stabi_cell_position)
         
         if self.has_center_cell:
             p1 = front[0][:]
@@ -292,7 +289,7 @@ class ParametricShape:
         center_f = ribs[0][0]
         center_b = ribs[0][1]
 
-        if self.stabi_cell:
+        if self.config.has_stabicell:
             tip_rib = ribs[-2]
         else:
             tip_rib = ribs[-1]
@@ -314,7 +311,7 @@ class ParametricShape:
         self.rescale_curves()
 
         ribs = self.ribs
-        if self.stabi_cell:
+        if self.config.has_stabicell:
             ribs.pop(-1)
 
         center_chord = (ribs[0][0] - ribs[0][1]).length()

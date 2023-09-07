@@ -60,7 +60,7 @@ class AttachmentPoint(Node):
     protoloop_distance: Percentage | Length = Percentage("2%")
 
     def __repr__(self) -> str:
-        return f"<Attachment point '{self.name}' ({self.rib_pos})>"
+        return f"<{self.__class__.__name__}: '{self.name}' ({self.rib_pos})>"
 
     def __json__(self) -> dict[str, Any]:
         return {
@@ -75,8 +75,9 @@ class AttachmentPoint(Node):
     def __from_json__(self, **data: Any) -> AttachmentPoint:
         data["force"] = euklid.vector.Vector3D(data["force"])
         return AttachmentPoint(**data)
-
-
+    
+    def cache_hash(self) -> int:
+        return hash(self.rib_pos)
     
     def get_x_values(self, rib: Rib) -> list[float]:
         positions = [self.rib_pos.value]

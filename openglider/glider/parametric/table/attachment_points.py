@@ -15,8 +15,9 @@ from openglider.glider.parametric.table.base import CellTable, Keyword, RibTable
 from openglider.glider.parametric.table.base.parser import Parser
 from openglider.glider.rib.attachment_point import AttachmentPoint
 from openglider.glider.rib.rib import Rib
+from openglider.glider.rib.singleskin import SingleSkinAttachmentPoint
 from openglider.utils.table import Table
-from openglider.vector.unit import Length, Percentage
+from openglider.vector.unit import Angle, Length, Percentage
 
 if TYPE_CHECKING:
     from openglider.glider.glider import Glider
@@ -54,6 +55,27 @@ class ATPPROTO5(ATP):
     protoloop_distance: Percentage | Length
     protoloops: int
 
+class ATPSingleSkin(ATP):
+    angle_front: Angle
+    angle_back: Angle
+    width: Length
+    height: Length
+
+    def get(self, force: euklid.vector.Vector3D) -> SingleSkinAttachmentPoint | AttachmentPoint:
+        if self.width > 0:
+            data = self.__json__()
+            data.pop("force")
+            return SingleSkinAttachmentPoint(
+                **data,
+                force=force
+            )
+        else:
+            return AttachmentPoint(
+                name=self.name,
+                rib_pos=self.rib_pos,
+                force=force
+            )
+
 # TODO: add DTO*s and ATPPROTO5 (with protoloop count)
 
 class AttachmentPointTable(RibTable):
@@ -65,7 +87,8 @@ class AttachmentPointTable(RibTable):
     dtos = {
         "ATP": ATP,
         "ATPPROTO": ATPPROTO,
-        "ATPPROTO5": ATPPROTO5
+        "ATPPROTO5": ATPPROTO5,
+        "ATPSingleSkin": ATPSingleSkin
         #"AHP": ATP,
     }
 

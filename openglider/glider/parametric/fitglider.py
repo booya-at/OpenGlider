@@ -50,11 +50,10 @@ def fit_glider_3d(cls: type[ParametricGlider], glider: Glider, numpoints: int=3)
                                    numpoints)  # type: ignore
 
     # TODO: lineset, dist-curce->xvalues
-
+    raise NotImplementedError()
     parametric_shape = ParametricShape(front_bezier, back_bezier, rib_distribution_curve, cell_num)
     parametric_arc = ArcCurve(arc_bezier)
 
-    raise NotImplementedError()
 
     return cls(shape=parametric_shape,
                arc=parametric_arc,

@@ -47,6 +47,8 @@ def import_ods_glider(cls: type[ParametricGlider], tables: list[Table]) -> Param
     cell_sheet = tables[1]
     rib_sheet = tables[2]
 
+    config = ParametricGliderConfig.read_table(tables[7])
+
     # file-version
     file_version_match = re.match(r"V([0-9]*)", str(cell_sheet["A1"]))
     file_version_2_match = re.match(r"V_([0-9\.]*)", str(cell_sheet["A1"]))
@@ -66,9 +68,9 @@ def import_ods_glider(cls: type[ParametricGlider], tables: list[Table]) -> Param
     if file_version > 2:
         has_center_cell = not tables[0]["C2"] == 0
         cell_no = (tables[0].num_rows - 2) * 2 + has_center_cell
-        geometry = get_geometry_parametric(tables[5], cell_no)
+        geometry = get_geometry_parametric(tables[5], cell_no, config)
     else:
-        geometry = get_geometry_explicit(tables[0])
+        geometry = get_geometry_explicit(tables[0], config)
         has_center_cell = geometry.shape.has_center_cell
 
     balloonings: list[BallooningBase] = []
@@ -103,11 +105,7 @@ def import_ods_glider(cls: type[ParametricGlider], tables: list[Table]) -> Param
             else:
                 raise ValueError("No ballooning type specified")
 
-    config = ParametricGliderConfig.read_table(tables[7])
 
-    # set stabi cell
-    if config.has_stabicell:
-        geometry.shape.stabi_cell = True
 
     if len(tables) > 8:
         curves_table = tables[8]
@@ -160,7 +158,7 @@ class Geometry(BaseModel):
     ballooning_merge_curve: SymmetricCurveType
 
 
-def get_geometry_explicit(sheet: Table) -> Geometry:
+def get_geometry_explicit(sheet: Table, config: ParametricGliderConfig) -> Geometry:
     # All Lists
     front = []
     back = []
@@ -221,7 +219,13 @@ def get_geometry_explicit(sheet: Table) -> Geometry:
 
     rib_distribution_curve: euklid.spline.BSplineCurve = euklid.spline.BSplineCurve.fit(rib_distribution, 3)  # type: ignore
 
-    parametric_shape = ParametricShape(symmetric_fit(front), symmetric_fit(back), rib_distribution_curve, cell_no)
+    parametric_shape = ParametricShape(
+        symmetric_fit(front),
+        symmetric_fit(back),
+        rib_distribution_curve,
+        cell_no,
+        config=config
+        )
     arc_curve = ArcCurve(symmetric_fit(arc))
 
     return Geometry(
@@ -234,7 +238,7 @@ def get_geometry_explicit(sheet: Table) -> Geometry:
     )
 
 
-def get_geometry_parametric(table: Table, cell_num: int) -> Geometry:
+def get_geometry_parametric(table: Table, cell_num: int, config: ParametricGliderConfig) -> Geometry:
     data = {}
     curve_types = {
         "front": euklid.spline.SymmetricBSplineCurve,
@@ -265,7 +269,11 @@ def get_geometry_parametric(table: Table, cell_num: int) -> Geometry:
         
 
     parametric_shape = ParametricShape(
-        data.pop("front"), data.pop("back"), data.pop("rib_distribution"), cell_num
+        data.pop("front"),
+        data.pop("back"),
+        data.pop("rib_distribution"),
+        cell_num,
+        config=config
     )
 
     arc_curve = ArcCurve(data.pop("arc"))

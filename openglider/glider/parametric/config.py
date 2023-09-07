@@ -20,6 +20,10 @@ class ParametricGliderConfig(BaseModel):
     brake_name: str = "brake"
 
     has_stabicell: bool = False
+    stabi_cell_position: float = 0.7
+    stabi_cell_width: float = 0.5
+    stabi_cell_length: float = 0.6
+
     version: str = __version__
 
     def get_lower_attachment_points(self) -> dict[str, Node]:
@@ -73,7 +77,7 @@ class ParametricGliderConfig(BaseModel):
                     node_data.setdefault(node_name, {})
                     node_data[node_name][coordinate] = float(table[current_row, 1])
                 else:
-                    raise ValueError(f"could not match value: {key}")
+                    raise ValueError(f"could not match value: {key} {current_row}")
                 current_row += 1
         
         if len(node_data) == 2:
@@ -93,7 +97,9 @@ class ParametricGliderConfig(BaseModel):
         return cls(**data)
     
     def get_table(self) -> Table:
-        table = Table()
+        table = Table(name="Data")
+        table[0,0] = "Key"
+        table[0,1] = "Values"
 
         dct = self.model_dump()
         for i, (key, value) in enumerate(dct.items()):
@@ -102,8 +108,8 @@ class ParametricGliderConfig(BaseModel):
             else:
                 value = [value]
             
-            table[i, 0] = key
+            table[i+1, 0] = key
             for column, column_value in enumerate(value):
-                table[i,column+1] = column_value
+                table[i+1,column+1] = column_value
 
         return table

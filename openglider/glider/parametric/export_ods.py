@@ -162,7 +162,7 @@ def get_geom_sheet(glider_2d: ParametricGlider) -> Table:
         table[rib_no+1, 8] = profile_int.get_value(x)
         table[rib_no+1, 9] = ballooning_int.get_value(x)
     
-    if glider_2d.shape.stabi_cell:
+    if glider_2d.shape.config.has_stabicell:
         table = table.get_rows(0, table.num_rows-1)
 
     return table
