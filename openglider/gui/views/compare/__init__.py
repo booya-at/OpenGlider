@@ -12,6 +12,7 @@ from openglider.gui.views.compare.glider_3d import Glider3DView
 from openglider.gui.views.compare.rib import RibView
 from openglider.gui.views.compare.rib_plots import RibPlotView
 from openglider.gui.views.compare.shape import ShapeView
+from openglider.gui.views.compare.table.lines_diff import GliderLineSetTable
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,7 @@ class GliderPreview(QtWidgets.QWidget):
             "Cell Plots": CellPlotView(app),
             "Cells": CellView(app),
             "Table": GliderTable(app),
+            "Lines": GliderLineSetTable(app),
             "3D": Glider3DView(app)
         }
         self.tab_names = list(self.tabs.keys())

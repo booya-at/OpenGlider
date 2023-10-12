@@ -29,15 +29,11 @@ class TestGlider(GliderTestCase):
         patterns = PlotMaker(self.glider)
         patterns.unwrap()
 
-        print(type(patterns), patterns)
-        all = patterns.get_all_grouped()
+        all_patterns = patterns.get_all_grouped()
 
-        print(all)
-
-
-        all.export_svg(path)
-        all.export_dxf(dxfile)
-        all.export_ntv(ntvfile)
+        all_patterns.export_svg(path)
+        all_patterns.export_dxf(dxfile)
+        all_patterns.export_ntv(ntvfile)
 
     def test_export_glider_json(self) -> None:
         with open(self.tempfile('kite_3d.json'), "w+") as tmp:

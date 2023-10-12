@@ -17,10 +17,12 @@ class Cache(Generic[ListType, CacheListType]):
     elements: SelectionList[ListType, SelectionListItem[ListType]]
     cache: dict[str, CacheListType]
     cache_hashes: dict[str, int]
+    cache_reference: int | None
     cache_last_active: list[str]
 
     update_on_color_change = True
     update_on_name_change = True
+    update_on_reference_change = False
 
     def __init__(self, elements: SelectionList[ListType, SelectionListItem[ListType]]):
         self.elements = elements
@@ -28,6 +30,7 @@ class Cache(Generic[ListType, CacheListType]):
         self.cache = {}
         self.cache_hashes = {}
         self.cache_last_active = []
+        self.cache_reference = None
 
     def clear(self) -> None:
         self.cache = {}
@@ -39,15 +42,18 @@ class Cache(Generic[ListType, CacheListType]):
         """
         raise NotImplementedError()
     
-    def _get_object(self, element: str) -> tuple[CacheListType, bool]:
+    def _get_object_hash(self, element: str) -> int:
         hash_workload: list[Any] = [self.elements[element].element]
         if self.update_on_color_change:
             hash_workload += self.elements[element].color
         if self.update_on_name_change:
             hash_workload += self.elements[element].name
 
-        obj_hash = hash(tuple(hash_workload))
-        
+        return hash(tuple(hash_workload))
+
+    
+    def _get_object(self, element: str) -> tuple[CacheListType, bool]:
+        obj_hash = self._get_object_hash(element)
         is_outdated = element not in self.cache_hashes or obj_hash != self.cache_hashes[element]
 
         if is_outdated:
@@ -66,8 +72,26 @@ class Cache(Generic[ListType, CacheListType]):
     def get_update(self) -> ChangeSet[CacheListType]:
         changeset: ChangeSet[CacheListType] = ChangeSet([],[],[])
         active_names = []
+
+        if self.update_on_reference_change:
+            hash = None
+            if self.elements.selected_element is not None:
+                hash = self._get_object_hash(self.elements.selected_element)
+            if hash != self.cache_reference:
+                self.cache_reference = hash
+                self.cache_hashes.clear()
+
+        # move the selected to the first position
+        items = self.elements.elements.copy()
+        items_lst = []
+        if self.elements.selected_element:
+            value = items.pop(self.elements.selected_element)
+            items_lst.append((self.elements.selected_element, value))
         
-        for element_name, element in self.elements.elements.items():
+        for name, elem in items.items():
+            items_lst.append((name, elem))
+        
+        for element_name, element in items_lst:
             old_obj = self.cache.get(element_name)
             is_active = element.active or self.elements.selected_element == element_name
 
@@ -93,8 +117,8 @@ class Cache(Generic[ListType, CacheListType]):
 
         for name in cached_names:
             if name not in existing_names:
-                elem = self.cache.pop(name)
-                changeset.removed.append(elem)
+                cache_elem = self.cache.pop(name)
+                changeset.removed.append(cache_elem)
                 self.cache_hashes.pop(name)
         
         self.cache_last_active = active_names

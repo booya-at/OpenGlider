@@ -50,8 +50,7 @@ class SingleSkinRib(Rib):
     attachment_points: list[AttachmentPoint | SingleSkinAttachmentPoint]
     single_skin_parameters: SingleSkinParameters = Field(default_factory=SingleSkinParameters)
 
-    def __post_init__(self) -> None:
-        super().__post_init__()
+    def model_post_init(self, __context: typing.Any) -> None:
         if self.single_skin_parameters.continued_min:
             self.apply_continued_min()
 
@@ -87,7 +86,7 @@ class SingleSkinRib(Rib):
     @cached_function("self", exclude=["attachment_points"], generator=lambda rib: [p.rib_pos for p in rib.attachment_points])
     def get_hull(self) -> pyfoil.Airfoil:
         if any([isinstance(p, SingleSkinAttachmentPoint) for p in self.attachment_points]):
-            attachment_points = self.attachment_points[:]
+            attachment_points = list(filter(lambda p: p.rib_pos < 0.9999, self.attachment_points))
             attachment_points.sort(key=lambda p: p.rib_pos)
 
             airfoil = self.profile_2d
@@ -96,7 +95,6 @@ class SingleSkinRib(Rib):
                 airfoil.profilepoint(p[0], height)
                 for p in airfoil.curve.nodes[airfoil.noseindex:]
             ])
-            print("height_curve", height_curve)
 
             for i in range(len(attachment_points)-1):
                 p1 = attachment_points[i]
@@ -122,15 +120,6 @@ class SingleSkinRib(Rib):
                     spline_p2_ik = height_curve.cut(p2_bottom, p2_top)[-1][0]
                     spline_p1 = height_curve.get(spline_p1_ik)
                     spline_p2 = height_curve.get(spline_p2_ik)
-                    #height_interpolation = euklid.vector.Interpolation(height_curve.nodes)
-                    #spline_p1_y = height_interpolation.get_value(p1_top[0])
-                    #spline_p2_y = height_interpolation.get_value(p2_top[0])
-                    #spline_p1 = euklid.vector.Vector2D([p1_top[0], spline_p1_y])
-                    #spline_p2 = euklid.vector.Vector2D([p2_top[0], spline_p2_y])
-
-                    print(spline_p1, spline_p2)
-
-                    print(height_curve.cut(p1_bottom, p1_top))
 
                     spline_curve = euklid.spline.BSplineCurve([
                         p1_top, spline_p1, spline_p2, p2_top
@@ -139,6 +128,17 @@ class SingleSkinRib(Rib):
                     airfoil = pyfoil.Airfoil(
                         airfoil.curve.get(0, ik_start) + [p1_bottom] + spline_curve + [p2_bottom] + airfoil.curve.get(ik_end, len(airfoil.curve)-1)
                     )
+            
+            last_point = attachment_points[-1]
+            if isinstance(last_point, SingleSkinAttachmentPoint):
+                ik_last = airfoil.get_ik(last_point.rib_pos)
+
+                airfoil = pyfoil.Airfoil(
+                    airfoil.curve.get(0, ik_last) + [
+                        airfoil.curve.get(ik_last) + euklid.vector.Vector2D([last_point.width/2/self.chord, 0]),
+                        airfoil.curve.get(0)
+                    ]
+                )
 
             return airfoil
         

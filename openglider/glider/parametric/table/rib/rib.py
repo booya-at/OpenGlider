@@ -14,6 +14,15 @@ class SkinRib(dto.DTO):
     def get_object(self) -> tuple[SingleSkinParameters, Angle]:
         return SingleSkinParameters(continued_min_end=self.continued_min_end), self.xrot
 
+class SkinRib3(SkinRib):
+    height: Percentage
+
+    def get_object(self) -> tuple[SingleSkinParameters, Angle]:
+        return SingleSkinParameters(
+            continued_min_end=self.continued_min_end,
+            height=self.height
+        ), self.xrot
+
 SkinRib7 = Keyword([
     ("att_dist", float),
     ("height", float),
@@ -35,11 +44,12 @@ class SingleSkinTable(RibTable):
         "XRot": Keyword([("angle", float)], target_cls=dict)
     }
     dtos = {
-        "SkinRib": SkinRib
+        "SkinRib": SkinRib,
+        "SkinRib3": SkinRib3
     }
 
     def get_singleskin_ribs(self, rib_no: int, **kwargs: Any) -> tuple[SingleSkinParameters, Angle] | None:
-        return self.get_one(rib_no, ["SkinRib"], **kwargs)
+        return self.get_one(rib_no, ["SkinRib", "SkinRib3"], **kwargs)
     
     def get_xrot(self, rib_no: int) -> float:
         rotation = 0

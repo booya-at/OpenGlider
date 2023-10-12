@@ -59,7 +59,7 @@ class SagMatrix():
             j = self.line_index(upper_lines[k])
             self.matrix[2 * i, 2 * j] = -(infl_list[k] / sum_infl)
         self.rhs[2 * i] = line.ortho_pressure * \
-            line.length_projected / line.force_projected
+            line.length_projected ** 2 / line.force_projected / 2
 
     def insert_type_2_upper(self, line: Line) -> None:
         """

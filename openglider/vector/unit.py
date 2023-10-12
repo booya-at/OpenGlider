@@ -23,16 +23,16 @@ class Quantity(pydantic.BaseModel):
     unit_variants: ClassVar[dict[str, float]]
     display_unit: str | None = None
 
+    re_number: ClassVar[str] = r"[-+]?\d*\.\d*(?:[eE][+-]?\d+)?|\d+"
+    re_unit: ClassVar[str] = r"[\w°%]+)(?!\S"
+    re_combined: ClassVar[re.Pattern] = re.compile(f"({re_number})\s*({re_unit})")
 
-    re_number: ClassVar[str] = r"([-+]?\d*\.\d*(?:[eE][+-]?\d+)?|\d+)"
-    re_unit: ClassVar[str] = r"\s*([\w°%]+)(?!\S)"
-
-    def __init__(self, value: float | str, unit: str=None, display_unit: str=None):
+    def __init__(self, value: float | str, unit: str | None=None, display_unit: str | None=None):
         value_float = None
 
         if isinstance(value, str):
             assert unit is None
-            if match := re.match(self.__class__.re_number + self.__class__.re_unit, value):
+            if match := self.__class__.re_combined.match(value):
                 value_str, unit = match.groups()
                 value_float = float(value_str)
         
@@ -42,14 +42,17 @@ class Quantity(pydantic.BaseModel):
         if unit is None:
             super().__init__(value=value)
         else:
-            try:
-                factor = self.__class__.unit_variants[unit]
-            except KeyError:
-                raise ValueError(f"invalid unit for {self.__class__.__name__}: {unit}")
+            if unit == self.unit:
+                factor = 1.
+            else:
+                try:
+                    factor = self.__class__.unit_variants[unit]
+                except KeyError:
+                    raise ValueError(f"invalid unit for {self.__class__.__name__}: {unit}")
             
             super().__init__(value=value_float * factor, display_unit=unit or display_unit)
 
-    def get(self, unit: str=None) -> float:
+    def get(self, unit: str | None=None) -> float:
         if unit is None or unit == self.unit:
             return self.value
         
@@ -97,6 +100,10 @@ class Quantity(pydantic.BaseModel):
             value=new_value,
             display_unit=display_unit
         )
+    
+    def __str__(self):
+        value, unit = self._get_display_value()
+        return f"{value}{unit}"
     
     def __apply_cmp(self, other: Any, operator: Callable[[float, float], OpReturnType]) -> OpReturnType:
         if isinstance(other, self.__class__):
@@ -166,9 +173,13 @@ class Quantity(pydantic.BaseModel):
             return v
 
         raise ValueError(f"Invalid value for {cls}: {v}")
+    
+    @classmethod
+    def get_regex(cls) -> str:
+        return cls.re_number
 
 class Length(Quantity):
-    def __init__(self, value: float | str, unit: str=None, display_unit: str=None):
+    def __init__(self, value: float | str, unit: str | None=None, display_unit: str | None=None):
         super().__init__(value, unit, display_unit)
 
     unit: ClassVar[str] = "m"
@@ -179,7 +190,7 @@ class Length(Quantity):
     }
 
 class Percentage(Quantity):
-    def __init__(self, value: float | str, unit: str=None, display_unit: str=None):
+    def __init__(self, value: float | str, unit: str | None=None, display_unit: str | None=None):
         super().__init__(value, unit, display_unit)
 
     unit: ClassVar[str] = ""
@@ -189,7 +200,7 @@ class Percentage(Quantity):
     display_unit: str = "%"
 
 class Angle(Quantity):
-    def __init__(self, value: float | str, unit: str=None, display_unit: str=None):
+    def __init__(self, value: float | str, unit: str | None=None, display_unit: str | None=None):
         super().__init__(value, unit, display_unit)
 
     unit: ClassVar[str] = "rad"

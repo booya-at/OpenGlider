@@ -5,6 +5,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 import euklid
+from openglider.vector.drawing import PlotPart
 import openglider.mesh as mesh
 import openglider.mesh.triangulate
 from openglider.utils.dataclass import BaseModel
@@ -317,3 +318,105 @@ class TensionLine(TensionStrap):
         boundaries[rib1.name] = [0]
         boundaries[rib2.name] = [1]
         return mesh.Mesh.from_indexed([p1, p2], {"tension_lines": [((0, 1), {})]}, boundaries=boundaries)
+
+
+class FingerDiagonal(BaseModel):
+    left: DiagonalSide
+    right: DiagonalSide
+
+    material_code: str=""
+    name: str="unnamed"
+
+    curve_factor: float
+
+    def mirror(self) -> None:
+        self.left ,self.right = self.right, self.left
+
+    def get_center_length(self, cell: Cell) -> float:
+        p1 = cell.rib1.point(self.left.center)
+        p2 = cell.rib2.point(self.right.center)
+        return (p2 - p1).length()
+
+    def get_3d(self, cell: Cell) -> tuple[euklid.vector.PolyLine3D, euklid.vector.PolyLine3D]:
+        """
+        Get 3d-Points of a diagonal rib
+        :return: (left_list, right_list)
+        """
+        left = self.left.get_curve(cell.rib1)
+        right = self.right.get_curve(cell.rib2)
+
+        return left, right
+
+    def get_mesh(self, cell: Cell, insert_points: int=10, project_3d: bool=False) -> mesh.Mesh:
+        """
+        get a mesh from a diagonal (2 poly lines)
+        """
+        left, right = self.get_3d(cell)
+        left_2d, right_2d = self.get_flattened(cell)
+        
+        envelope_2d = left_2d.nodes
+        envelope_3d = left.nodes
+
+
+        def get_list_3d(p1: euklid.vector.Vector3D, p2: euklid.vector.Vector3D) -> list[euklid.vector.Vector3D]:
+            return [
+                p1 + (p2-p1) * ((i+1)/(insert_points+1))
+                for i in range(insert_points)
+            ]
+        def get_list_2d(p1: euklid.vector.Vector2D, p2: euklid.vector.Vector2D) -> list[euklid.vector.Vector2D]:
+            return [
+                p1 + (p2-p1) * ((i+1)/(insert_points+1))
+                for i in range(insert_points)
+            ]
+
+        envelope_2d += get_list_2d(left_2d.nodes[-1], right_2d.nodes[-1])
+        envelope_3d += get_list_3d(left.nodes[-1], right.nodes[-1])
+
+        envelope_2d += right_2d.reverse().nodes
+        envelope_3d += right.reverse().nodes
+
+        envelope_2d += get_list_2d(right_2d.nodes[0], left_2d.nodes[0])
+        envelope_3d += get_list_3d(right.nodes[0], left.nodes[0])
+        
+        boundary_nodes = list(range(len(envelope_2d)))
+        boundary = [boundary_nodes+[0]]
+        
+        tri = openglider.mesh.triangulate.Triangulation([(p[0], p[1]) for p in envelope_2d], boundary)
+        tri_mesh = tri.triangulate()
+
+        # map 2d-points to 3d-points
+
+        # todo: node_no = kgv(len(left), len(right))
+        node_no = 100
+
+        mapping_2d = Mapping([right_2d.resample(node_no), left_2d.resample(node_no)])
+        mapping_3d = Mapping3D([right.resample(node_no), left.resample(node_no)])
+
+        points_3d: list[euklid.vector.Vector3D] = []
+
+        for point_3d, point_2d in zip(envelope_3d, tri_mesh.points[:len(envelope_2d)]):
+            vector_3d = euklid.vector.Vector3D(point_3d)
+            points_3d.append(vector_3d)
+
+        for point in tri_mesh.points[len(envelope_2d):]:
+            ik = mapping_2d.get_iks(point)
+            points_3d.append(mapping_3d.get_point(*ik))
+        
+        drib_mesh = mesh.Mesh.from_indexed(points_3d, {"diagonals": [(p, {}) for p in tri_mesh.elements]}, boundaries={"diagonals": boundary_nodes})
+
+        min_size = drib_mesh.polygon_size()[0]
+        if  min_size < 1e-20:
+            raise Exception(f"min polygon size: {min_size} in drib: {self.name}")
+
+        return drib_mesh
+
+    def get_flattened(self, cell: Cell, ribs_flattened: Any=None) -> tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]:
+        first, second = self.get_3d(cell)
+        left, right = flatten_list(first, second)
+        return left, right
+
+    def get_average_x(self) -> Percentage:
+        """
+        return average x value for sorting
+        """
+        return (self.left.center + self.right.center)/2

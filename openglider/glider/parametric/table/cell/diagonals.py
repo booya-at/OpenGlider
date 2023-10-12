@@ -43,8 +43,6 @@ class Strap3DTO(StrapDTO):
         result = super().get_object()
         result.num_folds = self.num_folds
 
-        print(result)
-
         return result
     
 class TensionLineDTO(DTO):

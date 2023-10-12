@@ -121,9 +121,6 @@ class Rib(RibBase):
     hole_naming_scheme: ClassVar[str] = "{rib.name}h{}"
     rigid_naming_scheme: ClassVar[str] = "{rib.name}r{}"
 
-    def __post_init__(self) -> None:
-        self.pos = euklid.vector.Vector3D(self.pos)
-
     def convert_to_percentage(self, value: Percentage | Length) -> Percentage:
         if isinstance(value, Percentage):
             return value

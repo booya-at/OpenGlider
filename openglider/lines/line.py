@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 import logging
+import math
 
 import pydantic
 import euklid
@@ -36,7 +37,9 @@ class Line(BaseModel):
     trim_correction: Length = Length(0.)
     init_length: Length | None = None
 
+    # sag angle
     sag_par_1: float | None = None
+    # sag offset from initial knot
     sag_par_2: float | None = None
     rho_air: float = 1.2
 
@@ -90,13 +93,28 @@ class Line(BaseModel):
     @property
     def length_no_sag(self) -> float:
         return (self.upper_node.position - self.lower_node.position).length()
-
+    
     @cached_property('lower_node.position', 'upper_node.position', 'v_inf', 'sag_par_1', 'sag_par_2')
     def length_with_sag(self) -> float:
-        if self.sag_par_1 is None or self.sag_par_2 is None:
-            raise ValueError('Sag not yet calculated!')
+        assert self.sag_par_1 is not None
 
-        return euklid.vector.PolyLine3D(self.get_line_points(numpoints=100)).get_length()
+        alpha = math.asin(self.diff_vector.normalized().dot(self.v_inf_0))
+        q1 = self.ortho_pressure / self.force_projected / 2
+        q2 = self.sag_par_1 + math.tan(alpha)
+
+        if q1 < 1e-10:
+            # simplified integral: y = q2 * x -> length = sqrt(1+q2) * length_projected
+            return math.sqrt(1+q2**2) * self.length_projected
+        
+        def get_integral(dx: float) -> float:
+            # y = - q1 x² + q2 x + d , dy/dx = -2 q1 x + q2
+            # integral sqrt(1 + (-2 q1 x + q2)^2)dx = (sqrt((q2 - 2*q1*x)^2 + 1) (q2 - 2 q1 x) + sinh^(-1)(q2 - 2 q1 x))/(4 q1) + constant
+            upper = math.sqrt((q2-2*q1*dx)**2+1) * (q2-2*q1*dx) + (math.asinh(q2 - 2*q1*dx))
+            lower = 4*q1
+
+            return -(upper / lower)
+        
+        return get_integral(self.length_projected) - get_integral(0)
 
     def get_stretched_length(self, pre_load: float=50, sag: bool=True) -> float:
         """

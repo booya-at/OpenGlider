@@ -17,11 +17,14 @@ from openglider.lines.functions import proj_force
 from openglider.lines.knots import KnotCorrections
 from openglider.lines.line_types.linetype import LineType
 from openglider.mesh import Mesh
+from openglider.utils.cache import cached_function
 from openglider.utils.table import Table
 from openglider.vector.unit import Percentage
 
 if TYPE_CHECKING:
     from openglider.glider.glider import Glider
+    from openglider.glider.cell.attachment_point import CellAttachmentPoint
+    from openglider.glider.rib.attachment_point import AttachmentPoint
 
 logger = logging.getLogger(__name__)
 
@@ -59,13 +62,10 @@ class LineSet:
     calculate_sag = True
     knot_corrections = KnotCorrections.read_csv(os.path.join(os.path.dirname(__file__), "knots.csv"))
     mat: SagMatrix
-    trim_corrections: dict[str, float]
 
     def __init__(self, lines: list[Line], v_inf: euklid.vector.Vector3D=None):
         self._v_inf = v_inf or euklid.vector.Vector3D([0,0,0])
         self.lines = lines or []
-        self.trim_corrections = {}
-
 
         self.mat = SagMatrix(len(self.lines))
         self.rename_lines()
@@ -153,8 +153,13 @@ class LineSet:
         return self
 
     @property
-    def attachment_points(self) -> list[Node]:
-        return [n for n in self.nodes if n.node_type == Node.NODE_TYPE.UPPER]
+    def attachment_points(self) -> list[AttachmentPoint | CellAttachmentPoint]:
+        return [n for n in self.nodes if n.node_type == Node.NODE_TYPE.UPPER]  # type: ignore
+    
+    def get_attachment_points_sorted(self) -> list[AttachmentPoint | CellAttachmentPoint]:
+        nodes = self.attachment_points
+        nodes.sort(key=lambda p: p.sort_key())
+        return nodes
 
     @property
     def lower_attachment_points(self) -> list[Node]:
@@ -509,7 +514,7 @@ class LineSet:
     def total_length(self) -> float:
         length = 0.
         for line in self.lines:
-            length += line.get_stretched_length()
+            length += line.get_stretched_length() + line.trim_correction.si
         return length
     
     def get_consumption(self) -> dict[LineType, float]:
@@ -570,7 +575,6 @@ class LineSet:
 
         return lines_new
 
-
     def create_tree(self, start_nodes: list[Node] | None=None) -> list[LineTreePart]:
         """
         Create a tree of lines
@@ -626,8 +630,8 @@ class LineSet:
 
         # get all upper nodes + all connected lines
         upper_nodes = []
-        for node in self.attachment_points:
-            upper_nodes += self.get_upper_influence_nodes(node=node)
+        for attachment_point in self.attachment_points:
+            upper_nodes += self.get_upper_influence_nodes(node=attachment_point)
         lines = []
         for node in upper_nodes:
             lines += self.get_lower_connected_lines(node)
@@ -697,7 +701,7 @@ class LineSet:
             line.line_type.seam_correction,
             loop_correction,
             knot_correction,
-            self.trim_corrections.get(line.name, 0)
+            line.trim_correction.si
         )
     
     def get_checklength(self, node: Node, with_sag: bool=True) -> float:

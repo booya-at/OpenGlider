@@ -12,8 +12,6 @@ class QTable(QtWidgets.QTableWidget):
             self.push_table(table)
 
     def push_table(self, table: openglider.utils.table.Table) -> None:
-        self.clear()
-
         self.setColumnCount(table.num_columns)
         self.setRowCount(table.num_rows)
 
@@ -27,13 +25,15 @@ class QTable(QtWidgets.QTableWidget):
                     text = ""
                 else:
                     text = str(value)
-
-
-                item = QtWidgets.QTableWidgetItem(text)
+                
+                item = self.item(row_no, column_no)
+                if item is None:
+                    item = QtWidgets.QTableWidgetItem()
+                    self.setItem(row_no, column_no, item)
+                
+                item.setText(text)
                 if self.readonly:
-                    item.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
-
-                self.setItem(row_no, column_no, item)
+                    item.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled | QtCore.Qt.ItemFlag.ItemIsSelectable)
 
     def get_table(self) -> openglider.utils.table.Table:
         table = openglider.utils.table.Table()

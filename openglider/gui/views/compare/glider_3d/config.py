@@ -15,7 +15,7 @@ class GliderViewConfig(BaseModel):
     show_diagonals: bool = True
     show_straps: bool = True
 
-    profile_numpoints: int = 20
+    profile_numpoints: int = 40
     numribs: int = 3
 
     def needs_recalc(self, old_config: GliderViewConfig | None=None) -> bool:

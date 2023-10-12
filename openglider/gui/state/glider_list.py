@@ -96,6 +96,3 @@ class GliderList(SelectionList[GliderProject, GliderListItem]):
 class GliderCache(Generic[CacheListType], Cache[GliderProject, CacheListType]):
     def __init__(self, elements: GliderList):
         super().__init__(elements)
-
-
-

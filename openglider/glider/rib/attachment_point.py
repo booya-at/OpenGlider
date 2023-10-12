@@ -1,11 +1,13 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any
+import re
+from typing import TYPE_CHECKING, Any, ClassVar
 import logging
 
 import euklid
 from openglider.glider.shape import Shape
 from openglider.lines.node import NODE_TYPE_ENUM, Node
 from openglider.utils.dataclass import BaseModel
+from openglider.utils.table import Table
 from openglider.vector.polygon import Circle
 from openglider.vector.unit import Percentage, Length
 
@@ -58,6 +60,8 @@ class AttachmentPoint(Node):
     offset: Length = Length("1cm")
     protoloops: int = 0
     protoloop_distance: Percentage | Length = Percentage("2%")
+
+    re_name: ClassVar[re.Pattern] = re.compile(r"^(?P<n>[0-9]+_)?([A-Za-z]+)([0-9]+)")
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}: '{self.name}' ({self.rib_pos})>"
@@ -125,3 +129,10 @@ class AttachmentPoint(Node):
             raise ValueError(f"no rib found for node: {self}")
 
         return shape.get_point(rib_no, self.rib_pos.si)
+    
+    def sort_key(self) -> tuple[float, float] | str:
+        try:
+            return Table.str_decrypt(self.name)
+        except ValueError:
+            return self.name
+        

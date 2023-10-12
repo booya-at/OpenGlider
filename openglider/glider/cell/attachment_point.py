@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 import euklid
 from openglider.glider.shape import Shape
 from openglider.lines.node import Node, NODE_TYPE_ENUM
+from openglider.utils import table
 from openglider.vector.unit import Percentage
 
 if TYPE_CHECKING:
@@ -67,4 +68,10 @@ class CellAttachmentPoint(Node):
             raise ValueError("Not in a cell: {self}")
 
         return shape.get_point(cell_no+self.cell_pos, self.rib_pos.si)
+    
+    def sort_key(self) -> tuple[float, float] | str:
+        try:
+            return table.Table.str_decrypt(self.name)
+        except ValueError:
+            return self.name
 

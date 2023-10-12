@@ -107,9 +107,10 @@ class SelectionList(BaseModel, Generic[ItemType, SelectionListItemT]):
         if name not in self:
             raise ValueError(f"{name} not in list: {self}")
         
-        self.elements.pop(name)
         if self.selected_element == name:
             self.selected_element = None
+        
+        self.elements.pop(name)
     
     def reload(self) -> None:
         if self.selected_element in self.elements:

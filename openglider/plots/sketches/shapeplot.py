@@ -398,9 +398,6 @@ class ShapePlot:
 
             get_node_position(node)
 
-            print(len(all_nodes), node, node in all_nodes)
-
-
             for glider_line in all_upper_lines(node):
                 pp = PlotPart()
                 layer = pp.layers[f"line_{i}"]
