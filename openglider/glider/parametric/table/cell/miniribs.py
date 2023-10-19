@@ -10,7 +10,7 @@ class MiniRibDTO(DTO):
     front_cut: Percentage
 
     def get_object(self) -> Any:
-        return MiniRib(yvalue=float(self.y_value), front_cut=float(self.front_cut))
+        return MiniRib(yvalue=self.y_value.si, front_cut=self.front_cut.si)
 
 class MiniRibTable(CellTable):
     dtos = {

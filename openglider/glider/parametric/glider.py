@@ -424,7 +424,7 @@ class ParametricGlider:
         self.apply_diagonals(glider)
 
         for cell_no, cell in enumerate(glider.cells):
-            cell.miniribs = self.tables.miniribs.get(row_no=cell_no)
+            cell.miniribs = self.tables.miniribs.get(row_no=cell_no, resolvers=resolvers)
 
         # RIB-ELEMENTS
         #self.apply_holes(glider)

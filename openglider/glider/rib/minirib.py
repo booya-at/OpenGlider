@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class MiniRib:
     yvalue: float
     front_cut: float
-    back_cut: float=1.
+    back_cut: float | None=None
     name: str="unnamed_minirib"
 
     function: euklid.vector.Interpolation = Field(default_factory=lambda: euklid.vector.Interpolation([]))
@@ -26,11 +26,15 @@ class MiniRib:
 
         if self.function is None or len(self.function.nodes) == 0:
             if self.front_cut > 0:
-                points = [[self.front_cut, 1], [self.front_cut + (self.back_cut - self.front_cut) * (1-p1_x), 0]]  #
+                if self.back_cut is None:
+                    back_cut = 1.
+                else:
+                    back_cut = self.back_cut
+                points = [[self.front_cut, 1], [self.front_cut + (back_cut - self.front_cut) * (1-p1_x), 0]]  #
             else:
                 points = [[0, 0]]
 
-            if self.back_cut < 1:
+            if self.back_cut is not None and self.back_cut < 1.:
                 points = points + [[self.front_cut + (self.back_cut-self.front_cut) * p1_x, 0], [self.back_cut, 1]]
             else:
                 points = points + [[1., 0.]]
@@ -39,7 +43,8 @@ class MiniRib:
             self.function = euklid.vector.Interpolation(curve.nodes)
 
     def multiplier(self, x: float) -> float:
-        if self.front_cut <= abs(x) <= self.back_cut:
+        within_back_cut = self.back_cut is None or abs(x) <= self.back_cut
+        if self.front_cut <= abs(x) and within_back_cut:
             return min(1, max(0, self.function.get_value(abs(x))))
         else:
             return 1.

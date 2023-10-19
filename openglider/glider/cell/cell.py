@@ -177,58 +177,56 @@ class Cell(BaseModel):
         (separated by miniribs)
         """
         # TODO: test / fix
-        cells: list[BasicCell] = []
-        for cell_no in range(len(self.rib_profiles_3d)-1):
-            leftrib = self.rib_profiles_3d[cell_no]
-            rightrib = self.rib_profiles_3d[cell_no+1]
-            cells.append(BasicCell(leftrib, rightrib, ballooning=[], name=f"{self.name}_{cell_no}"))
-        if not self.miniribs:
-            return cells
+        child_cells: list[BasicCell] = []
         
-        cell_phi = self.basic_cell.ballooning_phi
-        profile_phi = []
-
-        for index in range(len(self.x_values)):
-            phi_values = [0]
-            for mrib in self.miniribs:
-                phi = cell_phi[index] + math.asin((2 * mrib.yvalue - 1) * math.sin(cell_phi[index]))
-                phi_values.append(phi)
-            phi_values.append(2*cell_phi[index])
-
-            profile_phi.append(phi_values)
+        for child_no in range(len(self.rib_profiles_3d)-1):
+            leftrib = self.rib_profiles_3d[child_no]
+            rightrib = self.rib_profiles_3d[child_no+1]
+            child_cells.append(BasicCell(leftrib, rightrib, ballooning=[], name=f"{self.name}_{child_no}"))
+        
+        if not self.miniribs:
+            return child_cells
+        
+        ballooning_angles = self.basic_cell.ballooning_phi
 
         for index, xvalue in enumerate(self.x_values):
+            phi_values = [0.]
+            for midrib in self.miniribs:
+                phi = ballooning_angles[index] + math.asin((2 * midrib.yvalue - 1) * math.sin(ballooning_angles[index]))
+                phi_values.append(phi)
+            phi_values.append(2*ballooning_angles[index])
+
             left_point = self.rib1.profile_3d.curve.nodes[index]
             right_point = self.rib2.profile_3d.curve.nodes[index]
 
-            phi_values = profile_phi[index]
             phi_max = max(phi_values)
 
-            bl = self.ballooning_modified[xvalue]
 
-            length_bow = (1+bl) * (right_point - left_point).length()  # L
+            if abs(xvalue) > 1.:
+                if abs(xvalue) > 1. + 1e-5:
+                    raise Exception(f"invalid xvalue: {xvalue}")
+                xvalue = math.copysign(1., xvalue)
 
-            #lnew = sum([(c.prof1.curve.nodes[index] - c.prof2.curve.nodes[index]).length() for c in cells])  # L-NEW
+            ballooning_amount = self.ballooning_modified[xvalue]
 
-            for cell_no, cell in enumerate(cells):
-                if bl > 0:
-                    phi2= (phi_values[cell_no+1] - phi_values[cell_no]) / phi_max
-                    length_bow_part = length_bow * phi2
-                    lnew = (cell.prof1.curve.nodes[index] - cell.prof2.curve.nodes[index]).length()
+            bow_length = (1.+ballooning_amount) * (right_point - left_point).length()  # L
+
+            for child_no, child_cell in enumerate(child_cells):
+                if ballooning_amount > 1e-8:
+                    phi2= (phi_values[child_no+1] - phi_values[child_no]) / phi_max
+                    length_bow_part = bow_length * phi2
+                    lnew = (child_cell.prof1.curve.nodes[index] - child_cell.prof2.curve.nodes[index]).length()
                     
                     ballooning_new = (length_bow_part/lnew) - 1
 
-                    #print(index, cell_no, phi2, phi_values, phi_max, length_bow_part, lnew, ballooning_new)
-
                     if ballooning_new < 0:
-                        raise ValueError(f"invalid ballooning for subcell: {self.name} / {cell_no}")
+                        logger.error(f"invalid ballooning for subcell: {self.name} / {child_no}")
                         ballooning_new = 0
-                        #print("JO")
 
-                    cell.ballooning_phi.append(BallooningBase.arcsinc(1/(1+ballooning_new)))  # B/L NEW 1 / (bl * l / lnew)
+                    child_cell.ballooning_phi.append(BallooningBase.arcsinc(1/(1+ballooning_new)))  # B/L NEW 1 / (bl * l / lnew)
                 else:
-                    cell.ballooning_phi.append(0.)
-        return cells
+                    child_cell.ballooning_phi.append(0.)
+        return child_cells
 
     @property
     def ribs(self) -> list[Rib]:
