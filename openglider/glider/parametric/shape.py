@@ -115,7 +115,7 @@ class ParametricShape:
         xvalues = [p[0]*self.span for p in self.rib_dist_interpolation]
 
         if self.config.has_stabicell:
-            width = 0.4 * (xvalues[-1] - xvalues[-2])
+            width = self.config.stabi_cell_width * (xvalues[-1] - xvalues[-2])
             xvalues.append(xvalues[-1] + width)
             xvalues = [p*self.span/xvalues[-1] for p in xvalues]
         
