@@ -31,7 +31,7 @@ class OpenGliderKernel(QtInProcessKernelClient):
         self.session.send(stream, msg)
         msg_parts = stream.recv_multipart()
 
-        asyncio.create_task(self.async_dispatch(msg_parts))
+        asyncio.ensure_future(self.async_dispatch(msg_parts))
     
     async def async_dispatch(self, msg_parts: list[str]) -> None:
         await self.kernel.dispatch_shell(msg_parts)

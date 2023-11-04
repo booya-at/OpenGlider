@@ -84,7 +84,7 @@ class GliderListWidget(GenericListWidget[GliderProject, GliderListWidgetItemWidg
 
     def __init__(self, parent: QtWidgets.QWidget, selection_list: GliderList):
         super().__init__(parent, selection_list)
-        asyncio.create_task(selection_list.watch(self))
+        asyncio.ensure_future(selection_list.watch(self))
 
     @staticmethod
     def import_glider(filename: str) -> GliderProject:

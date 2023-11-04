@@ -112,7 +112,7 @@ class QTaskQueue(QtWidgets.QWidget):
         self.list.setDragEnabled(True)
         
         self.layout().addWidget(self.list)
-        self.update_task = asyncio.create_task(self._update())
+        self.update_task = asyncio.ensure_future(self._update())
 
         self.tasks = []
 

@@ -238,7 +238,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 fname = str(url.toLocalFile())
             
             if fname:
-                asyncio.create_task(self.load_glider(fname))
+                asyncio.ensure_future(self.load_glider(fname))
             #self.load_image()
         else:
             e.ignore()
@@ -287,7 +287,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def load_demokite(self) -> None:
         og_dir = os.path.dirname(openglider.__file__)
         filename = os.path.join(og_dir, "tests/common/demokite.ods")
-        asyncio.create_task(self.load_glider(filename))
+        asyncio.ensure_future(self.load_glider(filename))
 
 
     def open_dialog(self) -> None:
@@ -295,7 +295,7 @@ class MainWindow(QtWidgets.QMainWindow):
         filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, "load glider", home, filter="Openglider (*.ods *.json)")
 
         if filename:
-            asyncio.create_task(self.load_glider(filename))
+            asyncio.ensure_future(self.load_glider(filename))
 
 
     async def load_glider(self, filename: str) -> None:

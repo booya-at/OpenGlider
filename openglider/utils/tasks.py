@@ -128,10 +128,10 @@ class TaskQueue:
 
         if execute_function is None:
             #execute_function = self.pool.apply
-            execute_function = asyncio.create_task
+            execute_function = asyncio.ensure_future
             
         self.execute = execute_function
-        asyncio.create_task(self.process())
+        asyncio.ensure_future(self.process())
 
     def add(self, task: Task) -> None:
         self.tasks.append(task)

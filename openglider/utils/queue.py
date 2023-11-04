@@ -24,7 +24,7 @@ class AsyncTaskQueue:
         return len(self.tasks) >= self.num_workers
     
     def start_task(self, coroutine: Coroutine) -> None:
-        task: asyncio.Task = asyncio.create_task(coroutine)
+        task: asyncio.Task = asyncio.ensure_future(coroutine)
         self.tasks.append(task)
         task.add_done_callback(self.done_callback)
 
