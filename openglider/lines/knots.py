@@ -105,7 +105,7 @@ class KnotCorrections:
                 raise Exception(f"whooot {lower_type} and {upper_type} with {upper_num} top")
         
         if upper_num == 1:
-            return first
+            return [first]
 
         return [(first + index * (last-first) / (upper_num-1)) * 0.001 for index in range(upper_num)]
 
