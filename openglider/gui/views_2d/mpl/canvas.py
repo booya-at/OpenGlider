@@ -24,7 +24,7 @@ class PlotCanvas(FigureCanvas):
         self.figure = Figure(dpi=dpi)
         self.axes = self.figure.add_subplot(111)
 
-        self.figure.set_tight_layout(True)
+        self.figure.tight_layout()
         super().__init__(figure=self.figure)
 
         self.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding,
@@ -59,7 +59,7 @@ class PlotCanvas(FigureCanvas):
 
         self.draw()
 
-    def bbox(self) -> tuple[int, int]:
+    def bbox(self) -> tuple[float, float]:
         bbox = self.axes.get_window_extent().transformed(self.figure.dpi_scale_trans.inverted())
         dpi = self.figure.dpi
         #width = bbox.width

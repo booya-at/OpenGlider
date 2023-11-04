@@ -126,7 +126,11 @@ class SingleSkinRib(Rib):
                     ]).get_sequence(self.single_skin_parameters.num_points)
 
                     airfoil = pyfoil.Airfoil(
-                        airfoil.curve.get(0, ik_start) + [p1_bottom] + spline_curve + [p2_bottom] + airfoil.curve.get(ik_end, len(airfoil.curve)-1)
+                        airfoil.curve.get(0, ik_start) +
+                        euklid.vector.PolyLine2D([p1_bottom]) +
+                        spline_curve +
+                        euklid.vector.PolyLine2D([p2_bottom]) +
+                        airfoil.curve.get(ik_end, len(airfoil.curve)-1)
                     )
             
             last_point = attachment_points[-1]
@@ -134,10 +138,11 @@ class SingleSkinRib(Rib):
                 ik_last = airfoil.get_ik(last_point.rib_pos)
 
                 airfoil = pyfoil.Airfoil(
-                    airfoil.curve.get(0, ik_last) + [
+                    airfoil.curve.get(0, ik_last) +
+                        euklid.vector.PolyLine2D([
                         airfoil.curve.get(ik_last) + euklid.vector.Vector2D([last_point.width/2/self.chord, 0]),
                         airfoil.curve.get(0)
-                    ]
+                    ])
                 )
 
             return airfoil

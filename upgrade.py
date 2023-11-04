@@ -2,10 +2,10 @@ from typing import NamedTuple
 import os
 from pathlib import Path
 
-import pyupgrade._main
-import autoflake
-import black
-import black.mode
+import pyupgrade._main  # type: ignore
+import autoflake  # type: ignore
+import black  # type: ignore
+import black.mode  # type: ignore
 
 basedir = Path(__file__).absolute().parent
 
@@ -38,7 +38,7 @@ black_args = black.mode.Mode(
     line_length=100,
 )
 
-def run():
+def run() -> None:
     for dirname, x, files in os.walk(basedir / "openglider"):
 
         for file in files:

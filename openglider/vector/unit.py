@@ -101,7 +101,7 @@ class Quantity(pydantic.BaseModel):
             display_unit=display_unit
         )
     
-    def __str__(self):
+    def __str__(self) -> str:
         value, unit = self._get_display_value()
         return f"{value}{unit}"
     
