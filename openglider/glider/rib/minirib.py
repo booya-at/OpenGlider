@@ -17,6 +17,7 @@ class MiniRib:
     back_cut: float = 1.0 # | None=None # ?? should be handled by __post_init__ but I dont get it.
     name: str="unnamed_minirib"
 
+
     function: euklid.vector.Interpolation = Field(default_factory=lambda: euklid.vector.Interpolation([]))
 
     class Config:

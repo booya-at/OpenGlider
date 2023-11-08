@@ -12,6 +12,7 @@ from openglider.glider.cell.panel import Panel, PANELCUT_TYPES
 from openglider.plots.config import PatternConfig
 from openglider.plots.cuts import Cut
 from openglider.plots.glider.diagonal import DribPlot, StrapPlot
+from openglider.plots.glider.minirib import MiniRibPlot
 from openglider.plots.usage_stats import MaterialUsage
 from openglider.utils.cache import cached_property
 from openglider.utils.config import Config
@@ -21,7 +22,6 @@ from openglider.vector.unit import Length, Percentage
 
 if TYPE_CHECKING:
     from openglider.glider.cell import Cell
-    from openglider.glider.rib import MiniRib
 
 logger = logging.getLogger(__name__)
 
@@ -528,6 +528,7 @@ class CellPlotMaker:
     DribPlot = DribPlot
     StrapPlot = StrapPlot
     PanelPlot = PanelPlot
+    MiniRibPlot = MiniRibPlot
 
     def __init__(self, cell: Cell, config: Config | None=None):
         self.cell = cell
@@ -615,9 +616,16 @@ class CellPlotMaker:
         
         return rigidfoils
     
-    def get_miniribs(self) -> list[PlotPart]:
-        miniribs = []
-        for minirib in self.cell.miniribs:
-            miniribs.append(minirib.get_flattened(self.cell))
 
-        return miniribs
+    
+
+    def get_miniribs(self) -> list[PlotPart]:
+        miniribs = self.cell.miniribs[:]
+        miniribs.sort(key=lambda d: d.name)
+        mribs = []
+        for mrib in miniribs[::-1]:
+            mrib_plot = self.MiniRibPlot(mrib, self.cell, self.config)
+            mribs.append(mrib_plot.flatten())
+            self.consumption += mrib_plot.get_material_usage()
+        
+        return mribs

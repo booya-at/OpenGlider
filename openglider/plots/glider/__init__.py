@@ -9,6 +9,7 @@ from openglider.utils.config import Config
 from openglider.vector.drawing import Layout
 from openglider.plots.glider.cell import CellPlotMaker as DefaultCellPlotMaker
 from openglider.plots.glider.ribs import RibPlot, SingleSkinRibPlot
+from openglider.plots.glider.minirib import MiniRibPlot
 from openglider.plots.config import PatternConfig
 from openglider.plots.usage_stats import MaterialUsage
 from openglider.vector.drawing.part import PlotPart
@@ -32,7 +33,8 @@ class PlotMaker:
     CellPlotMaker: TypeAlias = DefaultCellPlotMaker
     SingleSkinRibPlot = SingleSkinRibPlot
     RibPlot = RibPlot
-
+    MibiRibPlot = MiniRibPlot
+    
     def __init__(self, glider_3d: Glider, config: Config | None=None):
         self.glider_3d = glider_3d.copy()
         self.config = self.DefaultConf(config)
@@ -42,6 +44,7 @@ class PlotMaker:
         self.dribs = collections.OrderedDict()
         self.straps = collections.OrderedDict()
         self.rigidfoils = collections.OrderedDict()
+        self.miniribs = collections.OrderedDict()
         self.extra_parts: list[PlotPart] = []
         self._cellplotmakers: dict[Cell, DefaultCellPlotMaker] = dict()
 
@@ -54,7 +57,8 @@ class PlotMaker:
             "panels": self.panels,
             "extra_parts": self.extra_parts,
             #"dribs": self.dribs,
-            "ribs": self.ribs
+            "ribs": self.ribs,
+            "miniribs": self.miniribs
         }
 
     @classmethod
