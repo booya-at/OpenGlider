@@ -21,6 +21,7 @@ from openglider.vector.unit import Length, Percentage
 
 if TYPE_CHECKING:
     from openglider.glider.cell import Cell
+    from openglider.glider.rib import MiniRib
 
 logger = logging.getLogger(__name__)
 
@@ -199,6 +200,7 @@ class PanelPlot:
         self._insert_attachment_points(plotpart)
         self._insert_diagonals(plotpart)
         self._insert_rigidfoils(plotpart)
+        self._insert_miniribs(plotpart)
         #self._insert_center_rods(plotpart)
         # TODO: add in parametric way
 
@@ -491,6 +493,17 @@ class PanelPlot:
                 plotpart.layers["L0"].append(euklid.vector.PolyLine2D([line.get(0)]))
                 plotpart.layers["L0"].append(euklid.vector.PolyLine2D([line.get(len(line)-1)]))
 
+    def _insert_miniribs(self, plotpart: PlotPart) -> None:
+        for minirib in self.cell.miniribs:
+            if minirib.draw_panel_marks(self.cell, self.panel) is not None:
+                line = minirib.draw_panel_marks(self.cell, self.panel)
+
+                plotpart.layers["marks"].append(line)
+
+                # laser dots
+                plotpart.layers["L0"].append(euklid.vector.PolyLine2D([line.get(0)]))
+                plotpart.layers["L0"].append(euklid.vector.PolyLine2D([line.get(len(line)-1)]))
+
 
 class FlattenedCellWithAllowance(FlattenedCell):
     outer: tuple[euklid.vector.PolyLine2D, euklid.vector.PolyLine2D]
@@ -601,3 +614,10 @@ class CellPlotMaker:
             rigidfoils.append(rigidfoil.get_flattened(self.cell))
         
         return rigidfoils
+    
+    def get_miniribs(self) -> list[PlotPart]:
+        miniribs = []
+        for minirib in self.cell.miniribs:
+            miniribs.append(minirib.get_flattened(self.cell))
+
+        return miniribs

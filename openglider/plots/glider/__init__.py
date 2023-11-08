@@ -26,6 +26,7 @@ class PlotMaker:
     dribs: PlotPartDict
     straps: PlotPartDict
     rigidfoils: PlotPartDict
+    miniribs: PlotPartDict
 
     DefaultConf: TypeAlias = PatternConfig
     CellPlotMaker: TypeAlias = DefaultCellPlotMaker
@@ -173,6 +174,15 @@ class PlotMaker:
             self.rigidfoils[cell] = rigidfoils
         
         return self.rigidfoils
+    
+    def get_miniribs(self) -> PlotPartDict:
+        self.miniribs.clear()
+
+        for cell in self.glider_3d.cells:
+            miniribs = self._get_cellplotmaker(cell).get_miniribs()
+            self.miniribs[cell] = miniribs
+
+        return self.miniribs
 
     def get_all_grouped(self) -> Layout:
         # create x-raster
@@ -235,4 +245,5 @@ class PlotMaker:
         self.get_dribs()
         self.get_straps()
         self.get_rigidfoils()
+        self.get_miniribs()
         return self
