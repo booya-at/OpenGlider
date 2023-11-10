@@ -84,13 +84,13 @@ class DiagonalRib(BaseModel):
     left: DiagonalSide
     right: DiagonalSide
 
-    num_folds: int=1
+    num_folds: int=0
     material_code: str=""
     name: str="unnamed"
 
-    hole_num: int=0
-    hole_border_side :float=0.15
-    hole_border_front_back: float=0.1
+    hole_num: int=2
+    hole_border_side :float=0.2
+    hole_border_front_back: float=0.15
 
     def copy(self, **kwargs: Any) -> DiagonalRib:
         return copy.copy(self)

@@ -30,9 +30,14 @@ class DribPlot:
         left = left.mirror(p1, p2)
         right = right.mirror(p1, p2)
 
+        self.p1 = p1
+        self.p2 = p2
+
         center_left = left.get(left.walk(0, left.get_length()/2))
         center_right = right.get(right.walk(0, right.get_length()/2))
         angle = (center_right - center_left).angle()
+
+        self.angle = angle
 
         self.left = left.rotate(-angle, euklid.vector.Vector2D([0,0]))
         self.right = right.rotate(-angle, euklid.vector.Vector2D([0,0]))
@@ -205,6 +210,8 @@ class DribPlot:
             plotpart.layers["cuts"].append(outer)
 
         for curve in self.drib.get_holes(self.cell)[0]:
+            curve = curve.mirror(self.p1, self.p2)
+            curve = curve.rotate(-self.angle, euklid.vector.Vector2D([0,0]))
             plotpart.layers["cuts"].append(curve)
 
         plotpart.layers["marks"].append(euklid.vector.PolyLine2D([self.left.get(0), self.right.get(0)]))

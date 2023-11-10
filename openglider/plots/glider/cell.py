@@ -617,8 +617,6 @@ class CellPlotMaker:
         return rigidfoils
     
 
-    
-
     def get_miniribs(self) -> list[PlotPart]:
         miniribs = self.cell.miniribs[:]
         miniribs.sort(key=lambda d: d.name)

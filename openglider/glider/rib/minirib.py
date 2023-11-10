@@ -65,10 +65,15 @@ class MiniRib:
         return Profile3D(euklid.vector.PolyLine3D(points))
 
     
-    def get_length(self, cell: Cell) -> float:
-        line, start, end = self._get_flattened_line(cell)
+    def get_flattened_length_top(self, cell: Cell) -> float:
+        line, ik_front_bot, ik_back_bot, ik_front_top, ik_back_top= self._get_flattened_line(cell)
 
-        return line.get(start, end).get_length()
+        return line.get(ik_back_top, ik_front_top).get_length()
+    
+    def get_flattened_length_bot(self, cell: Cell) -> float:
+        line, ik_front_bot, ik_back_bot, ik_front_top, ik_back_top= self._get_flattened_line(cell)
+
+        return line.get(ik_front_bot, ik_back_bot).get_length()
 
     def _get_flattened_line(self, cell: Cell) -> tuple[euklid.vector.PolyLine2D, float, float]:
         flattened_cell = cell.get_flattened_cell()
@@ -86,7 +91,7 @@ class MiniRib:
     def draw_panel_marks(self, cell: Cell, panel: Panel) -> euklid.vector.PolyLine2D | None:
         line, ik_front_bot, ik_back_bot, ik_front_top, ik_back_top = self._get_flattened_line(cell)
 
-        ik_interpolation_front, ik_interpolation_back = panel._get_ik_interpolation(cell, numribs=5)
+        ik_interpolation_front, ik_interpolation_back = panel._get_ik_interpolation(cell, numribs=50)
 
         if panel.is_lower():
             start = max(ik_front_bot, ik_interpolation_front.get_value(self.yvalue))
@@ -103,7 +108,6 @@ class MiniRib:
         #return None
 
 
-
     def get_flattened(self, cell: Cell) -> euklid.vector.PolyLine2D:
 
         profile = self.get_3d(cell).flatten()
@@ -115,11 +119,46 @@ class MiniRib:
         start_top = profile.get_ik(-self.front_cut*profile.curve.nodes[0][0])
         end_top = profile.get_ik(-profile.curve.nodes[0][0])
 
-        nodes = euklid.vector.PolyLine2D(contour.get(end_top, start_top))
-        nodes = nodes + euklid.vector.PolyLine2D(contour.get(start_bot, end_bot))
+        nodes_top = euklid.vector.PolyLine2D(contour.get(end_top, start_top))
+        nodes_bottom = euklid.vector.PolyLine2D(contour.get(start_bot, end_bot))
+
+        length_minirib = nodes_top.get_length()+ nodes_bottom.get_length()
+
+        length_on_panel = self.get_flattened_length_bot(cell) + self.get_flattened_length_top(cell)
+        
+        correction_factor = length_on_panel/length_minirib
+
+        print(f"Minirib correction_factor: %s" %correction_factor)
+
+        #nodes = nodes_top + nodes_bottom
+
+        return_nodes_top = []
+        return_nodes_bottom = []
+
+        for node in nodes_top:
+            node[0] = node[0]*correction_factor
+            return_nodes_top.append(node)
+
+        
+
+        for node in nodes_bottom:
+            node[0] = node[0]*correction_factor
+            return_nodes_bottom.append(node)
+
+        
+
+        return_nodes = euklid.vector.PolyLine2D(return_nodes_top + return_nodes_bottom)
+        return_nodes_top = euklid.vector.PolyLine2D(return_nodes_top)
+        return_nodes_bottom = euklid.vector.PolyLine2D(return_nodes_top)
+
+        print(length_on_panel)
+
+        print(f"Minirib_LengthDiffernece Top and Bot: %s" %(length_on_panel-(return_nodes_top.get_length()+return_nodes_bottom.get_length())))
+
+        
 
 
-        return nodes
+        return return_nodes
 
 
 

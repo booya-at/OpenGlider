@@ -85,6 +85,7 @@ class PlotMaker:
         weight = MaterialUsage()
 
         for cell_no, cell in enumerate(self.glider_3d.cells):
+            logger.info(f"Plotting Cell: %s"  % cell_no)
             pm = self._get_cellplotmaker(cell)
             lower = pm.get_panels_lower()
             upper = pm.get_panels_upper()
@@ -193,6 +194,9 @@ class PlotMaker:
         for rib in self.ribs:
             rib.rotate(-90, radians=False)
 
+        #for mrib in self.miniribs:
+        #    mrib.rotate(-90, radians=False)
+
         panels = self.panels
         ribs = Layout.stack_row(self.ribs, self.config.patterns_align_dist_x)
 
@@ -206,6 +210,7 @@ class PlotMaker:
         dribs = stack_grid(self.dribs)
         straps = stack_grid(self.straps)
         rigidfoils = stack_grid(self.rigidfoils)
+        miniribs = stack_grid(self.miniribs)
 
         def group(layout: Layout, prefix: str) -> list[Layout]:
             grouped = layout.group_materials()
@@ -222,6 +227,7 @@ class PlotMaker:
         ribs_grouped = group(ribs, "ribs")
         dribs_grouped = group(dribs, "dribs")
         straps_grouped = group(straps, "straps")
+        miniribs_grouped = group(miniribs, "miniribs")
 
 
         panels.add_text("panels_all")
@@ -231,6 +237,7 @@ class PlotMaker:
         all_layouts += ribs_grouped
         all_layouts += dribs_grouped
         all_layouts += straps_grouped
+        all_layouts += miniribs_grouped
 
         if len(rigidfoils.parts):
             rigidfoils.draw_border()

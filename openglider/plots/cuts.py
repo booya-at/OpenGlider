@@ -122,6 +122,8 @@ class SimpleCut(DesignCut):
         outer_left: euklid.vector.PolyLine2D,
         outer_right: euklid.vector.PolyLine2D,
         amount_3d: list[float] | None=None
+
+        
         ) -> CutResult:
 
         p1, p2 = self.get_p1_p2(inner_lists, amount_3d)
@@ -134,14 +136,14 @@ class SimpleCut(DesignCut):
             leftcut_index = outer_left.cut(p1, p2, inner_lists[0][1])
             index_left = leftcut_index[0]
         except RuntimeError:
-            logger.error(f"no cut found")
+            logger.error(f"no cut found LEFT")
             index_left = inner_lists[0][1]
 
         try:
             rightcut_index = outer_right.cut(p1, p2, inner_lists[-1][1])
             index_right = rightcut_index[0]
         except RuntimeError:
-            logger.error(f"no cut found")
+            logger.error(f"no cut found RIGHT")
             index_right = inner_lists[-1][1]
 
 
