@@ -27,10 +27,10 @@ class PatternConfigOld(Config):
     patterns_align_dist_x = patterns_align_dist_y
     patterns_scale = 1000
 
-    allowance_general = 0.006
-    allowance_parallel = 0.006
-    allowance_orthogonal = 0.006
-    allowance_diagonals = 0.006
+    allowance_general = 0.01
+    allowance_parallel = 0.01
+    allowance_orthogonal = 0.01
+    allowance_diagonals = 0.01
     allowance_trailing_edge = 0.01
     allowance_entry_open = 0.015
 
@@ -57,7 +57,6 @@ class PatternConfigOld(Config):
     allowance_design = 0.012  # trailing_edge
 
     drib_allowance_folds = Length(0.012)
-    drib_num_folds = 0
     drib_text_position = 0.1
 
     strap_num_folds = 0

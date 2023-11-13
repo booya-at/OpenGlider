@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 import euklid
+import logging
 
 from openglider.airfoil import Profile3D
 from openglider.utils.dataclass import dataclass, Field
@@ -9,6 +10,8 @@ from openglider.utils.dataclass import dataclass, Field
 if TYPE_CHECKING:
     from openglider.glider.cell import Cell
     from openglider.glider.cell.panel import Panel
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class MiniRib:
@@ -128,32 +131,14 @@ class MiniRib:
         
         correction_factor = length_on_panel/length_minirib
 
-        print(f"Minirib correction_factor: %s" %correction_factor)
+        logger.info(f"Minirib correction_factor: %s" %correction_factor)
 
-        #nodes = nodes_top + nodes_bottom
-
-        return_nodes_top = []
-        return_nodes_bottom = []
-
-        for node in nodes_top:
-            node[0] = node[0]*correction_factor
-            return_nodes_top.append(node)
-
-        
-
-        for node in nodes_bottom:
-            node[0] = node[0]*correction_factor
-            return_nodes_bottom.append(node)
-
-        
+        return_nodes_top = nodes_top * euklid.vector.Vector2D(correction_factor, 1.)
+        return_nodes_bottom = nodes_bottom * euklid.vector.Vector2D(correction_factor, 1.)
 
         return_nodes = euklid.vector.PolyLine2D(return_nodes_top + return_nodes_bottom)
-        return_nodes_top = euklid.vector.PolyLine2D(return_nodes_top)
-        return_nodes_bottom = euklid.vector.PolyLine2D(return_nodes_top)
 
-        print(length_on_panel)
-
-        print(f"Minirib_LengthDiffernece Top and Bot: %s" %(length_on_panel-(return_nodes_top.get_length()+return_nodes_bottom.get_length())))
+        logger.info(f"Minirib_LengthDifference Top and Bot seam: %s" %(length_on_panel-(return_nodes_top.get_length()+return_nodes_bottom.get_length())))
 
         
 

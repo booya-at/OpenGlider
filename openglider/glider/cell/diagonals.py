@@ -84,7 +84,6 @@ class DiagonalRib(BaseModel):
     left: DiagonalSide
     right: DiagonalSide
 
-    num_folds: int=0
     material_code: str=""
     name: str="unnamed"
 
@@ -185,9 +184,6 @@ class DiagonalRib(BaseModel):
         for point in tri_mesh.points[len(envelope_2d):]:
             ik = mapping_2d.get_iks(point)
             points_3d.append(mapping_3d.get_point(*ik))
-
-        print(len(point_3d))
-        print(len(tri_mesh.elements))
 
         drib_mesh = mesh.Mesh.from_indexed(points_3d, {"diagonals": [(p, {}) for p in tri_mesh.elements]}, boundaries={"diagonals": boundary_nodes})
 
