@@ -88,7 +88,7 @@ class DiagonalRib(BaseModel):
     material_code: str=""
     name: str="unnamed"
 
-    hole_num: int=2
+    hole_num: int=0
     hole_border_side :float=0.2
     hole_border_front_back: float=0.15
 
@@ -185,7 +185,10 @@ class DiagonalRib(BaseModel):
         for point in tri_mesh.points[len(envelope_2d):]:
             ik = mapping_2d.get_iks(point)
             points_3d.append(mapping_3d.get_point(*ik))
-        
+
+        print(len(point_3d))
+        print(len(tri_mesh.elements))
+
         drib_mesh = mesh.Mesh.from_indexed(points_3d, {"diagonals": [(p, {}) for p in tri_mesh.elements]}, boundaries={"diagonals": boundary_nodes})
 
         min_size = drib_mesh.polygon_size()[0]
