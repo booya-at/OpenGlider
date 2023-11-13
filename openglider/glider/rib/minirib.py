@@ -133,15 +133,12 @@ class MiniRib:
 
         logger.info(f"Minirib correction_factor: %s" %correction_factor)
 
-        return_nodes_top = nodes_top * euklid.vector.Vector2D(correction_factor, 1.)
-        return_nodes_bottom = nodes_bottom * euklid.vector.Vector2D(correction_factor, 1.)
+        return_nodes_top = nodes_top * euklid.vector.Vector2D([correction_factor, 1.])
+        return_nodes_bottom = nodes_bottom * euklid.vector.Vector2D([correction_factor, 1.])
 
         return_nodes = euklid.vector.PolyLine2D(return_nodes_top + return_nodes_bottom)
 
-        logger.info(f"Minirib_LengthDifference Top and Bot seam: %s" %(length_on_panel-(return_nodes_top.get_length()+return_nodes_bottom.get_length())))
-
-        
-
+        logger.info(f"Miniribs of Cell: {cell.name} length difference Top and Bot seam: {((length_on_panel-(return_nodes_top.get_length()+return_nodes_bottom.get_length()))*1000)} mm")
 
         return return_nodes
 
