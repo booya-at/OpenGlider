@@ -27,6 +27,8 @@ class DribPlot:
 
         left, right = self.drib.get_flattened(self.cell)
         p1, p2 = left.nodes[0], right.nodes[0]
+        self.p1 = p1
+        self.p2 = p2
         left = left.mirror(p1, p2)
         right = right.mirror(p1, p2)
 
@@ -36,6 +38,7 @@ class DribPlot:
         center_left = left.get(left.walk(0, left.get_length()/2))
         center_right = right.get(right.walk(0, right.get_length()/2))
         angle = (center_right - center_left).angle()
+        self.angle = angle
 
         self.angle = angle
 

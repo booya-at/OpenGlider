@@ -29,8 +29,6 @@ class DiagonalDTO(QRDTO):
 
         return diagonal
     
-
-
 class DiagonalWithHolesDTO(DiagonalDTO):
 
     num_folds: int

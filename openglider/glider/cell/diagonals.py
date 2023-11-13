@@ -79,7 +79,7 @@ class DiagonalSide(BaseModel):
                     rib.align(rib.profile_2d.align([self.start_x, self.height])),
                     rib.align(rib.profile_2d.align([self.end_x, self.height]))
                 ])
-
+            
 
 class DiagonalRib(BaseModel):
     left: DiagonalSide
@@ -253,7 +253,7 @@ class DiagonalRib(BaseModel):
         return average x value for sorting
         """
         return (self.left.center + self.right.center)/2
-
+    
 
 class TensionStrap(DiagonalRib):
     hole_num: int=0
@@ -280,7 +280,7 @@ class TensionStrap(DiagonalRib):
             "width": (self.left.width + self.right.width)/2,
             "height": self.left.height
         }
-
+    
 class TensionLine(TensionStrap):
     def __init__(self, left: Percentage, right: Percentage, material_code: str="", name: str=""):
         """
