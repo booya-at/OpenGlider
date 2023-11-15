@@ -3,9 +3,18 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 import euklid
 import logging
+import numpy as np
+
+import pyfoil
+
+import openglider.airfoil
+from openglider.glider.rib import Rib
 
 from openglider.airfoil import Profile3D
 from openglider.utils.dataclass import dataclass, Field
+from openglider.utils.cache import cached_function, cached_property
+
+from openglider.mesh import Mesh, triangulate
 
 if TYPE_CHECKING:
     from openglider.glider.cell import Cell
@@ -19,7 +28,7 @@ class MiniRib:
     front_cut: float
     back_cut: float = 1.0 # | None=None # ?? should be handled by __post_init__ but I dont get it.
     name: str="unnamed_minirib"
-
+    
 
     function: euklid.vector.Interpolation = Field(default_factory=lambda: euklid.vector.Interpolation([]))
 
@@ -141,6 +150,77 @@ class MiniRib:
         logger.info(f"Miniribs of Cell: {cell.name} length difference Top and Bot seam: {((length_on_panel-(return_nodes_top.get_length()+return_nodes_bottom.get_length()))*1000)} mm")
 
         return return_nodes
+    
+    def get_hull(self, cell: Cell) -> pyfoil.Airfoil:
+        """returns the outer contour of the normalized mesh in form
+           of a Polyline"""
+        
+        profile = self.get_3d(cell).flatten()
+        contour = profile.curve
+
+        start_bot = profile.get_ik(self.front_cut*profile.curve.nodes[0][0])
+        end_bot = profile.get_ik(profile.curve.nodes[0][0])
+        start_top = profile.get_ik(-self.front_cut*profile.curve.nodes[0][0])
+        end_top = profile.get_ik(-profile.curve.nodes[0][0])
+
+        nodes_top = euklid.vector.PolyLine2D(contour.get(end_top, start_top))
+        nodes_bottom = euklid.vector.PolyLine2D(contour.get(start_bot, end_bot))
+        
+        nodes= euklid.vector.PolyLine2D(nodes_top+nodes_bottom)
+
+        return openglider.airfoil.Profile2D(nodes)
+    
 
 
+    def align_all(self, cell: Cell, data: euklid.vector.PolyLine2D, scale: bool=False) -> euklid.vector.PolyLine3D:
+        """align 2d coordinates to the 3d pos of the minirib"""
 
+        rib1 = cell.rib1
+        rib2 = cell.rib2 #midrib(self.yvalue, True)
+
+        # ToDo: not correct as ribs are not parallel
+
+        if scale:
+            return ((rib1.transformation.apply(data)).mix((rib2.transformation.apply(data)),self.yvalue))
+        else:
+            return (rib1.rotation_matrix.apply(data).move(rib1.pos)).mix((rib2.rotation_matrix.apply(data).move(rib2.pos)),self.yvalue)
+    
+
+
+    
+    
+
+
+    def get_mesh(self, cell: Cell, filled: bool=True, max_area: float=None) -> Mesh:
+
+        vertices = [(p[0], p[1]) for p in self.get_hull(cell).curve.nodes[:-1]]
+        boundary = [list(range(len(vertices))) + [0]]
+        hole_centers: list[tuple[float, float]] = []
+
+        if not filled:
+            segments = []
+            for lst in boundary:
+                segments += triangulate.Triangulation.get_segments(lst)
+            return Mesh.from_indexed(self.align_all(cell, euklid.vector.PolyLine2D(vertices)).nodes, {'minirib': [(l, {}) for l in segments]}, {})
+        else:
+            tri = triangulate.Triangulation(vertices, boundary, hole_centers)
+            if max_area is not None:
+                tri.meshpy_max_area = max_area
+            
+            tri.name = self.name
+            mesh = tri.triangulate()
+
+            points = self.align_all(cell, euklid.vector.PolyLine2D(mesh.points))
+            boundaries = {self.name: list(range(len(mesh.points)))}
+
+
+            minirib_mesh = Mesh.from_indexed(points.nodes, polygons={"miniribs": [(tri, {}) for tri in mesh.elements]} , boundaries=boundaries)
+            
+            #for hole in self.holes:
+            #    if hole_mesh := hole.get_mesh(self):
+            #        rib_mesh += hole_mesh
+
+        return minirib_mesh
+    
+
+    

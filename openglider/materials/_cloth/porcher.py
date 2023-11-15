@@ -53,6 +53,7 @@ materials += [
     Skytex38(color="royal_blue", color_code="0F81C4"),
     Skytex38(color="petrol_blue", color_code="01567D"),
     Skytex38(color="deep_blue", color_code="243882"),
+    Skytex38(color="electric_blue", color_code="4F81BD"),
 ]
 
 class Skytex27(Porcher):

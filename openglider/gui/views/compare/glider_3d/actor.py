@@ -104,6 +104,24 @@ class GliderActors:
         mesh_view = MeshView()
         mesh_view.draw_mesh(mesh)
         return mesh_view
+    
+    def get_miniribs(self) -> MeshView:
+        if self.glider_3d is None:
+            raise ValueError("Glider3D not set")
+            
+        mesh = openglider.mesh.Mesh()
+        for cell_no, cell in enumerate(self.glider_3d.cells):
+            for minirib in cell.miniribs:
+                minirib_mesh = minirib.get_mesh(cell)
+
+                mesh += minirib_mesh
+                if cell_no > 0 or not self.glider_3d.has_center_cell:
+                    mesh += minirib_mesh.copy().mirror("y")
+        
+        mesh_view = MeshView()
+        mesh_view.draw_mesh(mesh)
+        return mesh_view
+
 
     def add(self, view_3d: View3D, config: GliderViewConfig) -> None:
         if self.glider_3d is None or config.needs_recalc(self.config):
@@ -121,7 +139,8 @@ class GliderActors:
                 "ribs": self.get_ribs(),
                 "lines": self.get_lines(),
                 "diagonals": self.get_diagonals(),
-                "straps": self.get_straps()
+                "straps": self.get_straps(),
+                "miniribs": self.get_miniribs()
             }
         
         for name in config.get_active_keys():
