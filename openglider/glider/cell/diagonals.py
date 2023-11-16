@@ -29,6 +29,7 @@ class DiagonalSide(BaseModel):
     
     height: float
 
+
     @property
     def is_lower(self) -> bool:
         return self.height == -1
@@ -86,6 +87,8 @@ class DiagonalRib(BaseModel):
 
     material_code: str=""
     name: str="unnamed"
+
+    num_folds: int=1
 
     hole_num: int=0
     hole_border_side :float=0.2
@@ -155,16 +158,18 @@ class DiagonalRib(BaseModel):
         boundary = [boundary_nodes+[0]]
         
         holes, hole_centers = self.get_holes(cell)
+
+        triangulation_points = envelope_2d[:]
         
         for curve in holes:
-            start_index = len(envelope_2d)
+            start_index = len(triangulation_points)
             hole_vertices = curve.tolist()[:-1]
             hole_indices = list(range(len(hole_vertices))) + [0]
-            envelope_2d += hole_vertices
+            triangulation_points += hole_vertices
             boundary.append([start_index + i for i in hole_indices])
 
         hole_centers_lst = [(p[0], p[1]) for p in hole_centers]
-        tri = openglider.mesh.triangulate.Triangulation([(p[0], p[1]) for p in envelope_2d], boundary, hole_centers_lst)
+        tri = openglider.mesh.triangulate.Triangulation([(p[0], p[1]) for p in triangulation_points], boundary, hole_centers_lst)
         tri_mesh = tri.triangulate()
 
         # map 2d-points to 3d-points

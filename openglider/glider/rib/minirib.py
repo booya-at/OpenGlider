@@ -28,6 +28,7 @@ class MiniRib:
     front_cut: float
     back_cut: float = 1.0 # | None=None # ?? should be handled by __post_init__ but I dont get it.
     name: str="unnamed_minirib"
+   
     
 
     function: euklid.vector.Interpolation = Field(default_factory=lambda: euklid.vector.Interpolation([]))
@@ -88,6 +89,8 @@ class MiniRib:
         return line.get(ik_front_bot, ik_back_bot).get_length()
 
     def _get_flattened_line(self, cell: Cell) -> tuple[euklid.vector.PolyLine2D, float, float]:
+
+        # todo cleanup
         flattened_cell = cell.get_flattened_cell()
         left, right = flattened_cell.ballooned
         line = left.mix(right, self.yvalue)

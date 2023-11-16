@@ -121,8 +121,37 @@ class GliderActors:
         mesh_view = MeshView()
         mesh_view.draw_mesh(mesh)
         return mesh_view
+    
+    def set_res(self, view_3d: View3D, config: GliderViewConfig) -> None:
+
+        blub = config.get_active_keys()
+
+        # to do implement correctly xD
+        
+        if "highres" in blub: 
+            print("HIGHRES OOOOOOT")
+        
+
+            highres_p: int=150
+            highres_m: int=15
+
+            lowres_p: int=40
+            lowres_m: int=5
+
+            if config.profile_numpoints < highres_p:
+                config.profile_numpoints = highres_p
+                config.numribs = highres_m
+                self.update(view_3d, config)
+            else:
+                config.profile_numpoints = lowres_p
+                config.numribs = lowres_m
+        else:
+            return
+
+        
 
 
+ 
     def add(self, view_3d: View3D, config: GliderViewConfig) -> None:
         if self.glider_3d is None or config.needs_recalc(self.config):
             self.glider_3d = self.project.get_glider_3d().copy()
@@ -140,7 +169,8 @@ class GliderActors:
                 "lines": self.get_lines(),
                 "diagonals": self.get_diagonals(),
                 "straps": self.get_straps(),
-                "miniribs": self.get_miniribs()
+                "miniribs": self.get_miniribs(),
+                "highres": self.set_res(view_3d, config)
             }
         
         for name in config.get_active_keys():

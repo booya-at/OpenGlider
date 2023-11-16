@@ -81,7 +81,7 @@ class OtherPatternConfig(PatternConfigOld):
     
     rib_text_in_seam = False
     
-    allowance_design = 0.006
+    allowance_design = 0.01
     drib_allowance_folds = Length("1cm")
     strap_num_folds = 0
     allowance_entry_open = 0.021

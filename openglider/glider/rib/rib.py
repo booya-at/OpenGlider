@@ -161,6 +161,8 @@ class Rib(RibBase):
         for rigid_no, rigid in enumerate(self.rigidfoils):
             rigid.name = self.rigid_naming_scheme.format(rigid_no, rib=self)
 
+            
+
     @staticmethod
     def _aoa_diff(arc_angle: float, glide: float) -> float:
         ##Formula for aoa rel/abs: ArcTan[Cos[alpha]/gleitzahl]-aoa[rad];
@@ -249,8 +251,9 @@ class Rib(RibBase):
         
     def get_rigidfoils(self) -> list[RigidFoilBase]:
         if self.sharknose is not None:
-            return self.sharknose.update_rigidfoils(self)
-        
+            self.rigidfoils = self.sharknose.update_rigidfoils(self)
+            self.rename_parts()
+
         return self.rigidfoils
 
 
