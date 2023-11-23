@@ -28,6 +28,7 @@ class MiniRib:
     front_cut: float
     back_cut: float = 1.0 # | None=None # ?? should be handled by __post_init__ but I dont get it.
     name: str="unnamed_minirib"
+    material_code: str="unnamed_material"
    
     
 

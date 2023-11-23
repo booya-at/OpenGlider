@@ -352,7 +352,7 @@ class Panel(BaseModel):
 
         def quad(l_i: int, r_i: int) -> list[mesh.Polygon]:
             if tri:
-                return left_triangle(l_i, r_i) + right_triangle(l_i, r_i)
+                return left_triangle(l_i, r_i) + right_triangle(l_i+1, r_i)
             else:
                 return [mesh.Polygon([points[l_i+1], points[l_i], points[r_i], points[r_i+1]])]
 

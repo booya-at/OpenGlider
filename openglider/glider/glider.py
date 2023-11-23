@@ -125,11 +125,11 @@ class Glider:
 
         return mesh
 
-    def get_mesh_panels(self, num_midribs: int=0) -> Mesh:
+    def get_mesh_panels(self, num_midribs: int=0, tri:bool = False) -> Mesh:
         mesh = Mesh(name="panels")
         for cell in self.cells:
             for panel in cell.panels:
-                mesh += panel.get_mesh(cell, num_midribs)
+                mesh += panel.get_mesh(cell, num_midribs, tri=tri)
 
         return mesh
 

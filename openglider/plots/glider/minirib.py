@@ -67,17 +67,33 @@ class MiniRibPlot:
         profile = self.minirib.get_3d(self.cell).flatten()
 
         p = profile.profilepoint(x, y)
-        return p * profile.curve.nodes[0][0]
+
+
+        print("...")
+        print(p)
+        print("...")
+
+        p_temp = list(p)
+
+        p_temp[0] = p_temp[0] * profile.curve.nodes[0][0]
+
+        return euklid.vector.Vector2D(p_temp)
 
 
     def add_text(self, plotpart: PlotPart) -> None:
         
-        posX = self.minirib.front_cut +0.05
+        posX = self.minirib.front_cut
 
-        p1 = self.get_point(posX, -1)
-        p2 = self.get_point(posX, 1)
+        p1 = self.get_point(posX, 1)
+        p2 = self.get_point(posX, -1)
 
-        _text = Text(self.minirib.name, p1, p2, size=0.01, align="center", valign= 0)
+        p1 = (p1+p2)/2
+        p2 = p1 +euklid.vector.Vector2D([0.02,-0.005])
+
+        print(p1)
+        print(p2)
+
+        _text = Text(self.minirib.name, p1, p2, size=0.01, align="center", valign=0)
 
 
         plotpart.layers[self.layer_name_text] += _text.get_vectors()
@@ -150,7 +166,7 @@ class MiniRibPlot:
     
     
     def flatten(self) -> PlotPart:
-        plotpart = PlotPart()
+        plotpart = PlotPart(material_code=self.minirib.material_code, name=self.minirib.name)
 
         self.inner = self.minirib.get_flattened(self.cell)
         self.outer = self.inner.offset(self.config.allowance_general, simple=False)

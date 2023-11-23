@@ -52,7 +52,7 @@ class PatternConfigOld(Config):
 
     marks_panel_cut = marks.Combine(marks.Line(name="panel_cut"), marks.Dot(0.2, 0.8))
     rib_text_in_seam = False
-    rib_text_pos = -0.003
+    rib_text_pos = 0.03
 
     allowance_design = 0.012  # trailing_edge
 

@@ -160,12 +160,15 @@ class DribPlot:
         else:
             node_index = 0
         # text_p1 = left_out[0] + self.config.drib_text_position * (right_out[0] - left_out[0])
+        val_valign = 0.6
+        if self.config.strap_num_folds == 0:
+            val_valign *= -1
         plotpart.layers["text"] += Text(f" {self.drib.name} ",
                                         self.left.nodes[node_index],
                                         self.right.nodes[node_index],
                                         size=self.config.drib_allowance_folds * 0.6,
                                         height=0.6,
-                                        valign=0.6).get_vectors()
+                                        valign=val_valign).get_vectors()
 
     def flatten(self) -> PlotPart:
         return self._flatten(self.drib.num_folds)

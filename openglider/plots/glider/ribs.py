@@ -337,8 +337,8 @@ class RibPlot:
             _text = Text(text, p1, p2, size=(outer-inner).length()*0.5, valign=0)
             #_text = Text(text, p1, p2, size=0.05)
         else:
-            p1 = self.get_point(0.05, -1)
-            p2 = self.get_point(0.05, 1)
+            p1 = self.get_point(self.config.rib_text_pos, -1)
+            p2 = self.get_point(self.config.rib_text_pos, 1)
 
             _text = Text(text, p1, p2, size=0.01, align="center")
 
