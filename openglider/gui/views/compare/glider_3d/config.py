@@ -19,14 +19,19 @@ class GliderViewConfig(BaseModel):
 
     show_highres: bool = False
 
-
-
-    profile_numpoints: int = 40
-    numribs: int = 5
+    profile_numpoints: int = 25
+    numribs: int = 3
 
     def needs_recalc(self, old_config: GliderViewConfig | None=None) -> bool:
         if old_config is None:
             return True
+        
+        if self.show_highres:
+            self.numribs = 12
+            self.profile_numpoints = 120
+        else:
+            self.numribs = 3
+            self.profile_numpoints = 25
         
         if old_config.numribs != self.numribs:
             return True
@@ -49,9 +54,6 @@ class GliderViewConfig(BaseModel):
             keys.append("straps")
         if self.show_miniribs:
             keys.append("miniribs")
-        if self.show_highres:
-            keys.append("highres")
-        
         return keys
 
 
