@@ -123,7 +123,7 @@ class DiagonalRib(BaseModel):
 
         return left, right
 
-    def get_mesh(self, cell: Cell, insert_points: int=10, project_3d: bool=False) -> mesh.Mesh:
+    def get_mesh(self, cell: Cell, insert_points: int=10, project_3d: bool=False, hole_res: int = 40) -> mesh.Mesh:
         """
         get a mesh from a diagonal (2 poly lines)
         """
@@ -157,7 +157,7 @@ class DiagonalRib(BaseModel):
         boundary_nodes = list(range(len(envelope_2d)))
         boundary = [boundary_nodes+[0]]
         
-        holes, hole_centers = self.get_holes(cell)
+        holes, hole_centers = self.get_holes(cell, hole_res)
 
         triangulation_points = envelope_2d[:]
         

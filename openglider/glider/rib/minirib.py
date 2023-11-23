@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class MiniRib:
     yvalue: float
     front_cut: float
-    back_cut: float = 1.0 # | None=None # ?? should be handled by __post_init__ but I dont get it.
+    back_cut: float | None=None
     name: str="unnamed_minirib"
     material_code: str="unnamed_material"
    
@@ -80,39 +80,51 @@ class MiniRib:
 
     
     def get_flattened_length_top(self, cell: Cell) -> float:
-        line, ik_front_bot, ik_back_bot, ik_front_top, ik_back_top= self._get_flattened_line(cell)
+        line, ik_front_top, ik_back_top= self._get_flattened_line(cell, is_lower=False)
 
         return line.get(ik_back_top, ik_front_top).get_length()
     
     def get_flattened_length_bot(self, cell: Cell) -> float:
-        line, ik_front_bot, ik_back_bot, ik_front_top, ik_back_top= self._get_flattened_line(cell)
+        line, ik_front_bot, ik_back_bot= self._get_flattened_line(cell, is_lower=True)
 
         return line.get(ik_front_bot, ik_back_bot).get_length()
 
-    def _get_flattened_line(self, cell: Cell) -> tuple[euklid.vector.PolyLine2D, float, float]:
+    def _get_flattened_line(self, cell: Cell, is_lower:bool) -> tuple[euklid.vector.PolyLine2D, float, float]:
 
         # todo cleanup
         flattened_cell = cell.get_flattened_cell()
         left, right = flattened_cell.ballooned
         line = left.mix(right, self.yvalue)
 
-        ik_front_bot = (cell.rib1.profile_2d(self.front_cut) + cell.rib2.profile_2d(self.front_cut))/2
-        ik_back_bot = (cell.rib1.profile_2d(self.back_cut) + cell.rib2.profile_2d(self.back_cut))/2
+        if self.back_cut is None:
+            back_cut = 1.
+        else:
+            back_cut = self.back_cut
 
-        ik_back_top = (cell.rib1.profile_2d(-self.front_cut) + cell.rib2.profile_2d(-self.front_cut))/2
-        ik_front_top = (cell.rib1.profile_2d(-self.back_cut) + cell.rib2.profile_2d(-self.back_cut))/2
+        if is_lower == True:
+            ik_front_bot = (cell.rib1.profile_2d(self.front_cut) + cell.rib2.profile_2d(self.front_cut))/2
+            ik_back_bot = (cell.rib1.profile_2d(back_cut) + cell.rib2.profile_2d(back_cut))/2
 
-        return line, ik_front_bot, ik_back_bot, ik_front_top, ik_back_top
+            return line, ik_front_bot, ik_back_bot
 
-    def draw_panel_marks(self, cell: Cell, panel: Panel) -> euklid.vector.PolyLine2D | None:
-        line, ik_front_bot, ik_back_bot, ik_front_top, ik_back_top = self._get_flattened_line(cell)
+        else:
+            ik_back_top = (cell.rib1.profile_2d(-self.front_cut) + cell.rib2.profile_2d(-self.front_cut))/2
+            ik_front_top = (cell.rib1.profile_2d(-back_cut) + cell.rib2.profile_2d(-back_cut))/2
 
-        ik_interpolation_front, ik_interpolation_back = panel._get_ik_interpolation(cell, numribs=50)
+            return line, ik_front_top, ik_back_top
+
+    def draw_panel_marks(self, cell: Cell, panel: Panel, numribs=50) -> euklid.vector.PolyLine2D | None:
+        
+
+        ik_interpolation_front, ik_interpolation_back = panel._get_ik_interpolation(cell, numribs=numribs)
 
         if panel.is_lower():
+            line, ik_front_bot, ik_back_bot = self._get_flattened_line(cell, is_lower=True)
+
             start = max(ik_front_bot, ik_interpolation_front.get_value(self.yvalue))
             stop= min(ik_back_bot, ik_interpolation_back.get_value(self.yvalue))
         else:    
+            line, ik_front_top, ik_back_top = self._get_flattened_line(cell, is_lower=False)
             start = max(ik_front_top, ik_interpolation_front.get_value(self.yvalue))
             stop = min(ik_back_top, ik_interpolation_back.get_value(self.yvalue))
 
@@ -121,10 +133,8 @@ class MiniRib:
         
         #3D shaping cut does not seem to be taken into account
 
-        #return None
 
-
-    def get_flattened(self, cell: Cell) -> euklid.vector.PolyLine2D:
+    def get_nodes(self, cell: Cell) -> euklid.vector.PolyLine2D:
 
         profile = self.get_3d(cell).flatten()
         contour = profile.curve
@@ -144,6 +154,14 @@ class MiniRib:
         
         correction_factor = length_on_panel/length_minirib
 
+        return nodes_top, nodes_bottom, length_on_panel, correction_factor
+
+
+
+    def get_flattened(self, cell: Cell) -> euklid.vector.PolyLine2D:
+
+        nodes_top, nodes_bottom, length_on_panel, correction_factor = self.get_nodes(cell)
+
         logger.info(f"Minirib correction_factor: %s" %correction_factor)
 
         return_nodes_top = nodes_top * euklid.vector.Vector2D([correction_factor, 1.])
@@ -159,22 +177,11 @@ class MiniRib:
         """returns the outer contour of the normalized mesh in form
            of a Polyline"""
         
-        profile = self.get_3d(cell).flatten()
-        contour = profile.curve
-
-        start_bot = profile.get_ik(self.front_cut*profile.curve.nodes[0][0])
-        end_bot = profile.get_ik(profile.curve.nodes[0][0])
-        start_top = profile.get_ik(-self.front_cut*profile.curve.nodes[0][0])
-        end_top = profile.get_ik(-profile.curve.nodes[0][0])
-
-        nodes_top = euklid.vector.PolyLine2D(contour.get(end_top, start_top))
-        nodes_bottom = euklid.vector.PolyLine2D(contour.get(start_bot, end_bot))
-        
+        nodes_top, nodes_bottom, length_on_panel, correction_factor = self.get_nodes(cell)
         nodes= euklid.vector.PolyLine2D(nodes_top+nodes_bottom)
 
         return openglider.airfoil.Profile2D(nodes)
     
-
 
     def align_all(self, cell: Cell, data: euklid.vector.PolyLine2D, scale: bool=False) -> euklid.vector.PolyLine3D:
         """align 2d coordinates to the 3d pos of the minirib"""
@@ -189,11 +196,6 @@ class MiniRib:
         else:
             return (rib1.rotation_matrix.apply(data).move(rib1.pos)).mix((rib2.rotation_matrix.apply(data).move(rib2.pos)),self.yvalue)
     
-
-
-    
-    
-
 
     def get_mesh(self, cell: Cell, filled: bool=True, max_area: float=None) -> Mesh:
 

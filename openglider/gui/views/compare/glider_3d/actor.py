@@ -41,14 +41,14 @@ class GliderActors:
         mesh_view.draw_mesh(panel_mesh)
         return mesh_view
     
-    def get_ribs(self) -> MeshView:
+    def get_ribs(self, hole_numpoints) -> MeshView:
         ribs_mesh = openglider.mesh.Mesh()
 
         if self.glider_3d is None:
             raise ValueError("Glider3D not set")
 
         for i, rib in enumerate(self.glider_3d.ribs):
-            mesh_temp = rib.get_mesh(filled=True)
+            mesh_temp = rib.get_mesh(hole_num= hole_numpoints, filled=True)
 
             ribs_mesh += mesh_temp
 
@@ -60,25 +60,25 @@ class GliderActors:
         mesh_view.draw_mesh(ribs_mesh)
         return mesh_view
 
-    def get_lines(self) -> MeshView:
+    def get_lines(self, numpoints=3) -> MeshView:
         if self.glider_3d is None:
             raise ValueError("Glider3D not set")
 
-        mesh_lineset = self.glider_3d.lineset.get_mesh(numpoints=3)
+        mesh_lineset = self.glider_3d.lineset.get_mesh(numpoints=numpoints)
 
         mesh_view = MeshView()
         mesh_view.draw_mesh(mesh_lineset + mesh_lineset.copy().mirror("y"))
 
         return mesh_view
     
-    def get_diagonals(self) -> MeshView:
+    def get_diagonals(self, hole_numpoints) -> MeshView:
         if self.glider_3d is None:
             raise ValueError("Glider3D not set")
 
         mesh = openglider.mesh.Mesh()
         for cell_no, cell in enumerate(self.glider_3d.cells):
             for diagonal in cell.diagonals:
-                cell_mesh = diagonal.get_mesh(cell, 2)
+                cell_mesh = diagonal.get_mesh(cell, 2, False, hole_numpoints)
 
                 mesh += cell_mesh
                 if cell_no > 0 or not self.glider_3d.has_center_cell:
@@ -136,9 +136,9 @@ class GliderActors:
         
             self.actors = {
                 "panels": self.get_panels(config.numribs),
-                "ribs": self.get_ribs(),
-                "lines": self.get_lines(),
-                "diagonals": self.get_diagonals(),
+                "ribs": self.get_ribs(config.hole_numpoints),
+                "lines": self.get_lines(config.line_numpoints),
+                "diagonals": self.get_diagonals(config.hole_numpoints),
                 "straps": self.get_straps(),
                 "miniribs": self.get_miniribs()
 
