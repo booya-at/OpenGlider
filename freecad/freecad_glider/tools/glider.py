@@ -194,10 +194,10 @@ class OGBaseVP(object):
         mod = ['glider']
         return(mod)
 
-    def __getstate__(self):
+    def dumps(self):
         return None
 
-    def __setstate__(self, state):
+    def loads(self, state):
         return None
 
 
@@ -271,13 +271,13 @@ class OGGlider(OGBaseObject):
         super(OGGlider, self).execute(obj)
 
 
-    def __getstate__(self):
+    def dumps(self):
         out = {
             'ParametricGlider': jsonify.dumps(self.obj.ParametricGlider),
             'name': self.obj.Name}
         return out
 
-    def __setstate__(self, state):
+    def loads(self, state):
         # seld.obj is not yet available! 
         obj = App.ActiveDocument.getObject(state['name'])
         obj.ParametricGlider = jsonify.loads(state['ParametricGlider'])['data']
@@ -486,10 +486,10 @@ class OGGliderVP(OGBaseVP):
         _dir = os.path.dirname(os.path.realpath(__file__))
         return(_dir + "/../icons/glider_workbench.svg")
 
-    def __getstate__(self):
+    def dumps(self):
         return {"name": self.view_obj.Object.Name}
 
-    def __setstate__(self, state):
+    def loads(self, state):
         self.recompute = False
         obj = App.ActiveDocument.getObject(state['name'])
         view_obj = obj.ViewObject
