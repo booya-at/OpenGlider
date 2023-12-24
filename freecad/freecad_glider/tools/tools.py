@@ -123,7 +123,6 @@ def export_glider(glider_2d, glider_3d):
     filename = QtGui.QFileDialog.getSaveFileName(
         parent=None,
         caption='export glider',
-        directory='~',
         filter=file_types)
     if filename[0] != "":
         ext = filename[1].split(".")[-1]
@@ -144,8 +143,8 @@ def export_glider(glider_2d, glider_3d):
 def import_2d(glider):
     filename = QtGui.QFileDialog.getOpenFileName(
         parent=None,
-        caption='import glider',
-        directory='~')
+        caption='import glider'
+        )
     if filename[0].endswith('.json'):
         with open(filename, 'r') as importfile:
             glider.ParametricGlider = load(importfile)['data']
