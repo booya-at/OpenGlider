@@ -6,25 +6,31 @@ import FreeCADGui as Gui
 from openglider.glider.ballooning import BallooningBezier
 from PySide import QtCore, QtGui
 
-from .tools import BaseTool, QtGui, spline_select, Line_old, vector3D, ControlPointContainer
-
+from .tools import (
+    BaseTool,
+    QtGui,
+    spline_select,
+    Line_old,
+    vector3D,
+    ControlPointContainer,
+)
 
 
 class BallooningTool(BaseTool):
-    widget_name = 'Selection'
+    widget_name = "Selection"
     scale_y = 5
 
     def __init__(self, obj):
         super(BallooningTool, self).__init__(obj)
         # base_widget
         self.QList_View = QtGui.QListWidget(self.base_widget)
-        self.Qdelete_button = QtGui.QPushButton('delete', self.base_widget)
-        self.Qnew_button = QtGui.QPushButton('new', self.base_widget)
+        self.Qdelete_button = QtGui.QPushButton("delete", self.base_widget)
+        self.Qnew_button = QtGui.QPushButton("new", self.base_widget)
         self.Qballooning_name = QtGui.QLineEdit()
 
         self.Qballooning_widget = QtGui.QWidget()
         self.Qballooning_layout = QtGui.QFormLayout(self.Qballooning_widget)
-        self.Qfit_button = QtGui.QPushButton('modify with handles')
+        self.Qfit_button = QtGui.QPushButton("modify with handles")
 
         self.ballooning_sep = coin.SoSeparator()
         self.spline_sep = coin.SoSeparator()
@@ -43,7 +49,7 @@ class BallooningTool(BaseTool):
     def setup_widget(self):
         # ballooning widget
         self.form.insert(0, self.Qballooning_widget)
-        self.Qballooning_widget.setWindowTitle('ballooning')
+        self.Qballooning_widget.setWindowTitle("ballooning")
         self.Qballooning_layout.addWidget(self.Qballooning_name)
         self.Qballooning_layout.addWidget(self.Qfit_button)
 
@@ -73,24 +79,28 @@ class BallooningTool(BaseTool):
         self.grid = coin.SoSeparator()
         self.task_separator += [self.grid]
         self._update_grid()
-        Gui.SendMsgToActiveView('ViewFit')
-        self.insert_cb = self.view.addEventCallbackPivy(coin.SoKeyboardEvent.getClassTypeId(), self.insert_point)
+        Gui.SendMsgToActiveView("ViewFit")
+        self.insert_cb = self.view.addEventCallbackPivy(
+            coin.SoKeyboardEvent.getClassTypeId(), self.insert_point
+        )
 
     def _update_grid(self, grid_x=None, grid_y=None):
-        grid_x = grid_x or numpy.linspace(0., 1., int(20 + 1))
-        grid_y = grid_y or numpy.linspace(-0.1*self.scale_y, 0.1*self.scale_y, int(20 + 1))
+        grid_x = grid_x or numpy.linspace(0.0, 1.0, int(20 + 1))
+        grid_y = grid_y or numpy.linspace(
+            -0.1 * self.scale_y, 0.1 * self.scale_y, int(20 + 1)
+        )
         self.grid.removeAllChildren()
         x_points_lower = [[x, grid_y[0], -0.001] for x in grid_x]
         x_points_upper = [[x, grid_y[-1], -0.001] for x in grid_x]
         y_points_lower = [[grid_x[0], y, -0.001] for y in grid_y if y != 0]
         y_points_upper = [[grid_x[-1], y, -0.001] for y in grid_y if y != 0]
         for l in zip(x_points_lower, x_points_upper):
-            self.grid += [Line_old(l, color='grey').object]
+            self.grid += [Line_old(l, color="grey").object]
         for l in zip(y_points_lower, y_points_upper):
-            self.grid += [Line_old(l, color='grey').object]
+            self.grid += [Line_old(l, color="grey").object]
 
-        self.grid += (Line_old([[0, 0, -0.001], [1,0,-0.001]], color="red").object, )
-        for l in y_points_upper + [[grid_x[-1], 0., 0.]]:
+        self.grid += (Line_old([[0, 0, -0.001], [1, 0, -0.001]], color="red").object,)
+        for l in y_points_upper + [[grid_x[-1], 0.0, 0.0]]:
             textsep = coin.SoSeparator()
             text = coin.SoText2()
             trans = coin.SoTranslation()
@@ -103,7 +113,7 @@ class BallooningTool(BaseTool):
         j = 0
         for index in range(self.QList_View.count()):
             name = self.QList_View.item(index).text()
-            if 'ballooning' in name:
+            if "ballooning" in name:
                 j += 1
         ballooning = BallooningBezier()
         ballooning.name = "ballooning" + str(j)
@@ -171,8 +181,10 @@ class BallooningTool(BaseTool):
             self.lower_cpc.drag_release.append(self.lower_drag_release)
             self.upper_drag_release()
             self.lower_drag_release()
-            self.spline_select.spline_objects = [self.current_ballooning.ballooning.upper_spline, 
-                                                 self.current_ballooning.ballooning.lower_spline]
+            self.spline_select.spline_objects = [
+                self.current_ballooning.ballooning.upper_spline,
+                self.current_ballooning.ballooning.lower_spline,
+            ]
 
     def update_degree(self, *args):
         if self.current_ballooning is not None and self.is_edit:
@@ -197,35 +209,51 @@ class BallooningTool(BaseTool):
         control_point.points = p
 
     def _update_upper_spline(self, num):
-        self.constrain(self.upper_cpc.control_points[-1], 0,  1.)
-        self.constrain(self.upper_cpc.control_points[0], 0, 0.)
-        self.constrain(self.lower_cpc.control_points[-1], 1, -self.upper_cpc.control_points[-1].points[0][1])
-        self.constrain(self.lower_cpc.control_points[0], 1, -self.upper_cpc.control_points[0].points[0][1])
+        self.constrain(self.upper_cpc.control_points[-1], 0, 1.0)
+        self.constrain(self.upper_cpc.control_points[0], 0, 0.0)
+        self.constrain(
+            self.lower_cpc.control_points[-1],
+            1,
+            -self.upper_cpc.control_points[-1].points[0][1],
+        )
+        self.constrain(
+            self.lower_cpc.control_points[0],
+            1,
+            -self.upper_cpc.control_points[0].points[0][1],
+        )
         self.current_ballooning.upper_controlpoints = [
-            i[:-1] for i in self.upper_cpc.control_pos]
+            i[:-1] for i in self.upper_cpc.control_pos
+        ]
         self.draw_upper_spline(num)
         self._update_lower_spline(num)
 
     def draw_upper_spline(self, num):
         self.upper_spline.removeAllChildren()
-        l = Line_old(vector3D(self.current_ballooning.get_expl_upper_spline(num)),
-                 color='red', width=2)
+        l = Line_old(
+            vector3D(self.current_ballooning.get_expl_upper_spline(num)),
+            color="red",
+            width=2,
+        )
         self.upper_spline += [l.object]
 
     def _update_lower_spline(self, num):
         self.current_ballooning.lower_controlpoints = [
-            i[:-1] for i in self.lower_cpc.control_pos]
+            i[:-1] for i in self.lower_cpc.control_pos
+        ]
         self.draw_lower_spline(num)
 
     def draw_lower_spline(self, num):
         self.lower_spline.removeAllChildren()
-        l = Line_old(vector3D(self.current_ballooning.get_expl_lower_spline(num)),
-                 color='red', width=2)
+        l = Line_old(
+            vector3D(self.current_ballooning.get_expl_lower_spline(num)),
+            color="red",
+            width=2,
+        )
         self.lower_spline += [l.object]
 
     def insert_point(self, event_callback):
         event = event_callback.getEvent()
-        if (event.getKey() == ord('i')):
+        if event.getKey() == ord("i"):
             if not self.is_edit:
                 return
             if event.getState() == event.DOWN:
@@ -241,7 +269,6 @@ class BallooningTool(BaseTool):
                     #     self.current_ballooning.lower_controlpoints, pos)
                 self.current_ballooning.apply_splines()
                 self.set_edit_mode()
-
 
     def unset_edit_mode(self):
         if self.is_edit:
@@ -272,27 +299,38 @@ class QBalooning(QtGui.QListWidgetItem):
         super(QBalooning, self).__init__()
         self.setText(self.ballooning.name)
         self.scale_y = scale_y
-        self.upper_controlpoints = numpy.array([1., self.scale_y]) * self.ballooning.upper_spline.controlpoints
-        self.lower_controlpoints = numpy.array([1., -self.scale_y]) * self.ballooning.lower_spline.controlpoints
+        self.upper_controlpoints = (
+            numpy.array([1.0, self.scale_y])
+            * self.ballooning.upper_spline.controlpoints
+        )
+        self.lower_controlpoints = (
+            numpy.array([1.0, -self.scale_y])
+            * self.ballooning.lower_spline.controlpoints
+        )
         self.setFlags(self.flags() | QtCore.Qt.ItemIsEditable)
 
     def get_expl_lower_spline(self, num):
         # self.apply_splines()
-        self.ballooning.lower_spline.controlpoints = self.lower_controlpoints * numpy.array([1., -1./self.scale_y])
+        self.ballooning.lower_spline.controlpoints = (
+            self.lower_controlpoints * numpy.array([1.0, -1.0 / self.scale_y])
+        )
         seq = self.ballooning.lower_spline.get_sequence(num)
-        return seq * numpy.array([1., -self.scale_y])
+        return seq * numpy.array([1.0, -self.scale_y])
 
     def get_expl_upper_spline(self, num):
         # self.apply_splines()
-        self.ballooning.upper_spline.controlpoints = self.upper_controlpoints * numpy.array([1., 1./self.scale_y])
+        self.ballooning.upper_spline.controlpoints = (
+            self.upper_controlpoints * numpy.array([1.0, 1.0 / self.scale_y])
+        )
         seq = self.ballooning.upper_spline.get_sequence(num)
-        return seq * numpy.array([1., self.scale_y])
+        return seq * numpy.array([1.0, self.scale_y])
 
     def apply_splines(self):
         self.ballooning.controlpoints = [
-            numpy.array([1., 1./self.scale_y])*self.upper_controlpoints,
-            numpy.array([1., -1./self.scale_y])*self.lower_controlpoints
+            numpy.array([1.0, 1.0 / self.scale_y]) * self.upper_controlpoints,
+            numpy.array([1.0, -1.0 / self.scale_y]) * self.lower_controlpoints,
         ]
+
 
 def insert_point(points, insert_point):
     forward = points[-1][0] > points[0][0]

@@ -18,13 +18,17 @@ from pivy.graphics import Object3D
 import FreeCAD as App
 import FreeCADGui as Gui
 
-from openglider.glider.parametric.lines import (BatchNode2D, Line2D, LineSet2D,
-                                                LowerNode2D, UpperNode2D)
+from openglider.glider.parametric.lines import (
+    BatchNode2D,
+    Line2D,
+    LineSet2D,
+    LowerNode2D,
+    UpperNode2D,
+)
 from openglider.lines.line_types import LineType
 
 from .glider import draw_glider, draw_lines
 from .tools import BaseTool, input_field, text_field, vector3D
-
 
 
 class Line(_Line):
@@ -71,7 +75,7 @@ class LineContainer(InteractionSeparator):
 
     def select_all_cb(self, attr, event_callback):
         event = event_callback.getEvent()
-        if (event.getKey() == ord('a')):
+        if event.getKey() == ord("a"):
             if event.getState() == event.DOWN:
                 if self.selected_objects:
                     for o in self.selected_objects:
@@ -84,6 +88,7 @@ class LineContainer(InteractionSeparator):
                 self.color_selected()
                 self.selection_changed()
 
+
 # all line info goes into the tool.
 # the lineset will be totally reloaded after the tool work is ready
 # if an error occurs nothing will happen
@@ -92,8 +97,10 @@ class LineContainer(InteractionSeparator):
 # 2: create lines from existing lineset
 # 3: eventhandler for adding and connecting lines
 
+
 class LineTool(BaseTool):
-    widget_name = 'Line Tool'
+    widget_name = "Line Tool"
+
     def __init__(self, obj):
         super(LineTool, self).__init__(obj)
 
@@ -109,8 +116,7 @@ class LineTool(BaseTool):
         self.setup_widget()
         self.setup_pivy()
 
-
-    def setup_pivy(self):        
+    def setup_pivy(self):
         # pivy helper line
         self.helper_line = coin.SoSeparator()
         self.temp_point = coin.SoSeparator()
@@ -119,7 +125,7 @@ class LineTool(BaseTool):
         self.shape = LineContainer(self.rm)
         self.shape.selection_changed = self.selection_changed
 
-        self.shape.setName('shape')
+        self.shape.setName("shape")
         self.shape.register()
         self.task_separator += [self.shape, self.helper_line]
         self.task_separator += [self.temp_point]
@@ -142,11 +148,11 @@ class LineTool(BaseTool):
         self.layer_layout = QtGui.QFormLayout(self.layer_widget)
         self.layer_selection = LayerComboBox(self.layer_widget)
         self.layer_combobox = LayerComboBox(self.layer_widget)
-        self.layer_color_button = QtGui.QPushButton('select color')
+        self.layer_color_button = QtGui.QPushButton("select color")
         self.layer_color_dialog = QtGui.QColorDialog()
 
-        self.tool_widget.setWindowTitle('object properties')
-        self.layer_widget.setWindowTitle('layers')
+        self.tool_widget.setWindowTitle("object properties")
+        self.layer_widget.setWindowTitle("layers")
         self.form.append(self.layer_widget)
         self.form.append(self.tool_widget)
 
@@ -170,15 +176,14 @@ class LineTool(BaseTool):
 
         self.target_length = QtGui.QDoubleSpinBox()
         self.target_length.setDecimals(5)
-        self.line_layout.setWidget(
-            0, text_field, QtGui.QLabel('target length: '))
+        self.line_layout.setWidget(0, text_field, QtGui.QLabel("target length: "))
         self.line_layout.setWidget(0, input_field, self.target_length)
-        self.line_layout.setWidget(1, text_field, QtGui.QLabel('line type: '))
+        self.line_layout.setWidget(1, text_field, QtGui.QLabel("line type: "))
         self.line_layout.setWidget(1, input_field, self.Qline_list)
         self.target_length.valueChanged.connect(self.update_target_length)
         self.Qline_list.currentItemChanged.connect(self.update_line_type)
         self.QLineName = QtGui.QLineEdit()
-        self.line_layout.setWidget(2, text_field, QtGui.QLabel('name'))
+        self.line_layout.setWidget(2, text_field, QtGui.QLabel("name"))
         self.line_layout.setWidget(2, input_field, self.QLineName)
         self.QLineName.textChanged.connect(self.line_name_changed)
 
@@ -187,10 +192,9 @@ class LineTool(BaseTool):
         self.attach_z_val = QtGui.QDoubleSpinBox()
         self.attach_name = QtGui.QLineEdit()
 
-        for spinbox in [
-                self.attach_x_val, self.attach_y_val, self.attach_z_val]:
-            spinbox.setMaximum(100.)
-            spinbox.setMinimum(-100.)
+        for spinbox in [self.attach_x_val, self.attach_y_val, self.attach_z_val]:
+            spinbox.setMaximum(100.0)
+            spinbox.setMinimum(-100.0)
             spinbox.valueChanged.connect(self.update_lw_att_pos)
         self.attach_name.textChanged.connect(self.update_lw_att_name)
 
@@ -201,14 +205,14 @@ class LineTool(BaseTool):
 
         self.up_att_force = QtGui.QDoubleSpinBox()
         self.up_att_force.setSingleStep(0.1)
-        self.up_att_lay.setWidget(0, text_field, QtGui.QLabel('force'))
+        self.up_att_lay.setWidget(0, text_field, QtGui.QLabel("force"))
         self.up_att_lay.setWidget(0, input_field, self.up_att_force)
         self.up_att_force.valueChanged.connect(self.update_up_att_force)
 
         self.up_att_rib = QtGui.QSpinBox()
         self.up_att_rib.setMinimum(0)
         self.up_att_rib.setMaximum(self.parametric_glider.shape.half_rib_num - 1)
-        self.up_att_lay.setWidget(1, text_field, QtGui.QLabel('rib nr'))
+        self.up_att_lay.setWidget(1, text_field, QtGui.QLabel("rib nr"))
         self.up_att_lay.setWidget(1, input_field, self.up_att_rib)
         self.up_att_rib.valueChanged.connect(self.update_up_att_rib)
 
@@ -216,7 +220,7 @@ class LineTool(BaseTool):
         self.up_att_pos.setMinimum(0)
         self.up_att_pos.setMaximum(1)
         self.up_att_pos.setSingleStep(0.01)
-        self.up_att_lay.setWidget(2, text_field, QtGui.QLabel('position'))
+        self.up_att_lay.setWidget(2, text_field, QtGui.QLabel("position"))
         self.up_att_lay.setWidget(2, input_field, self.up_att_pos)
         self.up_att_pos.valueChanged.connect(self.update_up_att_pos)
 
@@ -226,30 +230,29 @@ class LineTool(BaseTool):
         self.tool_widget.addWidget(self.up_att_wid)
         self.tool_widget.setCurrentWidget(self.none_widget)
 
-
         self.Qhl_pos.setValue(50)
         self.Qhl_pos.setRange(0, 100)
         self.Qhl_pos.setSingleStep(1)
         self.Qhl_pos.connect(
-            self.Qhl_pos,
-            QtCore.SIGNAL('valueChanged(double)'),
-            self.update_helper_line)
+            self.Qhl_pos, QtCore.SIGNAL("valueChanged(double)"), self.update_helper_line
+        )
 
-        self.layout.setWidget(1, text_field, QtGui.QLabel('helper_line_pos'))
+        self.layout.setWidget(1, text_field, QtGui.QLabel("helper_line_pos"))
         self.layout.setWidget(1, input_field, self.Qhl_pos)
 
         # layers:
 
-        add_button = QtGui.QPushButton('add layer')
-        del_button = QtGui.QPushButton('delete layer')
-        self.layer_layout.setWidget(
-            0, text_field, QtGui.QLabel('work on layer'))
+        add_button = QtGui.QPushButton("add layer")
+        del_button = QtGui.QPushButton("delete layer")
+        self.layer_layout.setWidget(0, text_field, QtGui.QLabel("work on layer"))
         self.layer_layout.setWidget(0, input_field, self.layer_combobox)
         self.layer_layout.setWidget(1, text_field, add_button)
         self.layer_layout.setWidget(1, input_field, del_button)
-        self.layer_layout.setWidget(2, text_field, QtGui.QLabel('setLayer'))
+        self.layer_layout.setWidget(2, text_field, QtGui.QLabel("setLayer"))
         self.layer_layout.setWidget(2, input_field, self.layer_selection)
-        self.layer_layout.setWidget(3, text_field, QtGui.QLabel('select color of disabled lines'))
+        self.layer_layout.setWidget(
+            3, text_field, QtGui.QLabel("select color of disabled lines")
+        )
         self.layer_layout.setWidget(3, input_field, self.layer_color_button)
 
         # dialogs
@@ -286,8 +289,9 @@ class LineTool(BaseTool):
 
     def delete_layer(self):
         current_layer = self.layer_combobox.currentText()
-        self.set_layer(text='', objects=self.shape.dynamic_objects,
-                       from_layer=current_layer)
+        self.set_layer(
+            text="", objects=self.shape.dynamic_objects, from_layer=current_layer
+        )
         self.layer_combobox.removeItem(self.layer_combobox.currentIndex())
         self.update_layer_selection()
         self.show_layer()
@@ -305,15 +309,15 @@ class LineTool(BaseTool):
         text = text or self.layer_selection.currentText()
         objects = objects or self.shape.selected_objects
         for obj in objects:
-            if hasattr(obj, 'layer'):
+            if hasattr(obj, "layer"):
                 if from_layer is None or from_layer == obj.layer:
                     obj.layer = text
 
     def show_layer(self):
         self.shape.deselect_all()
         for obj in self.shape.dynamic_objects:
-            if hasattr(obj, 'layer'):
-                if self.layer_combobox.currentText() == '':
+            if hasattr(obj, "layer"):
+                if self.layer_combobox.currentText() == "":
                     if not obj.enabled:
                         obj.set_enabled()
                 elif obj.layer != self.layer_combobox.currentText():
@@ -325,25 +329,34 @@ class LineTool(BaseTool):
 
     def setup_cb(self):
         self.point_preview_cb = self.view.addEventCallbackPivy(
-            coin.SoLocation2Event.getClassTypeId(), self.point_preview)
+            coin.SoLocation2Event.getClassTypeId(), self.point_preview
+        )
         self.line_cb = self.view.addEventCallbackPivy(
-            coin.SoKeyboardEvent.getClassTypeId(), self.add_line)
+            coin.SoKeyboardEvent.getClassTypeId(), self.add_line
+        )
         self.node_cb = self.view.addEventCallbackPivy(
-            coin.SoKeyboardEvent.getClassTypeId(), self.add_node)
+            coin.SoKeyboardEvent.getClassTypeId(), self.add_node
+        )
 
     def remove_all_callbacks(self):
         if self.point_preview_cb:
-            self.view.removeEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.point_preview_cb)
+            self.view.removeEventCallbackPivy(
+                coin.SoLocation2Event.getClassTypeId(), self.point_preview_cb
+            )
         if self.line_cb:
-            self.view.removeEventCallbackPivy(coin.SoKeyboardEvent.getClassTypeId(), self.line_cb)
+            self.view.removeEventCallbackPivy(
+                coin.SoKeyboardEvent.getClassTypeId(), self.line_cb
+            )
         if self.node_cb:
-            self.view.removeEventCallbackPivy(coin.SoKeyboardEvent.getClassTypeId(), self.node_cb)
+            self.view.removeEventCallbackPivy(
+                coin.SoKeyboardEvent.getClassTypeId(), self.node_cb
+            )
 
     def update_helper_line(self, pos=50):
         self.helper_line.removeAllChildren()
         points = vector3D(self.help_line(pos / 100))
         l = Line(points, dynamic=False)
-        l.set_color('red')
+        l.set_color("red")
         self.helper_line += [l]
 
     def help_line(self, pos=0.5):
@@ -355,29 +368,31 @@ class LineTool(BaseTool):
         if type(event) == coin.SoLocation2Event or force:
             self.upper_preview_node = None
             pos = event.getPosition()
-            check_points = [i.tolist() for i in self.help_line(self.Qhl_pos.value() / 100)]
+            check_points = [
+                i.tolist() for i in self.help_line(self.Qhl_pos.value() / 100)
+            ]
             for i, point in enumerate(check_points):
-                s = self.view.getPointOnScreen(point[0], point[1], 0.)
-                if (abs(s[0] - pos[0]) ** 2 + abs(s[1] - pos[1]) ** 2) < (15 ** 2) and point[0] >= 0:
+                s = self.view.getPointOnScreen(point[0], point[1], 0.0)
+                if (abs(s[0] - pos[0]) ** 2 + abs(s[1] - pos[1]) ** 2) < (
+                    15**2
+                ) and point[0] >= 0:
                     self.upper_preview_node = (point, i)
                     m = Marker(vector3D([point]), dynamic=False)
-                    m.set_color('blue')
+                    m.set_color("blue")
                     self.temp_point += [m]
                     break
 
     def add_line(self, event_callback):
         event = event_callback.getEvent()
-        if (event.getKey() == ord('l') and
-            event.getState() == 1):
+        if event.getKey() == ord("l") and event.getState() == 1:
             objs = self.shape.selected_objects
             if len(objs) == 2:
-                if (isinstance(objs[0], NodeMarker) and
-                    isinstance(objs[1], NodeMarker)):
+                if isinstance(objs[0], NodeMarker) and isinstance(objs[1], NodeMarker):
                     line = ConnectionLine(objs[0], objs[1])
                     line.layer = self.layer_combobox.currentText()
                     self.shape += [line]
             elif len(objs) == 1:
-                if (isinstance(objs[0], NodeMarker)):
+                if isinstance(objs[0], NodeMarker):
                     marker2 = self.node_cb(event_callback, force=True)
                     if marker2:
                         line = ConnectionLine(objs[0], marker2)
@@ -388,8 +403,7 @@ class LineTool(BaseTool):
 
     def add_node(self, event_callback, force=False):
         event = event_callback.getEvent()
-        if ((event.getKey() == ord('i') or force) and
-            (event.getState() == 1)):
+        if (event.getKey() == ord("i") or force) and (event.getState() == 1):
             objs = self.shape.selected_objects
             if len(objs) == 1 and (isinstance(objs[0], Lower_Att_Marker)):
                 node = objs[0].node
@@ -403,7 +417,7 @@ class LineTool(BaseTool):
             else:
                 pos = event.getPosition()
                 pos_3D = list(self.view.getPoint(*pos))
-                pos_3D[-1] = 0.
+                pos_3D[-1] = 0.0
                 if event.wasCtrlDown():
                     node = LowerNode2D(pos_3D[:-1], [0, 0, 0])
                     point = Lower_Att_Marker(node, self.parametric_glider)
@@ -417,8 +431,7 @@ class LineTool(BaseTool):
 
     def copy_node(self, event_callback, force=False):
         event = event_callback.getEvent()
-        if ((event.getKey() == ord('c')) and
-            (event.getState() == 1)):
+        if (event.getKey() == ord("c")) and (event.getState() == 1):
             # get selection
             objs = self.shape.selected_objects
             if len(objs) == 1 and (isinstance(objs[0], Upper_Att_Marker)):
@@ -480,7 +493,8 @@ class LineTool(BaseTool):
                 else:
                     self.target_length.setValue(selected_objs[0].target_length)
                 line_type_item = self.Qline_list.findItems(
-                    selected_objs[0].line_type, QtCore.Qt.MatchExactly)[0]
+                    selected_objs[0].line_type, QtCore.Qt.MatchExactly
+                )[0]
                 self.Qline_list.setCurrentItem(line_type_item)
                 if len(selected_objs) != 1:
                     self.QLineName.setDisabled(True)
@@ -594,10 +608,10 @@ class LineTool(BaseTool):
         self.show_layer()
 
     def accept(self):
-        '''glider 2d will receive the 2d information
-            the attachmentpoints are already stored.
-            the other points are stored into the batch_points list
-        '''
+        """glider 2d will receive the 2d information
+        the attachmentpoints are already stored.
+        the other points are stored into the batch_points list
+        """
         lines = []
 
         for obj in self.shape.dynamic_objects:
@@ -627,7 +641,7 @@ class LineTool(BaseTool):
         self.remove_all_callbacks()
         super(LineTool, self).accept()
         self.update_view_glider()
-        
+
     def reject(self):
         self.shape.unregister()
         self.remove_all_callbacks()
@@ -635,9 +649,9 @@ class LineTool(BaseTool):
 
 
 class NodeMarker(Marker):
-    std_col = 'black'
-    ovr_col = 'red'
-    sel_col = 'yellow'
+    std_col = "black"
+    ovr_col = "red"
+    sel_col = "yellow"
 
     def __init__(self, node, par_glider, pos=None):
         if pos is None:
@@ -672,7 +686,8 @@ class NodeMarker(Marker):
 
 
 class Upper_Att_Marker(NodeMarker):
-    std_col = 'blue'
+    std_col = "blue"
+
     def __init__(self, node, par_glider):
         super(Upper_Att_Marker, self).__init__(node, par_glider)
 
@@ -708,11 +723,11 @@ class Upper_Att_Marker(NodeMarker):
             foo()
 
     def drag(self, *arg):
-        pass        
+        pass
 
 
 class Lower_Att_Marker(NodeMarker):
-    std_col = 'green'
+    std_col = "green"
 
     def __init__(self, node, par_glider):
         pos = node.pos_2D
@@ -743,14 +758,15 @@ class ConnectionLine(Line):
         self.marker1.on_drag.append(self.update_line)
         self.marker2.on_drag.append(self.update_line)
         self.drawstyle.lineWidth = 1.5
-        self.target_length = 1.
-        self.line_type = 'default'
-        self.layer = ''
-        self.name = 'line_name'
+        self.target_length = 1.0
+        self.line_type = "default"
+        self.layer = ""
+        self.name = "line_name"
 
     def is_uppermost_line(self):
-        return (isinstance(self.marker1, Upper_Att_Marker) or 
-                isinstance(self.marker2, Upper_Att_Marker))
+        return isinstance(self.marker1, Upper_Att_Marker) or isinstance(
+            self.marker2, Upper_Att_Marker
+        )
 
     def update_line(self):
         self.points = [self.marker1.pos, self.marker2.pos]
@@ -769,7 +785,7 @@ class ConnectionLine(Line):
 
     @points.setter
     def points(self, points):
-        p = [[pi[0], pi[1], pi[2] -0.001] for pi in points]
+        p = [[pi[0], pi[1], pi[2] - 0.001] for pi in points]
         self.data.point.setValue(0, 0, 0)
         self.data.point.setValues(0, len(p), p)
 
@@ -777,17 +793,19 @@ class ConnectionLine(Line):
         if self.marker1._delete or self.marker2._delete:
             self.delete()
 
+
 class QLineType_item(QtGui.QListWidgetItem):
     def __init__(self, line_type):
         self.line_type = line_type
         super(QLineType_item, self).__init__()
         self.setText(self.line_type.name)
 
+
 class LayerComboBox(QtGui.QComboBox):
     def __init__(self, parent=None):
         super(LayerComboBox, self).__init__(parent)
         self.setInsertPolicy(QtGui.QComboBox.InsertAlphabetically)
-        self.addItem('')
+        self.addItem("")
 
     def addItem(self, text):
         if self.findText(text) == -1:
@@ -796,7 +814,7 @@ class LayerComboBox(QtGui.QComboBox):
     def removeItem(self, index):
         super(LayerComboBox, self).removeItem(index)
         if self.count() == 0:
-            self.addItem('')
+            self.addItem("")
 
     def removeAll(self):
         while self.currentIndex() != -1:
@@ -820,19 +838,25 @@ class LineSelectionSeperator(InteractionSeparator):
     def register(self, observer_tool):
         self.observer_tool = observer_tool
         self._highlight_cb = self.events.addEventCallback(
-            coin.SoLocation2Event.getClassTypeId(), self.highlight_cb)
+            coin.SoLocation2Event.getClassTypeId(), self.highlight_cb
+        )
         self.select = self.events.addEventCallback(
-            coin.SoMouseButtonEvent.getClassTypeId(), self.select_cb)
+            coin.SoMouseButtonEvent.getClassTypeId(), self.select_cb
+        )
         self.select_all = self.events.addEventCallback(
-            coin.SoKeyboardEvent.getClassTypeId(), self.select_all_cb)
+            coin.SoKeyboardEvent.getClassTypeId(), self.select_all_cb
+        )
 
     def unregister(self):
         self.events.removeEventCallback(
-            coin.SoLocation2Event.getClassTypeId(), self._highlight_cb)
+            coin.SoLocation2Event.getClassTypeId(), self._highlight_cb
+        )
         self.events.removeEventCallback(
-            coin.SoMouseButtonEvent.getClassTypeId(), self.select)
+            coin.SoMouseButtonEvent.getClassTypeId(), self.select
+        )
         self.events.removeEventCallback(
-            coin.SoKeyboardEvent.getClassTypeId(), self.select_all)
+            coin.SoKeyboardEvent.getClassTypeId(), self.select_all
+        )
 
     def selection_changed(self):
         self.observer_tool.selection_changed(*self.get_data())
@@ -854,7 +878,10 @@ class LineSelectionSeperator(InteractionSeparator):
                 except ValueError:
                     pass
                 line_weight += obj.line.get_weight()
-                if hasattr(obj.line.type, "min_break_load") and obj.line.type.min_break_load is not None:
+                if (
+                    hasattr(obj.line.type, "min_break_load")
+                    and obj.line.type.min_break_load is not None
+                ):
                     line_max_gforce += obj.line.type.min_break_load / obj.line.force
                     num_lines += 1
                 if num_lines > 0:
@@ -873,10 +900,10 @@ class GliderLine(Line):
         self.drawstyle.lineWidth = 1.5
 
 
-
 class LineObserveTool(BaseTool):
-    widget_name = 'line observe tool'
+    widget_name = "line observe tool"
     turn = False
+
     def __init__(self, obj):
         super(LineObserveTool, self).__init__(obj)
         self.g3d = self.obj.Proxy.getGliderInstance()
@@ -885,13 +912,14 @@ class LineObserveTool(BaseTool):
         self.draw_glider()
 
     def setup_widget(self):
-        self.force = QtGui.QLabel("x: {:5.1f} N\n"\
-                                  "y: {:5.1f} N\n"\
-                                  "z: {:5.1f} N".format(0, 0, 0))
-        self.length = QtGui.QLabel("length without sag: {:5.3f} m\n"\
-                                   "length with sag:    {:5.3f} m\n"\
-                                   "stretched lengths:  {:5.3f} m".format(0, 0, 0))
-
+        self.force = QtGui.QLabel(
+            "x: {:5.1f} N\n" "y: {:5.1f} N\n" "z: {:5.1f} N".format(0, 0, 0)
+        )
+        self.length = QtGui.QLabel(
+            "length without sag: {:5.3f} m\n"
+            "length with sag:    {:5.3f} m\n"
+            "stretched lengths:  {:5.3f} m".format(0, 0, 0)
+        )
 
         self.force_factor = QtGui.QSlider(QtCore.Qt.Orientation.Horizontal)
         self.force_factor.setTickInterval(100)
@@ -899,14 +927,13 @@ class LineObserveTool(BaseTool):
         self.force_factor.setValue(10)
 
         self.weight = QtGui.QLabel("weight: {:5.1f} g".format(0))
-        self.max_g_force = QtGui.QLabel("{:2.2f}".format(0.))
+        self.max_g_force = QtGui.QLabel("{:2.2f}".format(0.0))
         self.line_type = QtGui.QLabel("no selection")
 
         # try:
         #     weight = self.g3d.lineset.get_weight()
         # except ValueError:
         #     weight = 0
-
 
         # self.layout.setWidget(0, text_field, QtGui.QLabel("total weight: {:.01f}g".format(2*weight)))
         self.layout.setWidget(1, text_field, QtGui.QLabel("line-type:"))
@@ -927,7 +954,6 @@ class LineObserveTool(BaseTool):
         self.layout.setWidget(6, text_field, QtGui.QLabel("force-factor:"))
         self.layout.setWidget(6, input_field, self.force_factor)
 
-
         self.recalc_button = QtGui.QPushButton("recompute")
         self.sag_check = QtGui.QCheckBox("sag")
         self.sag_check.setTristate(False)
@@ -935,10 +961,8 @@ class LineObserveTool(BaseTool):
         self.layout.setWidget(7, input_field, self.recalc_button)
         self.layout.setWidget(7, text_field, self.sag_check)
 
-
         self.force_factor.sliderReleased.connect(self.draw_residual_forces)
         self.recalc_button.clicked.connect(self.recompute_lines)
-
 
     def recompute_lines(self):
         calculate_sag = bool(self.sag_check.checkState())
@@ -947,14 +971,20 @@ class LineObserveTool(BaseTool):
         self.task_separator.removeAllChildren()
         self.draw_glider()
 
-
     def draw_glider(self):
         _rot = coin.SbRotation()
         _rot.setValue(coin.SbVec3f(0, 1, 0), coin.SbVec3f(1, 0, 0))
         rot = coin.SoRotation()
         rot.rotation.setValue(_rot)
-        self.task_separator += rot        
-        draw_glider(self.g3d, self.task_separator, profile_num=50, hull=None, ribs=True, fill_ribs=False)
+        self.task_separator += rot
+        draw_glider(
+            self.g3d,
+            self.task_separator,
+            profile_num=50,
+            hull=None,
+            ribs=True,
+            fill_ribs=False,
+        )
         # self.g3d.lineset.recalc(calculate_sag=True)
 
         self.line_sep = LineSelectionSeperator(self.rm)
@@ -969,22 +999,26 @@ class LineObserveTool(BaseTool):
         self.arrows.removeAllChildren()
         factor = (factor or self.force_factor.value()) * 1e-3
         for node in self.g3d.lineset.nodes:
-            if True: #node.type == 1:
+            if True:  # node.type == 1:
                 point = node.vec
                 force = self.g3d.lineset.get_residual_force(node) * factor
                 force *= 1 - 2 * (node.type == 1)
                 if np.linalg.norm(force) > 1e-4:
-                    arrow = Arrow([point, point - force], arrow_size=0.05 * np.linalg.norm(force))
+                    arrow = Arrow(
+                        [point, point - force], arrow_size=0.05 * np.linalg.norm(force)
+                    )
                     arrow.set_color("red")
                     self.arrows += arrow
 
     def selection_changed(self, line_type, force, length, weight, max_g_force=None):
-        self.force.setText("x: {:5.1f} N\n"\
-                           "y: {:5.1f} N\n"\
-                           "z: {:5.1f} N".format(*force))
-        self.length.setText("length without sag: {:5.3f} m\n"\
-                            "length with sag:    {:5.3f} m\n"\
-                            "stretched lengths   {:5.3f} m".format(*length))
+        self.force.setText(
+            "x: {:5.1f} N\n" "y: {:5.1f} N\n" "z: {:5.1f} N".format(*force)
+        )
+        self.length.setText(
+            "length without sag: {:5.3f} m\n"
+            "length with sag:    {:5.3f} m\n"
+            "stretched lengths   {:5.3f} m".format(*length)
+        )
         self.weight.setText("weight: {:5.1f} g".format(weight))
         self.line_type.setText(line_type)
         if max_g_force:

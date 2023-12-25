@@ -12,17 +12,16 @@ from openglider.utils.distribution import Distribution
 from PySide import QtCore, QtGui
 
 from .tools import BaseTool, input_field, text_field
-from pivy.graphics import (COLORS, InteractionSeparator, Line, Marker,
-                                  coin)
+from pivy.graphics import COLORS, InteractionSeparator, Line, Marker, coin
 
 
 class Polars(BaseTool):
-    widget_name = 'Aerdynamic computations'
+    widget_name = "Aerdynamic computations"
     hide = False
     try:
-        parabem = __import__('parabem')
-        pan3d = __import__('parabem.pan3d', globals(), locals(), ['abc'])
-        parabem_utils = __import__('parabem.utils', globals(), locals(), ['abc'])
+        parabem = __import__("parabem")
+        pan3d = __import__("parabem.pan3d", globals(), locals(), ["abc"])
+        parabem_utils = __import__("parabem.utils", globals(), locals(), ["abc"])
     except ImportError:
         parabem = None
 
@@ -39,17 +38,23 @@ class Polars(BaseTool):
         self.Qmom_x_ref_point = QtGui.QDoubleSpinBox()
         self.Qcompute = QtGui.QPushButton("create plots")
 
-        self.layout.setWidget(0, text_field, QtGui.QLabel('total weight [kg]'))
+        self.layout.setWidget(0, text_field, QtGui.QLabel("total weight [kg]"))
         self.layout.setWidget(0, input_field, self.Qweight)
-        self.layout.setWidget(1, text_field, QtGui.QLabel('pilot drag (cw_p * A_p) normalized'))
+        self.layout.setWidget(
+            1, text_field, QtGui.QLabel("pilot drag (cw_p * A_p) normalized")
+        )
         self.layout.setWidget(1, input_field, self.Qpilot_drag)
-        self.layout.setWidget(2, text_field, QtGui.QLabel('wing drag c0'))
+        self.layout.setWidget(2, text_field, QtGui.QLabel("wing drag c0"))
         self.layout.setWidget(2, input_field, self.Qparasit_wing_drag_c0)
-        self.layout.setWidget(3, text_field, QtGui.QLabel('wing drag c2'))
+        self.layout.setWidget(3, text_field, QtGui.QLabel("wing drag c2"))
         self.layout.setWidget(3, input_field, self.Qparasit_wing_drag_c2)
-        self.layout.setWidget(4, text_field, QtGui.QLabel('z position of moment_ref_point'))
+        self.layout.setWidget(
+            4, text_field, QtGui.QLabel("z position of moment_ref_point")
+        )
         self.layout.setWidget(4, input_field, self.Qmom_z_ref_point)
-        self.layout.setWidget(5, text_field, QtGui.QLabel('x position of moment_ref_point'))
+        self.layout.setWidget(
+            5, text_field, QtGui.QLabel("x position of moment_ref_point")
+        )
         self.layout.setWidget(5, input_field, self.Qmom_x_ref_point)
         self.layout.setWidget(6, text_field, self.Qcompute)
 
@@ -87,10 +92,10 @@ class Polars(BaseTool):
 
     def compute(self):
         self.solve_const_vert_Force()
-    
+
     def create_potential_table(self):
         if not self.parabem:
-            self.QWarning = QtGui.QLabel('no panel_method installed')
+            self.QWarning = QtGui.QLabel("no panel_method installed")
             self.layout.addWidget(self.QWarning)
         else:
             self._vertices, self._panels, self._trailing_edges, _ = parabem_Panels(
@@ -98,19 +103,23 @@ class Polars(BaseTool):
                 midribs=0,
                 profile_numpoints=50,
                 num_average=7,
-                symmetric=True
-                )
-            case = self.pan3d.DirichletDoublet0Source0Case3(self._panels, self._trailing_edges)
+                symmetric=True,
+            )
+            case = self.pan3d.DirichletDoublet0Source0Case3(
+                self._panels, self._trailing_edges
+            )
             case.A_ref = self.parametric_glider.shape.area
             # att point
-            case.mom_ref_point = self.parabem.Vector3(self.Qmom_x_ref_point.value(),
-                                                      0, 
-                                                      self.Qmom_z_ref_point.value())
+            case.mom_ref_point = self.parabem.Vector3(
+                self.Qmom_x_ref_point.value(), 0, self.Qmom_z_ref_point.value()
+            )
             case.v_inf = self.parabem.Vector(self.parametric_glider.v_inf)
-            case.drag_calc = 'trefftz'
+            case.drag_calc = "trefftz"
             case.farfield = 5
             case.create_wake(10000000, 20)
-            pols = case.polars(self.parabem_utils.v_inf_deg_range3(case.v_inf, 2, 30, 30))
+            pols = case.polars(
+                self.parabem_utils.v_inf_deg_range3(case.v_inf, 2, 30, 30)
+            )
             self.cL = []
             self.cDi = []
             self.cPi = []
@@ -127,22 +136,25 @@ class Polars(BaseTool):
 
     def solve_const_vert_Force(self):
         from scipy.optimize import newton_krylov
+
         # constants:
-        c0 = self.Qparasit_wing_drag_c0.value()      # const profile drag
-        c2 = self.Qparasit_wing_drag_c2.value()      # c2 * cl**2 + c0 = cDpr
-        cDpi = self.Qpilot_drag.value()              # drag cooefficient of pilot
+        c0 = self.Qparasit_wing_drag_c0.value()  # const profile drag
+        c2 = self.Qparasit_wing_drag_c2.value()  # c2 * cl**2 + c0 = cDpr
+        cDpi = self.Qpilot_drag.value()  # drag cooefficient of pilot
         mass = self.Qweight.value()
 
         rho = 1.2
         g = 9.81
-    
+
         area = self.parametric_glider.shape.area
-        cDl = self.obj.Proxy.getGliderInstance().lineset.get_normalized_drag() / area * 2
+        cDl = (
+            self.obj.Proxy.getGliderInstance().lineset.get_normalized_drag() / area * 2
+        )
         alpha = self.alpha
         cL = self.cL
         cDi = self.cDi
 
-        cD_ges = (cDi + np.ones_like(cDi) * (cDpi + cDl + c0) + c2 * cL**2)
+        cD_ges = cDi + np.ones_like(cDi) * (cDpi + cDl + c0) + c2 * cL**2
 
         def minimize(phi):
             return np.arctan(cD_ges / cL) - self.alpha + phi
@@ -158,24 +170,23 @@ class Polars(BaseTool):
             i = 1
             while i < len(y):
                 if sign != np.sign(y[i]):
-                    return x[i-1] + (x[i-1] - x[i]) * y[i-1] / (y[i] - y[i-1])
+                    return x[i - 1] + (x[i - 1] - x[i]) * y[i - 1] / (y[i] - y[i - 1])
                 i += 1
                 if i > len(x):
                     return
 
-
-        phi = newton_krylov(minimize, np.ones_like(self.alpha)) 
+        phi = newton_krylov(minimize, np.ones_like(self.alpha))
         a_p = [find_zeros(vel(phi), phi), find_zeros(gz(), phi)]
         plt.figure()
         ax1 = plt.subplot(211)
         plt.title("Polars", size=20)
         plt.plot(vel(phi), gz())
-        plt.plot(a_p[0], a_p[1], marker='o')
+        plt.plot(a_p[0], a_p[1], marker="o")
         plt.ylabel("glide ratio")
         plt.grid()
         plt.subplot(212, sharex=ax1)
         plt.plot(vel(phi), np.rad2deg(phi))
-        plt.plot(a_p[0], 0., marker='o')
+        plt.plot(a_p[0], 0.0, marker="o")
         plt.xlabel("velocity [m / 2]")
         plt.ylabel("rotation phi  [°]")
         plt.grid()
@@ -187,24 +198,23 @@ class Polars(BaseTool):
         Gui.Control.closeDialog()
 
 
-
 class PanelTool(BaseTool):
-    widget_name = 'Properties'
+    widget_name = "Properties"
     hide = True
     try:
-        parabem = __import__('parabem')
-        pan3d = __import__('parabem.pan3d', globals(), locals(), ['abc'])
+        parabem = __import__("parabem")
+        pan3d = __import__("parabem.pan3d", globals(), locals(), ["abc"])
     except ImportError:
         parabem = None
 
     def __init__(self, obj):
         super(PanelTool, self).__init__(obj)
         if not self.parabem:
-            self.QWarning = QtGui.QLabel('no panel_method installed')
+            self.QWarning = QtGui.QLabel("no panel_method installed")
             self.layout.addWidget(self.QWarning)
         else:
             self.case = None
-            self.Qrun = QtGui.QPushButton('run')
+            self.Qrun = QtGui.QPushButton("run")
             self.Qmidribs = QtGui.QSpinBox()
             self.Qsymmetric = QtGui.QCheckBox()
             self.Qmean_profile = QtGui.QCheckBox()
@@ -223,25 +233,25 @@ class PanelTool(BaseTool):
             self.setup_pivy()
 
     def setup_widget(self):
-        self.layout.setWidget(0, text_field, QtGui.QLabel('profile points'))
+        self.layout.setWidget(0, text_field, QtGui.QLabel("profile points"))
         self.layout.setWidget(0, input_field, self.Qprofile_points)
-        self.layout.setWidget(1, text_field, QtGui.QLabel('midribs'))
+        self.layout.setWidget(1, text_field, QtGui.QLabel("midribs"))
         self.layout.setWidget(1, input_field, self.Qmidribs)
-        self.layout.setWidget(2, text_field, QtGui.QLabel('symmetric'))
+        self.layout.setWidget(2, text_field, QtGui.QLabel("symmetric"))
         self.layout.setWidget(2, input_field, self.Qsymmetric)
-        self.layout.setWidget(3, text_field, QtGui.QLabel('mean profile'))
+        self.layout.setWidget(3, text_field, QtGui.QLabel("mean profile"))
         self.layout.setWidget(3, input_field, self.Qmean_profile)
-        self.layout.setWidget(4, text_field, QtGui.QLabel('number of streams'))
+        self.layout.setWidget(4, text_field, QtGui.QLabel("number of streams"))
         self.layout.setWidget(4, input_field, self.Qstream_points)
-        self.layout.setWidget(5, text_field, QtGui.QLabel('stream radius'))
+        self.layout.setWidget(5, text_field, QtGui.QLabel("stream radius"))
         self.layout.setWidget(5, input_field, self.Qstream_radius)
-        self.layout.setWidget(6, text_field, QtGui.QLabel('points per streamline'))
+        self.layout.setWidget(6, text_field, QtGui.QLabel("points per streamline"))
         self.layout.setWidget(6, input_field, self.Qstream_num)
-        self.layout.setWidget(7, text_field, QtGui.QLabel('stream interval'))
+        self.layout.setWidget(7, text_field, QtGui.QLabel("stream interval"))
         self.layout.setWidget(7, input_field, self.Qstream_interval)
-        self.layout.setWidget(8, text_field, QtGui.QLabel('min_val'))
+        self.layout.setWidget(8, text_field, QtGui.QLabel("min_val"))
         self.layout.setWidget(8, input_field, self.Qmin_val)
-        self.layout.setWidget(9, text_field, QtGui.QLabel('max_val'))
+        self.layout.setWidget(9, text_field, QtGui.QLabel("max_val"))
         self.layout.setWidget(9, input_field, self.Qmax_val)
         self.layout.addWidget(self.Qrun)
 
@@ -279,7 +289,6 @@ class PanelTool(BaseTool):
         self.Qmax_val.setValue(1)
         self.Qmax_val.setSingleStep(0.01)
 
-
         self.Qstream_points.valueChanged.connect(self.update_stream)
         self.Qstream_radius.valueChanged.connect(self.update_stream)
         self.Qstream_interval.valueChanged.connect(self.update_stream)
@@ -303,12 +312,16 @@ class PanelTool(BaseTool):
         self.stream.removeAllChildren()
         if self.case:
             point = list(self.marker.points[0].getValue())
-            points = np.random.random((self.Qstream_points.value(), 3)) - np.array([0.5, 0.5, 0.5])
+            points = np.random.random((self.Qstream_points.value(), 3)) - np.array(
+                [0.5, 0.5, 0.5]
+            )
             points *= self.Qstream_radius.value()
             points += np.array(point)
             points = points.tolist()
             for p in points:
-                pts = self.stream_line(p, self.Qstream_interval.value(), self.Qstream_num.value())
+                pts = self.stream_line(
+                    p, self.Qstream_interval.value(), self.Qstream_num.value()
+                )
                 self.stream.addChild(Line(pts, dynamic=False))
 
     def update_stream_fast(self):
@@ -323,23 +336,34 @@ class PanelTool(BaseTool):
         self.obj.ViewObject.profile_num = self.Qprofile_points.value()
 
     def stream_line(self, point, interval, numpoints):
-        flow_path = self.case.flow_path(self.parabem.Vector3(*point), interval, numpoints)
+        flow_path = self.case.flow_path(
+            self.parabem.Vector3(*point), interval, numpoints
+        )
         return [[p.x, p.y, p.z] for p in flow_path]
 
-    def create_panels(self, midribs=0, profile_numpoints=10, mean=False, symmetric=True):
+    def create_panels(
+        self, midribs=0, profile_numpoints=10, mean=False, symmetric=True
+    ):
         self._vertices, self._panels, self._trailing_edges, _ = parabem_Panels(
             self.parametric_glider.get_glider_3d(),
             midribs=midribs,
             profile_numpoints=profile_numpoints,
-            num_average=mean*5,
-            symmetric=symmetric)
+            num_average=mean * 5,
+            symmetric=symmetric,
+        )
 
     def run(self):
         self.update_glider()
-        self.create_panels(self.Qmidribs.value(), self.Qprofile_points.value(),
-                           self.Qmean_profile.isChecked(), self.Qsymmetric.isChecked())
+        self.create_panels(
+            self.Qmidribs.value(),
+            self.Qprofile_points.value(),
+            self.Qmean_profile.isChecked(),
+            self.Qsymmetric.isChecked(),
+        )
         del self.case
-        self.case = self.pan3d.DirichletDoublet0Source0Case3(self._panels, self._trailing_edges)
+        self.case = self.pan3d.DirichletDoublet0Source0Case3(
+            self._panels, self._trailing_edges
+        )
         self.case.v_inf = self.parabem.Vector(self.parametric_glider.v_inf)
         self.case.farfield = 5
         self.case.create_wake(9999, 10)
@@ -351,15 +375,17 @@ class PanelTool(BaseTool):
         verts = [list(i) for i in self.case.vertices]
         cols = [i.cp for i in self.case.vertices]
         pols = []
-        pols_i =[]
+        pols_i = []
         count = 0
-        count_krit = (self.Qmidribs.value() + 1) * (self.Qprofile_points.value() - self.Qprofile_points.value() % 2)
+        count_krit = (self.Qmidribs.value() + 1) * (
+            self.Qprofile_points.value() - self.Qprofile_points.value() % 2
+        )
         for pan in self._panels[::-1]:
             count += 1
             for vert in pan.points:
-                #verts.append(list(vert))
+                # verts.append(list(vert))
                 pols_i.append(vert.nr)
-            pols_i.append(-1)     # end of pol
+            pols_i.append(-1)  # end of pol
             if count % count_krit == 0:
                 pols.append(pols_i)
                 pols_i = []
@@ -368,8 +394,10 @@ class PanelTool(BaseTool):
         vertex_property = coin.SoVertexProperty()
 
         for i, col in enumerate(cols):
-            vertex_property.orderedRGBA.set1Value(i, coin.SbColor(self.color(col)).getPackedValue())
-            
+            vertex_property.orderedRGBA.set1Value(
+                i, coin.SbColor(self.color(col)).getPackedValue()
+            )
+
         vertex_property.vertex.setValues(0, len(verts), verts)
         vertex_property.materialBinding = coin.SoMaterialBinding.PER_VERTEX_INDEXED
 
@@ -385,7 +413,6 @@ class PanelTool(BaseTool):
             face_set.coordIndex.setValues(0, len(panels), panels)
             self.glider_result.addChild(face_set)
 
-
         p1 = np.array(self.case.center_of_pressure)
         f = np.array(self.case.force)
         line = Line([p1, p1 + f])
@@ -394,16 +421,22 @@ class PanelTool(BaseTool):
     def color(self, value):
         def f(n, i, x):
             if ((i - 1) / n) < x < (i / n):
-                return (n * x + 1 - i)
+                return n * x + 1 - i
             elif (i / n) <= x < ((i + 1) / n):
-                return  (- n * x + 1 + i)
+                return -n * x + 1 + i
             else:
                 return 0
-        max_val=self.Qmax_val.value()
-        min_val=self.Qmin_val.value()
-        red = np.array(COLORS['red'])
-        blue = np.array(COLORS['blue'])
-        yellow = np.array(COLORS['yellow'])
-        white = np.array(COLORS['white'])
+
+        max_val = self.Qmax_val.value()
+        min_val = self.Qmin_val.value()
+        red = np.array(COLORS["red"])
+        blue = np.array(COLORS["blue"])
+        yellow = np.array(COLORS["yellow"])
+        white = np.array(COLORS["white"])
         norm_val = (value - min_val) / (max_val - min_val)
-        return list(f(3, 0, norm_val) * red + f(3,1,norm_val) * yellow + f(3,2,norm_val) * white + f(3,3,norm_val) * blue)
+        return list(
+            f(3, 0, norm_val) * red
+            + f(3, 1, norm_val) * yellow
+            + f(3, 2, norm_val) * white
+            + f(3, 3, norm_val) * blue
+        )

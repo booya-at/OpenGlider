@@ -10,10 +10,12 @@ def _clear():
     editor.clear()
     report.clear()
 
+
 Gui.clear = _clear
 
 
 # glider commands
+
 
 class activeGlider(object):
     def __init__(self):
@@ -23,7 +25,7 @@ class activeGlider(object):
         sel = Gui.Selection.getSelection()
         if len(sel) == 1:
             obj = sel[0]
-            if hasattr(obj, "Proxy") and hasattr(obj.Proxy, 'getGliderInstance'):
+            if hasattr(obj, "Proxy") and hasattr(obj.Proxy, "getGliderInstance"):
                 self._glider = obj
                 return
         self._glider = None
@@ -61,12 +63,7 @@ class activeGlider(object):
     def addCut(self, pos, cells=None):
         if cells == None:
             cells = range(self.ParametricGlider.shape.half_cell_num)
-        cut = {
-            "left": pos,
-            "right": pos,
-            "cells": cells,
-            "type": "orthogonal"
-        }
+        cut = {"left": pos, "right": pos, "cells": cells, "type": "orthogonal"}
         self.ParametricGlider.elements["cuts"].append(cut)
 
 

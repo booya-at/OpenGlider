@@ -13,7 +13,9 @@ from .glider import OGBaseObject, OGGliderVP
 class BaseFeature(OGBaseObject):
     def __init__(self, obj, parent):
         self.obj = obj
-        obj.addProperty('App::PropertyLink', 'parent', 'link', 'the parent of the feature')
+        obj.addProperty(
+            "App::PropertyLink", "parent", "link", "the parent of the feature"
+        )
         obj.parent = parent
         super(BaseFeature, self).__init__(obj)
         self.addProperties()
@@ -30,22 +32,22 @@ class BaseFeature(OGBaseObject):
                 self.obj.parent.Proxy.drawGlider()
 
     def getGliderInstance(self):
-        '''adds stuff and returns changed copy'''
+        """adds stuff and returns changed copy"""
         return copy.deepcopy(self.obj.parent.Proxy.getGliderInstance())
 
     def getParametricGlider(self):
-        '''returns top level parametric glider'''
+        """returns top level parametric glider"""
         return self.obj.parent.Proxy.getParametricGlider()
 
     def getParent(self):
         return self.obj.parent
 
     def setParametricGlider(self, obj):
-        '''sets the top-level glider2d and recomputes the glider3d'''
+        """sets the top-level glider2d and recomputes the glider3d"""
         self.obj.parent.Proxy.setParametricGlider(obj)
 
     def getRoot(self):
-        '''return the root freecad obj'''
+        """return the root freecad obj"""
         return self.obj.parent.Proxy.getRoot()
 
     def __getstate__(self):
@@ -58,16 +60,19 @@ class BaseFeature(OGBaseObject):
         self.drawGlider()
         super(BaseFeature, self).execute(fp)
 
-################# this function belongs to the gui and should be implemented in another way
+    ################# this function belongs to the gui and should be implemented in another way
     def onDocumentRestored(self, obj):
-        if not hasattr(self, 'obj'):
+        if not hasattr(self, "obj"):
             self.obj = obj
-            if ("Visibility" in self.obj.parent.ViewObject.PropertiesList and
-                 self.obj.parent.ViewObject.Visibility):
+            if (
+                "Visibility" in self.obj.parent.ViewObject.PropertiesList
+                and self.obj.parent.ViewObject.Visibility
+            ):
                 self.obj.parent.ViewObject.Visibility = False
             self.obj.parent.Proxy.onDocumentRestored(self.obj.parent)
 
             from . import backward_compatibility as bc
+
             bc.version_update(obj)
 
             # if we have modified the glider without gui, the view-provider is empty and we
@@ -78,18 +83,23 @@ class BaseFeature(OGBaseObject):
             self.obj.ViewObject.Proxy.recompute = True
             # we have blocked the automatic update mechanism. so now we have to call it manually
             if self.obj.ViewObject.Visibility:
-                self.obj.ViewObject.Proxy.updateData(prop='Visibility')
+                self.obj.ViewObject.Proxy.updateData(prop="Visibility")
+
+
 #########################################################################################
+
 
 class RibFeature(BaseFeature):
     def __init__(self, obj, parent):
         super(RibFeature, self).__init__(obj, parent)
 
     def addProperties(self):
-        self.obj.addProperty('App::PropertyIntegerList', 'ribs', 'not yet', 'docs')
-        self.obj.addProperty('App::PropertyInteger', 'airfoil', 'not yet', 'docs')
-        self.addProperty('rib_offset', 0., 'not yet', 'orthogonal offset of ribs relative to chord')
-        self.addProperty('delta_aoa', 0., 'not yet', 'additional (delta) aoa')
+        self.obj.addProperty("App::PropertyIntegerList", "ribs", "not yet", "docs")
+        self.obj.addProperty("App::PropertyInteger", "airfoil", "not yet", "docs")
+        self.addProperty(
+            "rib_offset", 0.0, "not yet", "orthogonal offset of ribs relative to chord"
+        )
+        self.addProperty("delta_aoa", 0.0, "not yet", "additional (delta) aoa")
 
     def getGliderInstance(self):
         glider = copy.deepcopy(self.obj.parent.Proxy.getGliderInstance())
@@ -101,32 +111,43 @@ class RibFeature(BaseFeature):
                 rib.aoa_absolute += self.obj.delta_aoa
         return glider
 
+
 class VRibFeature(OGGliderVP):
     def getIcon(self):
         _dir = os.path.dirname(os.path.realpath(__file__))
-        return(_dir + "/../icons/rib_feature.svg")
+        return _dir + "/../icons/rib_feature.svg"
 
 
 class BallooningFeature(BaseFeature):
     def __init__(self, obj, parent):
         super(BallooningFeature, self).__init__(obj, parent)
-        obj.addProperty('App::PropertyIntegerList', 'cells', 'not yet', 'docs')
-        obj.addProperty('App::PropertyInteger', 'ballooning', 'not yet', 'docs')
+        obj.addProperty("App::PropertyIntegerList", "cells", "not yet", "docs")
+        obj.addProperty("App::PropertyInteger", "ballooning", "not yet", "docs")
 
     def getGliderInstance(self):
         glider = copy.deepcopy(self.obj.parent.Proxy.getGliderInstance())
-        ballooning = self.obj.parent.Proxy.getParametricGlider().balloonings[self.obj.ballooning]
+        ballooning = self.obj.parent.Proxy.getParametricGlider().balloonings[
+            self.obj.ballooning
+        ]
         for i, cell in enumerate(glider.cells):
             if i in self.obj.cells:
                 cell.ballooning = ballooning.copy()
         return glider
 
+
 class BallooningMultiplier(BaseFeature):
     def __init__(self, obj, parent):
         super(BallooningMultiplier, self).__init__(obj, parent)
-        obj.addProperty('App::PropertyFloatList', 'mutiply_values', 'not yet', 'every cell gets on float')
-        obj.mutiply_values = [1.] * len(self.obj.parent.Proxy.getGliderInstance().cells)
-    
+        obj.addProperty(
+            "App::PropertyFloatList",
+            "mutiply_values",
+            "not yet",
+            "every cell gets on float",
+        )
+        obj.mutiply_values = [1.0] * len(
+            self.obj.parent.Proxy.getGliderInstance().cells
+        )
+
     def getGliderInstance(self):
         glider = copy.deepcopy(self.obj.parent.Proxy.getGliderInstance())
         for i, cell in enumerate(glider.cells):
@@ -137,7 +158,7 @@ class BallooningMultiplier(BaseFeature):
 class VBallooningFeature(OGGliderVP):
     def getIcon(self):
         _dir = os.path.dirname(os.path.realpath(__file__))
-        return(_dir + "/../icons/ballooning_feature.svg")
+        return _dir + "/../icons/ballooning_feature.svg"
 
 
 class SharkFeature(BaseFeature):
@@ -145,12 +166,22 @@ class SharkFeature(BaseFeature):
         super(SharkFeature, self).__init__(obj, parent)
 
     def addProperties(self):
-        self.addProperty('ribs', [], 'not_yet', 'docs', int)
-        self.addProperty('x1', 0.06, 'shark-nose', 'start x-position of airfoil where shark-nose feature is applied')
-        self.addProperty('x2', 0.09, 'shark-nose', 'position of max shift')
-        self.addProperty('x3', 0.9, 'shark-nose', 'last position where shark-nose-feature impacts the airfoil')
-        self.addProperty('y_add', 0.03, 'shark-nose', 'max amount of shift')
-        self.addProperty('type', False, 'shark-nose', '0-> linear, 1->quadratic')
+        self.addProperty("ribs", [], "not_yet", "docs", int)
+        self.addProperty(
+            "x1",
+            0.06,
+            "shark-nose",
+            "start x-position of airfoil where shark-nose feature is applied",
+        )
+        self.addProperty("x2", 0.09, "shark-nose", "position of max shift")
+        self.addProperty(
+            "x3",
+            0.9,
+            "shark-nose",
+            "last position where shark-nose-feature impacts the airfoil",
+        )
+        self.addProperty("y_add", 0.03, "shark-nose", "max amount of shift")
+        self.addProperty("type", False, "shark-nose", "0-> linear, 1->quadratic")
 
     def apply(self, airfoil_data, x1, x2, x3, y_add):
         data = []
@@ -164,43 +195,47 @@ class SharkFeature(BaseFeature):
         return np.array(data)
 
     def getGliderInstance(self):
-        x1, x2, x3, y_add =  self.obj.x1, self.obj.x2, self.obj.x3, self.obj.y_add
+        x1, x2, x3, y_add = self.obj.x1, self.obj.x2, self.obj.x3, self.obj.y_add
         from openglider.airfoil.profile_2d import Profile2D
+
         glider = copy.deepcopy(self.obj.parent.Proxy.getGliderInstance())
         for i, rib in enumerate(glider.ribs):
-            rib.profile_2d = Profile2D(self.apply(rib.profile_2d._data, x1, x2, x3, y_add))
+            rib.profile_2d = Profile2D(
+                self.apply(rib.profile_2d._data, x1, x2, x3, y_add)
+            )
         return glider
 
 
 class VSharkFeature(OGGliderVP):
     def getIcon(self):
         _dir = os.path.dirname(os.path.realpath(__file__))
-        return(_dir + "/../icons/sharknose_feature.svg")
+        return _dir + "/../icons/sharknose_feature.svg"
 
 
 class SingleSkinRibFeature(BaseFeature):
     def __init__(self, obj, parent):
         super(SingleSkinRibFeature, self).__init__(obj, parent)
-        obj.addProperty('App::PropertyIntegerList',
-                        'ribs', 'not yet', 'docs')
+        obj.addProperty("App::PropertyIntegerList", "ribs", "not yet", "docs")
         self.addProperties()
 
     def getGliderInstance(self):
         glider = copy.deepcopy(self.obj.parent.Proxy.getGliderInstance())
         new_ribs = []
 
-        single_skin_par = {'att_dist': self.obj.att_dist,
-                           'height': self.obj.height,
-                           'num_points': self.obj.num_points,
-                           'le_gap': self.obj.le_gap,
-                           'te_gap': self.obj.te_gap,
-                           'double_first': self.obj.double_first,
-                           'straight_te': self.obj.straight_te,
-                           'continued_min': self.obj.continued_min,
-                           'continued_min_end': self.obj.continued_min_end,
-                           'continued_min_angle': self.obj.continued_min_angle,
-                           'continued_min_delta_y': self.obj.continued_min_delta_y,
-                           'continued_min_x': self.obj.continued_min_x}
+        single_skin_par = {
+            "att_dist": self.obj.att_dist,
+            "height": self.obj.height,
+            "num_points": self.obj.num_points,
+            "le_gap": self.obj.le_gap,
+            "te_gap": self.obj.te_gap,
+            "double_first": self.obj.double_first,
+            "straight_te": self.obj.straight_te,
+            "continued_min": self.obj.continued_min,
+            "continued_min_end": self.obj.continued_min_end,
+            "continued_min_angle": self.obj.continued_min_angle,
+            "continued_min_delta_y": self.obj.continued_min_delta_y,
+            "continued_min_x": self.obj.continued_min_x,
+        }
 
         for i, rib in enumerate(glider.ribs):
             if i in self.obj.ribs:
@@ -212,52 +247,66 @@ class SingleSkinRibFeature(BaseFeature):
             else:
                 new_ribs.append(rib)
         for rib, ss_rib in zip(glider.ribs, new_ribs):
-            if hasattr(rib, 'mirrored_rib') and rib.mirrored_rib:
+            if hasattr(rib, "mirrored_rib") and rib.mirrored_rib:
                 nr = glider.ribs.index(rib.mirrored_rib)
                 ss_rib.mirrored_rib = new_ribs[nr]
         glider.replace_ribs(new_ribs)
         hole_size = np.array([self.obj.hole_width, self.obj.hole_height])
         if self.obj.holes:
             for att_pnt in glider.lineset.attachment_points:
-                if (isinstance(att_pnt.rib, SingleSkinRib) and 
-                    att_pnt.rib_pos > self.obj.min_hole_pos and
-                    att_pnt.rib_pos < self.obj.max_hole_pos):
-                    att_pnt.rib.holes.append(RibHole(att_pnt.rib_pos,
-                                                     size=hole_size,
-                                                     vertical_shift=self.obj.vertical_shift))
+                if (
+                    isinstance(att_pnt.rib, SingleSkinRib)
+                    and att_pnt.rib_pos > self.obj.min_hole_pos
+                    and att_pnt.rib_pos < self.obj.max_hole_pos
+                ):
+                    att_pnt.rib.holes.append(
+                        RibHole(
+                            att_pnt.rib_pos,
+                            size=hole_size,
+                            vertical_shift=self.obj.vertical_shift,
+                        )
+                    )
         for i, rib in enumerate(glider.ribs):
             rib.xrot = self.obj.xrot[i]
 
         return glider
 
     def addProperties(self):
-        self.addProperty('height', 0.5, 'bows', 'docs')
-        self.addProperty('att_dist', 0.1, 'bows', 'docs')
-        self.addProperty('num_points', 20, 'bows', 'number of points')
-        self.addProperty('le_gap', True, 'bows', 'should the leading edge match the rib')
-        self.addProperty('te_gap', True, 'bows', 'should the trailing edge match the rib')
-        self.addProperty('straight_te', True, 'bows', 'straight last bow')
-        self.addProperty('double_first', False, 'bows', 'this is for double a lines')
-        self.addProperty('holes', False, 'hole', 'create holes in the rib')
-        self.addProperty('hole_height', 0.7, 'hole', 'height of ellipse')
-        self.addProperty('hole_width', 0.3, 'hole', 'width of ellipse')
-        self.addProperty('max_hole_pos', 1., 'hole', 'maximal relative position of hole')
-        self.addProperty('vertical_shift', 0.2, 'hole', 'relative vertical shift')
-        self.addProperty('min_hole_pos', 0.2, 'hole', 'minimal relative position of hole')
-        self.addProperty('continued_min', False, 'bows', 'add an offset to the airfoil')
-        self.addProperty('continued_min_end', 0.9, 'bows', 'no idea')
-        self.addProperty('continued_min_angle', 0., 'bows', 'no idea')
-        self.addProperty('continued_min_delta_y', 0., 'bows', 'no idea')
-        self.addProperty('continued_min_x', 0., 'bows', 'no idea')
+        self.addProperty("height", 0.5, "bows", "docs")
+        self.addProperty("att_dist", 0.1, "bows", "docs")
+        self.addProperty("num_points", 20, "bows", "number of points")
+        self.addProperty(
+            "le_gap", True, "bows", "should the leading edge match the rib"
+        )
+        self.addProperty(
+            "te_gap", True, "bows", "should the trailing edge match the rib"
+        )
+        self.addProperty("straight_te", True, "bows", "straight last bow")
+        self.addProperty("double_first", False, "bows", "this is for double a lines")
+        self.addProperty("holes", False, "hole", "create holes in the rib")
+        self.addProperty("hole_height", 0.7, "hole", "height of ellipse")
+        self.addProperty("hole_width", 0.3, "hole", "width of ellipse")
+        self.addProperty(
+            "max_hole_pos", 1.0, "hole", "maximal relative position of hole"
+        )
+        self.addProperty("vertical_shift", 0.2, "hole", "relative vertical shift")
+        self.addProperty(
+            "min_hole_pos", 0.2, "hole", "minimal relative position of hole"
+        )
+        self.addProperty("continued_min", False, "bows", "add an offset to the airfoil")
+        self.addProperty("continued_min_end", 0.9, "bows", "no idea")
+        self.addProperty("continued_min_angle", 0.0, "bows", "no idea")
+        self.addProperty("continued_min_delta_y", 0.0, "bows", "no idea")
+        self.addProperty("continued_min_x", 0.0, "bows", "no idea")
         glider = self.obj.parent.Proxy.getGliderInstance()
-        angle_list = [0. for _ in glider.ribs]
-        self.addProperty('xrot', angle_list, 'not_yet', 'set rib angles')
+        angle_list = [0.0 for _ in glider.ribs]
+        self.addProperty("xrot", angle_list, "not_yet", "set rib angles")
 
 
 class VSingleSkinRibFeature(OGGliderVP):
     def getIcon(self):
         _dir = os.path.dirname(os.path.realpath(__file__))
-        return(_dir + "/../icons/singleskin_feature.svg")
+        return _dir + "/../icons/singleskin_feature.svg"
 
 
 class FlapFeature(BaseFeature):
@@ -265,9 +314,11 @@ class FlapFeature(BaseFeature):
         super(FlapFeature, self).__init__(obj, parent)
 
     def addProperties(self):
-        self.addProperty('flap_begin', 0.95, 'flap', 'where should the flapping effect start', float)
-        self.addProperty('flap_amount', 0.01, 'flap', 'how much flapping', float)
-        self.addProperty('flap_ribs', [], 'flap', 'which ribs get flapped', int)
+        self.addProperty(
+            "flap_begin", 0.95, "flap", "where should the flapping effect start", float
+        )
+        self.addProperty("flap_amount", 0.01, "flap", "how much flapping", float)
+        self.addProperty("flap_ribs", [], "flap", "which ribs get flapped", int)
 
     def getGliderInstance(self):
         glider = copy.deepcopy(self.obj.parent.Proxy.getGliderInstance())
@@ -282,7 +333,7 @@ class FlapFeature(BaseFeature):
 class VFlapFeature(OGGliderVP):
     def getIcon(self):
         _dir = os.path.dirname(os.path.realpath(__file__))
-        return(_dir + "/../icons/flap_feature.svg")
+        return _dir + "/../icons/flap_feature.svg"
 
 
 class HoleFeature(BaseFeature):
@@ -298,31 +349,41 @@ class HoleFeature(BaseFeature):
         hole_size = np.array([self.obj.hole_width, self.obj.hole_height])
         if self.obj.holes:
             for i, att_pnt in enumerate(glider.lineset.attachment_points):
-                if (att_pnt.rib in ribs and 
-                    att_pnt.rib_pos > self.obj.min_hole_pos and
-                    att_pnt.rib_pos < self.obj.max_hole_pos):
-                    att_pnt.rib.holes.append(RibHole(att_pnt.rib_pos,
-                                                     size=hole_size,
-                                                     vertical_shift=self.obj.vertical_shift,
-                                                     rotation=self.obj.rotation))
+                if (
+                    att_pnt.rib in ribs
+                    and att_pnt.rib_pos > self.obj.min_hole_pos
+                    and att_pnt.rib_pos < self.obj.max_hole_pos
+                ):
+                    att_pnt.rib.holes.append(
+                        RibHole(
+                            att_pnt.rib_pos,
+                            size=hole_size,
+                            vertical_shift=self.obj.vertical_shift,
+                            rotation=self.obj.rotation,
+                        )
+                    )
 
         return glider
 
     def addProperties(self):
-        self.addProperty('ribs', [], 'hole', 'docs', int)
-        self.addProperty('holes', False, 'hole', 'create holes in the rib')
-        self.addProperty('hole_height', 0.7, 'hole', 'height of ellipse')
-        self.addProperty('hole_width', 0.3, 'hole', 'width of ellipse')
-        self.addProperty('max_hole_pos', 1., 'hole', 'maximal relative position of hole')
-        self.addProperty('vertical_shift', 0.2, 'hole', 'relative vertical shift')
-        self.addProperty('min_hole_pos', 0.2, 'hole', 'minimal relative position of hole')
-        self.addProperty('rotation', 0.0, 'hole', 'docs')
+        self.addProperty("ribs", [], "hole", "docs", int)
+        self.addProperty("holes", False, "hole", "create holes in the rib")
+        self.addProperty("hole_height", 0.7, "hole", "height of ellipse")
+        self.addProperty("hole_width", 0.3, "hole", "width of ellipse")
+        self.addProperty(
+            "max_hole_pos", 1.0, "hole", "maximal relative position of hole"
+        )
+        self.addProperty("vertical_shift", 0.2, "hole", "relative vertical shift")
+        self.addProperty(
+            "min_hole_pos", 0.2, "hole", "minimal relative position of hole"
+        )
+        self.addProperty("rotation", 0.0, "hole", "docs")
 
 
 class VHoleFeature(OGGliderVP):
     def getIcon(self):
         _dir = os.path.dirname(os.path.realpath(__file__))
-        return(_dir + "/../icons/hole_feature.svg")
+        return _dir + "/../icons/hole_feature.svg"
 
 
 class ScaleFeature(BaseFeature):
@@ -330,7 +391,7 @@ class ScaleFeature(BaseFeature):
         super(ScaleFeature, self).__init__(obj, parent)
 
     def addProperties(self):
-        self.addProperty('scale', 1.0, 'scale', 'scales the glider')
+        self.addProperty("scale", 1.0, "scale", "scales the glider")
 
     def getGliderInstance(self):
         glider = copy.deepcopy(self.obj.parent.Proxy.getGliderInstance())

@@ -14,26 +14,32 @@ from .tools import BaseTool, ControlPointContainer, Line_old, vector3D
 
 
 class AirfoilTool(BaseTool):
-    widget_name = 'Selection'
+    widget_name = "Selection"
 
     def __init__(self, obj):
         super(AirfoilTool, self).__init__(obj)
         # base_widget
         self.QList_View = QtGui.QListWidget(self.base_widget)
-        self.Qdelete_button = QtGui.QPushButton('delete', self.base_widget)
-        self.Qnew_button = QtGui.QPushButton('new', self.base_widget)
-        self.Qcopy_button = QtGui.QPushButton('copy', self.base_widget)
+        self.Qdelete_button = QtGui.QPushButton("delete", self.base_widget)
+        self.Qnew_button = QtGui.QPushButton("new", self.base_widget)
+        self.Qcopy_button = QtGui.QPushButton("copy", self.base_widget)
 
         self.Qairfoil_widget = QtGui.QWidget()
         self.Qairfoil_layout = QtGui.QFormLayout(self.Qairfoil_widget)
-        self.Qimport_button = QtGui.QPushButton('import airfoil')
-        self.Qexport_button = QtGui.QPushButton('export airfoil')
-        self.Qfit_button = QtGui.QPushButton('modify with handles')
+        self.Qimport_button = QtGui.QPushButton("import airfoil")
+        self.Qexport_button = QtGui.QPushButton("export airfoil")
+        self.Qfit_button = QtGui.QPushButton("modify with handles")
         self.Qnum_points_upper = QtGui.QSpinBox(self.base_widget)
         self.Qnum_points_lower = QtGui.QSpinBox(self.base_widget)
-        self.Qshow_pressure_dist = QtGui.QCheckBox("show pressure", parent=self.base_widget)
-        self.Qshow_curvature_dist = QtGui.QCheckBox("show curvature", parent=self.base_widget)
-        self.Qshow_theoretic_stress_dist = QtGui.QCheckBox("theoretic_stress", parent=self.base_widget)
+        self.Qshow_pressure_dist = QtGui.QCheckBox(
+            "show pressure", parent=self.base_widget
+        )
+        self.Qshow_curvature_dist = QtGui.QCheckBox(
+            "show curvature", parent=self.base_widget
+        )
+        self.Qshow_theoretic_stress_dist = QtGui.QCheckBox(
+            "theoretic_stress", parent=self.base_widget
+        )
         self.Qalpha = QtGui.QDoubleSpinBox(parent=self.base_widget)
 
         self.airfoil_sep = coin.SoSeparator()
@@ -57,7 +63,7 @@ class AirfoilTool(BaseTool):
     def setup_widget(self):
         # airfoil widget
         self.form.insert(0, self.Qairfoil_widget)
-        self.Qairfoil_widget.setWindowTitle('airfoil')
+        self.Qairfoil_widget.setWindowTitle("airfoil")
         self.Qairfoil_layout.addWidget(self.Qimport_button)
         self.Qairfoil_layout.addWidget(self.Qexport_button)
         self.Qairfoil_layout.addWidget(self.Qfit_button)
@@ -67,7 +73,6 @@ class AirfoilTool(BaseTool):
         self.Qairfoil_layout.addWidget(self.Qshow_curvature_dist)
         self.Qairfoil_layout.addWidget(self.Qshow_theoretic_stress_dist)
         self.Qairfoil_layout.addWidget(self.Qalpha)
-
 
         self.Qnum_points_upper.setMaximum(9)
         self.Qnum_points_upper.setMinimum(4)
@@ -112,39 +117,44 @@ class AirfoilTool(BaseTool):
         self.Qalpha.valueChanged.connect(self.theoretic_stress_vis)
 
     def setup_pivy(self):
-        self.task_separator += [self.airfoil_sep, self.spline_sep, 
-                                self.pressure_sep, self.curvature_sep,
-                                self.theoretic_stress_sep]
+        self.task_separator += [
+            self.airfoil_sep,
+            self.spline_sep,
+            self.pressure_sep,
+            self.curvature_sep,
+            self.theoretic_stress_sep,
+        ]
         self.update_selection()
-        Gui.SendMsgToActiveView('ViewFit')
+        Gui.SendMsgToActiveView("ViewFit")
 
     def import_file_dialog(self):
         filename = QtGui.QFileDialog.getOpenFileName(
             parent=None,
-            caption='import airfoil',
-            directory='~',
-            filter='*.dat *.json',
-            selectedFilter='*.dat *.json')
-        if filename[0] != '':
+            caption="import airfoil",
+            directory="~",
+            filter="*.dat *.json",
+            selectedFilter="*.dat *.json",
+        )
+        if filename[0] != "":
             name, format = os.path.splitext(filename[0])
             if format == ".dat":
                 self.QList_View.addItem(
-                    QAirfoil_item(
-                        BezierProfile2D.import_from_dat(filename[0])))
+                    QAirfoil_item(BezierProfile2D.import_from_dat(filename[0]))
+                )
             elif format == ".json":
                 with open(filename[0], "r") as fp:
                     airfoil = jsonify.load(fp)["data"]
-                    self.QList_View.addItem(
-                        QAirfoil_item(airfoil))
+                    self.QList_View.addItem(QAirfoil_item(airfoil))
 
     def export_file_dialog(self):
         filename = QtGui.QFileDialog.getSaveFileName(
             parent=None,
-            caption='import airfoil',
-            directory='~',
-            filter='*.dat *.json',
-            selectedFilter='*.dat *.json')
-        if filename[0] != '':
+            caption="import airfoil",
+            directory="~",
+            filter="*.dat *.json",
+            selectedFilter="*.dat *.json",
+        )
+        if filename[0] != "":
             name, format = os.path.splitext(filename[0])
             if format == ".dat":
                 self.current_airfoil.export_dat(filename[0])
@@ -153,9 +163,7 @@ class AirfoilTool(BaseTool):
                     jsonify.dump(self.current_airfoil, fp)
 
     def copy_airfoil(self):
-        self.QList_View.addItem(
-            QAirfoil_item(
-                deepcopy(self.current_airfoil)))
+        self.QList_View.addItem(QAirfoil_item(deepcopy(self.current_airfoil)))
 
     def change_text(self):
         print("change_text")
@@ -166,10 +174,10 @@ class AirfoilTool(BaseTool):
         j = 0
         for index in range(self.QList_View.count()):
             name = self.QList_View.item(index).text()
-            if 'airfoil' in name:
+            if "airfoil" in name:
                 j += 1
         airfoil = BezierProfile2D.compute_naca(4412)
-        airfoil.name = 'airfoil' + str(j)
+        airfoil.name = "airfoil" + str(j)
         new_item = QAirfoil_item(airfoil)
         self.QList_View.addItem(new_item)
         self.QList_View.setCurrentItem(new_item)
@@ -218,7 +226,9 @@ class AirfoilTool(BaseTool):
             self.update_airfoil()
         else:
             if not isinstance(self.current_airfoil, BezierProfile2D):
-                self.current_airfoil = BezierProfile2D.from_profile_2d(self.current_airfoil)
+                self.current_airfoil = BezierProfile2D.from_profile_2d(
+                    self.current_airfoil
+                )
                 self.update_selection()
             self.set_edit_mode()
 
@@ -294,33 +304,35 @@ class AirfoilTool(BaseTool):
         return [[p[0], p[1], -0.01] for p in points]
 
     def draw_upper_spline(self, num):
+        self.upper_spline += [Line_old(self.upper_control_line, color="grey").object]
         self.upper_spline += [
-            Line_old(self.upper_control_line, color='grey').object]
-        self.upper_spline += [
-            Line_old(vector3D(
-                self.current_airfoil.upper_spline.get_sequence(num)),
-                width=2).object]
+            Line_old(
+                vector3D(self.current_airfoil.upper_spline.get_sequence(num)), width=2
+            ).object
+        ]
 
     def draw_lower_spline(self, num):
+        self.lower_spline += [Line_old(self.lower_control_line, color="grey").object]
         self.lower_spline += [
-            Line_old(self.lower_control_line, color='grey').object]
-        self.lower_spline += [
-            Line_old(vector3D(
-                self.current_airfoil.lower_spline.get_sequence(num)),
-                width=2).object]
+            Line_old(
+                vector3D(self.current_airfoil.lower_spline.get_sequence(num)), width=2
+            ).object
+        ]
 
     def _update_upper_spline(self, num=50):
         self.upper_spline.removeAllChildren()
         # self.upper_cpc.control_points[-2].set_x(0.)
         self.current_airfoil.upper_spline.controlpoints = [
-            i[:-1] for i in self.upper_cpc.control_pos]
+            i[:-1] for i in self.upper_cpc.control_pos
+        ]
         self.draw_upper_spline(num)
 
     def _update_lower_spline(self, num=50):
         self.lower_spline.removeAllChildren()
         # self.lower_cpc.control_points[1].set_x(0.)
         self.current_airfoil.lower_spline.controlpoints = [
-            i[:-1] for i in self.lower_cpc.control_pos]
+            i[:-1] for i in self.lower_cpc.control_pos
+        ]
         self.draw_lower_spline(num)
 
     def unset_edit_mode(self):
@@ -340,40 +352,48 @@ class AirfoilTool(BaseTool):
             self.is_edit = False
 
     def constrain_upper_points(self):
-        self.upper_cpc.control_points[-1].pos = [0., 0., 0.]
-        self.upper_cpc.control_points[0].pos = [1., 0., 0.]
+        self.upper_cpc.control_points[-1].pos = [0.0, 0.0, 0.0]
+        self.upper_cpc.control_points[0].pos = [1.0, 0.0, 0.0]
         self.upper_cpc.control_points[-1].enabled = False
         self.upper_cpc.control_points[0].enabled = False
         t_marker = self.upper_cpc.control_points[-2]
         p = t_marker.points
-        p[0][0] = 0.
+        p[0][0] = 0.0
         t_marker.points = p
-        t_marker.constrained = [0., 1., 0.]
+        t_marker.constrained = [0.0, 1.0, 0.0]
 
     def constrain_lower_points(self):
-        self.lower_cpc.control_points[0].pos = [0., 0., 0.]
-        self.lower_cpc.control_points[-1].pos = [1., 0., 0.]
+        self.lower_cpc.control_points[0].pos = [0.0, 0.0, 0.0]
+        self.lower_cpc.control_points[-1].pos = [1.0, 0.0, 0.0]
         self.lower_cpc.control_points[-1].enabled = False
         self.lower_cpc.control_points[0].enabled = False
         t_marker = self.lower_cpc.control_points[1]
         p = t_marker.points
-        p[0][0] = 0.
+        p[0][0] = 0.0
         t_marker.points = p
-        t_marker.constrained = [0., 1., 0.]
+        t_marker.constrained = [0.0, 1.0, 0.0]
 
     def fit_upper_spline(self, num):
         if self.is_edit:
             self.current_airfoil.apply_splines()
-            self.current_airfoil.upper_spline = self.current_airfoil.fit_upper(control_num=num)
-            self.upper_cpc.control_pos = vector3D(self.current_airfoil.upper_spline.controlpoints)
+            self.current_airfoil.upper_spline = self.current_airfoil.fit_upper(
+                control_num=num
+            )
+            self.upper_cpc.control_pos = vector3D(
+                self.current_airfoil.upper_spline.controlpoints
+            )
             self.constrain_upper_points()
             self._update_upper_spline()
 
     def fit_lower_spline(self, num):
         if self.is_edit:
             self.current_airfoil.apply_splines()
-            self.current_airfoil.lower_spline = self.current_airfoil.fit_lower(control_num=num)
-            self.lower_cpc.control_pos = vector3D(self.current_airfoil.lower_spline.controlpoints)
+            self.current_airfoil.lower_spline = self.current_airfoil.fit_lower(
+                control_num=num
+            )
+            self.lower_cpc.control_pos = vector3D(
+                self.current_airfoil.lower_spline.controlpoints
+            )
             self.constrain_lower_points()
             self._update_lower_spline()
 
@@ -411,7 +431,7 @@ class AirfoilTool(BaseTool):
         self.theoretic_stress_sep.removeAllChildren()
         if self.Qshow_theoretic_stress_dist.isChecked():
             self.show_theoretic_stress()
-        
+
     def show_pressure(self):
         import parabem
         from parabem.pan2d import DirichletDoublet0Source0Case2
@@ -424,7 +444,7 @@ class AirfoilTool(BaseTool):
         vertices = [parabem.PanelVector2(*i) for i in coords]
         vertices[0].wake_vertex = True
         for i, coord in enumerate(coords):
-            j = (i+1 if (i + 1) < len(coords) else 0)
+            j = i + 1 if (i + 1) < len(coords) else 0
             pan = parabem.Panel2([vertices[i], vertices[j]])
             pans.append(pan)
         # 2. compute pressure
@@ -435,7 +455,7 @@ class AirfoilTool(BaseTool):
         for pan in pans:
             p0 = pan.center
             p1 = p0 + pan.n * pan.cp * 0.03
-            l = [[*p0, 0.], [*p1, 0.]]  # adding z-value
+            l = [[*p0, 0.0], [*p1, 0.0]]  # adding z-value
             self.pressure_sep += Line_old(l).object
         return True
 
@@ -445,8 +465,8 @@ class AirfoilTool(BaseTool):
         radius = self.current_airfoil.curvature_radius
         normals = np.array(self.current_airfoil.normvectors)[1:-1]
         for r, p, n in zip(radius, data, normals):
-            p1 = p + n * 1. / r * 0.1
-            l = [[*p, 0.], [*p1, 0.]]
+            p1 = p + n * 1.0 / r * 0.1
+            l = [[*p, 0.0], [*p1, 0.0]]
             self.curvature_sep += Line_old(l).object
 
     def show_theoretic_stress(self):
@@ -461,7 +481,7 @@ class AirfoilTool(BaseTool):
         vertices = [parabem.PanelVector2(*i) for i in coords]
         vertices[0].wake_vertex = True
         for i, coord in enumerate(coords):
-            j = (i+1 if (i + 1) < len(coords) else 0)
+            j = i + 1 if (i + 1) < len(coords) else 0
             pan = parabem.Panel2([vertices[i], vertices[j]])
             pans.append(pan)
         # 2. compute pressure
@@ -477,10 +497,8 @@ class AirfoilTool(BaseTool):
         cp = (cp[:-1] + cp[1:]) / 2
         for r, p, n, c in zip(radius, data, normals, cp):
             p1 = p - n * (c - 1) * r * 0.02
-            l = [[*p, 0.], [*p1, 0.]]
+            l = [[*p, 0.0], [*p1, 0.0]]
             self.theoretic_stress_sep += Line_old(l).object
-
-
 
 
 class QAirfoil_item(QtGui.QListWidgetItem):

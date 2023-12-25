@@ -15,34 +15,43 @@ from openglider.vector.spline import BernsteinBase, BSplineBase
 from PySide import QtGui
 
 
-
 class ConstrainedMarker(Marker):
     def __init__(self, points, dynamic=False):
         super(ConstrainedMarker, self).__init__(points, dynamic)
-        self.constrained = [1., 1., 0.]
+        self.constrained = [1.0, 1.0, 0.0]
 
-    def drag(self, mouse_coords, fact=1.):
+    def drag(self, mouse_coords, fact=1.0):
         if self.enabled:
             pts = self.points
             for i, pt in enumerate(pts):
-                pt[0] = mouse_coords[0] * fact * self.constrained[0] + self._tmp_points[i][0]
-                pt[1] = mouse_coords[1] * fact * self.constrained[1] + self._tmp_points[i][1]
-                pt[2] = mouse_coords[2] * fact * self.constrained[2] + self._tmp_points[i][2]
+                pt[0] = (
+                    mouse_coords[0] * fact * self.constrained[0]
+                    + self._tmp_points[i][0]
+                )
+                pt[1] = (
+                    mouse_coords[1] * fact * self.constrained[1]
+                    + self._tmp_points[i][1]
+                )
+                pt[2] = (
+                    mouse_coords[2] * fact * self.constrained[2]
+                    + self._tmp_points[i][2]
+                )
             self.points = pts
             for foo in self.on_drag:
                 foo()
 
 
 class Line_old(object):
-    def __init__(self, points, color='black', width=1):
+    def __init__(self, points, color="black", width=1):
         if len(points) == 0:
-            points = [[0., 0., 0.]]
+            points = [[0.0, 0.0, 0.0]]
         self.object = Line(list(map(vector3D, points)))
         self.object.drawstyle.lineWidth = width
         self.object.set_color(color)
 
     def update(self, points):
         self.object.points = vector3D(points)
+
 
 class ControlPointContainer(coin.SoSeparator):
     def __init__(self, rm, points=None):
@@ -68,44 +77,52 @@ class ControlPointContainer(coin.SoSeparator):
 
     @control_pos.setter
     def control_pos(self, points):
-        self.control_points = [ConstrainedMarker(vector3D([point]), dynamic=True) for point in points]
+        self.control_points = [
+            ConstrainedMarker(vector3D([point]), dynamic=True) for point in points
+        ]
         self.interaction.objects.removeAllChildren()
         self.interaction.dynamic_objects = []
         self.interaction += self.control_points
 
+
 def vector3D(vec, z=None):
     if len(vec) == 0:
-        return(vec)
+        return vec
     elif not isinstance(vec[0], (list, tuple, np.ndarray, FreeCAD.Vector)):
         if len(vec) == 3:
             return vec
         elif len(vec) == 2:
-            z = z or 0.
+            z = z or 0.0
             return np.array(vec).tolist() + [z]
         else:
-            print('something wrong with this list: ', vec)
+            print("something wrong with this list: ", vec)
     else:
         return [vector3D(i, z) for i in vec]
+
 
 def vector2D(vec):
     return vec[0:2]
 
+
 def hex_to_rgb(hex_string):
     try:
-        split = hex_string.split('#')
+        split = hex_string.split("#")
         if len(split) > 1:
             prefix, value = split
         else:
             value = split
         lv = len(value)
-        return tuple(int(value[i:i + lv // 3], 16) / 256. for i in range(0, lv, lv // 3))
+        return tuple(
+            int(value[i : i + lv // 3], 16) / 256.0 for i in range(0, lv, lv // 3)
+        )
     except (IndexError, ValueError) as e:
-        return (.7, .7, .7)
+        return (0.7, 0.7, 0.7)
+
 
 def rgb_to_hex(color_tuple, prefix=None):
-    assert(all(0 <= i <= 1 for i in color_tuple))
+    assert all(0 <= i <= 1 for i in color_tuple)
     c = tuple(int(i * 255) for i in color_tuple)
-    hex_c = '#%02x%02x%02x' % c
+    hex_c = "#%02x%02x%02x" % c
     if prefix:
         hex_c = prefix + hex_c
     return hex_c
@@ -114,6 +131,7 @@ def rgb_to_hex(color_tuple, prefix=None):
 def refresh():
     pass
 
+
 text_field = QtGui.QFormLayout.LabelRole
 input_field = QtGui.QFormLayout.FieldRole
 
@@ -121,9 +139,8 @@ input_field = QtGui.QFormLayout.FieldRole
 def export_glider(glider_2d, glider_3d):
     file_types = "OpenOffice *.ods;;JSON 2d *.json;;JSON 3d *.json"
     filename = QtGui.QFileDialog.getSaveFileName(
-        parent=None,
-        caption='export glider',
-        filter=file_types)
+        parent=None, caption="export glider", filter=file_types
+    )
     if filename[0] != "":
         ext = filename[1].split(".")[-1]
         name = filename[0]
@@ -141,35 +158,32 @@ def export_glider(glider_2d, glider_3d):
 
 
 def import_2d(glider):
-    filename = QtGui.QFileDialog.getOpenFileName(
-        parent=None,
-        caption='import glider'
-        )
-    if filename[0].endswith('.json'):
-        with open(filename, 'r') as importfile:
-            glider.ParametricGlider = load(importfile)['data']
+    filename = QtGui.QFileDialog.getOpenFileName(parent=None, caption="import glider")
+    if filename[0].endswith(".json"):
+        with open(filename, "r") as importfile:
+            glider.ParametricGlider = load(importfile)["data"]
             glider.ParametricGlider.get_glider_3d(glider.GliderInstance)
             glider.ViewObject.Proxy.updateData()
-    elif filename.endswith('ods'):
+    elif filename.endswith("ods"):
         glider.ParametricGlider = ParametricGlider.import_ods(filename)
         glider.ParametricGlider.get_glider_3d(glider.GliderInstance)
         glider.ViewObject.Proxy.updateData()
     else:
-        FreeCAD.Console.PrintError('\nonly .ods and .json are supported')
+        FreeCAD.Console.PrintError("\nonly .ods and .json are supported")
 
 
 class spline_select(QtGui.QComboBox):
     spline_types = {
-        'Bezier': (BernsteinBase, 0),
-        'BSpline_2': (BSplineBase(2), 1),
-        'BSpline_3': (BSplineBase(3), 2)
+        "Bezier": (BernsteinBase, 0),
+        "BSpline_2": (BSplineBase(2), 1),
+        "BSpline_3": (BSplineBase(3), 2),
     }
 
     def __init__(self, spline_objects, update_function, parent=None):
         super(spline_select, self).__init__(parent)
         self.update_function = update_function
-        self.spline_objects = spline_objects    # list of splines
-        for key in ['Bezier', 'BSpline_2', 'BSpline_3']:
+        self.spline_objects = spline_objects  # list of splines
+        for key in ["Bezier", "BSpline_2", "BSpline_3"]:
             self.addItem(key)
         self.setCurrentIndex(self.spline_types[self.current_spline_type][1])
         self.currentIndexChanged.connect(self.set_spline_type)
@@ -179,11 +193,11 @@ class spline_select(QtGui.QComboBox):
         if self.spline_objects:
             base = self.spline_objects[0].basefactory
             if base.__class__ == BernsteinBase.__class__:
-                return 'Bezier'
+                return "Bezier"
             else:
-                return 'BSpline_' + str(base.degree)
+                return "BSpline_" + str(base.degree)
         else:
-            return 'Bezier'
+            return "Bezier"
 
     def set_spline_type(self, *args):
         for spline in self.spline_objects:
@@ -193,7 +207,7 @@ class spline_select(QtGui.QComboBox):
 
 class BaseTool(object):
     hide = True
-    widget_name = 'Unnamed'
+    widget_name = "Unnamed"
     turn = True
 
     def __init__(self, obj):
@@ -227,7 +241,7 @@ class BaseTool(object):
 
         # scene container
         self.task_separator = coin.SoSeparator()
-        self.task_separator.setName('task_seperator')
+        self.task_separator.setName("task_seperator")
         self.scene.addChild(self.task_separator)
 
     def update_view_glider(self):  # rename
