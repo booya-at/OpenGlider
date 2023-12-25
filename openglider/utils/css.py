@@ -1,12 +1,41 @@
 import re
 
-colour_patterns = [
-    re.compile(r".*(#[0-9A-F]*).*")
-]
-css_forbidden_chars = ['~', '!', '@', '$', '%', '^', '&', '*', '(', ')', '+', '=', ',', '.', '/', "'", ';', ':', '"', '?',
-                   '>', '<', '[', ']', '\\', '{', '}', '|', '`', '#'] #, ' '
+colour_patterns = [re.compile(r".*(#[0-9A-F]*).*")]
+css_forbidden_chars = [
+    "~",
+    "!",
+    "@",
+    "$",
+    "%",
+    "^",
+    "&",
+    "*",
+    "(",
+    ")",
+    "+",
+    "=",
+    ",",
+    ".",
+    "/",
+    "'",
+    ";",
+    ":",
+    '"',
+    "?",
+    ">",
+    "<",
+    "[",
+    "]",
+    "\\",
+    "{",
+    "}",
+    "|",
+    "`",
+    "#",
+]  # , ' '
 default_colour = "FFFFFF"  # white
 starts_witch_number = re.compile("[0-9].*")
+
 
 def normalize_class_names(code):
     new = code
@@ -26,4 +55,4 @@ def get_material_color(code):
         if match:
             return match.groups()[0]
 
-    #return default_colour
+    # return default_colour

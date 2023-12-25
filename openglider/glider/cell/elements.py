@@ -34,11 +34,21 @@ from openglider.utils import Config
 
 
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from openglider.glider.cell import Cell
 
+
 class DiagonalRib(object):
-    def __init__(self, left_front, left_back, right_front, right_back, material_code="", name="unnamed"):
+    def __init__(
+        self,
+        left_front,
+        left_back,
+        right_front,
+        right_back,
+        material_code="",
+        name="unnamed",
+    ):
         """
         [left_front, left_back, right_front, right_back]
         -> Cut: (x_value, height)
@@ -58,12 +68,13 @@ class DiagonalRib(object):
         self.name = name
 
     def __json__(self):
-        return {'left_front': self.left_front,
-                'left_back': self.left_back,
-                'right_front': self.right_front,
-                'right_back': self.right_back,
-                "material_code": self.material_code,
-                "name": self.name
+        return {
+            "left_front": self.left_front,
+            "left_back": self.left_back,
+            "right_front": self.right_front,
+            "right_back": self.right_back,
+            "material_code": self.material_code,
+            "name": self.name,
         }
 
     @property
@@ -76,23 +87,23 @@ class DiagonalRib(object):
 
     @property
     def center_left(self):
-        return (self.left_front[0] + self.left_back[0])/2
+        return (self.left_front[0] + self.left_back[0]) / 2
 
     @property
     def center_right(self):
-        return (self.right_front[0] + self.right_back[0])/2
+        return (self.right_front[0] + self.right_back[0]) / 2
 
     @width_left.setter
     def width_left(self, width):
         center = self.center_left
-        self.left_front[0] = center - width/2
-        self.left_back[0] = center + width/2
+        self.left_front[0] = center - width / 2
+        self.left_back[0] = center + width / 2
 
     @width_right.setter
     def width_right(self, width):
         center = self.center_right
-        self.right_front[0] = center - width/2
-        self.right_back[0] = center + width/2
+        self.right_front[0] = center - width / 2
+        self.right_back[0] = center + width / 2
 
     def copy(self):
         return copy.copy(self)
@@ -120,7 +131,12 @@ class DiagonalRib(object):
                 back = rib.profile_2d(cut_back[0] * side)
                 return rib.profile_3d[front:back]
             else:
-                return PolyLine([rib.align(rib.profile_2d.align(p) + [0]) for p in (cut_front, cut_back)])
+                return PolyLine(
+                    [
+                        rib.align(rib.profile_2d.align(p) + [0])
+                        for p in (cut_front, cut_back)
+                    ]
+                )
 
         left = get_list(cell.rib1, self.left_front, self.left_back)
         right = get_list(cell.rib2, self.right_front, self.right_back)
@@ -143,16 +159,18 @@ class DiagonalRib(object):
             num_right = len(right)
             count = 0
 
-            for y_pos in np.linspace(0., 1., insert_points + 2):
+            for y_pos in np.linspace(0.0, 1.0, insert_points + 2):
                 # from left to right
                 line_points = []
                 line_points_2d = []  # TODO: mesh 2d (x, y) -> 3d nodes
                 line_indices = []
-                num_points = int(num_left * (1. - y_pos) + num_right * y_pos)
+                num_points = int(num_left * (1.0 - y_pos) + num_right * y_pos)
 
-                for x_pos in np.linspace(0., 1., num_points):
-                    line_points.append(left[x_pos * (num_left - 1)] * (1. - y_pos) +
-                                       right[x_pos * (num_right - 1)] * y_pos)
+                for x_pos in np.linspace(0.0, 1.0, num_points):
+                    line_points.append(
+                        left[x_pos * (num_left - 1)] * (1.0 - y_pos)
+                        + right[x_pos * (num_right - 1)] * y_pos
+                    )
                     line_points_2d.append([x_pos, y_pos])
                     line_indices.append(count)
                     count += 1
@@ -164,10 +182,12 @@ class DiagonalRib(object):
             # outline
             edge = number_array[0]
             edge += [line[-1] for line in number_array[1:]]
-            edge += number_array[-1][-2::-1]  # last line reversed without the last element
+            edge += number_array[-1][
+                -2::-1
+            ]  # last line reversed without the last element
             edge += [line[0] for line in number_array[1:-1]][::-1]
 
-            segment = [[edge[i], edge[i +1]] for i in range(len(edge) - 1)]
+            segment = [[edge[i], edge[i + 1]] for i in range(len(edge) - 1)]
             segment.append([edge[-1], edge[0]])
 
             point_array = np.array(point_array)
@@ -183,7 +203,11 @@ class DiagonalRib(object):
             # mesh_info.set_facets(segment)
             # mesh = _mesh.custom_triangulation(mesh_info, "Qz")
 
-            return Mesh.from_indexed(point_array, {"diagonals": list(mesh.elements)}, boundaries={"diagonals": edge})
+            return Mesh.from_indexed(
+                point_array,
+                {"diagonals": list(mesh.elements)},
+                boundaries={"diagonals": edge},
+            )
 
         else:
             vertices = np.array(list(left) + list(right)[::-1])
@@ -199,8 +223,12 @@ class DiagonalRib(object):
         """
         return average x value for sorting
         """
-        return (self.left_front[0] + self.left_back[0] +
-                self.right_back[0] + self.right_front[0]) / 4
+        return (
+            self.left_front[0]
+            + self.left_back[0]
+            + self.right_back[0]
+            + self.right_front[0]
+        ) / 4
 
 
 class DoubleDiagonalRib(object):
@@ -218,20 +246,23 @@ class TensionStrap(DiagonalRib):
         :param name: name of TensionStrap (optional)
         """
         width /= 2
-        super(TensionStrap, self).__init__((left - width / 2, height),
-                                           (left + width / 2, height),
-                                           (right - width / 2, height),
-                                           (right + width / 2, height),
-                                           material_code,
-                                           name)
-    
+        super(TensionStrap, self).__init__(
+            (left - width / 2, height),
+            (left + width / 2, height),
+            (right - width / 2, height),
+            (right + width / 2, height),
+            material_code,
+            name,
+        )
+
     def __json__(self):
         return {
             "left": self.center_left,
             "right": self.center_right,
-            "width": (self.width_left + self.width_right)/2,
-            "height": self.left_front[1]
+            "width": (self.width_left + self.width_right) / 2,
+            "height": self.left_front[1],
         }
+
 
 class TensionLine(TensionStrap):
     def __init__(self, left, right, material_code="", name=""):
@@ -242,16 +273,19 @@ class TensionLine(TensionStrap):
         :param material_code: color/material-name
         :param name: optional argument names
         """
-        super(TensionLine, self).__init__(left, right, 0.01, material_code=material_code, name=name)
+        super(TensionLine, self).__init__(
+            left, right, 0.01, material_code=material_code, name=name
+        )
         self.left = left
         self.right = right
 
     def __json__(self):
-        return {"left": self.left,
-                "right": self.right,
-                "material_code": self.material_code,
-                "name": self.name
-            }
+        return {
+            "left": self.left,
+            "right": self.right,
+            "material_code": self.material_code,
+            "name": self.name,
+        }
 
     def get_length(self, cell):
         rib1 = cell.rib1
@@ -275,7 +309,9 @@ class TensionLine(TensionStrap):
         p2 = rib2.profile_3d[rib2.profile_2d(self.right)]
         boundaries[rib1.name] = [0]
         boundaries[rib2.name] = [1]
-        return Mesh.from_indexed([p1, p2], {"tension_lines": [[0, 1]]}, boundaries=boundaries)
+        return Mesh.from_indexed(
+            [p1, p2], {"tension_lines": [[0, 1]]}, boundaries=boundaries
+        )
 
 
 class PanelCut(object):
@@ -300,13 +336,12 @@ class PanelCut(object):
         return (self.left + self.right) / 2
 
 
-
-
 class Panel(object):
     """
     Glider cell-panel
     :param cut_front {'left': 0.06, 'right': 0.06, 'type': 'orthogonal'}
     """
+
     class CUT_TYPES(Config):
         """
         all available cut_types:
@@ -315,6 +350,7 @@ class Panel(object):
         - singleskin-cut: start/end of a open singleskin-section (used for different rib-modifications)
         - 3d: 3d design cut
         """
+
         folded = "folded"
         orthogonal = "orthogonal"
         singleskin = "singleskin"
@@ -327,12 +363,13 @@ class Panel(object):
         self.name = name
 
     def __json__(self):
-        return {'cut_front': self.cut_front,
-                'cut_back': self.cut_back,
-                "material_code": self.material_code,
-                "name": self.name
-                }
-    
+        return {
+            "cut_front": self.cut_front,
+            "cut_back": self.cut_back,
+            "material_code": self.material_code,
+            "name": self.name,
+        }
+
     def __hash__(self) -> int:
         return hash_list(*self.cut_front.values(), *self.cut_back.values())
 
@@ -345,7 +382,7 @@ class Panel(object):
         total += self.cut_back["left"]
         total += self.cut_back["right"]
 
-        return total/4
+        return total / 4
 
     def __radd__(self, other):
         """needed for sum(panels)"""
@@ -354,9 +391,13 @@ class Panel(object):
 
     def __add__(self, other):
         if self.cut_front == other.cut_back:
-            return Panel(other.cut_front, self.cut_back, material_code=self.material_code)
+            return Panel(
+                other.cut_front, self.cut_back, material_code=self.material_code
+            )
         elif self.cut_back == other.cut_front:
-            return Panel(self.cut_front, other.cut_back, material_code=self.material_code)
+            return Panel(
+                self.cut_front, other.cut_back, material_code=self.material_code
+            )
         else:
             return None
 
@@ -380,12 +421,14 @@ class Panel(object):
             else:
                 midrib = midribs[i]
 
-            x1 = self.cut_front["left"] + y * (self.cut_front["right"] -
-                                               self.cut_front["left"])
+            x1 = self.cut_front["left"] + y * (
+                self.cut_front["right"] - self.cut_front["left"]
+            )
             front = get_x_value(xvalues, x1)
 
-            x2 = self.cut_back["left"] + y * (self.cut_back["right"] -
-                                              self.cut_back["left"])
+            x2 = self.cut_back["left"] + y * (
+                self.cut_back["right"] - self.cut_back["left"]
+            )
             back = get_x_value(xvalues, x2)
             ribs.append(midrib.get(front, back))
             # todo: return polygon-data
@@ -408,12 +451,14 @@ class Panel(object):
         count = 0
         for rib_no in range(numribs + 1):
             y = rib_no / max(numribs, 1)
-            x1 = self.cut_front["left"] + y * (self.cut_front["right"] -
-                                               self.cut_front["left"])
+            x1 = self.cut_front["left"] + y * (
+                self.cut_front["right"] - self.cut_front["left"]
+            )
             front = get_x_value(xvalues, x1)
 
-            x2 = self.cut_back["left"] + y * (self.cut_back["right"] -
-                                              self.cut_back["left"])
+            x2 = self.cut_back["left"] + y * (
+                self.cut_back["right"] - self.cut_back["left"]
+            )
             back = get_x_value(xvalues, x2)
             midrib = cell.midrib(y, with_numpy=with_numpy)
             ribs.append([x for x in midrib.get_positions(front, back)])
@@ -439,7 +484,7 @@ class Panel(object):
             pos_l = ribs[rib_no]
             pos_r = ribs[rib_no + 1]
             l_i = r_i = 0
-            while l_i < len(num_l)-1 or r_i < len(num_r)-1:
+            while l_i < len(num_l) - 1 or r_i < len(num_r) - 1:
                 if l_i == len(num_l) - 1:
                     triangles.append(right_triangle(num_l[l_i], num_r[r_i]))
                     r_i += 1
@@ -460,25 +505,21 @@ class Panel(object):
                 elif pos_r[r_i] < pos_l[l_i]:
                     triangles.append(right_triangle(num_l[l_i], num_r[r_i]))
                     r_i += 1
-        #connection_info = {cell.rib1: np.array(ribs[0], int),
+        # connection_info = {cell.rib1: np.array(ribs[0], int),
         #                   cell.rib2: np.array(ribs[-1], int)}
-        return Mesh.from_indexed(points, {"panel_"+self.material_code: triangles}, name=self.name)
+        return Mesh.from_indexed(
+            points, {"panel_" + self.material_code: triangles}, name=self.name
+        )
 
     def mirror(self):
         """
         mirrors the cuts of the panel
         """
         front = self.cut_front
-        self.cut_front = {
-            "right": front["left"],
-            "left": front["right"]
-        }
+        self.cut_front = {"right": front["left"], "left": front["right"]}
         back = self.cut_back
-        self.cut_back = {
-            "right": back["left"],
-            "left": back["right"]
-        }
-    
+        self.cut_back = {"right": back["left"], "left": back["right"]}
+
     def snap(self, cell):
         """
         replaces panel x_valus with x_values stored in profile-2d-x-values
@@ -491,7 +532,9 @@ class Panel(object):
         self.cut_front["right"] = p_r.nearest_x_value(self.cut_front["right"])
 
     @cached_function("self")
-    def _get_ik_values(self, cell: "openglider.glider.cell.Cell", numribs=0, exact=True):
+    def _get_ik_values(
+        self, cell: "openglider.glider.cell.Cell", numribs=0, exact=True
+    ):
         """
         :param cell: the parent cell of the panel
         :param numribs: number of interpolation steps between ribs
@@ -502,24 +545,21 @@ class Panel(object):
 
         ik_left_front = get_x_value(x_values_left, self.cut_front["left"])
         ik_left_back = get_x_value(x_values_left, self.cut_back["left"])
-        
 
         x_values_right = cell.rib2.profile_2d.x_values
         ik_right_front = get_x_value(x_values_right, self.cut_front["right"])
         ik_right_back = get_x_value(x_values_right, self.cut_back["right"])
 
-
-
         ik_values = [[ik_left_front, ik_left_back]]
 
         for i in range(numribs):
-            y = float(i+1)/(numribs+1)
+            y = float(i + 1) / (numribs + 1)
 
             front = ik_left_front + y * (ik_right_front - ik_left_front)
             back = ik_left_back + y * (ik_right_back - ik_left_back)
 
             ik_values.append([front, back])
-        
+
         ik_values.append([ik_right_front, ik_right_back])
 
         if exact:
@@ -549,22 +589,22 @@ class Panel(object):
                     logging.warning(f"panel_ik_failure: {ik_front} {cell}/{self}/back")
 
                 ik_values_new.append((_ik_front, _ik_back))
-            
+
             return ik_values_new
-        
+
         else:
             return ik_values
-        
+
     @cached_function("self")
     def _get_ik_interpolation(self, cell: "Cell", numribs=0, exact=True):
         ik_values = self._get_ik_values(cell, numribs=5, exact=exact)
-        numpoints = len(ik_values)-1
+        numpoints = len(ik_values) - 1
         ik_interpolation_front = openglider.vector.Interpolation(
-            [[i/numpoints, x[0]] for i, x in enumerate(ik_values)]
-            )
-        
+            [[i / numpoints, x[0]] for i, x in enumerate(ik_values)]
+        )
+
         ik_interpolation_back = openglider.vector.Interpolation(
-            [[i/numpoints, x[1]] for i, x in enumerate(ik_values)]
+            [[i / numpoints, x[1]] for i, x in enumerate(ik_values)]
         )
 
         return ik_interpolation_front, ik_interpolation_back
@@ -590,7 +630,7 @@ class Panel(object):
         front = []
         back = []
 
-        ff = math.sqrt(math.pi/2)*sigma
+        ff = math.sqrt(math.pi / 2) * sigma
 
         for rib_no in range(numribs + 2):
             x1, x2 = positions[rib_no]
@@ -613,11 +653,13 @@ class Panel(object):
                 for l2d, l3d in zip(lengths_2d, lengths_3d):
                     if l3d > 0:
                         factor = (l3d - l2d) / l3d
-                        x = math.erf( (distance + l3d) / (sigma*math.sqrt(2))) - math.erf(distance / (sigma*math.sqrt(2)))
+                        x = math.erf(
+                            (distance + l3d) / (sigma * math.sqrt(2))
+                        ) - math.erf(distance / (sigma * math.sqrt(2)))
 
                         amount += factor * x
                     distance += l3d
-            
+
                 return amount
 
             amount_back = integrate(lengthes_2d, lengthes_3d)
@@ -626,7 +668,9 @@ class Panel(object):
             for l2d, l3d in zip(lengthes_2d, lengthes_3d):
                 if l3d > 0:
                     factor = (l3d - l2d) / l3d
-                    x = math.erf( (distance + l3d) / (sigma*math.sqrt(2))) - math.erf(distance / (sigma*math.sqrt(2)))
+                    x = math.erf((distance + l3d) / (sigma * math.sqrt(2))) - math.erf(
+                        distance / (sigma * math.sqrt(2))
+                    )
 
                     amount_front += factor * x
                 distance += l3d
@@ -637,14 +681,15 @@ class Panel(object):
             for l2d, l3d in zip(lengthes_2d[::-1], lengthes_3d[::-1]):
                 if l3d > 0:
                     factor = (l3d - l2d) / l3d
-                    x = math.erf( (distance + l3d) / (sigma*math.sqrt(2))) - math.erf(distance / (sigma*math.sqrt(2)))
+                    x = math.erf((distance + l3d) / (sigma * math.sqrt(2))) - math.erf(
+                        distance / (sigma * math.sqrt(2))
+                    )
                     amount_back += factor * x
                 distance += l3d
 
             total = 0
             for l2d, l3d in zip(lengthes_2d, lengthes_3d):
                 total += l3d - l2d
-
 
             amount_front *= ff
             amount_back *= ff
@@ -655,37 +700,38 @@ class Panel(object):
                     amount_front *= normalization
                     amount_back *= normalization
 
-            if rib_no == 0 or rib_no == numribs+1:
+            if rib_no == 0 or rib_no == numribs + 1:
                 amount_front = 0
                 amount_back = 0
-                
+
             front.append(amount_front)
             back.append(amount_back)
 
         return front, back
 
 
-class PanelRigidFoil():
+class PanelRigidFoil:
     channel_width = 0.01
-    def __init__(self, x_start: float, x_end: float, y: float=0.5):
+
+    def __init__(self, x_start: float, x_end: float, y: float = 0.5):
         self.x_start = x_start
         self.x_end = x_end
         self.y = y
-    
+
     def __json__(self):
-        return {
-            "x_start": self.x_start,
-            "x_end": self.x_end,
-            "y": self.y
-        }
-    
+        return {"x_start": self.x_start, "x_end": self.x_end, "y": self.y}
+
     def _get_flattened_line(self, cell):
         flattened_cell = cell.get_flattened_cell()
         left, right = flattened_cell["ballooned"]
-        line = (left * (1-self.y)).add(right * self.y)
+        line = (left * (1 - self.y)).add(right * self.y)
 
-        ik_front = (cell.rib1.profile_2d(self.x_start) + cell.rib2.profile_2d(self.x_start))/2
-        ik_back = (cell.rib1.profile_2d(self.x_end) + cell.rib2.profile_2d(self.x_end))/2
+        ik_front = (
+            cell.rib1.profile_2d(self.x_start) + cell.rib2.profile_2d(self.x_start)
+        ) / 2
+        ik_back = (
+            cell.rib1.profile_2d(self.x_end) + cell.rib2.profile_2d(self.x_end)
+        ) / 2
 
         return line, ik_front, ik_back
 
@@ -693,22 +739,24 @@ class PanelRigidFoil():
         line, ik_front, ik_back = self._get_flattened_line(cell)
 
         ik_values = panel._get_ik_values(cell, numribs=5)
-        numpoints = len(ik_values)-1
-        ik_interpolation_front, ik_interpolation_back = panel._get_ik_interpolation(cell, numribs=5)
+        numpoints = len(ik_values) - 1
+        ik_interpolation_front, ik_interpolation_back = panel._get_ik_interpolation(
+            cell, numribs=5
+        )
 
         start = max(ik_front, ik_interpolation_front(self.y))
         stop = min(ik_back, ik_interpolation_back(self.y))
 
         if start < stop:
             return line[start:stop]
-        
+
         return None
 
     def get_flattened(self, cell):
         line, ik_front, ik_back = self._get_flattened_line(cell)
 
-        left = line.copy().add_stuff(-self.channel_width/2)
-        right = line.copy().add_stuff(self.channel_width/2)
+        left = line.copy().add_stuff(-self.channel_width / 2)
+        right = line.copy().add_stuff(self.channel_width / 2)
 
         contour = left[ik_front:ik_back] + right[ik_back:ik_front]
         contour.close()
@@ -721,20 +769,9 @@ class PanelRigidFoil():
 
             panel_iks.append(interpolations[0](self.y))
             panel_iks.append(interpolations[1](self.y))
-        
+
         for ik in panel_iks:
             if ik_front < ik < ik_back:
-                marks.append(openglider.vector.PolyLine2D([
-                    left[ik],
-                    right[ik]
-                ]))
+                marks.append(openglider.vector.PolyLine2D([left[ik], right[ik]]))
 
-        return openglider.vector.drawing.PlotPart(
-            cuts=[contour],
-            marks=marks
-        )
-
-
-
-
-    
+        return openglider.vector.drawing.PlotPart(cuts=[contour], marks=marks)

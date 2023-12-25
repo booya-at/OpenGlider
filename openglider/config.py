@@ -18,4 +18,3 @@ config = GlobalConfig()
 
 def get(kw):
     return config[kw]
-

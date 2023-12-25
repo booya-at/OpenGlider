@@ -24,6 +24,7 @@ class ParametricGlider(object):
     """
     A parametric (2D) Glider object used for gui input
     """
+
     num_arc_positions = 60
     num_shape = 30
     num_interpolate_ribs = 40
@@ -32,9 +33,21 @@ class ParametricGlider(object):
     num_interpolate = 30
     num_profile = None
 
-    def __init__(self, shape, arc, aoa, profiles, profile_merge_curve,
-                 balloonings, ballooning_merge_curve, lineset,
-                 speed, glide, zrot, elements=None):
+    def __init__(
+        self,
+        shape,
+        arc,
+        aoa,
+        profiles,
+        profile_merge_curve,
+        balloonings,
+        ballooning_merge_curve,
+        lineset,
+        speed,
+        glide,
+        zrot,
+        elements=None,
+    ):
         self.zrot = zrot or aoa
         self.shape: ParametricShape = shape
         self.arc = arc
@@ -61,7 +74,7 @@ class ParametricGlider(object):
             "lineset": self.lineset,
             "speed": self.speed,
             "glide": self.glide,
-            "elements": self.elements
+            "elements": self.elements,
         }
 
     @classmethod
@@ -75,33 +88,48 @@ class ParametricGlider(object):
 
     def get_geomentry_table(self):
         table = Table()
-        table.insert_row(["", "Ribs", "Chord", "X", "Y", "%", "Arc", "Arc_diff", "AOA", "Z-rotation", "Y-rotation", "profile-merge", "ballooning-merge"])
+        table.insert_row(
+            [
+                "",
+                "Ribs",
+                "Chord",
+                "X",
+                "Y",
+                "%",
+                "Arc",
+                "Arc_diff",
+                "AOA",
+                "Z-rotation",
+                "Y-rotation",
+                "profile-merge",
+                "ballooning-merge",
+            ]
+        )
         shape = self.shape.get_half_shape()
         for rib_no in range(self.shape.half_rib_num):
-            table[1+rib_no, 1] = rib_no+1
+            table[1 + rib_no, 1] = rib_no + 1
 
         for rib_no, chord in enumerate(shape.chords):
-            table[1+rib_no, 2] = chord
+            table[1 + rib_no, 2] = chord
 
         for rib_no, p in enumerate(self.shape.baseline):
-            table[1+rib_no, 3] = p[0]
-            table[1+rib_no, 4] = p[1]
-            table[1+rib_no, 5] = self.shape.baseline_pos
+            table[1 + rib_no, 3] = p[0]
+            table[1 + rib_no, 4] = p[1]
+            table[1 + rib_no, 5] = self.shape.baseline_pos
 
         last_angle = 0
         for cell_no, angle in enumerate(self.get_arc_angles()):
             angle = angle * 180 / math.pi
-            table[1+cell_no, 6] = angle
-            table[1+cell_no, 7] = angle - last_angle
+            table[1 + cell_no, 6] = angle
+            table[1 + cell_no, 7] = angle - last_angle
             last_angle = angle
 
         for rib_no, aoa in enumerate(self.get_aoa()):
-            table[1+rib_no, 8] = aoa * 180 / math.pi
-            table[1+rib_no, 9] = 0
-            table[1+rib_no, 10] = 0
+            table[1 + rib_no, 8] = aoa * 180 / math.pi
+            table[1 + rib_no, 9] = 0
+            table[1 + rib_no, 10] = 0
 
         return table
-
 
     @property
     def arc_positions(self):
@@ -113,7 +141,7 @@ class ParametricGlider(object):
         :param arc_curve:
         :return: rotation angles
         """
-        #arc_curve = ArcCurve(self.arc)
+        # arc_curve = ArcCurve(self.arc)
         arc_curve = self.arc
 
         return arc_curve.get_rib_angles(self.shape.rib_x_values)
@@ -121,12 +149,14 @@ class ParametricGlider(object):
     @property
     def attachment_points(self):
         """coordinates of the attachment_points"""
-        return [a_p.get_2D(self.shape)
-                for a_p in self.lineset.nodes
-                if isinstance(a_p, UpperNode2D)]
+        return [
+            a_p.get_2D(self.shape)
+            for a_p in self.lineset.nodes
+            if isinstance(a_p, UpperNode2D)
+        ]
 
     def merge_ballooning(self, factor):
-        factor = max(0, min(len(self.balloonings)-1, factor))
+        factor = max(0, min(len(self.balloonings) - 1, factor))
         k = factor % 1
         i = int(factor // 1)
         first = self.balloonings[i]
@@ -137,7 +167,7 @@ class ParametricGlider(object):
             return first.copy()
 
     def get_merge_profile(self, factor):
-        factor = max(0, min(len(self.profiles)-1, factor))
+        factor = max(0, min(len(self.profiles) - 1, factor))
         k = factor % 1
         i = int(factor // 1)
         first = self.profiles[i].copy()
@@ -154,6 +184,7 @@ class ParametricGlider(object):
         :param glider_3d: (optional)
         :return: list of "cells"
         """
+
         def is_greater(cut_1, cut_2):
             if cut_1["left"] >= cut_2["left"] and cut_1["right"] >= cut_2["left"]:
                 return True
@@ -176,27 +207,31 @@ class ParametricGlider(object):
             all_values = [c["left"] for c in cuts] + [c["right"] for c in cuts]
 
             if -1 not in all_values:
-                cuts.append({"type": "parallel",
-                             "left": -1, "right": -1})
+                cuts.append({"type": "parallel", "left": -1, "right": -1})
             if 1 not in all_values:
-                cuts.append({"type": "parallel",
-                            "left": 1, "right": 1})
+                cuts.append({"type": "parallel", "left": 1, "right": 1})
 
             cuts.sort(key=lambda cut: cut["left"])
 
             for cut1, cut2 in ZipCmp(cuts):
                 part_no = len(panel_lst)
-                
+
                 if cut1["right"] > cut2["right"]:
                     error_str = "Invalid cut: C{} {:.02f}/{:.02f}/{} + {:.02f}/{:.02f}/{}".format(
-                        cell_no+1,
-                        cut1["left"], cut1["right"], cut1["type"],
-                        cut2["left"], cut2["right"], cut2["type"],
+                        cell_no + 1,
+                        cut1["left"],
+                        cut1["right"],
+                        cut1["type"],
+                        cut2["left"],
+                        cut2["right"],
+                        cut2["type"],
                     )
                     raise ValueError(error_str)
 
-                if (cut1["type"] == cut2["type"] == "folded" or
-                    cut1["type"] == cut2["type"] == "singleskin"):
+                if (
+                    cut1["type"] == cut2["type"] == "folded"
+                    or cut1["type"] == cut2["type"] == "singleskin"
+                ):
                     # entry
                     continue
 
@@ -205,11 +240,13 @@ class ParametricGlider(object):
                 except (KeyError, IndexError):
                     material_code = "unknown"
 
-                panel = Panel(cut1, cut2,
-                              name="c{}p{}".format(cell_no+1, part_no+1),
-                              material_code=material_code)
+                panel = Panel(
+                    cut1,
+                    cut2,
+                    name="c{}p{}".format(cell_no + 1, part_no + 1),
+                    material_code=material_code,
+                )
                 panel_lst.append(panel)
-
 
         return cells
 
@@ -226,18 +263,18 @@ class ParametricGlider(object):
             cell_elements.sort(key=lambda strap: strap.get_average_x())
 
             for strap_no, strap in enumerate(cell_elements):
-                strap.name = "c{}{}{}".format(cell_no+1, name[0], strap_no)
-            
+                strap.name = "c{}{}{}".format(cell_no + 1, name[0], strap_no)
+
             elements.append(cell_elements)
-        
+
         return elements
 
     def get_cell_diagonals(self):
         return self._get_cell_straps("diagonals", DiagonalRib)
-    
+
     def get_cell_straps(self):
         return self._get_cell_straps("straps", TensionStrap)
-    
+
     def get_cell_tension_lines(self):
         return self._get_cell_straps("tension_lines", TensionLine)
 
@@ -262,7 +299,9 @@ class ParametricGlider(object):
         """
 
     def get_aoa(self, interpolation_num=None):
-        aoa_interpolation = self.aoa.interpolation(num=interpolation_num or self.num_interpolate)
+        aoa_interpolation = self.aoa.interpolation(
+            num=interpolation_num or self.num_interpolate
+        )
 
         return [aoa_interpolation(x) for x in self.shape.rib_x_values]
 
@@ -277,11 +316,15 @@ class ParametricGlider(object):
             rib.aoa_relative = aoa
 
     def get_profile_merge(self):
-        profile_merge_curve = self.profile_merge_curve.interpolation(num=self.num_interpolate)
+        profile_merge_curve = self.profile_merge_curve.interpolation(
+            num=self.num_interpolate
+        )
         return [profile_merge_curve(abs(x)) for x in self.shape.rib_x_values]
 
     def get_ballooning_merge(self):
-        ballooning_merge_curve = self.ballooning_merge_curve.interpolation(num=self.num_interpolate)
+        ballooning_merge_curve = self.ballooning_merge_curve.interpolation(
+            num=self.num_interpolate
+        )
         return [ballooning_merge_curve(abs(x) for x in self.shape.cell_x_values)]
 
     def apply_shape_and_arc(self, glider):
@@ -299,7 +342,7 @@ class ParametricGlider(object):
             startpoint = np.array([-front[1] + offset_x, arc[0], arc[1]])
 
             line.append(startpoint)
-            chords.append(abs(front[1]-back[1]))
+            chords.append(abs(front[1] - back[1]))
 
         if self.shape.has_center_cell:
             line.insert(0, line[0] * [1, -1, 1])
@@ -338,7 +381,7 @@ class ParametricGlider(object):
         rib_holes = self.elements.get("holes", [])
         rigids = self.elements.get("rigidfoils", [])
 
-        cell_centers = [(p1+p2)/2 for p1, p2 in zip(x_values[:-1], x_values[1:])]
+        cell_centers = [(p1 + p2) / 2 for p1, p2 in zip(x_values[:-1], x_values[1:])]
         offset_x = shape_ribs[0][0][1]
 
         rib_material = None
@@ -350,28 +393,38 @@ class ParametricGlider(object):
             arc = arc_pos[rib_no]
             startpoint = np.array([-front[1] + offset_x, arc[0], arc[1]])
 
-            chord = abs(front[1]-back[1])
+            chord = abs(front[1] - back[1])
             factor = profile_merge_curve(abs(pos))
             profile = self.get_merge_profile(factor)
             profile.name = "Profile{}".format(rib_no)
             profile.x_values = profile_x_values
 
-            this_rib_holes = [RibHole(ribhole["pos"], ribhole["size"]) for ribhole in rib_holes if rib_no in ribhole["ribs"]]
-            this_rigid_foils = [RigidFoil(rigid["start"], rigid["end"], rigid["distance"]) for rigid in rigids if rib_no in rigid["ribs"]]
+            this_rib_holes = [
+                RibHole(ribhole["pos"], ribhole["size"])
+                for ribhole in rib_holes
+                if rib_no in ribhole["ribs"]
+            ]
+            this_rigid_foils = [
+                RigidFoil(rigid["start"], rigid["end"], rigid["distance"])
+                for rigid in rigids
+                if rib_no in rigid["ribs"]
+            ]
 
-            ribs.append(Rib(
-                profile_2d=profile,
-                startpoint=startpoint,
-                chord=chord,
-                arcang=rib_angles[rib_no],
-                glide=self.glide,
-                aoa_absolute=aoa_int(pos),
-                zrot=zrot_int(pos),
-                holes=this_rib_holes,
-                rigidfoils=this_rigid_foils,
-                name="rib{}".format(rib_no),
-                material_code=rib_material
-            ))
+            ribs.append(
+                Rib(
+                    profile_2d=profile,
+                    startpoint=startpoint,
+                    chord=chord,
+                    arcang=rib_angles[rib_no],
+                    glide=self.glide,
+                    aoa_absolute=aoa_int(pos),
+                    zrot=zrot_int(pos),
+                    holes=this_rib_holes,
+                    rigidfoils=this_rigid_foils,
+                    name="rib{}".format(rib_no),
+                    material_code=rib_material,
+                )
+            )
             ribs[-1].aoa_relative = aoa_int(pos)
 
         if self.shape.has_center_cell:
@@ -380,14 +433,14 @@ class ParametricGlider(object):
             new_rib.mirror()
             new_rib.mirrored_rib = ribs[0]
             ribs.insert(0, new_rib)
-            cell_centers.insert(0, 0.)
+            cell_centers.insert(0, 0.0)
 
         glider.cells = []
         for cell_no, (rib1, rib2) in enumerate(zip(ribs[:-1], ribs[1:])):
             ballooning_factor = ballooning_merge_curve(cell_centers[cell_no])
             ballooning = self.merge_ballooning(ballooning_factor)
-            
-            cell = Cell(rib1, rib2, ballooning, name="c{}".format(cell_no+1))
+
+            cell = Cell(rib1, rib2, ballooning, name="c{}".format(cell_no + 1))
 
             glider.cells.append(cell)
 
@@ -409,7 +462,7 @@ class ParametricGlider(object):
                 glider.cells[cell_no].rigidfoils.append(PanelRigidFoil(**data))
 
         # RIB-ELEMENTS
-        #self.apply_holes(glider)
+        # self.apply_holes(glider)
 
         glider.rename_parts()
 
@@ -427,7 +480,9 @@ class ParametricGlider(object):
         for ballooning in self.balloonings:
             ballooning.apply_splines()
         cell_centers = self.shape.cell_x_values
-        ballooning_merge_curve = self.ballooning_merge_curve.interpolation(num=self.num_interpolate)
+        ballooning_merge_curve = self.ballooning_merge_curve.interpolation(
+            num=self.num_interpolate
+        )
         for cell_no, cell in enumerate(glider3d.cells):
             ballooning_factor = ballooning_merge_curve(cell_centers[cell_no])
             ballooning = self.merge_ballooning(ballooning_factor)
@@ -437,11 +492,11 @@ class ParametricGlider(object):
 
     @property
     def v_inf(self):
-        angle = np.arctan(1/self.glide)
+        angle = np.arctan(1 / self.glide)
         return np.array([np.cos(angle), 0, np.sin(angle)]) * self.speed
 
     def set_area(self, area):
-        factor = math.sqrt(area/self.shape.area)
+        factor = math.sqrt(area / self.shape.area)
         self.shape.scale(factor)
         self.lineset.scale(factor, scale_lower_floor=False)
         self.rescale_curves()
@@ -449,7 +504,6 @@ class ParametricGlider(object):
     def set_aspect_ratio(self, aspect_ratio, remain_area=True):
         ar0 = self.shape.aspect_ratio
         area0 = self.shape.area
-
 
         self.shape.scale(y=ar0 / aspect_ratio)
 
@@ -461,22 +515,21 @@ class ParametricGlider(object):
 
         return self.shape.aspect_ratio
 
-
-
-##############################################################
-# is this used?
+    ##############################################################
+    # is this used?
     def scale(self, x=1, y=1):
         self.shape.scale(x, y)
         if x != 1:
             self.rescale_curves()
-##############################################################
+
+    ##############################################################
 
     def rescale_curves(self):
         span = self.shape.span
 
         def rescale(curve):
             span_orig = curve.controlpoints[-1][0]
-            factor = span/span_orig
+            factor = span / span_orig
             curve._data[:, 0] *= factor
 
         rescale(self.ballooning_merge_curve)
@@ -484,6 +537,7 @@ class ParametricGlider(object):
         rescale(self.aoa)
         rescale(self.zrot)
         self.arc.rescale(self.shape.rib_x_values)
+
     def get_line_bbox(self):
         points = []
         for point in self.lineset.nodes:
@@ -504,15 +558,24 @@ class ParametricGlider(object):
 
         import svgwrite
         import svgwrite.container
-        drawing = svgwrite.Drawing(size=[800, 800*height/width])
 
-        drawing.viewbox(bbox[0][0]-border*width, -bbox[1][1]-border*height, width*(1+2*border), height*(1+2*border))
+        drawing = svgwrite.Drawing(size=[800, 800 * height / width])
+
+        drawing.viewbox(
+            bbox[0][0] - border * width,
+            -bbox[1][1] - border * height,
+            width * (1 + 2 * border),
+            height * (1 + 2 * border),
+        )
         lines = svgwrite.container.Group()
         lines.scale(1, -1)
         for line in self.lineset.lines:
             p1 = line.lower_node.get_2D(self.shape)
             p2 = line.upper_node.get_2D(self.shape)
-            drawing_line = drawing.polyline([p1, p2], style="stroke:black; vector-effect: fill: none; stroke-width:0.01px")
+            drawing_line = drawing.polyline(
+                [p1, p2],
+                style="stroke:black; vector-effect: fill: none; stroke-width:0.01px",
+            )
             lines.add(drawing_line)
         drawing.add(lines)
 
@@ -523,10 +586,25 @@ class ParametricGlider(object):
         for rib in self.shape.ribs:
             p1 = rib[0]
             p2 = rib[1]
-            ribs.add(drawing.polyline([p1, p2], style="stroke:black; vector-effect: fill: none; stroke-width:0.01px"))
+            ribs.add(
+                drawing.polyline(
+                    [p1, p2],
+                    style="stroke:black; vector-effect: fill: none; stroke-width:0.01px",
+                )
+            )
             if p1_old and p2_old:
-                ribs.add(drawing.polyline([p1_old, p1], style="stroke:black; vector-effect: fill: none; stroke-width:0.01px"))
-                ribs.add(drawing.polyline([p2_old, p2], style="stroke:black; vector-effect: fill: none; stroke-width:0.01px"))
+                ribs.add(
+                    drawing.polyline(
+                        [p1_old, p1],
+                        style="stroke:black; vector-effect: fill: none; stroke-width:0.01px",
+                    )
+                )
+                ribs.add(
+                    drawing.polyline(
+                        [p2_old, p2],
+                        style="stroke:black; vector-effect: fill: none; stroke-width:0.01px",
+                    )
+                )
             p1_old, p2_old = p1, p2
 
         drawing.add(ribs)

@@ -14,7 +14,13 @@ from openglider.vector import Interpolation
 
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.shape import ParametricShape
-from openglider.glider.parametric.lines import UpperNode2D, LowerNode2D, BatchNode2D, Line2D, LineSet2D
+from openglider.glider.parametric.lines import (
+    UpperNode2D,
+    LowerNode2D,
+    BatchNode2D,
+    Line2D,
+    LineSet2D,
+)
 from openglider.glider.rib import MiniRib
 from openglider.glider.ballooning import BallooningBezier, BallooningBezierNeu
 from openglider.utils.table import Table
@@ -26,13 +32,15 @@ element_keywords = {
     "a": "",
 }
 
+
 def filter_elements_from_table(table: Table, key: str, length: int):
     new_table = Table()
     for column in range(table.num_columns):
         if table[0, column] == key:
-            new_table.append_right(table.get_columns(column, column+length-1))
-    
+            new_table.append_right(table.get_columns(column, column + length - 1))
+
     return new_table
+
 
 def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     logger.info(f"Import file: {filename}")
@@ -53,7 +61,9 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     # ------------
 
     # profiles = [BezierProfile2D(profile) for profile in transpose_columns(sheets[3])]
-    profiles = [Profile2D(profile, name) for name, profile in transpose_columns(sheets[3])]
+    profiles = [
+        Profile2D(profile, name) for name, profile in transpose_columns(sheets[3])
+    ]
     for foil in profiles:
         foil.normalize()
 
@@ -67,15 +77,15 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
 
     balloonings = []
     for i, (name, baloon) in enumerate(transpose_columns(sheets[4])):
-        ballooning_type = str(sheets[4][0,2*i+1].value).upper()
+        ballooning_type = str(sheets[4][0, 2 * i + 1].value).upper()
         if baloon:
             if ballooning_type == "V1":
                 i = 0
                 while baloon[i + 1][0] > baloon[i][0]:
                     i += 1
 
-                upper = baloon[:i + 1]
-                lower = [(x, -y) for x, y in baloon[i + 1:]]
+                upper = baloon[: i + 1]
+                lower = [(x, -y) for x, y in baloon[i + 1 :]]
 
                 ballooning = BallooningBezier(upper, lower, name=name)
                 balloonings.append(BallooningBezierNeu.from_classic(ballooning))
@@ -85,8 +95,8 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
                 while baloon[i + 1][0] > baloon[i][0]:
                     i += 1
 
-                upper = baloon[:i + 1]
-                lower = baloon[i + 1:]
+                upper = baloon[: i + 1]
+                lower = baloon[i + 1 :]
 
                 ballooning = BallooningBezier(upper, lower, name=name)
                 balloonings.append(BallooningBezierNeu.from_classic(ballooning))
@@ -97,7 +107,6 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
             else:
                 raise ValueError("No ballooning type specified")
 
-
     data = {}
     datasheet = tables[-1]
     for row in range(datasheet.num_rows):
@@ -105,17 +114,20 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
         if name:
             data[name] = datasheet[row, 1]
 
-    
     attachment_points_cell_table = filter_elements_from_table(cell_sheet, "ATP", 4)
-    attachment_points_cell_table.append_right(filter_elements_from_table(cell_sheet, "AHP", 4))
+    attachment_points_cell_table.append_right(
+        filter_elements_from_table(cell_sheet, "AHP", 4)
+    )
 
     attachment_points_rib_table = filter_elements_from_table(rib_sheet, "AHP", 3)
-    attachment_points_rib_table.append_right(filter_elements_from_table(rib_sheet, "ATP", 3))
+    attachment_points_rib_table.append_right(
+        filter_elements_from_table(rib_sheet, "ATP", 3)
+    )
 
     attachment_points = LineSet2D.read_attachment_point_table(
         cell_table=attachment_points_cell_table,
         rib_table=attachment_points_rib_table,
-        half_cell_no=geometry["shape"].half_cell_num
+        half_cell_no=geometry["shape"].half_cell_num,
     )
 
     attachment_points = {n.name: n for n in attachment_points}
@@ -126,12 +138,11 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
         group_kw = keywords[0]
         elements = []
         for name in names:
-            elements += read_elements(sheet, name, len_data=len(keywords)-1)
-        
+            elements += read_elements(sheet, name, len_data=len(keywords) - 1)
+
         element_dct = to_dct(elements, keywords)
 
         return group(element_dct, group_kw)
-
 
     # RIB HOLES
     rib_hole_keywords = ["ribs", "pos", "size"]
@@ -146,11 +157,8 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     rigidfoils = group(rigidfoils, "ribs")
 
     cell_rigidfoils = get_grouped_elements(
-        cell_sheet, 
-        ["RIGIDFOIL"], 
-        ["cells", "x_start", "x_end", "y"]
-        )
-
+        cell_sheet, ["RIGIDFOIL"], ["cells", "x_start", "x_end", "y"]
+    )
 
     # CUTS
     def get_cuts(names, target_name):
@@ -158,8 +166,15 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
         for name_src in names:
             objs += read_elements(cell_sheet, name_src, len_data=2)
 
-        cuts_this = [{"cells": cut[0], "left": float(cut[1]), "right": float(cut[2]), "type": target_name} for cut in
-                     objs]
+        cuts_this = [
+            {
+                "cells": cut[0],
+                "left": float(cut[1]),
+                "right": float(cut[2]),
+                "type": target_name,
+            }
+            for cut in objs
+        ]
 
         return group(cuts_this, "cells")
 
@@ -180,32 +195,28 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
             height2 = height2 * 2 - 1
         # ---------
 
-        diagonals.append({"left_front": (res[1] - res[3] / 2, height1),
-                          "left_back": (res[1] + res[3] / 2, height1),
-                          "right_front": (res[2] - res[4] / 2, height2),
-                          "right_back": (res[2] + res[4] / 2, height2),
-                          "cells": res[0]})
+        diagonals.append(
+            {
+                "left_front": (res[1] - res[3] / 2, height1),
+                "left_back": (res[1] + res[3] / 2, height1),
+                "right_front": (res[2] - res[4] / 2, height2),
+                "right_back": (res[2] + res[4] / 2, height2),
+                "cells": res[0],
+            }
+        )
 
     diagonals = group(diagonals, "cells")
 
     straps = []
     straps_keywords = ["cells", "left", "right"]
     for res in read_elements(cell_sheet, "VEKTLAENGE", len_data=2):
-        straps.append({
-            "left": res[1],
-            "right": res[2],
-            "width": 0.02,
-            "cells": res[0]
-        })
+        straps.append({"left": res[1], "right": res[2], "width": 0.02, "cells": res[0]})
 
     for res in read_elements(cell_sheet, "STRAP", len_data=3):
         # [cell_no, x_left, x_right, width]
-        straps.append({
-            "left": res[1],
-            "right": res[2],
-            "width": res[3],
-            "cells": res[0]
-            })
+        straps.append(
+            {"left": res[1], "right": res[2], "width": res[3], "cells": res[0]}
+        )
     straps = group(straps, "cells")
 
     materials = get_material_codes(cell_sheet)
@@ -213,30 +224,34 @@ def import_ods_2d(Glider2D, filename, numpoints=4, calc_lineset_nodes=False):
     # minirib -> y, start (x)
     miniribs = []
     for minirib in read_elements(cell_sheet, "MINIRIB", len_data=2):
-        miniribs.append({
-            "yvalue": minirib[1],
-            "front_cut": minirib[2],
-            "cells": minirib[0]
-        })
+        miniribs.append(
+            {"yvalue": minirib[1], "front_cut": minirib[2], "cells": minirib[0]}
+        )
     miniribs = group(miniribs, "cells")
 
     lineset_table = tables[6]
-    lineset = LineSet2D.read_input_table(lineset_table, attachment_points_lower, attachment_points)
+    lineset = LineSet2D.read_input_table(
+        lineset_table, attachment_points_lower, attachment_points
+    )
 
-    glider_2d = Glider2D(elements={"cuts": cuts,
-                                   "holes": rib_holes,
-                                   "diagonals": diagonals,
-                                   "rigidfoils": rigidfoils,
-                                   "cell_rigidfoils": cell_rigidfoils,
-                                   "straps": straps,
-                                   "materials": materials,
-                                   "miniribs": miniribs},
-                         profiles=profiles,
-                         balloonings=balloonings,
-                         lineset=lineset,
-                         speed=data["SPEED"],
-                         glide=data["GLIDE"],
-                         **geometry)
+    glider_2d = Glider2D(
+        elements={
+            "cuts": cuts,
+            "holes": rib_holes,
+            "diagonals": diagonals,
+            "rigidfoils": rigidfoils,
+            "cell_rigidfoils": cell_rigidfoils,
+            "straps": straps,
+            "materials": materials,
+            "miniribs": miniribs,
+        },
+        profiles=profiles,
+        balloonings=balloonings,
+        lineset=lineset,
+        speed=data["SPEED"],
+        glide=data["GLIDE"],
+        **geometry,
+    )
 
     if calc_lineset_nodes:
         glider_3d = glider_2d.get_glider_3d()
@@ -255,7 +270,7 @@ def get_geometry_explicit(sheet):
     ballooning_merge = []
     zrot = []
 
-    y = z = span_last = alpha = 0.
+    y = z = span_last = alpha = 0.0
     for i in range(1, sheet.nrows()):
         line = [sheet.get_cell([i, j]).value for j in range(sheet.ncols())]
         if not line[0]:
@@ -297,14 +312,18 @@ def get_geometry_explicit(sheet):
 
     start = (2 - has_center_cell) / cell_no
 
-    const_arr = [0.] + np.linspace(start, 1, len(front) - (not has_center_cell)).tolist()
-    rib_pos = [0.] + [p[0] for p in front[not has_center_cell:]]
+    const_arr = [0.0] + np.linspace(
+        start, 1, len(front) - (not has_center_cell)
+    ).tolist()
+    rib_pos = [0.0] + [p[0] for p in front[not has_center_cell :]]
     rib_pos_int = Interpolation(zip(rib_pos, const_arr))
     rib_distribution = [[i, rib_pos_int(i)] for i in np.linspace(0, rib_pos[-1], 30)]
 
     rib_distribution = Bezier.fit(rib_distribution)
 
-    parametric_shape = ParametricShape(symmetric_fit(front), symmetric_fit(back), rib_distribution, cell_no)
+    parametric_shape = ParametricShape(
+        symmetric_fit(front), symmetric_fit(back), rib_distribution, cell_no
+    )
     arc_curve = ArcCurve(symmetric_fit(arc))
 
     return {
@@ -313,14 +332,23 @@ def get_geometry_explicit(sheet):
         "aoa": symmetric_fit(aoa),
         "zrot": symmetric_fit(zrot),
         "profile_merge_curve": symmetric_fit(profile_merge, bspline=True),
-        "ballooning_merge_curve": symmetric_fit(ballooning_merge, bspline=True)
+        "ballooning_merge_curve": symmetric_fit(ballooning_merge, bspline=True),
     }
 
 
 def get_geometry_parametric(table: Table, cell_num):
     data = {}
-    
-    for key in ("front", "back", "rib_distribution", "arc", "zrot", "aoa", "profile_merge_curve", "ballooning_merge_curve"):
+
+    for key in (
+        "front",
+        "back",
+        "rib_distribution",
+        "arc",
+        "zrot",
+        "aoa",
+        "profile_merge_curve",
+        "ballooning_merge_curve",
+    ):
         column = None
         for col in range(table.num_columns):
             if table[0, col] == key:
@@ -329,14 +357,14 @@ def get_geometry_parametric(table: Table, cell_num):
             points = []
             for row in range(1, table.num_rows):
                 if table[row, column] is not None:
-                    points.append([table[row, column], table[row, column+1]])
+                    points.append([table[row, column], table[row, column + 1]])
             data[key] = points
 
     parametric_shape = ParametricShape(
         SymmetricBSpline(data["front"]),
         SymmetricBSpline(data["back"]),
         Bezier(data["rib_distribution"]),
-        cell_num
+        cell_num,
     )
 
     arc_curve = ArcCurve(SymmetricBSpline(data["arc"]))
@@ -347,9 +375,9 @@ def get_geometry_parametric(table: Table, cell_num):
         "aoa": SymmetricBSpline(data["aoa"]),
         "zrot": SymmetricBSpline(data["zrot"]),
         "profile_merge_curve": SymmetricBSpline(data["profile_merge_curve"]),
-        "ballooning_merge_curve": SymmetricBSpline(data["ballooning_merge_curve"])
+        "ballooning_merge_curve": SymmetricBSpline(data["ballooning_merge_curve"]),
     }
-    
+
 
 def get_material_codes(sheet):
     materials = read_elements(sheet, "MATERIAL", len_data=1)
@@ -376,8 +404,9 @@ def get_lower_aufhaengepunkte(data):
 
                 aufhaengepunkte.setdefault(pos, [0, 0, 0])
                 aufhaengepunkte[pos][axis_to_index[axis]] = data[key]
-    return {name: LowerNode2D([0, 0], pos, name)
-            for name, pos in aufhaengepunkte.items()}
+    return {
+        name: LowerNode2D([0, 0], pos, name) for name, pos in aufhaengepunkte.items()
+    }
 
 
 def transpose_columns(sheet, columnswidth=2):
@@ -423,9 +452,9 @@ def read_elements(sheet: Table, keyword, len_data=2):
         if sheet[0, column] == keyword:
             for row in range(1, sheet.num_rows):
                 line = [sheet[row, column + k] for k in range(len_data)]
-                
+
                 if line[0]:
-                    line.insert(0, row-1)
+                    line.insert(0, row - 1)
                     elements.append(line)
             column += len_data
         else:

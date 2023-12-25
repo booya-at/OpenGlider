@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 def import_lines(path):
     key_dict = {
         "NODES": [8, store_nodes, []],  # 8 tab-seperated values
-        "LINES": [5, store_lines, []]
+        "LINES": [5, store_lines, []],
     }
     return import_file(path, key_dict)
 
@@ -50,8 +50,13 @@ def store_lines(values, thalist, key_dict):
     upper_no = try_convert(values[2], int)
     upper = key_dict["NODES"][2][upper_no]
     lower = key_dict["NODES"][2][lower_no]
-    l = Line(number=try_convert(values[0], int), upper_node=upper, lower_node=lower,
-             v_inf=[10, 0, 0], target_length=try_convert(values[3], float))
+    l = Line(
+        number=try_convert(values[0], int),
+        upper_node=upper,
+        lower_node=lower,
+        v_inf=[10, 0, 0],
+        target_length=try_convert(values[3], float),
+    )
     l.type = LineType.get(values[4])
     thalist.append(l)
 
@@ -71,14 +76,16 @@ def import_file(path, key_dict):
             line = line.replace("\n", "")
             line = line.replace("\t", " ")
             line = line.split(" ")  # [ 'sfsd', '']
-            line = list(filter(lambda a: a != '', line))  # filter empty elements
+            line = list(filter(lambda a: a != "", line))  # filter empty elements
 
             if len(line) > 0:
                 if line[0] in key_dict:
                     current_key = line[0]
                 elif current_key is not None:
                     if key_dict[current_key][0] == len(line):
-                        key_dict[current_key][1](line, key_dict[current_key][2], key_dict)  # function from key-dict
+                        key_dict[current_key][1](
+                            line, key_dict[current_key][2], key_dict
+                        )  # function from key-dict
                     elif line[0] != "#":
                         logger.error(f"error in inputfile, line {line_nr}")
             else:

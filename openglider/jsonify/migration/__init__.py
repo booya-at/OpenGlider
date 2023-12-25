@@ -34,7 +34,9 @@ def find_nodes(jsondata, name="*", module=r"*"):
     if isinstance(jsondata, dict):
         if "__class__" in jsondata:
             # node
-            if rex_name.match(jsondata["__class__"]) and rex_module.match(jsondata["__module__"]):
+            if rex_name.match(jsondata["__class__"]) and rex_module.match(
+                jsondata["__module__"]
+            ):
                 nodes.append(jsondata)
 
         if isinstance(jsondata, dict):
@@ -52,7 +54,4 @@ def find_nodes(jsondata, name="*", module=r"*"):
     return nodes
 
 
-
-migrations = {
-    "0.00": migrate_00
-}
+migrations = {"0.00": migrate_00}

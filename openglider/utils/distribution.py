@@ -22,7 +22,7 @@ class Distribution(HashedList):
         _types = {
             "cos": cls.from_cos_distribution,
             "cos_2": cls.from_cos_2_distribution,
-            "nose_cos": cls.from_nose_cos_distribution
+            "nose_cos": cls.from_nose_cos_distribution,
         }
         dist_func = _types.get(dist_type, cls.from_linear)
         dist = dist_func(numpoints, **kwargs)
@@ -49,8 +49,7 @@ class Distribution(HashedList):
             nearest += 1
 
     def insert_value(self, value, start_ind=0, to_nose=True):
-
-        if start_ind  >= len(self.data):
+        if start_ind >= len(self.data):
             self.data = list(self.data[:-1]) + [value] + [self.data[-1]]
             return start_ind + 1
 
@@ -69,7 +68,6 @@ class Distribution(HashedList):
 
         if value > 0 and self.data[start_ind] < 0 and to_nose is True:
             start_ind = nose_ind
-
 
         l1 = self.data[:start_ind]
         l2 = self.data[start_ind:nearest_ind]
@@ -98,7 +96,7 @@ class Distribution(HashedList):
         """
         start_ind = 0
         values = [i for i in values if (i != 1 and i != -1)]
-        values = list(set(values))       # delete duplicate and sort -1...1
+        values = list(set(values))  # delete duplicate and sort -1...1
         values.sort()
         for value in values:
             start_ind = self.insert_value(value, start_ind)
@@ -108,7 +106,7 @@ class Distribution(HashedList):
         """
         Get a linear distribution
         """
-        return cls([start + (stop - start)/numpoints * i for i in range(numpoints)])
+        return cls([start + (stop - start) / numpoints * i for i in range(numpoints)])
 
     @classmethod
     def from_polynom_distribution(cls, numpoints, order=2):
@@ -116,8 +114,8 @@ class Distribution(HashedList):
         return a polynom distribution
         f(x) = +- x^p, 0 < x < 1
         """
-        half_numpoints = int(numpoints/2) + 1
-        second_half = [i/half_numpoints ** order for i in range(half_numpoints)]
+        half_numpoints = int(numpoints / 2) + 1
+        second_half = [i / half_numpoints**order for i in range(half_numpoints)]
         first_half = [-x for x in second_half[::-1]][:-1]
 
         return cls(first_half + second_half)
@@ -130,7 +128,7 @@ class Distribution(HashedList):
         """
         numpoints -= numpoints % 2  # brauchts?
         xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 - np.sin(np.pi * x))
-        return cls([xtemp(i/numpoints) for i in range(numpoints+1)])
+        return cls([xtemp(i / numpoints) for i in range(numpoints + 1)])
 
     @classmethod
     def from_cos_2_distribution(cls, numpoints, arg=None):
@@ -140,38 +138,49 @@ class Distribution(HashedList):
         """
         numpoints -= numpoints % 2
         xtemp = lambda x: ((x > 0.5) - (x < 0.5)) * (1 + np.cos(2 * np.pi * x)) / 2
-        return cls([xtemp(i/numpoints) for i in range(numpoints+1)])
+        return cls([xtemp(i / numpoints) for i in range(numpoints + 1)])
 
     @classmethod
     def create_cos_distribution(cls, factor: float):
         def new_distribution(parent, numpoints, *arg, **kwarg):
             numpoints -= numpoints % 2
-            
-            xtemp = lambda x: ((x<=0)-(x>0))*(factor*np.cos(x*0.5*np.pi)+(1-factor)*(1-abs(x))-1)
-            data = [xtemp(2*i/numpoints-1) for i in range(numpoints+1)]
+
+            xtemp = lambda x: ((x <= 0) - (x > 0)) * (
+                factor * np.cos(x * 0.5 * np.pi) + (1 - factor) * (1 - abs(x)) - 1
+            )
+            data = [xtemp(2 * i / numpoints - 1) for i in range(numpoints + 1)]
             data[0] = -1
             data[-1] = 1
             return cls(data)
-        
+
         return new_distribution
 
     @classmethod
     def create_cos_distribution_2(cls, factor_front: float, factor_back):
         def new_distribution(parent, numpoints, *arg, **kwarg):
             numpoints -= numpoints % 2
-            
-            factor_linear = 1-factor_back-factor_front
 
-            x = lambda i: 2*i/numpoints - 1
-            cos_front_def = lambda x:((x<=0)-(x>0)) * (np.cos(0.5 * np.pi * x)-1)
+            factor_linear = 1 - factor_back - factor_front
 
-            #((x > 0.5) - (x < 0.5)) * (1 + np.cos(2 * np.pi * x)) / 2
-            cos_back_def = lambda x: ((x>=0)-(x<0))*0.5*(np.cos(np.pi * (x+1))+1)
-            
-            data = [factor_front*cos_front_def(x(i)) + factor_back*cos_back_def(x(i)) + factor_linear*x(i) for i in range(numpoints+1)]
+            x = lambda i: 2 * i / numpoints - 1
+            cos_front_def = lambda x: ((x <= 0) - (x > 0)) * (
+                np.cos(0.5 * np.pi * x) - 1
+            )
+
+            # ((x > 0.5) - (x < 0.5)) * (1 + np.cos(2 * np.pi * x)) / 2
+            cos_back_def = (
+                lambda x: ((x >= 0) - (x < 0)) * 0.5 * (np.cos(np.pi * (x + 1)) + 1)
+            )
+
+            data = [
+                factor_front * cos_front_def(x(i))
+                + factor_back * cos_back_def(x(i))
+                + factor_linear * x(i)
+                for i in range(numpoints + 1)
+            ]
 
             return cls(data)
-        
+
         return new_distribution
 
     @classmethod
@@ -181,7 +190,11 @@ class Distribution(HashedList):
         """
 
         def f(x):
-            return x ** 2 / ((-2 + border) * border) if x < border else (2 * x - border)/(-2 + border)
+            return (
+                x**2 / ((-2 + border) * border)
+                if x < border
+                else (2 * x - border) / (-2 + border)
+            )
 
         dist_values = np.linspace(0, 1, int(numpoints / 2) + 1)
         first_half = [f(val) for val in dist_values[::-1][:-1]]

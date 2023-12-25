@@ -17,50 +17,55 @@ class Layout(object):
     point_width = None
     layer_config = {
         "cuts": {
-            "id": 'outer',
+            "id": "outer",
             "stroke-width": "0.1",
             "stroke": "red",
             "stroke-color": "#FF0000",
-            "fill": "none"},
+            "fill": "none",
+        },
         "marks": {
-            "id": 'marks',
+            "id": "marks",
             "stroke-width": "0.1",
             "stroke": "green",
             "stroke-color": "#00FF00",
-            "fill": "none"},
+            "fill": "none",
+        },
         "debug": {
-            "id": 'marks',
+            "id": "marks",
             "stroke-width": "0.1",
             "stroke": "grey",
             "stroke-color": "#bbbbbb",
-            "fill": "none"},
+            "fill": "none",
+        },
         "inner": {
             "id": "inner",
             "stroke-width": "0.1",
             "stroke": "green",
             "stroke-color": "#00FF00",
-            "fill": "none"
+            "fill": "none",
         },
         "text": {
-            "id": 'text',
+            "id": "text",
             "stroke-width": "0.1",
             "stroke": "green",
             "stroke-color": "#00FF00",
-            "fill": "none"},
+            "fill": "none",
+        },
         "stitches": {
             "id": "stitches",
             "stroke-width": "0.1",
             "stroke": "black",
             "stroke-color": "#aaaaaa",
-            "fill": "none"},
+            "fill": "none",
+        },
         "envelope": {
             "id": "envelope",
             "stroke-width": "0.1",
             "stroke": "black",
             "stroke-color": "#aaaaaa",
             "fill": "none",
-            "visible": False
-        }
+            "visible": False,
+        },
     }
 
     def __init__(self, parts=None):
@@ -91,18 +96,22 @@ class Layout(object):
     def is_empty(self):
         if len(self.parts) == 0:
             return True
-        
+
         for part in self.parts:
             for layer in part.layers.values():
                 for line in layer:
                     if len(line) > 0:
                         return False
-        
+
         return True
 
-
     @classmethod
-    def stack_column(cls, parts: List[Union[PlotPart,"Layout"]], distance: float, center_x: bool=True) -> "Layout":
+    def stack_column(
+        cls,
+        parts: List[Union[PlotPart, "Layout"]],
+        distance: float,
+        center_x: bool = True,
+    ) -> "Layout":
         column_dwg = cls()
         direction = (distance >= 0) - (distance < 0)
         y = 0
@@ -114,8 +123,8 @@ class Layout(object):
             else:
                 drawing = cls([part])
 
-            x = (max_width - width)/2
-            drawing.move_to([x,y])
+            x = (max_width - width) / 2
+            drawing.move_to([x, y])
 
             y += direction * drawing.height
             y += distance
@@ -125,7 +134,12 @@ class Layout(object):
         return column_dwg
 
     @classmethod
-    def stack_row(cls, parts: List[Union[PlotPart,"Layout"]], distance: float, center_y: bool=True) -> "Layout":
+    def stack_row(
+        cls,
+        parts: List[Union[PlotPart, "Layout"]],
+        distance: float,
+        center_y: bool = True,
+    ) -> "Layout":
         row_dwg = cls()
         direction = (distance >= 0) - (distance < 0)
         x = 0
@@ -141,8 +155,8 @@ class Layout(object):
                 drawing = cls([part])
 
             if drawing.width > 0 or drawing.height > 0:
-                y = (max_height - height)/2
-                drawing.move_to([x,y])
+                y = (max_height - height) / 2
+                drawing.move_to([x, y])
 
                 x += direction * drawing.width
                 x += distance
@@ -152,13 +166,19 @@ class Layout(object):
         return row_dwg
 
     @classmethod
-    def stack_grid(cls, parts: List[List[PlotPart]], distance_x: float, distance_y: float, draw_grid=True) -> "Layout":
+    def stack_grid(
+        cls,
+        parts: List[List[PlotPart]],
+        distance_x: float,
+        distance_y: float,
+        draw_grid=True,
+    ) -> "Layout":
         all_parts = cls()
         rows = len(parts)
         columns = len(parts[0])
 
-        heights = [0. for _ in range(rows)]
-        widths = [0. for _ in range(columns)]
+        heights = [0.0 for _ in range(rows)]
+        widths = [0.0 for _ in range(columns)]
 
         for row_no, row in enumerate(parts):
             for column_no, part in enumerate(row):
@@ -189,29 +209,27 @@ class Layout(object):
             x = y = 0
             for col_width in widths[:-1]:
                 x += col_width
-                x += distance_x/2
+                x += distance_x / 2
                 line = PolyLine2D([[x, 0], [x, height]])
                 grid.layers["grid"].append(line)
-                x += distance_x/2
+                x += distance_x / 2
 
             for row_height in heights[:-1]:
                 y += row_height
-                y += distance_y/2
+                y += distance_y / 2
                 line = PolyLine2D([[0, y], [width, y]])
                 grid.layers["grid"].append(line)
-                y += distance_y/2
+                y += distance_y / 2
 
                 all_parts.parts.append(grid)
 
         return all_parts
-    
+
     def delete_duplicate_points(self):
         all_nodes = []
         for part in self.parts:
             for layer in part.layers:
                 pass
-
-            
 
     def add_text(self, text):
         """
@@ -279,22 +297,21 @@ class Layout(object):
         column_lst = [[] for _ in range(columns)]
 
         for i, part in enumerate(self.parts):
-            column = i%columns
+            column = i % columns
             column_lst[column].append(part)
 
         distance_y = distance_y or distance_x
-        last_x = 0.
-        last_y = 0.
-        next_x = [0.]
+        last_x = 0.0
+        last_y = 0.0
+        next_x = [0.0]
         for col in column_lst:
             for part in col:
                 part.move([last_x - part.min_x, last_y - part.min_y])
-                #area.parts.append(part)
+                # area.parts.append(part)
                 last_y = part.max_y + distance_y
                 next_x.append(part.max_x)
             last_x = max(next_x) + distance_x
-            last_y = 0.
-
+            last_y = 0.0
 
     @property
     def min_x(self):
@@ -314,8 +331,12 @@ class Layout(object):
 
     @property
     def bbox(self):
-        return [[self.min_x, self.min_y], [self.max_x, self.min_y],
-                [self.max_x, self.max_y], [self.min_x, self.max_y]]
+        return [
+            [self.min_x, self.min_y],
+            [self.max_x, self.min_y],
+            [self.max_x, self.max_y],
+            [self.min_x, self.max_y],
+        ]
 
     @property
     def width(self):
@@ -338,7 +359,7 @@ class Layout(object):
     def move_to(self, vector):
         if not len(self.parts) > 0:
             return
-        diff = np.array(self.bbox[0])-vector
+        diff = np.array(self.bbox[0]) - vector
         self.move(-diff)
 
     def append_top(self, other: "Layout", distance):
@@ -371,6 +392,7 @@ class Layout(object):
         :return:
         """
         import ezdxf
+
         dxf = ezdxf.readfile(dxfile)
         dwg = cls()
 
@@ -384,7 +406,7 @@ class Layout(object):
                 layer = entity.dxf.layer
                 new_panel.layers[layer].append(PolyLine2D([p[:2] for p in entity]))
 
-        #blocks = list(dxf.blocks)
+        # blocks = list(dxf.blocks)
         blockrefs = dxf.modelspace().query("INSERT")
 
         for blockref in blockrefs:
@@ -404,12 +426,11 @@ class Layout(object):
                 except:
                     pass
 
-
             new_panel.rotate(-blockref.dxf.rotation * math.pi / 180)
             new_panel.move(blockref.dxf.insert[:2])
 
             # block.name
-        #return blocks
+        # return blocks
         return dwg
 
     def get_svg_group(self, config=None):
@@ -433,13 +454,17 @@ class Layout(object):
                         if key in layer_config:
                             layer_config.pop(key)
                 else:
-                    layer_config = {"stroke": "black", "fill": "none", "stroke-width": "1"}
+                    layer_config = {
+                        "stroke": "black",
+                        "fill": "none",
+                        "stroke-width": "1",
+                    }
 
                 lines = part.layers[layer_name]
 
                 if layer_name not in part_layer_groups:
                     part_layer_group = svgwrite.container.Group()
-                    #group.elementname = layer_name
+                    # group.elementname = layer_name
                     part_group.add(part_layer_group)
                     part_layer_groups[layer_name] = part_layer_group
                 else:
@@ -459,11 +484,15 @@ class Layout(object):
         return group
 
     def get_svg_drawing(self, unit="mm", border=0.02):
-        border_w, border_h = [2*border*x for x in (self.width, self.height)]
-        width, height = self.width+border_w, self.height+border_h
+        border_w, border_h = [2 * border * x for x in (self.width, self.height)]
+        width, height = self.width + border_w, self.height + border_h
 
-        drawing = svgwrite.Drawing(size=[("{}"+unit).format(n) for n in (width, height)])
-        drawing.viewbox(self.min_x-border_w/2, -self.max_y-border_h/2, width, height)
+        drawing = svgwrite.Drawing(
+            size=[("{}" + unit).format(n) for n in (width, height)]
+        )
+        drawing.viewbox(
+            self.min_x - border_w / 2, -self.max_y - border_h / 2, width, height
+        )
         group = self.get_svg_group()
         drawing.add(group)
 
@@ -500,20 +529,22 @@ class Layout(object):
                 style.append("\t{};\n".format(attrib))
             style.append("}\n")
         style.append("\nline { vector-effect: non-scaling-stroke; stroke-width: 1; }")
-        style.append("\npolyline { vector-effect: non-scaling-stroke; stroke-width: 1; }")
+        style.append(
+            "\npolyline { vector-effect: non-scaling-stroke; stroke-width: 1; }"
+        )
         drawing.defs.add(style)
 
         return drawing
 
     def _repr_svg_(self):
         width = 800
-        height = int(width * self.height/self.width)+1
+        height = int(width * self.height / self.width) + 1
         drawing = self.get_svg_drawing()
         self.add_svg_styles(drawing)
         drawing["width"] = "{}px".format(width)
         drawing["height"] = "{}px".format(height)
 
-        #self.add_svg_styles(drawing)
+        # self.add_svg_styles(drawing)
 
         return drawing.tostring()
 
@@ -528,6 +559,7 @@ class Layout(object):
 
     def export_dxf(self, path, dxfversion="AC1015"):
         import ezdxf
+
         drawing = ezdxf.new(dxfversion=dxfversion)
 
         drawing.header["$EXTMAX"] = (self.max_x, self.max_y, 0)
@@ -540,7 +572,9 @@ class Layout(object):
                 for layer_name, layer in part.layers.items():
                     if layer_name not in drawing.layers:
                         attributes = layer._get_dxf_attributes()
-                        dwg_layer = drawing.layers.new(name=layer_name, dxfattribs=attributes)
+                        dwg_layer = drawing.layers.new(
+                            name=layer_name, dxfattribs=attributes
+                        )
                         if not layer.visible:
                             dwg_layer.off()
 
@@ -551,7 +585,12 @@ class Layout(object):
                                 dxf_obj = ms.add_point(elem[0], dxfattribs=dxfattribs)
                             else:
                                 x, y = elem[0]
-                                dxf_obj = ms.add_lwpolyline([[x-self.point_width/2, y], [x+self.point_width/2, y]])
+                                dxf_obj = ms.add_lwpolyline(
+                                    [
+                                        [x - self.point_width / 2, y],
+                                        [x + self.point_width / 2, y],
+                                    ]
+                                )
                         else:
                             dxf_obj = ms.add_lwpolyline(elem, dxfattribs=dxfattribs)
                             if len(elem) > 2 and all(elem[-1] == elem[0]):
@@ -561,11 +600,7 @@ class Layout(object):
         drawing.saveas(path)
         return drawing
 
-    ntv_layer_config = {
-        "C": ["cuts"],
-        "P": ["marks", "text"],
-        "R": ["stitches"]
-    }
+    ntv_layer_config = {"C": ["cuts"], "P": ["marks", "text"], "R": ["stitches"]}
 
     def export_ntv(self, path):
         filename = os.path.split(path)[-1]
@@ -573,25 +608,29 @@ class Layout(object):
         def format_line(line):
             a = "\nA {} ".format(len(line))
             b = " ".join(["({:.5f},{:.5f})".format(p[0], p[1]) for p in line])
-            return a+b
+            return a + b
 
         with open(path, "w") as outfile:
             # head
             outfile.write("A {} {} 1 1 0 0 0 0\n".format(len(filename), filename))
             for part in self.parts:
                 # part-header: 1A {name}, {position_x} {pos_y} {rot_degrees} {!derivePerimeter} {useAngle} {flipped}
-                part_header = "\n1A {len_name} {name} ({pos_x}, {pos_y}) {rotation_deg} 0 0 0 0 0"
+                part_header = (
+                    "\n1A {len_name} {name} ({pos_x}, {pos_y}) {rotation_deg} 0 0 0 0 0"
+                )
                 name = part.name or "unnamed"
-                args = {"len_name": len(name),
-                        "name": name,
-                        "pos_x": 0,
-                        "pos_y": 0,
-                        "rotation_deg": 0}
+                args = {
+                    "len_name": len(name),
+                    "name": name,
+                    "pos_x": 0,
+                    "pos_y": 0,
+                    "rotation_deg": 0,
+                }
                 outfile.write(part_header.format(**args))
 
                 # part-boundary
                 part_boundary = "\n{boundary_len} {line}"
-                #outfile.write()
+                # outfile.write()
 
                 for plottype in self.ntv_layer_config:
                     for layer_origin in self.ntv_layer_config[plottype]:
@@ -600,10 +639,8 @@ class Layout(object):
                             outfile.write("\n1A P 0 {} 0 0 0".format(plottype))
                             outfile.write(format_line(line))
 
-
                 # part-end
                 outfile.write("\n0\n")
-
 
             # end
             outfile.write("\n0")
@@ -613,7 +650,7 @@ class Layout(object):
         height = min(self.width, self.height)
         width_a4, height_a4 = 297, 210
 
-        factor = min(width_a4/width, height_a4/height)
+        factor = min(width_a4 / width, height_a4 / height)
         self.scale(factor)
         return self
 

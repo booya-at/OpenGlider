@@ -12,13 +12,16 @@ class GraphicObject(object):
         self.points = np.array(points)
         self.colour = colour
 
-    #coordinates= list of points (can be nested)
+    # coordinates= list of points (can be nested)
     def add_points(self, graphics):
         """Add Elements Points to the containing class"""
         if self._is_direct:
             return self.points
         else:
-            pointnums = [graphics.points.InsertNextPoint(graphics.make_3d(coor)) for coor in self.points]
+            pointnums = [
+                graphics.points.InsertNextPoint(graphics.make_3d(coor))
+                for coor in self.points
+            ]
             return pointnums
 
     def draw(self, graphics):
@@ -46,7 +49,7 @@ class Point(GraphicObject):
         cell.InsertNextCell(len(pointnums))
         for p in pointnums:
             cell.InsertCellPoint(p)
-            #graphics.data.SetVerts(cell)
+            # graphics.data.SetVerts(cell)
 
 
 class Line(GraphicObject):
@@ -67,7 +70,6 @@ class Line(GraphicObject):
 
 
 class Arrow(GraphicObject):
-
     def __init__(self, pointnumbers, colour=None):
         super(Arrow, self).__init__(pointnumbers, colour=colour)
 
@@ -79,7 +81,7 @@ class Arrow(GraphicObject):
         p1, p2 = graphics.get_points(*pointnums)
         transform = vtk.vtkTransform()
         transform.Translate(p1)
-        length = norm(p2-p1)
+        length = norm(p2 - p1)
         transform.Scale(length, length, length)
 
 
@@ -100,7 +102,7 @@ class Polygon(GraphicObject):
 
 
 class Axes(GraphicObject):
-    def __init__(self, start=(0., 0., 0.), size=None, label=False):
+    def __init__(self, start=(0.0, 0.0, 0.0), size=None, label=False):
         super(Axes, self).__init__(start)
         self._is_direct = False
         self.size = size
@@ -111,14 +113,14 @@ class Axes(GraphicObject):
         transform.Translate(self.points[0], self.points[1], self.points[2])
         axes = vtk.vtkAxesActor()
         if self.size:
-            #transform.Scale(self.size, self.size, self.size)
+            # transform.Scale(self.size, self.size, self.size)
             axes.SetTotalLength(self.size, self.size, self.size)
         #  The axes are positioned with a user transform
-        #axes.SetShaftTypeToCylinder()
+        # axes.SetShaftTypeToCylinder()
         axes.SetUserTransform(transform)
         if not self.label:
             axes.AxisLabelsOff()
-            #graphics.renderer.AddActor(axes)
+            # graphics.renderer.AddActor(axes)
 
 
 #######################################################################
@@ -135,6 +137,7 @@ class RGBColour(object):
 
     def __iter__(self):
         return iter(self.colour)
+
 
 Red = RGBColour(255, 0, 0)
 Blue = RGBColour(0, 0, 255)

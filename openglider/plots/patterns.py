@@ -14,7 +14,7 @@ from openglider.vector.drawing import Layout
 from openglider.vector.text import Text
 from openglider.plots.glider import PlotMaker
 from openglider.glider.project import GliderProject
-#import openglider.plots.sketches
+# import openglider.plots.sketches
 
 
 class PatternsNew(object):
@@ -29,16 +29,16 @@ class PatternsNew(object):
         self.project = project
         self.glider_2d = project.glider
         self.config = self.DefaultConf(config)
-        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+        self.logger = logging.getLogger(
+            f"{self.__class__.__module__}.{self.__class__.__name__}"
+        )
 
     def __json__(self):
-        return {
-            "project": self.project,
-            "config": self.config
-        }
+        return {"project": self.project, "config": self.config}
 
     def _get_sketches(self) -> List[Layout]:
         import openglider.plots.sketches as sketch
+
         shapeplot = sketch.ShapePlot(self.project.glider, self.project.glider_3d)
         design_upper = shapeplot.copy().insert_design(lower=True)
         design_upper.insert_cell_names()
@@ -59,20 +59,28 @@ class PatternsNew(object):
         straps.insert_attachment_points(add_text=False)
         straps.insert_straps()
 
-        drawings: List[Layout] = [design_upper.drawing, design_lower.drawing, lineplan.drawing, diagonals.drawing, straps.drawing]
+        drawings: List[Layout] = [
+            design_upper.drawing,
+            design_lower.drawing,
+            lineplan.drawing,
+            diagonals.drawing,
+            straps.drawing,
+        ]
 
         drawings_width = max([dwg.width for dwg in drawings])
 
         # put name and date inside the patterns
-        p1 = [0., 0.]
-        p2 = [drawings_width, 0.]
+        p1 = [0.0, 0.0]
+        p2 = [drawings_width, 0.0]
         text_name = Text(self.project.name or "unnamed", p1, p2, valign=1)
         date_str = datetime.datetime.now().strftime("%d.%m.%Y")
         text_date = Text(date_str, p1, p2, valign=0)
-        drawings += [Layout([x]) for x in [text_date.get_plotpart(), text_name.get_plotpart()]]
+        drawings += [
+            Layout([x]) for x in [text_date.get_plotpart(), text_name.get_plotpart()]
+        ]
 
         return drawings
-    
+
     def _get_plotfile(self):
         glider = self.project.glider_3d
 
@@ -81,11 +89,10 @@ class PatternsNew(object):
             glider.rename_parts()
         else:
             glider = self.project.glider_3d
-        
 
         plots = self.plotmaker(glider, config=self.config)
         glider.lineset.iterate_target_length()
-            
+
         plots.unwrap()
         all_patterns = plots.get_all_grouped()
 
@@ -99,7 +106,7 @@ class PatternsNew(object):
         try:
             os.mkdir(outdir)
         except FileExistsError as e:
-            print("directory {} already exists, overwrite files".format(outdir)) 
+            print("directory {} already exists, overwrite files".format(outdir))
 
         if self.config.profile_numpoints:
             self.glider_2d.num_profile = self.config.profile_numpoints
@@ -110,7 +117,9 @@ class PatternsNew(object):
 
         self.logger.info("create plots")
         all_patterns = self._get_plotfile()
-        all_patterns.append_left(designs, distance=self.config.patterns_align_dist_x*2)
+        all_patterns.append_left(
+            designs, distance=self.config.patterns_align_dist_x * 2
+        )
 
         all_patterns.scale(1000)
 
@@ -118,8 +127,6 @@ class PatternsNew(object):
         all_patterns.export_dxf(fn("plots_all_dxf2000.dxf"))
         all_patterns.export_dxf(fn("plots_all_dxf2007.dxf"), "AC1021")
         all_patterns.export_ntv(fn("plots_all.ntv"))
-
-
 
         # ribs = packer.pack_parts(parts["ribs"].parts, sheet_size=sheet_size)
         # panels = packer.pack_parts(parts["panels"].parts, sheet_size=sheet_size)

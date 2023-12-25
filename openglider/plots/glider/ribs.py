@@ -14,16 +14,22 @@ from openglider.vector.text import Text
 
 class RibPlot(object):
     class DefaultConfig(PatternConfig):
-        #allowance_general = 0.01
-        #allowance_trailing_edge = 0.02
+        # allowance_general = 0.01
+        # allowance_trailing_edge = 0.02
 
-        marks_diagonal_front = marks.Inside(marks.Arrow(left=True, name="diagonal_front"))
-        marks_diagonal_back = marks.Inside(marks.Arrow(left=False, name="diagonal_back"))
+        marks_diagonal_front = marks.Inside(
+            marks.Arrow(left=True, name="diagonal_front")
+        )
+        marks_diagonal_back = marks.Inside(
+            marks.Arrow(left=False, name="diagonal_back")
+        )
         marks_laser_diagonal = marks.Dot(0.8)
         marks_laser_attachment_point = marks.Dot(0.2, 0.8)
 
         marks_strap = marks.Inside(marks.Line(name="strap"))
-        marks_attachment_point = marks.OnLine(marks.Rotate(marks.Cross(name="attachment_point"), np.pi / 4))
+        marks_attachment_point = marks.OnLine(
+            marks.Rotate(marks.Cross(name="attachment_point"), np.pi / 4)
+        )
 
         marks_controlpoint = marks.Dot(0.2)
         marks_panel_cut = marks.Line(name="panel_cut")
@@ -36,7 +42,9 @@ class RibPlot(object):
         self.plotpart = self.x_values = self.inner = self.outer = None
 
     def flatten(self, glider):
-        self.plotpart = PlotPart(name=self.rib.name, material_code=self.rib.material_code)
+        self.plotpart = PlotPart(
+            name=self.rib.name, material_code=self.rib.material_code
+        )
         prof2d = self.rib.get_hull(glider)
         self.x_values = prof2d.x_values
         self.inner = prof2d.copy().scale(self.rib.chord)
@@ -66,7 +74,7 @@ class RibPlot(object):
                     self.insert_drib_mark(diagonal, True)
 
         for cut in panel_cuts:
-            #print(cut, self.marks_panel_cut)
+            # print(cut, self.marks_panel_cut)
             self.insert_mark(cut, self.config.marks_panel_cut)
 
         # rigidfoils
@@ -88,10 +96,13 @@ class RibPlot(object):
     def _get_inner_outer(self, x_value):
         ik = get_x_value(self.x_values, x_value)
 
-        #ik = get_x_value(self.x_values, position)
+        # ik = get_x_value(self.x_values, position)
         inner = self.inner[ik]
-        outer = inner + PolyLine2D(self.inner).get_normal(ik) * self.config.allowance_general
-        #inner = self.inner[ik]
+        outer = (
+            inner
+            + PolyLine2D(self.inner).get_normal(ik) * self.config.allowance_general
+        )
+        # inner = self.inner[ik]
         # outer = self.outer[ik]
         return inner, outer
 
@@ -117,7 +128,6 @@ class RibPlot(object):
         return p * self.rib.chord
 
     def insert_drib_mark(self, drib, right=False):
-
         if right:
             p1 = drib.right_front
             p2 = drib.right_back
@@ -160,10 +170,14 @@ class RibPlot(object):
 
         contour = PolyLine2D([])
 
-        buerzl = PolyLine2D([outer_rib[stop],
-                            outer_rib[stop] + [t_e_allowance, 0],
-                            outer_rib[start] + [t_e_allowance, 0],
-                            outer_rib[start]])
+        buerzl = PolyLine2D(
+            [
+                outer_rib[stop],
+                outer_rib[stop] + [t_e_allowance, 0],
+                outer_rib[start] + [t_e_allowance, 0],
+                outer_rib[start],
+            ]
+        )
 
         contour += PolyLine2D(outer_rib[start:stop])
         contour += buerzl
@@ -173,18 +187,24 @@ class RibPlot(object):
     def _insert_attachment_points(self, points):
         for attachment_point in points:
             if hasattr(attachment_point, "rib") and attachment_point.rib == self.rib:
-                self.insert_mark(attachment_point.rib_pos, self.config.marks_attachment_point)
-                self.insert_mark(attachment_point.rib_pos, self.config.marks_laser_attachment_point, "L0")
+                self.insert_mark(
+                    attachment_point.rib_pos, self.config.marks_attachment_point
+                )
+                self.insert_mark(
+                    attachment_point.rib_pos,
+                    self.config.marks_laser_attachment_point,
+                    "L0",
+                )
 
     def _insert_text(self, text):
         inner, outer = self._get_inner_outer(self.config.rib_text_pos)
         diff = outer - inner
 
-        p1 = inner + diff/2
-        p2 = p1 + rotation_2d(np.pi/2).dot(diff)
+        p1 = inner + diff / 2
+        p2 = p1 + rotation_2d(np.pi / 2).dot(diff)
 
-        _text = Text(text, p1, p2, size=norm(outer-inner)*0.5, valign=0)
-        #_text = Text(text, p1, p2, size=0.05)
+        _text = Text(text, p1, p2, size=norm(outer - inner) * 0.5, valign=0)
+        # _text = Text(text, p1, p2, size=0.05)
         self.plotpart.layers["text"] += _text.get_vectors()
 
 
@@ -249,20 +269,27 @@ class SingleSkinRibPlot(RibPlot):
             singleskin_cut_left = self._get_singleskin_cut(glider)
             single_skin_cut = self.rib.profile_2d(singleskin_cut_left)
 
-            buerzl = PolyLine2D([inner_rib[0],
-                                 inner_rib[0] + [t_e_allowance, 0],
-                                 outer_rib[start] + [t_e_allowance, 0],
-                                 outer_rib[start]])
+            buerzl = PolyLine2D(
+                [
+                    inner_rib[0],
+                    inner_rib[0] + [t_e_allowance, 0],
+                    outer_rib[start] + [t_e_allowance, 0],
+                    outer_rib[start],
+                ]
+            )
             contour += PolyLine2D(outer_rib[start:single_skin_cut])
             contour += PolyLine2D(inner_rib[single_skin_cut:stop])
             contour += buerzl
 
         else:
-
-            buerzl = PolyLine2D([outer_rib[stop],
-                                 outer_rib[stop] + [t_e_allowance, 0],
-                                 outer_rib[start] + [t_e_allowance, 0],
-                                 outer_rib[start]])
+            buerzl = PolyLine2D(
+                [
+                    outer_rib[stop],
+                    outer_rib[stop] + [t_e_allowance, 0],
+                    outer_rib[start] + [t_e_allowance, 0],
+                    outer_rib[start],
+                ]
+            )
 
             contour += PolyLine2D(outer_rib[start:stop])
             contour += buerzl

@@ -9,21 +9,32 @@ from openglider.vector import norm, Interpolation
 class BezierProfile2D(Profile2D):
     # TODO make new fit bezier method to set the second x value of the
     # controllpoints to zero.
-    def __init__(self, data=None, name=None,
-                 upper_spline=None, lower_spline=None,
-                 control_num_lower=8, control_num_upper=8):
+    def __init__(
+        self,
+        data=None,
+        name=None,
+        upper_spline=None,
+        lower_spline=None,
+        control_num_lower=8,
+        control_num_upper=8,
+    ):
         super(BezierProfile2D, self).__init__(data=data, name=name)
         self.close()
         self.normalize()
         self.upper_spline = None
         self.lower_spline = None
-        self.upper_spline = upper_spline or self.fit_upper(control_num=control_num_upper)
-        self.lower_spline = lower_spline or self.fit_lower(control_num=control_num_lower)
+        self.upper_spline = upper_spline or self.fit_upper(
+            control_num=control_num_upper
+        )
+        self.lower_spline = lower_spline or self.fit_lower(
+            control_num=control_num_lower
+        )
 
     def __json__(self):
         dct = super(BezierProfile2D, self).__json__()
-        dct.update({'upper_spline': self.upper_spline,
-                    'lower_spline': self.lower_spline})
+        dct.update(
+            {"upper_spline": self.upper_spline, "lower_spline": self.lower_spline}
+        )
         return dct
 
     # @classmethod
@@ -34,19 +45,19 @@ class BezierProfile2D(Profile2D):
     #     return profile
 
     def fit_upper(self, num=100, dist=None, control_num=8):
-        upper = self.data[:self.noseindex + 1]
+        upper = self.data[: self.noseindex + 1]
         upper_smooth = self.make_smooth_dist(upper, num, dist)
         constraints = [[None] * 2 for i in range(control_num)]
-        constraints[0] = [1., 0.]
-        constraints[-2][0] = 0.
-        constraints[-1] = [0., 0.]
+        constraints[0] = [1.0, 0.0]
+        constraints[-2][0] = 0.0
+        constraints[-1] = [0.0, 0.0]
         if self.upper_spline:
             return self.upper_spline.__class__.constraint_fit(upper_smooth, constraints)
         else:
             return BSpline.constraint_fit(upper_smooth, constraints)
 
     def fit_lower(self, num=100, dist=None, control_num=8):
-        lower = self.data[self.noseindex:]
+        lower = self.data[self.noseindex :]
         lower_smooth = self.make_smooth_dist(lower, num, dist, upper=False)
         constraints = [[None] * 2 for i in range(control_num)]
         constraints[-1] = [1, 0]
@@ -63,8 +74,8 @@ class BezierProfile2D(Profile2D):
 
     def fit_profile(self, num_points, control_points):
         # todo: classmethod
-        self.upper_spline = self.fit_region(-1., 0., num_points, control_points)
-        self.lower_spline = self.fit_region(0., 1., num_points, control_points)
+        self.upper_spline = self.fit_region(-1.0, 0.0, num_points, control_points)
+        self.lower_spline = self.fit_region(0.0, 1.0, num_points, control_points)
 
     def apply_splines(self, num=70):
         upper = self.upper_spline.get_sequence(num)
@@ -91,7 +102,10 @@ class BezierProfile2D(Profile2D):
             if upper:
                 dist = [np.sin(i) * length[-1] for i in np.linspace(0, np.pi / 2, num)]
             else:
-                dist = [abs(1 - np.sin(i)) * length[-1] for i in np.linspace(0, np.pi / 2, num)]
+                dist = [
+                    abs(1 - np.sin(i)) * length[-1]
+                    for i in np.linspace(0, np.pi / 2, num)
+                ]
         else:
             return points
         return [get_point(d) for d in dist]

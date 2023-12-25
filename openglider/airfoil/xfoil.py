@@ -28,6 +28,7 @@ import tempfile
 import openglider.airfoil
 import openglider.vector.interpolate
 
+
 class XFoilCalc:
     alpha = list(range(0, 15))
     re_number = 2e6
@@ -77,14 +78,14 @@ class XFoilCalc:
 
         with open(command_file, "w") as outfile:
             outfile.write(cmd_string)
-        
+
         self.airfoil.export_dat(os.path.join(directory, "airfoil.dat"))
 
         return command_file
 
     def _read_result(self, filename):
         rex_number = r"([+-]?\d+\.\d+)"
-        rex_line_str = "\s+" + "\s+".join([rex_number]*9)
+        rex_line_str = "\s+" + "\s+".join([rex_number] * 9)
         rex_line = re.compile(rex_line_str)
         values = [
             "alpha",
@@ -95,7 +96,7 @@ class XFoilCalc:
             "top_xtr",
             "bottom_xtr",
             "top_ltr",
-            "bottom_ltr"
+            "bottom_ltr",
         ]
 
         data = []
@@ -110,8 +111,8 @@ class XFoilCalc:
                     data.append(dct)
 
         df = pandas.DataFrame(data).set_index("alpha")
-        df["glide"] = df["ca"]/df["cw"]
-                    
+        df["glide"] = df["ca"] / df["cw"]
+
         return df
 
     async def run(self):
@@ -122,23 +123,24 @@ class XFoilCalc:
                 f"xfoil < {cmd_file}",
                 cwd=tempdir,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE)
-            
+                stderr=asyncio.subprocess.PIPE,
+            )
+
             await proc.communicate()
 
             result_file = os.path.join(tempdir, self.file_result)
             self.result = self._read_result(result_file)
             return self.result
-    
+
     async def run_aoa(self, aoa):
         self.aoa = [aoa - 0.1, aoa, aoa + 0.1]
         result = await self.run()
         result_dct = {}
-        x=result.index.tolist()
+        x = result.index.tolist()
 
         for column in result.columns:
-            y=result[column].tolist()
-            interp=openglider.vector.interpolate.Interpolation(zip(x,y))
+            y = result[column].tolist()
+            interp = openglider.vector.interpolate.Interpolation(zip(x, y))
             result_dct[column] = interp(aoa)
 
         return result_dct

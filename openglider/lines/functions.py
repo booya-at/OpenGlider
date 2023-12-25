@@ -22,7 +22,9 @@ from __future__ import division
 import numpy as np
 import logging
 import traceback
+
 logger = logging.getLogger(__name__)
+
 
 def proj_force(force, vec):
     proj = np.dot(vec, force)

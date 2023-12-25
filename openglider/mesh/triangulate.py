@@ -27,8 +27,8 @@ class Triangulation(object):
     @staticmethod
     def get_segments(polyline):
         segments = []
-        for i in range(len(polyline)-1):
-            segments.append([polyline[i], polyline[i+1]])
+        for i in range(len(polyline) - 1):
+            segments.append([polyline[i], polyline[i + 1]])
 
         return segments
 

@@ -25,10 +25,21 @@ from openglider.vector import Interpolation
 
 logging.getLogger(__name__)
 
-class LineType():
+
+class LineType:
     types = {}
 
-    def __init__(self, name, thickness, stretch_curve, min_break_load=None, weight=None, seam_correction=0, colors=None, cw=1.1):
+    def __init__(
+        self,
+        name,
+        thickness,
+        stretch_curve,
+        min_break_load=None,
+        weight=None,
+        seam_correction=0,
+        colors=None,
+        cw=1.1,
+    ):
         """
         Line Type
         Attributes:
@@ -52,7 +63,7 @@ class LineType():
         self.colors = colors or []
 
         self.min_break_load = min_break_load
-    
+
     def get_spring_constant(self):
         force, k = self.stretch_interpolation.data[-1]
         result = force / (k / 100)
@@ -67,8 +78,8 @@ class LineType():
         return 1 + self.stretch_interpolation(force) / 100
 
     def predict_weight(self):
-        t_mm = self.thickness * 1000.
-        return 0.134 * t_mm + 0.6859 * t_mm ** 2
+        t_mm = self.thickness * 1000.0
+        return 0.134 * t_mm + 0.6859 * t_mm**2
 
     @classmethod
     def get(cls, name):
@@ -76,7 +87,7 @@ class LineType():
             return cls.types[name]
         except KeyError:
             raise KeyError("Line-type {} not found".format(name))
-    
+
     @classmethod
     def _repr_html_(self):
         html = """
@@ -94,7 +105,7 @@ class LineType():
                     </tr>
                 </thead>
                 """
-        
+
         for line_type in self.types.values():
             html += f"""
                 <tr>
@@ -109,9 +120,8 @@ class LineType():
                 </tr>
 
                 """
-        
+
         return html
 
 
 # SI UNITS -> thickness [mm], stretch [N, %]
-

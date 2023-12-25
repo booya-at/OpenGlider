@@ -254,7 +254,7 @@ colour_codes = {
     252: (105, 105, 105),
     253: (130, 130, 130),
     254: (190, 190, 190),
-    255: (255, 255, 255)
+    255: (255, 255, 255),
 }
 
 
@@ -263,7 +263,7 @@ def get_dxf_colour_code(red, green, blue):
     dist = float("Infinity")
 
     for colour_code, rgb in colour_codes.items():
-        dist_this = (rgb[0]-red)**2 + (rgb[1]-green)**2 + (rgb[2]-blue)**2
+        dist_this = (rgb[0] - red) ** 2 + (rgb[1] - green) ** 2 + (rgb[2] - blue) ** 2
         if dist_this < dist:
             closest = colour_code
             dist = dist_this

@@ -25,7 +25,7 @@ sewing_config = {
         "diagonal_back": Inside(marks.Arrow(left=False)),
         "strap": Inside(marks.Line()),
         "attachment-point": OnLine(marks.Cross(rotation=np.pi / 4)),
-        "panel-cut": marks.Line()
+        "panel-cut": marks.Line(),
     },
     "allowance": {
         "parallel": 0.012,
@@ -35,41 +35,40 @@ sewing_config = {
         "general": 0.012,
         "diagonals": 0.012,
         "trailing_edge": 0.024,
-        "entry_open": 0.015
+        "entry_open": 0.015,
     },
     "scale": 1000,
     "layers": {
-        "cuts": {
-            "id": 'outer',
-            "stroke-width": "0.1",
-            "stroke": "red",
-            "fill": "none"},
+        "cuts": {"id": "outer", "stroke-width": "0.1", "stroke": "red", "fill": "none"},
         "marks": {
-            "id": 'marks',
+            "id": "marks",
             "stroke-width": "0.1",
             "stroke": "green",
-            "fill": "none"},
+            "fill": "none",
+        },
         "debug": {
-            "id": 'marks',
+            "id": "marks",
             "stroke-width": "0.1",
             "stroke": "grey",
-            "fill": "none"},
+            "fill": "none",
+        },
         "inner": {
             "id": "inner",
             "stroke-width": "0.1",
             "stroke": "green",
-            "fill": "none"
+            "fill": "none",
         },
         "text": {
-            "id": 'text',
+            "id": "text",
             "stroke-width": "0.1",
             "stroke": "green",
-            "fill": "none"},
+            "fill": "none",
+        },
         "stitches": {
             "id": "stitches",
             "stroke-width": "0.1",
             "stroke": "black",
-            "fill": "none"}
-    }
-
+            "fill": "none",
+        },
+    },
 }

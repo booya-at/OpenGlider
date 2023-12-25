@@ -18,10 +18,10 @@ class Plane(object):
         eq: p1 + x1*(p2-p1) = self.p0 + x2 * self.v1 + x3*self.r2
         - x1*(p2-p1) + x2 * self.v1 + x3 * self.v2 = p1 - self.p0
         """
-        lhs = np.matrix([p1-p2, self.v1, self.v2]).transpose()
+        lhs = np.matrix([p1 - p2, self.v1, self.v2]).transpose()
         rhs = p1 - self.p0
         res = np.linalg.solve(lhs, rhs)
-        
+
         return res[0], res[1:], self.point(res[1], res[2])
 
     def projection(self, point):
@@ -45,11 +45,11 @@ class Plane(object):
 
     @normvector.setter
     def normvector(self, normvector):
-        #assert isinstance(normvector, np.ndarray)
+        # assert isinstance(normvector, np.ndarray)
         # todo: fix // write test
-        self.v1 = np.array([1,1,1])
+        self.v1 = np.array([1, 1, 1])
         self.v1 = self.v1 - self.v1 * normvector
-        #self.v1 = np.array([0, -normvector[3], normvector[2]])
+        # self.v1 = np.array([0, -normvector[3], normvector[2]])
         self.v2 = np.cross(self.v1, normvector)
 
     @classmethod
@@ -63,5 +63,4 @@ class Plane(object):
         n /= l_n
         x = np.cross(n, n[::-1])
         y = np.cross(n, x)
-        #return cls(p0, x,y)
-
+        # return cls(p0, x,y)

@@ -9,6 +9,7 @@ class ArcCurve(object):
     """
     _
     """
+
     num_interpolation_points = 100
 
     def __init__(self, curve):
@@ -32,7 +33,9 @@ class ArcCurve(object):
         :return: [p0, p1,...]
         """
         # Symmetric-Bezier-> start from 0.5
-        arc_curve = PolyLine2D([self.curve(i) for i in np.linspace(0.5, 1, self.num_interpolation_points)])
+        arc_curve = PolyLine2D(
+            [self.curve(i) for i in np.linspace(0.5, 1, self.num_interpolation_points)]
+        )
         arc_curve_length = arc_curve.get_length()
         scale_factor = arc_curve_length / x_values[-1]
         _positions = [arc_curve.walk(0, x * scale_factor) for x in x_values]
@@ -68,7 +71,7 @@ class ArcCurve(object):
 
     @classmethod
     def from_cell_angles(cls, angles, x_values, rad=True):
-        last_pos = np.array([0,0])
+        last_pos = np.array([0, 0])
         last_x = 0
         curve = []
         for i, x in enumerate(x_values):
@@ -99,7 +102,7 @@ class ArcCurve(object):
 
         for cell_left, cell_right in zip(cell_angles[:-1], cell_angles[1:]):
             # rotation of the rib is the median of the left and right cell's rotation
-            rib_angles.append((cell_left + cell_right)/2)
+            rib_angles.append((cell_left + cell_right) / 2)
 
         # stabi rib -> same rotation as the last cell
         rib_angles.append(cell_angles[-1])
@@ -119,7 +122,9 @@ class ArcCurve(object):
         diff = [0, -positions[0][1]]
         self.curve.controlpoints = [p + diff for p in self.curve.controlpoints]
 
-        arc_curve = PolyLine2D([self.curve(i) for i in np.linspace(0.5, 1, self.num_interpolation_points)])
+        arc_curve = PolyLine2D(
+            [self.curve(i) for i in np.linspace(0.5, 1, self.num_interpolation_points)]
+        )
         arc_curve_length = arc_curve.get_length()
         scale_factor = x_values[-1] / arc_curve_length
 

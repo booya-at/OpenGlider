@@ -32,7 +32,9 @@ def import_ods(filename, glider):
     sheets = ods.sheets
     # Profiles -> map xvalues
     profiles = [Profile2D(profile) for profile in transpose_columns(sheets[3])]
-    xvalues = sorted(profiles, key=lambda prof: prof.numpoints)[0].x_values  # Use airfoil with maximum profilepoints
+    xvalues = sorted(profiles, key=lambda prof: prof.numpoints)[
+        0
+    ].x_values  # Use airfoil with maximum profilepoints
     for profile in profiles:
         profile.x_values = xvalues
 
@@ -55,8 +57,8 @@ def import_ods(filename, glider):
 
     cells = []
     main = sheets[0]
-    x = y = z = span_last = 0.
-    alpha2 = 0.
+    x = y = z = span_last = 0.0
+    alpha2 = 0.0
     thisrib = None
     for i in range(1, main.nrows()):
         line = [main.get_cell([i, j]).value for j in range(main.ncols())]
@@ -67,7 +69,9 @@ def import_ods(filename, glider):
         span = line[2]  # spanwise-length (flat)
         alpha1 = alpha2  # angle before the rib
         alpha2 += line[4] * np.pi / 180  # angle after the rib
-        alpha = (span > 0) * (alpha1 + alpha2) * 0.5 + line[6] * np.pi / 180  # rib's angle
+        alpha = (span > 0) * (alpha1 + alpha2) * 0.5 + line[
+            6
+        ] * np.pi / 180  # rib's angle
         x = line[3]  # x-value -> front/back (ribwise)
         y += np.cos(alpha1) * (span - span_last)  # y-value -> spanwise
         z -= np.sin(alpha1) * (span - span_last)  # z-axis -> up/down
@@ -79,22 +83,32 @@ def import_ods(filename, glider):
         ballooning = merge(line[9], balloonings)
 
         lastrib = thisrib
-        thisrib = Rib(profile, np.array([x, y, z]), chord, alpha, aoa, zrot, data["GLIDE"],
-                      name="Rib ({})".format(i))
+        thisrib = Rib(
+            profile,
+            np.array([x, y, z]),
+            chord,
+            alpha,
+            aoa,
+            zrot,
+            data["GLIDE"],
+            name="Rib ({})".format(i),
+        )
         if i == 1 and y != 0:  # Middle-cell
-            
             lastrib = thisrib.copy()
             lastrib.mirror()
         if lastrib:
             cell = Cell(lastrib, thisrib, ballooning)
-            cell.name = "Cell_no"+str(i)
+            cell.name = "Cell_no" + str(i)
             cells.append(cell)
 
     glider.cells = cells
     glider.close_rib()
 
     ######################################LINESET######################################################
-    attachment_points = [AttachmentPoint(glider.ribs[args[0]], args[1], args[2]) for args in read_elements(sheets[2], "AHP", len_data=2)]
+    attachment_points = [
+        AttachmentPoint(glider.ribs[args[0]], args[1], args[2])
+        for args in read_elements(sheets[2], "AHP", len_data=2)
+    ]
     attachment_points.sort(key=lambda element: element.name)
     attachment_points_lower = get_lower_aufhaengepunkte(glider.data)
 
@@ -106,11 +120,23 @@ def import_ods(filename, glider):
     glider.lineset.recalc()
 
     ####################################PANELS##########################################################
-    cuts = [cut+[1, glider.data["Designzugabe"]] for cut in read_elements(sheets[1], "DESIGNO")]
-    cuts += [cut+[1, glider.data["Designzugabe"]] for cut in read_elements(sheets[1], "DESIGNM")]
-    cuts += [cut+[2, glider.data["EKzugabe"]] for cut in read_elements(sheets[1], "EKV")]
-    cuts += [cut+[2, glider.data["EKzugabe"]] for cut in read_elements(sheets[1], "EKH")]
-    for i, cell in enumerate(glider.cells):  # cut = [cell_no, x_left, x_right, cut_type, amount_add]
+    cuts = [
+        cut + [1, glider.data["Designzugabe"]]
+        for cut in read_elements(sheets[1], "DESIGNO")
+    ]
+    cuts += [
+        cut + [1, glider.data["Designzugabe"]]
+        for cut in read_elements(sheets[1], "DESIGNM")
+    ]
+    cuts += [
+        cut + [2, glider.data["EKzugabe"]] for cut in read_elements(sheets[1], "EKV")
+    ]
+    cuts += [
+        cut + [2, glider.data["EKzugabe"]] for cut in read_elements(sheets[1], "EKH")
+    ]
+    for i, cell in enumerate(
+        glider.cells
+    ):  # cut = [cell_no, x_left, x_right, cut_type, amount_add]
         cuts_this = [cut for cut in cuts if cut[0] == i]
         cuts_this.sort(key=lambda cut: cut[1])
         cuts_this.sort(key=lambda cut: cut[2])
@@ -118,9 +144,9 @@ def import_ods(filename, glider):
         cuts_this.insert(0, [i, -1, -1, 3, glider.data["HKzugabe"]])
         cuts_this.append([i, 1, 1, 3, glider.data["HKzugabe"]])
         cell.panels = []
-        for j in range(len(cuts_this)-1):
-            if cuts_this[j][3] != 2 or cuts_this[j+1][3] != 2:  # skip entry
-                cell.panels.append(Panel(cuts_this[j][1:], cuts_this[j+1][1:]))
+        for j in range(len(cuts_this) - 1):
+            if cuts_this[j][3] != 2 or cuts_this[j + 1][3] != 2:  # skip entry
+                cell.panels.append(Panel(cuts_this[j][1:], cuts_this[j + 1][1:]))
     return glider
 
 
@@ -140,7 +166,7 @@ def get_lower_aufhaengepunkte(data):
 
 def transpose_columns(sheet=ezodf.Table(), columnswidth=2):
     num = sheet.ncols()
-    #if num % columnswidth > 0:
+    # if num % columnswidth > 0:
     #    raise ValueError("irregular columnswidth")
     result = []
     for col in range(int(num / columnswidth)):
@@ -169,50 +195,59 @@ def tolist_lines(sheet, attachment_points_lower, attachment_points_upper):
         val = sheet.get_cell([i, j]).value
         if j == 0:  # first floor
             if val is not None:
-                current_nodes = [attachment_points_lower[int(sheet.get_cell([i, j]).value)]] +\
-                                   [None for __ in range(num_cols)]
+                current_nodes = [
+                    attachment_points_lower[int(sheet.get_cell([i, j]).value)]
+                ] + [None for __ in range(num_cols)]
             j += 1
-        elif j+2 < num_cols:
+        elif j + 2 < num_cols:
             if val is None:
                 j += 2
             else:
-                lower = current_nodes[j//2]
+                lower = current_nodes[j // 2]
 
-                if j + 4 >= num_cols or sheet.get_cell([i, j+2]).value is None:  # gallery
-
-                    upper = attachment_points_upper[int(val-1)]
+                if (
+                    j + 4 >= num_cols or sheet.get_cell([i, j + 2]).value is None
+                ):  # gallery
+                    upper = attachment_points_upper[int(val - 1)]
                     line_length = None
                     i += 1
                     j = 0
                 else:
                     upper = Node(node_type=1)
-                    current_nodes[j//2+1] = upper
+                    current_nodes[j // 2 + 1] = upper
                     line_length = sheet.get_cell([i, j]).value
                     j += 2
                 linelist.append(
-                    Line(number=count, lower_node=lower, upper_node=upper, v_inf=np.array([10,0,0]), target_length=line_length))  #line_type=sheet.get_cell
+                    Line(
+                        number=count,
+                        lower_node=lower,
+                        upper_node=upper,
+                        v_inf=np.array([10, 0, 0]),
+                        target_length=line_length,
+                    )
+                )  # line_type=sheet.get_cell
                 count += 1
-                
-        elif j+2 >= num_cols:
+
+        elif j + 2 >= num_cols:
             j = 0
             i += 1
 
-    return LineSet(linelist, v_inf=np.array([10,0,0]))
+    return LineSet(linelist, v_inf=np.array([10, 0, 0]))
 
 
 def read_elements(sheet, keyword, len_data=2):
     """
     Return rib/cell_no for the element + data
     """
-    
+
     elements = []
     j = 0
     while j < sheet.ncols():
         if sheet.get_cell([0, j]).value == keyword:
             for i in range(1, sheet.nrows()):
-                line = [sheet.get_cell([i, j+k]).value for k in range(len_data)]
+                line = [sheet.get_cell([i, j + k]).value for k in range(len_data)]
                 if line[0] is not None:
-                    elements.append([i-1] + line)
+                    elements.append([i - 1] + line)
             j += len_data
         else:
             j += 1

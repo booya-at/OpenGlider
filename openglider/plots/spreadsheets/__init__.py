@@ -9,7 +9,7 @@ from openglider.plots.spreadsheets.material_list import get_material_sheets
 def get_glider_data(project: GliderProject):
     specsheet = project.get_data_table()
     glider = project.glider_3d
-    #specsheet = get_specs(glider)
+    # specsheet = get_specs(glider)
     glider.lineset.recalc(iterations=30)
     linesheet = glider.lineset.get_table()
     linesheet2 = glider.lineset.get_table_2()

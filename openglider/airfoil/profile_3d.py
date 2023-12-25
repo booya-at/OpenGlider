@@ -28,7 +28,7 @@ from openglider.airfoil import Profile2D
 
 
 class Profile3D(PolyLine):
-    @cached_property('self')
+    @cached_property("self")
     def noseindex(self):
         p0 = self.data[0]
         max_dist = 0
@@ -40,7 +40,7 @@ class Profile3D(PolyLine):
                 max_dist = diff
         return noseindex
 
-    @cached_property('self')
+    @cached_property("self")
     def projection_layer(self):
         """
         Projection Layer of profile_3d
@@ -68,10 +68,12 @@ class Profile3D(PolyLine):
     def flatten(self):
         """Flatten the airfoil and return a 2d-Representative"""
         layer = self.projection_layer
-        return Profile2D([layer.projection(p) for p in self.data],
-                         name=self.name or 'profile' + "_flattened")
+        return Profile2D(
+            [layer.projection(p) for p in self.data],
+            name=self.name or "profile" + "_flattened",
+        )
 
-    @cached_property('self')
+    @cached_property("self")
     def normvectors(self):
         layer = self.projection_layer
         profnorm = layer.normvector
@@ -79,9 +81,12 @@ class Profile3D(PolyLine):
 
         vectors = [get_normvector(self.data[1] - self.data[0])]
         for i in range(1, len(self.data) - 1):
-            vectors.append(get_normvector(
-                normalize(self.data[i + 1] - self.data[i]) +
-                normalize(self.data[i] - self.data[i - 1])))
+            vectors.append(
+                get_normvector(
+                    normalize(self.data[i + 1] - self.data[i])
+                    + normalize(self.data[i] - self.data[i - 1])
+                )
+            )
         vectors.append(get_normvector(self.data[-1] - self.data[-2]))
 
         return vectors
@@ -96,7 +101,7 @@ class Profile3D(PolyLine):
             second = third
             third = element
             tangent = np.array([0, 0, 0])
-            for vec in [third-second, second-first]:
+            for vec in [third - second, second - first]:
                 try:
                     tangent = tangent + normalize(vec)
                 except ValueError:  # zero-length vector

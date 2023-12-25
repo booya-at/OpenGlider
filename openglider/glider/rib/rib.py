@@ -11,23 +11,42 @@ from openglider.glider.rib.elements import FoilCurve
 from numpy.linalg import norm
 
 
-
 class Rib(CachedObject):
     """
     Openglider Rib Class: contains a airfoil, needs a startpoint, angle (arcwide), angle of attack,
         glide-wide rotation and glider ratio.
         optional: name, absolute aoa (bool), startposition
     """
+
     hole_naming_scheme = "{rib.name}h{}"
     rigid_naming_scheme = "{rib.name}rigid{}"
 
-    hashlist = ('aoa_absolute', 'glide', 'arcang', 'zrot', 'chord', 'pos', 'profile_2d')  # pos
+    hashlist = (
+        "aoa_absolute",
+        "glide",
+        "arcang",
+        "zrot",
+        "chord",
+        "pos",
+        "profile_2d",
+    )  # pos
 
-    def __init__(self, profile_2d=None, startpoint=None,
-                 chord=1., arcang=0, aoa_absolute=0, zrot=0, xrot = 0, glide=1,
-                 name="unnamed rib", startpos=0.,
-                 rigidfoils=None,
-                 holes=None, material_code=None):
+    def __init__(
+        self,
+        profile_2d=None,
+        startpoint=None,
+        chord=1.0,
+        arcang=0,
+        aoa_absolute=0,
+        zrot=0,
+        xrot=0,
+        glide=1,
+        name="unnamed rib",
+        startpos=0.0,
+        rigidfoils=None,
+        holes=None,
+        material_code=None,
+    ):
         self.startpos = startpos
         # TODO: Startpos > Set Rotation Axis in Percent
         self.name = name
@@ -47,20 +66,21 @@ class Rib(CachedObject):
         self.curves = []
 
     def __json__(self):
-        return {"profile_2d": self.profile_2d,
-                "startpoint": self.pos.tolist(),
-                "chord": self.chord,
-                "arcang": self.arcang,
-                "aoa_absolute": self.aoa_absolute,
-                "zrot": self.zrot,
-                "xrot": self.xrot,
-                "glide": self.glide,
-                "name": self.name,
-                "rigidfoils": self.rigidfoils,
-                "holes": self.holes,
-                "material_code": self.material_code,
-                "name": self.name
-                }
+        return {
+            "profile_2d": self.profile_2d,
+            "startpoint": self.pos.tolist(),
+            "chord": self.chord,
+            "arcang": self.arcang,
+            "aoa_absolute": self.aoa_absolute,
+            "zrot": self.zrot,
+            "xrot": self.xrot,
+            "glide": self.glide,
+            "name": self.name,
+            "rigidfoils": self.rigidfoils,
+            "holes": self.holes,
+            "material_code": self.material_code,
+            "name": self.name,
+        }
 
     def align_all(self, data):
         """align 2d coordinates to the 3d pos of the rib"""
@@ -68,7 +88,7 @@ class Rib(CachedObject):
 
     def align(self, point, scale=True):
         if len(point) == 2:
-            return self.align([point[0], point[1], 0.], scale=scale)
+            return self.align([point[0], point[1], 0.0], scale=scale)
         elif len(point) == 3:
             if scale:
                 return self.transformation(point)
@@ -96,27 +116,32 @@ class Rib(CachedObject):
     def aoa_relative(self, aoa):
         self.aoa_absolute = aoa - self._aoa_diff(self.arcang, self.glide)
 
-    @cached_property('profile_3d')
+    @cached_property("profile_3d")
     def normvectors(self):
-        return map(lambda x: self.rotation_matrix([x[0], x[1], 0]), self.profile_2d.normvectors)
+        return map(
+            lambda x: self.rotation_matrix([x[0], x[1], 0]), self.profile_2d.normvectors
+        )
 
-    @cached_property('arcang', 'glide', 'zrot', 'xrot', 'aoa_absolute')
+    @cached_property("arcang", "glide", "zrot", "xrot", "aoa_absolute")
     def rotation_matrix(self):
         zrot = np.arctan(self.arcang) / self.glide * self.zrot
         return rib_rotation(self.aoa_absolute, self.arcang, zrot, self.xrot)
 
-    @cached_property('arcang', 'glide', 'zrot', 'xrot', 'aoa_absolute', 'chord', 'pos')
+    @cached_property("arcang", "glide", "zrot", "xrot", "aoa_absolute", "chord", "pos")
     def transformation(self):
         zrot = np.arctan(self.arcang) / self.glide * self.zrot
-        return rib_transformation(self.aoa_absolute, self.arcang, zrot, self.xrot, self.chord, self.pos)
+        return rib_transformation(
+            self.aoa_absolute, self.arcang, zrot, self.xrot, self.chord, self.pos
+        )
 
-    @cached_property('self')
+    @cached_property("self")
     def profile_3d(self):
         if self.profile_2d.data is not None:
             return Profile3D(self.align_all(self.profile_2d.data))
         else:
-            raise ValueError("no 2d-profile present for the rib at rib {}".format(
-                self.name))
+            raise ValueError(
+                "no 2d-profile present for the rib at rib {}".format(self.name)
+            )
 
     def point(self, x_value):
         return self.align(self.profile_2d.profilepoint(x_value))
@@ -127,10 +152,10 @@ class Rib(CachedObject):
         return np.arctan(np.cos(arc_angle) / glide)
 
     def mirror(self):
-        self.arcang *= -1.
-        self.xrot *= -1.
+        self.arcang *= -1.0
+        self.xrot *= -1.0
         # self.zrot = -self.zrot
-        self.pos = np.multiply(self.pos, [1, -1., 1])
+        self.pos = np.multiply(self.pos, [1, -1.0, 1])
 
     def copy(self):
         new = copy.deepcopy(self)
@@ -145,17 +170,17 @@ class Rib(CachedObject):
 
     def get_hull(self, glider=None):
         """returns the outer contour of the normalized mesh in form
-           of a Polyline"""
+        of a Polyline"""
         profile = copy.deepcopy(self.profile_2d)
         return profile
 
     @property
     def normalized_normale(self):
-        return self.rotation_matrix(np.array([0., 0., 1.]))
+        return self.rotation_matrix(np.array([0.0, 0.0, 1.0]))
 
     @property
     def in_plane_normale(self):
-        return self.rotation_matrix(np.array([0., 1., 0.]))
+        return self.rotation_matrix(np.array([0.0, 1.0, 0.0]))
 
     def get_attachment_points(self, glider, brake=True):
         return glider.get_rib_attachment_points(self, brake=brake)
@@ -181,7 +206,9 @@ class Rib(CachedObject):
         if len(self.holes) > 0 and hole_num > 3:
             for nr, hole in enumerate(self.holes):
                 start_index = len(vertices)
-                hole_vertices = list(hole.get_flattened(self, num=hole_num, scale=False))[:-1]
+                hole_vertices = list(
+                    hole.get_flattened(self, num=hole_num, scale=False)
+                )[:-1]
                 hole_indices = list(range(len(hole_vertices))) + [0]
                 vertices += hole_vertices
                 boundary.append([start_index + i for i in hole_indices])
@@ -191,7 +218,7 @@ class Rib(CachedObject):
             segments = []
             for lst in boundary:
                 segments += triangulate.Triangulation.get_segments(lst)
-            return Mesh.from_indexed(self.align_all(vertices), {'rib': segments}, {})
+            return Mesh.from_indexed(self.align_all(vertices), {"rib": segments}, {})
         else:
             tri = triangulate.Triangulation(vertices, boundary, hole_centers)
             if max_area is not None:
@@ -201,46 +228,71 @@ class Rib(CachedObject):
             triangles = list(mesh.elements)
             vertices = self.align_all(mesh.points)
 
-            return Mesh.from_indexed(vertices, polygons={"ribs": triangles} , boundaries={self.name: list(range(len(vertices)))})
+            return Mesh.from_indexed(
+                vertices,
+                polygons={"ribs": triangles},
+                boundaries={self.name: list(range(len(vertices)))},
+            )
 
 
 class SingleSkinRib(Rib):
-    def __init__(self, profile_2d=None, startpoint=None,
-                 chord=1., arcang=0, aoa_absolute=0, zrot=0, xrot=0., glide=1,
-                 name="unnamed rib", startpos=0.,
-                 rigidfoils=None, holes=None, material_code=None,
-                 single_skin_par=None):
-        super(SingleSkinRib, self).__init__(profile_2d=profile_2d, 
-                                            startpoint=startpoint,
-                                            chord=chord,
-                                            arcang=arcang,
-                                            aoa_absolute=aoa_absolute,
-                                            zrot=zrot,
-                                            xrot=xrot,
-                                            glide=glide,
-                                            name=name,
-                                            startpos=startpos,
-                                            rigidfoils=rigidfoils,
-                                            holes=holes,
-                                            material_code=material_code)
+    def __init__(
+        self,
+        profile_2d=None,
+        startpoint=None,
+        chord=1.0,
+        arcang=0,
+        aoa_absolute=0,
+        zrot=0,
+        xrot=0.0,
+        glide=1,
+        name="unnamed rib",
+        startpos=0.0,
+        rigidfoils=None,
+        holes=None,
+        material_code=None,
+        single_skin_par=None,
+    ):
+        super(SingleSkinRib, self).__init__(
+            profile_2d=profile_2d,
+            startpoint=startpoint,
+            chord=chord,
+            arcang=arcang,
+            aoa_absolute=aoa_absolute,
+            zrot=zrot,
+            xrot=xrot,
+            glide=glide,
+            name=name,
+            startpos=startpos,
+            rigidfoils=rigidfoils,
+            holes=holes,
+            material_code=material_code,
+        )
         self.single_skin_par = single_skin_par or {}
 
         # we have to apply this function once for the profile2d
         # this will change the position of the attachmentpoints!
         # therefore it shouldn't be placed int the get_hull function
-        if self.single_skin_par['continued_min']: 
+        if self.single_skin_par["continued_min"]:
             self.apply_continued_min()
 
     def apply_continued_min(self):
-        self.profile_2d.move_nearest_point(self.single_skin_par['continued_min_end'])
+        self.profile_2d.move_nearest_point(self.single_skin_par["continued_min_end"])
         data = self.profile_2d.data
         x, y = data.T
         min_index = y.argmin()
         y_min = y[min_index]
         new_y = []
         for i, xy in enumerate(data):
-            if i > min_index and (self.single_skin_par['continued_min_end'] - xy[0]) > -1e-8:
-                new_y += [y_min + (xy[0] - data[min_index][0]) * np.tan(self.single_skin_par['continued_min_angle'])]
+            if (
+                i > min_index
+                and (self.single_skin_par["continued_min_end"] - xy[0]) > -1e-8
+            ):
+                new_y += [
+                    y_min
+                    + (xy[0] - data[min_index][0])
+                    * np.tan(self.single_skin_par["continued_min_angle"])
+                ]
             else:
                 new_y += [xy[1]]
         self.profile_2d.data = np.array([x, new_y]).T
@@ -258,9 +310,9 @@ class SingleSkinRib(Rib):
         return json_dict
 
     def get_hull(self, glider=None):
-        '''
+        """
         returns a modified profile2d
-        '''
+        """
         profile = copy.deepcopy(self.profile_2d)
         attach_pts = glider.get_rib_attachment_points(self)
         pos = list(set([att.rib_pos for att in attach_pts] + [1]))
@@ -270,7 +322,6 @@ class SingleSkinRib(Rib):
             pos.sort()
             # computing the bow start and end points (back to front)
             for i, p in enumerate(pos[:-1]):
-
                 # the profile  has a normed chord of 1
                 # so we have to normalize the "att_dist" which is the thickness of
                 # rib between two bows. normally something like 2cm
@@ -280,18 +331,18 @@ class SingleSkinRib(Rib):
 
                 # le_gap is the gap between the FIRST BOW start and the attachment point next
                 # to this point. (before)
-                if i == 0 and not self.single_skin_par["le_gap"]: 
+                if i == 0 and not self.single_skin_par["le_gap"]:
                     le_gap = 0
 
                 # te_gap is the gap between the LAST BOW end and the trailing edge
-                if i == (len(pos) -2) and not self.single_skin_par["te_gap"]:
+                if i == (len(pos) - 2) and not self.single_skin_par["te_gap"]:
                     te_gap = 0
 
                 span_list.append([p + le_gap, pos[i + 1] - te_gap])
 
             for k, sp in enumerate(span_list):
                 if self.single_skin_par["double_first"] and k == 0:
-                    continue # do not insert points between att for double-first ribs (a-b)
+                    continue  # do not insert points between att for double-first ribs (a-b)
 
                 # first we insert the start and end point of the bow
                 profile.insert_point(sp[0])
@@ -303,9 +354,11 @@ class SingleSkinRib(Rib):
                 # x-value
                 profile.remove_points(sp[0], sp[1], tolerance=1e-5)
 
-                # insert sequence of xvalues between start and end. endpoint=False is necessary because 
+                # insert sequence of xvalues between start and end. endpoint=False is necessary because
                 # start and end are already inserted.
-                for i in np.linspace(sp[0], sp[1], self.single_skin_par["num_points"], endpoint=False):
+                for i in np.linspace(
+                    sp[0], sp[1], self.single_skin_par["num_points"], endpoint=False
+                ):
                     profile.insert_point(i)
 
             # construct shifting function:
@@ -317,19 +370,25 @@ class SingleSkinRib(Rib):
                 x0 = np.array(profile.profilepoint(sp[0]))
                 x1 = np.array(profile.profilepoint(sp[1]))
                 x_mid = (x0 + x1)[0] / 2
-                height = abs(profile.profilepoint(-x_mid)[1] - 
-                             profile.profilepoint(x_mid)[1])
-                height *= self.single_skin_par["height"] # anything bewtween 0..1
+                height = abs(
+                    profile.profilepoint(-x_mid)[1] - profile.profilepoint(x_mid)[1]
+                )
+                height *= self.single_skin_par["height"]  # anything bewtween 0..1
                 y_mid = profile.profilepoint(x_mid)[1] + height
                 x_max = np.array([norm(x1 - x0) / 2, height])
+
                 def foo(x, upper):
                     if not upper and x[0] > x0[0] and x[0] < x1[0]:
-                        if self.single_skin_par["straight_te"] and i == len(span_list) - 1:
+                        if (
+                            self.single_skin_par["straight_te"]
+                            and i == len(span_list) - 1
+                        ):
                             return straight_line(x, x0, x1)
                         else:
                             return parabola(x, x0, x1, x_max)
                     else:
                         return x
+
                 profile.apply_function(foo)
         return profile
 
@@ -339,22 +398,22 @@ def pseudo_2d_cross(v1, v2):
 
 
 def straight_line(x, x0, x1):
-    x_proj = (x - x0).dot(x1 - x0) / norm(x1 - x0)**2
+    x_proj = (x - x0).dot(x1 - x0) / norm(x1 - x0) ** 2
     return x0 + (x1 - x0) * x_proj
 
 
 def parabola(x, x0, x1, x_max):
     """parabola used for singleskin ribs
-       x, x0, x1, x_max ... numpy 2d arrays
-       xmax = np.sqrt((x1 - x0)**2 + (y1 - y0)**2)"""
-    x_proj = (x - x0).dot(x1 - x0) / norm(x1 - x0)**2
+    x, x0, x1, x_max ... numpy 2d arrays
+    xmax = np.sqrt((x1 - x0)**2 + (y1 - y0)**2)"""
+    x_proj = (x - x0).dot(x1 - x0) / norm(x1 - x0) ** 2
     x_proj = (x_proj - 0.5) * 2
-    y_proj = -x_proj **2
+    y_proj = -(x_proj**2)
     x = np.array([x_proj, y_proj]) * x_max
     c = (x1 - x0)[0] / norm(x1 - x0)
     s = (x1 - x0)[1] / norm(x1 - x0)
     rot = np.array([[c, -s], [s, c]])
-    null = - x_max
+    null = -x_max
     return rot.dot(x - null) + x0
 
 
@@ -372,6 +431,7 @@ def parabola(x, x0, x1, x_max):
 #     # rot = rotation_3d(-math.pi/2, [0, 0, 1]).dot(rot)
 
 #     return rot
+
 
 def rib_rotation(aoa, arc, zrot, xrot=0):
     rot0 = Rotation(np.pi / 2 - xrot, [1, 0, 0])

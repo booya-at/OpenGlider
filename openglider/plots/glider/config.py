@@ -30,13 +30,14 @@ class PatternConfig(Config):
     allowance_trailing_edge = 0.01
     allowance_entry_open = 0.015
 
-
     marks_diagonal_front = marks.Inside(marks.Arrow(left=True, name="diagonal_front"))
     marks_diagonal_back = marks.Inside(marks.Arrow(left=False, name="diagonal_back"))
     marks_laser_diagonal = marks.Dot(0.8)
 
     marks_laser_attachment_point = marks.Dot(0.2, 0.8)
-    marks_attachment_point = marks.OnLine(marks.Rotate(marks.Cross(name="attachment_point"), np.pi / 4))
+    marks_attachment_point = marks.OnLine(
+        marks.Rotate(marks.Cross(name="attachment_point"), np.pi / 4)
+    )
 
     marks_strap = marks.Inside(marks.Line(name="strap"))
 
@@ -67,7 +68,7 @@ class OtherPatternConfig(PatternConfig):
     cut_design = cuts.SimpleCut
     cut_diagonal_fold = cuts.SimpleCut
     layout_seperate_panels = True
-    #draw_rib = None
+    # draw_rib = None
 
     allowance_design = 0.01
     drib_allowance_folds = 0.01

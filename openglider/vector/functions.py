@@ -54,11 +54,13 @@ def rotation_3d(angle, axis=None):
     # see http://en.wikipedia.org/wiki/SO%284%29#The_Euler.E2.80.93Rodrigues_formula_for_3D_rotations"""
     a = np.cos(angle / 2)
     (b, c, d) = -normalize(axis) * np.sin(angle / 2)
-    return np.array([
-        [a**2 + b**2 - c**2 - d**2, 2*(b*c - a*d),              2*(b*d + a*c)],
-        [2*(b*c + a*d),             a**2 + c**2 - b**2 - d**2,  2 * (c*d - a*b)],
-        [2*(b*d - a*c),             2*(c*d + a*b),              a**2 + d**2 - b**2 - c**2]
-    ])
+    return np.array(
+        [
+            [a**2 + b**2 - c**2 - d**2, 2 * (b * c - a * d), 2 * (b * d + a * c)],
+            [2 * (b * c + a * d), a**2 + c**2 - b**2 - d**2, 2 * (c * d - a * b)],
+            [2 * (b * d - a * c), 2 * (c * d + a * b), a**2 + d**2 - b**2 - c**2],
+        ]
+    )
 
 
 def rotation_2d(angle):
@@ -75,8 +77,7 @@ def cut(p1, p2, p3, p4):
     """
     """ |p2x-p1x -(p4x-p3x)|*|k|==|p3x-p1x|"""
     """ |p2y-p1y -(p4y-p3y)|*|l|==|p3y-p1y|"""
-    matrix = [[p2[0] - p1[0], p3[0] - p4[0]],
-              [p2[1] - p1[1], p3[1] - p4[1]]]
+    matrix = [[p2[0] - p1[0], p3[0] - p4[0]], [p2[1] - p1[1], p3[1] - p4[1]]]
     rhs = [p3[0] - p1[0], p3[1] - p1[1]]
     (k, l) = np.linalg.solve(matrix, rhs)
     return p1 + k * (p2 - p1), k, l
@@ -97,8 +98,9 @@ def radius_from_3points(p1, p2, p3):
     b = np.linalg.norm(p3 - p2, axis=1)
     c = np.linalg.norm(p1 - p3, axis=1)
     s = (a + b + c) / 2
-    r = (a * b * c)  / np.sqrt(s * (s - a) * (s - b) * (s - c))
+    r = (a * b * c) / np.sqrt(s * (s - a) * (s - b) * (s - c))
     return r
+
 
 def curvature_from_3points(p1, p2, p3):
     a = np.linalg.norm(p2 - p1, axis=1)

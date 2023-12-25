@@ -20,15 +20,11 @@
 
 from openglider.glider.in_out import import_geometry, export_3d
 
-IMPORT_GEOMETRY = {
-    'ods': import_geometry.import_ods,
-    'xls': import_geometry.import_xls
-}
+IMPORT_GEOMETRY = {"ods": import_geometry.import_ods, "xls": import_geometry.import_xls}
 
 EXPORT_3D = {
-    'obj': export_3d.export_obj,
-    'dxf': export_3d.export_dxf,
-    'inp': export_3d.export_apame,
-    'json': export_3d.export_json
+    "obj": export_3d.export_obj,
+    "dxf": export_3d.export_dxf,
+    "inp": export_3d.export_apame,
+    "json": export_3d.export_json,
 }
-

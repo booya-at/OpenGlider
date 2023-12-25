@@ -9,11 +9,15 @@ class LinePlan(ShapePlot):
         self.insert_attachment_points(True)
         for line in self.glider_2d.lineset.lines:
             pp = PlotPart()
-            layer = pp.layers["line_"+line.layer]
-            layer += [PolyLine2D([
-                    line.lower_node.get_2D(self.glider_2d.shape),
-                    line.upper_node.get_2D(self.glider_2d.shape)
-                ])]
+            layer = pp.layers["line_" + line.layer]
+            layer += [
+                PolyLine2D(
+                    [
+                        line.lower_node.get_2D(self.glider_2d.shape),
+                        line.upper_node.get_2D(self.glider_2d.shape),
+                    ]
+                )
+            ]
             self.drawing.parts.append(pp)
 
         return self

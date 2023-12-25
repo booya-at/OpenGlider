@@ -27,7 +27,7 @@ from openglider.graphics.functions import depth, tofloat
 from openglider.graphics.elements import *
 # from openglider.graphics.qt import ApplicationWindow
 
-    # problems with this line on ubuntu 15.04
+# problems with this line on ubuntu 15.04
 
 
 class Graphics(object):
@@ -55,7 +55,7 @@ class Graphics(object):
     @staticmethod
     def make_3d(arg):
         if len(arg) == 2:
-            return [arg[0], arg[1], 0.]
+            return [arg[0], arg[1], 0.0]
         elif len(arg) == 3:
             return list(arg)
         else:
@@ -70,14 +70,20 @@ class Graphics(object):
             for coor in self.coordinates:
                 self.points.InsertNextPoint(self.make_3d(coor))
 
-        #BUGFIX, this disables colours partly for polylines, colour has to be set in Line(points, colour=...)
-        #for graphicobject in self.graphicobjects:
+        # BUGFIX, this disables colours partly for polylines, colour has to be set in Line(points, colour=...)
+        # for graphicobject in self.graphicobjects:
         #    graphicobject.draw(self)
         for graphicobject in self.graphicobjects:
-            if hasattr(graphicobject, 'element_setter') and graphicobject.element_setter == 'SetLines':
+            if (
+                hasattr(graphicobject, "element_setter")
+                and graphicobject.element_setter == "SetLines"
+            ):
                 graphicobject.draw(self)
         for graphicobject in self.graphicobjects:
-            if not hasattr(graphicobject, 'element_setter') or not graphicobject.element_setter == 'SetLines':
+            if (
+                not hasattr(graphicobject, "element_setter")
+                or not graphicobject.element_setter == "SetLines"
+            ):
                 graphicobject.draw(self)
 
         self.data.SetPoints(self.points)
@@ -103,7 +109,9 @@ class Graphics(object):
         render_window.AddRenderer(self.renderer)
         render_interactor = vtk.vtkRenderWindowInteractor()
         if self.allow_rotation:
-            render_interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
+            render_interactor.SetInteractorStyle(
+                vtk.vtkInteractorStyleTrackballCamera()
+            )
         else:
             render_interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBand2D())
         render_interactor.SetRenderWindow(render_window)
@@ -160,7 +168,9 @@ def listlineplot(points):
     if isinstance(points, np.ndarray):
         points = points.tolist()
     if depth(points) == 2:
-        Graphics2D([Line(np.transpose(np.array([map(float, range(len(points))), points])))])
+        Graphics2D(
+            [Line(np.transpose(np.array([map(float, range(len(points))), points])))]
+        )
     if depth(points) == 3 and len(points[1]) == 2:
         Graphics2D([Line(tofloat(points))])
     if depth(points) == 3 and len(points[1]) == 3:

@@ -1,6 +1,7 @@
 import numpy as np
 import copy
 
+
 def make_key(i1, i2):
     """
     Make a tuple key such at i1 < i2
@@ -14,7 +15,6 @@ class PolyTri(object):
     small = 1e-10
 
     def __init__(self, pts, boundaries=None, delaunay=True, holes=True, border=None):
-
         # data structures
         self.pts = pts[:]  # copy
         self.tris = []  # cells
@@ -33,15 +33,15 @@ class PolyTri(object):
         while True:
             self.pts = pts[:]
             dist = self.pts - cg
-            square_dist = dist.T[0]**2 + dist.T[1]**2
+            square_dist = dist.T[0] ** 2 + dist.T[1] ** 2
             self.order = np.argsort(square_dist)
             self.pts = self.pts[self.order]
-    
+
             # create first triangle, make sure we're getting a non-zero area
             # otherwise drop the pts
-    
+
             index = 0
-    
+
             tri = [0, 1, 2]
             self.make_counter_clockwise(tri)
             if self.get_area(*tri) > self.small:
@@ -51,7 +51,7 @@ class PolyTri(object):
                 cg = self.pts[i]
                 i += 1
         self.unorder = np.argsort(self.order)
-            
+
         # boundary edges
         e01 = (tri[0], tri[1])
         e12 = (tri[1], tri[2])
@@ -60,7 +60,7 @@ class PolyTri(object):
         self.boundary_edges.add(e01)
         self.boundary_edges.add(e12)
         self.boundary_edges.add(e20)
-        
+
         self.edge2tris[make_key(*e01)] = [0]
         self.edge2tris[make_key(*e12)] = [0]
         self.edge2tris[make_key(*e20)] = [0]
@@ -77,7 +77,7 @@ class PolyTri(object):
                 self.remove_empty()
                 self.update_mapping()
                 self.remove_holes()
-    
+
     def get_tris(self):
         return [self.order[tri] for tri in self.tris]
 
@@ -90,13 +90,13 @@ class PolyTri(object):
         """
         d1 = self.pts[ip1] - self.pts[ip0]
         d2 = self.pts[ip2] - self.pts[ip0]
-        return (d1[0]*d2[1] - d1[1]*d2[0])
+        return d1[0] * d2[1] - d1[1] * d2[0]
 
     def edgeArea(self, ordered_edge):
         d1, d2 = ordered_edge
         d1 = self.pts[d1]
         d2 = self.pts[d2]
-        return (d1[0]*d2[1] - d1[1]*d2[0])
+        return d1[0] * d2[1] - d1[1] * d2[0]
 
     def is_edge_visible(self, ip, edge):
         """
@@ -159,7 +159,6 @@ class PolyTri(object):
                     self.constraint_edge(make_key(edge[0], pt0))
                     self.constraint_edge(make_key(pt0, pt1))
 
-
     def flipOneEdge(self, edge, delaunay=True, check_self_intersection=False):
         """
         Flip one edge then update the data structures
@@ -172,8 +171,8 @@ class PolyTri(object):
         # assume edge is sorted
         tris = self.edge2tris.get(edge, [])
         if len(tris) < 2:
-                # nothing to do, just return
-                return res
+            # nothing to do, just return
+            return res
 
         iTri1, iTri2 = tris
         tri1 = self.tris[iTri1]
@@ -207,7 +206,7 @@ class PolyTri(object):
             angle2 = abs(np.arctan2(crossProd2, dotProd2))
 
             # Delaunay's test
-            if not (angle1 + angle2 > np.pi*(1.0 + self.small)):
+            if not (angle1 + angle2 > np.pi * (1.0 + self.small)):
                 return res
 
         # flip the tris
@@ -242,8 +241,6 @@ class PolyTri(object):
                 v[i] = iTri2
         res.add(e)
 
-
-
         e = make_key(iOpposite2, edge[0])
         v = self.edge2tris[e]
         for i in range(len(v)):
@@ -268,7 +265,6 @@ class PolyTri(object):
                     if tr[j] == iTri1:
                         tr[j] = iTri2
 
-
         # these two edges might need to be flipped at the
         # next iteration
         res.add(make_key(iOpposite1, edge[0]))
@@ -288,7 +284,7 @@ class PolyTri(object):
                 for add_edge in edges2proceed:
                     newEdgeSet.add(add_edge)
             edgeSet = copy.copy(newEdgeSet)
-            continueFlipping = (len(edgeSet) > 0)
+            continueFlipping = len(edgeSet) > 0
 
     def add_point(self, ip):
         """
@@ -302,7 +298,6 @@ class PolyTri(object):
 
         for edge in self.boundary_edges:
             if self.is_edge_visible(ip, edge):
-
                 # create new triangle
                 newTri = [edge[0], edge[1], ip]
                 newTri.sort()
@@ -333,7 +328,7 @@ class PolyTri(object):
         # update the boundary edges
         for bedge in boundary_edges2remove:
             self.boundary_edges.remove(bedge)
-        
+
         for bedge in boundary_edges2add:
             bEdgeSorted = make_key(*bedge)
             if len(self.edge2tris[bEdgeSorted]) == 1:
@@ -344,7 +339,6 @@ class PolyTri(object):
         if self.delaunay:  # recursively flip edges
             self.flip_edges()
 
-    
     def create_boundary_list(self, border=None, create_key=True):
         constrained_boundary = []
         for k, boundary in enumerate(self.boundaries):
@@ -375,7 +369,6 @@ class PolyTri(object):
             for point in tri:
                 p2t = self.pnt2tris.get(point, [])
                 self.pnt2tris[point] = p2t + [i]
-                
 
     def remove_empty(self):
         tris2remove = []
@@ -451,7 +444,7 @@ class PolyTri(object):
         tris2remove.reverse()
         for i in tris2remove:
             self.tris.pop(i)
-    
+
     def create_loop(self, edges, start, end):
         loop = []
         point2edge = {}
@@ -480,7 +473,7 @@ class PolyTri(object):
         area = sum([self.edgeArea(e) for e in zip(loop[:-1], loop[1:])])
         if area > 0:
             loop.reverse()
-        
+
         lower_loop = []
         upper_loop = []
         insert_upper = True
@@ -488,21 +481,21 @@ class PolyTri(object):
             if insert_upper:
                 upper_loop.append(i)
                 if i == end:
-                    insert_upper=False
+                    insert_upper = False
                     lower_loop.append(i)
             else:
                 lower_loop.append(i)
         return upper_loop, lower_loop
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # for profiling
     phi = np.linspace(0, 2 * np.pi, 100)
     outer = np.array([np.cos(phi), np.sin(phi)]).T
-    inner = (outer * 0.5)
+    inner = outer * 0.5
     points = np.array(list(outer) + list(inner))
     inner_bound = np.array(range(len(inner)))
     outer_bound = np.array(range(len(outer)))
-    inner_bound +=  max(outer_bound) + 1
+    inner_bound += max(outer_bound) + 1
     outer_bound = outer_bound[::-1]
     tri = PolyTri(points, [inner_bound, outer_bound], delaunay=False)

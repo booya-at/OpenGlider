@@ -27,8 +27,8 @@ class PlotMaker(object):
             "glider3d": self.glider_3d,
             "config": self.config,
             "panels": self.panels,
-            #"dribs": self.dribs,
-            "ribs": self.ribs
+            # "dribs": self.dribs,
+            "ribs": self.ribs,
         }
 
     @classmethod
@@ -42,9 +42,9 @@ class PlotMaker(object):
 
     def _get_cellplotmaker(self, cell):
         if cell not in self._cellplotmakers:
-            self._cellplotmakers[cell] = self.CellPlotMaker(cell,
-                                                            self.glider_3d.attachment_points,
-                                                            self.config)
+            self._cellplotmakers[cell] = self.CellPlotMaker(
+                cell, self.glider_3d.attachment_points, self.config
+            )
 
         return self._cellplotmakers[cell]
 
@@ -57,23 +57,38 @@ class PlotMaker(object):
             pm = self._get_cellplotmaker(cell)
             lower = pm.get_panels_lower()
             upper = pm.get_panels_upper()
-            panels_lower.append(Layout.stack_column(lower, self.config.patterns_align_dist_y))
-            panels_upper.append(Layout.stack_column(upper, self.config.patterns_align_dist_y))
+            panels_lower.append(
+                Layout.stack_column(lower, self.config.patterns_align_dist_y)
+            )
+            panels_upper.append(
+                Layout.stack_column(upper, self.config.patterns_align_dist_y)
+            )
 
         if self.config.layout_seperate_panels:
-            layout_lower = Layout.stack_row(panels_lower, self.config.patterns_align_dist_x)
+            layout_lower = Layout.stack_row(
+                panels_lower, self.config.patterns_align_dist_x
+            )
             layout_lower.rotate(180, radians=False)
-            layout_upper = Layout.stack_row(panels_upper, self.config.patterns_align_dist_x)
+            layout_upper = Layout.stack_row(
+                panels_upper, self.config.patterns_align_dist_x
+            )
 
-            self.panels = Layout.stack_row([layout_lower, layout_upper], 2*self.config.patterns_align_dist_x)
+            self.panels = Layout.stack_row(
+                [layout_lower, layout_upper], 2 * self.config.patterns_align_dist_x
+            )
 
         else:
-            self.panels = Layout.stack_grid([panels_upper, panels_lower], self.config.patterns_align_dist_x, self.config.patterns_align_dist_y)
+            self.panels = Layout.stack_grid(
+                [panels_upper, panels_lower],
+                self.config.patterns_align_dist_x,
+                self.config.patterns_align_dist_y,
+            )
 
         return self.panels
 
     def get_ribs(self, rotate=False):
         from openglider.glider.rib.rib import SingleSkinRib
+
         self.ribs = []
         for rib in self.glider_3d.ribs:
             if isinstance(rib, SingleSkinRib):
@@ -111,7 +126,7 @@ class PlotMaker(object):
         for cell in self.glider_3d.cells:
             rigidfoils = self._get_cellplotmaker(cell).get_rigidfoils()
             self.rigidfoils[cell] = rigidfoils
-        
+
         return self.rigidfoils
 
     def get_all_grouped(self) -> Layout:
@@ -124,9 +139,9 @@ class PlotMaker(object):
 
         def stack_grid(dct):
             layout_lst = [
-                Layout.stack_column(p, self.config.patterns_align_dist_y) 
+                Layout.stack_column(p, self.config.patterns_align_dist_y)
                 for p in dct.values()
-                ]
+            ]
             return Layout.stack_row(layout_lst, self.config.patterns_align_dist_x)
 
         dribs = stack_grid(self.dribs)
@@ -140,7 +155,7 @@ class PlotMaker(object):
             for material_name, material_layout in grouped.items():
                 material_layout.parts.append(border.copy())
                 material_layout.add_text(f"{prefix}_{material_name}")
-            
+
             return grouped.values()
 
         panels_grouped = group(panels.copy(), "panels")
@@ -179,6 +194,5 @@ class PlotMaker(object):
             parts += [p.copy() for p in rigidfoils]
         return Layout(parts)
 
-    #def get_all_grouped(self):
+    # def get_all_grouped(self):
     #    return self.get_all_parts().group_materials()
-

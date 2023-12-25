@@ -24,7 +24,7 @@ class ParametricShape(object):
             "front_curve": self.front_curve,
             "back_curve": self.back_curve,
             "rib_distribution": self.rib_distribution,
-            "cell_num": self.cell_num
+            "cell_num": self.cell_num,
         }
 
     def __repr__(self):
@@ -32,15 +32,15 @@ class ParametricShape(object):
             super(ParametricShape, self).__repr__(),
             self.cell_num,
             self.area,
-            self.aspect_ratio
+            self.aspect_ratio,
         )
-    
+
     def copy(self):
         return self.__class__(
             self.front_curve.copy(),
             self.back_curve.copy(),
             self.rib_distribution.copy(),
-            self.cell_num
+            self.cell_num,
         )
 
     @property
@@ -117,7 +117,7 @@ class ParametricShape(object):
 
         cells = []
         for x1, x2 in zip(ribs[:-1], ribs[1:]):
-            cells.append((x1+x2)/2)
+            cells.append((x1 + x2) / 2)
 
         return cells
 
@@ -146,7 +146,7 @@ class ParametricShape(object):
         """if first argument is negative the point is returned mirrored"""
         rib_nr, rib_pos = pos
         ribs = self.ribs
-        neg = (rib_nr < 0)
+        neg = rib_nr < 0
         sign = -neg * 2 + 1
         if rib_nr <= len(ribs):
             fr, ba = ribs[abs(rib_nr + neg * self.has_center_cell)]
@@ -167,13 +167,13 @@ class ParametricShape(object):
         return np.array([rib[0][0], rib[0][1] + x * (rib[1][1] - rib[0][1])])
 
     def get_shape_point(self, rib_no, x):
-        k = rib_no%1
+        k = rib_no % 1
         rib1 = int(rib_no)
         p1 = self.get_rib_point(rib1, x)
 
         if k > 0:
-            p2 = self.get_rib_point(rib1+1,x)
-            return p1 + k * (p2-p1)
+            p2 = self.get_rib_point(rib1 + 1, x)
+            return p1 + k * (p2 - p1)
         else:
             return p1
 
@@ -186,10 +186,10 @@ class ParametricShape(object):
         x_values = np.linspace(0, self.span, num)
         front_int = self.front_curve.interpolation(num=num)
         back_int = self.back_curve.interpolation(num=num)
-        integrated_depth = [0.]
+        integrated_depth = [0.0]
         for x in x_values[1:]:
             depth = front_int(x) - back_int(x)
-            integrated_depth.append(integrated_depth[-1] + 1. / depth)
+            integrated_depth.append(integrated_depth[-1] + 1.0 / depth)
         y_values = [i / integrated_depth[-1] for i in integrated_depth]
         return zip(x_values, y_values)
 
@@ -200,7 +200,7 @@ class ParametricShape(object):
 
     ############################################################################
     # scaling stuff
-    def scale(self, x=1., y=None):
+    def scale(self, x=1.0, y=None):
         if y is None:
             y = x
         self.front_curve.scale(x, y)
@@ -210,7 +210,10 @@ class ParametricShape(object):
         self.back_curve.scale(factor, y)
 
         # scale rib_dist
-        factor = self.front_curve.controlpoints[-1][0] / self.rib_distribution.controlpoints[-1][0]
+        factor = (
+            self.front_curve.controlpoints[-1][0]
+            / self.rib_distribution.controlpoints[-1][0]
+        )
         self.rib_distribution.scale(factor, 1)
 
     @property
@@ -220,25 +223,29 @@ class ParametricShape(object):
     def set_area(self, area, fixed="aspect_ratio"):
         if fixed == "aspect_ratio":
             # scale proportional
-            factor = math.sqrt(area/self.area)
+            factor = math.sqrt(area / self.area)
             self.scale(factor, factor)
         elif fixed == "span":
             # scale y
-            factor = area/self.area
+            factor = area / self.area
             self.scale(1, factor)
         elif fixed == "depth":
             # scale span
-            factor = area/self.area
+            factor = area / self.area
             self.scale(factor, 1)
         else:
-            raise ValueError("Invalid Value: {} for 'constant' (aspect_ratio, span, depth)".format(fixed))
+            raise ValueError(
+                "Invalid Value: {} for 'constant' (aspect_ratio, span, depth)".format(
+                    fixed
+                )
+            )
 
         return self.area
 
     @property
     def aspect_ratio(self):
         # todo: span -> half span, area -> full area???
-        return (2*self.span) ** 2 / self.area
+        return (2 * self.span) ** 2 / self.area
 
     def set_aspect_ratio(self, ar, fixed="span"):
         ar0 = self.aspect_ratio
@@ -254,7 +261,7 @@ class ParametricShape(object):
 
     @span.setter
     def span(self, span):
-        factor = span/self.span
+        factor = span / self.span
         self.scale(factor, 1)
 
     def set_span(self, span, fixed="area"):
@@ -262,6 +269,6 @@ class ParametricShape(object):
         if fixed == "area":
             self.scale(x=span / span_0, y=span_0 / span)
         elif fixed == "aspect_ratio":
-            self.scale(x=span/span_0, y=span/span_0)
+            self.scale(x=span / span_0, y=span / span_0)
         else:
-            self.scale(x=span/span_0, y=1)
+            self.scale(x=span / span_0, y=1)

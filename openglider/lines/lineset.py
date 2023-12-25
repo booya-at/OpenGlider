@@ -12,10 +12,12 @@ from openglider.utils.table import Table
 
 logger = logging.getLogger(__name__)
 
+
 class LineSet(object):
     """
     Set of different lines
     """
+
     calculate_sag = True
     knots_table = [
         # lower_line_type, upper_line_type, upper_line_count, first_line_correction, last_line_correction
@@ -37,10 +39,7 @@ class LineSet(object):
         {}
         Lines: {}
         Length: {}
-        """.format(super(LineSet, self).__repr__(),
-                   len(self.lines),
-                   self.total_length)
-        
+        """.format(super(LineSet, self).__repr__(), len(self.lines), self.total_length)
 
     @property
     def lowest_lines(self):
@@ -69,8 +68,8 @@ class LineSet(object):
                     line.init_length *= factor
             line.force = None
         for node in self.nodes:
-            if node.type == 2: # upper att-node
-                node.force *= factor ** 2
+            if node.type == 2:  # upper att-node
+                node.force *= factor**2
         self.recalc()
         return self
 
@@ -98,6 +97,7 @@ class LineSet(object):
         """
         floors: number of line-levels
         """
+
         def recursive_count_floors(node):
             if node.type == 2:
                 return 0
@@ -109,14 +109,17 @@ class LineSet(object):
 
         return {n: recursive_count_floors(n) for n in self.lower_attachment_points}
 
-    def get_lines_by_floor(self, target_floor: int=0, node: Node=None, en_style=True):
+    def get_lines_by_floor(
+        self, target_floor: int = 0, node: Node = None, en_style=True
+    ):
         """
         starting from node: walk up "target_floor" floors and return all the lines.
 
         when en_style is True the uppermost lines are added in case there is no such floor
         (see EN 926.1 for details)
         """
-        node =  node or self.get_main_attachment_point()
+        node = node or self.get_main_attachment_point()
+
         def recursive_level(node: Node, current_level: int):
             lines = self.get_upper_connected_lines(node)
             nodes = [line.upper_node for line in lines]
@@ -127,14 +130,14 @@ class LineSet(object):
             else:
                 line_list = []
                 for line in lines:
-                    line_list += recursive_level(line.upper_node, current_level+1)
+                    line_list += recursive_level(line.upper_node, current_level + 1)
                 return line_list
-                    
+
         return recursive_level(node, 0)
 
-    def get_floor_strength(self, node: Node=None):
+    def get_floor_strength(self, node: Node = None):
         strength_list = []
-        node =  node or self.get_main_attachment_point()
+        node = node or self.get_main_attachment_point()
         for i in range(self.floors[node]):
             lines = self.get_lines_by_floor(i, node, en_style=True)
             strength = 0
@@ -143,7 +146,6 @@ class LineSet(object):
                     logger.warning(f"no min_break_load set for {line.type.name}")
                 else:
                     strength += line.type.min_break_load
-
 
             strength_list.append(strength)
         return strength_list
@@ -184,7 +186,7 @@ class LineSet(object):
         for point in self.attachment_points:
             point.get_position()
         self.calculate_sag = calculate_sag
-        
+
         for i in range(iterations):
             self._calc_geo()
             if self.calculate_sag:
@@ -192,7 +194,7 @@ class LineSet(object):
             else:
                 self.calc_forces(self.lowest_lines)
                 for line in self.lines:
-                    line.sag_par_1 = line.sag_par_2  = None
+                    line.sag_par_1 = line.sag_par_2 = None
         return self
 
     def _calc_geo(self, start=None):
@@ -286,20 +288,22 @@ class LineSet(object):
         return [line for line in self.lines if line.upper_node is node]
 
     def get_connected_lines(self, node):
-        return self.get_upper_connected_lines(node) + self.get_lower_connected_lines(node)
+        return self.get_upper_connected_lines(node) + self.get_lower_connected_lines(
+            node
+        )
 
     def get_drag(self):
         """
         Get Total drag of the lineset
         :return: Center of Pressure, Drag (1/2*cw*A*v^2)
         """
-        drag_total = 0.
-        center = np.array([0.,0.,0.])
+        drag_total = 0.0
+        center = np.array([0.0, 0.0, 0.0])
 
         for line in self.lines:
             drag_total += line.drag_total
             center += line.get_line_point(0.5) * line.drag_total
-        
+
         center /= drag_total
 
         return center, drag_total
@@ -310,7 +314,6 @@ class LineSet(object):
             weight += line.get_weight()
 
         return weight
-
 
     def get_normalized_drag(self):
         """get the line drag normalized by the velocity ** 2 / 2"""
@@ -345,7 +348,7 @@ class LineSet(object):
             # if there are no computed forces available, use all the uppermost forces to compute
             # the direction of the line
 
-            tangent = np.array([0., 0., 0.])
+            tangent = np.array([0.0, 0.0, 0.0])
             upper_node = self.get_upper_influence_nodes(line)
             for node in upper_node:
                 tangent += node.calc_force_infl(pos_vec)
@@ -381,7 +384,7 @@ class LineSet(object):
                 if l.target_length is not None:
                     diff = l.get_stretched_length(pre_load) - l.target_length
                     l.init_length -= diff
-                    #l.init_length = l.target_length * l.init_length / l.get_stretched_length(pre_load)
+                    # l.init_length = l.target_length * l.init_length / l.get_stretched_length(pre_load)
             self.recalc()
 
     def _set_line_indices(self):
@@ -394,7 +397,7 @@ class LineSet(object):
         for line in self.lines:
             length += line.get_stretched_length()
         return length
-    
+
     def sort_lines(self, lines=None):
         if lines is None:
             lines = self.lines
@@ -408,15 +411,14 @@ class LineSet(object):
                 if hasattr(node, "rib_pos"):
                     val_rib_pos += node.rib_pos
                 else:
-                    val_rib_pos += 1000*node.vec[0]
+                    val_rib_pos += 1000 * node.vec[0]
                 val_x += node.vec[1]
 
-            return (10*val_rib_pos + val_x) / len(nodes)
-        
+            return (10 * val_rib_pos + val_x) / len(nodes)
+
         lines_new.sort(key=sort_key)
 
         return lines_new
-
 
     def create_tree(self, start_node=None):
         """
@@ -431,7 +433,9 @@ class LineSet(object):
         else:
             lines = self.get_upper_connected_lines(start_node)
 
-        return [(line, self.create_tree(line.upper_node)) for line in self.sort_lines(lines)]
+        return [
+            (line, self.create_tree(line.upper_node)) for line in self.sort_lines(lines)
+        ]
 
     def _get_lines_table(self, callback, start_node=None):
         line_tree = self.create_tree(start_node=start_node)
@@ -442,30 +446,31 @@ class LineSet(object):
 
         def insert_block(line, upper, row, column):
             values = callback(line)
-            column_0 = column-columns_per_line
+            column_0 = column - columns_per_line
 
             for index, value in enumerate(values):
-                table[row, column_0+index] = value
+                table[row, column_0 + index] = value
 
             if upper:
                 for line, line_upper in upper:
-                    row = insert_block(line, line_upper, row, column-columns_per_line)
+                    row = insert_block(line, line_upper, row, column - columns_per_line)
             else:  # Insert a top node
                 name = line.upper_node.name
                 if not name:
                     name = "XXX"
-                table.set_value(column_0-1, row, name)
-                #table.set_value(column+2+floors, row, name)
+                table.set_value(column_0 - 1, row, name)
+                # table.set_value(column+2+floors, row, name)
                 row += 1
             return row
 
         row = 1
         for line, upper in line_tree:
-            row = insert_block(line, upper, row, floors*(columns_per_line)+2)
+            row = insert_block(line, upper, row, floors * (columns_per_line) + 2)
 
         return table
-    
+
     node_group_rex = re.compile(r"[^A-Za-z]*([A-Za-z]*)[^A-Za-z]*")
+
     def rename_lines(self):
         floors = max(self.floors.values())
         upper_nodes = []
@@ -476,7 +481,6 @@ class LineSet(object):
             lines += self.get_lower_connected_lines(node)
 
         for floor in range(floors):
-            
             lines_grouped = {}
             for line in lines:
                 line_groups = set()
@@ -484,14 +488,14 @@ class LineSet(object):
                     node_group = self.node_group_rex.match(node.name)
                     if node_group:
                         line_groups.add(node_group.group(1))
-                
+
                 line_groups_list = list(line_groups)
                 line_groups_list.sort()
                 line_group_name = "".join(line_groups_list)
 
                 lines_grouped.setdefault(line_group_name, [])
                 lines_grouped[line_group_name].append(line)
-            
+
             for name, group in lines_grouped.items():
                 group_sorted = self.sort_lines(group)
 
@@ -500,16 +504,16 @@ class LineSet(object):
                         line.name = f"{floor}_{name}{i+1}"
                     else:
                         line.name = f"{name}{i+1}"
-            
+
             lines_new = set()
             for line in lines:
                 for lower_line in self.get_lower_connected_lines(line.lower_node):
                     lines_new.add(lower_line)
-            
+
             lines = list(lines_new)
-        
+
         return self
-    
+
     def get_line_length(self, line):
         length = line.get_stretched_length()
         # seam correction
@@ -518,8 +522,8 @@ class LineSet(object):
         lower_lines = self.get_lower_connected_lines(line.lower_node)
         if len(lower_lines) == 0:
             return length
-        
-        lower_line = lower_lines[0] # Todo: Reinforce
+
+        lower_line = lower_lines[0]  # Todo: Reinforce
         upper_lines = self.sort_lines(self.get_upper_connected_lines(line.lower_node))
 
         index = upper_lines.index(line)
@@ -532,45 +536,50 @@ class LineSet(object):
             min_value = data[3]
             max_value = data[4]
 
-            if name1 == lower_line.type.name and name2 == line.type.name and count == total_lines:
-                shortening = min_value + index * (max_value-min_value) / (total_lines-1)
-                length -= (data[3] + (data[4] - shortening))
-                
+            if (
+                name1 == lower_line.type.name
+                and name2 == line.type.name
+                and count == total_lines
+            ):
+                shortening = min_value + index * (max_value - min_value) / (
+                    total_lines - 1
+                )
+                length -= data[3] + (data[4] - shortening)
+
                 return length
 
-        logger.warning(f"no shortening values for: {lower_line.type.name} / {line.type.name} ({total_lines})")
-
-
+        logger.warning(
+            f"no shortening values for: {lower_line.type.name} / {line.type.name} ({total_lines})"
+        )
 
         return length
 
-
     def get_table(self):
-        length_table = self._get_lines_table(lambda line: [round(self.get_line_length(line)*1000)])
-        names_table = self._get_lines_table(lambda line: [line.name, line.type.name, line.color])
+        length_table = self._get_lines_table(
+            lambda line: [round(self.get_line_length(line) * 1000)]
+        )
+        names_table = self._get_lines_table(
+            lambda line: [line.name, line.type.name, line.color]
+        )
 
         def get_checklength(line, upper_lines):
             line_length = line.get_stretched_length()
             if not len(upper_lines):
-                return [
-                    line_length
-                ]
+                return [line_length]
             else:
                 lengths = []
                 for upper in upper_lines:
                     lengths += get_checklength(*upper)
-                
-                return [
-                    length + line_length for length in lengths
-                ]
-        
+
+                return [length + line_length for length in lengths]
+
         checklength_values = []
         for line, upper_line in self.create_tree():
             checklength_values += get_checklength(line, upper_line)
         checklength_table = Table()
-        
+
         for index, length in enumerate(checklength_values):
-            checklength_table[index+1, 0] = round(1000*length)
+            checklength_table[index + 1, 0] = round(1000 * length)
 
         length_table.append_right(checklength_table)
         length_table.append_right(names_table)
@@ -582,42 +591,49 @@ class LineSet(object):
             percentage = ""
 
             if line.type.min_break_load:
-                percentage = "{}%".format(round(100*line.force/line.type.min_break_load,1))
+                percentage = "{}%".format(
+                    round(100 * line.force / line.type.min_break_load, 1)
+                )
 
             return [line.type.name, line.force, percentage]
 
         return self._get_lines_table(get_line_force)
 
-
     def get_table_2(self):
-        return self._get_lines_table(lambda line: [line.name, line.type.name, round(line.get_stretched_length()*1000)])
+        return self._get_lines_table(
+            lambda line: [
+                line.name,
+                line.type.name,
+                round(line.get_stretched_length() * 1000),
+            ]
+        )
 
     def get_table_sorted_lengths(self):
         table = Table()
-        table[0,0] = "Name"
-        table[0,0] = "Length [mm]"
+        table[0, 0] = "Name"
+        table[0, 0] = "Length [mm]"
         lines = list(self.lines)
         lines.sort(key=lambda line: line.name)
         for i, line in enumerate(lines):
-            table[i+1, 0] = line.name
-            table[i+1, 1] = line.type.name
-            table[i+1, 2] = round(line.get_stretched_length()*1000)
-        
+            table[i + 1, 0] = line.name
+            table[i + 1, 1] = line.type.name
+            table[i + 1, 2] = round(line.get_stretched_length() * 1000)
+
         return table
 
     def get_upper_connected_force(self, node):
-        '''
+        """
         get the sum of the forces of all upper-connected lines
-        '''
-        force = np.array([0., 0., 0.])
+        """
+        force = np.array([0.0, 0.0, 0.0])
         for line in self.get_upper_connected_lines(node):
             force += line.force * line.diff_vector
         return force
 
     def get_residual_force(self, node):
-        '''
+        """
         compute the residual force in a node to due simplified computation of lines
-        '''
+        """
         residual_force = np.zeros(3)
         upper_lines = self.get_upper_connected_lines(node)
         lower_lines = self.get_lower_connected_lines(node)
@@ -637,11 +653,7 @@ class LineSet(object):
             line.upper_node = nodes.index(line.upper_node)
             line.lower_node = nodes.index(line.lower_node)
 
-        return {
-            'lines': new.lines,
-            'nodes': nodes,
-            'v_inf': self.v_inf.tolist()
-        }
+        return {"lines": new.lines, "nodes": nodes, "v_inf": self.v_inf.tolist()}
 
     @classmethod
     def __from_json__(cls, lines, nodes, v_inf):

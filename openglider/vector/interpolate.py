@@ -17,7 +17,9 @@ class Interpolation(PolyLine2D):
 
             if (lower_bound and xval < point[0]) or end_of_list:
                 d_x = point[0] - last_point[0]
-                return last_point[1] + (xval-last_point[0])/d_x * (point[1] - last_point[1])
+                return last_point[1] + (xval - last_point[0]) / d_x * (
+                    point[1] - last_point[1]
+                )
 
             last_point = point
 

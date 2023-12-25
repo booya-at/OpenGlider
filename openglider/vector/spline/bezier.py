@@ -27,15 +27,20 @@ from openglider.vector.transformation import Reflection
 from openglider.utils import dualmethod
 
 
-class _BernsteinFactory():
+class _BernsteinFactory:
     def __init__(self):
         self.bases = {}
 
     def __call__(self, degree):
         """degree is the number of controlpoints"""
         if degree not in self.bases:
+
             def bsf(n):
-                return lambda x: choose(degree - 1, n) * (x ** n) * ((1 - x) ** (degree - 1 - n))
+                return (
+                    lambda x: choose(degree - 1, n)
+                    * (x**n)
+                    * ((1 - x) ** (degree - 1 - n))
+                )
 
             self.bases[degree] = [bsf(i) for i in range(degree)]
 
@@ -47,6 +52,7 @@ class _BernsteinFactory():
     @classmethod
     def __from_json__(cls):
         return cls()
+
 
 BernsteinBase = _BernsteinFactory()
 
@@ -63,13 +69,13 @@ class Bezier(HashedList):
         super(Bezier, self).__init__(controlpoints)
 
     def __repr__(self):
-        return (self.__class__.__name__ + ":\n" + str(self.controlpoints))
+        return self.__class__.__name__ + ":\n" + str(self.controlpoints)
 
     def __json__(self):
         spline_dict = {
-                           'controlpoints': [p.tolist() for p in self.controlpoints],
-                           'basefactory': self.basefactory
-                      }
+            "controlpoints": [p.tolist() for p in self.controlpoints],
+            "basefactory": self.basefactory,
+        }
         return spline_dict
 
     @classmethod
@@ -82,6 +88,7 @@ class Bezier(HashedList):
         ### remove: obsolete for new gliders
         if degree:
             from openglider.vector import BsplineBase
+
             basefactory = BsplineBase(degree)
         basefactory = basefactory or cls.basefactory
         ### remove end
@@ -125,7 +132,7 @@ class Bezier(HashedList):
 
     @controlpoints.setter
     def controlpoints(self, points):
-       self.data = points
+        self.data = points
 
     @dualmethod
     def fit(self, points, numpoints=5, start=True, end=True):
@@ -135,9 +142,14 @@ class Bezier(HashedList):
         """
         base = self.basefactory(numpoints)
         matrix = np.matrix(
-            [[base[column](row * 1. / (len(points) - 1))
-                for column in range(len(base))]
-                    for row in range(len(points))])
+            [
+                [
+                    base[column](row * 1.0 / (len(points) - 1))
+                    for column in range(len(base))
+                ]
+                for row in range(len(points))
+            ]
+        )
 
         if not start and not end:
             matrix = np.linalg.pinv(matrix)
@@ -196,9 +208,14 @@ class Bezier(HashedList):
         # create the base matrix:
         base = self.basefactory(num_ctrl_pts)
         matrix = np.array(
-            [[base[column](row * 1. / (len(points) - 1))
-                for column in range(len(base))]
-                    for row in range(len(points))])
+            [
+                [
+                    base[column](row * 1.0 / (len(points) - 1))
+                    for column in range(len(base))
+                ]
+                for row in range(len(points))
+            ]
+        )
 
         # create the b vector for each dim
         b = np.array(list(zip(*points)))
@@ -207,14 +224,17 @@ class Bezier(HashedList):
         solution = []
         constraints_T = list(zip(*constraint))
         for i in range(dim):
-            constraints = [[index, val] for index, val in enumerate(constraints_T[i]) if val != None]
+            constraints = [
+                [index, val]
+                for index, val in enumerate(constraints_T[i])
+                if val != None
+            ]
             solution.append(self.constraint_least_square_sol(matrix, b[i], constraints))
         if type(self) == type:
             return self(np.array(solution).transpose())
         else:
             self.controlpoints = np.array(solution).transpose()
             return self
-
 
     @staticmethod
     def constraint_least_square_sol(A, b, constraint):
@@ -229,7 +249,7 @@ class Bezier(HashedList):
             u_fix[key] = val
 
         # A.T.dot(A).dot(u) == A.T.dot(b) - A.T.dot(A).dot(u_fix)
-        rhs =  A.T.dot(b) - ((A.T).dot(A)).dot(u_fix)
+        rhs = A.T.dot(b) - ((A.T).dot(A)).dot(u_fix)
         mat = A.T.dot(A)
         for i, key in enumerate(constraint):
             mat = np.delete(mat, key[0] - i, 0)
@@ -249,7 +269,7 @@ class Bezier(HashedList):
         return Interpolation(self.get_sequence(num))
 
     def scale(self, x=1, y=1):
-        self.controlpoints = [p*[x,y] for p in self.controlpoints]
+        self.controlpoints = [p * [x, y] for p in self.controlpoints]
 
     def get_matrix(self, num=50):
         num_points = len(self._data)
@@ -258,7 +278,7 @@ class Bezier(HashedList):
         else:
             self._matrix = np.ndarray([num, num_points])
             functions = self.basefactory(num_points)
-            for row, value in enumerate(np.linspace(0, 1 , num)):
+            for row, value in enumerate(np.linspace(0, 1, num)):
                 for col, foo in enumerate(functions):
                     self._matrix[row, col] = foo(value)
             return self._matrix
@@ -273,7 +293,7 @@ class Bezier(HashedList):
 
     def get_length(self, num):
         seq = self.get_sequence(num=num)
-        out = 0.
+        out = 0.0
         for i, s in enumerate(seq[1:]):
             out += norm(s - seq[i])
         return out
@@ -281,7 +301,7 @@ class Bezier(HashedList):
 
 class SymmetricBezier(Bezier):
     def __init__(self, controlpoints=None, mirror=None):
-        self._mirror = mirror or Reflection([1., 0., 0.])
+        self._mirror = mirror or Reflection([1.0, 0.0, 0.0])
         super(SymmetricBezier, self).__init__(controlpoints=None)
         if controlpoints:
             self.controlpoints = controlpoints
@@ -295,7 +315,7 @@ class SymmetricBezier(Bezier):
 
     @property
     def controlpoints(self):
-        return self._data[self.numpoints:]
+        return self._data[self.numpoints :]
 
     @controlpoints.setter
     def controlpoints(self, controlpoints):
@@ -314,10 +334,11 @@ class SymmetricBezier(Bezier):
 
     @dualmethod
     def fit(cls, data, numpoints=3, start=True, end=True):
-        bez = super(SymmetricBezier, cls).fit(data, numpoints=2*numpoints, start=start, end=start)
+        bez = super(SymmetricBezier, cls).fit(
+            data, numpoints=2 * numpoints, start=start, end=start
+        )
         bez.controlpoints = bez.controlpoints[numpoints:]
         return bez
-
 
 
 def choose(n, k):

@@ -10,13 +10,14 @@ import openglider.utils.table
 class GliderProject(object):
     _regex_revision_no = re.compile(r"(.*)_rev([0-9]*)$")
 
-    def __init__(self,
-                 glider: ParametricGlider,
-                 glider_3d: Glider = None,
-                 filename: str = None,
-                 name: str = None,
-                 modified: datetime.datetime = None
-                 ):
+    def __init__(
+        self,
+        glider: ParametricGlider,
+        glider_3d: Glider = None,
+        filename: str = None,
+        name: str = None,
+        modified: datetime.datetime = None,
+    ):
         self.glider = glider
         if glider_3d is None:
             glider_3d = glider.get_glider_3d()
@@ -82,11 +83,11 @@ class GliderProject(object):
             openglider.save(self, filename)
         else:
             raise ValueError("Invalid Extension ({})".format(filename))
-        
+
         self.filename = filename
 
     def setup(self):
-        #self.name = self.glider.name
+        # self.name = self.glider.name
         if self.filename is not None:
             self.name = os.path.split(self.filename)[1]
 
@@ -109,11 +110,12 @@ class GliderProject(object):
         self.glider_3d.lineset.recalc()
 
     def __json__(self):
-        return {"glider": self.glider,
-                "glider_3d": self.glider_3d,
-                "name": self.name,
-                "modified": self.modified
-                }
+        return {
+            "glider": self.glider,
+            "glider_3d": self.glider_3d,
+            "name": self.name,
+            "modified": self.modified,
+        }
 
     def get_data(self):
         area = self.glider_3d.area
@@ -121,6 +123,6 @@ class GliderProject(object):
         return {
             "area": area,
             "area_projected": area_projected,
-            "flattening": (1.-area_projected/area) * 100,
-            "aspect_ratio": self.glider_3d.aspect_ratio
+            "flattening": (1.0 - area_projected / area) * 100,
+            "aspect_ratio": self.glider_3d.aspect_ratio,
         }

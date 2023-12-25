@@ -36,12 +36,12 @@ def consistent_value(elements, attribute) -> list:
     vals = [recursive_getattr(element, attribute) for element in elements]
     if vals[1:] == vals[:-1]:
         return vals[0]
-    
+
     raise Exception("values not consistent: {attribute}, {elements}")
 
 
 def linspace(start, stop, count):
-    return [start + y/(count-1) * (stop-start) for y in range(count)]
+    return [start + y / (count - 1) * (stop - start) for y in range(count)]
 
 
 # list_lengths = [len(l) for l in lists]
@@ -57,8 +57,6 @@ class ZipCmp(object):
     def __iter__(self):
         for x, y in zip(self.list[:-1], self.list[1:]):
             yield x, y
-
-
 
 
 class dualmethod(object):
@@ -80,6 +78,7 @@ class dualmethod(object):
 
         is_instance = not type(this) is type
     """
+
     def __init__(self, func):
         self.func = func
 
@@ -96,23 +95,23 @@ class dualmethod(object):
 class Config(object):
     def __init__(self, dct=None):
         self.__dict__ = {}
-        items = inspect.getmembers(self.__class__, lambda a:not(inspect.isroutine(a)))
+        items = inspect.getmembers(self.__class__, lambda a: not (inspect.isroutine(a)))
         for key, value in items:
-            if not key.startswith('_') and key != "get":
+            if not key.startswith("_") and key != "get":
                 self.__dict__[key] = value
 
         self.update(dct)
 
     def __json__(self):
-        return {
-            "dct": self.__dict__
-        }
+        return {"dct": self.__dict__}
 
     def __repr__(self):
         repr_str = "{}\n".format(self.__class__)
         width = max([len(x) for x in self.__dict__])
         for key, value in self.__dict__.items():
-            repr_str += "    -{0: <{width}} -> {value}\n".format(key, value=value, width=width)
+            repr_str += "    -{0: <{width}} -> {value}\n".format(
+                key, value=value, width=width
+            )
 
         return repr_str
 
@@ -124,17 +123,16 @@ class Config(object):
                 <td>{html.escape(repr(value))}</td>
                 </tr>
             """
-        
+
         html_str += "</table>"
 
         return html_str
-
 
     def __iter__(self):
         for key, value in self.__dict__.items():
             if key != "get":
                 yield key, value
-        #return self.__dict__.__iter__()
+        # return self.__dict__.__iter__()
 
     def __getitem__(self, item):
         return self.__getattribute__(item)

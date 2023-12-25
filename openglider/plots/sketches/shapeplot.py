@@ -7,7 +7,7 @@ import openglider.plots.marks as marks
 
 
 class ShapePlot(object):
-    attachment_point_mark = marks.Cross(name="attachment_point", rotation=np.pi/4)
+    attachment_point_mark = marks.Cross(name="attachment_point", rotation=np.pi / 4)
 
     def __init__(self, glider_2d, glider_3d=None, drawing=None):
         super(ShapePlot, self).__init__()
@@ -50,12 +50,14 @@ class ShapePlot(object):
 
                 p1 = self.glider_2d.shape.get_shape_point(cell_no, left_front)
                 p2 = self.glider_2d.shape.get_shape_point(cell_no, left_back)
-                p3 = self.glider_2d.shape.get_shape_point(cell_no+1, right_back)
-                p4 = self.glider_2d.shape.get_shape_point(cell_no+1, rigth_front)
+                p3 = self.glider_2d.shape.get_shape_point(cell_no + 1, right_back)
+                p4 = self.glider_2d.shape.get_shape_point(cell_no + 1, rigth_front)
 
-                part.layers[panel.material_code].append(PolyLine2D([p1, p2, p3, p4, p1]))
+                part.layers[panel.material_code].append(
+                    PolyLine2D([p1, p2, p3, p4, p1])
+                )
 
-                #self.drawing.parts.append(PlotPart(
+                # self.drawing.parts.append(PlotPart(
                 #    cuts=[PolyLine2D([p1, p2, p3, p4, p1])],
                 #    material_code=panel.material_code))
 
@@ -74,6 +76,7 @@ class ShapePlot(object):
 
     def insert_grid(self, num=11):
         import numpy as np
+
         part = PlotPart()
 
         for p in np.linspace(0, 1, num):
@@ -87,12 +90,16 @@ class ShapePlot(object):
     def insert_attachment_points(self, add_text=True):
         part = PlotPart()
         for attachment_point in self.glider_2d.lineset.get_upper_nodes():
-            rib_no = attachment_point.cell_pos + attachment_point.cell_no + self.glider_2d.shape.has_center_cell
+            rib_no = (
+                attachment_point.cell_pos
+                + attachment_point.cell_no
+                + self.glider_2d.shape.has_center_cell
+            )
 
             # glider2d does not contain the mirrored rib:
             p1 = self.glider_2d.shape.get_shape_point(rib_no, attachment_point.rib_pos)
-            #p2 = self.glider_2d.shape.get_shape_point(rib_no+0.02, attachment_point.rib_pos)
-            
+            # p2 = self.glider_2d.shape.get_shape_point(rib_no+0.02, attachment_point.rib_pos)
+
             # if rib_no == len(self.glider_2d.shape.ribs) - not(self.glider_2d.shape.has_center_cell):
             #     rib2 = rib_no - 1
             # else:
@@ -100,21 +107,24 @@ class ShapePlot(object):
             reversed_direction = False
             rib2 = rib_no + 1
             try:
-                p2 = self.glider_2d.shape.get_shape_point(rib2, attachment_point.rib_pos)
+                p2 = self.glider_2d.shape.get_shape_point(
+                    rib2, attachment_point.rib_pos
+                )
             except IndexError:
                 reversed_direction = True
                 rib2 = rib_no - 1
-                p2 = self.glider_2d.shape.get_shape_point(rib2, attachment_point.rib_pos)
+                p2 = self.glider_2d.shape.get_shape_point(
+                    rib2, attachment_point.rib_pos
+                )
 
             p2[1] = p1[1]
-
 
             p1, p2 = [np.array(x) for x in (p1, p2)]
 
             if reversed_direction:
-                p2 = p1 + (p1-p2)
+                p2 = p1 + (p1 - p2)
 
-            diff = (p2-p1)*0.2
+            diff = (p2 - p1) * 0.2
             cross_left = p1 - diff
             cross_right = p1 + diff
 
@@ -132,30 +142,24 @@ class ShapePlot(object):
         cells = []
         for cell_no in range(self.glider_2d.shape.half_cell_num):
             p1 = self.glider_2d.shape.get_shape_point(cell_no, 0)
-            p2 = self.glider_2d.shape.get_shape_point(cell_no+1, 0)
-            p3 = self.glider_2d.shape.get_shape_point(cell_no+1, 1)
+            p2 = self.glider_2d.shape.get_shape_point(cell_no + 1, 0)
+            p3 = self.glider_2d.shape.get_shape_point(cell_no + 1, 1)
             p4 = self.glider_2d.shape.get_shape_point(cell_no, 1)
-            cells.append(PolyLine2D([p1,p2,p3,p4,p1]))
+            cells.append(PolyLine2D([p1, p2, p3, p4, p1]))
 
-        self.drawing.parts.append(PlotPart(
-            marks=cells,
-            material_code="cell_numbers")
-        )
+        self.drawing.parts.append(PlotPart(marks=cells, material_code="cell_numbers"))
 
     def insert_cell_names(self):
         names = []
         for cell_no, cell in enumerate(self.glider_3d.cells):
-            p1 = self.glider_2d.shape.get_shape_point(cell_no+0.5, 0)
-            p2 = self.glider_2d.shape.get_shape_point(cell_no+0.5, 1)
-            width = self.glider_2d.shape.get_shape_point(cell_no+1, 0)[0] - p1[0]
+            p1 = self.glider_2d.shape.get_shape_point(cell_no + 0.5, 0)
+            p2 = self.glider_2d.shape.get_shape_point(cell_no + 0.5, 1)
+            width = self.glider_2d.shape.get_shape_point(cell_no + 1, 0)[0] - p1[0]
 
-            text = Text(cell.name, p1, p2, size=width*0.8, valign=0, align="center")
+            text = Text(cell.name, p1, p2, size=width * 0.8, valign=0, align="center")
             names += text.get_vectors()
 
-        self.drawing.parts.append(PlotPart(
-            text=names,
-            material_code="cell_numbers")
-        )
+        self.drawing.parts.append(PlotPart(text=names, material_code="cell_numbers"))
 
     def insert_rib_numbers(self):
         midrib = self.glider_2d.shape.has_center_cell
@@ -167,7 +171,7 @@ class ShapePlot(object):
                 p2 = self.glider_2d.shape.get_shape_point(rib_no + 1, 0)
             except IndexError:
                 p2 = self.glider_2d.shape.get_shape_point(rib_no - 1, 0)
-            diff = abs(p1[0]- p2[0]) # cell distance
+            diff = abs(p1[0] - p2[0])  # cell distance
             p2[0] = p1[0]
             p2[1] = p1[1] + diff
 
@@ -180,10 +184,7 @@ class ShapePlot(object):
             text = Text(rib.name, p1, p2, valign=0)
             names += text.get_vectors()
 
-        self.drawing.parts.append(PlotPart(
-            text=names,
-            material_code="rib_numbers")
-        )
+        self.drawing.parts.append(PlotPart(text=names, material_code="rib_numbers"))
 
     def insert_straps(self):
         for cell_no, cell in enumerate(self.glider_3d.cells):
@@ -191,10 +192,22 @@ class ShapePlot(object):
                 left = [abs(p[0]) for p in (diagonal.left_front, diagonal.left_back)]
                 right = [abs(p[0]) for p in (diagonal.right_front, diagonal.right_back)]
 
-                points_left = [self.glider_2d.shape.get_shape_point(cell_no, p) for p in left]
-                points_right = [self.glider_2d.shape.get_shape_point(cell_no+1, p) for p in right]
+                points_left = [
+                    self.glider_2d.shape.get_shape_point(cell_no, p) for p in left
+                ]
+                points_right = [
+                    self.glider_2d.shape.get_shape_point(cell_no + 1, p) for p in right
+                ]
 
-                self.drawing.parts.append(PlotPart(marks=[PolyLine2D(points_left + points_right[::-1] + points_left[:1])]))
+                self.drawing.parts.append(
+                    PlotPart(
+                        marks=[
+                            PolyLine2D(
+                                points_left + points_right[::-1] + points_left[:1]
+                            )
+                        ]
+                    )
+                )
 
         return self
 
@@ -204,10 +217,22 @@ class ShapePlot(object):
                 left = [abs(p[0]) for p in (diagonal.left_front, diagonal.left_back)]
                 right = [abs(p[0]) for p in (diagonal.right_front, diagonal.right_back)]
 
-                points_left = [self.glider_2d.shape.get_shape_point(cell_no, p) for p in left]
-                points_right = [self.glider_2d.shape.get_shape_point(cell_no+1, p) for p in right]
+                points_left = [
+                    self.glider_2d.shape.get_shape_point(cell_no, p) for p in left
+                ]
+                points_right = [
+                    self.glider_2d.shape.get_shape_point(cell_no + 1, p) for p in right
+                ]
 
-                self.drawing.parts.append(PlotPart(marks=[PolyLine2D(points_left + points_right[::-1] + points_left[:1])]))
+                self.drawing.parts.append(
+                    PlotPart(
+                        marks=[
+                            PolyLine2D(
+                                points_left + points_right[::-1] + points_left[:1]
+                            )
+                        ]
+                    )
+                )
 
         return self
 

@@ -35,14 +35,14 @@ class RigidFoil(object):
         self.end = end
         self.distance = distance
         self.circle_radius = circle_radius
-        #self.func = lambda x: distance
+        # self.func = lambda x: distance
 
     def func(self, pos):
         dsq = None
         if -0.05 <= pos - self.start < self.circle_radius:
-            dsq = self.circle_radius**2 - (self.circle_radius + self.start - pos)**2
+            dsq = self.circle_radius**2 - (self.circle_radius + self.start - pos) ** 2
         if -0.05 <= self.end - pos < self.circle_radius:
-            dsq = self.circle_radius**2 - (self.circle_radius + pos - self.end)**2
+            dsq = self.circle_radius**2 - (self.circle_radius + pos - self.end) ** 2
 
         if dsq is not None:
             dsq = max(dsq, 0)
@@ -50,9 +50,7 @@ class RigidFoil(object):
         return self.distance
 
     def __json__(self):
-        return {'start': self.start,
-                'end': self.end,
-                'distance': self.distance}
+        return {"start": self.start, "end": self.end, "distance": self.distance}
 
     def get_3d(self, rib):
         return [rib.align(p, scale=False) for p in self.get_flattened(rib)]
@@ -81,18 +79,23 @@ class RigidFoil(object):
             if last_node is not None:
                 diff = norm(p - last_node) * rib.chord
                 if diff > max_segment:
-                    segments = int(math.ceil(diff/max_segment))
-                    point_range += list(np.linspace(point_range[-1], sign*p[0], segments))[1:]
+                    segments = int(math.ceil(diff / max_segment))
+                    point_range += list(
+                        np.linspace(point_range[-1], sign * p[0], segments)
+                    )[1:]
                 else:
-                    point_range.append(sign*p[0])
+                    point_range.append(sign * p[0])
             else:
-                point_range.append(sign*p[0])
+                point_range.append(sign * p[0])
 
             last_node = p
 
         indices = [profile(x) for x in point_range]
 
-        return [(profile[index] - profile_normvectors[index]*self.func(x))*rib.chord for index, x in zip(indices, point_range)]
+        return [
+            (profile[index] - profile_normvectors[index] * self.func(x)) * rib.chord
+            for index, x in zip(indices, point_range)
+        ]
 
 
 class FoilCurve(object):
@@ -103,15 +106,14 @@ class FoilCurve(object):
     def get_flattened(self, rib, numpoints=30):
         curve = [
             [self.end, 0.75],
-            [self.end-0.05, 1],
+            [self.end - 0.05, 1],
             [self.front, 0],
-            [self.end-0.05, -1],
-            [self.end, -0.75]
+            [self.end - 0.05, -1],
+            [self.end, -0.75],
         ]
         profile = rib.profile_2d
 
-        cp = [profile.align(point)*rib.chord for point in curve]
-
+        cp = [profile.align(point) * rib.chord for point in curve]
 
         return Bezier(cp).interpolation(numpoints)
 
@@ -120,6 +122,7 @@ class GibusArcs(object):
     """
     A Reinforcement, in the shape of an arc, to reinforce attachment points
     """
+
     def __init__(self, position, size=0.2, material_code=None):
         self.pos = position
         self.size = size
@@ -127,8 +130,7 @@ class GibusArcs(object):
         self.material_code = material_code or ""
 
     def __json__(self):
-        return {'position': self.pos,
-                'size': self.size}
+        return {"position": self.pos, "size": self.size}
 
     def get_3d(self, rib, num_points=10):
         # create circle with center on the point
@@ -150,13 +152,15 @@ class GibusArcs(object):
 
         gib_arc = [[], []]  # first, second
         circle = Circle(point_1, point_2).get_sequence()[1:]
-        #circle = Polygon(edges=num_points)(point_1, point_2)[0][1:] # todo: is_center -> true
+        # circle = Polygon(edges=num_points)(point_1, point_2)[0][1:] # todo: is_center -> true
         is_second_run = False
-        
+
         for i in range(len(circle)):
-            if profile.contains_point(circle[i]) or \
-                    (i < len(circle) - 1 and profile.contains_point(circle[i + 1])) or \
-                    (i > 1 and profile.contains_point(circle[i - 1])):
+            if (
+                profile.contains_point(circle[i])
+                or (i < len(circle) - 1 and profile.contains_point(circle[i + 1]))
+                or (i > 1 and profile.contains_point(circle[i - 1]))
+            ):
                 gib_arc[is_second_run].append(circle[i])
             else:
                 is_second_run = True
@@ -189,13 +193,14 @@ class CellAttachmentPoint(Node):
             "cell_pos": self.cell_pos,
             "rib_pos": self.rib_pos,
             "name": self.name,
-            "force": self.force
+            "force": self.force,
         }
 
     def get_position(self):
         ik = self.cell.rib1.profile_2d(self.rib_pos)
         self.vec = self.cell.midrib(self.cell_pos)[ik]
         return self.vec
+
 
 # Node from lines
 class AttachmentPoint(Node):
@@ -210,11 +215,12 @@ class AttachmentPoint(Node):
         return "<Attachment point '{}' ({})>".format(self.name, self.rib_pos)
 
     def __json__(self):
-        return {"rib": self.rib,
-                "name": self.name,
-                "rib_pos": self.rib_pos,
-                "force": self.force}
-
+        return {
+            "rib": self.rib,
+            "name": self.name,
+            "rib_pos": self.rib_pos,
+            "force": self.force,
+        }
 
     def get_position(self):
         self.vec = self.rib.profile_3d[self.rib.profile_2d(self.rib_pos)]
@@ -222,7 +228,7 @@ class AttachmentPoint(Node):
 
 
 class RibHole(object):
-    def __init__(self, pos, size=0.5, vertical_shift=0., rotation=0.):
+    def __init__(self, pos, size=0.5, vertical_shift=0.0, rotation=0.0):
         self.pos = pos
         if isinstance(size, (list, tuple)):
             size = np.array(list(size))
@@ -239,7 +245,7 @@ class RibHole(object):
         if scale:
             points *= rib.chord
         return PolyLine2D(points)
-        #return Polygon(p1, p2, num=num, scale=self.size, is_center=False)[0]
+        # return Polygon(p1, p2, num=num, scale=self.size, is_center=False)[0]
 
     def get_points(self, rib, num=80):
         prof = rib.profile_2d
@@ -248,7 +254,7 @@ class RibHole(object):
 
         phi = np.linspace(0, np.pi * 2, num + 1)
         points = np.array([np.cos(phi), np.sin(phi)]).T
-        #delta = (p2 - p1) / 2 * self.vertical_shift + (p1 + p2) / 2
+        # delta = (p2 - p1) / 2 * self.vertical_shift + (p1 + p2) / 2
         move_1 = Translation(p1)
         move_2 = Translation((p2 - p1) / 2 * (1 + self.vertical_shift))
         rot = Rotation(self.rotation)
@@ -267,14 +273,15 @@ class RibHole(object):
         move_1 = Translation(p1)
         move_2 = Translation((p2 - p1) / 2 * (1 + self.vertical_shift))
         rot = Rotation(self.rotation)
-        return (move_2 * rot * move_1)([0., 0.])
+        return (move_2 * rot * move_1)([0.0, 0.0])
 
     def __json__(self):
         return {
             "pos": self.pos,
             "size": self.size,
             "vertical_shift": self.vertical_shift,
-            "rotation": self.rotation}
+            "rotation": self.rotation,
+        }
 
 
 class RibSquareHole:
@@ -290,7 +297,7 @@ class RibSquareHole:
         if scale:
             points *= rib.chord
         return PolyLine2D(points)
-        #return Polygon(p1, p2, num=num, scale=self.size, is_center=False)[0]
+        # return Polygon(p1, p2, num=num, scale=self.size, is_center=False)[0]
 
     def get_points(self, rib, num=80):
         points = []
@@ -298,11 +305,8 @@ class RibSquareHole:
         return PolyLine2D(points, name=f"{rib.name}-hole")
 
     def __json__(self):
-        return {
-            }
-
+        return {}
 
 
 class Mylar(object):
     pass
-

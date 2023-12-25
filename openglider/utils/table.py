@@ -19,34 +19,33 @@ class Table:
             column, row = result.groups()
             column_no = 0
             for i, character in enumerate(column[::-1]):
-                column_no += (26**i)*(ord(character)-64)
+                column_no += (26**i) * (ord(character) - 64)
 
             row_no = int(row)
 
-            return column_no-1, row_no-1
+            return column_no - 1, row_no - 1
 
         raise ValueError
 
     @classmethod
     def str_encrypt(cls, column, row):
-
         return cls.column_to_char(column + 1) + str(row + 1)
 
     @classmethod
     def column_to_char(cls, x):
         base = 26
         out = ""
-        #x -= 1
+        # x -= 1
         while x:
-            out += chr(((x-1) % base)+65)
-            x = int((x-1)/base)
+            out += chr(((x - 1) % base) + 65)
+            x = int((x - 1) / base)
         return out[::-1]
 
     def __init__(self, rows=0, columns=0):
         self.dct = {}
         self.num_rows = rows
         self.num_columns = columns
-        self.name=None
+        self.name = None
 
     def __setitem__(self, key, value):
         if isinstance(key, tuple):
@@ -62,17 +61,18 @@ class Table:
         return self.dct.get(item, None)
 
     def get_columns(self, from_i, to_j):
-        new_table = self.__class__(self.num_rows, to_j-from_i)
-        for i in range(from_i, to_j+1):
+        new_table = self.__class__(self.num_rows, to_j - from_i)
+        for i in range(from_i, to_j + 1):
             for j in range(self.num_rows):
                 item = self.str_encrypt(i, j)
                 if item in self.dct:
-                    new_table.set_value(i-from_i, j, self.dct[item])
-        
+                    new_table.set_value(i - from_i, j, self.dct[item])
+
         return new_table
 
     def __isub__(self, other):
         import numbers
+
         for key in other.dct:
             zwei = other[key]
 
@@ -101,8 +101,8 @@ class Table:
         return copy.deepcopy(self)
 
     def set_value(self, column_no, row_no, value):
-        self.num_columns = max(column_no+1, self.num_columns)
-        self.num_rows = max(row_no+1, self.num_rows)
+        self.num_columns = max(column_no + 1, self.num_columns)
+        self.num_rows = max(row_no + 1, self.num_rows)
         key = self.str_encrypt(column_no, row_no)
         self.dct[key] = value
 
@@ -122,15 +122,15 @@ class Table:
             for column_no in range(table.num_columns):
                 value = table.get(column_no, row_no)
                 if value is not None:
-                    self.set_value(col+column_no, row_no, value)
+                    self.set_value(col + column_no, row_no, value)
 
     def append_bottom(self, table):
         total_rows = self.num_rows
         for row_no in range(table.num_rows):
             for column_no in range(table.num_columns):
-                value = table.get(column_no+1, row_no+1)
+                value = table.get(column_no + 1, row_no + 1)
                 if value is not None:
-                    self.set_value(column_no+1, total_rows+row_no+1, value)
+                    self.set_value(column_no + 1, total_rows + row_no + 1, value)
 
     def get_ods_sheet(self, name=None):
         ods_sheet = ezodf.Table(size=(self.num_rows, self.num_columns))
@@ -158,7 +158,7 @@ class Table:
         data = pyexcel_ods.get_data(path)
 
         sheets = [cls.from_list(sheet) for sheet in data.values()]
-        
+
         return sheets
 
     @classmethod
@@ -183,7 +183,7 @@ class Table:
             for col_no, value in enumerate(row):
                 if value not in ("", None):
                     table[row_no, col_no] = value
-        
+
         return table
 
     def get_markdown_table(self):
@@ -204,13 +204,13 @@ class Table:
                     else:
                         str_value = str(value)
                         table[row_no, column_no] = str_value
-                    
+
                     column_width = max(column_width, len(str_value))
                 else:
                     table[row_no, column_no] = ""
-            
+
             column_widths.append(column_width)
-        
+
         text = ""
         for row_no in range(num_rows):
             text += "|"
@@ -221,7 +221,7 @@ class Table:
                 text += " " * (width - len(value) + 1)
                 text += value
                 text += " |"
-            
+
             text += "\n"
 
         return text
@@ -233,7 +233,7 @@ class Table:
 
         html += "</thead>"
         for row_no in range(self.num_rows):
-            html += "<tr><td>{}</td>".format(row_no+1)
+            html += "<tr><td>{}</td>".format(row_no + 1)
             for column_no in range(self.num_columns):
                 ident = self.str_encrypt(column_no, row_no)
                 value = self.dct.get(ident, "")
@@ -245,4 +245,3 @@ class Table:
         html += "</table>"
 
         return html
-

@@ -28,7 +28,7 @@ class Layer(object):
         return {
             "polylines": self.polylines,
             "stroke": self.stroke,
-            "stroke_width": self.stroke_width
+            "stroke_width": self.stroke_width,
         }
 
     def append(self, x):
@@ -59,7 +59,10 @@ class Layers(object):
 
     def __repr__(self):
         """pretty-print"""
-        lines = ["Layers:"] + ["{} ({})".format(layer_name, len(layer)) for layer_name, layer in self.layers.items()]
+        lines = ["Layers:"] + [
+            "{} ({})".format(layer_name, len(layer))
+            for layer_name, layer in self.layers.items()
+        ]
         return "\n  - ".join(lines)
 
     def __getitem__(self, item):
@@ -95,7 +98,10 @@ class Layers(object):
         return list(self)
 
     def copy(self):
-        layer_copy = {layer_name: [line.copy() for line in layer] for layer_name, layer in self.layers.items()}
+        layer_copy = {
+            layer_name: [line.copy() for line in layer]
+            for layer_name, layer in self.layers.items()
+        }
         return Layers(**layer_copy)
 
     def add(self, name, **kwargs):
@@ -106,7 +112,16 @@ class Layers(object):
 
 
 class PlotPart(object):
-    def __init__(self, cuts=None, marks=None, text=None, stitches=None, name=None, material_code="", **layers):
+    def __init__(
+        self,
+        cuts=None,
+        marks=None,
+        text=None,
+        stitches=None,
+        name=None,
+        material_code="",
+        **layers,
+    ):
         self.layers = Layers()
         self.layers.add("cuts", stroke="red")
         self.layers.add("marks", stroke="green")
@@ -114,12 +129,14 @@ class PlotPart(object):
         self.layers.add("text", stroke="blue")
         self.layers.add("envelope", stroke="white", visible=False)
 
-        layers.update({
-            "cuts": cuts or [],
-            "marks": marks or [],
-            "text": text or [],
-            "stitches": stitches or []
-        })
+        layers.update(
+            {
+                "cuts": cuts or [],
+                "marks": marks or [],
+                "text": text or [],
+                "stitches": stitches or [],
+            }
+        )
         for layer_name, layer in layers.items():
             self.layers[layer_name] += layer
 
@@ -127,10 +144,7 @@ class PlotPart(object):
         self.material_code = material_code
 
     def __json__(self):
-        new = {
-            "name": self.name,
-            "material_code": self.material_code
-        }
+        new = {"name": self.name, "material_code": self.material_code}
         new.update(self.layers)
         return new
 
@@ -181,8 +195,12 @@ class PlotPart(object):
 
     @property
     def bbox(self):
-        return [[self.min_x, self.min_y], [self.max_x, self.min_y],
-                [self.max_x, self.max_y], [self.min_x, self.max_y]]
+        return [
+            [self.min_x, self.min_y],
+            [self.max_x, self.min_y],
+            [self.max_x, self.max_y],
+            [self.min_x, self.max_y],
+        ]
 
     def rotate(self, angle, radians=True):
         for layer in self.layers.values():
@@ -224,7 +242,7 @@ class PlotPart(object):
         height = new_part.height
         rotation = 0
         for alpha in range(1, 90):
-            new_part.rotate(np.pi/180)
+            new_part.rotate(np.pi / 180)
             if new_part.area < area:
                 rotation = alpha
                 area = new_part.area
@@ -234,7 +252,7 @@ class PlotPart(object):
         if width < height:
             rotation -= 90
 
-        self.rotate(rotation*np.pi/180)
+        self.rotate(rotation * np.pi / 180)
         return self
 
     def scale(self, factor):

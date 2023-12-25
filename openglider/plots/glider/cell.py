@@ -31,17 +31,21 @@ class PanelPlot(object):
 
         self.x_values = self.cell.rib1.profile_2d.x_values
 
-        self.logger = logging.getLogger(r"{self.__class__.__module__}.{self.__class__.__name__}")
+        self.logger = logging.getLogger(
+            r"{self.__class__.__module__}.{self.__class__.__name__}"
+        )
 
     def flatten(self, attachment_points):
-        plotpart = PlotPart(material_code=self.panel.material_code, name=self.panel.name)
+        plotpart = PlotPart(
+            material_code=self.panel.material_code, name=self.panel.name
+        )
 
         cut_allowances = {
             "folded": self.config.allowance_entry_open,
             "parallel": self.config.allowance_trailing_edge,
             "orthogonal": self.config.allowance_design,
             "singleskin": self.config.allowance_entry_open,
-            "cut_3d": self.config.allowance_design
+            "cut_3d": self.config.allowance_design,
         }
 
         cut_types = {
@@ -49,10 +53,12 @@ class PanelPlot(object):
             "parallel": self.config.cut_trailing_edge,
             "orthogonal": self.config.cut_design,
             "singleskin": self.config.cut_entry,
-            "cut_3d": self.config.cut_3d
+            "cut_3d": self.config.cut_3d,
         }
 
-        ik_values = self.panel._get_ik_values(self.cell, self.config.midribs, exact=True)
+        ik_values = self.panel._get_ik_values(
+            self.cell, self.config.midribs, exact=True
+        )
 
         # allowance fallbacks
         allowance_front = cut_allowances[self.panel.cut_front["type"]]
@@ -73,19 +79,35 @@ class PanelPlot(object):
         shape_3d_amount_back = self.panel.cut_back["amount_3d"]
 
         if self.panel.cut_front["type"] != "cut_3d":
-            dist = np.linspace(shape_3d_amount_front[0], shape_3d_amount_front[-1], len(shape_3d_amount_front))
+            dist = np.linspace(
+                shape_3d_amount_front[0],
+                shape_3d_amount_front[-1],
+                len(shape_3d_amount_front),
+            )
             shape_3d_amount_front = list(dist)
 
         if self.panel.cut_back["type"] != "cut_3d":
-            dist = np.linspace(shape_3d_amount_back[0], shape_3d_amount_back[-1], len(shape_3d_amount_back))
+            dist = np.linspace(
+                shape_3d_amount_back[0],
+                shape_3d_amount_back[-1],
+                len(shape_3d_amount_back),
+            )
             shape_3d_amount_back = list(dist)
 
-        cut_front_result = cut_front.apply(inner_front, self.outer[0], self.outer[1], shape_3d_amount_front)
-        cut_back_result = cut_back.apply(inner_back, self.outer[0], self.outer[1], shape_3d_amount_back)
+        cut_front_result = cut_front.apply(
+            inner_front, self.outer[0], self.outer[1], shape_3d_amount_front
+        )
+        cut_back_result = cut_back.apply(
+            inner_back, self.outer[0], self.outer[1], shape_3d_amount_back
+        )
 
-        panel_left = self.outer[0][cut_front_result.index_left:cut_back_result.index_left]
+        panel_left = self.outer[0][
+            cut_front_result.index_left : cut_back_result.index_left
+        ]
         panel_back = cut_back_result.curve.copy()
-        panel_right = self.outer[1][cut_front_result.index_right:cut_back_result.index_right:-1]
+        panel_right = self.outer[1][
+            cut_front_result.index_right : cut_back_result.index_right : -1
+        ]
         panel_front = cut_front_result.curve.copy()
 
         # spitzer schnitt
@@ -93,7 +115,9 @@ class PanelPlot(object):
         if cut_front_result.index_right >= cut_back_result.index_right:
             panel_right = PolyLine2D([])
 
-            _cuts = panel_front.cut_with_polyline(panel_back, startpoint=len(panel_front) - 1)
+            _cuts = panel_front.cut_with_polyline(
+                panel_back, startpoint=len(panel_front) - 1
+            )
             try:
                 ik_front, ik_back = next(_cuts)
                 panel_back = panel_back[:ik_back]
@@ -117,7 +141,6 @@ class PanelPlot(object):
         if panel_right:
             panel_right = panel_right[::-1]
 
-
         envelope = panel_right + panel_back
         if len(panel_left) > 0:
             envelope += panel_left[::-1]
@@ -127,38 +150,53 @@ class PanelPlot(object):
         plotpart.layers["envelope"].append(envelope)
 
         if self.config.debug:
-            plotpart.layers["debug"].append(PolyLine2D([line[ik] for line, ik in inner_front]))
-            plotpart.layers["debug"].append(PolyLine2D([line[ik] for line, ik in inner_back]))
+            plotpart.layers["debug"].append(
+                PolyLine2D([line[ik] for line, ik in inner_front])
+            )
+            plotpart.layers["debug"].append(
+                PolyLine2D([line[ik] for line, ik in inner_back])
+            )
             for front, back in zip(inner_front, inner_back):
-                plotpart.layers["debug"].append(front[0][front[1]:back[1]])
+                plotpart.layers["debug"].append(front[0][front[1] : back[1]])
 
         # sewings
         plotpart.layers["stitches"] += [
-            self.inner[0][cut_front_result.inner_indices[0]:cut_back_result.inner_indices[0]],
-            self.inner[-1][cut_front_result.inner_indices[-1]:cut_back_result.inner_indices[-1]]
-            ]
+            self.inner[0][
+                cut_front_result.inner_indices[0] : cut_back_result.inner_indices[0]
+            ],
+            self.inner[-1][
+                cut_front_result.inner_indices[-1] : cut_back_result.inner_indices[-1]
+            ],
+        ]
 
         # folding line
         plotpart.layers["marks"] += [
-            PolyLine2D([
-                line[x] for line, x in zip(self.inner, cut_front_result.inner_indices)
-            ]),
-
-            PolyLine2D([
-                line[x] for line, x in zip(self.inner, cut_back_result.inner_indices)
-            ])
+            PolyLine2D(
+                [line[x] for line, x in zip(self.inner, cut_front_result.inner_indices)]
+            ),
+            PolyLine2D(
+                [line[x] for line, x in zip(self.inner, cut_back_result.inner_indices)]
+            ),
         ]
 
         # TODO
         if False:
             if panel_right:
-                right = PolyLine2D([panel_front.last()]) + panel_right + PolyLine2D([panel_back[0]])
+                right = (
+                    PolyLine2D([panel_front.last()])
+                    + panel_right
+                    + PolyLine2D([panel_back[0]])
+                )
                 plotpart.layers["cuts"].append(right)
 
             plotpart.layers["cuts"].append(panel_back)
 
             if panel_left:
-                left = PolyLine2D([panel_back.last()]) + panel_left + PolyLine2D([panel_front[0]])
+                left = (
+                    PolyLine2D([panel_back.last()])
+                    + panel_left
+                    + PolyLine2D([panel_front[0]])
+                )
                 plotpart.layers["cuts"].append(left)
 
             plotpart.layers["cuts"].append(panel_front)
@@ -215,11 +253,15 @@ class PanelPlot(object):
             p2 = self.ballooned[0][left]
             align = "right"
         text = self.panel.name
-        part_text = Text(text, p1, p2,
-                         size=self.config.allowance_design * 0.8,
-                         align=align,
-                         valign=0.6,
-                         height=0.8).get_vectors()
+        part_text = Text(
+            text,
+            p1,
+            p2,
+            size=self.config.allowance_design * 0.8,
+            align=align,
+            valign=0.6,
+            height=0.8,
+        ).get_vectors()
         plotpart.layers["text"] += part_text
 
     def _insert_controlpoints(self, plotpart):
@@ -227,7 +269,9 @@ class PanelPlot(object):
             for side in ("left", "right"):
                 if self.panel.cut_front[side] <= x <= self.panel.cut_back[side]:
                     p1, p2 = self.get_p1_p2(x, side)
-                    plotpart.layers["L0"] += self.config.marks_laser_controlpoint(p1, p2)
+                    plotpart.layers["L0"] += self.config.marks_laser_controlpoint(
+                        p1, p2
+                    )
 
     def _insert_diagonals(self, plotpart):
         def insert_diagonal(x, height, side, front):
@@ -261,10 +305,8 @@ class PanelPlot(object):
                 cell_pos = attachment_point.cell_pos
 
             elif hasattr(attachment_point, "rib"):
-
                 if attachment_point.rib not in self.cell.ribs:
                     continue
-
 
                 if attachment_point.rib == self.cell.rib1:
                     cell_pos = 0
@@ -292,18 +334,26 @@ class PanelPlot(object):
                     p2 = p1 + d
                 else:
                     p2 = p1 - d
-                    
+
                 if cell_pos in (1, 0):
                     which = ["left", "right"][cell_pos]
                     x1, x2 = self.get_p1_p2(rib_pos, which)
-                    plotpart.layers["marks"] += self.config.marks_attachment_point(x1, x2)
-                    plotpart.layers["L0"] += self.config.marks_laser_attachment_point(x1, x2)
+                    plotpart.layers["marks"] += self.config.marks_attachment_point(
+                        x1, x2
+                    )
+                    plotpart.layers["L0"] += self.config.marks_laser_attachment_point(
+                        x1, x2
+                    )
                 else:
-                    plotpart.layers["marks"] += self.config.marks_attachment_point(p1, p2)
-                    plotpart.layers["L0"] += self.config.marks_laser_attachment_point(p1, p2)
+                    plotpart.layers["marks"] += self.config.marks_attachment_point(
+                        p1, p2
+                    )
+                    plotpart.layers["L0"] += self.config.marks_laser_attachment_point(
+                        p1, p2
+                    )
 
-                #p1, p2 = self.get_p1_p2(attachment_point.rib_pos, which)
-                
+                # p1, p2 = self.get_p1_p2(attachment_point.rib_pos, which)
+
                 if self.config.insert_attachment_point_text:
                     text_align = "left" if cell_pos > 0.7 else "right"
 
@@ -320,12 +370,12 @@ class PanelPlot(object):
                     text_height = 0.01 * 0.8
                     dmin = text_height + 0.001
 
-                    if d1 < dmin and d2 + d1 > 2*dmin:
+                    if d1 < dmin and d2 + d1 > 2 * dmin:
                         offset = dmin - d1
                         ik = get_x_value(self.x_values, rib_pos)
                         left = bl[bl.walk(ik, offset)]
                         right = br[br.walk(ik, offset)]
-                    elif d2 < dmin and d1 + d2 > 2*dmin:
+                    elif d2 < dmin and d1 + d2 > 2 * dmin:
                         offset = dmin - d2
                         ik = get_x_value(self.x_values, rib_pos)
                         left = bl[bl.walk(ik, -offset)]
@@ -340,10 +390,16 @@ class PanelPlot(object):
                         p1 = left
                         p2 = right
                         # text_align = text_align
-                    plotpart.layers["text"] += Text(" {} ".format(attachment_point.name), p1, p2,
-                                                    size=0.01,  # 1cm
-                                                    align=text_align, valign=0, height=0.8).get_vectors()
-    
+                    plotpart.layers["text"] += Text(
+                        " {} ".format(attachment_point.name),
+                        p1,
+                        p2,
+                        size=0.01,  # 1cm
+                        align=text_align,
+                        valign=0,
+                        height=0.8,
+                    ).get_vectors()
+
     def _insert_rigidfoils(self, plotpart):
         for rigidfoil in self.cell.rigidfoils:
             line = rigidfoil.draw_panel_marks(self.cell, self.panel)
@@ -457,12 +513,14 @@ class DribPlot(object):
     def _insert_text(self, plotpart):
         # text_p1 = left_out[0] + self.config.drib_text_position * (right_out[0] - left_out[0])
         text_p1 = self.left[0]
-        plotpart.layers["text"] += Text(" {} ".format(self.drib.name),
-                                        text_p1,
-                                        self.right[0],
-                                        size=self.config.drib_allowance_folds * 0.8,
-                                        height=0.8,
-                                        valign=0.6).get_vectors()
+        plotpart.layers["text"] += Text(
+            " {} ".format(self.drib.name),
+            text_p1,
+            self.right[0],
+            size=self.config.drib_allowance_folds * 0.8,
+            height=0.8,
+            valign=0.6,
+        ).get_vectors()
 
     def flatten(self, attachment_points=None):
         return self._flatten(attachment_points, self.config.drib_num_folds)
@@ -474,19 +532,51 @@ class DribPlot(object):
             alw2 = self.config.drib_allowance_folds
             cut_front = self.config.cut_diagonal_fold(-alw2, num_folds=num_folds)
             cut_back = self.config.cut_diagonal_fold(alw2, num_folds=num_folds)
-            cut_front_result = cut_front.apply([[self.left, 0], [self.right, 0]], self.left_out, self.right_out)
-            cut_back_result = cut_back.apply([[self.left, len(self.left) - 1], [self.right, len(self.right) - 1]], self.left_out, self.right_out)
+            cut_front_result = cut_front.apply(
+                [[self.left, 0], [self.right, 0]], self.left_out, self.right_out
+            )
+            cut_back_result = cut_back.apply(
+                [[self.left, len(self.left) - 1], [self.right, len(self.right) - 1]],
+                self.left_out,
+                self.right_out,
+            )
 
-            plotpart.layers["cuts"] += [self.left_out[cut_front_result.index_left:cut_back_result.index_left] +
-                                        cut_back_result.curve +
-                                        self.right_out[cut_front_result.index_right:cut_back_result.index_right:-1] +
-                                        cut_front_result.curve[::-1]]
+            plotpart.layers["cuts"] += [
+                self.left_out[cut_front_result.index_left : cut_back_result.index_left]
+                + cut_back_result.curve
+                + self.right_out[
+                    cut_front_result.index_right : cut_back_result.index_right : -1
+                ]
+                + cut_front_result.curve[::-1]
+            ]
 
         else:
-            p1 = next(self.left_out.cut(self.left[0], self.right[0], startpoint=0, extrapolate=True))[0]
-            p2 = next(self.left_out.cut(self.left[len(self.left)-1], self.right[len(self.right)-1], startpoint=len(self.left_out), extrapolate=True))[0]
-            p3 = next(self.right_out.cut(self.left[0], self.right[0], startpoint=0, extrapolate=True))[0]
-            p4 = next(self.right_out.cut(self.left[len(self.left)-1], self.right[len(self.right)-1], startpoint=len(self.right_out), extrapolate=True))[0]
+            p1 = next(
+                self.left_out.cut(
+                    self.left[0], self.right[0], startpoint=0, extrapolate=True
+                )
+            )[0]
+            p2 = next(
+                self.left_out.cut(
+                    self.left[len(self.left) - 1],
+                    self.right[len(self.right) - 1],
+                    startpoint=len(self.left_out),
+                    extrapolate=True,
+                )
+            )[0]
+            p3 = next(
+                self.right_out.cut(
+                    self.left[0], self.right[0], startpoint=0, extrapolate=True
+                )
+            )[0]
+            p4 = next(
+                self.right_out.cut(
+                    self.left[len(self.left) - 1],
+                    self.right[len(self.right) - 1],
+                    startpoint=len(self.right_out),
+                    extrapolate=True,
+                )
+            )[0]
 
             outer = self.left_out[p1:p2]
             outer += self.right_out[p3:p4][::-1]
@@ -494,7 +584,9 @@ class DribPlot(object):
             plotpart.layers["cuts"].append(outer)
 
         plotpart.layers["marks"].append(PolyLine2D([self.left[0], self.right[0]]))
-        plotpart.layers["marks"].append(PolyLine2D([self.left[len(self.left) - 1], self.right[len(self.right) - 1]]))
+        plotpart.layers["marks"].append(
+            PolyLine2D([self.left[len(self.left) - 1], self.right[len(self.right) - 1]])
+        )
 
         plotpart.layers["stitches"] += [self.left, self.right]
 
@@ -554,7 +646,7 @@ class CellPlotMaker:
             plot = self.PanelPlot(panel, self.cell, flattened_cell, self.config)
             dwg = plot.flatten(self.attachment_points)
             cell_panels.append(dwg)
-        
+
         return cell_panels
 
     def get_panels_lower(self):
@@ -570,7 +662,7 @@ class CellPlotMaker:
         for drib in self.cell.diagonals:
             drib_plot = self.DribPlot(drib, self.cell, self.config)
             dribs.append(drib_plot.flatten(self.attachment_points))
-        
+
         return dribs
 
     def get_straps(self):
@@ -578,12 +670,12 @@ class CellPlotMaker:
         for strap in self.cell.straps:
             plot = self.StrapPlot(strap, self.cell, self.config)
             straps.append(plot.flatten(self.attachment_points))
-        
+
         return straps
-    
+
     def get_rigidfoils(self):
         rigidfoils = []
         for rigidfoil in self.cell.rigidfoils:
             rigidfoils.append(rigidfoil.get_flattened(self.cell))
-        
+
         return rigidfoils

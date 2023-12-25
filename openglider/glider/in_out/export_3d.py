@@ -15,15 +15,14 @@ def export_obj(glider, path, midribs=0, numpoints=None, floatnum=6, copy=True):
     mesh.export_obj(path)
 
 
-
-
-def export_json(glider, path, numpoints, midribs=0, wake_panels=1,
-                wake_length=0.2, *other):
+def export_json(
+    glider, path, numpoints, midribs=0, wake_panels=1, wake_length=0.2, *other
+):
     """
     export json geometry file for panelmethod calculation
     """
 
-    class Node():
+    class Node:
         def __init__(self, p, n_id=None, is_wake=False):
             self.point = np.array(p)
             self.n_id = n_id
@@ -32,7 +31,7 @@ def export_json(glider, path, numpoints, midribs=0, wake_panels=1,
         def __json__(self):
             return self.point.tolist()
 
-    class Panel():
+    class Panel:
         def __init__(self, nodes, p_id=None):
             self.nodes = nodes
             self.neighbours = [None, None, None, None]
@@ -48,14 +47,12 @@ def export_json(glider, path, numpoints, midribs=0, wake_panels=1,
 
         # This is just laziness..
         def get_neighbours(self, panel_list):
-            self.neighbours = [self.get_neighbour(self.nodes[0], self.nodes[1],
-                                                  pan_list=panel_list),
-                               self.get_neighbour(self.nodes[1], self.nodes[2],
-                                                  pan_list=panel_list),
-                               self.get_neighbour(self.nodes[2], self.nodes[3],
-                                                  pan_list=panel_list),
-                               self.get_neighbour(self.nodes[3], self.nodes[0],
-                                                  pan_list=panel_list)]
+            self.neighbours = [
+                self.get_neighbour(self.nodes[0], self.nodes[1], pan_list=panel_list),
+                self.get_neighbour(self.nodes[1], self.nodes[2], pan_list=panel_list),
+                self.get_neighbour(self.nodes[2], self.nodes[3], pan_list=panel_list),
+                self.get_neighbour(self.nodes[3], self.nodes[0], pan_list=panel_list),
+            ]
 
         def get_neighbour(self, p1, p2, pan_list):
             for i, pan in enumerate(pan_list):
@@ -68,9 +65,11 @@ def export_json(glider, path, numpoints, midribs=0, wake_panels=1,
             return [get_id(n) for n in self.neighbours]
 
         def __json__(self):
-            return {"is_wake": self.is_wake,
-                    "neighbours": self.neighbour_ids(),
-                    "nodes": self.node_nos}
+            return {
+                "is_wake": self.is_wake,
+                "neighbours": self.neighbour_ids(),
+                "nodes": self.node_nos,
+            }
 
     glide_alpha = np.arctan(glider.glide)
     glider = glider.copy_complete()
@@ -78,8 +77,9 @@ def export_json(glider, path, numpoints, midribs=0, wake_panels=1,
     rib_len = len(glider.ribs[0].profile_2d)
 
     v_inf = np.array([np.sin(glide_alpha), 0, np.cos(glide_alpha)])
-    node_ribs = [[Node(node) for node in rib[1:]] for rib in
-                 glider.return_ribs(midribs)]
+    node_ribs = [
+        [Node(node) for node in rib[1:]] for rib in glider.return_ribs(midribs)
+    ]
     nodes_flat = []
 
     panel_ribs = []
@@ -88,9 +88,12 @@ def export_json(glider, path, numpoints, midribs=0, wake_panels=1,
     # Generate Wake
     for rib in node_ribs:
         rib += [
-            Node(rib[-1].point + v_inf * (i + 1) / wake_panels * wake_length,
-                 is_wake=True) for i in
-            range(wake_panels)]
+            Node(
+                rib[-1].point + v_inf * (i + 1) / wake_panels * wake_length,
+                is_wake=True,
+            )
+            for i in range(wake_panels)
+        ]
         # append to flat-list and >>calculate<< index
         for node in rib:
             node.n_id = len(nodes_flat)
@@ -99,22 +102,28 @@ def export_json(glider, path, numpoints, midribs=0, wake_panels=1,
     # Generate Panels
     for left_rib, right_rib in zip(node_ribs[:-1], node_ribs[1:]):
         panel_rib = []
-        pan = Panel([left_rib[0], left_rib[-wake_panels - 1],
-                     right_rib[-wake_panels - 1], right_rib[0]],
-                    p_id=len(panels))
+        pan = Panel(
+            [
+                left_rib[0],
+                left_rib[-wake_panels - 1],
+                right_rib[-wake_panels - 1],
+                right_rib[0],
+            ],
+            p_id=len(panels),
+        )
         panel_rib.append(pan)
         panels.append(pan)
         for i in range(len(left_rib) - 1):
-            pan = Panel([left_rib[i + 1], left_rib[i],
-                         right_rib[i], right_rib[i + 1]],
-                        p_id=len(panels))
+            pan = Panel(
+                [left_rib[i + 1], left_rib[i], right_rib[i], right_rib[i + 1]],
+                p_id=len(panels),
+            )
             panels.append(pan)
             panel_rib.append(pan)
         panel_ribs.append(panel_rib)
 
     for i, row in enumerate(panel_ribs):
         for j, panel in enumerate(row):
-
             # left neighbour
             if i > 0 and not panel.is_wake:
                 panel.neighbours[0] = panel_ribs[i - 1][j]
@@ -133,7 +142,7 @@ def export_json(glider, path, numpoints, midribs=0, wake_panels=1,
                 panel.neighbours[2] = panel_ribs[i + 1][j]
             else:
                 panel.neighbours[2] = None
-                #panel.neighbours[3] = row[rib_len - j - 1]
+                # panel.neighbours[3] = row[rib_len - j - 1]
 
             # front neighbour
             if not panel.is_wake:
@@ -145,24 +154,29 @@ def export_json(glider, path, numpoints, midribs=0, wake_panels=1,
     #    pan.get_neighbours(panels)
     #    pan.node_nos = [nodes_flat.index if tha_node is not None else None for tha_node in pan.nodes]
 
-    #import openglider.graphics as graph
-    #graph.Graphics([graph.Polygon([n.n_id for n in panel.nodes],
+    # import openglider.graphics as graph
+    # graph.Graphics([graph.Polygon([n.n_id for n in panel.nodes],
     #                              colour=[255, 255*(1-panel.is_wake), 255])
     #                for panel in panels],
     #               [n.point for n in nodes_flat])
 
-    return {'nodes': [node.__json__() for node in nodes_flat],
-            'panels': [panel.__json__() for panel in panels],
-            'config': {'v_inf': v_inf.tolist(),
-                       'coefficient': 6.,
-                       'density': 1.2,
-                       'pressure': 1.013,
-                       'request_panels': True,
-                       'request_nodes': True}}
+    return {
+        "nodes": [node.__json__() for node in nodes_flat],
+        "panels": [panel.__json__() for panel in panels],
+        "config": {
+            "v_inf": v_inf.tolist(),
+            "coefficient": 6.0,
+            "density": 1.2,
+            "pressure": 1.013,
+            "request_panels": True,
+            "request_nodes": True,
+        },
+    }
 
 
 def export_dxf(glider, path="", midribs=0, numpoints=None, *other):
     from dxfwrite import DXFEngine as dxf
+
     outfile = dxf.drawing(path)
     other = glider.copy_complete()
     if numpoints:
@@ -170,10 +184,10 @@ def export_dxf(glider, path="", midribs=0, numpoints=None, *other):
     ribs = other.return_ribs(midribs)
     panels = []
     points = []
-    outfile.add_layer('RIBS', color=2)
+    outfile.add_layer("RIBS", color=2)
     for rib in ribs:
-        outfile.add(dxf.polyface(rib * 1000, layer='RIBS'))
-        outfile.add(dxf.polyline(rib * 1000, layer='RIBS'))
+        outfile.add(dxf.polyface(rib * 1000, layer="RIBS"))
+        outfile.add(dxf.polyline(rib * 1000, layer="RIBS"))
     return outfile.save()
 
 
@@ -184,13 +198,14 @@ def export_apame(glider, path="", midribs=0, numpoints=None, *other):
     ribs = other.return_ribs(midribs)
     v_inf = glider.lineset.v_inf
     speed = norm(v_inf)
-    glide = np.arctan(v_inf[2]/v_inf[0])
+    glide = np.arctan(v_inf[2] / v_inf[0])
     # write config
     outfile = open(path, "w")
     outfile.write("APAME input file\nVERSION 3.0\n")
     outfile.write("AIRSPEED {}\n".format(speed))
     outfile.write(
-        "DENSITY 1.225\nPRESSURE 1.013e+005\nMACH 0\nCASE_NUM 1\n")  # TODO: Multiple cases
+        "DENSITY 1.225\nPRESSURE 1.013e+005\nMACH 0\nCASE_NUM 1\n"
+    )  # TODO: Multiple cases
     outfile.write(str(math.tan(1 / glide)) + "\n0\n")
     outfile.write("WINGSPAN " + str(other.span) + "\n")
     outfile.write("MAC 2")  # TODO: Mean Choord
@@ -199,7 +214,8 @@ def export_apame(glider, path="", midribs=0, numpoints=None, *other):
     outfile.write("METHOD 0\nERROR 1e-007\nCOLLDIST 1e-007\n")
     outfile.write("FARFIELD " + str(5) + "\n")  # TODO: farfield argument
     outfile.write(
-        "COLLCALC 0\nVELORDER 2\nRESULTS 1\n1  1  1  1  1  1  1  1  1  1  1  1  1\n\n")
+        "COLLCALC 0\nVELORDER 2\nRESULTS 1\n1  1  1  1  1  1  1  1  1  1  1  1  1\n\n"
+    )
     outfile.write("NODES " + str(len(ribs) * len(ribs[0])) + "\n")
 
     for rib in ribs:
@@ -208,21 +224,27 @@ def export_apame(glider, path="", midribs=0, numpoints=None, *other):
                 outfile.write(str(coord) + "\t")
             outfile.write("\n")
 
-    outfile.write("\nPANELS " + str((len(ribs) - 1) * (
-        len(ribs[0]) - 1)) + "\n")  # TODO: ADD WAKE + Neighbours!
+    outfile.write(
+        "\nPANELS " + str((len(ribs) - 1) * (len(ribs[0]) - 1)) + "\n"
+    )  # TODO: ADD WAKE + Neighbours!
     for i in range(len(ribs) - 1):
         for j in range(other.profile_numpoints):
             # COUNTER-CLOCKWISE!
-            outfile.write("1 {0!s}\t{1!s}\t{2!s}\t{3!s}\n".format(
-                i * len(ribs[0]) + j + 1,
-                (i + 1) * len(ribs[0]) + j + 1,
-                (i + 1) * len(ribs[0]) + j + 2,
-                i * len(ribs[0]) + j + 2))
+            outfile.write(
+                "1 {0!s}\t{1!s}\t{2!s}\t{3!s}\n".format(
+                    i * len(ribs[0]) + j + 1,
+                    (i + 1) * len(ribs[0]) + j + 1,
+                    (i + 1) * len(ribs[0]) + j + 2,
+                    i * len(ribs[0]) + j + 2,
+                )
+            )
 
     return outfile.close()
 
 
-def parabem_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, symmetric=False):
+def parabem_Panels(
+    glider, midribs=0, profile_numpoints=None, num_average=0, symmetric=False
+):
     """return the vertices, panels and the trailing edge of a glider, as parabem objects.
 
     midribs:           midribs of a cell spanwise. if num_average is greater then
@@ -243,7 +265,9 @@ def parabem_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, sym
     glider.close_rib()
 
     if profile_numpoints:
-        glider.profile_x_values = Distribution.from_nose_cos_distribution(profile_numpoints, 0.2)
+        glider.profile_x_values = Distribution.from_nose_cos_distribution(
+            profile_numpoints, 0.2
+        )
 
     if num_average > 0:
         glider.apply_mean_ribs(num_average)
@@ -272,7 +296,7 @@ def parabem_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, sym
             p0 = ribs_ij[rib_nr, x_nr]
             p1 = ribs_ij[rib_nr, x_nr + 1]
             p2 = ribs_ij[rib_nr + 1, x_nr + 1]
-            p3 = ribs_ij[rib_nr +1 , x_nr]
+            p3 = ribs_ij[rib_nr + 1, x_nr]
             mid_point = (p0 + p1 + p2 + p3) / 4
             if symmetric and ribs[rib_nr + 1][0][1] < 0.00001:
                 pass  # do not append this rib
@@ -291,7 +315,7 @@ def parabem_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, sym
     ribs = ribs_new
     panel_nr = 0
     for i, rib_i in enumerate(ribs[:-1]):
-        rib_j = ribs[i+1]
+        rib_j = ribs[i + 1]
         if symmetric:
             if vertices[rib_j[0]][1] > 0.00001:
                 trailing_edge.append(rib_i[0])
@@ -307,9 +331,11 @@ def parabem_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, sym
                 sym = True
                 add_panel = False
                 for p in panel:
-                    if not vertices[p][1] > -0.000001:      # if one point lies on the y- side
-                        sym = False                         # y- is the mirrored side
-                    if not vertices[p][1] < 0.0001:      # if one point lies on the y+ side
+                    if (
+                        not vertices[p][1] > -0.000001
+                    ):  # if one point lies on the y- side
+                        sym = False  # y- is the mirrored side
+                    if not vertices[p][1] < 0.0001:  # if one point lies on the y+ side
                         add_panel = True
                 if add_panel:
                     panels.append(panel)
@@ -344,32 +370,38 @@ def export_leparagliding(glider, path):
     y_te = y_le + chord
     x_rib = glider.shape_simple.front.data.T[0] * 1.0e2
     beta = np.rad2deg(np.array([r.arcang for r in glider.ribs]))
-    rp = np.array([0.] * len(beta))
+    rp = np.array([0.0] * len(beta))
     ribs_number = np.array(list(range(len(rp))), dtype=int)
-    data = { "Rib": ribs_number,
-             "x_rib": x_rib,
-             "y_LE": y_le,
-             "y_TE": y_te,
-             "xp": xp,
-             "z": -z,
-             "beta": beta,
-             "RP": rp,
-             "Washin": washin}
+    data = {
+        "Rib": ribs_number,
+        "x_rib": x_rib,
+        "y_LE": y_le,
+        "y_TE": y_te,
+        "xp": xp,
+        "z": -z,
+        "beta": beta,
+        "RP": rp,
+        "Washin": washin,
+    }
     data_frame = pd.DataFrame(data)
     if glider.has_center_cell:
         data_frame = data_frame[1:]
-    rib_geo =  data_frame.to_string(index=None, float_format=lambda x: "{:.3f}".format(x))
+    rib_geo = data_frame.to_string(
+        index=None, float_format=lambda x: "{:.3f}".format(x)
+    )
 
     ############# exporting the glider
 
-    env = jinja2.Environment(loader = jinja2.FileSystemLoader("."))
-    template = env.get_template('leparagliding.txt.template')
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader("."))
+    template = env.get_template("leparagliding.txt.template")
 
-    with open(path, 'w') as fn:
-        fn.write(template.render(
-            GR=glider.glide,
-            alpha_max="{:.2f}".format(alpha_max),
-            rib_geo=rib_geo,
-            num_cells=len(glider.copy_complete().cells),
-            num_ribs=len(glider.copy_complete().ribs)
-        ))
+    with open(path, "w") as fn:
+        fn.write(
+            template.render(
+                GR=glider.glide,
+                alpha_max="{:.2f}".format(alpha_max),
+                rib_geo=rib_geo,
+                num_cells=len(glider.copy_complete().cells),
+                num_ribs=len(glider.copy_complete().ribs),
+            )
+        )
