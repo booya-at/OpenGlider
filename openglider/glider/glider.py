@@ -207,6 +207,28 @@ class Glider(object):
                 ribs.append(cell.midrib(y * 1. / num, ballooning=ballooning).data)
         ribs.append(self.cells[-1].midrib(1.).data)
         return ribs
+    
+    def return_ribs_ij(self, num=0):
+        """
+        Get a list of 2d coordinates ij
+        :param num: number of midribs per cell
+        :return: nested list of ribs [[[i, j],p2,p3...],rib2,rib3,..]
+        """
+        num += 1
+        if not self.cells:
+            return np.array([])
+        #will hold all the points
+        ribs_ij = []
+        for i, cell in enumerate(self.cells):
+            for y in range(num):
+                j_rib = np.array(cell.rib1.profile_2d.x_values)
+                i_rib = np.array([i + y * 1. / num] * len(j_rib))
+                ribs_ij.append(np.array([i_rib, j_rib]).T)
+        # adding the last rib:
+        j_rib = np.array(cell.rib2.profile_2d.x_values)
+        i_rib = np.array([i + 1] * len(j_rib))
+        ribs_ij.append(np.array([i_rib, j_rib]).T)
+        return ribs_ij
 
     def apply_mean_ribs(self, num_mean=8):
         """

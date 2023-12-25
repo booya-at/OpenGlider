@@ -222,7 +222,7 @@ def export_apame(glider, path="", midribs=0, numpoints=None, *other):
     return outfile.close()
 
 
-def parabem_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, symmetric=False, distribution=None):
+def parabem_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, symmetric=False):
     """return the vertices, panels and the trailing edge of a glider, as parabem objects.
 
     midribs:           midribs of a cell spanwise. if num_average is greater then
@@ -249,8 +249,10 @@ def parabem_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, sym
         glider.apply_mean_ribs(num_average)
         glider.close_rib()
         ribs = glider.return_ribs(midribs, ballooning=False)
+        ribs_ij = glider.return_ribs_ij(midribs)
     else:
         ribs = glider.return_ribs(midribs)
+        ribs_ij = glider.return_ribs_ij(midribs)
     # deleting the last vertex of every rib (no trailing edge gap)
     ribs = [rib[:-1] for rib in ribs]
     # get a numbered representation + flatten vertices
@@ -260,6 +262,20 @@ def parabem_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, sym
     panels = []
     sym_panels = []
     trailing_edge = []
+    mid_points_ij = []
+
+    # computing the midpoints (for construction of a pressure interpolation,
+    # which later can be used for fem computation)
+    ribs_ij = np.array(ribs_ij)
+    for rib_nr, rib_ij in enumerate(ribs_ij[:-1]):
+        for x_nr, _ in enumerate(rib_ij[:-1]):
+            p0 = ribs_ij[rib_nr, x_nr]
+            p1 = ribs_ij[rib_nr, x_nr + 1]
+            p2 = ribs_ij[rib_nr + 1, x_nr + 1]
+            p3 = ribs_ij[rib_nr +1 , x_nr]
+            mid_point = (p0 + p1 + p2 + p3) / 4
+            mid_points_ij.append(mid_point)
+    mid_points_ij = np.array(mid_points_ij)
 
     for rib in ribs:
         rib_new = []
@@ -306,7 +322,7 @@ def parabem_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, sym
     for nr in sym_panels:
         panels[nr].set_symmetric()
 
-    return vertices, panels, trailing_edge
+    return vertices, panels, trailing_edge, mid_points_ij
 
 
 def export_leparagliding(glider, path):

@@ -93,12 +93,11 @@ class Polars(BaseTool):
             self.QWarning = QtGui.QLabel('no panel_method installed')
             self.layout.addWidget(self.QWarning)
         else:
-            self._vertices, self._panels, self._trailing_edges = parabem_Panels(
+            self._vertices, self._panels, self._trailing_edges, _ = parabem_Panels(
                 self.parametric_glider.get_glider_3d(),
                 midribs=0,
                 profile_numpoints=50,
                 num_average=7,
-                distribution=Distribution.from_nose_cos_distribution(0.2),
                 symmetric=True
                 )
             case = self.pan3d.DirichletDoublet0Source0Case3(self._panels, self._trailing_edges)
@@ -186,7 +185,6 @@ class Polars(BaseTool):
 
     def reject(self):
         Gui.Control.closeDialog()
-
 
 
 
@@ -329,12 +327,11 @@ class PanelTool(BaseTool):
         return [[p.x, p.y, p.z] for p in flow_path]
 
     def create_panels(self, midribs=0, profile_numpoints=10, mean=False, symmetric=True):
-        self._vertices, self._panels, self._trailing_edges = parabem_Panels(
+        self._vertices, self._panels, self._trailing_edges, _ = parabem_Panels(
             self.parametric_glider.get_glider_3d(),
             midribs=midribs,
             profile_numpoints=profile_numpoints,
             num_average=mean*5,
-            distribution=Distribution.from_nose_cos_distribution(0.2),
             symmetric=symmetric)
 
     def run(self):
@@ -410,30 +407,3 @@ class PanelTool(BaseTool):
         white = np.array(COLORS['white'])
         norm_val = (value - min_val) / (max_val - min_val)
         return list(f(3, 0, norm_val) * red + f(3,1,norm_val) * yellow + f(3,2,norm_val) * white + f(3,3,norm_val) * blue)
-
-
-def create_fem_dict(par_glider):
-    # not yet working
-    
-    # create a parabem object and compute the pressure
-
-    # create a dict with:
-    #   nodes, elements, forces, bc, joints
-    vertices, panels, trailing_edges = parabem_Panels(
-        par_glider.get_glider_3d(),
-        midribs=0,
-        profile_numpoints=50,
-        num_average=4,
-        distribution=Distribution.from_nose_cos_distribution(0.2),
-        symmetric=True
-        )
-
-    # case.A_ref = par_glider.flat_area
-    # case.v_inf = parabem.Vector(glider.v_inf)
-    # self.case.farfield = 5
-    # self.case.create_wake(9999, 10)
-    # self.case.run()
-
-
-class VelCalculator(QtGui.QDialog):
-    pass

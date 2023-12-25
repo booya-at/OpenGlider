@@ -30,11 +30,11 @@ importpath = os.path.join(os.path.dirname(__file__), '..', 'demokite.ods')
 
 
 # a list of all default parameters
-preference_table = {'default_show_half_glider': (bool, True),
+preference_table = {'default_show_half_glider': (bool, False),
                     'default_show_panels': (bool, False),
                     'default_fill_ribs': (bool, True),
-                    'default_num_prof_points': (int, 20),
-                    'default_num_cell_points': (int, 0),
+                    'default_num_prof_points': (int, 30),
+                    'default_num_cell_points': (int, 4),
                     'default_num_line_points': (int, 2),
                     'default_num_hole_points': (int, 10)}
 
