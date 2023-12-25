@@ -274,7 +274,10 @@ def parabem_Panels(glider, midribs=0, profile_numpoints=None, num_average=0, sym
             p2 = ribs_ij[rib_nr + 1, x_nr + 1]
             p3 = ribs_ij[rib_nr +1 , x_nr]
             mid_point = (p0 + p1 + p2 + p3) / 4
-            mid_points_ij.append(mid_point)
+            if symmetric and ribs[rib_nr + 1][0][1] < 0.00001:
+                pass  # do not append this rib
+            else:
+                mid_points_ij.append(mid_point)
     mid_points_ij = np.array(mid_points_ij)
 
     for rib in ribs:
