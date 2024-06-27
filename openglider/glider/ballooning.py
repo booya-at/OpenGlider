@@ -20,7 +20,7 @@
 import copy
 
 import numpy as np
-from numpy.lib.function_base import interp
+from numpy import interp
 
 import openglider
 from openglider.vector.spline import BSpline
