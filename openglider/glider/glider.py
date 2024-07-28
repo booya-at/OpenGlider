@@ -138,7 +138,7 @@ class Glider(object):
 
         return panels
 
-    def get_mesh(self, midribs=0):
+    def get_mesh(self, midribs=0, add_lines=True):
         mesh = Mesh()
         for rib in self.ribs:
             if not rib.profile_2d.has_zero_thickness:
@@ -148,7 +148,8 @@ class Glider(object):
             for diagonal in cell.diagonals:
                 mesh += diagonal.get_mesh(cell)
 
-        mesh += self.lineset.get_mesh()
+        if add_lines:
+            mesh += self.lineset.get_mesh()
         mesh += self.get_mesh_panels(num_midribs=midribs)
         mesh += self.get_mesh_hull(midribs)
 

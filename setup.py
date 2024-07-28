@@ -17,72 +17,23 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-from distutils.core import setup
 
 import os
+from setuptools import setup
+from openglider.version import __version__
 
-packages, package_data = [], {}
-# This is all copied 1:1 from django-project as i dont know any better way to do this
-def fullsplit(splitpath, result=None):
-    """
-Split a pathname into components (the opposite of os.path.join)
-in a platform-neutral way.
-"""
-    if result is None:
-        result = []
-    head, tail = os.path.split(splitpath)
-    if head == '':
-        return [tail] + result
-    if head == splitpath:
-        return result
-    return fullsplit(head, [tail] + result)
-
-
-root_dir = os.path.dirname(__file__)
-if root_dir != '':
-    os.chdir(root_dir)
-og_dirs = ['openglider', 'freecad']
-
-for directory in og_dirs:
-    for dirpath, dirnames, filenames in os.walk(directory):
-        # Ignore PEP 3147 cache dirs and those whose names start with '.'
-        dirnames[:] = [d for d in dirnames if not d.startswith('.') and d != '__pycache__']
-        parts = fullsplit(dirpath)
-        package_name = '.'.join(parts)
-        if '__init__.py' in filenames:
-            packages.append(package_name)
-        elif filenames:
-            relative_path = []
-            while '.'.join(parts) not in packages:
-                relative_path.append(parts.pop())
-            relative_path.reverse()
-            if relative_path:
-                path = os.path.join(*relative_path)
-            else:
-                path = ""
-            package_files = package_data.setdefault('.'.join(parts), [])
-            package_files.extend([os.path.join(path, f) for f in filenames])
-
-print(package_data, packages)
 setup(
     name='OpenGlider',
-    version="0.08",  #openglider.__version__,
+    version=__version__,
     description="tool for glider design",
-    packages=packages,
-    package_data=package_data,
+    packages=["openglider", "freecad.glider"],
     license='GPL-v3',
     # long_description=open('README.md').read(),
-    install_requires=["svgwrite",
-                    "numpy",
-                    "scipy",
-                    "ezdxf",
-                    "ezodf",
-                    "lxml", # missing in ezodf:q;
-                    "pyexcel-ods",
-                    "meshpy"
-                    ],
+    install_requires=["svgwrite", "numpy", "scipy",
+                      "ezdxf", "ezodf", "lxml",
+                      "pyexcel-ods", "meshpy"],
     author='Booya',
     url='www.openglider.org',
-    download_url="https://github.com/hiaselhans/OpenGlider/tarball/0.01dev0",
+    download_url=f"https://github.com/booya/OpenGlider/tarball/{__version__}",
     include_package_data=True
 )

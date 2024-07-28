@@ -17,7 +17,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with OpenGlider.  If not, see <http://www.gnu.org/licenses/>.
-__version__ = "0.08"
+
+from . version import __version__
 __author__ = "Booya"
 __path__ = __import__("pkgutil").extend_path(__path__, __name__)
 
