@@ -20,7 +20,14 @@
 
 import os
 from setuptools import setup
-from openglider.version import __version__
+
+directory = os.path.dirname(__file__)
+version_file = os.path.join(directory, 'openglider', 'version.py')
+
+with open(version_file, 'r') as file:
+    file_content = file.read()
+
+exec(file_content) # defines __version__
 
 setup(
     name='OpenGlider',
