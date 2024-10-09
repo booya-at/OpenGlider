@@ -193,7 +193,7 @@ class PatternCommand(BaseCommand):
 class ImportGlider(BaseCommand):
     def create_glider_with_dialog(self):
         file_name = QtGui.QFileDialog.getOpenFileName(
-            parent=None, caption="import glider", directory="~"
+            parent=None, caption="import glider"
         )
         if file_name[0].endswith(".json"):
             if self.glider_obj:
