@@ -18,7 +18,6 @@ from openglider.glider.cell.panel import Panel, PanelCut, PANELCUT_TYPES
 from openglider.glider.glider import Glider
 from openglider.glider.parametric.arc import ArcCurve
 from openglider.glider.parametric.export_ods import export_ods_2d
-from openglider.glider.parametric.fitglider import fit_glider_3d
 from openglider.glider.parametric.import_ods import import_ods_2d
 from openglider.glider.parametric.shape import ParametricShape
 from openglider.glider.parametric.table import GliderTables
@@ -226,10 +225,6 @@ class ParametricGlider:
 
             for strap_no, strap in enumerate(cell.diagonals):
                 strap.name = "c{}{}{}".format(cell_no+1, "s", strap_no)
-
-    @classmethod
-    def fit_glider_3d(cls, glider: Glider, numpoints: int=3) -> ParametricGlider:
-        return fit_glider_3d(cls, glider, numpoints)
 
     def get_aoa(self, interpolation_num: int | None=None) -> list[float]:
         aoa_interpolation = euklid.vector.Interpolation(self.aoa.get_sequence(interpolation_num or self.num_interpolate).nodes)

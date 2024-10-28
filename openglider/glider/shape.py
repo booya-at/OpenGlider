@@ -35,6 +35,15 @@ class Shape:
         back = self.back.get(x)
 
         return front + (back-front) *  float(y)
+    
+    def get_baseline(self, position: Percentage) -> euklid.vector.PolyLine2D:
+        points = []
+        for front, back in zip(self.front.nodes, self.back.nodes):
+            points.append(
+                front + (back - front) * position.si
+            )
+
+        return euklid.vector.PolyLine2D(points)
 
     def get_panel(self, cell_no: int, panel: Panel) -> tuple[V2, V2, V2, V2]:
         p1 = self.get_point(cell_no, panel.cut_front.x_left)

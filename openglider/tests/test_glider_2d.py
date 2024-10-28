@@ -3,14 +3,10 @@ import unittest
 import tempfile
 from openglider.tests.common import GliderTestCase
 from openglider import jsonify
-from openglider.glider import ParametricGlider
 
 TEMPDIR =  tempfile.gettempdir()
 
 class GliderTestCase2D(GliderTestCase):
-    def test_fit(self) -> None:
-        self.assertEqualGlider2D(ParametricGlider.fit_glider_3d(self.glider), self.parametric_glider)
-
     def test_create_glider(self) -> None:
         glider = self.parametric_glider.get_glider_3d()
         self.assertAlmostEqual(glider.span, 2*self.parametric_glider.shape.span, 2)

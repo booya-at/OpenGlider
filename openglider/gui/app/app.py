@@ -13,6 +13,7 @@ from types import TracebackType
 from typing import TYPE_CHECKING, Any
 from collections.abc import Callable
 
+import pyqtgraph  # fix strange error by loading it before qtmodern
 import qtmodern.styles
 import qtmodern.windows
 from openglider.gui.qt import QtWidgets
@@ -51,11 +52,8 @@ class GliderApp(QtWidgets.QApplication):
     def setup(self) -> None:
         logger.info("Load modules")
         import openglider.gui.app.main_window
-        logger.info("Load modules")
         import openglider.gui.app.state
-        logger.info("Load modules")
         import openglider.utils.tasks
-        logger.info("Load modules")
         from openglider.utils.plugin import setup_plugins
 
         logger.info("Setup plugins")
