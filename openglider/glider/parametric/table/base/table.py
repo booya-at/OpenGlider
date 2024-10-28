@@ -9,6 +9,7 @@ from openglider.glider.curve import GliderCurveType
 from openglider.glider.parametric.table.base.dto import DTO
 from openglider.glider.parametric.table.base.parser import Parser
 from openglider.utils.table import Table
+from openglider.vector.unit import Quantity
 
 from .keyword import Keyword
 
@@ -110,7 +111,7 @@ class ElementTable(Generic[ElementType]):
         return elements
     
     @staticmethod
-    def get_curve_value(curves: dict[str, GliderCurveType] | None, curve_name: str | float, rib_no: int) -> float:
+    def get_curve_value(curves: dict[str, GliderCurveType] | None, curve_name: str | float, rib_no: int) -> float | Quantity:
         if curves is None:
             raise ValueError("No curves specified")
 

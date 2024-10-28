@@ -23,6 +23,11 @@ class RibOffset(dto.DTO):
     def get_object(self) -> list:
         return [self.x, self.y, self.z]
 
+class RibRotation(dto.DTO):
+    x: Angle | None
+    y: Angle | None
+    z: Angle | None
+
 class SkinRib(dto.DTO):
     continued_min_end: Percentage
     xrot: Angle
@@ -63,7 +68,8 @@ class SingleSkinTable(RibTable):
         "SkinRib": SkinRib,
         "SkinRib3": SkinRib3,
         "TrailingEdgeCut": TrailingEdgeCut,
-        "RibOffset": RibOffset
+        "RibOffset": RibOffset,
+        "RibRotation": RibRotation
     }
     
     def get_rib_args(self, rib_no: int, **kwargs: Any) -> dict[str, Any]:
@@ -93,4 +99,11 @@ class SingleSkinTable(RibTable):
         if offset is not None:
             result = offset
         
+        return result
+    
+    def get_rotation(self, rib_no: int, **kwargs: Any) -> RibRotation:
+        result: RibRotation | None = self.get_one(rib_no, ["RibOffset"], **kwargs)
+        if result is None:
+            result = RibRotation(x=None, y=None, z=None)
+
         return result

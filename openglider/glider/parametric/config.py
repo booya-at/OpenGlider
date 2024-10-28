@@ -1,6 +1,7 @@
 import re
 from typing import Any, ClassVar, Self
 
+from packaging.version import Version
 import euklid
 import pydantic
 
@@ -121,7 +122,7 @@ class ParametricGliderConfig(ConfigTable):
     
     use_sag: bool = True
 
-    version: str = __version__
+    version: Version = Version(__version__)
 
     @classmethod
     def __from_json__(cls, **data: Any) -> Self:

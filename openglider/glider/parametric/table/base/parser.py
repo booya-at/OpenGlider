@@ -30,7 +30,7 @@ def default_resolver(key: str) -> float:
 
 class Parser(BaseModel):
     units: list[type[Quantity]] = Field(default_factory=default_units.copy)
-    variable_resolver: Callable[[str], float] = default_resolver
+    variable_resolver: Callable[[str], float | Quantity] = default_resolver
 
     _parser: Forward | None =  pydantic.PrivateAttr(default=None)
     _units: dict[str, type[Quantity]] | None = pydantic.PrivateAttr(default=None)

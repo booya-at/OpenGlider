@@ -7,7 +7,7 @@ import euklid
 from openglider.glider.shape import Shape
 from openglider.lines.node import Node, NODE_TYPE_ENUM
 from openglider.utils import table
-from openglider.vector.unit import Percentage
+from openglider.vector.unit import Length, Percentage
 
 if TYPE_CHECKING:
     from openglider.glider.cell.cell import Cell
@@ -21,7 +21,7 @@ class CellAttachmentPoint(Node):
     rib_pos: Percentage
     node_type: NODE_TYPE_ENUM = Node.NODE_TYPE.UPPER
     ballooned: bool=False
-    offset: float = 0.
+    offset: Length = 0.
 
     def __repr__(self) -> str:
         return f"<Attachment point '{self.name}' ({self.rib_pos})>"

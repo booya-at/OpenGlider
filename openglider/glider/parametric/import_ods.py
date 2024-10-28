@@ -4,6 +4,7 @@ import logging
 import math
 import numbers
 from typing import TYPE_CHECKING
+from packaging.version import Version
 
 import euklid
 import pyfoil
@@ -72,7 +73,7 @@ def import_ods_glider(cls: type[ParametricGlider], tables: list[Table]) -> Param
     # profiles = [BezierProfile2D(profile) for profile in transpose_columns(sheets[3])]
     profiles = [pyfoil.Airfoil(profile, name).normalized() for name, profile in transpose_columns(tables[3])]
 
-    if config.version > "0.0.1":
+    if config.version > Version("0.0.1"):
         has_center_cell = not tables[0]["C2"] == 0
         cell_no = (tables[0].num_rows - 2) * 2 + has_center_cell
         geometry = get_geometry_parametric(table_dct[TableNames.parametric_data], cell_no, config)
@@ -88,7 +89,8 @@ def import_ods_glider(cls: type[ParametricGlider], tables: list[Table]) -> Param
     migrate_header = cell_sheet[0, 0] is not None and cell_sheet[0, 0] < "V4"
 
     glider_tables = GliderTables()
-    glider_tables.curves = CurveTable(table_dct.get("Curves", None))
+    glider_tables.curves = CurveTable(table_dct.get("Curves", None), config.version)
+
     glider_tables.cuts = CutTable(cell_sheet, migrate_header=migrate_header)
     glider_tables.ballooning_modifiers = BallooningModifierTable(cell_sheet, migrate_header=migrate_header)
     glider_tables.holes = HolesTable(rib_sheet, migrate_header=migrate_header)
@@ -121,7 +123,6 @@ class Geometry(BaseModel):
     shape: ParametricShape
     arc: ArcCurve
     aoa: SymmetricCurveType
-    zrot: SymmetricCurveType
     profile_merge_curve: SymmetricCurveType
     ballooning_merge_curve: SymmetricCurveType
 
@@ -135,7 +136,6 @@ def get_geometry_explicit(sheet: Table, config: ParametricGliderConfig) -> Geome
     arc = []
     profile_merge = []
     ballooning_merge = []
-    zrot = []
 
     y = z = span_last = alpha = 0.
     for i in range(1, sheet.num_rows):
@@ -161,8 +161,6 @@ def get_geometry_explicit(sheet: Table, config: ParametricGliderConfig) -> Geome
 
         profile_merge.append([span, line[8]])
         ballooning_merge.append([span, line[9]])
-
-        zrot.append([span, line[7] * math.pi / 180])
 
         span_last = span
 
@@ -200,7 +198,6 @@ def get_geometry_explicit(sheet: Table, config: ParametricGliderConfig) -> Geome
         shape=parametric_shape,
         arc=arc_curve,
         aoa=symmetric_fit(aoa),
-        zrot=symmetric_fit(zrot),
         profile_merge_curve=symmetric_fit(profile_merge, bspline=True),
         ballooning_merge_curve=symmetric_fit(ballooning_merge, bspline=True)
     )
@@ -214,13 +211,16 @@ def get_geometry_parametric(table: Table, cell_num: int, config: ParametricGlide
         "rib_distribution": euklid.spline.BezierCurve,
         "arc": euklid.spline.SymmetricBSplineCurve,
         "aoa": euklid.spline.SymmetricBSplineCurve,
-        "zrot": euklid.spline.SymmetricBSplineCurve,
         "profile_merge_curve": euklid.spline.SymmetricBSplineCurve,
         "ballooning_merge_curve": euklid.spline.SymmetricBSplineCurve
     }
 
     for column in range(0, table.num_columns, 2):
         key = table[0, column]
+        if key not in curve_types:
+            if key == "zrot":
+                continue
+            raise ValueError("Invalid curve: {key}")
         points = []
         
         if table[0, column+1] is not None:

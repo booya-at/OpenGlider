@@ -185,7 +185,6 @@ def get_parametric_sheet(glider : ParametricGlider) -> Table:
     add_curve("rib_distribution", glider.shape.rib_distribution, 4)
     add_curve("arc", glider.arc.curve, 6)
     add_curve("aoa", glider.aoa, 8)
-    add_curve("zrot", glider.zrot, 10)
     add_curve("ballooning_merge_curve", glider.ballooning_merge_curve, 12)
     add_curve("profile_merge_curve", glider.profile_merge_curve, 14)
 

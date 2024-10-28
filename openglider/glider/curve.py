@@ -5,8 +5,25 @@ import enum
 
 from openglider.glider.shape import Shape
 from openglider.utils.cache import cached_property
+from openglider.vector.unit import Angle, Length, Percentage, Quantity
 
-class FreeCurve:
+class CurveBase:
+    unit: str | None
+
+    def to_unit(self, value: float):
+        if self.unit is None:
+            return value
+        
+        if self.unit in Angle.unit_variants or self.unit == Angle.unit:
+            return Angle(value, unit=self.unit)
+        if self.unit in Length.unit_variants or self.unit == Length.unit:
+            return Length(value, unit=self.unit)
+        if self.unit in Percentage.unit_variants:
+            return Percentage(value, self.unit)
+
+        raise ValueError()
+
+class FreeCurve(CurveBase):
     def __init__(self, points: list[euklid.vector.Vector2D], shape: Shape):
         self.shape = shape
         self.interpolation = euklid.vector.Interpolation(points)
@@ -67,11 +84,12 @@ class FreeCurve:
     def points_2d(self) -> list[euklid.vector.Vector2D]:
         return self.to_2d(self.interpolation.nodes)
     
-    def get(self, rib_no: int) -> float:
+    def get(self, rib_no: int) -> float | Quantity:
         if rib_no == 0 and self.shape.has_center_cell:
             rib_no = 1
 
-        return self.interpolation.get_value(rib_no)
+        value = self.interpolation.get_value(rib_no)
+        return self.to_unit(value)
 
     def draw(self) -> euklid.vector.PolyLine2D:
         x_values = [p[0] for p in self.controlpoints]
@@ -92,8 +110,8 @@ class FreeCurve:
         return euklid.vector.PolyLine2D(self.to_2d([euklid.vector.Vector2D([x, self.interpolation.get_value(x)]) for x in x_values_lst]))
 
 
-class Curve:
-    upper = False
+class Curve(CurveBase):
+    unit: str
     def __init__(self, points: list[euklid.vector.Vector2D], shape: Shape):
         self.interpolation = euklid.vector.Interpolation(points)
         self.shape = shape
@@ -154,16 +172,13 @@ class Curve:
             self.shape.get_point(*p) for p in self.interpolation.nodes
         ])
     
-    def get(self, rib_no: int) -> float:
+    def get(self, rib_no: int) -> float | Quantity:
         if rib_no == 0 and self.shape.has_center_cell:
             rib_no = 1
 
         y = self.interpolation.get_value(rib_no)
 
-        if self.upper:
-            y = -y
-
-        return y
+        return self.to_unit(y)
         
     def draw(self) -> euklid.vector.PolyLine2D:
         x_values = [p[0] for p in self.controlpoints]
@@ -191,8 +206,7 @@ class Curve:
 
 
 class ShapeCurve(Curve):
-    
-    def get(self, rib_no: int) -> float:
+    def get(self, rib_no: int) -> float | Quantity:
         if rib_no == 0 and self.shape.has_center_cell:
             rib_no = 1
 
@@ -203,7 +217,7 @@ class ShapeCurve(Curve):
         if len(results) != 1:
             raise Exception(f"wrong number of cut results: {len(results)}")
 
-        return results[0][1]
+        return self.to_unit(results[0][1])
 
 
 class ShapeBSplineCurve(ShapeCurve):
