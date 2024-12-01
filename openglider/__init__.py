@@ -22,7 +22,6 @@ from . version import __version__
 __author__ = "Booya"
 __path__ = __import__("pkgutil").extend_path(__path__, __name__)
 
-import numpy as np
 
 from openglider.config import config
 import openglider.jsonify
@@ -46,21 +45,3 @@ def load(filename):
 def save(data, filename, add_meta=True):
     with open(filename, "w") as outfile:
         openglider.jsonify.dump(data, outfile, add_meta=add_meta)
-
-
-# Monkey-patch numpy cross for pypy
-try:
-    import __pypy__
-
-    def cross(a, b):
-        return np.array(
-            [
-                a[1] * b[2] - a[2] * b[1],
-                -a[0] * b[2] + a[2] * b[0],
-                a[0] * b[1] - a[1] * b[0],
-            ]
-        )
-
-    np.cross = cross
-except ImportError:
-    pass
