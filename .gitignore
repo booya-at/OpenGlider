@@ -54,3 +54,7 @@ docs/sphinx/build/*
 examples
 #scripts
 __pycache__*
+
+# pixi environments
+.pixi
+*.egg-info

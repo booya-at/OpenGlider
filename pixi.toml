@@ -1,0 +1,26 @@
+[project]
+authors = ["looooo <sppedflyer@gmail.com>"]
+channels = ["conda-forge", "freecad/label/dev"]
+description = "Add a short description here"
+name = "OpenGlider"
+platforms = ["osx-arm64", "linux-aarch64", "linux-64", "osx-64", "win-64"]
+version = "0.1.0"
+
+[tasks]
+install_dev = { cmd = [ "pip", "install", "-e", "."]}
+install = { cmd = [ "pip", "install", "."]}
+
+
+[dependencies]
+pip = "*"
+svgwrite = "*"
+numpy = "*"
+scipy = "*"
+ezdxf = "*"
+ezodf = "*"
+meshpy = "*"
+lxml = "*"
+pyexcel-ods3 = "*"
+matplotlib = "*"
+parabem = "*"
+freecad = ">=1.0.0,<1.1.0"
