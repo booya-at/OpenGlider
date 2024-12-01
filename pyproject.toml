@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openglider"
+version = "0.8.0"
+description = "glider design software for FreeCAD"
+readme = "README.md"
+license = {file = "LICENSE"}
+maintainers = [
+    {name = "looooo", email = "sppedflyer@gmail.com"},
+]
+requires-python = ">=3.8"
+dependencies = ["svgwrite", "numpy", "scipy", "ezdxf", 
+                "ezodf", "lxml", "pyexcel-ods", "meshpy", "matplotlib"]
+
+[project.urls]
+source = "https://github.com/booya-at/OpenGlider"
+
+[tool.setuptools]
+packages = ["openglider",
+            "openglider.airfoil",
+            "openglider.glider",
+            "openglider.glider.cell",
+            "openglider.glider.in_out",
+            "openglider.glider.parametric",
+            "openglider.glider.rib",
+            "openglider.graphics",
+            "openglider.jsonify",
+            "openglider.jsonify.migration",
+            "openglider.lines",
+            "openglider.lines.line_types",
+            "openglider.mesh",
+            "openglider.plots",
+            "openglider.plots.glider",
+            "openglider.plots.sketches",
+            "openglider.plots.spreadsheets",
+            "openglider.utils",
+            "openglider.vector",
+            "openglider.vector.drawing",
+            "openglider.vector.spline",
+            "freecad", 
+            "freecad.glider",
+            "freecad.glider.tools"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"freecad.glider" = ["icons/*", "ui/*", "data/*"]
