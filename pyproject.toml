@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "openglider"
-version = "0.8.0"
+version = "0.8.1"
 description = "glider design software for FreeCAD"
 readme = "README.md"
 license = {file = "LICENSE"}

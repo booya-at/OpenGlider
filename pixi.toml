@@ -4,7 +4,7 @@ channels = ["conda-forge", "freecad/label/dev"]
 description = "Add a short description here"
 name = "OpenGlider"
 platforms = ["osx-arm64", "linux-aarch64", "linux-64", "osx-64", "win-64"]
-version = "0.1.0"
+version = "0.8.1"
 
 [tasks]
 install_dev = { cmd = [ "pip", "install", "-e", "."]}
