@@ -26,6 +26,9 @@ Or manually install all dependencies (using distro-repos, easy_install or pip)
 * (svgwrite)
 * (vtk)
 
+### Install with pixi
+if you have pixi installed just launch pixi and run this command 
+`pixi run freecad` to launch freecad with openglider installed.
 
 ### Install with conda
 
