@@ -21,4 +21,9 @@ lxml = "*"
 pyexcel-ods3 = "*"
 matplotlib = "*"
 parabem = "*"
+pylint = "*"
 freecad = ">=1.0.0,<1.1.0"
+
+[tasks]
+test = "python testall.py"
+lint = "pylint $(git ls-files '*.py')"
