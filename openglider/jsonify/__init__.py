@@ -25,7 +25,7 @@ class Encoder(json.JSONEncoder):
         elif hasattr(obj, "__json__"):
             type_str = str(obj.__class__)
             module = obj.__class__.__module__
-            type_regex = "<class '{}\.(.*)'>".format(module.replace(".", "\."))
+            type_regex = "<class '{}\\.(.*)'>".format(module.replace(".", "\\."))
             class_name = re.match(type_regex, type_str).group(1)
 
             return {"_type": class_name, "_module": module, "data": obj.__json__()}
