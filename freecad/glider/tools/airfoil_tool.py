@@ -110,9 +110,14 @@ class AirfoilTool(BaseTool):
         self.QList_View.currentRowChanged.connect(self.update_selection)
         self.Qfit_button.clicked.connect(self.spline_edit)
         self.Qcopy_button.clicked.connect(self.copy_airfoil)
-        self.Qshow_pressure_dist.stateChanged.connect(self.pressure_vis)
-        self.Qshow_curvature_dist.stateChanged.connect(self.curvature_vis)
-        self.Qshow_theoretic_stress_dist.stateChanged.connect(self.theoretic_stress_vis)
+        if hasattr(self.Qshow_pressure_dist, "checkStateChanged"):
+            self.Qshow_pressure_dist.checkStateChanged.connect(self.pressure_vis)
+            self.Qshow_curvature_dist.checkStateChanged.connect(self.curvature_vis)
+            self.Qshow_theoretic_stress_dist.checkStateChanged.connect(self.theoretic_stress_vis)
+        else:
+            self.Qshow_pressure_dist.stateChanged.connect(self.pressure_vis)
+            self.Qshow_curvature_dist.stateChanged.connect(self.curvature_vis)
+            self.Qshow_theoretic_stress_dist.stateChanged.connect(self.theoretic_stress_vis)
         self.Qalpha.valueChanged.connect(self.pressure_vis)
         self.Qalpha.valueChanged.connect(self.theoretic_stress_vis)
 
