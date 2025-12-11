@@ -86,9 +86,15 @@ class LineSet(object):
         for ap in self.lower_attachment_points:
             if ap.name.upper() == "MAIN":
                 main_attachment_point = ap
+                break
 
         if main_attachment_point is None:
-            raise RuntimeError("No 'main' attachment point")
+            # Fallback: use the first lower attachment point
+            if self.lower_attachment_points:
+                main_attachment_point = self.lower_attachment_points[0]
+                logger.warning(f"No 'main' attachment point found, using first point: {main_attachment_point.name}")
+            else:
+                raise RuntimeError("No 'main' attachment point and no lower attachment points available")
 
         return main_attachment_point
 

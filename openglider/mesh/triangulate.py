@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import absolute_import
 from meshpy.triangle import MeshInfo
+import numpy as np
 
 try:
     import meshpy._triangle as internals
@@ -54,9 +55,38 @@ class Triangulation(object):
 
         return opts
 
+    def _validate_data(self):
+        """Validate input data before passing to meshpy to avoid crashes."""
+        if not self.vertices or len(self.vertices) < 3:
+            print("Triangulation warning: Not enough vertices")
+            return False
+        
+        # Check for NaN or Inf values
+        for i, v in enumerate(self.vertices):
+            if not np.isfinite(v[0]) or not np.isfinite(v[1]):
+                print(f"Triangulation warning: Invalid vertex at index {i}: {v}")
+                return False
+        
+        # Check hole centers are valid
+        if self.holes:
+            for i, h in enumerate(self.holes):
+                if not np.isfinite(h[0]) or not np.isfinite(h[1]):
+                    print(f"Triangulation warning: Invalid hole center at index {i}: {h}")
+                    return False
+        
+        return True
+
     def triangulate(self, options=None):
         if options is None:
             options = self._get_triangle_options()
+        
+        # Validate data first
+        if not self._validate_data():
+            print("Triangulation: Skipping due to invalid data")
+            # Return empty mesh
+            empty_mesh = MeshInfo()
+            return empty_mesh
+            
         mesh_info = MeshInfo()
         mesh_info.set_points(self.vertices)
 
@@ -81,6 +111,12 @@ class Triangulation(object):
         try:
             mesh = MeshInfo()
             internals.triangulate(options, mesh_info, mesh, MeshInfo(), None)
+        except Exception as e:
+            print(f"Triangulation error: {e}")
+            print(f"  Vertices count: {len(self.vertices)}")
+            print(f"  Boundary count: {len(self.boundary) if self.boundary else 0}")
+            print(f"  Holes count: {len(self.holes) if self.holes else 0}")
+            mesh = MeshInfo()  # Return empty mesh on error
         finally:
             # restore previous locale if we've changed it
             if use_locale:

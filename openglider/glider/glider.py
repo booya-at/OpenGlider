@@ -44,6 +44,8 @@ class Glider(object):
 
     def __init__(self, cells=None, lineset: LineSet = None):
         self.cells: List[Cell] = cells or []
+        for cell in self.cells:
+            cell.glider = self
         self.lineset = lineset
 
     def __json__(self):
@@ -64,6 +66,7 @@ class Glider(object):
 
     @classmethod
     def __from_json__(cls, cells, ribs, lineset):
+        glider = cls(cells, lineset=lineset)
         for cell in cells:
             if isinstance(cell.rib1, int):
                 cell.rib1 = ribs[cell.rib1]
@@ -75,7 +78,7 @@ class Glider(object):
                 att.rib = ribs[att.rib]
             if hasattr(att, "cell") and isinstance(att.cell, int):
                 att.cell = cells[att.cell]
-        return cls(cells, lineset=lineset)
+        return glider
 
     def __repr__(self):
         return """

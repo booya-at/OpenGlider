@@ -208,6 +208,7 @@ class PanelPlot(object):
         self._insert_attachment_points(plotpart, attachment_points=attachment_points)
         self._insert_diagonals(plotpart)
         self._insert_rigidfoils(plotpart)
+        self._insert_minirib_marks(plotpart)
         # self._insert_center_rods(plotpart)
         # TODO: add in parametric way
 
@@ -410,6 +411,74 @@ class PanelPlot(object):
                 plotpart.layers["L0"].append(PolyLine2D([line.data[0]]))
                 plotpart.layers["L0"].append(PolyLine2D([line.data[-1]]))
 
+    def _insert_minirib_marks(self, plotpart):
+        """Insert marks showing where miniribs attach to this panel."""
+        if not hasattr(self.cell, 'miniribs'):
+            return
+        
+        for mr_idx, minirib in enumerate(self.cell.miniribs):
+            y_value = minirib.y_value  # Position in cell (0-1)
+            
+            # Get the minirib attachment range (intrados and extrados start/end)
+            intrados_start = minirib.intrados_start
+            extrados_start = minirib.extrados_start
+            
+            # Calculate chord for end percentage
+            chord = self.cell.rib1.chord * (1 - y_value) + self.cell.rib2.chord * y_value
+            end_pct = minirib.get_end_percentage(chord)
+            
+            # Check if this panel covers the minirib range
+            cut_front_left = self.panel.cut_front["left"]
+            cut_back_left = self.panel.cut_back["left"]
+            cut_front_right = self.panel.cut_front["right"]
+            cut_back_right = self.panel.cut_back["right"]
+            
+            # Interpolate cut positions for the y_value
+            cut_front = cut_front_left + y_value * (cut_front_right - cut_front_left)
+            cut_back = cut_back_left + y_value * (cut_back_right - cut_back_left)
+            
+            # Determine which x positions to mark based on panel type (lower/upper)
+            is_lower = self.panel.is_lower()
+            
+            if is_lower:
+                # Lower panel (intrados): minirib starts at intrados_start
+                x_start = intrados_start
+                x_end = end_pct
+            else:
+                # Upper panel (extrados): minirib starts at extrados_start
+                x_start = -extrados_start  # Negative for extrados
+                x_end = -end_pct
+            
+            # Check if start position is within panel range
+            if cut_front <= abs(x_start) <= cut_back:
+                try:
+                    # Get the interpolated position on the panel
+                    ik_start = get_x_value(self.x_values, abs(x_start) if is_lower else x_start)
+                    
+                    # Interpolate between left and right ballooned curves
+                    left_pt = np.array(self.ballooned[0][ik_start])
+                    right_pt = np.array(self.ballooned[1][ik_start])
+                    mark_pt = left_pt + y_value * (right_pt - left_pt)
+                    
+                    # Create a small cross mark
+                    mark_size = 0.003  # 3mm
+                    mark_line = PolyLine2D([
+                        mark_pt + np.array([-mark_size, 0]),
+                        mark_pt + np.array([mark_size, 0])
+                    ])
+                    mark_line_v = PolyLine2D([
+                        mark_pt + np.array([0, -mark_size]),
+                        mark_pt + np.array([0, mark_size])
+                    ])
+                    
+                    plotpart.layers["marks"].append(mark_line)
+                    plotpart.layers["marks"].append(mark_line_v)
+                    
+                    # Also add laser dot
+                    plotpart.layers["L0"].append(PolyLine2D([mark_pt]))
+                except Exception as e:
+                    self.logger.debug(f"Failed to insert minirib mark: {e}")
+
 
 class DribPlot(object):
     DefaultConf = PatternConfig
@@ -587,6 +656,97 @@ class DribPlot(object):
         plotpart.layers["marks"].append(
             PolyLine2D([self.left[len(self.left) - 1], self.right[len(self.right) - 1]])
         )
+
+        # Add front/back reference marks in the seam allowance
+        # Front edge marks (at index 0)
+        front_left = self.left_out[0]
+        front_right = self.right_out[0]
+        front_mid = (np.array(front_left) + np.array(front_right)) / 2
+        
+        # Back edge marks (at last index)
+        back_left = self.left_out[len(self.left_out) - 1]
+        back_right = self.right_out[len(self.right_out) - 1]
+        back_mid = (np.array(back_left) + np.array(back_right)) / 2
+        
+        # Direction from front to back (for arrow orientation)
+        direction = back_mid - front_mid
+        dir_len = norm(direction)
+        if dir_len > 1e-10:
+            direction = direction / dir_len
+        else:
+            direction = np.array([0, 1])
+        
+        # Perpendicular direction
+        perp = np.array([-direction[1], direction[0]])
+        
+        # Arrow size
+        arrow_size = 0.005  # 5mm
+        
+        # Front mark: single arrow pointing forward (toward back)
+        front_arrow_tip = front_mid + direction * arrow_size
+        front_arrow_left = front_mid - direction * arrow_size * 0.5 + perp * arrow_size * 0.5
+        front_arrow_right = front_mid - direction * arrow_size * 0.5 - perp * arrow_size * 0.5
+        plotpart.layers["marks"].append(PolyLine2D([front_arrow_left, front_arrow_tip, front_arrow_right]))
+        
+        # Back mark: double line (two parallel lines)
+        back_line1_start = back_mid - perp * arrow_size * 0.5
+        back_line1_end = back_mid + perp * arrow_size * 0.5
+        back_line2_start = back_mid - direction * arrow_size * 0.3 - perp * arrow_size * 0.5
+        back_line2_end = back_mid - direction * arrow_size * 0.3 + perp * arrow_size * 0.5
+        plotpart.layers["marks"].append(PolyLine2D([back_line1_start, back_line1_end]))
+        plotpart.layers["marks"].append(PolyLine2D([back_line2_start, back_line2_end]))
+        
+        # Add dot marks at top of diagonal (in seam allowance on left and right sides)
+        # These help identify front vs back when viewing the piece
+        dot_size = 0.001  # 1mm dot represented as small cross
+        
+        # Find middle point along left edge (in seam allowance)
+        left_mid_idx = len(self.left_out) // 2
+        left_mid_inner = np.array(self.left[len(self.left) // 2])
+        left_mid_outer = np.array(self.left_out[left_mid_idx])
+        
+        # Direction from inner to outer (into seam allowance)
+        left_seam_dir = left_mid_outer - left_mid_inner
+        left_seam_len = norm(left_seam_dir)
+        if left_seam_len > 1e-10:
+            left_seam_dir = left_seam_dir / left_seam_len
+        
+        # 2 dots toward front (left side = front in standard orientation)
+        dot1_pos = left_mid_outer - left_seam_dir * 0.002  # 2mm from edge
+        dot2_pos = left_mid_outer - left_seam_dir * 0.005  # 5mm from edge
+        
+        # Small cross for each dot
+        for dot_pos in [dot1_pos, dot2_pos]:
+            plotpart.layers["marks"].append(PolyLine2D([
+                dot_pos + np.array([-dot_size, 0]),
+                dot_pos + np.array([dot_size, 0])
+            ]))
+            plotpart.layers["marks"].append(PolyLine2D([
+                dot_pos + np.array([0, -dot_size]),
+                dot_pos + np.array([0, dot_size])
+            ]))
+        
+        # Find middle point along right edge (in seam allowance)
+        right_mid_idx = len(self.right_out) // 2
+        right_mid_inner = np.array(self.right[len(self.right) // 2])
+        right_mid_outer = np.array(self.right_out[right_mid_idx])
+        
+        # Direction from inner to outer (into seam allowance)
+        right_seam_dir = right_mid_outer - right_mid_inner
+        right_seam_len = norm(right_seam_dir)
+        if right_seam_len > 1e-10:
+            right_seam_dir = right_seam_dir / right_seam_len
+        
+        # 1 dot toward back (right side = back in standard orientation)
+        dot3_pos = right_mid_outer - right_seam_dir * 0.003  # 3mm from edge
+        plotpart.layers["marks"].append(PolyLine2D([
+            dot3_pos + np.array([-dot_size, 0]),
+            dot3_pos + np.array([dot_size, 0])
+        ]))
+        plotpart.layers["marks"].append(PolyLine2D([
+            dot3_pos + np.array([0, -dot_size]),
+            dot3_pos + np.array([0, dot_size])
+        ]))
 
         plotpart.layers["stitches"] += [self.left, self.right]
 

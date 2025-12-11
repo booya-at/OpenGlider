@@ -1,6 +1,7 @@
 from __future__ import division
 
 from PySide import QtCore, QtGui
+from PySide.QtGui import QGuiApplication
 
 from .tools import BaseTool, input_field, text_field
 
@@ -85,8 +86,10 @@ class base_table_widget(QtGui.QWidget):
 
     @property
     def desktop_size(self):
-        d = QtGui.QApplication.desktop()
-        return ((d.width() - self.width()) / 2, (d.height() - self.height()) / 2)
+        screen_geometry = QGuiApplication.primaryScreen().geometry()
+        x = (screen_geometry.width() - self.width()) / 2
+        y = (screen_geometry.height() - self.height()) / 2
+        return (x, y)
 
     def test_init(self):
         self.table.setRowCount(10)

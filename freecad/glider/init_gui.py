@@ -22,15 +22,17 @@ class GliderWorkbench(Gui.Workbench):
         "ImportGlider",
         "ShapeCommand",
         "ArcCommand",
-        "AoaCommand",
         "ZrotCommand",
         "AirfoilCommand",
         "AirfoilMergeCommand",
         "BallooningCommand",
         "BallooningMergeCommand",
-        "CellCommand",
         "LineCommand",
         "LineObserveCommand",
+        "CellCommand",
+        "MiniRibsCommand",
+        "HoleDesignCommand",
+        "AirfoilStructureCommand",
         "CutCommand",
         "ColorCommand",
         "Gl2dExport",
@@ -41,7 +43,6 @@ class GliderWorkbench(Gui.Workbench):
         "GliderBallooningFeatureCommand",
         "GliderSharkFeatureCommand",
         "GliderSingleSkinRibFeatureCommand",
-        "GliderHoleFeatureCommand",
         "GliderFlapFeatureCommand",
         "GliderScaleFeatureCommand",
         "GliderBallooningMultiplierFeatureCommand",
@@ -72,6 +73,7 @@ class GliderWorkbench(Gui.Workbench):
         Gui.addCommand("ArcCommand", tools.ArcCommand())
         Gui.addCommand("AoaCommand", tools.AoaCommand())
         Gui.addCommand("BallooningCommand", tools.BallooningCommand())
+        Gui.addCommand("MiniRibsCommand", tools.MiniRibsCommand())
         Gui.addCommand("LineCommand", tools.LineCommand())
         Gui.addCommand("LineObserveCommand", tools.LineObserveCommand())
 
@@ -97,7 +99,8 @@ class GliderWorkbench(Gui.Workbench):
             "GliderSingleSkinRibFeatureCommand",
             tools.GliderSingleSkinRibFeatureCommand(),
         )
-        Gui.addCommand("GliderHoleFeatureCommand", tools.GliderHoleFeatureCommand())
+        Gui.addCommand("HoleDesignCommand", tools.HoleDesignCommand())
+        Gui.addCommand("AirfoilStructureCommand", tools.AirfoilStructureCommand())
         Gui.addCommand("GliderFlapFeatureCommand", tools.GliderFlapFeatureCommand())
         Gui.addCommand("GliderScaleFeatureCommand", tools.GliderScaleFeatureCommand())
         Gui.addCommand(

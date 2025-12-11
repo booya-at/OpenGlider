@@ -59,13 +59,100 @@ class PatternsNew(object):
         straps.insert_attachment_points(add_text=False)
         straps.insert_straps()
 
+        # Mini Ribs Layout
+        from openglider.vector.drawing import PlotPart, Layout
+        from openglider.vector.text import Text
+        from openglider.vector.functions import rotation_2d, norm
+        import numpy as np
+
+        minirib_parts = []
+        minirib_counter = 0
+        
+        # Iterate over cells to find miniribs
+        if hasattr(self.project.glider_3d, "cells"):
+             for cell_idx, cell in enumerate(self.project.glider_3d.cells):
+                 if hasattr(cell, "miniribs"):
+                     for mr_idx, mr in enumerate(cell.miniribs):
+                         try:
+                             minirib_counter += 1
+                             
+                             # Get flattened shape with seam allowance
+                             inner, outer = mr.get_flattened_with_allowance(
+                                 cell, 
+                                 allowance=self.config.allowance_general
+                             )
+                             if outer is None:
+                                 continue
+                             
+                             # Create unique name: MR_cell_index
+                             unique_name = f"MR_{cell_idx+1}_{mr_idx+1}"
+                             
+                             # Create PlotPart with proper layers
+                             part = PlotPart(
+                                 name=unique_name,
+                                 material_code="miniribs"  # Material code for grouping
+                             )
+                             
+                             # Outer = cut line, Inner = stitch line
+                             part.layers["cuts"].append(outer)
+                             part.layers["stitches"].append(inner)
+                             
+                             # Add hole contours to cuts layer
+                             hole_contours = mr.get_hole_contours_2d(cell)
+                             for hole_contour in hole_contours:
+                                 part.layers["cuts"].append(hole_contour)
+                             
+                             # Add text label in the seam allowance area
+                             # Find a good position for text (middle of the shape)
+                             inner_pts = list(inner.data)
+                             outer_pts = list(outer.data)
+                             if len(inner_pts) > 4 and len(outer_pts) > 4:
+                                 # Take points from the leading edge area (first quarter)
+                                 idx = len(inner_pts) // 8
+                                 p_inner = np.array(inner_pts[idx])
+                                 p_outer = np.array(outer_pts[idx])
+                                 
+                                 # Text position between inner and outer
+                                 text_center = (p_inner + p_outer) / 2
+                                 diff = p_outer - p_inner
+                                 
+                                 # Create perpendicular direction for text
+                                 p1 = text_center
+                                 p2 = text_center + rotation_2d(np.pi / 2).dot(diff)
+                                 
+                                 text_size = norm(diff) * 0.4
+                                 text_obj = Text(unique_name, p1, p2, size=text_size, valign=0)
+                                 part.layers["text"] += text_obj.get_vectors()
+                             
+                             minirib_parts.append(part)
+                         except Exception as e:
+                             print(f"Failed to plot minirib: {e}")
+        
+        # Arrange miniribs in a row
+        if minirib_parts:
+            miniribs_layout = Layout.stack_row(
+                minirib_parts, 
+                self.config.patterns_align_dist_x
+            )
+            # Add border frame
+            miniribs_layout.draw_border(border=0.02)
+            miniribs_layout.add_text("miniribs")
+        else:
+            miniribs_layout = Layout()
+
+        # Reinforcements are now handled by PlotMaker.get_reinforcements() 
+        # and placed above the RIBS frame
+
         drawings: List[Layout] = [
             design_upper.drawing,
             design_lower.drawing,
             lineplan.drawing,
             diagonals.drawing,
             straps.drawing,
+            miniribs_layout,
         ]
+
+
 
         drawings_width = max([dwg.width for dwg in drawings])
 

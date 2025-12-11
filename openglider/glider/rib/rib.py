@@ -45,6 +45,8 @@ class Rib(CachedObject):
         startpos=0.0,
         rigidfoils=None,
         holes=None,
+        reinforcements=None,
+        rod_sleeves=None,
         material_code=None,
     ):
         self.startpos = startpos
@@ -60,6 +62,8 @@ class Rib(CachedObject):
         self.chord = chord
         self.holes = holes or []
         self.rigidfoils = rigidfoils or []
+        self.reinforcements = reinforcements or []
+        self.rod_sleeves = rod_sleeves or []
         self.material_code = material_code or ""
         # self.curves = [FoilCurve()]
         # TODO: add in paramteric way
@@ -78,6 +82,8 @@ class Rib(CachedObject):
             "name": self.name,
             "rigidfoils": self.rigidfoils,
             "holes": self.holes,
+            "reinforcements": self.reinforcements,
+            "rod_sleeves": self.rod_sleeves,
             "material_code": self.material_code,
             "name": self.name,
         }

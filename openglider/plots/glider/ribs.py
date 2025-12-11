@@ -84,6 +84,60 @@ class RibPlot(object):
         for curve in self.rib.curves:
             self.plotpart.layers["marks"].append(curve.get_flattened(self.rib))
 
+        # reinforcements (half-moon and rod sleeve)
+        for reinforcement in self.rib.reinforcements:
+            flat = reinforcement.get_flattened(self.rib)
+            
+            # Draw halfmoon outline
+            if flat.get('halfmoon') and len(flat['halfmoon'].data) > 0:
+                self.plotpart.layers["marks"].append(flat['halfmoon'])
+                
+                # Add text label if reinforcement has a name
+                if reinforcement.name:
+                    # Get center point of halfmoon for text placement
+                    halfmoon_data = flat['halfmoon'].data
+                    center_idx = len(halfmoon_data) // 4  # Top of the arc approx
+                    if center_idx < len(halfmoon_data):
+                        p1 = np.array(halfmoon_data[center_idx])
+                        p2 = p1 + np.array([0.01, 0])  # Horizontal text
+                        _text = Text(reinforcement.name, p1, p2, size=0.008, valign=0)
+                        self.plotpart.layers["text"] += _text.get_vectors()
+            
+            # Draw rod sleeve
+            if flat.get('rod_sleeve') and len(flat['rod_sleeve'].data) > 0:
+                self.plotpart.layers["marks"].append(flat['rod_sleeve'])
+            
+            # Add profile mark at reinforcement position
+            self.insert_mark(reinforcement.position, self.config.marks_attachment_point)
+
+        # Rod sleeves (profile extrados/intrados fourreaux) - add position marks
+        if hasattr(self.rib, 'rod_sleeves') and self.rib.rod_sleeves:
+            for sleeve in self.rib.rod_sleeves:
+                try:
+                    # Get start and end chord positions
+                    start_chord = sleeve.start_chord
+                    end_chord = sleeve.end_chord
+                    
+                    if sleeve.surface == 'extrados':
+                        # Extrados uses negative x values in profile coordinate system
+                        start_x = -start_chord
+                        end_x = -end_chord
+                    else:
+                        # Intrados uses positive x values
+                        start_x = start_chord
+                        end_x = end_chord
+                    
+                    # Insert marks at start and end positions
+                    # Use diagonal_front for start, diagonal_back for end
+                    self.insert_mark(start_x, self.config.marks_diagonal_front)
+                    self.insert_mark(end_x, self.config.marks_diagonal_back)
+                    
+                    # Also add laser marks
+                    self.insert_mark(start_x, self.config.marks_laser_diagonal, "L0")
+                    self.insert_mark(end_x, self.config.marks_laser_diagonal, "L0")
+                except Exception as e:
+                    print(f"Failed to add rod sleeve marks: {e}")
+
         self._insert_text(self.rib.name)
         self.insert_controlpoints()
 
@@ -92,6 +146,7 @@ class RibPlot(object):
         self.plotpart.layers["stitches"].append(self.inner)
 
         return self.plotpart
+
 
     def _get_inner_outer(self, x_value):
         ik = get_x_value(self.x_values, x_value)
@@ -136,19 +191,105 @@ class RibPlot(object):
             p2 = drib.left_back
 
         if p1[1] == p2[1] == -1:
+            # Intrados surface - just mark the positions
             self.insert_mark(p1[0], self.config.marks_diagonal_front)
             self.insert_mark(p2[0], self.config.marks_diagonal_back)
             self.insert_mark(p1[0], self.config.marks_laser_diagonal, "L0")
             self.insert_mark(p2[0], self.config.marks_laser_diagonal, "L0")
         elif p1[1] == p2[1] == 1:
+            # Extrados surface - just mark the positions
             self.insert_mark(-p1[0], self.config.marks_diagonal_back)
             self.insert_mark(-p2[0], self.config.marks_diagonal_front)
             self.insert_mark(-p1[0], self.config.marks_laser_diagonal, "L0")
             self.insert_mark(-p2[0], self.config.marks_laser_diagonal, "L0")
+        elif p1[1] == p2[1] and abs(p1[1]) > 0.5:
+            # Offset case - draw a curved line with TRUE PERPENDICULAR offset from extrados
+            height = p1[1]
+            x_start = min(abs(p1[0]), abs(p2[0]))
+            x_end = max(abs(p1[0]), abs(p2[0]))
+            
+            try:
+                profile = self.rib.profile_2d
+                chord = self.rib.chord
+                
+                # Calculate the offset distance in real units
+                mid_x = (x_start + x_end) / 2
+                try:
+                    upper_pt = profile.profilepoint(mid_x, h=1.0)
+                    lower_pt = profile.profilepoint(mid_x, h=-1.0)
+                    actual_thickness = (upper_pt[1] - lower_pt[1]) * chord
+                except:
+                    actual_thickness = chord * 0.12
+                
+                offset_distance = (1.0 - abs(height)) * actual_thickness / 2
+                
+                # Generate extrados curve points and offset them perpendicular
+                num_points = 30
+                curve_points = []
+                
+                for i in range(num_points + 1):
+                    t = i / num_points
+                    x = x_start + (x_end - x_start) * t
+                    
+                    # Get extrados point at this x
+                    ext_pt = np.array(profile.profilepoint(x, h=1.0)) * chord
+                    
+                    # Calculate normal by getting nearby points
+                    eps = 0.001
+                    if x - eps >= 0:
+                        pt_prev = np.array(profile.profilepoint(x - eps, h=1.0)) * chord
+                    else:
+                        pt_prev = ext_pt
+                    if x + eps <= 1:
+                        pt_next = np.array(profile.profilepoint(x + eps, h=1.0)) * chord
+                    else:
+                        pt_next = ext_pt
+                    
+                    # Tangent vector
+                    tangent = pt_next - pt_prev
+                    tangent_len = norm(tangent)
+                    if tangent_len > 1e-10:
+                        tangent = tangent / tangent_len
+                    else:
+                        tangent = np.array([1, 0])
+                    
+                    # Normal perpendicular to tangent
+                    # For extrados, we want to go INWARD (lower y = toward intrados)
+                    # extrados has positive y, so normal pointing down is (-tangent_y, tangent_x) rotated
+                    # Actually: rotate -90 degrees: (x,y) -> (y, -x)
+                    normal = np.array([-tangent[1], tangent[0]])
+                    
+                    # Offset the point inward (toward intrados = negative y direction)
+                    offset_pt = ext_pt - normal * offset_distance
+                    curve_points.append(offset_pt)
+                
+                # Add the curved line to marks
+                self.plotpart.layers["marks"].append(
+                    PolyLine2D(curve_points, name=drib.name)
+                )
+                
+                # Also add arrow marks at the start and end positions
+                self.insert_mark(-x_start, self.config.marks_diagonal_back)
+                self.insert_mark(-x_end, self.config.marks_diagonal_front)
+                self.insert_mark(-x_start, self.config.marks_laser_diagonal, "L0")
+                self.insert_mark(-x_end, self.config.marks_laser_diagonal, "L0")
+                
+            except Exception as e:
+                # Fallback to just arrow marks if curve fails
+                print(f"DEBUG: insert_drib_mark exception: {e}")
+                import traceback
+                traceback.print_exc()
+                if height > 0:
+                    self.insert_mark(-x_start, self.config.marks_diagonal_back)
+                    self.insert_mark(-x_end, self.config.marks_diagonal_front)
+                else:
+                    self.insert_mark(x_start, self.config.marks_diagonal_front)
+                    self.insert_mark(x_end, self.config.marks_diagonal_back)
         else:
-            p1 = self.get_point(*p1)
-            p2 = self.get_point(*p2)
-            self.plotpart.layers["marks"].append(PolyLine2D([p1, p2], name=drib.name))
+            # Fallback - straight line between two points
+            p1_pt = self.get_point(*p1)
+            p2_pt = self.get_point(*p2)
+            self.plotpart.layers["marks"].append(PolyLine2D([p1_pt, p2_pt], name=drib.name))
 
     def insert_holes(self):
         for hole in self.rib.holes:

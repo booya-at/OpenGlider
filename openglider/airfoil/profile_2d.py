@@ -29,6 +29,7 @@ from openglider.utils.cache import HashedList
 from openglider.utils.distribution import Distribution
 from openglider.vector.functions import norm_squared
 from openglider.vector.polygon import Polygon2D
+from openglider.vector.polyline import PolyLine2D
 
 
 logger = logging.getLogger(__name__)
@@ -394,6 +395,9 @@ class Profile2D(Polygon2D):
         self.data = [
             foo(i, upper=index < self.noseindex) for index, i in enumerate(data)
         ]
+
+    def get_extrados_poly(self):
+        return PolyLine2D(self.data[: self.noseindex + 1])
 
     @classmethod
     def from_url(cls, name="atr72sm", url="http://m-selig.ae.illinois.edu/ads/coord/"):

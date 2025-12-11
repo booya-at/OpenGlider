@@ -29,6 +29,7 @@ from openglider.lines.line_types import LineType
 
 from .glider import draw_glider, draw_lines
 from .tools import BaseTool, input_field, text_field, vector3D
+from .lines_auto_placement_dialog import LinesAutoPlacementDialog
 
 
 class Line(_Line):
@@ -255,6 +256,11 @@ class LineTool(BaseTool):
         )
         self.layer_layout.setWidget(3, input_field, self.layer_color_button)
 
+        # Auto-placement button
+        self.auto_placement_button = QtGui.QPushButton("Auto-placement...")
+        self.layer_layout.setWidget(4, text_field, QtGui.QLabel("generate lines"))
+        self.layer_layout.setWidget(4, input_field, self.auto_placement_button)
+
         # dialogs
         self.add_layer_dialog = QtGui.QInputDialog()
         add_button.clicked.connect(self.add_new_layer)
@@ -264,6 +270,7 @@ class LineTool(BaseTool):
         self.layer_selection.setEnabled(False)
         self.layer_color_button.clicked.connect(self.layer_color_dialog.open)
         self.layer_color_dialog.accepted.connect(self.color_changed)
+        self.auto_placement_button.clicked.connect(self.open_auto_placement_dialog)
 
     def color_changed(self):
         color = self.layer_color_dialog.currentColor().getRgbF()[:-1]
@@ -271,6 +278,87 @@ class LineTool(BaseTool):
             obj.disabled_col = color
             if not obj.enabled:
                 obj.set_disabled()
+
+    def open_auto_placement_dialog(self):
+        """Open the auto-placement dialog and apply generated lines."""
+        dialog = LinesAutoPlacementDialog(self.parametric_glider)
+        if dialog.exec_() == QtGui.QDialog.Accepted:
+            # Generate new lineset
+            try:
+                new_lineset = dialog.generate_lineset()
+                
+                # Debug: print what was generated
+                App.Console.PrintMessage(f"Generated {len(new_lineset.lines)} lines and {len(new_lineset.nodes)} nodes\n")
+                
+                # Clear existing dynamic objects from the display
+                to_remove = [obj for obj in self.shape.dynamic_objects if hasattr(obj, 'dynamic') and obj.dynamic]
+                for obj in to_remove:
+                    if hasattr(obj, 'delete'):
+                        obj.delete()
+                    if obj in self.shape.dynamic_objects:
+                        self.shape.dynamic_objects.remove(obj)
+                self.shape.selected_objects = []
+                
+                # Clear the layer combobox
+                self.layer_combobox.clear()
+                self.layer_combobox.addItem("")
+                
+                # Store the new lineset BEFORE drawing
+                self.parametric_glider.lineset = new_lineset
+                
+                # Redraw everything with the new lineset
+                self.draw_shape()
+                
+                self.update_layer_selection()
+                self.show_layer()
+                
+                App.Console.PrintMessage("Auto-placement: Lines generated successfully.\n")
+                
+            except Exception as e:
+                App.Console.PrintError(f"Auto-placement error: {str(e)}\n")
+                import traceback
+                App.Console.PrintError(traceback.format_exc())
+
+    
+    def _apply_lineset_to_display(self, lineset):
+        """Apply a LineSet2D to the visual display."""
+        nodes = {}
+        
+        # Create markers for all nodes
+        for node in lineset.nodes:
+            if isinstance(node, UpperNode2D):
+                pos = node.get_2D(self.parametric_glider.shape)
+                obj = Upper_Att_Marker(node, self.parametric_glider)
+                obj.force = node.force
+                self.shape += [obj]
+            elif isinstance(node, BatchNode2D):
+                obj = NodeMarker(node, self.parametric_glider)
+                self.shape += [obj]
+            elif isinstance(node, LowerNode2D):
+                obj = Lower_Att_Marker(node, self.parametric_glider)
+                obj.pos_3D = node.pos_3D
+                obj._node = node
+                self.shape += [obj]
+            else:
+                continue
+            nodes[node] = obj
+            self.layer_combobox.addItem(node.layer)
+        
+        # Create lines
+        for line in lineset.lines:
+            if line.lower_node in nodes and line.upper_node in nodes:
+                m1 = nodes[line.lower_node]
+                m2 = nodes[line.upper_node]
+                obj = ConnectionLine(m1, m2)
+                obj.line_type = line.line_type.name if hasattr(line.line_type, 'name') else str(line.line_type)
+                obj.target_length = line.target_length if line.target_length else 1.0
+                obj.name = line.name or "unnamed"
+                obj.layer = line.layer or ""
+                self.shape += [obj]
+                self.layer_combobox.addItem(line.layer)
+        
+        self.layer_combobox.model().sort(0)
+        self.layer_selection.model().sort(0)
 
     def line_name_changed(self, name):
         self.shape.selected_objects[0].name = name

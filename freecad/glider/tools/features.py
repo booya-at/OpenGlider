@@ -336,56 +336,6 @@ class VFlapFeature(OGGliderVP):
         return _dir + "/../icons/flap_feature.svg"
 
 
-class HoleFeature(BaseFeature):
-    def __init__(self, obj, parent):
-        super(HoleFeature, self).__init__(obj, parent)
-
-    def getGliderInstance(self):
-        glider = copy.deepcopy(self.obj.parent.Proxy.getGliderInstance())
-
-        ribs = [rib for i, rib in enumerate(glider.ribs) if i in self.obj.ribs]
-        new_ribs = []
-
-        hole_size = np.array([self.obj.hole_width, self.obj.hole_height])
-        if self.obj.holes:
-            for i, att_pnt in enumerate(glider.lineset.attachment_points):
-                if (
-                    att_pnt.rib in ribs
-                    and att_pnt.rib_pos > self.obj.min_hole_pos
-                    and att_pnt.rib_pos < self.obj.max_hole_pos
-                ):
-                    att_pnt.rib.holes.append(
-                        RibHole(
-                            att_pnt.rib_pos,
-                            size=hole_size,
-                            vertical_shift=self.obj.vertical_shift,
-                            rotation=self.obj.rotation,
-                        )
-                    )
-
-        return glider
-
-    def addProperties(self):
-        self.addProperty("ribs", [], "hole", "docs", int)
-        self.addProperty("holes", False, "hole", "create holes in the rib")
-        self.addProperty("hole_height", 0.7, "hole", "height of ellipse")
-        self.addProperty("hole_width", 0.3, "hole", "width of ellipse")
-        self.addProperty(
-            "max_hole_pos", 1.0, "hole", "maximal relative position of hole"
-        )
-        self.addProperty("vertical_shift", 0.2, "hole", "relative vertical shift")
-        self.addProperty(
-            "min_hole_pos", 0.2, "hole", "minimal relative position of hole"
-        )
-        self.addProperty("rotation", 0.0, "hole", "docs")
-
-
-class VHoleFeature(OGGliderVP):
-    def getIcon(self):
-        _dir = os.path.dirname(os.path.realpath(__file__))
-        return _dir + "/../icons/hole_feature.svg"
-
-
 class ScaleFeature(BaseFeature):
     def __init__(self, obj, parent):
         super(ScaleFeature, self).__init__(obj, parent)

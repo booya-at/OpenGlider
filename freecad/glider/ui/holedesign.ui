@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>HoleDesign</class>
+ <widget class="QWidget" name="HoleDesign">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>350</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Hole Design</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QTabWidget" name="tabWidget">
+     <widget class="QWidget" name="nonSuspendedTab">
+      <attribute name="title">
+       <string>Non-Suspended</string>
+      </attribute>
+      <layout class="QFormLayout" name="formLayout_1">
+       <item row="0" column="0"><widget class="QLabel" name="label_ns_num"><property name="text"><string>Number of Holes:</string></property></widget></item>
+       <item row="0" column="1"><widget class="QSpinBox" name="numHolesSpinBox_ns"><property name="value">3</property></widget></item>
+       <item row="1" column="0"><widget class="QLabel" name="label_ns_width"><property name="text"><string>Hole Width:</string></property></widget></item>
+       <item row="1" column="1"><widget class="QDoubleSpinBox" name="holeWidthSpinBox_ns"><property name="singleStep">0.01</property><property name="value">0.3</property></widget></item>
+       <item row="2" column="0"><widget class="QLabel" name="label_ns_height"><property name="text"><string>Hole Height:</string></property></widget></item>
+       <item row="2" column="1"><widget class="QDoubleSpinBox" name="holeHeightSpinBox_ns"><property name="singleStep">0.01</property><property name="value">0.7</property></widget></item>
+       <item row="3" column="0"><widget class="QLabel" name="label_ns_shift"><property name="text"><string>Vertical Shift:</string></property></widget></item>
+       <item row="3" column="1"><widget class="QDoubleSpinBox" name="verticalShiftSpinBox_ns"><property name="singleStep">0.01</property></widget></item>
+       <item row="4" column="0"><widget class="QLabel" name="label_ns_rot"><property name="text"><string>Rotation:</string></property></widget></item>
+       <item row="4" column="1"><widget class="QDoubleSpinBox" name="rotationSpinBox_ns"/></item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="suspendedTab">
+      <attribute name="title">
+       <string>Suspended</string>
+      </attribute>
+      <layout class="QFormLayout" name="formLayout_2">
+       <item row="0" column="0"><widget class="QLabel" name="label_s_num"><property name="text"><string>Number of Holes:</string></property></widget></item>
+       <item row="0" column="1"><widget class="QSpinBox" name="numHolesSpinBox_s"><property name="value">1</property></widget></item>
+       <item row="1" column="0"><widget class="QLabel" name="label_s_width"><property name="text"><string>Hole Width:</string></property></widget></item>
+       <item row="1" column="1"><widget class="QDoubleSpinBox" name="holeWidthSpinBox_s"><property name="singleStep">0.01</property><property name="value">0.2</property></widget></item>
+       <item row="2" column="0"><widget class="QLabel" name="label_s_height"><property name="text"><string>Hole Height:</string></property></widget></item>
+       <item row="2" column="1"><widget class="QDoubleSpinBox" name="holeHeightSpinBox_s"><property name="singleStep">0.01</property><property name="value">0.5</property></widget></item>
+       <item row="3" column="0"><widget class="QLabel" name="label_s_shift"><property name="text"><string>Vertical Shift:</string></property></widget></item>
+       <item row="3" column="1"><widget class="QDoubleSpinBox" name="verticalShiftSpinBox_s"><property name="singleStep">0.01</property></widget></item>
+       <item row="4" column="0"><widget class="QLabel" name="label_s_rot"><property name="text"><string>Rotation:</string></property></widget></item>
+       <item row="4" column="1"><widget class="QDoubleSpinBox" name="rotationSpinBox_s"/></item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="applyButton">
+     <property name="text">
+      <string>Apply &amp; Close</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -155,7 +155,7 @@ class PlotPart(object):
         start = float("-Inf")
         if layer:
             for line in layer:
-                if line:
+                if len(line) > 0:
                     values = [p[axis] for p in line]
                     start = max(start, max(values))
         return start
@@ -164,7 +164,7 @@ class PlotPart(object):
         start = float("Inf")
         if layer:
             for line in layer:
-                if line:
+                if len(line) > 0:
                     values = [p[axis] for p in line]
                     start = min(start, min(values))
         return start

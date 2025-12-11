@@ -10,6 +10,7 @@ from . import glider
 from . import tools
 from . import (
     airfoil_tool,
+    airfoilstructure_tool,
     arc_tool,
     ballooning_tool,
     cell_tool,
@@ -17,6 +18,8 @@ from . import (
     design_tool,
     features,
     line_tool,
+    holedesign_tool,
+    miniribs_tool,
 )
 from . import panel_method as pm
 from . import shape_tool, span_mapping
@@ -319,6 +322,18 @@ class BallooningCommand(BaseCommand):
         return ballooning_tool.BallooningTool(obj)
 
 
+class MiniRibsCommand(BaseCommand):
+    def GetResources(self):
+        return {
+            "Pixmap": "miniribs_command.svg",
+            "MenuText": "mini ribs",
+            "ToolTip": "create/modify mini ribs",
+        }
+
+    def tool(self, obj):
+        return miniribs_tool.MiniRibsTool(obj)
+
+
 class BallooningMergCommand(BaseCommand):
     def GetResources(self):
         return {
@@ -532,20 +547,28 @@ class GliderFlapFeatureCommand(GliderFeatureCommand):
         vp.updateData()
 
 
-class GliderHoleFeatureCommand(GliderFeatureCommand):
+class HoleDesignCommand(BaseCommand):
     def GetResources(self):
         return {
-            "Pixmap": "hole_feature.svg",
-            "MenuText": "create holes",
-            "ToolTip": "create holes (single-skin)",
+            "Pixmap": "hole_design_command.svg",
+            "MenuText": "Hole Design",
+            "ToolTip": "Graphically design holes in ribs",
         }
 
-    def Activated(self):
-        feature = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "holeFeature")
-        self.glider_obj.ViewObject.Visibility = False
-        features.HoleFeature(feature, self.glider_obj)
-        vp = features.VHoleFeature(feature.ViewObject)
-        vp.updateData()
+    def tool(self, obj):
+        return holedesign_tool.HoleDesignTool(obj)
+
+
+class AirfoilStructureCommand(BaseCommand):
+    def GetResources(self):
+        return {
+            "Pixmap": "airfoilstructure_command.svg",
+            "MenuText": "Airfoil Structure",
+            "ToolTip": "Configure rod sleeves and attachment reinforcements",
+        }
+
+    def tool(self, obj):
+        return airfoilstructure_tool.AirfoilStructureTool(obj)
 
 
 class GliderScaleFeatureCommand(GliderFeatureCommand):

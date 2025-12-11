@@ -50,7 +50,7 @@ class TestGlider(GliderTestClass):
         right = left.copy()
         right.mirror()
         ribs = left.return_ribs(num)
-        polygons = left.return_polygon_indices(ribs)
+        polygons = left.get_mesh_hull(num).polygons['hull']
         points = np.concatenate(ribs)
         objects = []
         objects += [openglider.graphics.Red]
