@@ -136,16 +136,13 @@ class TestGliderExtended(GliderTestClass):
         
         self.glider.mirror(cutmidrib=True)
         
-        # After mirroring with cutmidrib=True, the center cell is removed,
-        # so span may change. Just verify the operation completed successfully
-        self.assertIsNotNone(self.glider.span)
-        self.assertGreater(self.glider.span, 0)
+        # After mirroring, span should be the same (symmetric)
+        self.assertAlmostEqual(self.glider.span, original_span, places=3)
         
         # Test mirroring without cutting midrib
         glider2 = self.import_glider()
         glider2.mirror(cutmidrib=False)
         self.assertIsNotNone(glider2)
-        self.assertGreater(glider2.span, 0)
 
     def test_copy(self):
         """Test copying glider"""
@@ -252,8 +249,7 @@ class TestGliderExtended(GliderTestClass):
         """Test checking for center cell"""
         has_center = self.glider.has_center_cell
         
-        # numpy may return np.True_/np.False_ which are boolean-like
-        self.assertIsInstance(has_center, (bool, np.bool_))
+        self.assertIsInstance(has_center, bool)
 
     def test_glide_property(self):
         """Test glide property getter and setter"""
@@ -280,11 +276,9 @@ class TestGliderExtended(GliderTestClass):
         self.assertIsInstance(spanwise_mid, list)
         self.assertEqual(len(spanwise_mid), len(self.glider.ribs))
         
-        # Test with x=None - this should use default behavior (x=0)
-        # But the function doesn't handle None properly, so skip this test
-        # or test with a valid value instead
-        spanwise_default = self.glider.get_spanwise(0.0)
-        self.assertIsInstance(spanwise_default, list)
+        # Test with x=None (default)
+        spanwise_none = self.glider.get_spanwise(None)
+        self.assertIsInstance(spanwise_none, list)
 
     def test_return_ribs(self):
         """Test returning ribs with different parameters"""
@@ -306,9 +300,7 @@ class TestGliderExtended(GliderTestClass):
         empty_glider = openglider.glider.Glider(cells=[], lineset=None)
         
         self.assertEqual(empty_glider.area, 0)
-        # span property accesses has_center_cell which needs ribs, so skip it for empty glider
-        # Instead test that ribs property works
-        self.assertEqual(len(empty_glider.ribs), 0)
+        self.assertEqual(empty_glider.span, 0)
         self.assertEqual(len(empty_glider.return_ribs()), 0)
         self.assertEqual(len(empty_glider.return_ribs_ij()), 0)
 
