@@ -1,37 +1,64 @@
-#!/bin/env python
+#!/usr/bin/env python
+"""
+Run OpenGlider tests via pytest.
 
-from optparse import OptionParser
+Usage:
+  python testall.py           # unit tests only (excludes visual/GUI tests)
+  python testall.py -a       # all tests including visual
+  python testall.py -n 3     # run unit tests 3 times
+  python testall.py -p "test_glider"  # run tests matching pattern
+
+Equivalent pytest commands:
+  pytest tests/ -m "not visual"
+  pytest tests/
+  pytest tests/ -m "not visual" --count=3
+  pytest tests/ -k "test_glider"
+"""
+
 import sys
-try:
-    import unittest2 as unittest
-except (ImportError, NameError):
-    import unittest
+import subprocess
 
 
-parser = OptionParser()
-parser.add_option("-n", "--num", default=1, help="Number of loops")
-parser.add_option("-a", "--run_all", action='store_true', help="Run all tests (including visual)")
-parser.add_option("-p", "--pattern", help="Run a custom Pattern to find")
-parser.add_option("-f", "--folder", default="tests")
-parser.add_option("-v", "--verbose", default=2)
+def main():
+    args = sys.argv[1:]
+    run_all = "-a" in args or "--run_all" in args or "--run-all" in args
+    if run_all:
+        args = [a for a in args if a not in ("-a", "--run_all", "--run-all")]
+    pytest_args = ["tests/", "-v"]
+    if not run_all:
+        pytest_args.extend(["-m", "not visual"])
 
-args = parser.parse_args()[0]
+    # Optional: -n N to repeat tests N times
+    num = 1
+    if "-n" in args or "--num" in args:
+        try:
+            i = args.index("-n") if "-n" in args else args.index("--num")
+            num = int(args[i + 1])
+            args = args[:i] + args[i + 2 :]
+        except (IndexError, ValueError):
+            pass
+    if "-p" in args or "--pattern" in args:
+        try:
+            i = args.index("-p") if "-p" in args else args.index("--pattern")
+            pattern = args[i + 1]
+            pytest_args.extend(["-k", pattern])
+            args = args[:i] + args[i + 2 :]
+        except IndexError:
+            pass
 
-if args.pattern:
-    pattern = args.pattern
-elif args.run_all:
-    pattern = "*test*.py"
-else:
-    pattern = "test*.py"
+    # Filter out remaining OptionParser-style options pytest doesn't know
+    args = [a for a in args if a not in ("-f", "--folder", "-v", "--verbose") and not a.startswith("--folder=")]
 
-loader = unittest.TestLoader().discover(args.folder, pattern)
+    pytest_args = [sys.executable, "-m", "pytest"] + pytest_args + args
 
-for i in range(int(args.num)):
-    print("\n\n>>> Running ("+str(i+1)+"/"+str(args.num)+")")
-    test_results = unittest.TextTestRunner(verbosity=int(args.verbose)).run(loader)
-    print(">>> Errors: " + str(test_results.errors))
-    print(">>> Failures: " + str(test_results.failures))
+    for run in range(num):
+        if num > 1:
+            print(f"\n>>> Run ({run + 1}/{num})")
+        result = subprocess.run(pytest_args)
+        if result.returncode != 0:
+            sys.exit(result.returncode)
+    sys.exit(0)
 
-print("return: "+str(not test_results.wasSuccessful()))
-sys.exit(not test_results.wasSuccessful())
 
+if __name__ == "__main__":
+    main()

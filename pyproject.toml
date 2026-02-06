@@ -15,8 +15,22 @@ requires-python = ">=3.8"
 dependencies = ["svgwrite", "numpy", "scipy", "ezdxf", 
                 "ezodf", "lxml", "pyexcel-ods", "meshpy", "matplotlib"]
 
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
 [project.urls]
 source = "https://github.com/booya-at/OpenGlider"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Only collect test_*.py by default; visual_test_*.py import graphics/VTK and can block
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v"
+markers = [
+    "visual: marks tests as visual/GUI tests (deselect with '-m \"not visual\"', run only with '-m visual')",
+]
 
 [tool.setuptools]
 packages = ["openglider",

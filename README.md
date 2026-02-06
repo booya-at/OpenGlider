@@ -47,15 +47,29 @@ Also have a look at the [gui-tutorial](https://booya-at.github.io/openglider-tut
 
 ### Unittests and Visual Tests
 
-To run all unittests, run this from the main directory:
-```bash
-./testall.py
-```
+Tests use **pytest**. Install with optional test deps: `pip install -e ".[test]"` (or use pixi, which includes pytest).
 
-Or use `-a` flag to also run visual tests
-```bash
-./testall.py -a
-```
+From the project root:
+
+- **Unit tests only** (excludes visual/GUI tests):
+  ```bash
+  pytest tests/ -m "not visual"
+  ```
+  or the legacy wrapper:
+  ```bash
+  ./testall.py
+  ```
+
+- **All tests** (including visual):
+  ```bash
+  pytest tests/
+  ```
+  or:
+  ```bash
+  ./testall.py -a
+  ```
+
+With **pixi**: `pixi run test` (unit only), `pixi run test-all` (all tests).
 
 ## Development Screenshots
 

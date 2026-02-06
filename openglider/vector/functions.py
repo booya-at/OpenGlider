@@ -98,7 +98,11 @@ def radius_from_3points(p1, p2, p3):
     b = np.linalg.norm(p3 - p2, axis=1)
     c = np.linalg.norm(p1 - p3, axis=1)
     s = (a + b + c) / 2
-    r = (a * b * c) / np.sqrt(s * (s - a) * (s - b) * (s - c))
+    denom = s * (s - a) * (s - b) * (s - c)
+    # Collinear or degenerate points: denom <= 0 -> infinite radius
+    r = np.full_like(a, np.inf, dtype=np.float64)
+    mask = denom > 0
+    r[mask] = (a * b * c)[mask] / np.sqrt(denom[mask])
     return r
 
 

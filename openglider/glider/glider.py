@@ -383,8 +383,9 @@ class Glider(object):
 
     @property
     def span(self):
+        if not self.cells:
+            return 0.0
         span = sum([cell.span for cell in self.cells])
-
         if self.has_center_cell:
             return 2 * span - self.cells[0].span
         else:
@@ -458,8 +459,11 @@ class Glider(object):
 
     def get_spanwise(self, x=None):
         """
-        Return a list of points for a x_value
+        Return a list of points for a x_value.
+        x is the chordwise position (0=nose, 1=trailing edge). If x is None, 0 is used.
         """
+        if x is None:
+            x = 0.0
         if x == 0:
             return copy.deepcopy([rib.pos for rib in self.ribs])  # This is much faster
         else:
@@ -520,7 +524,9 @@ class Glider(object):
 
     @property
     def has_center_cell(self):
-        return abs(self.ribs[0].pos[1]) > 1.0e-5
+        if not self.ribs:
+            return False
+        return bool(abs(self.ribs[0].pos[1]) > 1.0e-5)
 
     @property
     def glide(self):

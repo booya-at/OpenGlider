@@ -141,7 +141,7 @@ class Bezier(HashedList):
         if start (/ end) is True, the first (/ last) point of the Curve is included
         """
         base = self.basefactory(numpoints)
-        matrix = np.matrix(
+        matrix = np.array(
             [
                 [
                     base[column](row * 1.0 / (len(points) - 1))
@@ -153,7 +153,7 @@ class Bezier(HashedList):
 
         if not start and not end:
             matrix = np.linalg.pinv(matrix)
-            out = np.array(matrix * points)
+            out = np.dot(matrix, np.asarray(points))
             return out
         else:
             A1 = np.array(matrix)
@@ -183,7 +183,7 @@ class Bezier(HashedList):
                 rhs1 = np.array(A1.T.dot(point))
                 rhs2 = np.array((A1.T.dot(A2)).dot(points2[dim])).T
                 solution.append(np.array(A1_inv.dot(rhs1 - rhs2)))
-            solution = np.matrix(solution).T.tolist()
+            solution = np.array(solution).T.tolist()
             if start:
                 solution.insert(0, points[0])
             if end:
