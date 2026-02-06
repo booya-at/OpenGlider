@@ -2,10 +2,7 @@
 name: Documentation
 
 on:
-  push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
+  on: [push, pull_request]
 
 # Allow only one concurrent deployment
 concurrency:
