@@ -1,8 +1,7 @@
 # Build Sphinx docs in ./docs and deploy to GitHub Pages
 name: Documentation
 
-on:
-  on: [push, pull_request]
+on: [push, pull_request]
 
 # Allow only one concurrent deployment
 concurrency:
