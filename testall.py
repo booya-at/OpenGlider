@@ -1,18 +1,12 @@
 #!/usr/bin/env python
 """
-Run OpenGlider tests via pytest.
+OpenGlider-Tests via pytest ausführen. Ausführliche Doku: tests/README.md.
 
 Usage:
-  python testall.py           # unit tests only (excludes visual/GUI tests)
-  python testall.py -a       # all tests including visual
-  python testall.py -n 3     # run unit tests 3 times
-  python testall.py -p "test_glider"  # run tests matching pattern
-
-Equivalent pytest commands:
-  pytest tests/ -m "not visual"
-  pytest tests/
-  pytest tests/ -m "not visual" --count=3
-  pytest tests/ -k "test_glider"
+  python testall.py              # nur Unit-Tests (ohne Visual/GUI)
+  python testall.py -a           # alle Tests inkl. Visual
+  python testall.py -n 3         # Unit-Tests 3× wiederholen
+  python testall.py -p "glider"  # nur Tests, deren Name "glider" enthält
 """
 
 import sys

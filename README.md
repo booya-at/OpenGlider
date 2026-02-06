@@ -45,31 +45,17 @@ Please have a look at the [base module](./openglider/README.md).
 
 Also have a look at the [gui-tutorial](https://booya-at.github.io/openglider-tutorial)
 
-### Unittests and Visual Tests
+### Tests
 
-Tests use **pytest**. Install with optional test deps: `pip install -e ".[test]"` (or use pixi, which includes pytest).
+Tests laufen mit **pytest**. Abhängigkeiten: `pip install -e ".[test]"` oder pixi-Environment nutzen.
 
-From the project root:
+| Was | Befehl |
+|-----|--------|
+| Nur Unit-Tests (ohne Visual/GUI) | `pytest tests/ -m "not visual"` oder `./testall.py` |
+| Alle Tests inkl. Visual | `pytest tests/` oder `./testall.py -a` |
+| Mit pixi | `pixi run test` (Unit) · `pixi run test-all` (alle) |
 
-- **Unit tests only** (excludes visual/GUI tests):
-  ```bash
-  pytest tests/ -m "not visual"
-  ```
-  or the legacy wrapper:
-  ```bash
-  ./testall.py
-  ```
-
-- **All tests** (including visual):
-  ```bash
-  pytest tests/
-  ```
-  or:
-  ```bash
-  ./testall.py -a
-  ```
-
-With **pixi**: `pixi run test` (unit only), `pixi run test-all` (all tests).
+Ausführliche Beschreibung, Marker, Verzeichnisstruktur: [tests/README.md](tests/README.md).
 
 ## Development Screenshots
 

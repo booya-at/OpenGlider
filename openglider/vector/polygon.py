@@ -7,7 +7,7 @@ from openglider.vector.functions import cut, rotation_2d, vector_angle, norm
 class Polygon2D(PolyLine2D):
     @property
     def isclosed(self):
-        return self.data[0] == self.data[-1]
+        return bool(numpy.allclose(self.data[0], self.data[-1]))
 
     def close(self):
         """
@@ -46,18 +46,29 @@ class Polygon2D(PolyLine2D):
     def contains_point(self, point):
         """
         Check if a Polygon contains a point or not.
-        reference: http://en.wikipedia.org/wiki/Point_in_polygon
+        Uses ray-casting: horizontal ray from point to +infinity; odd crossings = inside.
 
         :returns: boolean
         """
-        # using ray-casting-algorithm
-        cuts = self.cut(point, self.centerpoint, cut_only_positive=True)
-        return bool(sum(1 for _ in cuts) % 2)
-        # todo: alternative: winding number
+        point = numpy.asarray(point)
+        px, py = point[0], point[1]
+        n = len(self.data) - 1  # closed: last point == first
+        count = 0
+        for i in range(n):
+            x1, y1 = self.data[i][0], self.data[i][1]
+            x2, y2 = self.data[i + 1][0], self.data[i + 1][1]
+            # Ray at y=py crosses edge only if one endpoint is strictly below, one strictly above
+            if (y1 < py and y2 >= py) or (y2 < py and y1 >= py):
+                if y2 != y1:
+                    t = (py - y1) / (y2 - y1)
+                    x = x1 + t * (x2 - x1)
+                    if x > px:
+                        count += 1
+        return bool(count % 2 == 1)
 
 
 class CirclePart(object):
-    """
+    r"""
     "A piece of the cake"
 
        /) <-- p1

@@ -27,9 +27,9 @@ freecad = ">=1.0.0,<1.1.0"
 sphinx = "*"
 pytest = "*"
 
+# Tests: siehe tests/README.md. test = nur Unit; test-all = inkl. Visual (benötigt Display/VTK).
 [tasks]
 test = "pytest tests/ -m \"not visual\""
-# Include visual_test_*.py (may block in headless envs – needs display/VTK)
 test-all = "pytest tests/ --override-ini=\"python_files=test_*.py visual_test_*.py\""
 lint = "pylint $(git ls-files '*.py')"
 docs = "sphinx-build -b html docs/source docs/build/html"

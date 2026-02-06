@@ -22,14 +22,14 @@ test = ["pytest>=7.0"]
 source = "https://github.com/booya-at/OpenGlider"
 
 [tool.pytest.ini_options]
+# Siehe tests/README.md. Standard: nur test_*.py; visual_test_*.py per Marker "visual" exkludiert.
 testpaths = ["tests"]
-# Only collect test_*.py by default; visual_test_*.py import graphics/VTK and can block
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v"
 markers = [
-    "visual: marks tests as visual/GUI tests (deselect with '-m \"not visual\"', run only with '-m visual')",
+    "visual: Visual/GUI-Tests (exkludiert mit -m \"not visual\", nur diese mit -m visual)",
 ]
 
 [tool.setuptools]
