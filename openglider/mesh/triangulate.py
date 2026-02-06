@@ -24,7 +24,10 @@ Example:
     >>> print(f"Triangles: {result.elements}")
 """
 import numpy as np
-from polytri import PolyTri
+try:
+    from polytri import PolyTri
+except ImportError:
+    from openglider.mesh.poly_tri import PolyTri
 
 
 class TriangulationResult(object):

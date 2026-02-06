@@ -8,11 +8,16 @@ This module provides a Delaunay triangulation implementation that supports:
 
 Based on: https://code.activestate.com/recipes/579021-delaunay-triangulation/
 """
-import numpy as np
+from __future__ import annotations
+
 import math
+from typing import Any, List, Optional, Sequence, Set, Tuple, Union
+
+import numpy as np
+import numpy.typing as npt
 
 
-def _make_edge_key(i1, i2):
+def _make_edge_key(i1: int, i2: int) -> Tuple[int, int]:
     """
     Create a normalized edge key tuple such that i1 < i2.
     
@@ -28,6 +33,10 @@ def _make_edge_key(i1, i2):
     return (i2, i1)
 
 
+# Type alias for edge representation (normalized tuple of two vertex indices)
+EdgeKey = Tuple[int, int]
+
+
 class PolyTri(object):
     """
     Delaunay triangulation with constrained boundaries and hole removal.
@@ -41,7 +50,10 @@ class PolyTri(object):
             is a list of point indices forming a closed loop.
         delaunay: If True, enforce Delaunay criterion (default: True)
         holes: If True, remove triangles inside holes (default: True)
-        border: Optional list of boundary indices to use as borders for hole removal
+        border: Optional list of boundary indices. For typical applications, this
+            parameter is not needed and can be left as None. It is used for special
+            cases where specific boundaries should be treated differently during hole removal.
+            If not specified (None or empty), all boundaries are used for hole removal.
         
     Attributes:
         points: The input points (reordered internally)
@@ -51,9 +63,16 @@ class PolyTri(object):
         boundary_edges: Set of boundary edges
     """
     
-    EPS = 1.23456789e-14  # Numerical epsilon for floating point comparisons
+    EPS: float = 1.23456789e-14  # Numerical epsilon for floating point comparisons
 
-    def __init__(self, points, boundaries=None, delaunay=True, holes=True, border=None):
+    def __init__(
+        self,
+        points: Union[npt.ArrayLike, Sequence[Sequence[float]]],
+        boundaries: Optional[Sequence[Union[Sequence[int], npt.ArrayLike]]] = None,
+        delaunay: bool = True,
+        holes: bool = True,
+        border: Optional[Sequence[int]] = None,
+    ) -> None:
         if border is None:
             border = []
         
@@ -89,6 +108,9 @@ class PolyTri(object):
         self._boundaries = boundaries
         self._border = list(border) if border else []
         
+        # Store original points (before sorting)
+        self._original_points = points.copy()
+        
         # Internal data structures
         self._points = points
         self._triangles = []  # List of triangles (each is list of 3 point indices)
@@ -117,15 +139,15 @@ class PolyTri(object):
                 self._update_mappings()
                 self.remove_holes()
 
-    def _initialize_triangulation(self):
+    def _initialize_triangulation(self) -> None:
         """Initialize the triangulation by sorting points and creating first triangle."""
         # Compute center of gravity
         center = np.mean(self._points, axis=0)
         
         # Sort points by distance from center
-        def distance_squared(point):
+        def distance_squared(point: npt.NDArray[Any]) -> float:
             d = point - center
-            return np.dot(d, d)
+            return float(np.dot(d, d))
         
         points_with_indices = [(pt, i) for i, pt in enumerate(self._points)]
         points_with_indices.sort(key=lambda x: distance_squared(x[0]))
@@ -149,6 +171,9 @@ class PolyTri(object):
         
         if index > len(self._points) - 3:
             # All points are collinear
+            n_orig = len(self._original_points)
+            self._orig_to_new = np.full(n_orig, -1, dtype=np.intp)
+            self._orig_to_new[self._point_order] = np.arange(len(self._point_order))
             return
         
         # Create first triangle
@@ -184,21 +209,27 @@ class PolyTri(object):
         
         # Update unorder mapping
         self._point_unorder = np.argsort(self._point_order)
+        # Map original point indices -> current (sorted) indices (for boundary lookup)
+        n_orig = len(self._original_points)
+        self._orig_to_new = np.full(n_orig, -1, dtype=np.intp)
+        self._orig_to_new[self._point_order] = np.arange(len(self._point_order))
 
     @property
-    def points(self):
-        """Get the points array."""
-        return self._points
+    def points(self) -> npt.NDArray[np.float64]:
+        """Get the points array in original order (not sorted)."""
+        # Return original points in original order
+        # The internal _points are sorted, but triangles use original indices
+        return self._original_points
     
     @property
-    def triangles(self):
+    def triangles(self) -> List[npt.NDArray[np.intp]]:
         """Get triangles as arrays of original point indices."""
         return [
             np.array([self._point_order[i] for i in tri]) 
             for tri in self._triangles
         ]
     
-    def get_triangles(self):
+    def get_triangles(self) -> List[npt.NDArray[np.intp]]:
         """
         Get triangles as arrays of original point indices.
         
@@ -207,7 +238,7 @@ class PolyTri(object):
         """
         return self.triangles
 
-    def _compute_triangle_area(self, i0, i1, i2):
+    def _compute_triangle_area(self, i0: int, i1: int, i2: int) -> float:
         """
         Compute the signed area of a triangle (2D cross product).
         
@@ -221,9 +252,9 @@ class PolyTri(object):
         """
         d1 = self._points[i1] - self._points[i0]
         d2 = self._points[i2] - self._points[i0]
-        return d1[0] * d2[1] - d1[1] * d2[0]
+        return float(d1[0] * d2[1] - d1[1] * d2[0])
 
-    def _is_visible_from_edge(self, point_idx, edge):
+    def _is_visible_from_edge(self, point_idx: int, edge: Tuple[int, int]) -> bool:
         """
         Check if a point is visible from an edge (lies to the right when edge points down).
         
@@ -237,7 +268,7 @@ class PolyTri(object):
         area = self._compute_triangle_area(point_idx, edge[0], edge[1])
         return area < self.EPS
 
-    def _ensure_counter_clockwise(self, triangle_indices):
+    def _ensure_counter_clockwise(self, triangle_indices: List[int]) -> None:
         """
         Reorder triangle vertices to ensure counter-clockwise orientation.
         
@@ -251,7 +282,7 @@ class PolyTri(object):
             # Swap last two vertices
             triangle_indices[1], triangle_indices[2] = triangle_indices[2], triangle_indices[1]
 
-    def _constrain_edge(self, edge):
+    def _constrain_edge(self, edge: Tuple[int, int]) -> None:
         """
         Constrain an edge to be present in the triangulation.
         
@@ -314,7 +345,12 @@ class PolyTri(object):
                     self._constrain_edge(_make_edge_key(intersecting_edge[0], pt0))
                     self._constrain_edge(_make_edge_key(pt0, pt1))
 
-    def _flip_edge(self, edge, enforce_delaunay=True, check_intersection=False):
+    def _flip_edge(
+        self,
+        edge: EdgeKey,
+        enforce_delaunay: bool = True,
+        check_intersection: bool = False,
+    ) -> Set[EdgeKey]:
         """
         Flip an edge between two triangles and update data structures.
         
@@ -326,7 +362,7 @@ class PolyTri(object):
         Returns:
             Set of edges that may need to be checked/flipped next
         """
-        result_edges = set()
+        result_edges: Set[EdgeKey] = set()
         
         triangles = self._edge_to_triangles.get(edge, [])
         if len(triangles) < 2:
@@ -348,7 +384,7 @@ class PolyTri(object):
         if check_intersection:
             diagonal = _make_edge_key(opposite1, opposite2)
             if not self._edges_intersect(edge, diagonal):
-                return set()
+                return result_edges
         
         if enforce_delaunay:
             # Compute angles at opposite vertices
@@ -424,7 +460,7 @@ class PolyTri(object):
         
         return result_edges
 
-    def flip_edges(self):
+    def flip_edges(self) -> None:
         """Flip all edges to satisfy Delaunay criterion."""
         edge_set = set(self._edge_to_triangles.keys())
         
@@ -435,7 +471,7 @@ class PolyTri(object):
                 new_edge_set.update(result_edges)
             edge_set = new_edge_set
 
-    def _add_point(self, point_idx):
+    def _add_point(self, point_idx: int) -> None:
         """
         Add a point to the triangulation.
         
@@ -487,7 +523,11 @@ class PolyTri(object):
         if self._delaunay:
             self.flip_edges()
 
-    def _create_boundary_list(self, border_indices=None, create_key=True):
+    def _create_boundary_list(
+        self,
+        border_indices: Optional[Sequence[int]] = None,
+        create_key: bool = True,
+    ) -> List[Tuple[int, int]]:
         """
         Create a list of boundary edges from boundary definitions.
         
@@ -506,21 +546,27 @@ class PolyTri(object):
             if border_indices and k not in border_indices:
                 continue
             boundary = np.asarray(boundary)
-            boundary_original = self._point_unorder[boundary]
-            for i, j in zip(boundary_original[:-1], boundary_original[1:]):
+            # Map boundary indices (original) to current point indices
+            boundary_current = self._orig_to_new[boundary]
+            if np.any(boundary_current == -1):
+                raise ValueError(
+                    "Boundary references a point index that was removed as collinear. "
+                    "Boundary indices must refer to the current point set."
+                )
+            for i, j in zip(boundary_current[:-1], boundary_current[1:]):
                 if create_key:
                     boundary_edges.append(_make_edge_key(i, j))
                 else:
                     boundary_edges.append((i, j))
         return boundary_edges
 
-    def constrain_boundaries(self):
+    def constrain_boundaries(self) -> None:
         """Constrain all specified boundaries."""
         boundary_edges = self._create_boundary_list()
         for edge in boundary_edges:
             self._constrain_edge(edge)
 
-    def _update_mappings(self):
+    def _update_mappings(self) -> None:
         """Rebuild edge-to-triangle and point-to-triangle mappings."""
         self._edge_to_triangles = {}
         self._point_to_triangles = {}
@@ -546,7 +592,7 @@ class PolyTri(object):
         self._boundary_edges = new_boundary_edges
         self.boundary_edges = self._boundary_edges
 
-    def remove_empty_triangles(self):
+    def remove_empty_triangles(self) -> None:
         """Remove triangles with zero or near-zero area."""
         triangles_to_remove = []
         for i, triangle in enumerate(self._triangles):
@@ -560,7 +606,11 @@ class PolyTri(object):
             for i in triangles_to_remove:
                 self._triangles.pop(i)
 
-    def _triangle_to_edges(self, triangle, create_key=True):
+    def _triangle_to_edges(
+        self,
+        triangle: Sequence[int],
+        create_key: bool = True,
+    ) -> List[Tuple[int, int]]:
         """
         Get edges of a triangle.
         
@@ -577,7 +627,7 @@ class PolyTri(object):
         else:
             return [tuple(edge) for edge in zip(triangle_cyclic[:-1], triangle_cyclic[1:])]
 
-    def _edges_intersect(self, edge1, edge2):
+    def _edges_intersect(self, edge1: EdgeKey, edge2: EdgeKey) -> bool:
         """
         Check if two edges intersect (excluding endpoints).
         
@@ -608,8 +658,12 @@ class PolyTri(object):
         except np.linalg.LinAlgError:
             return False
 
-    def remove_holes(self):
-        """Remove triangles inside holes defined by boundaries."""
+    def remove_holes(self) -> None:
+        """Remove triangles inside holes defined by boundaries.
+        
+        Note: The `border` parameter (if set) determines which boundaries are used.
+        For typical applications, `border` is not needed and can be left as None.
+        """
         if self._boundaries is None:
             return
         
