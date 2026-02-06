@@ -1,8 +1,7 @@
 # OpenGlider
 
-[![Build Status](https://travis-ci.org/booya-at/OpenGlider.svg?branch=develop)](https://travis-ci.org/booya-at/OpenGlider)
-[![Coverage Status](https://img.shields.io/coveralls/hiaselhans/OpenGlider.svg)](https://coveralls.io/r/hiaselhans/OpenGlider)
-[![Documentation Status](https://readthedocs.org/projects/openglider/badge/?version=latest)](https://readthedocs.org/projects/openglider/?badge=latest)
+[![run all tests](https://github.com/booya-at/OpenGlider/actions/workflows/tests.yml/badge.svg)](https://github.com/booya-at/OpenGlider/actions/workflows/tests.yml)
+[![Documentation](https://github.com/booya-at/OpenGlider/actions/workflows/docs.yml/badge.svg)](https://github.com/booya-at/OpenGlider/actions/workflows/docs.yml)
 
 A future open source paraglider design software (still a WIP)
 
