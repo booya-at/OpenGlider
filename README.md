@@ -61,19 +61,19 @@ Ausführliche Beschreibung, Marker, Verzeichnisstruktur: [tests/README.md](tests
 
 While still being in an early status, here are a few screenshots showing progress made so far:
 
-![screenshot gui](docs/freecad_gui.png)
+![screenshot gui](docs_old/freecad_gui.png)
 glider workbench gui  
 
-![screenshot testcell with miniribs](docs/screen.png)
+![screenshot testcell with miniribs](docs_old/screen.png)
 testcell with miniribs
 
-![screenshot demokite with central minirib](docs/screen2.png)
+![screenshot demokite with central minirib](docs_old/screen2.png)
 demo kite with central minirib
 
-![screenshot demokite plots](docs/screen3.png)
+![screenshot demokite plots](docs_old/screen3.png)
 demo kite plots
 
-![plots](docs/plots.svg)
+![plots](docs_old/plots.svg)
 plots
 
 ## Roadmap
