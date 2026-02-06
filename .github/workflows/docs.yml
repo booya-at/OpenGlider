@@ -1,4 +1,5 @@
-# Build Sphinx docs in ./docs and deploy to GitHub Pages
+# Build Sphinx docs in ./docs and deploy to GitHub Pages.
+# Enable Pages first: repo Settings → Pages → Source: "GitHub Actions".
 name: Documentation
 
 on: [push, pull_request]
