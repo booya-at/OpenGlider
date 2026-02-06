@@ -1,3 +1,5 @@
+"""Task panel for editing the glider shape (front/back curves and rib distribution)."""
+
 from __future__ import division
 
 import time
@@ -25,9 +27,12 @@ from .tools import (
 
 
 class ShapeTool(BaseTool):
+    """Task panel to edit front curve, back curve and cell/rib distribution."""
+
     widget_name = "Shape Tool"
 
     def __init__(self, obj):
+        """Build the shape tool for the given FreeCAD glider object."""
         super(ShapeTool, self).__init__(obj)
 
         # scene components

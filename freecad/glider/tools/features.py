@@ -1,3 +1,5 @@
+"""FreeCAD feature objects that modify the glider (rib, ballooning, shark, flap, hole, scale)."""
+
 import copy
 import os
 
@@ -11,6 +13,8 @@ from .glider import OGBaseObject, OGGliderVP
 
 
 class BaseFeature(OGBaseObject):
+    """Base for feature Proxies that reference a parent glider and return a modified copy of it."""
+
     def __init__(self, obj, parent):
         self.obj = obj
         obj.addProperty(
@@ -90,6 +94,8 @@ class BaseFeature(OGBaseObject):
 
 
 class RibFeature(BaseFeature):
+    """Feature that overrides airfoil and AOA/offset for selected ribs."""
+
     def __init__(self, obj, parent):
         super(RibFeature, self).__init__(obj, parent)
 
@@ -113,12 +119,16 @@ class RibFeature(BaseFeature):
 
 
 class VRibFeature(OGGliderVP):
+    """ViewProvider for RibFeature (custom icon)."""
+
     def getIcon(self):
         _dir = os.path.dirname(os.path.realpath(__file__))
         return _dir + "/../icons/rib_feature.svg"
 
 
 class BallooningFeature(BaseFeature):
+    """Feature that applies a specific ballooning to selected cells."""
+
     def __init__(self, obj, parent):
         super(BallooningFeature, self).__init__(obj, parent)
         obj.addProperty("App::PropertyIntegerList", "cells", "not yet", "docs")
@@ -136,6 +146,8 @@ class BallooningFeature(BaseFeature):
 
 
 class BallooningMultiplier(BaseFeature):
+    """Feature that multiplies ballooning by per-cell factors (mutiply_values)."""
+
     def __init__(self, obj, parent):
         super(BallooningMultiplier, self).__init__(obj, parent)
         obj.addProperty(
@@ -156,12 +168,16 @@ class BallooningMultiplier(BaseFeature):
 
 
 class VBallooningFeature(OGGliderVP):
+    """ViewProvider for BallooningFeature (custom icon)."""
+
     def getIcon(self):
         _dir = os.path.dirname(os.path.realpath(__file__))
         return _dir + "/../icons/ballooning_feature.svg"
 
 
 class SharkFeature(BaseFeature):
+    """Feature that applies a shark-nose modification to the glider."""
+
     def __init__(self, obj, parent):
         super(SharkFeature, self).__init__(obj, parent)
 
@@ -207,12 +223,16 @@ class SharkFeature(BaseFeature):
 
 
 class VSharkFeature(OGGliderVP):
+    """ViewProvider for SharkFeature (custom icon)."""
+
     def getIcon(self):
         _dir = os.path.dirname(os.path.realpath(__file__))
         return _dir + "/../icons/sharknose_feature.svg"
 
 
 class SingleSkinRibFeature(BaseFeature):
+    """Feature that creates single-skin (bow) ribs between attachment points."""
+
     def __init__(self, obj, parent):
         super(SingleSkinRibFeature, self).__init__(obj, parent)
         obj.addProperty("App::PropertyIntegerList", "ribs", "not yet", "docs")
@@ -304,12 +324,16 @@ class SingleSkinRibFeature(BaseFeature):
 
 
 class VSingleSkinRibFeature(OGGliderVP):
+    """ViewProvider for SingleSkinRibFeature (custom icon)."""
+
     def getIcon(self):
         _dir = os.path.dirname(os.path.realpath(__file__))
         return _dir + "/../icons/singleskin_feature.svg"
 
 
 class FlapFeature(BaseFeature):
+    """Feature that shortens/modifies the trailing edge (flap)."""
+
     def __init__(self, obj, parent):
         super(FlapFeature, self).__init__(obj, parent)
 
@@ -331,12 +355,16 @@ class FlapFeature(BaseFeature):
 
 
 class VFlapFeature(OGGliderVP):
+    """ViewProvider for FlapFeature (custom icon)."""
+
     def getIcon(self):
         _dir = os.path.dirname(os.path.realpath(__file__))
         return _dir + "/../icons/flap_feature.svg"
 
 
 class HoleFeature(BaseFeature):
+    """Feature that adds holes to single-skin ribs."""
+
     def __init__(self, obj, parent):
         super(HoleFeature, self).__init__(obj, parent)
 
@@ -381,12 +409,16 @@ class HoleFeature(BaseFeature):
 
 
 class VHoleFeature(OGGliderVP):
+    """ViewProvider for HoleFeature (custom icon)."""
+
     def getIcon(self):
         _dir = os.path.dirname(os.path.realpath(__file__))
         return _dir + "/../icons/hole_feature.svg"
 
 
 class ScaleFeature(BaseFeature):
+    """Feature that scales the glider by a 1D factor."""
+
     def __init__(self, obj, parent):
         super(ScaleFeature, self).__init__(obj, parent)
 

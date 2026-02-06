@@ -10,14 +10,23 @@ from .table import base_table_widget
 
 
 def refresh():
+    """Compatibility hook for the workbench refresh entry point."""
     pass
 
 
 class CellTool(BaseTool):
+    """Task panel tool for editing cell-related features.
+
+    Provides access to diagonals and vector straps defined on the
+    :class:`ParametricGlider` and previews the resulting 3D glider and
+    lines in a dedicated view.
+    """
+
     hide = True
     turn = False
 
     def __init__(self, obj):
+        """Create the cell tool for the given FreeCAD glider object."""
         super(CellTool, self).__init__(obj)
         self.diagonals_table = diagonals_table()
         self.diagonals_table.get_from_ParametricGlider(self.parametric_glider)
@@ -37,6 +46,7 @@ class CellTool(BaseTool):
         self.draw_glider()
 
     def draw_glider(self):
+        """Draw a preview of the 3D glider and its lines in the task view."""
         _rot = coin.SbRotation()
         _rot.setValue(coin.SbVec3f(0, 1, 0), coin.SbVec3f(1, 0, 0))
         rot = coin.SoRotation()
@@ -56,15 +66,18 @@ class CellTool(BaseTool):
         )
 
     def update_glider(self):
+        """Apply table changes and redraw the glider preview."""
         self.task_separator.removeAllChildren()
         self.apply_elements()
         self.draw_glider()
 
     def apply_elements(self):
+        """Write current table contents back to the ParametricGlider."""
         self.diagonals_table.apply_to_glider(self.parametric_glider)
         self.vector_table.apply_to_glider(self.parametric_glider)
 
     def accept(self):
+        """Accept changes, close tables and update the main view glider."""
         super(CellTool, self).accept()
         self.diagonals_table.hide()
         self.vector_table.hide()
@@ -73,6 +86,7 @@ class CellTool(BaseTool):
         self.update_view_glider()
 
     def reject(self):
+        """Discard changes and close helper tables."""
         super(CellTool, self).reject()
         self.diagonals_table.hide()
         self.vector_table.hide()
@@ -81,14 +95,18 @@ class CellTool(BaseTool):
 
 
 def number_input(number):
+    """Create a table item with a numeric value represented as text."""
     return QtGui.QTableWidgetItem(str(number))
 
 
 class diagonals_table(base_table_widget):
+    """Table widget for configuring diagonal ribs between cells."""
+
     name = "diagonals"
     keyword = "diagonals"
 
     def __init__(self):
+        """Initialise the diagonals table with default headers."""
         super(diagonals_table, self).__init__(name="diagonals")
         self.table.setRowCount(200)
         self.table.setColumnCount(9)
@@ -107,6 +125,7 @@ class diagonals_table(base_table_widget):
         )
 
     def get_from_ParametricGlider(self, ParametricGlider):
+        """Populate the table from existing diagonals on the glider."""
         if "diagonals" in ParametricGlider.elements:
             diags = ParametricGlider.elements["diagonals"]
             for row, element in enumerate(diags):
@@ -120,8 +139,9 @@ class diagonals_table(base_table_widget):
                 self.table.setRow(row, entries)
 
     def apply_to_glider(self, ParametricGlider):
+        """Write the current table contents back to the diagonals list."""
         num_rows = self.table.rowCount()
-        # remove all diagonals from the glide_2d
+        # remove all diagonals from the glider_2d
         ParametricGlider.elements[self.keyword] = []
         for n_row in range(num_rows):
             row = self.get_row(n_row)
@@ -135,6 +155,7 @@ class diagonals_table(base_table_widget):
                 ParametricGlider.elements["diagonals"].append(diagonal)
 
     def get_row(self, n_row):
+        """Return a parsed diagonal definition from the given row or ``None``."""
         str_row = [
             self.table.item(n_row, i).text()
             for i in range(9)
@@ -154,13 +175,17 @@ class diagonals_table(base_table_widget):
 
 
 class vector_table(base_table_widget):
+    """Table widget for configuring tension lines / vector straps."""
+
     def __init__(self):
+        """Initialise the vector strap table with default headers."""
         super(vector_table, self).__init__(name="vector straps")
         self.table.setRowCount(200)
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(["left", "right", "cells"])
 
     def get_from_ParametricGlider(self, ParametricGlider):
+        """Populate the table from existing tension lines on the glider."""
         if "tension_lines" in ParametricGlider.elements:
             tension_lines = ParametricGlider.elements["tension_lines"]
             for row, element in enumerate(tension_lines):
@@ -169,6 +194,7 @@ class vector_table(base_table_widget):
                 self.table.setRow(row, entries)
 
     def apply_to_glider(self, ParametricGlider):
+        """Write the current table contents back to ``tension_lines``."""
         num_rows = self.table.rowCount()
         # remove all diagonals from the glide_2d
         ParametricGlider.elements["tension_lines"] = []
@@ -182,6 +208,7 @@ class vector_table(base_table_widget):
                 ParametricGlider.elements["tension_lines"].append(strap)
 
     def get_row(self, n_row):
+        """Return a parsed vector strap definition from the given row."""
         str_row = [
             self.table.item(n_row, i).text()
             for i in range(3)

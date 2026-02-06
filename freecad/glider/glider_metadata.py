@@ -1,3 +1,5 @@
+"""Metadata for the FreeCAD Glider workbench (paraglider construction)."""
+
 __Comment__ = "Workbench for paraglider construction"
 __Web__ = "https://github.com/looooo/freecad_glider"
 __Wiki__ = ""

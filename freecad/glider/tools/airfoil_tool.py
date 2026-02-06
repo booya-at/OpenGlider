@@ -1,3 +1,5 @@
+"""Task panel for editing airfoil profiles (Bezier control points, import/export)."""
+
 import os
 from copy import deepcopy
 
@@ -14,9 +16,12 @@ from .tools import BaseTool, ControlPointContainer, Line_old, vector3D
 
 
 class AirfoilTool(BaseTool):
+    """Task panel to select, create, edit and import/export airfoil profiles."""
+
     widget_name = "Selection"
 
     def __init__(self, obj):
+        """Build the airfoil tool for the given FreeCAD glider object."""
         super(AirfoilTool, self).__init__(obj)
         # base_widget
         self.QList_View = QtGui.QListWidget(self.base_widget)
@@ -502,6 +507,8 @@ class AirfoilTool(BaseTool):
 
 
 class QAirfoil_item(QtGui.QListWidgetItem):
+    """List widget item that holds an airfoil profile and its display name."""
+
     def __init__(self, airfoil):
         self.airfoil = airfoil
         super(QAirfoil_item, self).__init__()

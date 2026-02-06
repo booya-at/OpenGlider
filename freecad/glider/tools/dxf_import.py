@@ -1,4 +1,6 @@
-# a FreeCAD Library
+# ***************************************************************************
+# DXF import helpers for FreeCAD: parse DXF entities and convert to Part geometry.
+# ***************************************************************************
 
 # ***************************************************************************
 # *   (c) Benjamin Alterauge (gift) 2018 - 2020                             *
@@ -39,6 +41,8 @@ GC_Z = 30
 
 
 class DXFEntity:
+    """Base DXF entity with group-code dictionary (type, handle, coordinates, etc.)."""
+
     def __init__(self, et=""):
         self.groupcodes = {GC_ENTITY_TYPE: et}
 
@@ -62,6 +66,8 @@ class DXFEntity:
 
 
 class DXFPolyline(DXFEntity):
+    """DXF POLYLINE entity with a list of vertices; can be converted to Part wire."""
+
     def __init__(self, et="POLYLINE"):
         self.vertexes = []
         DXFEntity.__init__(self, et)

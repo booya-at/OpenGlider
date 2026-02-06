@@ -1,3 +1,5 @@
+"""Task panel for editing the arc (symmetric spanwise curve) of the glider."""
+
 import FreeCADGui as Gui
 from pivy import coin
 
@@ -18,11 +20,13 @@ from .tools import (
 
 
 class ArcTool(BaseTool):
+    """Task panel to edit the arc curve control points and spline type."""
+
     hide = False
     widget_name = "ArcTool"
 
     def __init__(self, obj):
-        """adds a symmetric spline to the scene"""
+        """Adds a symmetric spline to the scene and control-point container."""
         super(ArcTool, self).__init__(obj)
         sbrot1 = coin.SbRotation()
         sbrot1.setValue(coin.SbVec3f(1, 0, 0), coin.SbVec3f(0, 1, 0))

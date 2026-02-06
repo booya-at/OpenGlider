@@ -1,3 +1,5 @@
+"""Task panel for assigning and replacing panel colors (material codes)."""
+
 from __future__ import division
 
 import numpy as np
@@ -18,6 +20,8 @@ from pivy.graphics import InteractionSeparator, Polygon, COLORS
 
 
 class ColorPolygon(Polygon):
+    """Selectable polygon that displays and stores a single RGB color (std_col)."""
+
     std_col = [0.5, 0.5, 0.5]
 
     def set_enabled(self):
@@ -38,13 +42,17 @@ class ColorPolygon(Polygon):
 
 
 def refresh():
+    """Compatibility hook for the workbench refresh entry point."""
     pass
 
 
 class ColorTool(BaseTool):
+    """Task panel to set and replace panel colors (material codes) on the 2D layout."""
+
     widget_name = "Color Tool"
 
     def __init__(self, obj):
+        """Build the color tool for the given FreeCAD glider object."""
         super(ColorTool, self).__init__(obj)
 
         self.panels = self.parametric_glider.get_panels()

@@ -1,3 +1,5 @@
+"""Shared UI helpers: BaseTool, control points, vectors, colors, export/import, spline selector."""
+
 from __future__ import division
 
 from copy import deepcopy
@@ -17,10 +19,12 @@ from PySide import QtGui
 
 class ConstrainedMarker(Marker):
     def __init__(self, points, dynamic=False):
+        """Marker that restricts dragging to configurable axes."""
         super(ConstrainedMarker, self).__init__(points, dynamic)
         self.constrained = [1.0, 1.0, 0.0]
 
     def drag(self, mouse_coords, fact=1.0):
+        """Drag marker while respecting the current axis constraints."""
         if self.enabled:
             pts = self.points
             for i, pt in enumerate(pts):
@@ -43,6 +47,7 @@ class ConstrainedMarker(Marker):
 
 class Line_old(object):
     def __init__(self, points, color="black", width=1):
+        """Convenience wrapper around a simple polyline for Pivy."""
         if len(points) == 0:
             points = [[0.0, 0.0, 0.0]]
         self.object = Line(list(map(vector3D, points)))
@@ -55,6 +60,7 @@ class Line_old(object):
 
 class ControlPointContainer(coin.SoSeparator):
     def __init__(self, rm, points=None):
+        """Container managing interactive control points for splines."""
         super(ControlPointContainer, self).__init__()
         self.interaction = InteractionSeparator(rm)
         self.control_points = []
@@ -86,6 +92,15 @@ class ControlPointContainer(coin.SoSeparator):
 
 
 def vector3D(vec, z=None):
+    """Convert 2D/3D coordinates or lists thereof into 3D vectors.
+
+    Parameters
+    ----------
+    vec :
+        Single 2D/3D point, nested list/array of points, or FreeCAD.Vector.
+    z : float, optional
+        Default z-value to use when converting 2D points.
+    """
     if len(vec) == 0:
         return vec
     elif not isinstance(vec[0], (list, tuple, np.ndarray, FreeCAD.Vector)):
@@ -101,10 +116,12 @@ def vector3D(vec, z=None):
 
 
 def vector2D(vec):
+    """Return the x/y components of a 3D vector."""
     return vec[0:2]
 
 
 def hex_to_rgb(hex_string):
+    """Convert a hex color string (\"#rrggbb\") to an RGB triple in [0, 1]."""
     try:
         split = hex_string.split("#")
         if len(split) > 1:
@@ -120,6 +137,7 @@ def hex_to_rgb(hex_string):
 
 
 def rgb_to_hex(color_tuple, prefix=None):
+    """Convert an RGB triple in [0, 1] to a hex color string."""
     assert all(0 <= i <= 1 for i in color_tuple)
     c = tuple(int(i * 255) for i in color_tuple)
     hex_c = "#%02x%02x%02x" % c
@@ -129,6 +147,7 @@ def rgb_to_hex(color_tuple, prefix=None):
 
 
 def refresh():
+    """Compatibility hook for the workbench refresh entry point."""
     pass
 
 
@@ -137,6 +156,7 @@ input_field = QtGui.QFormLayout.FieldRole
 
 
 def export_glider(glider_2d, glider_3d):
+    """Export glider data as JSON (2D/3D) or ODS via a file dialog."""
     file_types = "OpenOffice *.ods;;JSON 2d *.json;;JSON 3d *.json"
     filename = QtGui.QFileDialog.getSaveFileName(
         parent=None, caption="export glider", filter=file_types
@@ -158,6 +178,7 @@ def export_glider(glider_2d, glider_3d):
 
 
 def import_2d(glider):
+    """Import a 2D glider definition (JSON/ODS) into the given FreeCAD object."""
     filename = QtGui.QFileDialog.getOpenFileName(parent=None, caption="import glider")
     if filename[0].endswith(".json"):
         with open(filename, "r") as importfile:
@@ -180,6 +201,7 @@ class spline_select(QtGui.QComboBox):
     }
 
     def __init__(self, spline_objects, update_function, parent=None):
+        """Combo box for selecting the spline base type of given splines."""
         super(spline_select, self).__init__(parent)
         self.update_function = update_function
         self.spline_objects = spline_objects  # list of splines
@@ -190,6 +212,7 @@ class spline_select(QtGui.QComboBox):
 
     @property
     def current_spline_type(self):
+        """Return the type string of the first spline ('Bezier' or 'BSpline_N')."""
         if self.spline_objects:
             base = self.spline_objects[0].basefactory
             if base.__class__ == BernsteinBase.__class__:
@@ -200,17 +223,21 @@ class spline_select(QtGui.QComboBox):
             return "Bezier"
 
     def set_spline_type(self, *args):
+        """Change all spline_objects to the currently selected base type and refresh."""
         for spline in self.spline_objects:
             spline.change_base(self.spline_types[self.currentText()][0])
         self.update_function()
 
 
 class BaseTool(object):
+    """Base class for task-panel tools: glider reference, task separator, accept/reject."""
+
     hide = True
     widget_name = "Unnamed"
     turn = True
 
     def __init__(self, obj):
+        """Store glider object, hide other objects, prepare form and task separator."""
         self.obj = obj
         self.parametric_glider = deepcopy(self.obj.Proxy.getParametricGlider())
         self._vis_object = []
@@ -244,34 +271,41 @@ class BaseTool(object):
         self.task_separator.setName("task_seperator")
         self.scene.addChild(self.task_separator)
 
-    def update_view_glider(self):  # rename
+    def update_view_glider(self):
+        """Push parametric_glider to the document object and refresh the 3D view."""
         # 1: update parametric-glider and get the glider_instance
         self.obj.Proxy.setParametricGlider(self.parametric_glider)
         # 2: draw the glider for all visible objects
         self.obj.Proxy.drawGlider()
 
     def accept(self):
+        """Apply changes: restore visibility of other objects, remove task separator, close dialog."""
         for obj in self._vis_object:
             obj.ViewObject.Visibility = True
         self.scene.removeChild(self.task_separator)
         FreeCADGui.Control.closeDialog()
 
     def reject(self):
+        """Discard changes: restore visibility, remove task separator, close dialog."""
         for obj in self._vis_object:
             obj.ViewObject.Visibility = True
         self.scene.removeChild(self.task_separator)
         FreeCADGui.Control.closeDialog()
 
     def setup_widget(self):
+        """Override to add Qt widgets to the task panel (default: no-op)."""
         pass
 
     def setup_pivy(self):
+        """Override to add Coin/Pivy scene nodes (default: no-op)."""
         pass
 
     @property
     def scene(self):
+        """The Coin scene graph of the active 3D view."""
         return self.view.getSceneGraph()
 
     @property
     def nav_bak(self):
+        """Saved navigation type of the active view."""
         return self.view.getNavigationType()

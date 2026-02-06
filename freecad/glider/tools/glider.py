@@ -1,3 +1,5 @@
+"""FreeCAD document objects for the glider: OGGlider (Proxy + ViewProvider), mesh drawing, preferences."""
+
 from __future__ import division
 
 import os
@@ -18,6 +20,7 @@ DEBUG = False
 
 
 def debug_print(*args):
+    """Print only when DEBUG is True."""
     if DEBUG:
         print(*args)
 
@@ -45,6 +48,7 @@ preference_table = {
 
 
 def get_parameter(name):
+    """Read a glider workbench preference (see preference_table) from FreeCAD user settings."""
     glider_defaults = App.ParamGet("User parameter:BaseApp/Preferences/Mod/glider")
     if preference_table[name][0] == bool:
         return glider_defaults.GetBool(name, preference_table[name][1])
@@ -53,6 +57,7 @@ def get_parameter(name):
 
 
 def mesh_sep(mesh, color, draw_lines=False, soft_edges=True):
+    """Build a Coin (Pivy) separator with indexed face set (and optional line set) from an OpenGlider mesh."""
     vertices, polygons_grouped, _ = mesh.get_indexed()
     polygons = sum(polygons_grouped.values(), [])
     _vertices = [list(v) for v in vertices]
@@ -90,10 +95,7 @@ def mesh_sep(mesh, color, draw_lines=False, soft_edges=True):
 
 
 def addProperty(obj, name, value, group, docs, p_type=None):
-    """
-    property_list:
-    property_name property_value, property_group, property_docs
-    """
+    """Add a FreeCAD dynamic property to obj if not already present (type inferred from value)."""
     if name in obj.PropertiesList:
         return
     type_dict = {
@@ -127,6 +129,8 @@ def addProperty(obj, name, value, group, docs, p_type=None):
 
 
 class OGBaseObject(object):
+    """Base for FreeCAD Proxy objects that store openglider_version, freecad_version and gliderdata."""
+
     def __init__(self, obj):
         obj.addProperty(
             "App::PropertyString",

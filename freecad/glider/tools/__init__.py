@@ -1,3 +1,9 @@
+"""FreeCAD Glider workbench commands and task-panel tools.
+
+Registers all toolbar commands (CreateGlider, ShapeCommand, etc.) and
+provides the base command class that launches the corresponding tool.
+"""
+
 import os
 
 import FreeCAD
@@ -39,17 +45,22 @@ except ImportError:
 
 
 class BaseCommand(object):
+    """Base class for FreeCAD toolbar commands that require a selected glider."""
+
     def __init__(self):
         pass
 
     def GetResources(self):
+        """Return icon, menu text and tooltip for the command (override in subclasses)."""
         return {"Pixmap": ".svg", "MenuText": "Text", "ToolTip": "Text"}
 
     def IsActive(self):
+        """Return True if a glider object is selected and the command can run."""
         if FreeCAD.ActiveDocument is not None and self.glider_obj:
             return True
 
     def Activated(self):
+        """Launch the task-panel tool for the selected glider."""
         tool = self.tool(self.glider_obj)
         #################################################################################
         # Diese Funktionen sind nur zur Strukturierung und nicht zwingend noetig.
@@ -62,6 +73,7 @@ class BaseCommand(object):
 
     @property
     def glider_obj(self):
+        """The currently selected FreeCAD glider object, or None."""
         obj = FreeCADGui.Selection.getSelection()
         if len(obj) > 0:
             obj = obj[0]
@@ -71,6 +83,7 @@ class BaseCommand(object):
 
     @property
     def feature(self):
+        """The currently selected glider object (alias for glider_obj)."""
         obj = FreeCADGui.Selection.getSelection()
         if len(obj) > 0:
             obj = obj[0]
@@ -79,10 +92,13 @@ class BaseCommand(object):
         return None
 
     def tool(self, obj):
+        """Return the task-panel tool instance for the given glider (override in subclasses)."""
         return tools.BaseTool(obj)
 
 
 class ViewCommand(object):
+    """Command to switch the 3D view to perspective and set camera angle."""
+
     def GetResources(self):
         return {
             "Pixmap": "cell_command.svg",
@@ -100,6 +116,8 @@ class ViewCommand(object):
 
 
 class CellCommand(BaseCommand):
+    """Command to edit cell diagonals and vector straps."""
+
     def tool(self, obj):
         return cell_tool.CellTool(obj)
 
@@ -112,6 +130,8 @@ class CellCommand(BaseCommand):
 
 
 class Gl2dExport(BaseCommand):
+    """Command to export the glider to JSON or ODS via file dialog."""
+
     def GetResources(self):
         return {
             "Pixmap": "gl2d_export.svg",
@@ -133,6 +153,8 @@ class Gl2dExport(BaseCommand):
 
 
 class CreateGlider(BaseCommand):
+    """Command to create a new empty glider document object."""
+
     def GetResources(self):
         return {
             "Pixmap": "new_glider.svg",
@@ -142,6 +164,7 @@ class CreateGlider(BaseCommand):
 
     @staticmethod
     def create_glider(import_path=None, parametric_glider=None):
+        """Create a new FreeCAD glider object, optionally from file or parametric data."""
         glider_object = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Glider")
         glider.OGGlider(
             glider_object, import_path=import_path, parametric_glider=parametric_glider
@@ -160,6 +183,8 @@ class CreateGlider(BaseCommand):
 
 
 class PatternCommand(BaseCommand):
+    """Command to unwrap the glider and create panel/cutting pattern files."""
+
     def GetResources(self):
         return {
             "Pixmap": "pattern_command.svg",
@@ -187,10 +212,13 @@ class PatternCommand(BaseCommand):
 
     @staticmethod
     def fcvec(vec):
+        """Convert a 2D/3D list to a FreeCAD Vector (z=0)."""
         return FreeCAD.Vector(vec[0], vec[1], 0.0)
 
 
 class ImportGlider(BaseCommand):
+    """Command to import a glider from JSON or ODS via file dialog."""
+
     def create_glider_with_dialog(self):
         file_name = QtGui.QFileDialog.getOpenFileName(
             parent=None, caption="import glider"
@@ -356,6 +384,7 @@ class LineObserveCommand(BaseCommand):
 
 
 def check_glider(obj):
+    """Return True if the FreeCAD object is an OpenGlider glider (has glider Proxy)."""
     if hasattr(obj, "Proxy") and hasattr(obj.Proxy, "getGliderInstance"):
         return True
 
@@ -405,6 +434,8 @@ class ColorCommand(BaseCommand):
 
 
 class RefreshCommand:
+    """Command to reload workbench modules (for development)."""
+
     NOT_RELOAD = ["freecad.freecad_glider.init_gui"]
     RELOAD = ["pivy.coin", "freecad.freecad_glider"]
 
@@ -433,6 +464,8 @@ class RefreshCommand:
 
 
 class GliderFeatureCommand(BaseCommand):
+    """Base command for adding feature objects (rib, ballooning, etc.) to a glider."""
+
     def GetResources(self):
         return {"Pixmap": "feature.svg", "MenuText": "Features", "ToolTip": "Features"}
 
@@ -583,6 +616,8 @@ class GliderBallooningMultiplierFeatureCommand(GliderFeatureCommand):
 
 
 class ImportDXFCommand(object):
+    """Command to import DXF geometry and show it as Part compound."""
+
     def __init__(self):
         pass
 

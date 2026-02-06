@@ -1,3 +1,5 @@
+"""Task panel for editing the line set (attachment points, lines, layers)."""
+
 from __future__ import division
 
 import sys
@@ -32,6 +34,8 @@ from .tools import BaseTool, input_field, text_field, vector3D
 
 
 class Line(_Line):
+    """Line that can be disabled (drawn behind plane) for selection feedback."""
+
     def set_disabled(self):
         super(Line, self).set_disabled()
         points = np.array(self.points)
@@ -46,6 +50,8 @@ class Line(_Line):
 
 
 class Marker(_Marker):
+    """Marker that can be disabled (drawn behind plane) for selection feedback."""
+
     def set_disabled(self):
         super(Marker, self).set_disabled()
         points = np.array(self.points)
@@ -60,6 +66,8 @@ class Marker(_Marker):
 
 
 class LineContainer(InteractionSeparator):
+    """Interaction separator for line-tool objects with select_object and select_all_cb."""
+
     def select_object(self, obj, multi=False):
         if not multi:
             for o in self.selected_objects:
@@ -99,9 +107,12 @@ class LineContainer(InteractionSeparator):
 
 
 class LineTool(BaseTool):
+    """Task panel to edit the parametric line set (nodes, lines, layers)."""
+
     widget_name = "Line Tool"
 
     def __init__(self, obj):
+        """Build the line tool for the given FreeCAD glider object."""
         super(LineTool, self).__init__(obj)
 
         # get the parametric shape

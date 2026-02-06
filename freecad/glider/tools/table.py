@@ -1,3 +1,5 @@
+"""Reusable table widget and base tool for tabular data in task panels."""
+
 from __future__ import division
 
 from PySide import QtCore, QtGui
@@ -6,10 +8,13 @@ from .tools import BaseTool, input_field, text_field
 
 
 def refresh():
+    """Compatibility hook for the workbench refresh entry point."""
     pass
 
 
 class table_tool(BaseTool):
+    """Base tool that shows one or two table widgets via buttons."""
+
     hide = False
 
     def __init__(self, obj):
@@ -100,6 +105,8 @@ class base_table_widget(QtGui.QWidget):
 
 
 class base_table(QtGui.QTableWidget):
+    """Table widget with sizeHint and setRow/setItem helpers for list/tuple cells."""
+
     def __init__(self, parent=None):
         super(base_table, self).__init__(parent)
         # self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+"""Span-wise mapping tools: AOA, z-rotation, airfoil and ballooning distribution along span."""
+
 from __future__ import division
 
 import numpy as np
@@ -20,6 +22,8 @@ from .tools import (
 
 
 class SpanMappingTool(BaseTool):
+    """Base task panel for editing a single spline that varies along span (e.g. AOA, z-rotation)."""
+
     num_on_drag = 80
     num_release = 200
     widget_name = "span mapping"
@@ -57,9 +61,7 @@ class SpanMappingTool(BaseTool):
 
     @property
     def spline(self):
-        """
-        overwrite this function!!!
-        """
+        """The parametric spline edited by this tool (override in subclasses; default: zrot)."""
         return self.parametric_glider.zrot
 
     def setup_pivy(self):
@@ -219,6 +221,8 @@ class SpanMappingTool(BaseTool):
 
 
 class AoaTool(SpanMappingTool):
+    """Task panel to edit angle-of-attack distribution along span (and glide number)."""
+
     value_scale = 180.0 / np.pi
     scale = np.array([1.0, 10.0])
     grid_y_diff = 1
@@ -289,6 +293,8 @@ class AoaTool(SpanMappingTool):
 
 
 class ZrotTool(SpanMappingTool):
+    """Task panel to edit rib z-rotation (twist) distribution along span."""
+
     widget_name = "Z rotation"
     scale = np.array([1.0, 1.0])
     grid_y_diff = 0.2
@@ -296,6 +302,8 @@ class ZrotTool(SpanMappingTool):
 
 
 class AirfoilMergeTool(SpanMappingTool):
+    """Task panel to edit airfoil distribution (profile_merge_curve) along span."""
+
     value_scale = 1
     scale = np.array([1.0, 1.0])
     grid_y_diff = 1.0
@@ -307,6 +315,8 @@ class AirfoilMergeTool(SpanMappingTool):
 
 
 class BallooningMergeTool(SpanMappingTool):
+    """Task panel to edit ballooning distribution (ballooning_merge_curve) along span."""
+
     value_scale = 1
     scale = np.array([1.0, 1.0])
     grid_y_diff = 1.0

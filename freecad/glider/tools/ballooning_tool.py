@@ -1,3 +1,5 @@
+"""Task panel for editing ballooning (excess fabric) distributions per rib."""
+
 from __future__ import division
 
 import numpy
@@ -17,10 +19,13 @@ from .tools import (
 
 
 class BallooningTool(BaseTool):
+    """Task panel to create, select and edit ballooning curves (upper/lower splines)."""
+
     widget_name = "Selection"
     scale_y = 5
 
     def __init__(self, obj):
+        """Build the ballooning tool for the given FreeCAD glider object."""
         super(BallooningTool, self).__init__(obj)
         # base_widget
         self.QList_View = QtGui.QListWidget(self.base_widget)
@@ -294,6 +299,8 @@ class BallooningTool(BaseTool):
 
 
 class QBalooning(QtGui.QListWidgetItem):
+    """List widget item holding a ballooning instance and scaled control points for display."""
+
     def __init__(self, ballooning, scale_y=10):
         self.ballooning = ballooning
         super(QBalooning, self).__init__()
@@ -333,6 +340,7 @@ class QBalooning(QtGui.QListWidgetItem):
 
 
 def insert_point(points, insert_point):
+    """Insert a 2D point into the list in sorted order by x; return the list."""
     forward = points[-1][0] > points[0][0]
     for i, point in enumerate(points):
         if (point[0] < insert_point[0]) == forward:

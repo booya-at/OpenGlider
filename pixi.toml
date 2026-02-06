@@ -1,4 +1,4 @@
-[project]
+[workspace]
 authors = ["looooo <sppedflyer@gmail.com>"]
 channels = ["conda-forge", "freecad/label/dev"]
 description = "Add a short description here"
@@ -10,9 +10,10 @@ version = "0.8.1"
 openglider = { path = ".", editable = true }
 
 [dependencies]
+
 pip = "*"
 svgwrite = "*"
-numpy = "*"
+numpy = ">=1.26,<1.27"
 scipy = "*"
 ezdxf = "*"
 ezodf = "*"
@@ -23,7 +24,9 @@ matplotlib = "*"
 parabem = "*"
 pylint = "*"
 freecad = ">=1.0.0,<1.1.0"
+sphinx = "*"
 
 [tasks]
 test = "python testall.py"
 lint = "pylint $(git ls-files '*.py')"
+docs = "sphinx-build -b html docs/source docs/build/html"

@@ -1,3 +1,5 @@
+"""Task panel for defining cuts (cell openings, coloring) on the 2D shape."""
+
 from __future__ import division
 
 import numpy as np
@@ -11,6 +13,7 @@ from pivy.graphics import InteractionSeparator, Line, Marker
 
 
 def refresh():
+    """Compatibility hook for the workbench refresh entry point."""
     pass
 
 
@@ -31,9 +34,12 @@ def refresh():
 
 
 class DesignTool(BaseTool):
+    """Task panel to add and edit cut lines (upper/lower) for cells and panel coloring."""
+
     widget_name = "Design Tool"
 
     def __init__(self, obj):
+        """Build the design tool for the given FreeCAD glider object."""
         super(DesignTool, self).__init__(obj)
         self.side = "upper"
 
@@ -376,6 +382,8 @@ class DesignTool(BaseTool):
 
 
 class CutPoint(Marker):
+    """Draggable marker representing a point on a cut line (rib index + chord position)."""
+
     def __init__(self, rib_nr, rib_pos, parametric_glider=None):
         super(CutPoint, self).__init__([[0, 0, 0]], True)
         self.marker.markerIndex = coin.SoMarkerSet.CROSS_7_7
@@ -453,6 +461,7 @@ class CutPoint(Marker):
 
     @classmethod
     def from_position_and_rib(cls, rib_nr, y_pos, upper, parametric_glider):
+        """Create a CutPoint from a rib index, y position and upper/lower side."""
         i = 0
         max_val = parametric_glider.shape[rib_nr, 1.0][1]
         min_val = parametric_glider.shape[rib_nr, 0.0][1]
@@ -463,6 +472,8 @@ class CutPoint(Marker):
 
 
 class CutLine(Line):
+    """Line between two CutPoints representing one cut segment (type: folded, etc.)."""
+
     upper_point_set = set()
     lower_point_set = set()
     upper_line_list = []

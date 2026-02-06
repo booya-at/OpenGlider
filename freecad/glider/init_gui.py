@@ -1,3 +1,5 @@
+"""FreeCAD GUI initialisation: register Glider workbench and icon path."""
+
 import os
 
 from pivy import coin
@@ -14,6 +16,8 @@ Gui.addIconPath(os.path.join(Dir, "icons"))
 
 
 class GliderWorkbench(Gui.Workbench):
+    """FreeCAD workbench for paraglider/kite design with OpenGlider."""
+
     MenuText = "Glider"
     ToolTip = "Glider Workbench"
     Icon = os.path.join(Dir, "icons", "glider_workbench.svg")
@@ -59,9 +63,11 @@ class GliderWorkbench(Gui.Workbench):
     devBox = ["RefreshCommand"]
 
     def GetClassName(self):
+        """Return the FreeCAD workbench class name."""
         return "Gui::PythonWorkbench"
 
     def Initialize(self):
+        """Register all toolbar commands and menus."""
         from . import tools
 
         global Dir
@@ -125,6 +131,7 @@ class GliderWorkbench(Gui.Workbench):
         Gui.addPreferencePage(Dir + "/ui/preferences.ui", "glider")
 
     def Activated(self):
+        """Print usage hints when the workbench is activated for the first time."""
         if not hasattr(self, "first_startup"):
             FreeCAD.Console.PrintMessage(
                 "This is the glider-workbench, a gui for openglider:\n"
@@ -148,6 +155,7 @@ class GliderWorkbench(Gui.Workbench):
             self.first_startup = True
 
     def Deactivated(self):
+        """Called when the user switches away from the Glider workbench."""
         pass
 
 

@@ -1,8 +1,19 @@
+"""FreeCAD Glider workbench: GUI for OpenGlider paraglider/kite design."""
+
 __version__ = "0.1.2"
 # from . import commands
 
 
 def show_lineset_points(glider, pattern=None):
+    """Create FreeCAD Part vertices from a glider's line set attachment points.
+
+    Parameters
+    ----------
+    glider : openglider.glider.Glider
+        The 3D glider instance whose lineset is used.
+    pattern : str, optional
+        If given, only lines whose name contains this string are considered.
+    """
     import Part
     import FreeCAD as App
 

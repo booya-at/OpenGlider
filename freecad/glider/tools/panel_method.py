@@ -1,3 +1,5 @@
+"""Task panels for potential-flow (panel method) and polars (lift/drag vs angle)."""
+
 from __future__ import division
 
 import logging
@@ -16,6 +18,8 @@ from pivy.graphics import COLORS, InteractionSeparator, Line, Marker, coin
 
 
 class Polars(BaseTool):
+    """Task panel to compute and plot polars (weight, drag, moment ref) using parabem panel method."""
+
     widget_name = "Aerdynamic computations"
     hide = False
     try:
@@ -199,6 +203,8 @@ class Polars(BaseTool):
 
 
 class PanelTool(BaseTool):
+    """Task panel to run 3D panel method (parabem) and inspect aerodynamic properties."""
+
     widget_name = "Properties"
     hide = True
     try:

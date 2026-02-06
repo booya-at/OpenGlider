@@ -1,5 +1,4 @@
-# updaing projects to newer versions of openglider and dependencies
-# defining an interface to do this?
+"""Update FreeCAD glider objects to newer OpenGlider/FreeCAD property schemas."""
 
 import openglider
 from freecad import app
@@ -10,6 +9,7 @@ from .glider import addProperty
 
 
 def version_update(obj):
+    """Run all migration steps to bring the glider object to the latest schema."""
     from_0_01_to_0_02(obj)
     from_0_02_to_0_03(obj)
     from_0_03_to_0_04(obj)
@@ -17,6 +17,7 @@ def version_update(obj):
 
 
 def from_0_01_to_0_02(obj):
+    """Add openglider_version and freecad_version properties if missing (0.01 -> 0.02)."""
     # no version was specified so we have to update to 0.2
     if not hasattr(obj, "openglider_version"):
         obj.addProperty(
@@ -43,6 +44,7 @@ def from_0_01_to_0_02(obj):
 
 
 def from_0_02_to_0_03(obj):
+    """Rename horizontal_shift to vertical_shift (0.02 -> 0.03)."""
     if obj.openglider_version == "0.02":
         if hasattr(obj, "horizontal_shift"):
             value = obj.horizontal_shift
@@ -55,6 +57,7 @@ def from_0_02_to_0_03(obj):
 
 
 def from_0_03_to_0_04(obj):
+    """Add gliderdata properties: area, projected_area, aspect_ratio, num_cells, span (0.03 -> 0.04)."""
     if obj.openglider_version == "0.03":
         obj.addProperty(
             "App::PropertyFloat", "area", "gliderdata", "flat area of glider", 1
@@ -84,6 +87,7 @@ def from_0_03_to_0_04(obj):
 
 
 def from_0_04_to_0_05(obj):
+    """Change parent from string to PropertyLink (0.04 -> 0.05)."""
     if obj.openglider_version == "0.04":
         if hasattr(obj, "parent"):
             parent = obj.parent
