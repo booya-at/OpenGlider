@@ -40,6 +40,8 @@ conda create -n openglider openglider freecad meshpy -c conda-forge
 
 ## Documentation
 
+**[Online-Dokumentation (Sphinx)](https://booya-at.github.io/OpenGlider/)** – Installation, Konzepte, FreeCAD-Workbench, API-Referenz.
+
 Every module inside openglider *should* have a README where the functionality is documented.  
 Please have a look at the [base module](./openglider/README.md).
 

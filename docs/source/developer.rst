@@ -8,7 +8,7 @@ Contributions are welcome. Areas that need work include:
 
 * Code quality and refactoring
 * Documentation and docstrings
-* Unit tests and visual tests
+* Unit tests (``test_*.py``) and visual tests (``visual_test_*.py``)
 * New features and bug fixes
 
 Code conventions
@@ -24,24 +24,38 @@ Code conventions
 Running tests
 -------------
 
-From the project root::
+Tests use **pytest**. Install test deps: ``pip install -e ".[test]"`` or use the
+pixi environment. From the project root:
 
-   ./testall.py
+* **Unit tests only** (default; excludes visual/GUI tests; use for CI)::
 
-For visual tests as well::
+     pytest tests/ -m "not visual"
+     ./testall.py
+     pixi run test
 
-   ./testall.py -a
+* **All tests** (including ``visual_test_*.py``; needs display/VTK)::
+
+     pytest tests/
+     ./testall.py -a
+     pixi run test-all
+
+* **Single file or filter**: ``pytest tests/test_glider.py -v``,
+  ``pytest tests/ -k "glider" -v``, ``./testall.py -p "glider"``.
+
+Visual tests are marked with the ``visual`` marker (see ``pyproject.toml`` and
+``tests/conftest.py``). Full details: ``tests/README.md`` in the repository.
 
 Building documentation
 ----------------------
 
-From the ``docs`` directory::
+From the project root (with pixi or ``pip install sphinx``)::
 
-   make apidoc   # regenerate API .rst from openglider
-   make html     # build HTML (runs apidoc automatically)
+   pixi run docs
+   # or:  sphinx-build -b html docs/source docs/build/html
 
-Output is in ``docs/build/html/``. Use ``sphinx-build -W`` for strict
-warnings (e.g. in CI).
+Output is in ``docs/build/html/``. From the ``docs/`` directory you can also
+use ``make apidoc`` (regenerate API .rst) and ``make html``. Use
+``sphinx-build -W`` for strict warnings (e.g. in CI).
 
 API documentation
 -----------------
