@@ -596,6 +596,11 @@ class Cell(CachedObject):
             cuts_3d[cut_key] = amount
 
         def get_amount(cut):
+            if cut.get("sagitta") is not None:
+                # a designed amount instead of the one from the shape: both seam edges convex by a parabola,
+                # sagitta (m) in the middle of the cell, 0 at the ribs (e.g. a 3D cut chosen by a FEM search)
+                us = openglider.utils.linspace(0, 1, numribs + 2)
+                return [4 * float(cut["sagitta"]) * u * (1 - u) for u in us]
             cut_key = cut_hash(cut)
             data = cuts_3d[cut_key]
             # TODO: Investigate

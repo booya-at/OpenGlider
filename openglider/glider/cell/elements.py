@@ -356,26 +356,30 @@ class TensionStrap(DiagonalRib):
         Similar to a Diagonalrib but always connected to the bottom-sail.
         :param left: left center of TensionStrap as x-value
         :param right: right center of TesnionStrap as x-value
-        :param width: width of TensionStrap
+        :param width: width of TensionStrap as x-value (chord fraction), or [left, right]: own width on each rib
         :param material_code: color/material-name (optional)
         :param name: name of TensionStrap (optional)
         """
-        width /= 2
+        if isinstance(width, (list, tuple)):
+            w_l, w_r = float(width[0]), float(width[1])
+        else:
+            w_l = w_r = width
         super(TensionStrap, self).__init__(
-            (left - width / 2, height),
-            (left + width / 2, height),
-            (right - width / 2, height),
-            (right + width / 2, height),
+            (left - w_l / 2, height),
+            (left + w_l / 2, height),
+            (right - w_r / 2, height),
+            (right + w_r / 2, height),
             material_code,
             name,
             shape,
         )
 
     def __json__(self):
+        w_l, w_r = self.width_left, self.width_right
         d = {
             "left": self.center_left,
             "right": self.center_right,
-            "width": (self.width_left + self.width_right) / 2,
+            "width": w_l if abs(w_l - w_r) < 1e-12 else [w_l, w_r],
             "height": self.left_front[1],
         }
         if getattr(self, "shape", None):
@@ -467,7 +471,8 @@ class Panel(object):
         - folded: start end of open panel (entry)
         - orthogonal: design cuts
         - singleskin-cut: start/end of a open singleskin-section (used for different rib-modifications)
-        - 3d: 3d design cut
+        - 3d: 3d design cut; the amount comes from the 3D shape, or is given: "sagitta" (m) in the cut makes both
+          seam edges convex by a parabola with that height in the middle of the cell
         """
 
         folded = "folded"

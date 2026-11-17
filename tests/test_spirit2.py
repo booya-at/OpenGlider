@@ -1,10 +1,14 @@
 """Spirit 2 (ASA, size 28.6 m2): an older wing, out of production, of which more than 100 were sewn in several sizes.
 
 Built in OpenGlider from the original Matlab design; the cutting patterns match the Matlab ones (cells 3-29 to
-0.01 mm, the center cell within 1 mm). Main lines A, B, C, D (no brakes). Inner structure from the Matlab data:
-diagonal ribs in three rows (A, B, C) next to the loaded ribs, elliptic holes in the ribs; trailing edge miniribs
-in all cells but the five of the wing tip. Straps are not in the model, and some diagonals may be missing: part of
-the original design data was lost over the years.
+0.01 mm, the center cell within 1 mm). Main lines A, B, C, D and the brake cascade of the line plan. Inner structure
+from the Matlab data: diagonal ribs in three rows (A, B, C) next to the loaded ribs, elliptic holes in the ribs;
+trailing edge miniribs in all cells but the five of the wing tip. Some diagonals may be missing: part of the original
+design data was lost over the years.
+
+Added from the FEM / CFD study of the wing (2026-11): straps of rows A, B and C on the lower surface (one per cell,
+own width on each rib) and a nose 3D cut on the upper side of cells 1-21 (7 % and 18.5 % of the chord, sagitta 4 and
+2 mm in the widest cell) given by its designed sagitta.
 """
 import os
 import unittest
@@ -27,7 +31,27 @@ class TestSpirit2(unittest.TestCase):
         self.assertAlmostEqual(self.glider.area, 28.56, delta=0.05)
 
     def test_lines(self):
-        self.assertEqual(len(self.glider.lineset.lines), 54)
+        self.assertEqual(len(self.glider.lineset.lines), 75)
+        self.assertEqual(len([line for line in self.glider.lineset.lines if line.name.startswith("brake")]), 21)
+
+    def test_straps(self):
+        self.assertEqual(sum(len(cell.straps) for cell in self.glider.cells), 45)
+        for cell in self.glider.cells:
+            for strap in cell.straps:  # on the lower side, 100 .. 150 mm wide on both ribs
+                self.assertEqual(strap.left_front[1], -1)
+                self.assertTrue(0.098 < strap.width_left * cell.rib1.chord < 0.152)
+                self.assertTrue(0.098 < strap.width_right * cell.rib2.chord < 0.152)
+
+    def test_cut_3d(self):
+        cell = self.glider.cells[5]
+        self.assertEqual(len(cell.panels), 3)
+        cell.calculate_3d_shaping(numribs=10)
+        cut = next(p.cut_back for p in cell.panels if p.cut_back["type"] == "cut_3d" and abs(p.cut_back["left"] + 0.07) < 1e-9)
+        amount = cut["amount_3d"]
+        self.assertEqual(len(amount), 12)
+        self.assertAlmostEqual(amount[0], 0)
+        self.assertAlmostEqual(max(amount), cut["sagitta"], delta=0.02 * cut["sagitta"])
+        self.assertTrue(0.003 < cut["sagitta"] < 0.0041)
 
     def test_diagonals(self):
         self.assertEqual(sum(len(cell.diagonals) for cell in self.glider.cells), 44)
