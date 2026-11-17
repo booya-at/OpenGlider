@@ -140,6 +140,8 @@ class Bezier(HashedList):
         Fit to a given set of points with a certain number of spline-points (default=3)
         if start (/ end) is True, the first (/ last) point of the Curve is included
         """
+        # PolyLine2D treats indices as curve parameters (points[-1] != last point)
+        points = np.array(points)
         base = self.basefactory(numpoints)
         matrix = np.array(
             [

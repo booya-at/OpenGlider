@@ -44,7 +44,7 @@ class BasicCell(CachedObject):
             # 1: x1 = x*d
             # 2: x2 = R*normvekt*(cos(phi2)-cos(phi)
             # 3: norm(d)/r*(1-x) = 2*sin(phi(2))
-            if with_numpy:
+            if with_numpy and ballooning and not close_trailing_edge:  # the loop below honours both flags
                 l_phi = np.array(self.ballooning_phi)
                 l_n = np.array(self.normvectors)
                 l_r = np.array(self.ballooning_radius)

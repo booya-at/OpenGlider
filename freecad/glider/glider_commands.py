@@ -94,7 +94,7 @@ class activeGlider(object):
         if cells is None:
             cells = range(self.ParametricGlider.shape.half_cell_num)
         cut = {"left": pos, "right": pos, "cells": cells, "type": "orthogonal"}
-        self.ParametricGlider.elements["cuts"].append(cut)
+        self.ParametricGlider.elements.setdefault("cuts", []).append(cut)
 
 
 #: Global helper bound to the current FreeCAD selection.

@@ -525,7 +525,26 @@ class DribPlot(object):
     def flatten(self, attachment_points=None):
         return self._flatten(attachment_points, self.config.drib_num_folds)
 
+    def _flatten_shaped(self, attachment_points):
+        """a part with a shape (DiagonalRib.shape: tapes spread out to the seams): the stitch line is its
+        outline, the cut the outline with the allowance outside"""
+        plotpart = PlotPart(material_code=self.drib.material_code, name=self.drib.name)
+        outline = self.drib.get_flattened_outline(self.cell)
+        pts = list(outline.data)
+        closed = PolyLine2D(pts + [pts[0]])
+        area = 0.5 * sum(p[0] * q[1] - q[0] * p[1] for p, q in zip(pts, pts[1:] + pts[:1]))
+        cut = closed.copy().add_stuff(self.config.allowance_general if area < 0 else -self.config.allowance_general)
+        plotpart.layers["cuts"].append(cut)
+        plotpart.layers["stitches"].append(closed)
+        plotpart.layers["marks"].append(PolyLine2D([self.left[0], self.left[len(self.left) - 1]]))
+        plotpart.layers["marks"].append(PolyLine2D([self.right[0], self.right[len(self.right) - 1]]))
+        self._insert_attachment_points(plotpart, attachment_points)
+        self._insert_text(plotpart)
+        return plotpart
+
     def _flatten(self, attachment_points, num_folds):
+        if getattr(self.drib, "shape", None):
+            return self._flatten_shaped(attachment_points)
         plotpart = PlotPart(material_code=self.drib.material_code, name=self.drib.name)
 
         if num_folds > 0:

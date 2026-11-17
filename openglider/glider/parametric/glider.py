@@ -400,7 +400,8 @@ class ParametricGlider(object):
             profile.x_values = profile_x_values
 
             this_rib_holes = [
-                RibHole(ribhole["pos"], ribhole["size"])
+                RibHole(ribhole["pos"], ribhole["size"],
+                        ribhole.get("vertical_shift", 0.0), ribhole.get("rotation", 0.0))
                 for ribhole in rib_holes
                 if rib_no in ribhole["ribs"]
             ]

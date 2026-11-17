@@ -541,7 +541,7 @@ class CutLine(Line):
         CutLine.lower_point_set = set()
         CutLine.upper_line_list = []
         CutLine.lower_line_list = []
-        for cut in parametric_glider.elements["cuts"]:
+        for cut in parametric_glider.elements.get("cuts", []):
             for cell_nr in cut["cells"]:
                 try:
                     CutLine(

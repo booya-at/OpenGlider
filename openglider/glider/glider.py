@@ -332,7 +332,8 @@ class Glider(object):
 
             x += width * (rib.pos[1] > 0)  # x-value
             if x == 0:
-                last_pos = np.array([0.0, 0.0])
+                # still at the center: measure the next cell from the symmetry plane
+                last_pos = np.array([0.0, rib.pos[2]])
             y_front = -rib.pos[0] + rib.chord * rib.startpos
             y_back = -rib.pos[0] + rib.chord * (rib.startpos - 1)
             front.append([x, y_front])

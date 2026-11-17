@@ -90,8 +90,9 @@ class base_table_widget(QtGui.QWidget):
 
     @property
     def desktop_size(self):
-        d = QtGui.QApplication.desktop()
-        return ((d.width() - self.width()) / 2, (d.height() - self.height()) / 2)
+        # QApplication.desktop() was removed in Qt 6
+        d = QtGui.QApplication.primaryScreen().availableGeometry()
+        return ((d.width() - self.width()) // 2, (d.height() - self.height()) // 2)
 
     def test_init(self):
         self.table.setRowCount(10)
